@@ -22,13 +22,6 @@ public class RavenQueryableFilterProvider : QueryableFilterProvider
         descriptor.AddFieldHandler<RavenStringNotInHandler>();
         descriptor.AddFieldHandler<RavenEnumInHandler>();
         descriptor.AddFieldHandler<RavenEnumNotInHandler>();
-        descriptor.AddFieldHandler<RavenListAllOperationHandler>();
         descriptor.AddDefaultFieldHandlers();
     }
-
-    /*
-    protected override bool IsInMemoryQuery<TEntityType>(object? input)
-        => base.IsInMemoryQuery<TEntityType>(input) &&
-            input is not IRavenQueryable<TEntityType> and not IRavenQueryable;
-            */
 }

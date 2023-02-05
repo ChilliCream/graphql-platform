@@ -1,3 +1,4 @@
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -9,9 +10,9 @@ using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;
 using Squadron;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data.Raven;
 
-public abstract class FilterVisitorTestBase : IAsyncLifetime
+public abstract class VisitorTestBase : IAsyncLifetime
 {
     public RavenDBResource Resource { get; } = new();
 
@@ -21,6 +22,12 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 
+    public IDocumentStore CreateDatabase()
+    {
+        var dbName = $"DB_{Guid.NewGuid():N}";
+        return Resource.CreateDatabase(dbName);
+    }
+
     protected IRequestExecutor CreateSchema<TEntity, T>(
         TEntity[] entities,
         FilterConvention? convention = null,
@@ -29,8 +36,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
-        var dbName = $"DB_{Guid.NewGuid():N}";
-        var documentStore = Resource.CreateDatabase(dbName);
+        var documentStore = CreateDatabase();
 
         var resolver = BuildResolver(documentStore, entities);
 

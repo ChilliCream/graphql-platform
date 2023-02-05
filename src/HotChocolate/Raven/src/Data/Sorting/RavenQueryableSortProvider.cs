@@ -10,10 +10,4 @@ public class RavenQueryableSortProvider : QueryableSortProvider
         Action<ISortProviderDescriptor<QueryableSortContext>> configure) : base(configure)
     {
     }
-
-    /*
-    protected override bool IsInMemoryQuery<TEntityType>(object? input)
-        => base.IsInMemoryQuery<TEntityType>(input) &&
-            input is not IRavenQueryable<TEntityType>;
-            */
 }
