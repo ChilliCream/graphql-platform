@@ -647,7 +647,7 @@ type Query {
 
 ## Binding of FilterTypes
 
-`FilterInputType`'s **can** just be registered like any other type on the schema.
+`FilterInputType`'s can be registered like any other type on the schema.
 
 **Configuration**
 
