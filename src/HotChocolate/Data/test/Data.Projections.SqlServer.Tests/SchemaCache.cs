@@ -23,6 +23,7 @@ public class SchemaCache
         where T : class
     {
         (Type, T[] entites) key = (typeof(T), entities);
+
         return _cache.GetOrAdd(
             key,
             _ => base.CreateSchema(

@@ -15,8 +15,8 @@ public class QueryableProjectionExtensionsTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
-        };
+        new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
+    };
 
     [Fact]
     public async Task Extensions_Should_ProjectQuery()
@@ -57,9 +57,9 @@ public class QueryableProjectionExtensionsTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -81,9 +81,9 @@ public class QueryableProjectionExtensionsTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

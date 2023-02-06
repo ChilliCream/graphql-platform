@@ -39,7 +39,8 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
             .OnBeforeCreate(
                 (context, definition) =>
                 {
-                    definition.ContextData[optionName] = null;
+                    definition.ContextData[optionName] = true;
+                    definition.ContextData[SelectionOptions.MemberIsList] = true;
 
                     if (definition.ResultType is null ||
                         !context.TypeInspector.TryCreateTypeInfo(

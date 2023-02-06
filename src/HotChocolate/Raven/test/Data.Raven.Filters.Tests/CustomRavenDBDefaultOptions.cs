@@ -12,5 +12,7 @@ public sealed class CustomRavenDBDefaultOptions : RavenDBDefaultOptions
         {
             builder.Image("ravendb/ravendb:5.4-ubuntu-arm64v8-latest");
         }
+
+        builder.WaitTimeout(120);
     }
 }

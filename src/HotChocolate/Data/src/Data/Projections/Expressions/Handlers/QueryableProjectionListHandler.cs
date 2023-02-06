@@ -12,9 +12,8 @@ public class QueryableProjectionListHandler
 {
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is { } &&
-        selection.Type is ListType ||
-        selection.Type is NonNullType nonNullType &&
-        nonNullType.InnerType() is ListType;
+        (selection.IsList ||
+            selection.Field.ContextData.ContainsKey(SelectionOptions.MemberIsList));
 
     public override QueryableProjectionContext OnBeforeEnter(
         QueryableProjectionContext context,
@@ -41,6 +40,7 @@ public class QueryableProjectionListHandler
         if (field.Member is not PropertyInfo { CanWrite: true })
         {
             action = SelectionVisitor.Skip;
+
             return true;
         }
 
@@ -54,6 +54,7 @@ public class QueryableProjectionListHandler
         context.AddScope(clrType);
 
         action = SelectionVisitor.Continue;
+
         return true;
     }
 
@@ -67,6 +68,7 @@ public class QueryableProjectionListHandler
         if (field.Member is null)
         {
             action = null;
+
             return false;
         }
 
@@ -76,6 +78,7 @@ public class QueryableProjectionListHandler
             !context.TryGetQueryableScope(out var parentScope))
         {
             action = null;
+
             return false;
         }
 
@@ -85,6 +88,7 @@ public class QueryableProjectionListHandler
             (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
         {
             action = SelectionVisitor.Continue;
+
             return true;
         }
 
@@ -95,6 +99,7 @@ public class QueryableProjectionListHandler
         parentScope.Level.Peek().Enqueue(Expression.Bind(field.Member, select));
 
         action = SelectionVisitor.Continue;
+
         return true;
     }
 }
