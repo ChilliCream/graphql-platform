@@ -13,7 +13,7 @@ a Result:
 
 a SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where (d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0)
+from 'Foos' where regex(Bar, $p0)
 ---------------
 
 b Result:
@@ -31,7 +31,7 @@ b Result:
 
 b SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where (d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0)
+from 'Foos' where regex(Bar, $p0)
 ---------------
 
 null

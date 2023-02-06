@@ -2,20 +2,14 @@ false Result:
 ---------------
 {
   "data": {
-    "root": [
-      {
-        "foo": {
-          "objectArray": null
-        }
-      }
-    ]
+    "root": []
   }
 }
 ---------------
 
 false SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where (CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb) is null or jsonb_array_length(CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb)) = 0)
+from 'Bars' where (true and not exists(Foo.ObjectArray))
 ---------------
 
 true Result:
@@ -44,6 +38,11 @@ true Result:
             }
           ]
         }
+      },
+      {
+        "foo": {
+          "objectArray": null
+        }
       }
     ]
   }
@@ -52,7 +51,7 @@ true Result:
 
 true SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where (CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb) is not null and jsonb_array_length(CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb)) > 0)
+from 'Bars' where exists(Foo.ObjectArray)
 ---------------
 
 null

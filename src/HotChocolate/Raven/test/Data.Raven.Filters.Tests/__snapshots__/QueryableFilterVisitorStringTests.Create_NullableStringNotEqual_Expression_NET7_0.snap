@@ -5,6 +5,9 @@ testatest Result:
     "root": [
       {
         "bar": "testbtest"
+      },
+      {
+        "bar": null
       }
     ]
   }
@@ -13,7 +16,7 @@ testatest Result:
 
 testatest SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where d.data ->> 'Bar' != :p0
+from 'FooNullables' where Bar != $p0
 ---------------
 
 testbtest Result:
@@ -23,6 +26,9 @@ testbtest Result:
     "root": [
       {
         "bar": "testatest"
+      },
+      {
+        "bar": null
       }
     ]
   }
@@ -31,7 +37,7 @@ testbtest Result:
 
 testbtest SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where d.data ->> 'Bar' != :p0
+from 'FooNullables' where Bar != $p0
 ---------------
 
 null Result:
@@ -52,5 +58,5 @@ null Result:
 
 null SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where d.data ->> 'Bar' is not null
+from 'FooNullables' where Bar != $p0
 ---------------

@@ -4,7 +4,7 @@ using HotChocolate.Data.Raven.Filtering.Handlers;
 
 namespace HotChocolate.Data.Raven.Filtering;
 
-public class RavenQueryableFilterProvider : QueryableFilterProvider
+internal sealed class RavenQueryableFilterProvider : QueryableFilterProvider
 {
     public RavenQueryableFilterProvider(
         Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
@@ -22,6 +22,10 @@ public class RavenQueryableFilterProvider : QueryableFilterProvider
         descriptor.AddFieldHandler<RavenStringNotInHandler>();
         descriptor.AddFieldHandler<RavenEnumInHandler>();
         descriptor.AddFieldHandler<RavenEnumNotInHandler>();
+        descriptor.AddFieldHandler<RavenStringNotContainsHandler>();
+        descriptor.AddFieldHandler<RavenStringContainsHandler>();
         descriptor.AddDefaultFieldHandlers();
     }
+
+    protected override bool IsInMemoryQuery<TEntityType>(object? input) => false;
 }
