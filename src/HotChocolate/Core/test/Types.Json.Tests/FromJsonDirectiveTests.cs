@@ -123,6 +123,42 @@ public class FromJsonDirectiveTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task MapField_UserDefinedAndListTypes()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(@"
+                type Query {
+                    foo: Foo
+                }
+
+                type Foo {
+                    userDefinedType: UserDefinedType @fromJson
+                    userDefinedListType: [UserDefinedType] @fromJson
+                }
+                type UserDefinedType {
+                    number: Int @fromJson
+                }
+                ")
+            .AddResolver("Query", "foo", _ => JsonDocument.Parse("{\"userDefinedType\":{\"number\":123},\"userDefinedListType\":[{\"number\":123},{\"number\":123}]}"
+            ).RootElement)
+            .AddJsonSupport()
+            .ExecuteRequestAsync(
+                @"{
+                    foo {
+                        userDefinedType{
+                            number
+                        }
+                        userDefinedListType{
+                            number
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
 
     public class Query
     {
