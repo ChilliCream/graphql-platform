@@ -18,8 +18,17 @@ public sealed class AuthorizeDirective
     /// </param>
     public AuthorizeDirective(
         IReadOnlyList<string> roles,
-        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+        ApplyPolicy apply = ApplyPolicy.Validation)
         : this(null, roles, apply) { }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthorizeDirective"/>.
+    /// </summary>
+    /// <param name="apply">
+    /// Specifies when the authorization directive shall be applied.
+    /// </param>
+    public AuthorizeDirective(ApplyPolicy apply)
+        : this(null, null, apply) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="AuthorizeDirective"/>.
@@ -36,7 +45,7 @@ public sealed class AuthorizeDirective
     public AuthorizeDirective(
         string? policy = null,
         IReadOnlyList<string>? roles = null,
-        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+        ApplyPolicy apply = ApplyPolicy.Validation)
     {
         Policy = policy;
         Roles = roles;

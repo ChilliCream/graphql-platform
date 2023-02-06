@@ -47,12 +47,10 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             .Argument(t => t.Apply)
             .Name(Names.Apply)
             .Description(
-                "Defines when when the resolver shall be executed." +
-                "By default the resolver is executed after the policy " +
-                "has determined that the current user is allowed to access " +
-                "the field.")
+                "Defines when when the authorize directive shall be applied." +
+                "By default the authorize directives are applied during the validation phase.")
             .Type<NonNullType<ApplyPolicyType>>()
-            .DefaultValue(ApplyPolicy.BeforeResolver);
+            .DefaultValue(ApplyPolicy.Validation);
 
         var context = descriptor.Extend().Context;
         descriptor.Use(CreateMiddleware(context.Services));
