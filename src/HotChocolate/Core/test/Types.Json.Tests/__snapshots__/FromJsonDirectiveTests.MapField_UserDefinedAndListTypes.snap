@@ -1,0 +1,17 @@
+﻿{
+  "data": {
+    "foo": {
+      "userDefinedType": {
+        "number": 123
+      },
+      "userDefinedListType": [
+        {
+          "number": 123
+        },
+        {
+          "number": 123
+        }
+      ]
+    }
+  }
+}
