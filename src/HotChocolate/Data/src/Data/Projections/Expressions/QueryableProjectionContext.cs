@@ -10,8 +10,11 @@ public class QueryableProjectionContext : ProjectionVisitorContext<Expression>
     public QueryableProjectionContext(
         IResolverContext context,
         IOutputType initialType,
-        Type runtimeType)
+        Type runtimeType,
+        bool inMemory)
         : base(context, initialType, new QueryableProjectionScope(runtimeType, "_s1"))
     {
     }
+
+    public bool InMemory { get; }
 }

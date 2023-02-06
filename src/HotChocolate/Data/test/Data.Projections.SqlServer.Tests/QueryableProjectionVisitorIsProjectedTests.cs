@@ -20,8 +20,7 @@ public class QueryableProjectionVisitorIsProjectedTests
 
     private static readonly Bar[] _barEntities =
     {
-        new() { IsProjectedFalse = false },
-        new() { IsProjectedFalse = false }
+        new() { IsProjectedFalse = false }, new() { IsProjectedFalse = false }
     };
 
     private readonly SchemaCache _cache = new();
