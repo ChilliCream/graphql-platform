@@ -327,13 +327,15 @@ public class FederatedRedisSchemaTests
                     .SetName(_accounts)
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
-                        @"extend type Query {
-                                me: User! @delegate(path: ""user(id: 1)"")
-                            }
+                        """
+                        extend type Query {
+                            me: User! @delegate(path: "user(id: 1)")
+                        }
 
-                            extend type Review {
-                                author: User @delegate(path: ""user(id: $fields:authorId)"")
-                            }")
+                        extend type Review {
+                            author: User @delegate(path: "user(id: $fields:authorId)")
+                        }
+                        """)
                     .PublishToRedis(configurationName, _ => _connection)),
             app => app
                 .UseWebSockets()
@@ -351,13 +353,15 @@ public class FederatedRedisSchemaTests
                     .SetName(_inventory)
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
-                        @"extend type Product {
-                                inStock: Boolean
-                                    @delegate(path: ""inventoryInfo(upc: $fields:upc).isInStock"")
+                        """
+                        extend type Product {
+                            inStock: Boolean
+                                @delegate(path: "inventoryInfo(upc: $fields:upc).isInStock")
 
-                                shippingEstimate: Int
-                                    @delegate(path: ""shippingEstimate(price: $fields:price weight: $fields:weight)"")
-                            }")
+                            shippingEstimate: Int
+                                @delegate(path: "shippingEstimate(price: $fields:price weight: $fields:weight)")
+                        }
+                        """)
                     .PublishToRedis(configurationName, _ => _connection)),
             app => app
                 .UseWebSockets()
@@ -375,13 +379,15 @@ public class FederatedRedisSchemaTests
                     .SetName(_products)
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
-                        @"extend type Query {
-                                topProducts(first: Int = 5): [Product] @delegate
-                            }
+                        """
+                        extend type Query {
+                            topProducts(first: Int = 5): [Product] @delegate
+                        }
 
-                            extend type Review {
-                                product: Product @delegate(path: ""product(upc: $fields:upc)"")
-                            }")
+                        extend type Review {
+                            product: Product @delegate(path: ""product(upc: $fields:upc)"")
+                        }
+                        """)
                     .PublishToRedis(configurationName, _ => _connection)),
             app => app
                 .UseWebSockets()
@@ -399,15 +405,17 @@ public class FederatedRedisSchemaTests
                     .SetName(_reviews)
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
-                        @"extend type User {
-                                reviews: [Review]
-                                    @delegate(path:""reviewsByAuthor(authorId: $fields:id)"")
-                            }
+                        """
+                        extend type User {
+                            reviews: [Review]
+                                @delegate(path:"reviewsByAuthor(authorId: $fields:id)")
+                        }
 
-                            extend type Product {
-                                reviews: [Review]
-                                    @delegate(path:""reviewsByProduct(upc: $fields:upc)"")
-                            }")
+                        extend type Product {
+                            reviews: [Review]
+                                @delegate(path:"reviewsByProduct(upc: $fields:upc)")
+                        }
+                        """)
                     .PublishToRedis(configurationName, _ => _connection)),
             app => app
                 .UseWebSockets()
