@@ -24,7 +24,8 @@ public class FilterConventionExtension
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override FilterConventionDefinition CreateDefinition(IConventionContext context)
+    protected override FilterConventionDefinition CreateDefinition(
+        IConventionContext context)
     {
         if (_configure is null)
         {
@@ -60,7 +61,9 @@ public class FilterConventionExtension
                 Definition.Bindings,
                 filterConvention.Definition.Bindings);
 
-            filterConvention.Definition.Configurations.AddRange(Definition.Configurations);
+            ExtensionHelpers.MergeListDictionary(
+                Definition.Configurations,
+                filterConvention.Definition.Configurations);
 
             filterConvention.Definition.Operations.AddRange(Definition.Operations);
 
