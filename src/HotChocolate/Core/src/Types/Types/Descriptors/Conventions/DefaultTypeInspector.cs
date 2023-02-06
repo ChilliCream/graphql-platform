@@ -684,7 +684,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         return false;
     }
 
-    private bool CanBeHandled(
+    protected virtual bool CanBeHandled(
         MemberInfo member,
         bool includeIgnored,
         bool allowObjectType)
