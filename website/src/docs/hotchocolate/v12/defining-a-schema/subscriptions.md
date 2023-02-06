@@ -275,7 +275,7 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 }
 ```
 
-If we do not want to mix the subscription logic with our resolver, we can define both resolver and subscriber methods separately. Resolver method can point to the subscriber method using `With` argument on the `Subscribe`.
+If we do not want to mix the subscription logic with our resolver, we can define both resolver and subscriber methods separately. The resolver method can point to the subscriber method using the `With` argument on the `SubscribeAttribute`.
 
 ```csharp
 
