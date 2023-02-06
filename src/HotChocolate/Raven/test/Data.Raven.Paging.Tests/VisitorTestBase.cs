@@ -25,6 +25,7 @@ public abstract class VisitorTestBase : IAsyncLifetime
     public IDocumentStore CreateDatabase()
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
+
         return Resource.CreateDatabase(dbName);
     }
 

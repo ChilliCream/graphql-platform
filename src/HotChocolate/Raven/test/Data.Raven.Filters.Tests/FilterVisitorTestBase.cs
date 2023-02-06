@@ -1,4 +1,5 @@
 using HotChocolate.Data.Raven.Pagination;
+using HotChocolate.Data.Raven;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -100,6 +101,11 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                 {
                     context.ContextData["sql"] = queryable.ToString();
                     context.Result = await queryable.ToListAsync(context.RequestAborted);
+                }
+                else if (context.Result is IExecutable<TEntity> executable)
+                {
+                    context.ContextData["sql"] = executable.Print();
+                    context.Result = await executable.ToListAsync(context.RequestAborted);
                 }
             });
 

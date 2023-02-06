@@ -133,6 +133,18 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         };
     }
 
+    protected virtual object? ApplyExpression<TEntityType>(
+        object? input,
+        Expression<Func<TEntityType, bool>> where)
+        => input switch
+        {
+            IQueryable<TEntityType> q => q.Where(where),
+            IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
+            QueryableExecutable<TEntityType> ex =>
+                ex.WithSource(ex.Source.Where(where)),
+            _ => input
+        };
+
     public override void ConfigureField(
         string argumentName,
         IObjectFieldDescriptor descriptor)

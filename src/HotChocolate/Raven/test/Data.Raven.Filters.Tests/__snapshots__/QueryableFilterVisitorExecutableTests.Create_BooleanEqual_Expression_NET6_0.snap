@@ -1,0 +1,41 @@
+true Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+true SQL:
+---------------
+from 'Foos'
+---------------
+
+false Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+false SQL:
+---------------
+from 'Foos'
+---------------

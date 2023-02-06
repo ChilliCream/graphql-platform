@@ -1,0 +1,71 @@
+true Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": null
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+true SQL:
+---------------
+from 'FooNullables'
+---------------
+
+false Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": null
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+false SQL:
+---------------
+from 'FooNullables'
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": null
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+null SQL:
+---------------
+from 'FooNullables'
+---------------
