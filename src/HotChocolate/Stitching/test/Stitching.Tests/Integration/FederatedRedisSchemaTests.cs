@@ -247,7 +247,8 @@ public class FederatedRedisSchemaTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 me {
                     id
                     name
@@ -258,7 +259,8 @@ public class FederatedRedisSchemaTests
                         }
                     }
                 }
-            }",
+            }
+            """,
             cts.Token);
 
         // assert
@@ -296,7 +298,8 @@ public class FederatedRedisSchemaTests
 
             // act
             var result = await executor.ExecuteAsync(
-                @"{
+                """
+                {
                     me {
                         id
                         name
@@ -308,7 +311,8 @@ public class FederatedRedisSchemaTests
                         }
                     }
                     local
-                }",
+                }
+                """,
                 ct);
 
             // assert
@@ -385,7 +389,7 @@ public class FederatedRedisSchemaTests
                         }
 
                         extend type Review {
-                            product: Product @delegate(path: ""product(upc: $fields:upc)"")
+                            product: Product @delegate(path: "product(upc: $fields:upc)")
                         }
                         """)
                     .PublishToRedis(configurationName, _ => _connection)),
