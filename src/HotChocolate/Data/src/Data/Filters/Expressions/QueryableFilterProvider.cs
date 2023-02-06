@@ -107,14 +107,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
                 if (visitorContext.TryCreateLambda(
                         out Expression<Func<TEntityType, bool>>? where))
                 {
-                    input = input switch
-                    {
-                        IQueryable<TEntityType> q => q.Where(where),
-                        IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
-                        QueryableExecutable<TEntityType> ex =>
-                            ex.WithSource(ex.Source.Where(where)),
-                        _ => input
-                    };
+                    input = ApplyExpression(input, where);
                 }
                 else
                 {
@@ -132,6 +125,18 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             return input;
         };
     }
+
+    protected virtual object? ApplyExpression<TEntityType>(
+        object? input,
+        Expression<Func<TEntityType, bool>> where)
+        => input switch
+        {
+            IQueryable<TEntityType> q => q.Where(where),
+            IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
+            QueryableExecutable<TEntityType> ex =>
+                ex.WithSource(ex.Source.Where(where)),
+            _ => input
+        };
 
     public override void ConfigureField(
         string argumentName,
