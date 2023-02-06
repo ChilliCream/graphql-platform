@@ -13,7 +13,9 @@ public class QueryableSortVisitorExpressionTests
         new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>() },
         new Foo
         {
-            Name = "Foo", LastName = "Galoo", Bars = new List<Bar>() { new() { Value = "A" } }
+            Name = "Foo",
+            LastName = "Galoo",
+            Bars = new List<Bar>() { new() { Value = "A" } }
         }
     };
 
@@ -67,14 +69,10 @@ public class QueryableSortVisitorExpressionTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
         ;
     }

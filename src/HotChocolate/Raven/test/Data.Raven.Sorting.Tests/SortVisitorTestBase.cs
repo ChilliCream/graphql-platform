@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using HotChocolate.Data;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -13,13 +13,13 @@ namespace HotChocolate.Data.Sorting;
 
 public class SortVisitorTestBase : IAsyncLifetime
 {
-    protected RavenDBResource Resource { get; } = new();
+    protected RavenDBResource<CustomRavenDBDefaultOptions> Resource { get; } = new();
 
     public Task InitializeAsync() => Resource.InitializeAsync();
 
     public Task DisposeAsync() => Resource.DisposeAsync();
 
-    private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+    private Func<IResolverContext, IRavenQueryable<TResult>> BuildResolver<TResult>(
         IDocumentStore store,
         params TResult[] results)
         where TResult : class
@@ -121,6 +121,11 @@ public class SortVisitorTestBase : IAsyncLifetime
                 {
                     context.ContextData["sql"] = queryable.ToString();
                     context.Result = await queryable.ToListAsync(context.RequestAborted);
+                }
+                else if (context.Result is IExecutable<TEntity> executable)
+                {
+                    context.ContextData["sql"] = executable.Print();
+                    context.Result = await executable.ToListAsync(context.RequestAborted);
                 }
             });
 

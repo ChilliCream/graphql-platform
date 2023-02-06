@@ -107,7 +107,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
                 if (visitorContext.TryCreateLambda(
                         out Expression<Func<TEntityType, bool>>? where))
                 {
-                    input = ApplyExpression(input, where);
+                    input = ApplyToResult(input, where);
                 }
                 else
                 {
@@ -126,7 +126,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         };
     }
 
-    protected virtual object? ApplyExpression<TEntityType>(
+    protected virtual object? ApplyToResult<TEntityType>(
         object? input,
         Expression<Func<TEntityType, bool>> where)
         => input switch

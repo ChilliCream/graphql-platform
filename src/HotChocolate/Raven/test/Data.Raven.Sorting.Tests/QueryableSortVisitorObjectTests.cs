@@ -170,14 +170,10 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -204,14 +200,10 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "13")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "13")
             .MatchAsync();
     }
 
@@ -237,14 +229,10 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -271,14 +259,10 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "13")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "13")
             .MatchAsync();
     }
 
@@ -304,14 +288,10 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -338,14 +318,10 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "13")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "13")
             .MatchAsync();
     }
 
@@ -371,14 +347,10 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -405,14 +377,10 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "13")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "13")
             .MatchAsync();
     }
 
@@ -472,20 +440,12 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "ASC"),
-                        res2,
-                        "ASC"),
-                    res3,
-                    "DESC"),
-                res4,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "ASC")
+            .AddResult(res3, "DESC")
+            .AddResult(res4, "DESC")
             .MatchAsync();
     }
 
@@ -617,20 +577,12 @@ public class QueryableSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "ASC"),
-                        res2,
-                        "ASC"),
-                    res3,
-                    "DESC"),
-                res4,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "ASC")
+            .AddResult(res3, "DESC")
+            .AddResult(res4, "DESC")
             .MatchAsync();
     }
 

@@ -5,17 +5,17 @@ ASC Result:
     "root": [
       {
         "foo": {
-          "barEnum": "FOO"
-        }
-      },
-      {
-        "foo": {
           "barEnum": "BAR"
         }
       },
       {
         "foo": {
           "barEnum": "BAZ"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "FOO"
         }
       }
     ]
@@ -25,7 +25,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_bar as d order by CAST(d.data -> 'Foo' ->> 'BarEnum' as integer)
+from 'Bars' order by Foo.BarEnum
 ---------------
 
 DESC Result:
@@ -35,17 +35,17 @@ DESC Result:
     "root": [
       {
         "foo": {
+          "barEnum": "FOO"
+        }
+      },
+      {
+        "foo": {
           "barEnum": "BAZ"
         }
       },
       {
         "foo": {
           "barEnum": "BAR"
-        }
-      },
-      {
-        "foo": {
-          "barEnum": "FOO"
         }
       }
     ]
@@ -55,5 +55,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_bar as d order by CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) desc
+from 'Bars' order by Foo.BarEnum desc
 ---------------
