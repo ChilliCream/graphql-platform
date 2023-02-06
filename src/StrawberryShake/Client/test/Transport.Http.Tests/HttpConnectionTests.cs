@@ -45,7 +45,7 @@ public class HttpConnectionTests : ServerTestBase
             t => t.RootElement.ToString().MatchSnapshot());
     }
 
-    [Fact]
+    [Fact(Skip = "We are postponing defer integration until spec is more stable.")]
     public async Task MultiPart_Request()
     {
         // arrange
@@ -105,7 +105,7 @@ public class HttpConnectionTests : ServerTestBase
         await snapshot.MatchAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "We are postponing defer integration until spec is more stable.")]
     public async Task MultiPart_Request_2()
     {
         // arrange

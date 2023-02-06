@@ -45,5 +45,6 @@ public sealed class DirectiveTypeAttribute
         }
 
         descriptor.Location(Location);
+        descriptor.Extend().Definition.Arguments.BindingBehavior = BindingBehavior.Implicit;
     }
 }

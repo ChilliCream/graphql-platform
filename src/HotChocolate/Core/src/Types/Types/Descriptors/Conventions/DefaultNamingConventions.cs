@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public class DefaultNamingConventions
     : Convention
-        , INamingConventions
+    , INamingConventions
 {
     private const string _inputPostfix = "Input";
     private const string _inputTypePostfix = "InputType";

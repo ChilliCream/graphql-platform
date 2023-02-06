@@ -84,6 +84,12 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         // will use to transform the schema authorization.
         var state = _state = CreateState();
 
+        // copy temporary state to schema state.
+        if (_context.ContextData.TryGetValue(AuthorizationRequestPolicy, out var value))
+        {
+            _schemaContextData[AuthorizationRequestPolicy] = value;
+        }
+
         // before we can apply schema transformations we will inspect the object types
         // to identify the ones that are protected with authorization directives.
         InspectObjectTypesForAuthDirective(state);
@@ -371,7 +377,6 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 // pipeline.
                 var auth = new AuthorizeMiddleware(
                     next,
-                    schemaServices.GetApplicationService<IAuthorizationHandler>(),
                     directive);
 
                 return async context => await auth.InvokeAsync(context);

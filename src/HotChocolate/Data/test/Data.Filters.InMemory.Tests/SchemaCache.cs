@@ -14,7 +14,6 @@ public class SchemaCache
         T[] entities,
         bool withPaging = false,
         Action<ISchemaBuilder>? configure = null)
-        where T : class
         where TType : FilterInputType<T>
     {
         (Type, Type, T[] entites) key = (typeof(T), typeof(TType), entities);

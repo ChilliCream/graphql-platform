@@ -1127,6 +1127,82 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart_Batching_Disabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp => sp.AddHttpResponseFormatter());
+
+        // act
+        var response =
+            await server.SendPostRequestAsync(
+                JsonConvert.SerializeObject(
+                    new List<ClientQueryRequest>
+                    {
+                        new ClientQueryRequest
+                        {
+                            Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
+                            }"
+                        },
+                        new ClientQueryRequest
+                        {
+                            Query = @"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
+                        }
+                    }),
+                path: "/batching");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new Exception("GraphQL endpoint not found.");
+        }
+
+        var result = await response.Content.ReadAsStringAsync();
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task OperationBatchRequest_GetHero_And_GetHuman_Batching_Disabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostOperationAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query getHero {
+                            hero(episode: EMPIRE) {
+                                id @export
+                            }
+                        }
+
+                        query getHuman {
+                            human(id: $id) {
+                                name
+                            }
+                        }"
+                },
+                "getHero, getHuman",
+                path: "/batching");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task OperationBatchRequest_Invalid_BatchingParameter_1()
     {
         // arrange

@@ -101,6 +101,17 @@ services.AddGraphQLServer()
 
 > Note: Only add this if your application requires it. You're better off with the new default otherwise.
 
+## Batching
+
+As an added security measure, batching has been disabled per default in this release. If you require batching, you now need to explicitly enable it.
+
+```csharp
+app.MapGraphQL().WithOptions(new GraphQLServerOptions
+{
+    EnableBatching = true
+});
+```
+
 ## DataLoaderAttribute
 
 Previously you might have annotated [DataLoaders](/docs/hotchocolate/v13/fetching-data/dataloader) in your resolver method signature with the `[DataLoader]` attribute. This attribute has been removed in v13 and can be safely removed from your code.
@@ -141,6 +152,57 @@ ITopicEventReceiver.SubscribeAsync<TMessage>(string topicName,
 
 ITopicEventSender.SendAsync<TMessage>(string topicName, TMessage message,
     CancellationToken cancellationToken)
+```
+
+## TopicAttribute
+
+Previously you might have annotated the `[Topic]` attribute on a method argument, to designate its runtime value as a dynamic topic.
+Now we no longer allow the attribute on arguments, but only on the method itself.
+
+**Before**
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    public Book BookPublished([Topic] string author, [EventMessage] Book book)
+        => book;
+}
+```
+
+**After**
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    // What's inbetween the curly braces must match an argument name.
+    [Topic("{author}")]
+    public Book BookPublished(string author, [EventMessage] Book book)
+        => book;
+}
+```
+
+## AddInMemorySubscriptions / AddRedisSubscriptions
+
+We moved the extension methods from the `IServiceCollection` to our `IRequestExecutorBuilder`.
+
+**Before**
+
+```csharp
+builder.Services.AddInMemorySubscriptins();
+// or
+builder.Services.AddRedisSubscriptins();
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddInMemorySubscriptins()
+    // or
+    .AddRedisSubscriptins();
 ```
 
 ## @defer / @stream
