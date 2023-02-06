@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data;
 
-internal sealed class RavenConvention : FilterConvention
+internal sealed class RavenFilteringConvention : FilterConvention
 {
     private ITypeInspector _typeInspector = null!;
 

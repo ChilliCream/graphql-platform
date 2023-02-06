@@ -4,4 +4,5 @@ internal static class SelectionOptions
 {
     public const string FirstOrDefault = "FirstOrDefault";
     public const string SingleOrDefault = "SingleOrDefault";
+    public const string MemberIsList = "MemberIsList";
 }

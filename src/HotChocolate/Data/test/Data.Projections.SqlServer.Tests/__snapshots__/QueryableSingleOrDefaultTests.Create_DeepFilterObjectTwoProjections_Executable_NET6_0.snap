@@ -1,3 +1,5 @@
+Result:
+---------------
 {
   "errors": [
     {
@@ -17,3 +19,9 @@
     "rootExecutable": null
   }
 }
+---------------
+
+SQL:
+---------------
+Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[HotChocolate.Data.Projections.QueryableSingleOrDefaultTests+Bar]
+---------------

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
@@ -42,7 +43,7 @@ public class QueryableProjectionProvider : ProjectionProvider
         }
     }
 
-    private static ApplyProjection CreateApplicator<TEntityType>()
+    private ApplyProjection CreateApplicator<TEntityType>()
         => (context, input) =>
         {
             if (input is null)
@@ -64,11 +65,13 @@ public class QueryableProjectionProvider : ProjectionProvider
                 return input;
             }
 
-            var visitorContext =
-                new QueryableProjectionContext(
-                    context,
-                    context.ObjectType,
-                    context.Selection.Type.UnwrapRuntimeType());
+            var inMemory = IsInMemoryQuery<TEntityType>(input);
+
+            var visitorContext = new QueryableProjectionContext(
+                context,
+                context.ObjectType,
+                context.Selection.Type.UnwrapRuntimeType(),
+                inMemory);
 
             var visitor = new QueryableProjectionVisitor();
 
@@ -76,12 +79,23 @@ public class QueryableProjectionProvider : ProjectionProvider
 
             var projection = visitorContext.Project<TEntityType>();
 
-            return input switch
-            {
-                IQueryable<TEntityType> q => q.Select(projection),
-                IEnumerable<TEntityType> e => e.AsQueryable().Select(projection),
-                QueryableExecutable<TEntityType> ex => ex.WithSource(ex.Source.Select(projection)),
-                _ => input
-            };
+            return ApplyToResult(input, projection);
+        };
+
+    protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
+    {
+        // We cannot opt out of the nullchecks because ef core does not like it
+        return true;
+    }
+
+    protected virtual object? ApplyToResult<TEntityType>(
+        object? input,
+        Expression<Func<TEntityType, TEntityType>> projection)
+        => input switch
+        {
+            IQueryable<TEntityType> q => q.Select(projection),
+            IEnumerable<TEntityType> e => e.AsQueryable().Select(projection),
+            QueryableExecutable<TEntityType> ex => ex.WithSource(ex.Source.Select(projection)),
+            _ => input
         };
 }
