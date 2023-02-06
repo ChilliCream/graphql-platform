@@ -267,7 +267,10 @@ public static class JsonObjectTypeExtensions
     {
         if (type.IsListType())
             def.PureResolver = ctx => ctx.GetListProperty(propertyName);
-        def.PureResolver = ctx => ctx.GetUserDefinedProperty(propertyName);
+        else
+        {
+            def.PureResolver = ctx => ctx.GetUserDefinedProperty(propertyName);
+        }
     }
 
     private static List<JsonElement>? GetListProperty(this IPureResolverContext context, string propertyName)
