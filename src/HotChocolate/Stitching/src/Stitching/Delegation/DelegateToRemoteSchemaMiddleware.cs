@@ -476,7 +476,7 @@ public sealed class DelegateToRemoteSchemaMiddleware
             value = rewriter.RewriteValueNode(
                 schemaName,
                 (IInputType)variable.Type.ToType(namedType),
-                value);
+                value!);
 
             yield return new ScopedVariableValue
             (

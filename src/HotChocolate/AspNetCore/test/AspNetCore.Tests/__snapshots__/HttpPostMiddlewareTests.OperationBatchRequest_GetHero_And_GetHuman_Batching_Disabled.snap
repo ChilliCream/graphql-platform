@@ -1,0 +1,16 @@
+[
+  {
+    "ContentType": "application/graphql-response+json; charset=utf-8",
+    "StatusCode": "BadRequest",
+    "Data": null,
+    "Errors": [
+      {
+        "message": "Invalid GraphQL Request.",
+        "extensions": {
+          "code": "HC0009"
+        }
+      }
+    ],
+    "Extensions": null
+  }
+]

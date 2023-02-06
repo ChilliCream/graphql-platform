@@ -129,11 +129,11 @@ namespace HotChocolate.Stitching.Redis
         {
             var key = $"{_configurationName}.{schemaName}";
             var json = (byte[])await _database.StringGetAsync(key).ConfigureAwait(false);
-            var dto = JsonSerializer.Deserialize<SchemaDefinitionDto>(json);
+            var dto = JsonSerializer.Deserialize<SchemaDefinitionDto>(json)!;
 
             return new RemoteSchemaDefinition(
-                dto.Name,
-                Utf8GraphQLParser.Parse(dto.Document),
+                dto.Name!,
+                Utf8GraphQLParser.Parse(dto.Document!),
                 dto.ExtensionDocuments.Select(Utf8GraphQLParser.Parse));
         }
 
