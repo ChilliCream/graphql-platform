@@ -252,7 +252,7 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 
 If more complex topics are required, we can use the `ITopicEventReceiver`.
 
-> ⚠️ Note: We recommend not use `SubscribeAndResolve` as it very easily can lead to unexpected behavior with the state that is aggregated on not released. As can be seen in the code-first example above, all subscription fields are in fact made of two methods (resolver and subscriber). When using `Subscribe`, the attributed method represents resolver method (with subscriber method generated at runtime) whereas `SubscribeAndResolve` denotes subscriber method (with resolver method generated at runtime).
+> ⚠️ Note: We recommend not use `SubscribeAndResolve` as it very easily can lead to unexpected behavior with the state that is aggregated and not released until the end of the subscription. As can be seen in the code-first example above, all subscription fields are in fact made of two methods (resolver and subscriber). When using `Subscribe`, the attributed method represents the resolver method (with the subscriber method generated at runtime) whereas `SubscribeAndResolve` denotes subscriber method (with resolver method generated at runtime and executed in the stream context).
 
 ```csharp
 public class Subscription
