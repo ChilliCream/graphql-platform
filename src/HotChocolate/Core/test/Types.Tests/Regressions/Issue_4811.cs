@@ -48,7 +48,7 @@ public class Issue_4811
             }
 
             input CreateCnaeInput {
-              cNAE: CNAEMutationInput!
+              cnae: CNAEMutationInput!
             }
             """);
     }
