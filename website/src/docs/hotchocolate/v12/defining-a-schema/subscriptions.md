@@ -292,7 +292,7 @@ public class Subscription
 
 ```
 
-Subscriber method can access all parameters passed to the resolver method.
+The subscriber method can access all parameters passed into the resolver method.
 
 ```csharp
 public class Subscription
