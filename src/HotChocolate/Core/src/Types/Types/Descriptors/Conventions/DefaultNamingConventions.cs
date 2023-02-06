@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Properties;
 
 #nullable enable
 
@@ -93,7 +92,7 @@ public class DefaultNamingConventions
                 name = name.Substring(0, name.Length - _directiveTypePostfix.Length);
             }
 
-            name = AttributeExtensions.NormalizeFieldName(name);
+            name = NameFormattingHelpers.FormatFieldName(name);
         }
 
         return name;
@@ -357,66 +356,5 @@ public class DefaultNamingConventions
 
     /// <inheritdoc />
     public string FormatFieldName(string fieldName)
-    {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentException(
-                TypeResources.DefaultNamingConventions_FormatFieldName_EmptyOrNull,
-                nameof(name));
-        }
-
-        // quick exit
-        if (char.IsLower(name[0]))
-        {
-            return name;
-        }
-
-        var size = name.Length;
-        char[]? rented = null;
-        Span<char> buffer = size <= 128
-            ? stackalloc char[size]
-            : rented = ArrayPool<char>.Shared.Rent(size);
-
-        try
-        {
-            var p = 0;
-            for (; p < name.Length && char.IsLetter(name[p]) && char.IsUpper(name[p]); p++)
-            {
-                buffer[p] = char.ToLowerInvariant(name[p]);
-            }
-
-            // in case more than one character is upper case, we uppercase
-            // the current character. We only uppercase the character
-            // back if the last character is a letter
-            //
-            // before    after      result
-            // FOOBar    FOOBar   = fooBar
-            //    ^        ^
-            // FOO1Ar    FOO1Ar   = foo1Ar
-            //   ^         ^
-            // FOO_Ar    FOO_Ar   = foo_Ar
-            //   ^         ^
-            if (p < name.Length && p > 1 && char.IsLetter(name[p]))
-            {
-                buffer[p - 1] = char.ToUpperInvariant(name[p - 1]);
-            }
-
-            for (; p < name.Length; p++)
-            {
-                buffer[p] = name[p];
-            }
-
-            fixed (char* charPtr = buffer)
-            {
-                return new string(charPtr, 0, buffer.Length);
-            }
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<char>.Shared.Return(rented);
-            }
-        }
-    }
+        => NameFormattingHelpers.FormatFieldName(fieldName);
 }
