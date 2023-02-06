@@ -108,20 +108,24 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
                 }
                 else
                 {
-                    input = input switch
-                    {
-                        IQueryable<TEntityType> q => visitorContext.Sort(q),
-                        IEnumerable<TEntityType> e => visitorContext.Sort(e.AsQueryable()),
-                        QueryableExecutable<TEntityType> ex =>
-                            ex.WithSource(visitorContext.Sort(ex.Source)),
-                        _ => input
-                    };
+                    input = ApplyToResult<TEntityType>(input, q => visitorContext.Sort(q));
                 }
             }
 
             return input;
         };
     }
+
+    protected virtual object? ApplyToResult<TEntityType>(
+        object? input,
+        Func<IQueryable<TEntityType>, IQueryable<TEntityType>> sort)
+        => input switch
+        {
+            IQueryable<TEntityType> q => sort(q),
+            IEnumerable<TEntityType> e => sort(e.AsQueryable()),
+            QueryableExecutable<TEntityType> ex => ex.WithSource(sort(ex.Source)),
+            _ => input
+        };
 
     public override void ConfigureField(
         string argumentName,

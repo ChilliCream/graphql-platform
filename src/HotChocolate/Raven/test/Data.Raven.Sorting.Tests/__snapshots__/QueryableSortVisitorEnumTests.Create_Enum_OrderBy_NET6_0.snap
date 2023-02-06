@@ -4,13 +4,13 @@ ASC Result:
   "data": {
     "root": [
       {
-        "barEnum": "FOO"
-      },
-      {
         "barEnum": "BAR"
       },
       {
         "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "FOO"
       },
       {
         "barEnum": "QUX"
@@ -22,7 +22,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorenumtests_foo as d order by CAST(d.data ->> 'BarEnum' as integer)
+from 'Foos' order by BarEnum
 ---------------
 
 DESC Result:
@@ -34,13 +34,13 @@ DESC Result:
         "barEnum": "QUX"
       },
       {
+        "barEnum": "FOO"
+      },
+      {
         "barEnum": "BAZ"
       },
       {
         "barEnum": "BAR"
-      },
-      {
-        "barEnum": "FOO"
       }
     ]
   }
@@ -49,5 +49,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorenumtests_foo as d order by CAST(d.data ->> 'BarEnum' as integer) desc
+from 'Foos' order by BarEnum desc
 ---------------

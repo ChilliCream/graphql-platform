@@ -1,8 +1,11 @@
-ASC
+ASC Result:
 ---------------
 {
   "data": {
     "rootExecutable": [
+      {
+        "bar": null
+      },
       {
         "bar": false
       },
@@ -14,7 +17,12 @@ ASC
 }
 ---------------
 
-DESC
+ASC SQL:
+---------------
+from 'FooNullables' order by Bar
+---------------
+
+DESC Result:
 ---------------
 {
   "data": {
@@ -24,8 +32,16 @@ DESC
       },
       {
         "bar": false
+      },
+      {
+        "bar": null
       }
     ]
   }
 }
+---------------
+
+DESC SQL:
+---------------
+from 'FooNullables' order by Bar desc
 ---------------

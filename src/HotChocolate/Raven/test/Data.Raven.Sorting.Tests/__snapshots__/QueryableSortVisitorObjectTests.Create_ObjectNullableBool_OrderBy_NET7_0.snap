@@ -4,6 +4,14 @@ ASC Result:
   "data": {
     "root": [
       {
+        "foo": null
+      },
+      {
+        "foo": {
+          "barBool": null
+        }
+      },
+      {
         "foo": {
           "barBool": false
         }
@@ -17,14 +25,6 @@ ASC Result:
         "foo": {
           "barBool": true
         }
-      },
-      {
-        "foo": {
-          "barBool": null
-        }
-      },
-      {
-        "foo": null
       }
     ]
   }
@@ -33,7 +33,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullable as d order by CAST(d.data -> 'Foo' ->> 'BarBool' as boolean)
+from 'BarNullables' order by Foo.BarBool
 ---------------
 
 13 Result:
@@ -43,14 +43,6 @@ select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullab
     "root": [
       {
         "foo": {
-          "barBool": null
-        }
-      },
-      {
-        "foo": null
-      },
-      {
-        "foo": {
           "barBool": true
         }
       },
@@ -63,6 +55,14 @@ select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullab
         "foo": {
           "barBool": false
         }
+      },
+      {
+        "foo": {
+          "barBool": null
+        }
+      },
+      {
+        "foo": null
       }
     ]
   }
@@ -71,5 +71,5 @@ select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullab
 
 13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullable as d order by CAST(d.data -> 'Foo' ->> 'BarBool' as boolean) desc
+from 'BarNullables' order by Foo.BarBool desc
 ---------------

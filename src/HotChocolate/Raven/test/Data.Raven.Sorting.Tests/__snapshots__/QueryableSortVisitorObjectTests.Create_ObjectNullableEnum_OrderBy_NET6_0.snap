@@ -4,9 +4,7 @@ ASC Result:
   "data": {
     "root": [
       {
-        "foo": {
-          "barEnum": "FOO"
-        }
+        "foo": null
       },
       {
         "foo": {
@@ -20,11 +18,13 @@ ASC Result:
       },
       {
         "foo": {
-          "barEnum": "QUX"
+          "barEnum": "FOO"
         }
       },
       {
-        "foo": null
+        "foo": {
+          "barEnum": "QUX"
+        }
       }
     ]
   }
@@ -33,7 +33,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullable as d order by CAST(d.data -> 'Foo' ->> 'BarEnum' as integer)
+from 'BarNullables' order by Foo.BarEnum
 ---------------
 
 13 Result:
@@ -42,11 +42,13 @@ select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullab
   "data": {
     "root": [
       {
-        "foo": null
+        "foo": {
+          "barEnum": "QUX"
+        }
       },
       {
         "foo": {
-          "barEnum": "QUX"
+          "barEnum": "FOO"
         }
       },
       {
@@ -60,9 +62,7 @@ select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullab
         }
       },
       {
-        "foo": {
-          "barEnum": "FOO"
-        }
+        "foo": null
       }
     ]
   }
@@ -71,5 +71,5 @@ select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullab
 
 13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullable as d order by CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) desc
+from 'BarNullables' order by Foo.BarEnum desc
 ---------------
