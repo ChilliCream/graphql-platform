@@ -107,14 +107,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
                 if (visitorContext.TryCreateLambda(
                         out Expression<Func<TEntityType, bool>>? where))
                 {
-                    input = input switch
-                    {
-                        IQueryable<TEntityType> q => q.Where(where),
-                        IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
-                        QueryableExecutable<TEntityType> ex =>
-                            ex.WithSource(ex.Source.Where(where)),
-                        _ => input
-                    };
+                    input = ApplyExpression(input, where);
                 }
                 else
                 {

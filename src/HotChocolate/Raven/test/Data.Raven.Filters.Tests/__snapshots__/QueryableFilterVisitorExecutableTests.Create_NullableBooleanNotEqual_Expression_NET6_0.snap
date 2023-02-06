@@ -4,9 +4,6 @@ true Result:
   "data": {
     "rootExecutable": [
       {
-        "bar": true
-      },
-      {
         "bar": null
       },
       {
@@ -19,7 +16,7 @@ true Result:
 
 true SQL:
 ---------------
-from 'FooNullables'
+from 'FooNullables' where Bar != $p0
 ---------------
 
 false Result:
@@ -32,9 +29,6 @@ false Result:
       },
       {
         "bar": null
-      },
-      {
-        "bar": false
       }
     ]
   }
@@ -43,7 +37,7 @@ false Result:
 
 false SQL:
 ---------------
-from 'FooNullables'
+from 'FooNullables' where Bar != $p0
 ---------------
 
 null Result:
@@ -55,9 +49,6 @@ null Result:
         "bar": true
       },
       {
-        "bar": null
-      },
-      {
         "bar": false
       }
     ]
@@ -67,5 +58,5 @@ null Result:
 
 null SQL:
 ---------------
-from 'FooNullables'
+from 'FooNullables' where Bar != $p0
 ---------------

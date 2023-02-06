@@ -5,9 +5,6 @@ true Result:
     "rootExecutable": [
       {
         "bar": true
-      },
-      {
-        "bar": false
       }
     ]
   }
@@ -16,7 +13,7 @@ true Result:
 
 true SQL:
 ---------------
-from 'Foos'
+from 'Foos' where Bar = $p0
 ---------------
 
 false Result:
@@ -24,9 +21,6 @@ false Result:
 {
   "data": {
     "rootExecutable": [
-      {
-        "bar": true
-      },
       {
         "bar": false
       }
@@ -37,5 +31,5 @@ false Result:
 
 false SQL:
 ---------------
-from 'Foos'
+from 'Foos' where Bar = $p0
 ---------------
