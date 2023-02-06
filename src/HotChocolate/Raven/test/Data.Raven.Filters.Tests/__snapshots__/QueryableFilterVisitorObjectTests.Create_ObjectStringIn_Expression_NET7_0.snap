@@ -20,7 +20,7 @@ testatestAndtestb Result:
 
 testatestAndtestb SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data -> 'Foo' ->> 'BarString' = ANY(:p0)
+from 'Bars' where Foo.BarString in ($p0)
 ---------------
 
 testbtestAndNull
@@ -68,5 +68,5 @@ testatest Result:
 
 testatest SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data -> 'Foo' ->> 'BarString' = ANY(:p0)
+from 'Bars' where Foo.BarString in ($p0)
 ---------------

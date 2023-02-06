@@ -16,7 +16,7 @@ testatestAndtestb Result:
 
 testatestAndtestb SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where d.data ->> 'Bar' = ANY(:p0)
+from 'FooNullables' where Bar in ($p0)
 ---------------
 
 testbtestAndNull Result:
@@ -26,6 +26,9 @@ testbtestAndNull Result:
     "root": [
       {
         "bar": "testbtest"
+      },
+      {
+        "bar": null
       }
     ]
   }
@@ -34,7 +37,7 @@ testbtestAndNull Result:
 
 testbtestAndNull SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where d.data ->> 'Bar' = ANY(:p0)
+from 'FooNullables' where Bar in ($p0)
 ---------------
 
 testatest Result:
@@ -52,5 +55,5 @@ testatest Result:
 
 testatest SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where d.data ->> 'Bar' = ANY(:p0)
+from 'FooNullables' where Bar in ($p0)
 ---------------

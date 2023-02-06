@@ -20,7 +20,7 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) = ANY(:p0)
+from 'Bars' where Foo.BarEnum in ($p0)
 ---------------
 
 FOO Result:
@@ -40,7 +40,7 @@ FOO Result:
 
 FOO SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) = ANY(:p0)
+from 'Bars' where Foo.BarEnum in ($p0)
 ---------------
 
 nullAndFoo Result:
