@@ -9,6 +9,6 @@ namespace HotChocolate.Data.Filters;
 /// <example><see cref="QueryableListAnyOperationHandler"/></example>
 /// </summary>
 #pragma warning disable CA1040 // Avoid empty interfaces
-public interface IListFilterInputType : IFilterInputType
+public interface IListFilterInputType
 {
 }

@@ -11,6 +11,7 @@ public class FilterConventionDefinition : IHasScope
     public static readonly string DefaultArgumentName = "where";
     private string _argumentName = DefaultArgumentName;
 
+
     public string? Scope { get; set; }
 
     public string ArgumentName
@@ -27,7 +28,9 @@ public class FilterConventionDefinition : IHasScope
 
     public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 
-    public List<FilteringTypeReferenceConfiguration> Configurations { get; } = new();
+    public IDictionary<TypeReference, List<ConfigureFilterInputType>> Configurations { get; } =
+        new Dictionary<TypeReference, List<ConfigureFilterInputType>>(
+            TypeReferenceComparer.Default);
 
     public List<IFilterProviderExtension> ProviderExtensions { get; } = new();
 
