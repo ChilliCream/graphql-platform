@@ -1,3 +1,5 @@
+Result:
+---------------
 {
   "errors": [
     {
@@ -17,3 +19,9 @@
     "root": null
   }
 }
+---------------
+
+SQL:
+---------------
+Translating this query requires the SQL APPLY operation, which is not supported on SQLite.
+---------------

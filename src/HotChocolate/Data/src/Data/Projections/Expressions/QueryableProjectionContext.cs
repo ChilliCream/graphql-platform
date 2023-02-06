@@ -14,6 +14,7 @@ public class QueryableProjectionContext : ProjectionVisitorContext<Expression>
         bool inMemory)
         : base(context, initialType, new QueryableProjectionScope(runtimeType, "_s1"))
     {
+        InMemory = inMemory;
     }
 
     public bool InMemory { get; }

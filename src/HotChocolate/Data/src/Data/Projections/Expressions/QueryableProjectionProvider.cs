@@ -84,12 +84,8 @@ public class QueryableProjectionProvider : ProjectionProvider
 
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory })
-        {
-            return inMemory;
-        }
-
-        return input is not IQueryable || input is EnumerableQuery;
+        // We cannot opt out of the nullchecks because ef core does not like it
+        return true;
     }
 
     protected virtual object? ApplyToResult<TEntityType>(
