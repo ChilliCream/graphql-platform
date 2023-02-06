@@ -4,6 +4,9 @@ ASC Result:
   "data": {
     "root": [
       {
+        "barShort": null
+      },
+      {
         "barShort": 12
       },
       {
@@ -11,9 +14,6 @@ ASC Result:
       },
       {
         "barShort": 14
-      },
-      {
-        "barShort": null
       }
     ]
   }
@@ -22,7 +22,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorcomparabletests_foonullable as d order by CAST(d.data ->> 'BarShort' as smallint)
+from 'FooNullables' order by BarShort as long
 ---------------
 
 DESC Result:
@@ -31,9 +31,6 @@ DESC Result:
   "data": {
     "root": [
       {
-        "barShort": null
-      },
-      {
         "barShort": 14
       },
       {
@@ -41,6 +38,9 @@ DESC Result:
       },
       {
         "barShort": 12
+      },
+      {
+        "barShort": null
       }
     ]
   }
@@ -49,5 +49,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorcomparabletests_foonullable as d order by CAST(d.data ->> 'BarShort' as smallint) desc
+from 'FooNullables' order by BarShort as long desc
 ---------------

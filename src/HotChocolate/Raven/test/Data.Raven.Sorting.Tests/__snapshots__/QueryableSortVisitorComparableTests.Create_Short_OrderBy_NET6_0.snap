@@ -19,7 +19,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorcomparabletests_foo as d order by CAST(d.data ->> 'BarShort' as smallint)
+from 'Foos' order by BarShort as long
 ---------------
 
 DESC Result:
@@ -43,5 +43,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorcomparabletests_foo as d order by CAST(d.data ->> 'BarShort' as smallint) desc
+from 'Foos' order by BarShort as long desc
 ---------------

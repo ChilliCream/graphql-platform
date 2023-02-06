@@ -4,13 +4,13 @@ ASC Result:
   "data": {
     "root": [
       {
+        "bar": null
+      },
+      {
         "bar": false
       },
       {
         "bar": true
-      },
-      {
-        "bar": null
       }
     ]
   }
@@ -19,7 +19,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorbooleantests_foonullable as d order by CAST(d.data ->> 'Bar' as boolean)
+from 'FooNullables' order by Bar
 ---------------
 
 DESC Result:
@@ -28,13 +28,13 @@ DESC Result:
   "data": {
     "root": [
       {
-        "bar": null
-      },
-      {
         "bar": true
       },
       {
         "bar": false
+      },
+      {
+        "bar": null
       }
     ]
   }
@@ -43,5 +43,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorbooleantests_foonullable as d order by CAST(d.data ->> 'Bar' as boolean) desc
+from 'FooNullables' order by Bar desc
 ---------------

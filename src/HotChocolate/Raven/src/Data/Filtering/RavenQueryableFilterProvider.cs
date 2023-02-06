@@ -33,14 +33,12 @@ internal sealed class RavenQueryableFilterProvider : QueryableFilterProvider
 
     protected override bool IsInMemoryQuery<TEntityType>(object? input) => false;
 
-    protected override object? ApplyExpression<TEntityType>(
+    protected override object? ApplyToResult<TEntityType>(
         object? input,
         Expression<Func<TEntityType, bool>> where)
         => input switch
         {
             IRavenQueryable<TEntityType> q => q.Where(where),
-            IQueryable<TEntityType> q => q.Where(where),
-            IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
             IAsyncDocumentQuery<TEntityType> q => q
                 .ToQueryable()
                 .Where(where)

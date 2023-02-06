@@ -4,7 +4,7 @@ ASC Result:
   "data": {
     "root": [
       {
-        "barEnum": "FOO"
+        "barEnum": null
       },
       {
         "barEnum": "BAR"
@@ -13,10 +13,10 @@ ASC Result:
         "barEnum": "BAZ"
       },
       {
-        "barEnum": "QUX"
+        "barEnum": "FOO"
       },
       {
-        "barEnum": null
+        "barEnum": "QUX"
       }
     ]
   }
@@ -25,7 +25,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorenumtests_foonullable as d order by CAST(d.data ->> 'BarEnum' as integer)
+from 'FooNullables' order by BarEnum
 ---------------
 
 DESC Result:
@@ -34,10 +34,10 @@ DESC Result:
   "data": {
     "root": [
       {
-        "barEnum": null
+        "barEnum": "QUX"
       },
       {
-        "barEnum": "QUX"
+        "barEnum": "FOO"
       },
       {
         "barEnum": "BAZ"
@@ -46,7 +46,7 @@ DESC Result:
         "barEnum": "BAR"
       },
       {
-        "barEnum": "FOO"
+        "barEnum": null
       }
     ]
   }
@@ -55,5 +55,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorenumtests_foonullable as d order by CAST(d.data ->> 'BarEnum' as integer) desc
+from 'FooNullables' order by BarEnum desc
 ---------------
