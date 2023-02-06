@@ -1,5 +1,8 @@
 using CookieCrumble;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Linq;
 
 namespace HotChocolate.Data.Filters;
 
@@ -143,13 +146,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "12").AddResult(
-                res2,
-                "13").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -183,13 +183,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "12and13").AddResult(
-                res2,
-                "13and14").AddResult(
-                res3,
-                "nullAnd14")
+            .Create()
+            .AddResult(res1, "12and13")
+            .AddResult(res2, "13and14")
+            .AddResult(res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -223,13 +220,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "12").AddResult(
-                res2,
-                "13").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -263,13 +257,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "12and13").AddResult(
-                res2,
-                "13and14").AddResult(
-                res3,
-                "13andNull")
+            .Create()
+            .AddResult(res1, "12and13")
+            .AddResult(res2, "13and14")
+            .AddResult(res3, "13andNull")
             .MatchAsync();
     }
 
@@ -296,11 +287,9 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "true").AddResult(
-                res2,
-                "false")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -334,13 +323,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "true").AddResult(
-                res2,
-                "false").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -374,13 +360,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BAR").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -414,11 +397,14 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
+            .Create()
+            .AddResult(
                 res1,
-                "BarAndFoo").AddResult(
+                "BarAndFoo")
+            .AddResult(
                 res2,
-                "FOO").AddResult(
+                "FOO")
+            .AddResult(
                 res3,
                 "nullAndFoo")
             .MatchAsync();
@@ -455,11 +441,14 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
+            .Create()
+            .AddResult(
                 res1,
-                "BAR").AddResult(
+                "BAR")
+            .AddResult(
                 res2,
-                "FOO").AddResult(
+                "FOO")
+            .AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -470,6 +459,10 @@ public class QueryableFilterVisitorObjectTests
     {
         // arrange
         var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var session = tester.Services.GetApplicationService<IDocumentStore>().OpenAsyncSession();
+        var query = session.Query<BarNullable>()
+            .Where(x => x.Foo!.BarEnum.In(BarEnum.BAR))
+            .ToString();
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -495,13 +488,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BarAndFoo").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "nullAndFoo")
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -534,13 +524,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "testatest").AddResult(
-                res2,
-                "testbtest").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -575,13 +562,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "testatestAndtestb").AddResult(
-                res2,
-                "testbtestAndNull").AddResult(
-                res3,
-                "testatest")
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -618,13 +602,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "a").AddResult(
-                res2,
-                "b").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "b")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -633,6 +614,8 @@ public class QueryableFilterVisitorObjectTests
     {
         // arrange
         var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        using var session =
+            tester.Services.GetApplicationService<IDocumentStore>().OpenAsyncSession();
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -658,13 +641,10 @@ public class QueryableFilterVisitorObjectTests
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "false").AddResult(
-                res2,
-                "true").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "false")
+            .AddResult(res2, "true")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 

@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Filters;
 
 public abstract class FilterVisitorTestBase : IAsyncLifetime
 {
-    public RavenDBResource Resource { get; } = new();
+    public RavenDBResource<CustomRavenDBDefaultOptions> Resource { get; } = new();
 
     public Task InitializeAsync() => Resource.InitializeAsync();
 

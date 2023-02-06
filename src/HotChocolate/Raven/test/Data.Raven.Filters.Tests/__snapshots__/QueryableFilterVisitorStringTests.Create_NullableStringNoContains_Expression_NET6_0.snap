@@ -5,9 +5,6 @@ a Result:
     "root": [
       {
         "bar": "testbtest"
-      },
-      {
-        "bar": null
       }
     ]
   }
@@ -16,7 +13,7 @@ a Result:
 
 a SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where (d.data ->> 'Bar' is null or NOT(d.data ->> 'Bar' LIKE :p0))
+from 'FooNullables' where (true and not regex(Bar, $p0))
 ---------------
 
 b Result:
@@ -37,7 +34,7 @@ b Result:
 
 b SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where (d.data ->> 'Bar' is null or NOT(d.data ->> 'Bar' LIKE :p0))
+from 'FooNullables' where (true and not regex(Bar, $p0))
 ---------------
 
 null

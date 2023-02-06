@@ -35,14 +35,15 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     public IFilterOperationConventionDescriptor Operation(int operationId)
     {
         if (_operations.TryGetValue(
-            operationId,
-            out var descriptor))
+                operationId,
+                out var descriptor))
         {
             return descriptor;
         }
 
         descriptor = FilterOperationConventionDescriptor.New(operationId);
         _operations.Add(operationId, descriptor);
+
         return descriptor;
     }
 
@@ -72,12 +73,12 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
         }
 
         Definition.Bindings[runtimeType] = filterType;
+
         return this;
     }
 
     /// <inheritdoc />
-    public IFilterConventionDescriptor Configure<TFilterType>(
-        ConfigureFilterInputType configure)
+    public IFilterConventionDescriptor Configure<TFilterType>(ConfigureFilterInputType configure)
         where TFilterType : FilterInputType =>
         Configure(
             Context.TypeInspector.GetTypeRef(
@@ -108,14 +109,15 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
         ConfigureFilterInputType configure)
     {
         if (!Definition.Configurations.TryGetValue(
-            typeReference,
-            out var configurations))
+                typeReference,
+                out var configurations))
         {
             configurations = new List<ConfigureFilterInputType>();
             Definition.Configurations.Add(typeReference, configurations);
         }
 
         configurations.Add(configure);
+
         return this;
     }
 
@@ -130,6 +132,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     {
         Definition.Provider = typeof(TProvider);
         Definition.ProviderInstance = provider;
+
         return this;
     }
 
@@ -149,6 +152,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
         }
 
         Definition.Provider = provider;
+
         return this;
     }
 
@@ -156,6 +160,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
     public IFilterConventionDescriptor ArgumentName(string argumentName)
     {
         Definition.ArgumentName = argumentName;
+
         return this;
     }
 
@@ -163,6 +168,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
         where TExtension : class, IFilterProviderExtension
     {
         Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+
         return this;
     }
 
@@ -170,18 +176,21 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
         where TExtension : class, IFilterProviderExtension
     {
         Definition.ProviderExtensions.Add(provider);
+
         return this;
     }
 
     public IFilterConventionDescriptor AllowOr(bool allow = true)
     {
         Definition.UseOr = allow;
+
         return this;
     }
 
     public IFilterConventionDescriptor AllowAnd(bool allow = true)
     {
         Definition.UseAnd = allow;
+
         return this;
     }
 

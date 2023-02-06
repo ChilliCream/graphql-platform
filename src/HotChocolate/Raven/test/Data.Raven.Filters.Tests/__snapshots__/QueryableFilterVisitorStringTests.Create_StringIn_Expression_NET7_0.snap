@@ -16,7 +16,7 @@ testatestAndtestb Result:
 
 testatestAndtestb SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' = ANY(:p0)
+from 'Foos' where Bar in ($p0)
 ---------------
 
 testbtestAndNull
@@ -62,5 +62,5 @@ testatest Result:
 
 testatest SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' = ANY(:p0)
+from 'Foos' where Bar in ($p0)
 ---------------
