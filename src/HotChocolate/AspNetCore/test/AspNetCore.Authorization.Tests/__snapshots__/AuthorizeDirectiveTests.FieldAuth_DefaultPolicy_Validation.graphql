@@ -3,7 +3,7 @@ schema {
 }
 
 type Query {
-  foo: String @authorize(apply: VALIDATION)
+  foo: String @authorize
 }
 
 enum ApplyPolicy {
@@ -12,4 +12,4 @@ enum ApplyPolicy {
   VALIDATION
 }
 
-directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on OBJECT | FIELD_DEFINITION
+directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = VALIDATION) repeatable on OBJECT | FIELD_DEFINITION
