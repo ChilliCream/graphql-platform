@@ -253,32 +253,7 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 
 ## ITopicEventReceiver
 
-If more complex topics are required, we can use the `ITopicEventReceiver`.
-
-> ⚠️ Note: Pay attention to the use of `SubscribeAndResolve` instead of `Subscribe`. As can be seen in the code-first example above, all subscription fields are in fact made of two methods (resolver and subscriber). When using `Subscribe`, the attributed method represents resolver method (with subscriber method generated at runtime) whereas `SubscribeAndResolve` denotes subscriber method (with resolver method generated at runtime).
-
-```csharp
-public class Subscription
-{
-    [SubscribeAndResolve]
-    public ValueTask<ISourceStream<Book>> BookPublished(string author,
-        [Service] ITopicEventReceiver receiver)
-    {
-        var topic = $"{author}_PublishedBook";
-
-        return receiver.SubscribeAsync<string, Book>(topic);
-    }
-}
-
-public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
-{
-    await sender.SendAsync($"{book.Author}_PublishedBook", book);
-
-    // Omitted code for brevity
-}
-```
-
-If we do not want to mix the subscription logic with our resolver, we can define both resolver and subscriber methods separately. Resolver method can point to the subscriber method using `With` argument on the `Subscribe`.
+If more complex topics are required, we can use the `ITopicEventReceiver` with a separate subscriber method. Resolver method can point to the subscriber method using `With` argument on the `Subscribe`.
 
 ```csharp
 
