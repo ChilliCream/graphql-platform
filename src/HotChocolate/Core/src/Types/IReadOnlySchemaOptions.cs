@@ -81,4 +81,7 @@ public interface IReadOnlySchemaOptions
 
     /// <inheritdoc cref="SchemaOptions.EnableStream"/>
     bool EnableStream { get; }
+
+    /// <inheritdoc cref="SchemaOptions.MaxAllowedNodeBatchSize"/>
+    int MaxAllowedNodeBatchSize { get; }
 }

@@ -122,19 +122,23 @@ public class AuthorizationTests : ServerTestBase
     {
         // arrange
         var server = CreateTestServer(
-            configure,
+            builder =>
+            {
+                configure(builder);
+            },
             context =>
             {
                 context.User = new ClaimsPrincipal(
-                    new ClaimsIdentity());
+                    new ClaimsIdentity("testauth"));
             });
 
-        // act
-        async Task Error ()
-            => await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+        // ac
+        var result =
+            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
-        await Assert.ThrowsAsync<InvalidOperationException>(Error);
+        Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
+        result.MatchSnapshot();
     }
 
     [Theory]

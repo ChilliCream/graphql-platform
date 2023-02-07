@@ -5,37 +5,61 @@ namespace HotChocolate.AspNetCore.Warmup;
 internal class ExecutorWarmupService : BackgroundService
 {
     private readonly IRequestExecutorResolver _executorResolver;
-    private readonly HashSet<string> _schemaNames;
+    private readonly Dictionary<string, WarmupSchemaTask[]> _tasks;
+    private CancellationToken _stopping;
 
     public ExecutorWarmupService(
         IRequestExecutorResolver executorResolver,
-        IEnumerable<WarmupSchema> schemas)
+        IEnumerable<WarmupSchemaTask> tasks)
     {
-        if (schemas is null)
+        if (tasks is null)
         {
-            throw new ArgumentNullException(nameof(schemas));
+            throw new ArgumentNullException(nameof(tasks));
         }
 
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));
-        _schemaNames = new HashSet<string>(schemas.Select(t => t.SchemaName));
+        _tasks = tasks.GroupBy(t => t.SchemaName).ToDictionary(t => t.Key, t => t.ToArray());
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        foreach (var schemaName in _schemaNames)
+        _stopping = stoppingToken;
+        _executorResolver.RequestExecutorEvicted += (_, args) => BeginWarmup(args.Name);
+
+        foreach (var task in _tasks)
         {
             // initialize services
-            var executor =
-                await _executorResolver.GetRequestExecutorAsync(schemaName, stoppingToken);
+            var executor = await _executorResolver.GetRequestExecutorAsync(task.Key, stoppingToken);
 
-            // initialize pipeline with warmup request
-            IQueryRequest warmupRequest = QueryRequestBuilder.New()
-                .SetQuery("{ __typename }")
-                .AllowIntrospection()
-                .Create();
+            // execute startup task
+            foreach (var warmup in task.Value)
+            {
+                await warmup.ExecuteAsync(executor, stoppingToken);
+            }
+        }
+    }
 
-            await executor.ExecuteAsync(warmupRequest, stoppingToken);
+    private void BeginWarmup(string schemaName)
+    {
+        if (_tasks.TryGetValue(schemaName, out var value) && value.Any(t => t.KeepWarm))
+        {
+            Task.Factory.StartNew(() => WarmupAsync(schemaName, value, _stopping), _stopping);
+        }
+    }
+
+    private async Task WarmupAsync(
+        string schemaName,
+        WarmupSchemaTask[] tasks,
+        CancellationToken ct)
+    {
+        // initialize services
+        var executor = await _executorResolver.GetRequestExecutorAsync(schemaName, ct);
+
+        // execute startup task
+        foreach (var warmup in tasks)
+        {
+            await warmup.ExecuteAsync(executor, ct);
         }
     }
 }
