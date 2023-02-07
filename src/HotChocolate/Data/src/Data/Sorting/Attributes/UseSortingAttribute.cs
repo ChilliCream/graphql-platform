@@ -10,13 +10,13 @@ namespace HotChocolate.Data;
 /// <summary>
 /// Registers the middleware and adds the arguments for sorting
 /// </summary>
-public sealed class UseSortingAttribute : ObjectFieldDescriptorAttribute
+public class UseSortingAttribute : ObjectFieldDescriptorAttribute
 {
     private static readonly MethodInfo _generic = typeof(SortObjectFieldDescriptorExtensions)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Single(m => m.Name.Equals(
-            nameof(SortObjectFieldDescriptorExtensions.UseSorting),
-            StringComparison.Ordinal)
+                nameof(SortObjectFieldDescriptorExtensions.UseSorting),
+                StringComparison.Ordinal)
             && m.GetGenericArguments().Length == 1
             && m.GetParameters().Length == 2
             && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
@@ -50,9 +50,20 @@ public sealed class UseSortingAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-            _generic.MakeGenericMethod(Type).Invoke(
-                null,
-                new object?[] { descriptor, Scope });
+            _generic.MakeGenericMethod(Type).Invoke(null, new object?[] { descriptor, Scope });
         }
     }
 }
+
+#if NET6_0_OR_GREATER
+/// <summary>
+/// Specifies the GraphQL type.
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+public sealed class UseSortingAttribute<T> : UseSortingAttribute
+{
+    public UseSortingAttribute([CallerLineNumber] int order = 0) : base(typeof(T), order)
+    {
+    }
+}
+#endif
