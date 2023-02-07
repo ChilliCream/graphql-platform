@@ -6,19 +6,24 @@ using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven.Pagination;
 
-public class RavenCursorPagingProvider : CursorPagingProvider
+/// <summary>
+/// An cursor paging provider for Raven that create pagination queries
+/// </summary>
+public sealed class RavenCursorPagingProvider : CursorPagingProvider
 {
     private static readonly MethodInfo _createHandler =
         typeof(RavenCursorPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
+    /// <inheritdoc />
     public override bool CanHandle(IExtendedType source)
         => source.Source.IsGenericType &&
             source.Source.GetGenericTypeDefinition() is { } type && (
                 type == typeof(IRavenQueryable<>) ||
                 type == typeof(IAsyncDocumentQuery<>));
 
+    /// <inheritdoc />
     protected override CursorPagingHandler CreateHandler(
         IExtendedType source,
         PagingOptions options)

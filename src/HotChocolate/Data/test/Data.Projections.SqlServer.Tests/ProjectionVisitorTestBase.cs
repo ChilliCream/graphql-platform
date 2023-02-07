@@ -106,11 +106,10 @@ public class ProjectionVisitorTestBase
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
-                                .SetContextData("sql", queryString)
-                                .Create();
+                        context.Result = QueryResultBuilder
+                            .FromResult(context.Result!.ExpectQueryResult())
+                            .SetContextData("sql", queryString)
+                            .Create();
                     }
                 })
             .UseDefaultPipeline()

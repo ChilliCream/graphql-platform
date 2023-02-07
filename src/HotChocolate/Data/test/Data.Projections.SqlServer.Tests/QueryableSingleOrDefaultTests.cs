@@ -109,7 +109,7 @@ public class QueryableSingleOrDefaultTests
 
     private readonly SchemaCache _cache = new();
 
-    [Fact]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
@@ -141,7 +141,7 @@ public class QueryableSingleOrDefaultTests
             .MatchAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_DeepFilterObjectTwoProjections_Executable()
     {
         // arrange
@@ -173,7 +173,7 @@ public class QueryableSingleOrDefaultTests
             .MatchAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
@@ -206,7 +206,7 @@ public class QueryableSingleOrDefaultTests
             .MatchAsync();
     }
 
-    [Fact(Skip = "Currently not supported by SQLLite")]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_DeepFilterObjectTwoProjections_Nullable()
     {
         // arrange
@@ -238,7 +238,7 @@ public class QueryableSingleOrDefaultTests
             .MatchAsync();
     }
 
-    [Fact(Skip = "Currently not supported by SQLLite")]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_ListObjectDifferentLevelProjection_Nullable()
     {
         // arrange

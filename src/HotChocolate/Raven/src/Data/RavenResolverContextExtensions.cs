@@ -2,7 +2,7 @@ using HotChocolate.Resolvers;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
 
-namespace HotChocolate.Data.Raven;
+namespace HotChocolate.Data;
 
 /// <summary>
 /// Common extension for <see cref="IResolverContext"/> for RavenDb

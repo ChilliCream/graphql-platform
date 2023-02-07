@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Raven;
 /// <summary>
 /// Is the base class for a executable for the Raven.
 /// </summary>
-public class RavenAsyncDocumentQueryExecutable<T>
+public sealed class RavenAsyncDocumentQueryExecutable<T>
     : IExecutable<T>
 {
     public RavenAsyncDocumentQueryExecutable(IAsyncDocumentQuery<T> query)

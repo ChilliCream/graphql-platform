@@ -101,7 +101,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 y.Field(z => z.Root).UsePaging<InterfaceType<AbstractType>>();
                             });
 
-                    x.AddType(typeExtension);
+                    x.AddTypeExtension(typeExtension);
                 });
 
         // act

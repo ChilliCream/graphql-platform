@@ -1,9 +1,12 @@
+using HotChocolate.Data;
+using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 
-namespace HotChocolate.Data.Raven.Pagination;
+namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Common extensions of <see cref="IRequestExecutorBuilder"/> for RavenDb pagination
+/// </summary>
 public static class RavenPaginationRequestExecutorBuilderExtensions
 {
     /// <summary>
@@ -31,8 +34,8 @@ public static class RavenPaginationRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
+        builder.RegisterDocumentStore();
         builder.AddCursorPagingProvider<RavenCursorPagingProvider>(providerName, defaultProvider);
-
         builder.AddOffsetPagingProvider<RavenOffsetPagingProvider>(providerName, defaultProvider);
 
         return builder;
