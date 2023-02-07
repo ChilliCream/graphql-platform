@@ -5,6 +5,8 @@ namespace HotChocolate.Data.Raven.Pagination;
 internal sealed class RavenOffsetPagination<TEntity>
     : OffsetPaginationAlgorithm<RavenPagingContainer<TEntity>, TEntity>
 {
+    public static RavenOffsetPagination<TEntity> Instance { get; } = new();
+
     protected override RavenPagingContainer<TEntity> ApplySkip(
         RavenPagingContainer<TEntity> query,
         int skip)

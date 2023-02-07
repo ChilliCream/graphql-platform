@@ -28,6 +28,7 @@ internal class RavenOffsetPagingHandler<TEntity> : OffsetPagingHandler
     {
         return new RavenPagingContainer<TEntity>(source switch
         {
+            RavenAsyncDocumentQueryExecutable<TEntity> e => e.Query,
             IRavenQueryable<TEntity> e => e.ToAsyncDocumentQuery(),
             IAsyncDocumentQuery<TEntity> f => f,
             _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())

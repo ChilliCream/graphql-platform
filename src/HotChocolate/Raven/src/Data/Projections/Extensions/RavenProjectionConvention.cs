@@ -7,6 +7,6 @@ internal sealed class RavenProjectionConvention : ProjectionConvention
 {
     protected override void Configure(IProjectionConventionDescriptor descriptor)
     {
-        descriptor.AddDefaults().Provider<RavenQueryableProjectionProvider>();
+        descriptor.Provider<RavenQueryableProjectionProvider>();
     }
 }
