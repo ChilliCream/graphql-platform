@@ -1,8 +1,7 @@
 ---
 title: Dynamic schemas
+wip: true
 ---
-
-<WorkInProgress />
 
 Type modules allow you to make parts of your GraphQL schema dynamic. You could for example expose a dynamic JSON file or a database schema as well-typed data in your GraphQL schema.
 

@@ -1,5 +1,6 @@
 ---
 title: Neo4J Database
+experimental: true
 ---
 
 HotChocolate has a data integration for Neo4J.

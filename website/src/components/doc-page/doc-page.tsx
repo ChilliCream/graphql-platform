@@ -32,6 +32,8 @@ import { toggleAside, toggleTOC } from "@/state/common";
 import ListAltIconSvg from "@/images/list-alt.svg";
 import NewspaperIconSvg from "@/images/newspaper.svg";
 
+import { Experimental } from "@/components/mdx/experimental";
+import { WorkInProgress } from "@/components/mdx/work-in-progress";
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -58,6 +60,8 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const slug = fields!.slug!;
   const title = frontmatter!.title!;
   const description = frontmatter!.description;
+  const wip = frontmatter!.wip || false;
+  const experimental = frontmatter!.experimental || false;
 
   const product = useProductInformation(slug, data.productsConfig?.products);
 
@@ -116,7 +120,15 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
                     </Button>
                   </ResponsiveMenu>
                 </ResponsiveMenuWrapper>
-                <DocumentationNotes product={product} slug={slug} />
+
+                <DocumentationNotesContainer>
+                  <DocumentationVersionInfo product={product} slug={slug} />
+
+                  {wip && <WorkInProgress />}
+
+                  {experimental && <Experimental />}
+                </DocumentationNotesContainer>
+
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
@@ -157,6 +169,8 @@ export const DocPageGraphQLFragment = graphql`
         frontmatter {
           title
           description
+          wip
+          experimental
         }
         body
         ...ArticleSections
@@ -177,6 +191,12 @@ export const DocPageGraphQLFragment = graphql`
     ...ArticleComments
     ...DocPageCommunity
     ...DocPageNavigation
+  }
+`;
+
+const DocumentationNotesContainer = styled.div`
+  > :not(:last-child) {
+    margin-bottom: 10px;
   }
 `;
 
@@ -399,14 +419,17 @@ const DocumentationVersionWarning = styled.div`
   }
 `;
 
-interface DocumentationNotesProps {
+interface DocumentationVersionInfoProps {
   readonly product: ProductInformation;
   readonly slug: string;
 }
 
 type DocumentationVersionType = "stable" | "experimental" | "outdated" | null;
 
-const DocumentationNotes: FC<DocumentationNotesProps> = ({ product, slug }) => {
+const DocumentationVersionInfo: FC<DocumentationVersionInfoProps> = ({
+  product,
+  slug,
+}) => {
   const versionType = useMemo<DocumentationVersionType>(() => {
     const parsedCurrentVersion = semverCoerce(product.version);
     const parsedStableVersion = semverCoerce(product.stableVersion);

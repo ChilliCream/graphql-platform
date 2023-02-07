@@ -2,25 +2,28 @@ import { THEME_COLORS } from "@/shared-style";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-export const WorkInProgress: FC = () => {
+export const Experimental: FC = () => {
   return (
     <Container>
       <Heading>
-        {warningSignIcon} <span>Work in progress</span>
+        {scienceIcon} <span>Experimental</span>
       </Heading>
-      This documentation is still being worked on.
+      This feature is not yet finished nor polished.
+      <br />
+      Please provide feedback if you encounter any issues or have ideas on how
+      to improve the developer experience.
     </Container>
   );
 };
 
-const warningSignIcon = (
+const scienceIcon = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="22"
-    height="22"
+    height="24"
+    width="24"
     viewBox="0 0 24 24"
   >
-    <path d="M2,3H22V13H18V21H16V13H8V21H6V13H2V3M18.97,11L20,9.97V7.15L16.15,11H18.97M13.32,11L19.32,5H16.5L10.5,11H13.32M7.66,11L13.66,5H10.83L4.83,11H7.66M5.18,5L4,6.18V9L8,5H5.18Z" />
+    <path d="M19.8,18.4L14,10.67V6.5l1.35-1.69C15.61,4.48,15.38,4,14.96,4H9.04C8.62,4,8.39,4.48,8.65,4.81L10,6.5v4.17L4.2,18.4 C3.71,19.06,4.18,20,5,20h14C19.82,20,20.29,19.06,19.8,18.4z" />
   </svg>
 );
 
@@ -28,7 +31,7 @@ const Heading = styled.div`
   fill: ${THEME_COLORS.textContrast};
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
   > span {
     margin-bottom: 3px;

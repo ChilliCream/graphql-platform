@@ -1,8 +1,7 @@
 ---
 title: Resolver compiler
+wip: true
 ---
-
-<WorkInProgress />
 
 <Video videoId="C2YSeVK6Dck" />
 

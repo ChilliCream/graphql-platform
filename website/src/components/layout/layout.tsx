@@ -12,7 +12,6 @@ import {
 import { InlineCode } from "@/components/mdx/inline-code";
 import { PackageInstallation } from "@/components/mdx/package-installation";
 import { Video } from "@/components/mdx/video";
-import { WorkInProgress } from "@/components/mdx/work-in-progress";
 import { CookieConsent } from "@/components/misc/cookie-consent";
 import { GlobalStyle } from "@/components/misc/global-style";
 import { Header } from "./header";
@@ -29,7 +28,6 @@ export const Layout: FC<PropsWithChildren<unknown>> = ({ children }) => {
     Schema,
     PackageInstallation,
     Video,
-    WorkInProgress,
   };
 
   return (

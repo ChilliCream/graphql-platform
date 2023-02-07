@@ -1,7 +1,6 @@
 ---
 title: Request middleware
+wip: true
 ---
-
-<WorkInProgress />
 
 <Video videoId="Ut33sSTYmgw" />
