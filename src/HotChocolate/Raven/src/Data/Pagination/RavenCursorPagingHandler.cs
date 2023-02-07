@@ -6,7 +6,7 @@ using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven.Pagination;
 
-internal class RavenCursorPagingHandler<TEntity> : CursorPagingHandler
+internal sealed class RavenCursorPagingHandler<TEntity> : CursorPagingHandler
 {
     private readonly RavenCursorPagination<TEntity> _pagination = new();
 

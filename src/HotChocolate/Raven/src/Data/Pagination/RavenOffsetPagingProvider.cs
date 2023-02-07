@@ -9,19 +9,21 @@ namespace HotChocolate.Data.Raven.Pagination;
 /// <summary>
 /// An offset paging provider for Raven that create pagination queries
 /// </summary>
-public class RavenOffsetPagingProvider : OffsetPagingProvider
+public sealed class RavenOffsetPagingProvider : OffsetPagingProvider
 {
     private static readonly MethodInfo _createHandler =
         typeof(RavenOffsetPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
+    /// <inheritdoc />
     public override bool CanHandle(IExtendedType source)
         => source.Source.IsGenericType &&
             source.Source.GetGenericTypeDefinition() is { } type && (
                 type == typeof(IRavenQueryable<>) ||
                 type == typeof(IAsyncDocumentQuery<>));
 
+    /// <inheritdoc />
     protected override OffsetPagingHandler CreateHandler(
         IExtendedType source,
         PagingOptions options)

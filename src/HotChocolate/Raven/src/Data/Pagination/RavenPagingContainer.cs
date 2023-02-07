@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Raven.Pagination;
 internal sealed class RavenPagingContainer<TEntity>
 {
     private IAsyncDocumentQuery<TEntity> _query;
-    private TaskCache? _totalCount = null;
+    private TaskHolder? _totalCount = null;
 
     public RavenPagingContainer(IAsyncDocumentQuery<TEntity> query)
     {
@@ -19,7 +19,7 @@ internal sealed class RavenPagingContainer<TEntity>
         if (_totalCount is null)
         {
             Interlocked.CompareExchange(ref _totalCount,
-                new TaskCache(() => _query.CountAsync(cancellationToken)),
+                new TaskHolder(() => _query.CountAsync(cancellationToken)),
                 null);
         }
 
@@ -48,7 +48,7 @@ internal sealed class RavenPagingContainer<TEntity>
                 // capture the source so it is not in the outer scope
                 var source = totalCountCompletionSource;
                 var originalTotalCount =
-                    Interlocked.CompareExchange(ref _totalCount, new TaskCache(source.Task), null);
+                    Interlocked.CompareExchange(ref _totalCount, new TaskHolder(source.Task), null);
 
                 // in case CountAsync was already executed we reset the completion source and await
                 // the CountAsync call so that we do not have concurrent requests on the async
@@ -90,13 +90,11 @@ internal sealed class RavenPagingContainer<TEntity>
         catch (OperationCanceledException)
         {
             totalCountCompletionSource?.SetCanceled(cancellationToken);
-
             throw;
         }
         catch (Exception ex)
         {
             totalCountCompletionSource?.SetException(ex);
-
             throw;
         }
         finally
@@ -116,29 +114,27 @@ internal sealed class RavenPagingContainer<TEntity>
     public RavenPagingContainer<TEntity> Skip(int skip)
     {
         _query = _query.Skip(skip);
-
         return this;
     }
 
     public RavenPagingContainer<TEntity> Take(int take)
     {
         _query = _query.Take(take);
-
         return this;
     }
 
-    private sealed class TaskCache
+    private sealed class TaskHolder
     {
         private readonly object _lock = new();
         private Task<int>? _task;
         private readonly Func<Task<int>> _factory;
 
-        public TaskCache(Func<Task<int>> factory)
+        public TaskHolder(Func<Task<int>> factory)
         {
             _factory = factory;
         }
 
-        public TaskCache(Task<int> task)
+        public TaskHolder(Task<int> task)
         {
             _task = task;
             _factory = null!;

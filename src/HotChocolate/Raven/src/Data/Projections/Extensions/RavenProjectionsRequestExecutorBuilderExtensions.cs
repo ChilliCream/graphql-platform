@@ -1,11 +1,18 @@
+using HotChocolate.Data;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data;
+namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Common extensions of <see cref="IRequestExecutorBuilder"/> for RavenDB
+/// </summary>
 public static class RavenProjectionsRequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddRavenProjections(
-        this IRequestExecutorBuilder requestExecutorBuilder)
-        => requestExecutorBuilder.ConfigureSchema(x => x.AddRavenProjections());
+    /// <summary>
+    /// Adds projections for RavenDB to the schema
+    /// </summary>
+    /// <param name="builder">The schema builder</param>
+    /// <returns>The schema builder of parameter <paramref name="builder"/></returns>
+    public static IRequestExecutorBuilder AddRavenProjections(this IRequestExecutorBuilder builder)
+        => builder.RegisterDocumentStore().ConfigureSchema(x => x.AddRavenProjections());
 }

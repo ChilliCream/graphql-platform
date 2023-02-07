@@ -6,7 +6,7 @@ using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven.Pagination;
 
-internal class RavenOffsetPagingHandler<TEntity> : OffsetPagingHandler
+internal sealed class RavenOffsetPagingHandler<TEntity> : OffsetPagingHandler
 {
     private readonly RavenOffsetPagination<TEntity> _pagination = new();
 

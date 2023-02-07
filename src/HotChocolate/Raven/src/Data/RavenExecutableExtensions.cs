@@ -6,6 +6,9 @@ using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data;
 
+/// <summary>
+/// Common extension for <see cref="IAsyncDocumentQuery{T}"/> for executable
+/// </summary>
 public static class RavenExecutableExtensions
 {
     /// <summary>
