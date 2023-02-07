@@ -20,9 +20,9 @@ internal sealed class RemoveClientDirectivesRewriter : SyntaxRewriter<ISyntaxVis
             current = current.WithDirectives(directiveNodes);
         }
 
-        return base.RewriteField(current, context);
+        return base.RewriteField(current, context)!;
     }
 
     public static DocumentNode Rewrite(DocumentNode document)
-        => new RemoveClientDirectivesRewriter().Rewrite(document);
+        => new RemoveClientDirectivesRewriter().Rewrite(document)!;
 }

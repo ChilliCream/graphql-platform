@@ -110,7 +110,7 @@ public class EntityGeneratorTests
     }
 #endif
 
-    [Fact]
+    [Fact(Skip = "We are postponing the defer feature until the spec is more stable.")]
     public void Generate_StarWars_Client_With_Defer()
     {
         AssertStarWarsResult(

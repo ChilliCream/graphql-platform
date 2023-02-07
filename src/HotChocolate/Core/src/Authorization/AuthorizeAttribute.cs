@@ -44,6 +44,15 @@ public class AuthorizeAttribute : DescriptorAttribute
     }
 
     /// <summary>
+    /// Applies the authorization directive with a specific policy to
+    /// object types or object fields.
+    /// </summary>
+    public AuthorizeAttribute(ApplyPolicy apply)
+    {
+        Apply = apply;
+    }
+
+    /// <summary>
     /// Gets or sets the authorization policy.
     /// </summary>
     public string? Policy { get; set; }

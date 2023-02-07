@@ -12,12 +12,12 @@
       "program": "${workspaceFolder}/src/dotnet-graphql/bin/Debug/net7.0/dotnet-graphql.dll",
       "args": [
         "generate",
-        "/Users/michael/local/play/StrawberrySetup",
-        "-o /Users/michael/local/play/StrawberrySetup/obj/Debug/net7.0/berry/",
-        "-q /Users/michael/local/play/StrawberrySetup/default",
+        "/Users/michael/local/play/StrawberryTest",
+        "-o /Users/michael/local/play/StrawberryTest/obj/Debug/net7.0/berry/",
+        "-q /Users/michael/local/play/StrawberryTest/default",
         "-n StrawberryBuildTests",
         "-a md5",
-        "--relayFormat"
+        //"--relayFormat"
       ],
       "cwd": "${workspaceFolder}/src/dotnet-graphql",
       "console": "internalConsole",

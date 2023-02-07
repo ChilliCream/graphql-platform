@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 public class ClassBuilder : AbstractTypeBuilder
 {
     private AccessModifier _accessModifier;
-    private bool _isPartial = true;
+    private readonly bool _isPartial = true;
     private bool _isStatic;
     private bool _isSealed;
     private bool _isAbstract;
@@ -28,7 +28,7 @@ public class ClassBuilder : AbstractTypeBuilder
         return this;
     }
 
-    public ClassBuilder SetName(string value)
+    public new ClassBuilder SetName(string value)
     {
         if (string.IsNullOrEmpty(value))
         {

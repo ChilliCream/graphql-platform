@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -21,7 +22,20 @@ public class ReadOnlySchemaOptionsTests
             UseXmlDocumentation = false,
             DefaultBindingBehavior = BindingBehavior.Explicit,
             FieldMiddleware = FieldMiddlewareApplication.AllFields,
-            PreserveSyntaxNodes = true
+            PreserveSyntaxNodes = true,
+            StrictRuntimeTypeValidation = true,
+            MaxAllowedNodeBatchSize = 20,
+            EnableOneOf = true,
+            DefaultDirectiveVisibility = DirectiveVisibility.Public,
+            EnableDirectiveIntrospection = true,
+            DefaultFieldBindingFlags = FieldBindingFlags.InstanceAndStatic,
+            ValidatePipelineOrder = true,
+            EnableDefer = true,
+            EnableStream = true,
+            EnableFlagEnums = true,
+            EnsureAllNodesCanBeResolved = true,
+            RemoveUnreachableTypes = true,
+            DefaultResolverStrategy = ExecutionStrategy.Serial
         };
 
         // act

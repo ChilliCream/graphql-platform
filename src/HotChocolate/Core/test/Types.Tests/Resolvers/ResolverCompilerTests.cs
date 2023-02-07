@@ -1545,7 +1545,7 @@ public class ResolverCompilerTests
 
     public class UseSomeStateAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

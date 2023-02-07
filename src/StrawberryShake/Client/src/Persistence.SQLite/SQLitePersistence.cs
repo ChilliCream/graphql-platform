@@ -64,16 +64,16 @@ public class SQLitePersistence : IDisposable
         await foreach (var dto in database.GetAllEntitiesAsync(connection)
             .ConfigureAwait(false))
         {
-            using JsonDocument json = JsonDocument.Parse(dto.Id);
-            EntityId entityId = _storeAccessor.EntityIdSerializer.Parse(json.RootElement);
-            Type type = Type.GetType(dto.Type)!;
-            object entity = JsonConvert.DeserializeObject(dto.Value, type, _serializerSettings);
+            using var json = JsonDocument.Parse(dto.Id);
+            var entityId = _storeAccessor.EntityIdSerializer.Parse(json.RootElement);
+            var type = Type.GetType(dto.Type)!;
+            var entity = JsonConvert.DeserializeObject(dto.Value, type, _serializerSettings)!;
             entities.Add((entityId, entity));
         }
 
         _storeAccessor.EntityStore.Update(session =>
         {
-            foreach ((EntityId id, object value) in entities)
+            foreach ((var id, var value) in entities)
             {
                 session.SetEntity(id, value);
             }
@@ -86,23 +86,23 @@ public class SQLitePersistence : IDisposable
             .ConfigureAwait(false))
         {
             var resultType = Type.GetType(dto.ResultType)!;
-            Dictionary<string, object?>? variables =
+            var variables =
                 dto.Variables is not null
                     ? ReadDictionary(dto.Variables)
                     : null;
-            IOperationResultDataInfo? dataInfo =
+            var dataInfo =
                 JsonConvert.DeserializeObject<IOperationResultDataInfo>(
                     dto.DataInfo,
                     _serializerSettings);
 
-            IOperationRequestFactory requestFactory =
+            var requestFactory =
                 _storeAccessor.GetOperationRequestFactory(resultType);
-            IOperationResultDataFactory dataFactory =
+            var dataFactory =
                 _storeAccessor.GetOperationResultDataFactory(resultType);
 
-            OperationRequest request = requestFactory.Create(variables);
+            var request = requestFactory.Create(variables);
 
-            IOperationResult result = OperationResult.Create(
+            var result = OperationResult.Create(
                 dataFactory.Create(dataInfo),
                 resultType,
                 dataInfo,
@@ -145,7 +145,7 @@ public class SQLitePersistence : IDisposable
 
                 if (update is EntityUpdate entityUpdate)
                 {
-                    foreach (EntityId entityId in entityUpdate.UpdatedEntityIds)
+                    foreach (var entityId in entityUpdate.UpdatedEntityIds)
                     {
                         await WriteEntityAsync(
                             entityId,
@@ -160,7 +160,7 @@ public class SQLitePersistence : IDisposable
                 {
                     if (operationUpdate.Kind == OperationUpdateKind.Updated)
                     {
-                        foreach (StoredOperationVersion operationVersion in
+                        foreach (var operationVersion in
                             operationUpdate.OperationVersions)
                         {
                             await WriteOperationAsync(
@@ -173,7 +173,7 @@ public class SQLitePersistence : IDisposable
                     }
                     else if (operationUpdate.Kind == OperationUpdateKind.Removed)
                     {
-                        foreach (StoredOperationVersion operationVersion in
+                        foreach (var operationVersion in
                             operationUpdate.OperationVersions)
                         {
                             await database.DeleteOperationAsync(
@@ -197,7 +197,7 @@ public class SQLitePersistence : IDisposable
         DatabaseHelper database,
         CancellationToken cancellationToken)
     {
-        string serializedId = _storeAccessor.EntityIdSerializer.Format(entityId);
+        var serializedId = _storeAccessor.EntityIdSerializer.Format(entityId);
 
         if (snapshot.TryGetEntity(entityId, out object? entity))
         {
@@ -236,7 +236,7 @@ public class SQLitePersistence : IDisposable
         {
             using var writer = new ArrayWriter();
             _requestSerializer.Serialize(operationVersion.Request, writer);
-            Type dataType = operationVersion.Result.DataType;
+            var dataType = operationVersion.Result.DataType;
 
             var dto = new OperationDto
             {

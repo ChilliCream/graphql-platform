@@ -13,7 +13,7 @@ namespace HotChocolate.ApolloFederation;
     AttributeTargets.Interface)]
 public sealed class ExtendServiceTypeAttribute : ObjectTypeDescriptorAttribute
 {
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
