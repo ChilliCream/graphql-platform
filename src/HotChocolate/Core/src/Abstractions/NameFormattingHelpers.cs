@@ -1,13 +1,19 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate;
 
-internal static class AttributeExtensions
+/// <summary>
+/// Contains helpers and extensions to reformat the name of a type system member to conform with
+/// GraphQL naming standards.
+/// </summary>
+internal static class NameFormattingHelpers
 {
     private const string _get = "Get";
     private const string _async = "Async";
@@ -38,7 +44,7 @@ internal static class AttributeExtensions
         var name = property.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? property.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : NormalizeFieldName(property.Name);
+            : FormatFieldName(property.Name);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -53,7 +59,7 @@ internal static class AttributeExtensions
         var name = method.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? method.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : NormalizeMethodName(method);
+            : FormatMethodName(method);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -68,7 +74,7 @@ internal static class AttributeExtensions
         var name = parameter.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : NormalizeFieldName(parameter.Name!);
+            : FormatFieldName(parameter.Name!);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -94,7 +100,7 @@ internal static class AttributeExtensions
             "Only properties and methods are accepted as members.");
     }
 
-    private static string NormalizeMethodName(MethodInfo method)
+    private static string FormatMethodName(MethodInfo method)
     {
         var name = method.Name;
 
@@ -111,7 +117,7 @@ internal static class AttributeExtensions
             name = name.Substring(0, name.Length - _async.Length);
         }
 
-        return NormalizeFieldName(name);
+        return FormatFieldName(name);
     }
 
     private static bool IsAsyncMethod(Type returnType)
@@ -195,10 +201,69 @@ internal static class AttributeExtensions
         return type.Name;
     }
 
-    public static string NormalizeFieldName(string name)
-        => name.Length > 1
-            ? name.Substring(0, 1).ToLowerInvariant() + name.Substring(1)
-            : name.ToLowerInvariant();
+    public static unsafe string FormatFieldName(string fieldName)
+    {
+        if (string.IsNullOrEmpty(fieldName))
+        {
+            throw new ArgumentException(
+                AbstractionResources.AttributeExtensions_FormatFieldName_FieldNameEmpty,
+                nameof(fieldName));
+        }
+
+        // quick exit
+        if (char.IsLower(fieldName[0]))
+        {
+            return fieldName;
+        }
+
+        var size = fieldName.Length;
+        char[]? rented = null;
+        var buffer = size <= 128
+            ? stackalloc char[size]
+            : rented = ArrayPool<char>.Shared.Rent(size);
+
+        try
+        {
+            var p = 0;
+            for (; p < fieldName.Length && char.IsLetter(fieldName[p]) && char.IsUpper(fieldName[p]); p++)
+            {
+                buffer[p] = char.ToLowerInvariant(fieldName[p]);
+            }
+
+            // in case more than one character is upper case, we uppercase
+            // the current character. We only uppercase the character
+            // back if the last character is a letter
+            //
+            // before    after      result
+            // FOOBar    FOOBar   = fooBar
+            //    ^        ^
+            // FOO1Ar    FOO1Ar   = foo1Ar
+            //   ^         ^
+            // FOO_Ar    FOO_Ar   = foo_Ar
+            //   ^         ^
+            if (p < fieldName.Length && p > 1 && char.IsLetter(fieldName[p]))
+            {
+                buffer[p - 1] = char.ToUpperInvariant(fieldName[p - 1]);
+            }
+
+            for (; p < fieldName.Length; p++)
+            {
+                buffer[p] = fieldName[p];
+            }
+
+            fixed (char* charPtr = buffer)
+            {
+                return new string(charPtr, 0, buffer.Length);
+            }
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+        }
+    }
 
     private static TAttribute? GetAttributeIfDefined<TAttribute>(
         ICustomAttributeProvider attributeProvider)

@@ -32,7 +32,7 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
             node = node.WithSelectionSet(node.SelectionSet.WithSelections(selections));
         }
 
-        return base.RewriteFragmentDefinition(node, context);
+        return base.RewriteFragmentDefinition(node, context)!;
     }
 
     public static DocumentNode Rewrite(DocumentNode document)
@@ -53,7 +53,7 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
             .Visit(document);
 
         var rewriter = new FragmentRewriter();
-        return rewriter.RewriteDocument(document, context);
+        return rewriter.RewriteDocument(document, context)!;
     }
 
     internal sealed class Context : ISyntaxVisitorContext
