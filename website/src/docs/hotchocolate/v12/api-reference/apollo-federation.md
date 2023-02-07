@@ -37,7 +37,7 @@ public class Product
 ```
 
 ## Define an entity key
-We'll first need to [define a key](https://www.apollographql.com/docs/federation/entities#1-define-a-key) for the entity by marking one or more properties with the `[Key]` attribute. This effectively serves as an "identifier" that can uniquely locate an individual record of that type. This will typically be something like a record's primary key, a SKU, or an account number.
+Now that we have an object type to work with, we'll [define a key](https://www.apollographql.com/docs/federation/entities#1-define-a-key) for the entity by marking one or more properties with the `[Key]` attribute. This effectively serves as an "identifier" that can uniquely locate an individual record of that type. This will typically be something like a record's primary key, a SKU, or an account number.
 ```csharp
 public class Product
 {
@@ -53,8 +53,8 @@ public class Product
 
 ## Define a reference resolver
 Next, we'll need to [define an entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) so that the supergraph can resolve data across multiple graphs during a query. A reference resolver is similar to many other [data resolvers in Hot Chocolate](docs/hotchocolate/v12/fetching-data/resolvers) with some key requirements:
-1. They must be `public static` methods within the type they are resolving
-1. They must be annotated with the `[ReferenceResolver]` attribute
+1. It must be a `public static` method within the type it is resolving
+1. It must be annotated with the `[ReferenceResolver]` attribute
 ```csharp
 public class Product
 {
@@ -139,8 +139,47 @@ _Example SDL response_
 }
 ```
 
-### Testing and executing your resolvers
-TODO
+## Testing and executing your resolvers
+After creating an entity, you'll likely wonder "where is the query field to invoke and test this reference resolver?" The Hot Chocolate engine does the work behind the scenes to connect your `[ReferenceResolver]` method with the [auto-generated `_entites` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities), which serves as the entry point for _all_ entity reference resolvers.
+
+You'll invoke the query by providing an array of representations using a combination of a `__typename` and a `[Key]` field to invoke the appropriate resolver. An example query for our Product would look something like the following.
+
+_Entities query_
+```graphql
+query {
+  _entities(representations: [
+    {
+      __typename: "Product",
+      id: "<id value of the product>"
+    }
+    # You can provide multiple representations for multiple objects and types in the same query
+  ]) {
+    ... on Product {
+      id
+      name
+      price
+    }
+  }
+}
+```
+
+_Entities query result_
+```json
+{
+  "data": {
+    "_entities": [
+      {
+        "id": "<id value of the product>",
+        "name": "Foobar",
+        "price": 10.99
+      }
+      // Any other values that were found, or null
+    ]
+  }
+}
+```
+
+> **Note**: The `_entities` query is an internal detail that is necessary for the supergraph to properly resolve data. API consumers **should not** use an `_entities` query directly, nor should they use a subgraph directly. We're highlighting how to use the `_entities` so that you have the knowledge to validate your API at runtime or using tools like [`Microsoft.AspNetCore.Mvc.Testing`](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-7.0).
 
 # Extending an entity type
 TODO
