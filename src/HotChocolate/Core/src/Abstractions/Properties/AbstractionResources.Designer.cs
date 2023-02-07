@@ -254,5 +254,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("MissingStateException_Message", resourceCulture);
             }
         }
+        
+        internal static string AttributeExtensions_FormatFieldName_FieldNameEmpty {
+            get {
+                return ResourceManager.GetString("AttributeExtensions_FormatFieldName_FieldNameEmpty", resourceCulture);
+            }
+        }
     }
 }

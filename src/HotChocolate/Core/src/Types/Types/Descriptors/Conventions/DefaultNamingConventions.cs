@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Properties;
 
 #nullable enable
 
@@ -93,7 +92,7 @@ public class DefaultNamingConventions
                 name = name.Substring(0, name.Length - _directiveTypePostfix.Length);
             }
 
-            name = AttributeExtensions.NormalizeFieldName(name);
+            name = NameFormattingHelpers.FormatFieldName(name);
         }
 
         return name;
@@ -157,6 +156,7 @@ public class DefaultNamingConventions
         {
             throw new ArgumentNullException(nameof(parameter));
         }
+
         return parameter.GetGraphQLName();
     }
 
@@ -265,6 +265,7 @@ public class DefaultNamingConventions
                 {
                     buffer[p++] = '_';
                 }
+
                 buffer[p++] = char.ToUpper(name[i]);
                 lastWasUnderline = name[i] == '_';
             }
@@ -355,16 +356,5 @@ public class DefaultNamingConventions
 
     /// <inheritdoc />
     public string FormatFieldName(string fieldName)
-    {
-        if (string.IsNullOrEmpty(fieldName))
-        {
-            throw new ArgumentException(
-                TypeResources.DefaultNamingConventions_FormatFieldName_EmptyOrNull,
-                nameof(fieldName));
-        }
-
-        return fieldName.Length > 1
-            ? fieldName.Substring(0, 1).ToLowerInvariant() + fieldName.Substring(1)
-            : fieldName.ToLowerInvariant();
-    }
+        => NameFormattingHelpers.FormatFieldName(fieldName);
 }
