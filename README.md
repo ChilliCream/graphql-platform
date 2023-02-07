@@ -11,7 +11,7 @@
 
 Welcome to the ChilliCream GraphQL Platform!
 
-We help you, developers and companies, to leverage your APIs to the next level with GraphQL. Strongly-typed schemas that match your APIs a 100%. Efficient data fetching that reduces overall cost without extra effort. Consumer-friendly, declarative, self documented APIs that support you in your daily work to build powerful UIs effectively.
+We help you, developers and companies, to leverage your APIs to the next level with GraphQL. Strongly-typed schemas that match your APIs 100 percent. Efficient data fetching that reduces overall cost without extra effort. Consumer-friendly, declarative, self documented APIs that support you in your daily work to build powerful UIs effectively.
 
 Most of our products are open-source and right here in this repository.
 
