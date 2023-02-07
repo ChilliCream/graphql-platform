@@ -101,7 +101,7 @@ public class ObjectTypeDescriptor
 
         // if we find fields that match field name that are ignored we will
         // remove them from the field map.
-        foreach (var ignore in Definition.FieldIgnores)
+        foreach (var ignore in Definition.GetFieldIgnores())
         {
             fields.Remove(ignore.Name);
         }

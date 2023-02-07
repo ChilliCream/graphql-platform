@@ -14,7 +14,6 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         _authors = authorFixture.Authors;
     }
 
-
     [Fact]
     public void Extensions_Should_ReturnExecutable_When_DBSet()
     {
@@ -35,7 +34,6 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         IExecutable<Author> executable = _authors
             .AsQueryable()
             .AsExecutable();
-
 
         // assert
         Assert.IsType<QueryableExecutable<Author>>(executable);

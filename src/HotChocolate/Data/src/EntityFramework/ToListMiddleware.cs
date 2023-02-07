@@ -7,7 +7,7 @@ namespace HotChocolate.Data;
 
 #pragma warning disable CA1812
 
-internal class ToListMiddleware<TEntity>
+internal sealed class ToListMiddleware<TEntity>
 {
     private readonly FieldDelegate _next;
 

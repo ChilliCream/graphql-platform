@@ -34,7 +34,7 @@ public static class AutoMapperQueryableExtensions
         context.LocalContextData = context.LocalContextData.SetItem(SkipProjectionKey, true);
 
         QueryableProjectionContext visitorContext =
-            new(context, context.ObjectType, context.Selection.Field.Type.UnwrapRuntimeType());
+            new(context, context.ObjectType, context.Selection.Field.Type.UnwrapRuntimeType(), true);
 
         QueryableProjectionVisitor.Default.Visit(visitorContext);
 

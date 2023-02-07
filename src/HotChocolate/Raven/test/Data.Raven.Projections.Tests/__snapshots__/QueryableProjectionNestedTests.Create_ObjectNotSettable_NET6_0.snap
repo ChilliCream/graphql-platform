@@ -1,0 +1,24 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "notSettable": {
+          "barString": "Worked"
+        }
+      },
+      {
+        "notSettable": {
+          "barString": "Worked"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'Bars'
+---------------
