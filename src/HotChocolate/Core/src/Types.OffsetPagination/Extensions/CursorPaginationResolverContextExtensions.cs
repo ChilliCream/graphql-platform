@@ -3,7 +3,7 @@ using HotChocolate.Resolvers;
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Pagination;
 
-internal static class CursorPaginationResolverContextExtensions
+internal static class OffsetPaginationResolverContextExtensions
 {
     /// <summary>
     /// TotalCount is one of the heaviest operations. It is only necessary to load totalCount

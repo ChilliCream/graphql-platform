@@ -27,6 +27,7 @@ internal class RavenCursorPagingHandler<TEntity> : CursorPagingHandler
     private static RavenPagingContainer<TEntity> CreatePagingContainer(object source)
         => new(source switch
         {
+            RavenAsyncDocumentQueryExecutable<TEntity> e => e.Query,
             IRavenQueryable<TEntity> e => e.ToAsyncDocumentQuery(),
             IAsyncDocumentQuery<TEntity> f => f,
             _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())

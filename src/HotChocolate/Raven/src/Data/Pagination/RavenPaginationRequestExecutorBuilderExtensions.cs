@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace HotChocolate.Data.Raven.Pagination;
 
@@ -22,7 +23,7 @@ public static class RavenPaginationRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddRavenPagingProviders(
         this IRequestExecutorBuilder builder,
-        string? providerName = null,
+        string providerName = RavenPagination.ProviderName,
         bool defaultProvider = false)
     {
         if (builder is null)
