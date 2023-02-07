@@ -11,7 +11,7 @@ internal sealed class RavenPagingContainer<TEntity>
 
     public RavenPagingContainer(IAsyncDocumentQuery<TEntity> query)
     {
-        _query = query;
+        _query = query.NoTracking();
     }
 
     public Task<int> CountAsync(CancellationToken cancellationToken)
