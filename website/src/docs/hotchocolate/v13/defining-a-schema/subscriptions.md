@@ -253,7 +253,7 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 
 ## ITopicEventReceiver
 
-If more complex topics are required, we can use the `ITopicEventReceiver` with a separate subscriber method. Resolver method can point to the subscriber method using `With` argument on the `Subscribe`.
+If more complex topics are required, we can use the `ITopicEventReceiver` with a separate subscriber method. The resolver method can point to the subscriber method using the `With` argument on the `SubscribeAttribute`.
 
 ```csharp
 
@@ -270,7 +270,7 @@ public class Subscription
 
 ```
 
-Subscriber method can access all parameters passed to the resolver method.
+The subscriber method can access all parameters passed into the resolver method.
 
 ```csharp
 public class Subscription
