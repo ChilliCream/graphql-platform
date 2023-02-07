@@ -1269,38 +1269,6 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The GraphQL configuration builder.
     /// </param>
-    /// <param name="namedType">
-    /// The GraphQL type.
-    /// </param>
-    /// <returns>
-    /// Returns the GraphQL configuration builder.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="builder"/> or <paramref name="builder"/> is <c>null</c>
-    /// </exception>
-    public static IRequestExecutorBuilder AddType(
-        this IRequestExecutorBuilder builder,
-        INamedTypeExtension namedType)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (namedType is null)
-        {
-            throw new ArgumentNullException(nameof(namedType));
-        }
-
-        return builder.ConfigureSchema(b => b.AddType(namedType));
-    }
-
-    /// <summary>
-    /// Adds a GraphQL type to the schema.
-    /// </summary>
-    /// <param name="builder">
-    /// The GraphQL configuration builder.
-    /// </param>
     /// <param name="namedTypeFactory">
     /// A factory to create a named type.
     /// </param>

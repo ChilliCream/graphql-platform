@@ -17,8 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.Raven.Sorting.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Raven.Paging.Tests", "test\Data.Raven.Paging.Tests\HotChocolate.Data.Raven.Paging.Tests.csproj", "{FF720137-6074-480C-BF94-DC61656538B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Projections.SqlServer.Tests", "test\Data.Raven.Projections.Tests\HotChocolate.Data.Projections.SqlServer.Tests.csproj", "{644BC603-0BE2-4633-9834-5D1EC94451E3}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,7 +28,6 @@ Global
 		{C08D0631-0AB2-4EA9-AE60-3F238E09A06B} = {AA347397-EB58-4287-BEF8-565E94D97B87}
 		{B6688004-E4BA-4616-9B68-9602AAACB8CC} = {AA347397-EB58-4287-BEF8-565E94D97B87}
 		{FF720137-6074-480C-BF94-DC61656538B4} = {AA347397-EB58-4287-BEF8-565E94D97B87}
-		{644BC603-0BE2-4633-9834-5D1EC94451E3} = {AA347397-EB58-4287-BEF8-565E94D97B87}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E62BB9F2-A2C0-4074-8C83-35B12B0ACE63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -53,9 +50,5 @@ Global
 		{FF720137-6074-480C-BF94-DC61656538B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF720137-6074-480C-BF94-DC61656538B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF720137-6074-480C-BF94-DC61656538B4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{644BC603-0BE2-4633-9834-5D1EC94451E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{644BC603-0BE2-4633-9834-5D1EC94451E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{644BC603-0BE2-4633-9834-5D1EC94451E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{644BC603-0BE2-4633-9834-5D1EC94451E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

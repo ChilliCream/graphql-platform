@@ -103,7 +103,7 @@ public class QueryableFirstOrDefaultTests
 
     private readonly SchemaCache _cache = new();
 
-    [Fact]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
@@ -134,7 +134,7 @@ public class QueryableFirstOrDefaultTests
             .MatchAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange

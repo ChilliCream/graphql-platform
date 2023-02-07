@@ -97,7 +97,7 @@ public class QueryableProjectionUnionTypeTests
                             y.Field(z => z.Root).UsePaging<UnionType<AbstractType>>();
                         });
 
-                    x.AddType(typeExtension);
+                    x.AddTypeExtension(typeExtension);
                 });
 
         // act
