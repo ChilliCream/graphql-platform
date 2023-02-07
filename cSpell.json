@@ -32,7 +32,8 @@
     "Swashbuckle",
     "traversion",
     "Websockets",
-    "Newtonsoft"
+    "Newtonsoft",
+    "supergraph"
   ],
   "ignoreWords": [
     "Specwise",
