@@ -90,13 +90,11 @@ internal sealed class RavenPagingContainer<TEntity>
         catch (OperationCanceledException)
         {
             totalCountCompletionSource?.SetCanceled(cancellationToken);
-
             throw;
         }
         catch (Exception ex)
         {
             totalCountCompletionSource?.SetException(ex);
-
             throw;
         }
         finally
@@ -116,14 +114,12 @@ internal sealed class RavenPagingContainer<TEntity>
     public RavenPagingContainer<TEntity> Skip(int skip)
     {
         _query = _query.Skip(skip);
-
         return this;
     }
 
     public RavenPagingContainer<TEntity> Take(int take)
     {
         _query = _query.Take(take);
-
         return this;
     }
 
