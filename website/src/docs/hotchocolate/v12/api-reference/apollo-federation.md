@@ -51,7 +51,9 @@ public class Product
 }
 ```
 
-2. [Define an entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) by creating a `static` method and annotating it with the `[ReferenceResolver]` attribute. **Note**: if you're using [nullable reference types](https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references), you should make sure the return type is marked as possibly null.
+2. [Define an entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) by creating a `static` method and annotating it with the `[ReferenceResolver]` attribute.
+    1. The parameter name and type used in the reference resolver **must match** the GraphQL field name of the `[Key]` attribute, e.g., if the GraphQL key field is `id: String!` or `id: ID!` then the reference resolver's paramter must be `string id`.
+    1. If you're using [nullable reference types](https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references), you should make sure the return type is marked as possibly null.
 ```csharp
 public class Product
 {
@@ -75,6 +77,18 @@ public class Product
     {
         return await dataloader.LoadAsync(id);
     }
+}
+```
+
+> If you have multiple keys for your API, you should include a reference resolver for each one so that the supergraph is able to resolve your entity regardless of which key(s) another graph uses.
+```csharp
+public class Product
+{
+    [Key]
+    public string Id { get; set; }
+
+    [Key]
+    public int Sku { get; set; }
 }
 ```
 
@@ -107,3 +121,9 @@ _Example SDL response_
   }
 }
 ```
+
+## Testing and executing your resolvers
+The `[ReferenceResolver]`
+
+# Extending an entity type
+TODO
