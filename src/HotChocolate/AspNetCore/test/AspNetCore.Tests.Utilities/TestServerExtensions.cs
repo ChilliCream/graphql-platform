@@ -29,7 +29,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType!.ToString();
         return result;
@@ -68,7 +68,7 @@ public static class TestServerExtensions
 
                     var item =
                         JsonConvert.DeserializeObject<ClientQueryResult>(
-                            Encoding.UTF8.GetString(mem.ToArray()));
+                            Encoding.UTF8.GetString(mem.ToArray()))!;
                     item.ContentType = section.ContentType;
                     item.StatusCode = response.StatusCode;
                     result.Add(item);
@@ -120,7 +120,7 @@ public static class TestServerExtensions
 
                         var item =
                             JsonConvert.DeserializeObject<ClientQueryResult>(
-                                Encoding.UTF8.GetString(mem.ToArray()));
+                                Encoding.UTF8.GetString(mem.ToArray()))!;
                         item.ContentType = section.ContentType;
                         item.StatusCode = response.StatusCode;
                         result.Add(item);
@@ -133,7 +133,7 @@ public static class TestServerExtensions
         }
         catch
         {
-            var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
             result.StatusCode = response.StatusCode;
             result.ContentType = response.Content.Headers.ContentType?.ToString();
             return new[] { result };
@@ -157,7 +157,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
@@ -180,7 +180,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
@@ -189,13 +189,15 @@ public static class TestServerExtensions
     public static async Task<ClientRawResult> PostRawAsync(
         this TestServer testServer,
         ClientQueryRequest request,
-        string path = "/graphql")
+        string path = "/graphql",
+        bool enableApolloTracing = false)
     {
         var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
-                path);
+                path,
+                enableApolloTracing: enableApolloTracing);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -208,6 +210,22 @@ public static class TestServerExtensions
             ContentType = response.Content.Headers.ContentType!.ToString(),
             Content = await response.Content.ReadAsStringAsync()
         };
+    }
+
+    public static async Task<HttpResponseMessage> PostHttpAsync(
+        this TestServer testServer,
+        ClientQueryRequest request,
+        string path = "/graphql",
+        bool enableApolloTracing = false)
+    {
+        var response =
+            await SendPostRequestAsync(
+                testServer,
+                JsonConvert.SerializeObject(request),
+                path,
+                enableApolloTracing: enableApolloTracing);
+
+        return response;
     }
 
     public static async Task<ClientQueryResult> GetAsync(
@@ -224,7 +242,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
@@ -248,7 +266,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
@@ -275,7 +293,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;

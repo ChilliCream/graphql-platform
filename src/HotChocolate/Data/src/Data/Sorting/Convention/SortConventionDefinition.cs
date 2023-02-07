@@ -30,12 +30,12 @@ public class SortConventionDefinition : IHasScope
 
     public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 
-    public IDictionary<ITypeReference, List<ConfigureSortInputType>> Configurations { get; } =
-        new Dictionary<ITypeReference, List<ConfigureSortInputType>>(
+    public IDictionary<TypeReference, List<ConfigureSortInputType>> Configurations { get; } =
+        new Dictionary<TypeReference, List<ConfigureSortInputType>>(
             TypeReferenceComparer.Default);
 
-    public IDictionary<ITypeReference, List<ConfigureSortEnumType>> EnumConfigurations { get; }
-        = new Dictionary<ITypeReference, List<ConfigureSortEnumType>>(
+    public IDictionary<TypeReference, List<ConfigureSortEnumType>> EnumConfigurations { get; }
+        = new Dictionary<TypeReference, List<ConfigureSortEnumType>>(
             TypeReferenceComparer.Default);
 
     public IList<ISortProviderExtension> ProviderExtensions { get; } =

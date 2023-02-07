@@ -28,8 +28,8 @@ public class FilterConventionDefinition : IHasScope
 
     public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 
-    public IDictionary<ITypeReference, List<ConfigureFilterInputType>> Configurations { get; } =
-        new Dictionary<ITypeReference, List<ConfigureFilterInputType>>(
+    public IDictionary<TypeReference, List<ConfigureFilterInputType>> Configurations { get; } =
+        new Dictionary<TypeReference, List<ConfigureFilterInputType>>(
             TypeReferenceComparer.Default);
 
     public List<IFilterProviderExtension> ProviderExtensions { get; } = new();

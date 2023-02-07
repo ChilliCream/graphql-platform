@@ -28,7 +28,7 @@ public class FilterConvention
     private INamingConventions _namingConventions = default!;
     private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
     private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<ITypeReference, List<ConfigureFilterInputType>> _configs = default!;
+    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = default!;
 
     private string _argumentName = default!;
     private IFilterProvider _provider = default!;
@@ -138,6 +138,7 @@ public class FilterConvention
             runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInputType<>))
         {
             var genericName = _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
+
             return genericName + "OperationFilterInput";
         }
 
@@ -249,12 +250,12 @@ public class FilterConvention
 
     /// <inheritdoc cref="IFilterConvention"/>
     public void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor)
     {
         if (_configs.TryGetValue(
-            typeReference,
-            out var configurations))
+                typeReference,
+                out var configurations))
         {
             foreach (var configure in configurations)
             {
@@ -290,11 +291,13 @@ public class FilterConvention
             if (filterFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
             {
                 handler = filterFieldHandler;
+
                 return true;
             }
         }
 
         handler = null;
+
         return false;
     }
 
@@ -319,6 +322,7 @@ public class FilterConvention
                 TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 type = typeof(ListFilterInputType<>).MakeGenericType(elementType);
+
                 return true;
             }
         }
@@ -326,17 +330,26 @@ public class FilterConvention
         if (runtimeType.Type.IsEnum)
         {
             type = typeof(EnumOperationFilterInputType<>).MakeGenericType(runtimeType.Source);
+
             return true;
         }
 
-        if (runtimeType.Type.IsClass ||
-            runtimeType.Type.IsInterface)
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false })
+        {
+            type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Type);
+
+            return true;
+        }
+
+        if (runtimeType.Type.IsClass || runtimeType.Type.IsInterface)
         {
             type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Source);
+
             return true;
         }
 
         type = null;
+
         return false;
     }
 
@@ -349,8 +362,8 @@ public class FilterConvention
         foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
             if (serviceProvider.TryGetOrCreateService<IFilterProviderExtension>(
-                extensionType,
-                out var createdExtension))
+                    extensionType,
+                    out var createdExtension))
             {
                 extensions.Add(createdExtension);
             }

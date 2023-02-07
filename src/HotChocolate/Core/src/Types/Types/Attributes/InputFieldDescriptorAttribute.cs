@@ -25,7 +25,7 @@ public abstract class InputFieldDescriptorAttribute
         }
     }
 
-    public abstract void OnConfigure(
+    protected abstract void OnConfigure(
         IDescriptorContext context,
         IInputFieldDescriptor descriptor,
         MemberInfo member);

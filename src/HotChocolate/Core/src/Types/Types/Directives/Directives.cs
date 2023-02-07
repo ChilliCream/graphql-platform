@@ -20,11 +20,11 @@ public static class Directives
             WellKnownDirectives.OneOf
         };
 
-    internal static IReadOnlyList<ITypeReference> CreateReferences(
+    internal static IReadOnlyList<TypeReference> CreateReferences(
         IDescriptorContext descriptorContext)
     {
         var typeInspector = descriptorContext.TypeInspector;
-        var directiveTypes = new List<ITypeReference>();
+        var directiveTypes = new List<TypeReference>();
 
         if (descriptorContext.Options.EnableOneOf)
         {

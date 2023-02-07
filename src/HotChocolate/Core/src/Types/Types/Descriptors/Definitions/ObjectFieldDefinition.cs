@@ -38,7 +38,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     public ObjectFieldDefinition(
         string name,
         string? description = null,
-        ITypeReference? type = null,
+        TypeReference? type = null,
         FieldResolverDelegate? resolver = null,
         PureFieldDelegate? pureResolver = null)
     {

@@ -22,6 +22,7 @@
     <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Caching" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
 
     <!--Legacy Support-->
@@ -37,6 +38,7 @@
     <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Projections.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -96,6 +98,27 @@
     </Compile>
     <Compile Update="Configuration\RegisteredType.DiscoveryContext.cs">
       <DependentUpon>RegisteredType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\StaticObjectTypeExtension.cs">
+      <DependentUpon>ObjectTypeExtension.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.BaseTypes.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Helper.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Members.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.SchemaType.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.SystemType.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Tools.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

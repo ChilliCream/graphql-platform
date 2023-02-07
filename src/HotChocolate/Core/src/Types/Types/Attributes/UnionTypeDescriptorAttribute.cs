@@ -25,7 +25,7 @@ public abstract class UnionTypeDescriptorAttribute
         }
     }
 
-    public abstract void OnConfigure(
+    protected abstract void OnConfigure(
         IDescriptorContext context,
         IUnionTypeDescriptor descriptor,
         Type type);

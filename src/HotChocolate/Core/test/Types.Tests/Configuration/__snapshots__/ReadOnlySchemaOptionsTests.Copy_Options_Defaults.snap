@@ -21,5 +21,6 @@
   "EnsureAllNodesCanBeResolved": false,
   "EnableFlagEnums": false,
   "EnableDefer": false,
-  "EnableStream": false
+  "EnableStream": false,
+  "MaxAllowedNodeBatchSize": 10
 }

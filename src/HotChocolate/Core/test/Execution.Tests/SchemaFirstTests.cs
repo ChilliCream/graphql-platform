@@ -1,6 +1,11 @@
+#nullable enable
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Xunit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace HotChocolate.Execution;
 
@@ -13,9 +18,9 @@ public class SchemaFirstTests
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"type Query {
-                        test: String
-                        testProp: String
-                    }")
+                    test: String
+                    testProp: String
+                }")
             .AddResolver<Query>()
             .Create();
 
@@ -68,13 +73,13 @@ public class SchemaFirstTests
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"type Query {
-                        enumValue: FooEnum
-                    }
+                    enumValue: FooEnum
+                }
 
-                    enum FooEnum {
-                        BAR
-                        BAZ
-                    }")
+                enum FooEnum {
+                    BAR
+                    BAZ
+                }")
             .AddResolver<EnumQuery>("Query")
             .Create();
 
@@ -121,18 +126,20 @@ public class SchemaFirstTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
-                @"type Query {
-                        enumInInputObject(payload:Payload) : String
-                    }
+                """
+                type Query {
+                  enumInInputObject(payload: Payload) : String
+                }
 
-                    input Payload {
-                        value: FooEnum
-                    }
+                input Payload {
+                  value: FooEnum
+                }
 
-                    enum FooEnum {
-                        BAR
-                        BAZ
-                    }")
+                enum FooEnum {
+                  BAR
+                  BAZ
+                }
+                """)
             .AddResolver<EnumQuery>("Query")
             .AddResolver<Payload>()
             .Create();
@@ -145,6 +152,71 @@ public class SchemaFirstTests
         // assert
         Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
+    }
+
+    /// <summary>
+    /// https://github.com/ChilliCream/graphql-platform/issues/5730
+    /// </summary>
+    [Fact]
+    public async Task Issue_5730()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    schema {
+                      query: Query
+                      mutation: Mutation
+                    }
+
+                    type Query {
+                       dummy: String!
+                    }
+
+                    type Mutation {
+                        changeChannelParameters(
+                            input: ChangeChannelParameterInput!)
+                            : ChangeChannelParameterPayload!
+                    }
+
+                    input ChangeChannelParameterInput {
+                      parameterChangeInfo: [ParameterValuePair!]!
+                    }
+
+                    input ParameterValuePair {
+                      value: Any
+                    }
+
+                    type ChangeChannelParameterPayload {
+                      message: String!
+                    }
+
+                    scalar Any
+                    """)
+                .AddResolver<Query5730>("Query")
+                .AddResolver<Mutation5730>("Mutation")
+                .ExecuteRequestAsync(
+                    """
+                    mutation {
+                      changeChannelParameters(input: {
+                        parameterChangeInfo: [ { value: { a: "b" } } ]
+                      }) {
+                        message
+                      }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "changeChannelParameters": {
+                  "message": "b"
+                }
+              }
+            }
+            """);
     }
 
     public class Query
@@ -198,5 +270,40 @@ public class SchemaFirstTests
         Bar,
         Baz,
         BazBar
+    }
+
+    public class Query5730
+    {
+        public string Dummy => "Don't care";
+    }
+
+    public class Mutation5730
+    {
+        public Task<ChangeChannelParameterPayload> ChangeChannelParametersAsync(
+            ChangeChannelParameterInput input,
+            CancellationToken _)
+        {
+            var message = Assert.IsType<string>(
+                Assert.IsType<Dictionary<string, object>>(
+                    input.ParameterChangeInfo[0].Value)["a"]);
+
+            return Task.FromResult(new ChangeChannelParameterPayload { Message = message });
+        }
+    }
+
+    public record ChangeChannelParameterInput
+    {
+        public ParameterValuePair[] ParameterChangeInfo { get; set; } =
+            Array.Empty<ParameterValuePair>();
+    }
+
+    public record ParameterValuePair
+    {
+        public object? Value { get; set; }
+    }
+
+    public record ChangeChannelParameterPayload
+    {
+        public string Message { get; init; } = string.Empty;
     }
 }

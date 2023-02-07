@@ -5,12 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
@@ -19,9 +19,9 @@ using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Properties;
 using StrawberryShake.Tools.Configuration;
 using static HotChocolate.Language.Utf8GraphQLParser;
-using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
+using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
@@ -42,7 +42,7 @@ public static class CSharpGenerator
         new RazorSubscriptionGenerator()
     };
 
-    public static async ValueTask<CSharpGeneratorResult> GenerateAsync(
+    public static async Task<CSharpGeneratorResult> GenerateAsync(
         IEnumerable<string> fileNames,
         CSharpGeneratorSettings? settings = null)
     {
@@ -396,7 +396,10 @@ public static class CSharpGenerator
             try
             {
                 var document = Parse(File.ReadAllBytes(fileName));
-                files.Add(new(fileName, document));
+                if (document.Definitions.Count > 0)
+                {
+                    files.Add(new(fileName, document));
+                }
             }
             catch (SyntaxException syntaxException)
             {

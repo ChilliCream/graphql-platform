@@ -9,13 +9,13 @@ public class AuthorizationTestData : IEnumerable<object[]>
 {
     private readonly string SchemaCode = @"
         type Query {
-            default: String @authorize
-            age: String @authorize(policy: ""HasAgeDefined"")
-            roles: String @authorize(roles: [""a""])
-            roles_ab: String @authorize(roles: [""a"" ""b""])
+            default: String @authorize(apply: BEFORE_RESOLVER)
+            age: String @authorize(policy: ""HasAgeDefined"" apply: BEFORE_RESOLVER)
+            roles: String @authorize(roles: [""a""] apply: BEFORE_RESOLVER)
+            roles_ab: String @authorize(roles: [""a"" ""b""] apply: BEFORE_RESOLVER)
             piped: String
-                @authorize(policy: ""a"")
-                @authorize(policy: ""b"")
+                @authorize(policy: ""a"" apply: BEFORE_RESOLVER)
+                @authorize(policy: ""b"" apply: BEFORE_RESOLVER)
             afterResolver: String
                 @authorize(policy: ""a"" apply: AFTER_RESOLVER)
         }";

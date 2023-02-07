@@ -552,6 +552,48 @@ public class OperationRequestTests
     }
 
     [Fact]
+    public void Equals_With_Variables_KeyValuePair()
+    {
+        // arrange
+        var document = new Mock<IDocument>();
+        var a = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?>
+            {
+                { "a", new List<KeyValuePair<string, object?>>
+                    {
+                        new KeyValuePair<string, object?>("b", new List<KeyValuePair<string, object?>>
+                        {
+                            new KeyValuePair<string, object?>("id", "123456")
+                        })
+                    }
+                }
+            });
+
+        var b = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?>
+            {
+                { "a", new List<KeyValuePair<string, object?>>
+                    {
+                        new KeyValuePair<string, object?>("b", new List<KeyValuePair<string, object?>>
+                        {
+                            new KeyValuePair<string, object?>("id", "123456")
+                        })
+                    }
+                }
+            });
+
+        // act
+        // assert
+        Assert.True(a.Equals(b));
+    }
+    
+    [Fact]
     public void Equals_No_Variables()
     {
         // arrange

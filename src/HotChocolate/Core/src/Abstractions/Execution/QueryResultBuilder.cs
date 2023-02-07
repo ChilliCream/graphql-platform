@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
-public class QueryResultBuilder : IQueryResultBuilder
+public sealed class QueryResultBuilder : IQueryResultBuilder
 {
     private IReadOnlyDictionary<string, object?>? _data;
     private IReadOnlyList<object?>? _items;
@@ -191,9 +189,9 @@ public class QueryResultBuilder : IQueryResultBuilder
             builder._errors = new List<IError>(result.Errors);
         }
 
-        if (result.Extensions is ExtensionData d)
+        if (result.Extensions is ExtensionData ext)
         {
-            builder._extensionData = new ExtensionData(d);
+            builder._extensionData = new ExtensionData(ext);
         }
         else if (result.Extensions is not null)
         {
@@ -208,6 +206,10 @@ public class QueryResultBuilder : IQueryResultBuilder
         {
             builder._contextData = new ExtensionData(result.ContextData);
         }
+
+        builder._label = result.Label;
+        builder._path = result.Path;
+        builder._hasNext = result.HasNext;
 
         return builder;
     }

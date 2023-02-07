@@ -19,7 +19,7 @@ public static class UploadSchemaHelpers
 
     public static void Configure(IRequestExecutorBuilder builder)
     {
-        builder.AddTypeExtension<UploadQueries>().AddType<UploadType>();
+        builder.AddTypeExtension<UploadQueries>().AddUploadType();
     }
 
     public static string ReadContents(this IFile file)

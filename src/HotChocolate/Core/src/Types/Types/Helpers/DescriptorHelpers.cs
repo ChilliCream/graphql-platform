@@ -34,7 +34,7 @@ internal static class DescriptorHelpers
     }
 
     private static bool IsTypeMoreSpecific(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IExtendedType type)
     {
         if (typeReference is SchemaTypeReference)
@@ -52,7 +52,7 @@ internal static class DescriptorHelpers
     }
 
     private static bool IsTypeMoreSpecific(
-       ITypeReference typeReference,
+       TypeReference typeReference,
        ITypeNode typeNode)
     {
         if (typeReference is SchemaTypeReference)

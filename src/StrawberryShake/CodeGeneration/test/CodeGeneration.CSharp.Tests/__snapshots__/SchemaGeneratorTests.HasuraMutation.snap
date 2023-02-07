@@ -3333,7 +3333,7 @@ namespace Foo.Bar
             return serializedValue switch
             {
                 "people_pkey" => People_constraint.PeoplePkey,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum People_constraint")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -3341,7 +3341,7 @@ namespace Foo.Bar
             return runtimeValue switch
             {
                 People_constraint.PeoplePkey => "people_pkey",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum People_constraint value '{runtimeValue}' can't be converted to string")};
         }
     }
 
@@ -3378,7 +3378,7 @@ namespace Foo.Bar
                 "firstName" => People_update_column.Firstname,
                 "id" => People_update_column.Id,
                 "lastName" => People_update_column.Lastname,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum People_update_column")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -3388,7 +3388,7 @@ namespace Foo.Bar
                 People_update_column.Firstname => "firstName",
                 People_update_column.Id => "id",
                 People_update_column.Lastname => "lastName",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum People_update_column value '{runtimeValue}' can't be converted to string")};
         }
     }
 
@@ -3415,7 +3415,7 @@ namespace Foo.Bar
             return serializedValue switch
             {
                 "cars_pkey" => Cars_constraint.CarsPkey,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum Cars_constraint")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -3423,7 +3423,7 @@ namespace Foo.Bar
             return runtimeValue switch
             {
                 Cars_constraint.CarsPkey => "cars_pkey",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum Cars_constraint value '{runtimeValue}' can't be converted to string")};
         }
     }
 
@@ -3460,7 +3460,7 @@ namespace Foo.Bar
                 "carName" => Cars_update_column.Carname,
                 "id" => Cars_update_column.Id,
                 "ownerId" => Cars_update_column.Ownerid,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum Cars_update_column")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -3470,7 +3470,7 @@ namespace Foo.Bar
                 Cars_update_column.Carname => "carName",
                 Cars_update_column.Id => "id",
                 Cars_update_column.Ownerid => "ownerId",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum Cars_update_column value '{runtimeValue}' can't be converted to string")};
         }
     }
 

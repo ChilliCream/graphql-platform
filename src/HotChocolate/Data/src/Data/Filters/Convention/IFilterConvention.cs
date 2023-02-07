@@ -110,7 +110,7 @@ public interface IFilterConvention : IConvention
     /// The descriptor to which the configurations shall be applied to.
     /// </param>
     void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor);
 
     bool TryGetHandler(

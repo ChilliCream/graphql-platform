@@ -11,6 +11,9 @@ public static class SnapshotValueFormatters
     public static ISnapshotValueFormatter GraphQL { get; } =
         new GraphQLSnapshotValueFormatter();
 
+    public static ISnapshotValueFormatter GraphQLHttp { get; } =
+        new GraphQLHttpResponseFormatter();
+
     public static ISnapshotValueFormatter Json { get; } =
         new JsonSnapshotValueFormatter();
 

@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Internal;
 
 /// <summary>
-/// A type discover handler allows to specify how types are inferred
+/// A type discovery handler allows to specify how types are inferred
 /// from <see cref="ExtendedTypeReference"/>s.
 /// </summary>
 public abstract class TypeDiscoveryHandler
@@ -29,9 +29,9 @@ public abstract class TypeDiscoveryHandler
     /// otherwise, <c>false</c>.
     /// </returns>
     public abstract bool TryInferType(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
-        [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs);
+        [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs);
 
     /// <summary>
     /// Tries to infer the <see cref="TypeKind"/> from a runtime reference.
@@ -51,7 +51,7 @@ public abstract class TypeDiscoveryHandler
     /// otherwise, <c>false</c>.
     /// </returns>
     public virtual bool TryInferKind(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
         out TypeKind typeKind)
     {

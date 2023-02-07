@@ -1,0 +1,7 @@
+schema {
+  query: PascalCaseQuery
+}
+
+type PascalCaseQuery {
+  testResolver(testArgument: String!): String!
+}

@@ -14,6 +14,7 @@ using static HotChocolate.Tests.TestHelper;
 using Snapshot = Snapshooter.Xunit.Snapshot;
 
 #nullable enable
+#pragma warning disable CS0618
 
 namespace HotChocolate.Types;
 

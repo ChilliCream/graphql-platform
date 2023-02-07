@@ -94,11 +94,11 @@ public partial class SchemaBuilder
             return context;
         }
 
-        private static IReadOnlyList<ITypeReference> CreateTypeReferences(
+        private static IReadOnlyList<TypeReference> CreateTypeReferences(
             SchemaBuilder builder,
             IDescriptorContext context)
         {
-            var types = new List<ITypeReference>();
+            var types = new List<TypeReference>();
 
             foreach (var typeRef in builder._types)
             {
@@ -117,11 +117,11 @@ public partial class SchemaBuilder
             return types;
         }
 
-        private static IEnumerable<ITypeReference> ParseDocuments(
+        private static IEnumerable<TypeReference> ParseDocuments(
             SchemaBuilder builder,
             IDescriptorContext context)
         {
-            var types = new List<ITypeReference>();
+            var types = new List<TypeReference>();
             var documents = new List<DocumentNode>();
             context.ContextData[WellKnownContextData.SchemaDocuments] = documents;
 
@@ -190,7 +190,7 @@ public partial class SchemaBuilder
         private static TypeRegistry InitializeTypes(
             SchemaBuilder builder,
             IDescriptorContext context,
-            IReadOnlyList<ITypeReference> types)
+            IReadOnlyList<TypeReference> types)
         {
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
             var initializer =
@@ -202,7 +202,7 @@ public partial class SchemaBuilder
         private static TypeInitializer CreateTypeInitializer(
             SchemaBuilder builder,
             IDescriptorContext context,
-            IReadOnlyList<ITypeReference> typeReferences,
+            IReadOnlyList<TypeReference> typeReferences,
             TypeRegistry typeRegistry)
         {
             var operations =
@@ -270,7 +270,7 @@ public partial class SchemaBuilder
         private static RootTypeKind GetOperationKind(
             TypeSystemObjectBase type,
             ITypeInspector typeInspector,
-            Dictionary<OperationType, ITypeReference> operations)
+            Dictionary<OperationType, TypeReference> operations)
         {
             if (type is ObjectType objectType)
             {
@@ -309,7 +309,7 @@ public partial class SchemaBuilder
             ObjectType objectType,
             OperationType operationType,
             ITypeInspector typeInspector,
-            Dictionary<OperationType, ITypeReference> operations)
+            Dictionary<OperationType, TypeReference> operations)
         {
             if (operations.TryGetValue(operationType, out var typeRef))
             {
@@ -407,7 +407,7 @@ public partial class SchemaBuilder
 
         private static void ResolveOperations(
             SchemaTypesDefinition schemaDef,
-            Dictionary<OperationType, ITypeReference> operations,
+            Dictionary<OperationType, TypeReference> operations,
             TypeRegistry typeRegistry)
         {
             if (operations.Count == 0)

@@ -15,7 +15,7 @@ public class ObjectFilterOperationDescriptor<TObject>
         IDescriptorContext context,
         ObjectFilterFieldDescriptor<TObject> descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         : base(context, descriptor, name, type, operation)
     {
@@ -92,7 +92,7 @@ public class ObjectFilterOperationDescriptor<TObject>
         IDescriptorContext context,
         ObjectFilterFieldDescriptor<TObject> descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         => new(context, descriptor, name, type, operation);
 }

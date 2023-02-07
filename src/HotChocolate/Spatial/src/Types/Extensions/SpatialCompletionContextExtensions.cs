@@ -17,7 +17,7 @@ internal static class SpatialCompletionContextExtensions
     /// <returns><c>true</c> when the type reference is of <typeparamref name="T"/></returns>
     public static bool IsNamedType<T>(
         this ITypeCompletionContext context,
-        ITypeReference typeReference)
+        TypeReference typeReference)
         where T : IType
     {
         return context.TryGetType<IType>(typeReference, out var type) && type.NamedType() is T;

@@ -1,7 +1,9 @@
 using System;
 using HotChocolate;
 using HotChocolate.Authorization;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -31,17 +33,14 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.ConfigureSchema(
-            sb => sb.AddAuthorizeDirectiveType());
-        builder.Services.TryAddSingleton(
-            new AuthorizationCache());
+        builder.Services.TryAddSingleton<IRequestContextEnricher, AuthorizationContextEnricher>();
+        builder.Services.TryAddSingleton(new AuthorizationCache());
+        builder.ConfigureSchema(sb => sb.AddAuthorizeDirectiveType());
         builder.AddValidationRule(
             (s, _) => new AuthorizeValidationRule(
                 s.GetRequiredService<AuthorizationCache>()));
         builder.AddValidationResultAggregator(
-            (s, _) => new AuthorizeValidationResultAggregator(
-                s.GetRequiredService<IAuthorizationHandler>(),
-                s));
+            (s, _) => new AuthorizeValidationResultAggregator(s));
         return builder;
     }
 
@@ -109,7 +108,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     {
         builder.AddAuthorizationCore();
         builder.Services.RemoveAll<IAuthorizationHandler>();
-        builder.Services.AddSingleton<IAuthorizationHandler, T>();
+        builder.Services.AddScoped<IAuthorizationHandler, T>();
         return builder;
     }
 
@@ -135,7 +134,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     {
         builder.AddAuthorizationCore();
         builder.Services.RemoveAll<IAuthorizationHandler>();
-        builder.Services.AddSingleton<IAuthorizationHandler>(factory);
+        builder.Services.AddScoped<IAuthorizationHandler>(factory);
         return builder;
     }
 }

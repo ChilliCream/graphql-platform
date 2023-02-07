@@ -1,0 +1,19 @@
+﻿{
+  "errors": [
+    {
+      "message": "The maximum number of nodes that can be fetched at once is 1. This selection tried to fetch 2 nodes that exceeded the maximum allowed amount.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "nodes"
+      ],
+      "extensions": {
+        "code": "HC0076"
+      }
+    }
+  ]
+}

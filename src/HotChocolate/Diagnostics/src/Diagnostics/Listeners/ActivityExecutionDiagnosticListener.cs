@@ -335,4 +335,18 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             activity.SetStatus(ActivityStatusCode.Error);
         }
     }
+
+    public override void ResolverError(IRequestContext context, ISelection selection, IError error)
+    {
+        if (!_options.SkipResolveFieldValue &&
+            context.ContextData.TryGetValue(RequestActivity, out var value))
+        {
+            Debug.Assert(value is not null, "The activity mustn't be null!");
+
+            var activity = (Activity)value;
+            _enricher.EnrichResolverError(context, selection, error, activity);
+            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
+        }
+    }
 }

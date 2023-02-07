@@ -219,4 +219,10 @@
   <data name="MutationResult_ErrorsIsEmpty" xml:space="preserve">
     <value>The errors collection must at least specify one error.</value>
   </data>
+  <data name="MissingStateException_Message" xml:space="preserve">
+    <value>The feature `{0}` is missing the state with the key `{1}`.</value>
+  </data>
+  <data name="AttributeExtensions_FormatFieldName_FieldNameEmpty" xml:space="preserve">
+    <value>The fieldName cannot be null or empty.</value>
+  </data>
 </root>

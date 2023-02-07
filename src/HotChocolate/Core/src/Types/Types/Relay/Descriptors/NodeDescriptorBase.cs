@@ -11,6 +11,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
 #nullable enable
 
@@ -143,7 +144,7 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
                         Definition.ResolverField.Member,
                         typeof(object),
                         Definition.ResolverField.ResolverType,
-                        NodeResolverCompilerHelper.ParameterExpressionBuilders);
+                        parameterExpressionBuilders: ParameterExpressionBuilders);
             }
 
             if (Definition.ResolverField.Resolver is not null)

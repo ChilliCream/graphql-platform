@@ -182,10 +182,10 @@ public static class TypeExtensionHelper
     }
 
     public static void MergeTypes(
-        ICollection<ITypeReference> extensionTypes,
-        ICollection<ITypeReference> typeTypes)
+        ICollection<TypeReference> extensionTypes,
+        ICollection<TypeReference> typeTypes)
     {
-        var set = new HashSet<ITypeReference>(typeTypes);
+        var set = new HashSet<TypeReference>(typeTypes);
 
         foreach (var reference in extensionTypes)
         {

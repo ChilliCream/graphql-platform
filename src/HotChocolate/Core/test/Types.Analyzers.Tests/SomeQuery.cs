@@ -20,13 +20,17 @@ public static class SomeQuery
 
     public static Book GetBook() => new() { Title = "SomeTitle" };
 
-    public static Task<string> WithDataLoader(IFoosByIdDataLoader foosById)
+    public static Task<string> WithDataLoader(
+        IFoosByIdDataLoader foosById,
+        CancellationToken cancellationToken)
     {
-        return foosById.LoadAsync("a");
+        return foosById.LoadAsync("a", cancellationToken);
     }
 
     [DataLoader]
+#pragma warning disable CS1998
     public static async Task<IReadOnlyDictionary<string, string>> GetFoosById56(
+#pragma warning restore CS1998
         IReadOnlyList<string> keys,
         SomeService someService,
         CancellationToken cancellationToken)
@@ -36,7 +40,9 @@ public static class SomeQuery
 
     // should be ignored on the schema
     [DataLoader]
+#pragma warning disable CS1998
     public static async Task<string> GetFoosById55(
+#pragma warning restore CS1998
         string id,
         SomeService someService,
         CancellationToken cancellationToken)
@@ -65,7 +71,7 @@ public static class DataLoaderGen
         SomeService someService,
         CancellationToken cancellationToken)
     {
-        return ids.ToDictionary(t => t, t => t);
+        return await Task.FromResult(ids.ToDictionary(t => t, t => t));
     }
 
     [DataLoader]
@@ -74,13 +80,22 @@ public static class DataLoaderGen
         SomeService someService,
         CancellationToken cancellationToken)
     {
-        return "abc";
+        return await Task.FromResult("abc");
     }
 
     [DataLoader(ServiceScope = DataLoaderServiceScope.OriginalScope)]
-    public static async Task<ILookup<string, string>> GetFoosById3(
+    public static Task<ILookup<string, string>> GetFoosById3(
         IReadOnlyList<string> ids,
         SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+
+    [DataLoader]
+    public static Task<string> GetGenericById(
+        IReadOnlyList<string> ids,
+        GenericService<GenericService<string>> someService,
         CancellationToken cancellationToken)
     {
         return default!;
@@ -89,5 +104,4 @@ public static class DataLoaderGen
 
 public class SomeService { }
 
-
-
+public class GenericService<T> { }

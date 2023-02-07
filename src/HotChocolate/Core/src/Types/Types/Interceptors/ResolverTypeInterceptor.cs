@@ -7,6 +7,7 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 #nullable enable
 
@@ -71,7 +72,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override IEnumerable<ITypeReference> RegisterMoreTypes(
+    public override IEnumerable<TypeReference> RegisterMoreTypes(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
     {
         var context = new CompletionContext(_typeDefs);
@@ -165,6 +166,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
         if (context.Members.Count > 0)
         {
+            var map = TypeMemHelper.RentArgumentNameMap();
+
             foreach (var field in objectTypeDef.Fields)
             {
                 if (!field.Resolvers.HasResolvers &&
@@ -174,15 +177,29 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
                     ObjectFieldDescriptor.From(_context, field).CreateDefinition();
 
+                    map.Clear();
+
+                    foreach (var argument in field.Arguments)
+                    {
+                        if (argument.Parameter is not null)
+                        {
+                            map[argument.Parameter] = argument.Name;
+                        }
+                    }
+
                     field.Resolvers = _resolverCompiler.CompileResolve(
                         member,
                         objectTypeDef.RuntimeType,
-                        resolverType: member.ReflectedType);
+                        resolverType: member.ReflectedType,
+                        argumentNames: map,
+                        field.GetParameterExpressionBuilders());
 
                     TryBindArgumentRuntimeType(field, member);
                     TrySetRuntimeTypeFromMember(context, field.Type, member);
                 }
             }
+
+            TypeMemHelper.Return(map);
         }
     }
 
@@ -218,6 +235,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         ObjectTypeDefinition objectTypeDef)
     {
         var initialized = false;
+        var map = TypeMemHelper.RentArgumentNameMap();
 
         foreach (var field in objectTypeDef.Fields)
         {
@@ -237,9 +255,22 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
                 if (!field.Resolvers.HasResolvers)
                 {
+                    map.Clear();
+
+                    foreach (var argument in field.Arguments)
+                    {
+                        if (argument.Parameter is not null)
+                        {
+                            map[argument.Parameter] = argument.Name;
+                        }
+                    }
+
                     field.Resolvers = _resolverCompiler.CompileResolve(
                         field.Member,
-                        objectTypeDef.RuntimeType);
+                        objectTypeDef.RuntimeType,
+                        argumentNames: map,
+                        parameterExpressionBuilders: field.GetParameterExpressionBuilders());
+
 
                     if (TrySetRuntimeTypeFromMember(context, field.Type, field.Member) is { } u)
                     {
@@ -252,6 +283,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             }
         }
 
+        TypeMemHelper.Return(map);
         context.Members.Clear();
     }
 
@@ -339,7 +371,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void CollectSourceMembers(CompletionContext context, Type runtimeType)
     {
-        foreach (var member in _typeInspector.GetMembers(runtimeType))
+        foreach (var member in _typeInspector.GetMembers(runtimeType, allowObject: true))
         {
             var name = _naming.GetMemberName(member, MemberKind.ObjectField);
             context.Members[name] = member;
@@ -408,7 +440,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private IReadOnlyCollection<ITypeDefinition>? TrySetRuntimeTypeFromMember(
         CompletionContext context,
-        ITypeReference? typeRef,
+        TypeReference? typeRef,
         MemberInfo member)
     {
         if (typeRef is not null && _typeReferenceResolver.TryGetType(typeRef, out var type))

@@ -1,7 +1,10 @@
 #nullable enable
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Text.Json;
+using HotChocolate.Language;
 using static System.DateTimeOffset;
 using static System.Globalization.CultureInfo;
 using static System.Globalization.NumberStyles;
@@ -109,18 +112,52 @@ public partial class DefaultTypeConverter
     private static void RegisterStringConversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<string, Guid>(from => Guid.Parse(from));
-        registry.Register<string, Uri>(from => new Uri(from, UriKind.RelativeOrAbsolute));
-        registry.Register<string, short>(from => short.Parse(from, Integer, InvariantCulture));
-        registry.Register<string, int>(from => int.Parse(from, Integer, InvariantCulture));
-        registry.Register<string, long>(from => long.Parse(from, Integer, InvariantCulture));
-        registry.Register<string, ushort>(from => ushort.Parse(from, Integer, InvariantCulture));
-        registry.Register<string, uint>(from => uint.Parse(from, Integer, InvariantCulture));
-        registry.Register<string, ulong>(from => ulong.Parse(from, Integer, InvariantCulture));
-        registry.Register<string, float>(from => ushort.Parse(from, Float, InvariantCulture));
-        registry.Register<string, double>(from => double.Parse(from, Float, InvariantCulture));
-        registry.Register<string, decimal>(from => decimal.Parse(from, Float, InvariantCulture));
-        registry.Register<string, bool>(from => bool.Parse(from));
+        registry.Register<string, Guid>(
+            static from => Guid.Parse(from));
+        registry.Register<string, Uri>(
+            static from => new Uri(from, UriKind.RelativeOrAbsolute));
+        registry.Register<string, short>(
+            static from => short.Parse(from, Integer, InvariantCulture));
+        registry.Register<string, int>(
+            static from => int.Parse(from, Integer, InvariantCulture));
+        registry.Register<string, long>(
+            static from => long.Parse(from, Integer, InvariantCulture));
+        registry.Register<string, ushort>(
+            static from => ushort.Parse(from, Integer, InvariantCulture));
+        registry.Register<string, uint>(
+            static from => uint.Parse(from, Integer, InvariantCulture));
+        registry.Register<string, ulong>(
+            static from => ulong.Parse(from, Integer, InvariantCulture));
+        registry.Register<string, float>(
+            static from => ushort.Parse(from, Float, InvariantCulture));
+        registry.Register<string, double>(
+            static from => double.Parse(from, Float, InvariantCulture));
+        registry.Register<string, decimal>(
+            static from => decimal.Parse(from, Float, InvariantCulture));
+        registry.Register<string, bool>(
+            static from => bool.Parse(from));
+        registry.Register<string, JsonElement>(
+            static from =>
+            {
+                var length = checked(from.Length * 4);
+                byte[]? jsonText = null;
+
+                var jsonTextSpan = length <= GraphQLConstants.StackallocThreshold
+                    ? stackalloc byte[length]
+                    : jsonText = ArrayPool<byte>.Shared.Rent(length);
+
+                Utf8GraphQLParser.ConvertToBytes(from, ref jsonTextSpan);
+                var jsonReader = new Utf8JsonReader(jsonTextSpan);
+                var element = JsonElement.ParseValue(ref jsonReader);
+
+                if (jsonText is not null)
+                {
+                    ArrayPool<byte>.Shared.Return(jsonText);
+                }
+
+                return element;
+            });
+        registry.Register<JsonElement, string>(static from => from.ToString());
     }
 
     private static void RegisterByteConversions(
