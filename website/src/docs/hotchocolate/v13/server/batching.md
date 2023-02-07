@@ -6,6 +6,17 @@ Batching allows you to send and execute a sequence of GraphQL operations in a si
 
 This becomes really powerful in combination with our [@export](#export-directive) directive, especially considering mutations. You could for example create a sequence of mutations and export the result of an earlier mutation as the input for a later mutation.
 
+# Enabling batching
+
+Batching is disabled per default as a security measure, so you need to first enable it explicitly:
+
+```csharp
+app.MapGraphQL().WithOptions(new GraphQLServerOptions
+{
+    EnableBatching = true
+});
+```
+
 # Operation batching
 
 You probably already know that you can send a GraphQL request document with multiple operations to a GraphQL server. However, normally you also have to specify the name of a **single** operation you wish to execute.
