@@ -32,9 +32,7 @@ public static class RavenPaginationRequestExecutorBuilderExtensions
         }
 
         builder.AddCursorPagingProvider<RavenCursorPagingProvider>(providerName, defaultProvider);
-
         builder.AddOffsetPagingProvider<RavenOffsetPagingProvider>(providerName, defaultProvider);
-
         return builder;
     }
 }
