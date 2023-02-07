@@ -1,10 +1,11 @@
 ---
 title: Apollo Federation Subgraph Support
 ---
+> If you want to read more about Apollo Federation in general, you can head over to the [Apollo Federation documentation](https://www.apollographql.com/docs/federation/), which provides a robust overview and set of examples for this GraphQL architectural pattern. Many of the core principles and concepts are refernced within this document.
 
 Hot Chocolate includes an implementation of the Apollo Federation v2 specification for creating Apollo Federated subgraphs. Through Apollo Federation, you can combine multiple GraphQL APIs into a single API for your consumers.
 
-[Apollo Federation documentation](https://www.apollographql.com/docs/federation/) provides a robust explanation of the different foundational concepts and principles that are referenced through the rest of this document.
+TODO: highlight scope of the document
 
 # Get Started
 To use the Apollo Federation tools, you need to first install v12.6 or later of the `HotChocolate.ApolloFederation` package.
@@ -51,7 +52,9 @@ public class Product
 ```
 
 ## Define a reference resolver
-Next, we'll need to [define an entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) so that the supergraph can resolve data across multiple graphs during a query. We do this by creating a `public static` method and annotating it with the `[ReferenceResolver]` attribute.
+Next, we'll need to [define an entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) so that the supergraph can resolve data across multiple graphs during a query. A reference resolver is similar to many other [data resolvers in Hot Chocolate](docs/hotchocolate/v12/fetching-data/resolvers) with some key requirements:
+1. They must be `public static` methods within the type they are resolving
+1. They must be annotated with the `[ReferenceResolver]` attribute
 ```csharp
 public class Product
 {
@@ -77,11 +80,11 @@ public class Product
 ```
 
 Some important details to highlight about `[ReferenceResolver]` methods.
-1. The name of the method decorated with the `[ReferenceResolver]` attribute does not matter. However, as with all programming endeavors, you should aim to provide a descriptive name for your method to make your code easier to read and navigate.
+1. The name of the method decorated with the `[ReferenceResolver]` attribute does not matter. However, as with all programming endeavors, you should aim to provide a descriptive name that reveals the method's intention.
 1. The parameter name and type used in the reference resolver **must match** the GraphQL field name of the `[Key]` attribute, e.g., if the GraphQL key field is `id: String!` or `id: ID!` then the reference resolver's paramter must be `string id`.
 1. If you're using [nullable reference types](https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references), you should make sure the return type is marked as possibly null.
-1. It's recommended to use a [dataloader](../fetching-data/dataloader.md) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgrpah.
-1. If you have multiple keys defined for an entity, you should include a reference resolver for each one so that the supergraph is able to resolve your entity regardless of which key(s) another graph uses to reference that entity.
+1. It's recommended to use a [dataloader](/docs/hotchocolate/v12/fetching-data/dataloader) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgrpah.
+1. If you have multiple keys defined for an entity, you should include a reference resolver for _each key_ so that the supergraph is able to resolve your entity regardless of which key(s) another graph uses to reference that entity.
 ```csharp
 public class Product
 {
@@ -105,8 +108,8 @@ public class Product
 }
 ```
 
-### Register the entity
-Once the type has a key or keys, and has a reference resolver defined, you can register the type in the GraphQL schema, which will register it as a type within the GraphQL API itself as well as within the [auto-generated `_service { sdl }` field](https://www.apollographql.com/docs/federation/subgraph-spec/#required-resolvers-for-introspection) within the API.
+## Register the entity
+Once the type has a key or keys and a reference resolver defined, you can register the type in the GraphQL schema, which will register it as a type within the GraphQL API itself as well as within the [auto-generated `_service { sdl }` field](https://www.apollographql.com/docs/federation/subgraph-spec/#required-resolvers-for-introspection) within the API.
 
 _Entity type registration_
 ```csharp
@@ -137,7 +140,7 @@ _Example SDL response_
 ```
 
 ### Testing and executing your resolvers
-The `[ReferenceResolver]`
+TODO
 
 # Extending an entity type
 TODO
