@@ -6,15 +6,20 @@ using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven.Sorting;
 
-public class RavenQueryableSortProvider : QueryableSortProvider
+/// <summary>
+/// A <see cref="ISortProvider"/> for RavenDB
+/// </summary>
+internal sealed class RavenQueryableSortProvider : QueryableSortProvider
 {
     public RavenQueryableSortProvider(
         Action<ISortProviderDescriptor<QueryableSortContext>> configure) : base(configure)
     {
     }
 
+    /// <inheritdoc />
     protected override bool IsInMemoryQuery<TEntityType>(object? input) => false;
 
+    /// <inheritdoc />
     protected override object? ApplyToResult<TEntityType>(
         object? input,
         Func<IQueryable<TEntityType>, IQueryable<TEntityType>> sort)
@@ -22,9 +27,9 @@ public class RavenQueryableSortProvider : QueryableSortProvider
         {
             IRavenQueryable<TEntityType> q => sort(q),
             IAsyncDocumentQuery<TEntityType> q => sort(q.ToQueryable()).ToAsyncDocumentQuery(),
-            RavenAsyncDocumentQueryExecutable<TEntityType> ex =>
+            RavenAsyncDocumentQueryExecutable<TEntityType> q =>
                 new RavenAsyncDocumentQueryExecutable<TEntityType>(
-                    sort(ex.Query.ToQueryable()).ToAsyncDocumentQuery()),
+                    sort(q.Query.ToQueryable()).ToAsyncDocumentQuery()),
             _ => input
         };
 }

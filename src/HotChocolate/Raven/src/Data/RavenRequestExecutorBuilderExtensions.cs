@@ -1,10 +1,10 @@
+using HotChocolate.Data.Raven;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
 
-namespace HotChocolate.Data.Raven;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods for configuring an <see cref="IResolverCompilerBuilder"/>
@@ -25,8 +25,7 @@ public static class RavenRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder RegisterDocumentStore(
         this IRequestExecutorBuilder builder)
     {
-        builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new DocumentStoreParameterExpressionBuilder());
+        builder.Services.TryAddParameterExpressionBuilder<DocumentStoreParameterExpressionBuilder>();
 
         return builder;
     }

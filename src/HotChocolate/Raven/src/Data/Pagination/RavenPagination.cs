@@ -1,4 +1,4 @@
-namespace HotChocolate.Data.Raven.Pagination;
+namespace HotChocolate.Data;
 
 public static class RavenPagination
 {

@@ -255,7 +255,6 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
             descriptor.Field("allCars")
-                // We only suupport executable atm
                 .Resolve(ctx => ctx.AsyncSession().Query<Car>().AsExecutable());
 
             descriptor.Field("pagingName")

@@ -1,14 +1,18 @@
+using HotChocolate.Data;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data;
+namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Common extensions of <see cref="IRequestExecutorBuilder"/> for RavenDB
+/// </summary>
 public static class RavenSortingRequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddRavenSorting(
-        this IRequestExecutorBuilder requestExecutorBuilder)
-    {
-        return requestExecutorBuilder
-            .ConfigureSchema(x => x.AddRavenSorting());
-    }
+    /// <summary>
+    /// Adds sorting for RavenDB to the schema
+    /// </summary>
+    /// <param name="builder">The schema builder</param>
+    /// <returns>The schema builder of parameter <paramref name="builder"/></returns>
+    public static IRequestExecutorBuilder AddRavenSorting(this IRequestExecutorBuilder builder)
+        => builder.RegisterDocumentStore().ConfigureSchema(x => x.AddRavenSorting());
 }
