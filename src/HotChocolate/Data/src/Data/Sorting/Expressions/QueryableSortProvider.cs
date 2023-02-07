@@ -32,27 +32,27 @@ public delegate QueryableSortContext VisitSortArgument(
 public class QueryableSortProvider : SortProvider<QueryableSortContext>
 {
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that defines the name of the argument for sorting
     /// </summary>
     public const string ContextArgumentNameKey = "SortArgumentName";
 
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which does the visitation of the sorting argument.
     /// <see cref="VisitSortArgument"/>
     /// </summary>
     public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
 
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which applies the sorting to input
     /// <see cref="ApplySorting"/>
     /// </summary>
     public const string ContextApplySortingKey = nameof(ApplySorting);
 
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that defines if sorting is already applied and should be skipped
     /// </summary>
     public const string SkipSortingKey = "SkipSorting";

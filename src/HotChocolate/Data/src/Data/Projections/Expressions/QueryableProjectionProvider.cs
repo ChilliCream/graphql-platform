@@ -20,14 +20,14 @@ public delegate object? ApplyProjection(IResolverContext context, object? input)
 public class QueryableProjectionProvider : ProjectionProvider
 {
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which applies the projection to input
     /// <see cref="ApplyProjection"/>
     /// </summary>
     public static readonly string ContextApplyProjectionKey = nameof(ApplyProjection);
 
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that defines if projection is already applied and should be skipped
     /// </summary>
     public const string SkipProjectionKey = "SkipProjection";

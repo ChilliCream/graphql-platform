@@ -31,33 +31,33 @@ public delegate QueryableFilterContext VisitFilterArgument(
 public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 {
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that defines the name of the argument for filtering
     /// </summary>
     public static readonly string ContextArgumentNameKey = "FilterArgumentName";
 
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which does the visitation of the filtering argument.
     /// <see cref="VisitFilterArgument"/>
     /// </summary>
     public static readonly string ContextVisitFilterArgumentKey = nameof(VisitFilterArgument);
 
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which applies the filtering to input
     /// <see cref="ApplyFiltering"/>
     /// </summary>
     public static readonly string ContextApplyFilteringKey = nameof(ApplyFiltering);
 
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that defines if filtering is already applied and should be skipped
     /// </summary>
     public static readonly string SkipFilteringKey = "SkipFiltering";
 
     /// <summary>
-    /// The key for <see cref="IResolverContext.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that stores a custom value node that is used instead of the value node on the argument
     /// </summary>
     public static readonly string ContextValueNodeKey = nameof(QueryableFilterProvider);
