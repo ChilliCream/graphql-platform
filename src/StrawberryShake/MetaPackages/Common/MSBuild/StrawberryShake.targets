@@ -3,6 +3,9 @@
     <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.xaml" />
     <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.ContentType.xaml" />
     <AvailableItemName Include="GraphQL"/>
+    <GenerateGraphQLCodeItems Include="@(GraphQL)" />
+    <GenerateGraphQLCodeItems Include="$(MSBuildProjectFullPath)" />
+    <GenerateGraphQLCodeItems Include="$(MSBuildThisFileFullPath)" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -17,13 +20,13 @@
     BeforeTargets="BeforeBuild"
     DependsOnTargets="_GenerateGraphQLCode">
     <ItemGroup>
-      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs" />
+      <Compile Include="$(GraphQLCodeGenerationRoot)\**\*.cs" />
     </ItemGroup>
   </Target>
 
   <Target
     Name="_GenerateGraphQLCode"
-    Inputs="@(GraphQL)"
+    Inputs="@(GenerateGraphQLCodeItems)"
     Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
     Condition="'@(GraphQL)' != ''">
 
@@ -36,8 +39,8 @@
       Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7'" />
 
     <PropertyGroup>
-      <GraphQLCodeGenerationRoot>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)berry\'))</GraphQLCodeGenerationRoot>
-      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput)</GraphQLQueryGenerationRoot>
+      <GraphQLCodeGenerationRoot>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)berry'))</GraphQLCodeGenerationRoot>
+      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput.TrimEnd('/').TrimEnd('\'))</GraphQLQueryGenerationRoot>
       <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
     </PropertyGroup>
@@ -46,7 +49,7 @@
       <GenCommand>dotnet &quot;$(GenTool)&quot; generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
       <GenCommand>$(GenCommand) -o &quot;$(GraphQLCodeGenerationRoot)&quot;</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n $(RootNamespace)</GenCommand>
-      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q &quot;$(GraphQLPersistedQueryOutput)&quot;</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q &quot;$(GraphQLQueryGenerationRoot)&quot;</GenCommand>
       <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a $(GraphQLRequestHash)</GenCommand>
       <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
       <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>

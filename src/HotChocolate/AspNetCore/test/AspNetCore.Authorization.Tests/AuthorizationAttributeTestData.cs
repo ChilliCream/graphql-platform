@@ -9,21 +9,21 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
 {
     public class Query
     {
-        [Authorize]
+        [Authorize(ApplyPolicy.BeforeResolver)]
         public string? GetDefault() => "foo";
 
-        [Authorize(Policy = "HasAgeDefined")]
+        [Authorize("HasAgeDefined", ApplyPolicy.BeforeResolver)]
         public string? GetAge() => "foo";
 
-        [Authorize(Roles = new[] { "a" })]
+        [Authorize(ApplyPolicy.BeforeResolver, Roles = new[] { "a" })]
         public string? GetRoles() => "foo";
 
-        [Authorize(Roles = new[] { "a", "b" })]
+        [Authorize(ApplyPolicy.BeforeResolver, Roles = new[] { "a", "b" })]
         [GraphQLName("roles_ab")]
         public string? GetRolesAb() => "foo";
 
-        [Authorize(Policy = "a")]
-        [Authorize(Policy = "b")]
+        [Authorize(ApplyPolicy.BeforeResolver, Policy = "a")]
+        [Authorize(ApplyPolicy.BeforeResolver, Policy = "b")]
         public string? GetPiped() => "foo";
 
         [Authorize(Policy = "a", Apply = ApplyPolicy.AfterResolver)]
