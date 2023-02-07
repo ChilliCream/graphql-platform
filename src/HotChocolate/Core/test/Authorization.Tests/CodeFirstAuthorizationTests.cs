@@ -520,7 +520,7 @@ public class CodeFirstAuthorizationTests
                 .Field("thisIsAuthorized")
                 .Type<BooleanType>()
                 .Resolve(true)
-                .Authorize("READ_AUTH");
+                .Authorize("READ_AUTH", ApplyPolicy.BeforeResolver);
 
             descriptor
                 .Field("thisIsAuthorizedOnValidation")
@@ -534,7 +534,7 @@ public class CodeFirstAuthorizationTests
     {
         protected override void Configure(IObjectTypeDescriptor<Person> descriptor)
         {
-            descriptor.Authorize("READ_PERSON");
+            descriptor.Authorize("READ_PERSON", ApplyPolicy.BeforeResolver);
             descriptor.ImplementsNode();
             descriptor.Field("id").Resolve("abc");
         }

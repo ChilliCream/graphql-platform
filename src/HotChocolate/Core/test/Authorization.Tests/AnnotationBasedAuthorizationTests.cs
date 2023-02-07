@@ -588,7 +588,7 @@ public class AnnotationBasedAuthorizationTests
                 ? new Street("Somewhere")
                 : new City("Else");
 
-        [Authorize("READ_AUTH")]
+        [Authorize("READ_AUTH", ApplyPolicy.AfterResolver)]
         public bool? ThisIsAuthorized() => true;
 
         [Authorize("READ_AUTH", ApplyPolicy.Validation)]
@@ -598,7 +598,7 @@ public class AnnotationBasedAuthorizationTests
         public string Test() => "abc";
     }
 
-    [Authorize("READ_PERSON")]
+    [Authorize("READ_PERSON", ApplyPolicy.AfterResolver)]
     public sealed record Person(string Id, string? Name);
 
     public sealed record Street(string? Value) : ICityOrStreet;
