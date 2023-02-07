@@ -9,33 +9,41 @@
 
 # ChilliCream GraphQL Platform
 
-The ChilliCream GraphQL Platform, at its core, is a new way to create powerful Backends. HotChocolate, our .NET GraphQL server, connects any service or data source and creates a cohesive service to offer your consumers a unified API.
+Welcome to the ChilliCream GraphQL Platform!
 
-![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-platform.svg)
+We help you, developers and companies, to leverage your APIs to the next level with GraphQL. Strongly-typed schemas that match your APIs 100 percent. Efficient data fetching that reduces overall cost without extra effort. Consumer-friendly, declarative, self documented APIs that support you in your daily work to build powerful UIs effectively.
 
-## Product Overview
+Most of our products are open-source and right here in this repository.
+
+Everyone is welcome! Always remember to treat anyone respectful, no matter their gender, opinion, religion, or skin-tone. We're one world and together we're stronger!
+
+Join our **awesome community** on [Slack](https://slack.chillicream.com), if you would like to get in touch with us, need help, or just want to learn!
+
+## Our Products
 
 ### Hot Chocolate
 
-Our GraphQL server to create GraphQL endpoints and merge schemas.
+Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful GraphQL APIs and Gateways with ease.
 
 [Documentation](https://chillicream.com/docs/hotchocolate/)
 
 ### Banana Cake Pop
 
-Our GraphQL IDE to explore, request and analyze any GraphQL endpoint.
+Banana Cake Pop is an awesome, performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.
 
-[Learn more](https://chillicream.com/docs/bananacakepop/)
+Banana Cake Pop can be installed as [Desktop App](https://bananacakepop.com), used as [Web App](https://eat.bananacakepop.com), which can be installed through your browser of choice as well, or used as Middleware on your GraphQL endpoint. Middlewares are available in [.NET](https://www.nuget.org/packages/HotChocolate.AspNetCore) and [NodeJS](https://www.npmjs.com/package/@chillicream/bananacakepop-express-middleware). More middlewares will follow.
+
+[Documentation](https://chillicream.com/docs/bananacakepop/)
 
 ### Strawberry Shake
 
-Our GraphQL client to fetch data from any GraphQL endpoint.
+Strawberry Shake is an incredible, open-source GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more. Other than most .NET GraphQL clients, Strawberry Shake is type-safe GraphQL client that generates .NET types from your GraphQL schema out of the box. Moreover, Strawberry Shake comes with a reactive store like in [Relay](https://relay.dev/) and [Apollo Client](https://www.apollographql.com/docs/react/), which is nice due to the fact that you can build reactive UIs in .NET with stuff like client-side data caching and data-fetching strategies.
 
 [Documentation](https://chillicream.com/docs/strawberryshake/)
 
 ### Green Donut
 
-Our DataLoader to solve the N+1 problem.
+Green Donut is a lightweight, yet powerful DataLoader that simplifies batching, caching, and solves the N+1 problem.
 
 [Documentation](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader/)
 
@@ -48,7 +56,7 @@ If you are interested in upcoming releases, check out our [Roadmap](https://gith
 Examples of things built on top of the ChilliCream GraphQL Platform that are open source and can be explored by others.
 
 - [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop)
-- [HotChocolate examples](https://github.com/ChilliCream/graphql-platform-examples)
+- [HotChocolate examples](https://github.com/ChilliCream/hotchocolate-examples)
 
 ## Contributing
 

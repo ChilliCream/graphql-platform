@@ -16,7 +16,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
     {
         context.Nodes.Push(node);
         context.Types.Push(context.Schema.GetOperationType(node.Operation)!);
-        node = base.RewriteOperationDefinition(node, context);
+        node = base.RewriteOperationDefinition(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
         return node;
@@ -40,7 +40,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
 
         context.Nodes.Push(node);
         context.Types.Push(field.Type.NamedType());
-        node = base.RewriteField(node, context);
+        node = base.RewriteField(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
         return node;
@@ -54,7 +54,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         context.Types.Push(node.TypeCondition is null
             ? context.Types.Peek()
             : context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value));
-        node = base.RewriteInlineFragment(node, context);
+        node = base.RewriteInlineFragment(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
         return node;
@@ -66,7 +66,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
     {
         context.Nodes.Push(node);
         context.Types.Push(context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value));
-        node = base.RewriteFragmentDefinition(node, context);
+        node = base.RewriteFragmentDefinition(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
         return node;
@@ -76,7 +76,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         SelectionSetNode node,
         Context context)
     {
-        var current = base.RewriteSelectionSet(node, context);
+        var current = base.RewriteSelectionSet(node, context)!;
 
         if (context.Nodes.Peek() is FieldNode or OperationDefinitionNode)
         {
@@ -112,7 +112,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
     public static DocumentNode Rewrite(DocumentNode document, ISchema schema)
     {
         var rewriter = new EntityIdRewriter();
-        return rewriter.RewriteDocument(document, new Context(schema));
+        return rewriter.RewriteDocument(document, new Context(schema))!;
     }
 
     public class Context : ISyntaxVisitorContext

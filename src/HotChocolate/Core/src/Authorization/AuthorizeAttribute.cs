@@ -44,6 +44,15 @@ public class AuthorizeAttribute : DescriptorAttribute
     }
 
     /// <summary>
+    /// Applies the authorization directive with a specific policy to
+    /// object types or object fields.
+    /// </summary>
+    public AuthorizeAttribute(ApplyPolicy apply)
+    {
+        Apply = apply;
+    }
+
+    /// <summary>
     /// Gets or sets the authorization policy.
     /// </summary>
     public string? Policy { get; set; }
@@ -56,7 +65,7 @@ public class AuthorizeAttribute : DescriptorAttribute
     /// <summary>
     /// Specifies when the authorization directive shall be applied.
     /// </summary>
-    public ApplyPolicy Apply { get; set; } = ApplyPolicy.BeforeResolver;
+    public ApplyPolicy Apply { get; set; } = ApplyPolicy.Validation;
 
     protected internal override void TryConfigure(
         IDescriptorContext context,

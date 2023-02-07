@@ -51,6 +51,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         EnableFlagEnums = options.EnableFlagEnums;
         EnableDefer = options.EnableDefer;
         EnableStream = options.EnableStream;
+        MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize;
     }
 
     /// <inheritdoc />
@@ -120,4 +121,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public bool EnableStream { get; }
+
+    /// <inheritdoc />
+    public int MaxAllowedNodeBatchSize { get; }
 }

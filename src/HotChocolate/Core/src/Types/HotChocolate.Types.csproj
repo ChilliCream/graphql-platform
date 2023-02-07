@@ -102,6 +102,24 @@
     <Compile Update="Types\StaticObjectTypeExtension.cs">
       <DependentUpon>ObjectTypeExtension.cs</DependentUpon>
     </Compile>
+    <Compile Update="Internal\ExtendedType.BaseTypes.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Helper.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Members.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.SchemaType.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.SystemType.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Tools.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
