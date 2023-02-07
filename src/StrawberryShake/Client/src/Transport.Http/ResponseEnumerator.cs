@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 using static System.Net.Http.HttpCompletionOption;
 using static System.StringComparison;
+using static StrawberryShake.Transport.Http.ResponseHelper;
 
 namespace StrawberryShake.Transport.Http;
 
@@ -71,7 +72,7 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
                 }
                 catch (Exception ex)
                 {
-                    Current = new Response<JsonDocument>(null, ex);
+                    Current = new Response<JsonDocument>(CreateBodyFromException(ex), ex);
                 }
                 _completed = true;
                 return true;
