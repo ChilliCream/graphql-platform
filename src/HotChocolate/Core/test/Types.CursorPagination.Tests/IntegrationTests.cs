@@ -8,7 +8,6 @@ using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
-using HotChocolate.Types.Pagination.Extensions;
 using Snapshooter.Xunit;
 using Xunit;
 

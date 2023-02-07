@@ -5,6 +5,8 @@ namespace HotChocolate.Data.Raven.Pagination;
 internal sealed class RavenCursorPagination<TEntity>
     : CursorPaginationAlgorithm<RavenPagingContainer<TEntity>, TEntity>
 {
+    public static RavenCursorPagination<TEntity> Instance { get; } = new();
+
     protected override RavenPagingContainer<TEntity> ApplySkip(
         RavenPagingContainer<TEntity> query,
         int skip)

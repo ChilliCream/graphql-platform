@@ -1,16 +1,15 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Pagination;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Linq;
 
-// ReSharper disable once CheckNamespace
-namespace HotChocolate.Types.Pagination;
+namespace HotChocolate.Data;
 
 /// <summary>
-/// Provides cursor paging extensions to <see cref="IQueryable{T}"/>.
+/// Provides cursor paging extensions to <see cref="IRavenQueryable{T}"/>.
 /// </summary>
-public static class CursorPagingQueryableExtensions
+public static class RavenCursorPagingQueryableExtensions
 {
     /// <summary>
     /// Applies the cursor pagination algorithm to the <paramref name="query"/>.
@@ -41,7 +40,7 @@ public static class CursorPagingQueryableExtensions
     /// cursor paging algorithm to the provided <paramref name="query"/>.
     /// </returns>
     public static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
-        this IQueryable<TEntity> query,
+        this IRavenQueryable<TEntity> query,
         int? first = null,
         int? last = null,
         string? after = null,
@@ -72,11 +71,11 @@ public static class CursorPagingQueryableExtensions
     /// cursor paging algorithm to the provided <paramref name="query"/>.
     /// </returns>
     public static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
-        this IQueryable<TEntity> query,
+        this IRavenQueryable<TEntity> query,
         CursorPagingArguments arguments,
         CancellationToken cancellationToken = default)
-        => QueryableCursorPagination<TEntity>.Instance.ApplyPaginationAsync(
-            query,
+        => RavenCursorPagination<TEntity>.Instance.ApplyPaginationAsync(
+            new RavenPagingContainer<TEntity>(query.ToAsyncDocumentQuery()),
             arguments,
             cancellationToken);
 
@@ -106,7 +105,7 @@ public static class CursorPagingQueryableExtensions
     /// cursor paging algorithm to the provided <paramref name="query"/>.
     /// </returns>
     public static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
-        this IQueryable<TEntity> query,
+        this IRavenQueryable<TEntity> query,
         IResolverContext context,
         int? defaultPageSize = null,
         int? totalCount = null,
@@ -122,13 +121,8 @@ public static class CursorPagingQueryableExtensions
             throw new ArgumentNullException(nameof(context));
         }
 
-        var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
-        var last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
-
-        if (totalCount is null && context.IsTotalCountSelected())
-        {
-            totalCount = query.Count();
-        }
+        var first = context.ArgumentValue<int?>("first");
+        var last = context.ArgumentValue<int?>("last");
 
         if (first is null && last is null)
         {
@@ -138,51 +132,13 @@ public static class CursorPagingQueryableExtensions
         var arguments = new CursorPagingArguments(
             first,
             last,
-            context.ArgumentValue<string?>(CursorPagingArgumentNames.After),
-            context.ArgumentValue<string?>(CursorPagingArgumentNames.Before));
+            context.ArgumentValue<string?>("after"),
+            context.ArgumentValue<string?>("before"));
 
-        return QueryableCursorPagination<TEntity>.Instance.ApplyPaginationAsync(
-            query,
+        return RavenCursorPagination<TEntity>.Instance.ApplyPaginationAsync(
+            new RavenPagingContainer<TEntity>(query.ToAsyncDocumentQuery()),
             arguments,
             totalCount,
             cancellationToken);
     }
-
-    /// <summary>
-    /// Applies the cursor pagination algorithm to the <paramref name="enumerable"/>.
-    /// </summary>
-    /// <param name="enumerable">
-    /// The enumerable on which the the cursor pagination algorithm shall be applied to.
-    /// </param>
-    /// <param name="context">
-    /// The field resolver context.
-    /// </param>
-    /// <param name="defaultPageSize">
-    /// The default page size if no boundaries are set.
-    /// </param>
-    /// <param name="totalCount">
-    /// The total count if already known.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    /// <typeparam name="TEntity">
-    /// The entity type.
-    /// </typeparam>
-    /// <returns>
-    /// Returns a connection instance that represents the result of applying the
-    /// cursor paging algorithm to the provided <paramref name="enumerable"/>.
-    /// </returns>
-    public static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
-        this System.Collections.Generic.IEnumerable<TEntity> enumerable,
-        IResolverContext context,
-        int? defaultPageSize = null,
-        int? totalCount = null,
-        CancellationToken cancellationToken = default)
-        => ApplyCursorPaginationAsync(
-            enumerable.AsQueryable(),
-            context,
-            defaultPageSize,
-            totalCount,
-            cancellationToken);
 }

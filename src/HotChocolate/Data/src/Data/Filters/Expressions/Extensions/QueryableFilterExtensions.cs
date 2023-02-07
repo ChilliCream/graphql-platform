@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Data.Filters.Expressions;
+namespace HotChocolate.Data;
 
 /// <summary>
 /// Extensions for filtering for <see cref="IEnumerable{T}"/> and <see cref="IQueryable{T}"/>

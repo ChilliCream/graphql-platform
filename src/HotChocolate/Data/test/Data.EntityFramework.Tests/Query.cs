@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
-using HotChocolate.Types.Pagination.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;

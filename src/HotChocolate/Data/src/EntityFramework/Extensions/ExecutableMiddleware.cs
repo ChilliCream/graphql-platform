@@ -5,7 +5,7 @@ namespace HotChocolate.Types;
 
 #pragma warning disable CA1812
 
-internal class ExecutableMiddleware
+internal sealed class ExecutableMiddleware
 {
     private readonly FieldDelegate _next;
 
