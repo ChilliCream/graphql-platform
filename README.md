@@ -37,7 +37,7 @@ Banana Cake Pop can be installed as [Desktop App](https://bananacakepop.com), us
 
 ### Strawberry Shake
 
-Strawberry Shake is an incredible, open-source GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.
+Strawberry Shake is an incredible, open-source GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more. Other than most .NET GraphQL clients, Strawberry Shake is type-safe GraphQL client that generates .NET types from your GraphQL schema out of the box. Moreover, Strawberry Shake comes with a reactive store like in [Relay](https://relay.dev/) and [Apollo Client](https://www.apollographql.com/docs/react/), which is nice due to the fact that you can build reactive UIs in .NET with stuff like client-side data caching and data-fetching strategies.
 
 [Documentation](https://chillicream.com/docs/strawberryshake/)
 
