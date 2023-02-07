@@ -19,7 +19,9 @@ internal sealed class ToListMiddleware<TEntity>
 
         if (context.Result is IRavenQueryable<TEntity> queryable)
         {
-            context.Result = await queryable.ToArrayAsync(context.RequestAborted);
+            context.Result = await queryable
+                .Customize(x => x.NoTracking())
+                .ToArrayAsync(context.RequestAborted);
         }
     }
 }

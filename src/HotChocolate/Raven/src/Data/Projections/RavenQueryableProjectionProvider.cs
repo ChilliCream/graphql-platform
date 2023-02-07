@@ -19,14 +19,17 @@ public class RavenQueryableProjectionProvider : QueryableProjectionProvider
         Expression<Func<TEntityType, TEntityType>> projection)
         => input switch
         {
-            IRavenQueryable<TEntityType> q => q.Select(projection),
+            IRavenQueryable<TEntityType> q => q
+                .Customize(x => x.NoTracking())
+                .Select(projection),
             IAsyncDocumentQuery<TEntityType> q => q
+                .NoTracking()
                 .ToQueryable()
                 .Select(projection)
                 .ToAsyncDocumentQuery(),
             RavenAsyncDocumentQueryExecutable<TEntityType> ex =>
                 new RavenAsyncDocumentQueryExecutable<TEntityType>(
-                    ex.Query.ToQueryable().Select(projection).ToAsyncDocumentQuery()),
+                    ex.Query.NoTracking().ToQueryable().Select(projection).ToAsyncDocumentQuery()),
             _ => input
         };
 

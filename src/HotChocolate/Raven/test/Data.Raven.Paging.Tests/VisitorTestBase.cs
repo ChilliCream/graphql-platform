@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Raven;
 
 public abstract class VisitorTestBase : IAsyncLifetime
 {
-    public RavenDBResource Resource { get; } = new();
+    public RavenDBResource<CustomRavenDBOptions> Resource { get; } = new();
 
     public Task InitializeAsync() => Resource.InitializeAsync();
 
