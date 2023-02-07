@@ -29,7 +29,7 @@ public class AuthorizeSchemaTests
         result.MatchSnapshot();
     }
 
-    [Authorize]
+    [Authorize(ApplyPolicy.BeforeResolver)]
     [ExtendObjectType(OperationTypeNames.Query)]
     public class QueryExtensions
     {
