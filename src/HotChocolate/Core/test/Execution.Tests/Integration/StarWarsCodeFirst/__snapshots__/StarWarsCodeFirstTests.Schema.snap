@@ -4,31 +4,20 @@
   subscription: Subscription
 }
 
-"A character in the Star Wars universe."
 interface Character {
-  "The unique identifier for the character."
   id: ID!
-  "The name of the character."
   name: String!
-  "The names of the character's friends."
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
-  "The episodes the character appears in."
   appearsIn: [Episode]
-  "The height of the character."
   height(unit: Unit): Float
 }
 
-"A droid in the Star Wars universe."
 type Droid implements Character {
-  "The unique identifier for the character."
   id: ID!
-  "The name of the character."
   name: String!
-  "The episodes the character appears in."
   appearsIn: [Episode]
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   height(unit: Unit): Float
-  "The droid's primary function."
   primaryFunction: String
 }
 
@@ -50,24 +39,18 @@ type FriendsEdge {
   node: Character
 }
 
-"A human character in the Star Wars universe."
 type Human implements Character {
-  "The unique identifier for the character."
   id: ID!
-  "The name of the character."
   name: String!
-  "The episodes the character appears in."
   appearsIn: [Episode]
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   otherHuman: Human
   height(unit: Unit): Float
-  "The planet the character is originally from."
   homePlanet: String
 }
 
 type Mutation {
-  "Creates a review for a given Star Wars episode.\n\n\n**Returns:**\nThe created review."
-  createReview("The episode to review." episode: Episode! "The review." review: ReviewInput!): Review!
+  createReview(episode: Episode! review: ReviewInput!): Review!
 }
 
 "Information about pagination in a connection."
@@ -83,31 +66,21 @@ type PageInfo {
 }
 
 type Query {
-  "Retrieve a hero by a particular Star Wars episode.\n\n\n**Returns:**\nThe character."
-  hero("The episode to look up by." episode: Episode! = NEW_HOPE): Character
-  "Retrieve a heros by a particular Star Wars episodes.\n\n\n**Returns:**\nThe character."
+  hero(episode: Episode! = NEW_HOPE): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
   search(text: String): [SearchResult]
-  "Gets a human by Id.\n\n\n**Returns:**\nThe human."
-  human("The Id of the human to retrieve." id: String): Human
-  "Get a particular droid by Id.\n\n\n**Returns:**\nThe droid."
-  droid("The Id of the droid." id: String): Droid
+  human(id: String): Human
+  droid(id: String): Droid
 }
 
-"A review of a particular movie."
 type Review {
-  "An explanation for the rating."
   commentary: String
-  "The number of stars given for this review."
   stars: Int!
 }
 
-"A starship in the Star Wars universe."
 type Starship {
-  "The Id of the starship."
   id: ID!
-  "The name of the starship."
   name: String!
   length(unit: Unit): Float!
 }
@@ -118,25 +91,17 @@ type Subscription {
 
 union SearchResult = Starship | Human | Droid
 
-"A review of a particular movie."
 input ReviewInput {
-  "The number of stars given for this review."
   stars: Int!
-  "An explanation for the rating."
   commentary: String
 }
 
-"The Star Wars episodes."
 enum Episode {
-  "Star Wars Episode IV: A New Hope"
   NEW_HOPE
-  "Star Wars Episode V: Empire Strikes Back"
   EMPIRE
-  "Star Wars Episode VI: Return of the Jedi"
   JEDI
 }
 
-"Different units of measurement."
 enum Unit {
   FOOT
   METERS

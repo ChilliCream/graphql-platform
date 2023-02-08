@@ -1,14 +1,10 @@
 type Query {
-  "Retrieve a hero by a particular Star Wars episode.\n\n\n**Returns:**\nThe character."
-  hero("The episode to look up by." episode: Episode! = NEW_HOPE): Character
-  "Retrieve a heros by a particular Star Wars episodes.\n\n\n**Returns:**\nThe character."
+  hero(episode: Episode! = NEW_HOPE): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
   search(text: String): [SearchResult]
-  "Gets a human by Id.\n\n\n**Returns:**\nThe human."
-  human("The Id of the human to retrieve." id: String): Human
-  "Get a particular droid by Id.\n\n\n**Returns:**\nThe droid."
-  droid("The Id of the droid." id: String): Droid
+  human(id: String): Human
+  droid(id: String): Droid
   time: Long!
   evict: Boolean!
   wait(m: Int!): Boolean!

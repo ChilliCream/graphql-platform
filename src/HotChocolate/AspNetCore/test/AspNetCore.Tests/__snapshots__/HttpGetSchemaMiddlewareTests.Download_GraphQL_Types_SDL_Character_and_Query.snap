@@ -1,28 +1,18 @@
-"A character in the Star Wars universe."
 interface Character {
-  "The unique identifier for the character."
   id: ID!
-  "The name of the character."
   name: String!
-  "The names of the character's friends."
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
-  "The episodes the character appears in."
   appearsIn: [Episode]
-  "The height of the character."
   height(unit: Unit): Float
 }
 
 type Query {
-  "Retrieve a hero by a particular Star Wars episode.\n\n\n**Returns:**\nThe character."
-  hero("The episode to look up by." episode: Episode! = NEW_HOPE): Character
-  "Retrieve a heros by a particular Star Wars episodes.\n\n\n**Returns:**\nThe character."
+  hero(episode: Episode! = NEW_HOPE): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
   search(text: String): [SearchResult]
-  "Gets a human by Id.\n\n\n**Returns:**\nThe human."
-  human("The Id of the human to retrieve." id: String): Human
-  "Get a particular droid by Id.\n\n\n**Returns:**\nThe droid."
-  droid("The Id of the droid." id: String): Droid
+  human(id: String): Human
+  droid(id: String): Droid
   time: Long!
   evict: Boolean!
   wait(m: Int!): Boolean!

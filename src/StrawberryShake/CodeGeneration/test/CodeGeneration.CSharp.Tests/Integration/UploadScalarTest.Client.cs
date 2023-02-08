@@ -16,7 +16,8 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class UploadScalarClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State.UploadScalarClientStoreAccessor> AddUploadScalarClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
@@ -104,7 +105,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestUploadResult : global::System.IEquatable<TestUploadResult>, ITestUploadResult
     {
         public TestUploadResult(global::System.String? upload)
@@ -169,13 +171,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestUploadResult
     {
         public global::System.String? Upload { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _barInputFormatter = default !;
@@ -221,6 +225,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class TestInput : global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State.ITestInputInfo, global::System.IEquatable<TestInput>
     {
@@ -293,7 +298,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         global::System.Boolean global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State.ITestInputInfo.IsBarSet => _set_bar;
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BarInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _bazInputFormatter = default !;
@@ -339,6 +345,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class BarInput : global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State.IBarInputInfo, global::System.IEquatable<BarInput>
     {
@@ -411,7 +418,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         global::System.Boolean global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State.IBarInputInfo.IsBazSet => _set_baz;
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BazInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter = default !;
@@ -457,6 +465,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class BazInput : global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State.IBazInputInfo, global::System.IEquatable<BazInput>
     {
@@ -529,6 +538,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         global::System.Boolean global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State.IBazInputInfo.IsFileSet => _set_file;
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
@@ -537,7 +547,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestUploadQueryDocument : global::StrawberryShake.IDocument
     {
         private TestUploadQueryDocument()
@@ -558,6 +568,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
@@ -566,7 +577,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestUploadQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.ITestUploadQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestUploadResult> _operationExecutor;
@@ -901,6 +912,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
@@ -909,17 +921,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestUploadQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestUploadResult>> ExecuteAsync(global::System.String? nonUpload, global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.TestInput?>?>? objectNested, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestUploadResult>> Watch(global::System.String? nonUpload, global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.TestInput?>?>? objectNested, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the UploadScalarClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class UploadScalarClient : global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.IUploadScalarClient
     {
         private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.ITestUploadQuery _testUpload;
@@ -932,10 +945,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.ITestUploadQuery TestUpload => _testUpload;
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the UploadScalarClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IUploadScalarClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.ITestUploadQuery TestUpload { get; }
@@ -944,7 +958,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestUploadResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.TestUploadResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -975,7 +990,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestUploadResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -997,25 +1013,29 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface ITestInputInfo
     {
         global::System.Boolean IsBarSet { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IBarInputInfo
     {
         global::System.Boolean IsBazSet { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IBazInputInfo
     {
         global::System.Boolean IsFileSet { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestUploadBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.ITestUploadResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1055,7 +1075,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class UploadScalarClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -1076,7 +1097,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class UploadScalarClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public UploadScalarClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
