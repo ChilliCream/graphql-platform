@@ -71,6 +71,17 @@ public partial class ObjectType
         ITypeCompletionContext context,
         ObjectTypeDefinition definition)
     {
+        if (context.IsMutationType ?? false)
+        {
+            // if this type represents the mutation type we flag all fields as serially executable
+            // so that the operation compiler and execution engine will uphold the spec
+            // algorithm to execute mutations serially.
+            foreach (var field in definition.Fields)
+            {
+                field.IsParallelExecutable = false;
+            }
+        }
+
         return CompleteFields(context, this, definition.Fields, CreateField);
         static ObjectField CreateField(ObjectFieldDefinition fieldDef, int index)
             => new(fieldDef, index);
