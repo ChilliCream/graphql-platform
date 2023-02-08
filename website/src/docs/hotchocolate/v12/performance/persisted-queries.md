@@ -5,7 +5,7 @@ description: "In this section, you will learn how to use persisted queries in Gr
 
 Persisted queries allow us to pre-register all required queries of our clients. This can be done by extracting the queries of our client applications at build time and placing them in the server's query storage.
 
-Extracting queries is supported by client libraries like [Relay](https://relay.dev/docs/guides/persisted-queries/) and in the case of [Strawberry Shake](/docs/strawberryshake) we do not have to do any additional work.
+Extracting queries is supported by client libraries like [Relay](https://relay.dev/docs/guides/persisted-queries/) and in the case of [Strawberry Shake](/products/strawberryshake) we do not have to do any additional work.
 
 > Note: While this feature is called persisted _queries_ it works for all other GraphQL operations as well.
 
