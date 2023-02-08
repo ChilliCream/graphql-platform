@@ -1009,8 +1009,7 @@ public class SchemaBuilderExtensionsTypeTests
         var builder = SchemaBuilder.New();
 
         // act
-        SchemaBuilderExtensions.AddEnumType(
-            builder, d => d.Name("Foo").Value("bar").Name("BAZ"));
+        builder.AddEnumType(d => d.Name("Foo").Value("bar").Name("BAZ"));
 
         // assert
         builder

@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Internal;
 
 #nullable enable
 
@@ -104,6 +105,13 @@ public class DefaultNamingConventions
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
+        }
+
+        // we do not want the description of our internal schema types.
+        if (ExtendedType.Tools.IsNonGenericBaseType(type) ||
+            ExtendedType.Tools.IsGenericBaseType(type))
+        {
+            return null;
         }
 
         var description = type.GetGraphQLDescription();

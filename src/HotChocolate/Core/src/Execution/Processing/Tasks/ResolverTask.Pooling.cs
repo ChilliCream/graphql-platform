@@ -27,6 +27,7 @@ internal sealed partial class ResolverTask
             path,
             scopedContextData);
         ParentResult = parentResult;
+        IsSerial = selection.Strategy is SelectionExecutionStrategy.Serial;
     }
 
     /// <summary>
