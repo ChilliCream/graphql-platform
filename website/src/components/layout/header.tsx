@@ -74,6 +74,7 @@ export const Header: FC = () => {
         products: childrenDocsJson {
           path
           title
+          latestStableVersion
           versions {
             path
           }
@@ -363,14 +364,14 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
             with ease.
           </TileLinkDescription>
         </TileLink>
-        <TileLink to="/docs/hotchocolate" onClick={hideSubNav}>
+        <TileLink to="/products/hotchocolate" onClick={hideSubNav}>
           <TileLinkTitle>Hot Chocolate</TileLinkTitle>
           <TileLinkDescription>
             The server to create high-performance <em>.NET GraphQL</em> APIs in
             no time.
           </TileLinkDescription>
         </TileLink>
-        <TileLink to="/docs/strawberryshake" onClick={hideSubNav}>
+        <TileLink to="/products/strawberryshake" onClick={hideSubNav}>
           <TileLinkTitle>Strawberry Shake</TileLinkTitle>
           <TileLinkDescription>
             The client to create modern <em>.NET</em> apps that consume{" "}
@@ -415,7 +416,7 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
 
 interface DeveloperNavItemProps {
   readonly products: Maybe<
-    Pick<DocsJson, "path" | "title"> & {
+    Pick<DocsJson, "path" | "title" | "latestStableVersion"> & {
       versions?: Maybe<Maybe<Pick<DocsJsonVersions, "path">>[]>;
     }
   >[];
@@ -434,7 +435,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
           {products.map((product, index) => (
             <SubNavLink
               key={index}
-              to={`/docs/${product!.path!}/`}
+              to={`/docs/${product!.path!}/${product?.latestStableVersion}`}
               onClick={hideSubNav}
             >
               <IconContainer size={16}>
