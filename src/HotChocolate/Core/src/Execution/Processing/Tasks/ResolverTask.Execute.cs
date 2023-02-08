@@ -270,13 +270,15 @@ internal sealed partial class ResolverTask
     }
 
     /// <summary>
+    /// <para>
     /// In most cases a resolver task is rented and returned to its pool after execution.
     /// The execute method itself will return the task.
-    ///
+    /// </para>
+    /// <para>
     /// But there are a couple of edge cases where we rent a dummy task and do not execute it.
     /// In these we do want to return it manually.
-    ///
-    /// Caution: This method is unsafe and could lead to double returns to the pool.
+    /// </para>
+    /// <para>Caution: This method is unsafe and could lead to double returns to the pool.</para>
     /// </summary>
     public async ValueTask CompleteUnsafeAsync()
     {
