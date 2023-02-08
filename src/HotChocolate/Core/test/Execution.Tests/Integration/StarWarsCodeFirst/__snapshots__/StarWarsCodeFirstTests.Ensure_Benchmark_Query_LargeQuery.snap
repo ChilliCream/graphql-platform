@@ -5869,11 +5869,11 @@
           "fields": [
             {
               "name": "hero",
-              "description": null,
+              "description": "Retrieve a hero by a particular Star Wars episode.\n\n\n**Returns:**\nThe character.",
               "args": [
                 {
                   "name": "episode",
-                  "description": null,
+                  "description": "The episode to look up by.",
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
@@ -5896,7 +5896,7 @@
             },
             {
               "name": "heroes",
-              "description": null,
+              "description": "Retrieve a heros by a particular Star Wars episodes.\n\n\n**Returns:**\nThe character.",
               "args": [
                 {
                   "name": "episodes",
@@ -6000,11 +6000,11 @@
             },
             {
               "name": "human",
-              "description": null,
+              "description": "Gets a human by Id.\n\n\n**Returns:**\nThe human.",
               "args": [
                 {
                   "name": "id",
-                  "description": null,
+                  "description": "The Id of the human to retrieve.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6023,11 +6023,11 @@
             },
             {
               "name": "droid",
-              "description": null,
+              "description": "Get a particular droid by Id.\n\n\n**Returns:**\nThe droid.",
               "args": [
                 {
                   "name": "id",
-                  "description": null,
+                  "description": "The Id of the droid.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6057,11 +6057,11 @@
           "fields": [
             {
               "name": "createReview",
-              "description": null,
+              "description": "Creates a review for a given Star Wars episode.\n\n\n**Returns:**\nThe created review.",
               "args": [
                 {
                   "name": "episode",
-                  "description": null,
+                  "description": "The episode to review.",
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
@@ -6075,7 +6075,7 @@
                 },
                 {
                   "name": "review",
-                  "description": null,
+                  "description": "The review.",
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
@@ -6151,11 +6151,11 @@
         {
           "kind": "OBJECT",
           "name": "Human",
-          "description": null,
+          "description": "A human character in the Star Wars universe.",
           "fields": [
             {
               "name": "id",
-              "description": null,
+              "description": "The unique identifier for the character.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -6171,7 +6171,7 @@
             },
             {
               "name": "name",
-              "description": null,
+              "description": "The name of the character.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -6187,7 +6187,7 @@
             },
             {
               "name": "appearsIn",
-              "description": null,
+              "description": "The episodes the character appears in.",
               "args": [],
               "type": {
                 "kind": "LIST",
@@ -6291,7 +6291,7 @@
             },
             {
               "name": "homePlanet",
-              "description": null,
+              "description": "The planet the character is originally from.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -6316,11 +6316,11 @@
         {
           "kind": "OBJECT",
           "name": "Droid",
-          "description": null,
+          "description": "A droid in the Star Wars universe.",
           "fields": [
             {
               "name": "id",
-              "description": null,
+              "description": "The unique identifier for the character.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -6336,7 +6336,7 @@
             },
             {
               "name": "name",
-              "description": null,
+              "description": "The name of the character.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -6352,7 +6352,7 @@
             },
             {
               "name": "appearsIn",
-              "description": null,
+              "description": "The episodes the character appears in.",
               "args": [],
               "type": {
                 "kind": "LIST",
@@ -6444,7 +6444,7 @@
             },
             {
               "name": "primaryFunction",
-              "description": null,
+              "description": "The droid\u0027s primary function.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -6469,26 +6469,26 @@
         {
           "kind": "ENUM",
           "name": "Episode",
-          "description": null,
+          "description": "The Star Wars episodes.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
           "enumValues": [
             {
               "name": "NEW_HOPE",
-              "description": null,
+              "description": "Star Wars Episode IV: A New Hope",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "EMPIRE",
-              "description": null,
+              "description": "Star Wars Episode V: Empire Strikes Back",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "JEDI",
-              "description": null,
+              "description": "Star Wars Episode VI: Return of the Jedi",
               "isDeprecated": false,
               "deprecationReason": null
             }
@@ -6518,11 +6518,11 @@
         {
           "kind": "INTERFACE",
           "name": "Character",
-          "description": null,
+          "description": "A character in the Star Wars universe.",
           "fields": [
             {
               "name": "id",
-              "description": null,
+              "description": "The unique identifier for the character.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -6538,7 +6538,7 @@
             },
             {
               "name": "name",
-              "description": null,
+              "description": "The name of the character.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -6554,7 +6554,7 @@
             },
             {
               "name": "friends",
-              "description": null,
+              "description": "The names of the character\u0027s friends.",
               "args": [
                 {
                   "name": "first",
@@ -6607,7 +6607,7 @@
             },
             {
               "name": "appearsIn",
-              "description": null,
+              "description": "The episodes the character appears in.",
               "args": [],
               "type": {
                 "kind": "LIST",
@@ -6623,7 +6623,7 @@
             },
             {
               "name": "height",
-              "description": null,
+              "description": "The height of the character.",
               "args": [
                 {
                   "name": "unit",
@@ -6690,11 +6690,11 @@
         {
           "kind": "OBJECT",
           "name": "Review",
-          "description": null,
+          "description": "A review of a particular movie.",
           "fields": [
             {
               "name": "commentary",
-              "description": null,
+              "description": "An explanation for the rating.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -6706,7 +6706,7 @@
             },
             {
               "name": "stars",
-              "description": null,
+              "description": "The number of stars given for this review.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -6729,12 +6729,12 @@
         {
           "kind": "INPUT_OBJECT",
           "name": "ReviewInput",
-          "description": null,
+          "description": "A review of a particular movie.",
           "fields": null,
           "inputFields": [
             {
               "name": "stars",
-              "description": null,
+              "description": "The number of stars given for this review.",
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -6748,7 +6748,7 @@
             },
             {
               "name": "commentary",
-              "description": null,
+              "description": "An explanation for the rating.",
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -6857,7 +6857,7 @@
         {
           "kind": "ENUM",
           "name": "Unit",
-          "description": null,
+          "description": "Different units of measurement.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -6880,11 +6880,11 @@
         {
           "kind": "OBJECT",
           "name": "Starship",
-          "description": null,
+          "description": "A starship in the Star Wars universe.",
           "fields": [
             {
               "name": "id",
-              "description": null,
+              "description": "The Id of the starship.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -6900,7 +6900,7 @@
             },
             {
               "name": "name",
-              "description": null,
+              "description": "The name of the starship.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
