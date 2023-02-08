@@ -31,6 +31,7 @@ public class QueryableProjectionFieldHandler
         else
         {
             action = SelectionVisitor.Skip;
+
             return true;
         }
 
@@ -42,6 +43,7 @@ public class QueryableProjectionFieldHandler
         context.PushInstance(nestedProperty);
 
         action = SelectionVisitor.Continue;
+
         return true;
     }
 
@@ -55,6 +57,7 @@ public class QueryableProjectionFieldHandler
         if (field.Member is null)
         {
             action = null;
+
             return false;
         }
 
@@ -64,6 +67,7 @@ public class QueryableProjectionFieldHandler
         if (scope is not QueryableProjectionScope queryableScope)
         {
             action = null;
+
             return false;
         }
 
@@ -82,14 +86,25 @@ public class QueryableProjectionFieldHandler
         else
         {
             action = SelectionVisitor.Skip;
+
             return true;
         }
 
-        parentScope.Level
-            .Peek()
-            .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+        if (context.InMemory)
+        {
+            parentScope.Level
+                .Peek()
+                .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+        }
+        else
+        {
+            parentScope.Level
+                .Peek()
+                .Enqueue(Expression.Bind(field.Member, memberInit));
+        }
 
         action = SelectionVisitor.Continue;
+
         return true;
     }
 }

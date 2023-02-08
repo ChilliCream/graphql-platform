@@ -65,7 +65,7 @@ public class AuthorizeAttribute : DescriptorAttribute
     /// <summary>
     /// Specifies when the authorization directive shall be applied.
     /// </summary>
-    public ApplyPolicy Apply { get; set; } = ApplyPolicy.BeforeResolver;
+    public ApplyPolicy Apply { get; set; } = ApplyPolicy.Validation;
 
     protected internal override void TryConfigure(
         IDescriptorContext context,

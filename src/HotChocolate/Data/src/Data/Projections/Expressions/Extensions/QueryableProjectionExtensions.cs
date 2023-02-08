@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Data.Projections.Expressions;
+namespace HotChocolate.Data;
 
 /// <summary>
 /// Extensions for projection for <see cref="IEnumerable{T}"/> and <see cref="IQueryable{T}"/>

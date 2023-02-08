@@ -153,8 +153,7 @@ public class FilterConvention
         }
 
         if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1 &&
-            runtimeType.GetGenericTypeDefinition() == typeof(ListFilterInputType<>))
+            runtimeType.GenericTypeArguments.Length == 1)
         {
             var genericType = runtimeType.GenericTypeArguments[0];
             string genericName;
@@ -307,7 +306,7 @@ public class FilterConvention
         IFilterFieldDefinition fieldDefinition)
         => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
 
-    private bool TryCreateFilterType(
+    protected bool TryCreateFilterType(
         IExtendedType runtimeType,
         [NotNullWhen(true)] out Type? type)
     {

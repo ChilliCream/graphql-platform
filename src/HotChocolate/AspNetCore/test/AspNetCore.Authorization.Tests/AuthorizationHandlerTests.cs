@@ -35,7 +35,7 @@ public class AuthorizationHandlerTests
     [ExtendObjectType(OperationTypeNames.Query)]
     public class QueryExtensions
     {
-        [Authorize]
+        [Authorize(ApplyPolicy.BeforeResolver)]
         public string Bar() => "bar";
     }
 

@@ -36,9 +36,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -63,9 +63,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -90,9 +90,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -117,9 +117,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -144,9 +144,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -174,14 +174,8 @@ public class QueryableProjectionNestedTests
 
         public Foo Method() => new() { BarString = "Worked" };
 
-        public Foo[] NotSettableList { get; } =
-        {
-            new() { BarString = "Worked" }
-        };
+        public Foo[] NotSettableList { get; } = { new() { BarString = "Worked" } };
 
-        public Foo[] MethodList() => new[]
-        {
-            new Foo { BarString = "Worked" }
-        };
+        public Foo[] MethodList() => new[] { new Foo { BarString = "Worked" } };
     }
 }

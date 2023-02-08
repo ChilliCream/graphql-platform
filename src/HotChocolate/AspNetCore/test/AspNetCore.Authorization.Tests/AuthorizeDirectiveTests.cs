@@ -90,7 +90,7 @@ public class AuthorizeDirectiveTests
             .AddQueryType(
                 c => c
                     .Name("Query")
-                    .Authorize()
+                    .Authorize(ApplyPolicy.BeforeResolver)
                     .Field("foo")
                     .Resolve("bar"))
             .AddAuthorizeDirectiveType()
@@ -121,7 +121,7 @@ public class AuthorizeDirectiveTests
             .AddQueryType(
                 c => c
                     .Name("Query")
-                    .Authorize("MyPolicy")
+                    .Authorize("MyPolicy", ApplyPolicy.BeforeResolver)
                     .Field("foo")
                     .Resolve("bar"))
             .AddAuthorizeDirectiveType()
@@ -189,7 +189,7 @@ public class AuthorizeDirectiveTests
                     c => c
                         .Name("Query")
                         .Field("foo")
-                        .Authorize()
+                        .Authorize(ApplyPolicy.BeforeResolver)
                         .Resolve("bar"))
                 .AddAuthorization()
                 .BuildSchemaAsync();
@@ -294,7 +294,7 @@ public class AuthorizeDirectiveTests
                     c => c
                         .Name("Query")
                         .Field("foo")
-                        .Authorize("MyPolicy")
+                        .Authorize("MyPolicy", ApplyPolicy.BeforeResolver)
                         .Resolve("bar"))
                 .AddAuthorization()
                 .BuildSchemaAsync();

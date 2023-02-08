@@ -12,8 +12,7 @@ public class QueryableProjectionVisitorPagingTests
 {
     private static readonly Foo[] _fooEntities =
     {
-        new() { Bar = true, Baz = "a" },
-        new() { Bar = false, Baz = "b" }
+        new() { Bar = true, Baz = "a" }, new() { Bar = false, Baz = "b" }
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
@@ -40,9 +39,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -61,9 +60,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -82,9 +81,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -103,9 +102,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -124,9 +123,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -145,9 +144,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -166,9 +165,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -187,9 +186,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -208,9 +207,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -229,9 +228,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -250,9 +249,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -271,9 +270,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -292,9 +291,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -313,9 +312,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -334,9 +333,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -355,9 +354,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -376,12 +375,11 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
-
 
     [Fact]
     public async Task CreateOffsetPagingNullable_ProjectsTwoProperties_Items()
@@ -398,9 +396,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -419,9 +417,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -440,9 +438,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -461,9 +459,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -482,9 +480,9 @@ public class QueryableProjectionVisitorPagingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

@@ -1,0 +1,11 @@
+{
+  "data": {
+    "firstOrDefault": {
+      "id": "cars/1-A",
+      "name": "Subaru",
+      "engine": {
+        "cylinderCount": 6
+      }
+    }
+  }
+}

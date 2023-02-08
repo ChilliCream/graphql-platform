@@ -41,6 +41,31 @@ public class FilterAttributeTests
             .Create()
             .MatchSnapshot();
 
+#if NET6_0_OR_GREATER
+    [Fact]
+    public void Create_Schema_With_FilterInput_With_GenericAttribute()
+        => SchemaBuilder.New()
+            .AddQueryType<Query5>()
+            .AddFiltering()
+            .Create()
+            .MatchSnapshot();
+
+    public class Query5
+    {
+        [UseFiltering<FooFilterInput>]
+        public IEnumerable<Foo> Foos { get; } = new[]
+        {
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
+        };
+    }
+#endif
+
     public class Query1
     {
         [UseFiltering]
