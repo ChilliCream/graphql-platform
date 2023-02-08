@@ -183,32 +183,6 @@ function createDocPages(createPage, data, products) {
     const slug = page.childMdx.fields.slug;
     const originPath = `${page.relativeDirectory}/${page.name}.md`;
 
-    const product = getProductFromSlug(slug, products);
-
-    if (product && product.version === product.latestStableVersion) {
-      const unversionedSlug = slug.replace(
-        product.basePath,
-        "/docs/" + product.path
-      );
-
-      // Instead of duplicating the page here, we could just create a page that
-      // does a JS redirect to the actual (versioned) slug. Google's crawler
-      // should handle that just fine. But just to be fully backwards compatible,
-      // this duplicates all of the versioned pages of the latest
-      // stable version as unversioned pages.
-      // If v12 is the stable version, two versions will live side by side:
-      // /docs/hotchocolate/v12/whatever
-      // /docs/hotchocolate/whatever
-
-      createPage({
-        path: unversionedSlug,
-        component: docTemplate,
-        context: {
-          originPath,
-        },
-      });
-    }
-
     createPage({
       path: slug,
       component: docTemplate,
@@ -217,27 +191,6 @@ function createDocPages(createPage, data, products) {
       },
     });
   });
-}
-
-const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
-
-function getProductFromSlug(slug, products) {
-  const productMatch = productAndVersionPattern.exec(slug);
-
-  if (!productMatch) {
-    return null;
-  }
-
-  const productName = productMatch[1] || "";
-  const productVersion = productMatch[2] || "";
-
-  const product = products.find((p) => p?.path === productName);
-
-  return {
-    ...product,
-    version: productVersion,
-    basePath: productMatch[0],
-  };
 }
 
 function getGitLog(filepath) {
