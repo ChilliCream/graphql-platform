@@ -30,12 +30,12 @@ internal sealed partial class ResolverTask
                         break;
 
                     default:
-                        #if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
                         _operationContext.Scheduler.Register(
                             CollectionsMarshal.AsSpan(_taskBuffer));
-                        #else
+#else
                         _operationContext.Scheduler.Register(_taskBuffer);
-                        #endif
+#endif
                         break;
                 }
             }
@@ -174,21 +174,24 @@ internal sealed partial class ResolverTask
                 break;
 
             case IQueryable queryable:
-                _context.Result = await Task.Run(() =>
-                {
-                    var items = new List<object?>();
-                    foreach (var o in queryable)
+                _context.Result = await Task.Run(
+                    () =>
                     {
-                        items.Add(o);
+                        var items = new List<object?>();
 
-                        if (cancellationToken.IsCancellationRequested)
+                        foreach (var o in queryable)
                         {
-                            break;
-                        }
-                    }
+                            items.Add(o);
 
-                    return items;
-                }, cancellationToken);
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                break;
+                            }
+                        }
+
+                        return items;
+                    },
+                    cancellationToken);
                 break;
         }
     }
