@@ -13,7 +13,7 @@ The last major release of Hot Chocolate was on the 27th of September, and since 
 
 ## What is Version 13 about?
 
-When we started on Hot Chocolate 13, the release focused on our Gateway, aka schema stitching. As we worked on schema stitching, it became apparent to us that we wanted to change and make it much easier than the current solutions that are out there. Distributed graphs should work with GraphQL and not force you to build them in a certain way but still yield best-in-class performance. At some point, our work branched off the original stitching project, and we created a new component called Hot Chocolate Fusion. As we were working on Hot Chocolate Fusion, we saw the time pass by and estimated that it would take considerable time more to get it done in the quality it should be. At this point, we already had so many great features, and bugfixes merged into version 13 that we decided to focus development on delivering a Hot Chocolate 13 core with a lot of improvements and ship Fusion as a dot release of 13 when it's ready.
+When we started on Hot Chocolate 13, the release focused on our Gateway, aka schema stitching. As we worked on schema stitching, it became apparent to us that we wanted to change and make it much easier than the current solutions that are out there. Distributed graphs should work with GraphQL and not force you to build them in a certain way but still yield best-in-class performance. At some point, our work branched off the original stitching project, and we created a new component called Hot Chocolate Fusion. As we were working on Hot Chocolate Fusion, we saw the time pass by and estimated that it would take considerable time more to get it done in the quality it should be. At this point, we already had so many great features and bugfixes merged into version 13 that we decided to focus development on delivering a Hot Chocolate 13 core with many improvements and ship Fusion as a dot release of 13 when it's ready.
 
 If you asked me what the focus is of version 13, then I would say developer experience and more :)
 
@@ -56,7 +56,7 @@ app.MapGraphQL();
 app.Run();
 ```
 
-> Note: After 2025-01-01T00:00:00Z GraphQL servers are no longer required to support the legacy transport mode.
+> Note: After 2025-01-01T00:00:00Z, GraphQL servers are no longer required to support the legacy transport mode.
 
 Apart from GraphQL over HTTP, we also focused on supporting even more GraphQL transport protocols. So, with Hot Chocolate 13, we now implement the GraphQL-SSE protocol, which allows you to use server-sent events for subscriptions or even queries that use defer. GraphQL-SSE, for me, has become the go-to solution for subscriptions.
 
@@ -71,13 +71,13 @@ But we also brought the WebSocket transport up to speed with GraphQL-WS. We now 
 
 We now have implemented the GraphQL cache-control feature, which allows you to specify cache-control headers for GraphQL query responses based on the entities you query.
 
-To enable Cache-Control you will need to install the package `HotChocolate.Caching`.
+To enable Cache-Control, you will need to install the package `HotChocolate.Caching`.
 
 ```bash
 dotnet add package HotChocolate.Caching
 ```
 
-Nex we will need to add the following to your GraphQL configuration. by default.
+Next, we will need to add the following to your GraphQL configuration. by default.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -219,7 +219,7 @@ builder.Services
     .UsePersistedQueryPipeline();
 ```
 
-This is amazing! You focus on your code, and the Hot Chocolate source generator will write all those registrations for you. In our example which we migrated from Hot Chocolate 11 to 13 we were able to reduce the configuration code from 32 lines to 10 lines of code. The best thing here is, you will never again forget to register a type or DataLoader.
+This is amazing! You focus on your code, and the Hot Chocolate source generator will write all those registrations for you. In our example which we migrated from Hot Chocolate 11 to 13, we reduced the configuration code from 32 lines to 10 lines of code. The best thing here is you will never again forget to register a type or DataLoader.
 
 <Video videoId="s1rXR46h86o" />
 
@@ -281,7 +281,7 @@ internal static async Task<IReadOnlyDictionary<int, Track>> GetTrackByIdAsync(
         .ToDictionaryAsync(t => t.Id, cancellationToken);
 ```
 
-The source generator will take the above code and generate the actual DataLoader for us which you consequently can use in your resolvers just as if you wrote all of this on your own. This works even with things like entity framework, where we could not execute with multiple threads on the same context. In the past, this would have made you write a ton of additional code to create scope or handle DBContextFactory. With Hot Chocolate 13, it's just one additional switch on the `DataLoaderAttribute`.
+The source generator will take the above code and generate the actual DataLoader for us, which you can consequently use in your resolvers, just as if you wrote all of this on your own. This works even with things like entity framework, where we could not execute with multiple threads on the same context. In the past, this would have made you write a ton of additional code to create scope or handle DBContextFactory. With Hot Chocolate 13, it's just one additional switch on the `DataLoaderAttribute`.
 
 ```csharp
 [DataLoader(ServiceScope = DataLoaderServiceScope.DataLoaderScope)]
@@ -338,7 +338,7 @@ We can use this directive now right in our query.
 }
 ```
 
-If you want to learn more about the improvements we have made for GraphQL directives in Hot Chocolate 13 you can head over into the following video:
+If you want to learn more about the improvements we have made for GraphQL directives in Hot Chocolate 13, you can head over into the following video:
 
 <Video videoId="egyO7rZOoMI" />
 
@@ -383,7 +383,7 @@ builder.Services
 
 ## Authorization
 
-Using the built-in authorization directives in Hot Chocolate was a pain. They only worked on fields and were executed for each field they were annotated on. So, basically, like with MVC, and this does not really fit into our graph world.
+Using the built-in authorization directives in Hot Chocolate was a pain. They only worked on fields and were executed for each field they were annotated to. So, basically, like with MVC, and this does not really fit into our graph world.
 
 Let me give you an example, given then the following schema:
 
@@ -432,7 +432,7 @@ type User @authorize {
 
 But we also wanted to improve the performance of authorization checks and move them, when possible, out of the execution phase. In Hot Chocolate 13, by default, authorization checks are done before the execution by analyzing the query document. If the document has authorization directives that cannot be fulfilled, it will not even execute.
 
-But, sometimes, we need our authorization logic to run in the resolver, either to get the data and authorize by using the actual data it protects or to use the context in the resolver to authorize. This can be easily done by specifying when an @authorize directive shall be applied.
+But, sometimes, we need our authorization logic to run in the resolver, either to get the data and authorize by using the actual data it protects or to use the context in the resolver to authorize. This can be easily done by specifying when an `@authorize` directive shall be applied.
 
 ```graphql
 type Query {
@@ -440,7 +440,7 @@ type Query {
   userById(id: ID!): User #secured because user is authorized
 }
 
-type User @authorize @authorize(polict: "READ_USER", apply: AFTER_RESOLVER) {
+type User @authorize @authorize(policy: "READ_USER", apply: AFTER_RESOLVER) {
   name: String!
   friends: [User!] #secured because user is authorized
 }
@@ -479,7 +479,7 @@ Out of the box, we support Microsoft's authorization policies that come with ASP
 dotnet install HotChocolate.AspNetCore.Authorization.Opa
 ```
 
-If you want to learn more about Open Policy agent you can find more information [here](https://www.openpolicyagent.org/).
+If you want to learn more about Open Policy agent, you can find more information [here](https://www.openpolicyagent.org/).
 
 ## Subscriptions
 
@@ -492,20 +492,68 @@ Implementing a new subscription provider now also has become so much easier. If 
 
 ## Data
 
-As with almost every release we have added more integrations to HotChocolate.Data. With Hot Chocolate 13 we are happy to announce built-in support for RavenDB and Marten.
+As with almost every release, we have added more integrations to HotChocolate.Data. With Hot Chocolate 13, we are happy to announce built-in support for RavenDB and Marten.
+
+Here is an example of how easy it is now to integrate RavenDB with Hot Chocolate 13.
+
+1. Install the RavenDB provider to your project.
 
 ```bash
 dotnet install HotChocolate.Data.Raven
+```
+
+2. Register your document store.
+
+```csharp
+builder.Services.AddSingleton<IDocumentStore>(
+    _ => new DocumentStore { Urls = new[] { "http://localhost:8080" }, Database = "Test" }.Initialize());
+```
+
+3. Register, Filtering, Sorting, and Paging providers for RavenDB.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypes()
+    .AddRavenFiltering()
+    .AddRavenProjections()
+    .AddRavenSorting()
+    .AddRavenPagingProviders();
+```
+
+4. Next, we can introduce some resolvers, and we are done.
+
+```csharp
+[QueryType]
+public class Query
+{
+    [UsePaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IRavenQueryable<Person> GetPersons(IAsyncDocumentSession session)
+        => session.Query<Person>();
+
+    [UseFirstOrDefault]
+    [UseFiltering]
+    public IExecutable<Person> GetPerson(IAsyncDocumentSession session)
+        => session.Query<Person>().AsExecutable();
+}
+```
+
+The Marten integration works very similarly. The main difference here is that you have to install a different package.
+
+```bash
 dotnet install HotChocolate.Data.Marten
 ```
 
 ## Azure Functions
 
-With version 12 we have introduced an Azure Functions integration, but only targeted in-process Azure Functions. Now, with Hot Chocolate 13 we have doubled down on Azure Functions and provide you with a template for the isolated mode.
+With version 12, we have introduced an Azure Functions integration but only targeted in-process Azure Functions. Now, with Hot Chocolate 13, we have doubled down on Azure Functions and provided you with a template for the isolated mode.
 
 ## Performance
 
-Performance is in every release a core concern that we have. For this release we have looked at memory consumption of the execution engine and were able to reduce consumption by 78% while at the same time improving execution performance by 24%.
+Performance is, in every release, a core concern that we have. For this release, we have looked at the memory consumption of the execution engine and were able to reduce consumption by 78% while at the same time improving execution performance by 24%.
 
 | Method                                                 |       Mean |    Gen0 |   Gen1 | Allocated |
 | ------------------------------------------------------ | ---------: | ------: | -----: | --------: |
@@ -514,17 +562,17 @@ Performance is in every release a core concern that we have. For this release we
 | Hot Chocolate 12.17.0 / 5 parallel Introspection Query | 1,030.2 us | 68.3594 |      - | 420.63 KB |
 | Hot Chocolate 13.0.1 / 5 parallel Introspection Query  |   835.8 us | 14.6484 | 2.9297 |  93.63 KB |
 
-As always we micro-optimize Hot Chocolate to make more room for your own application logic. What these optimizations mean in your use-case might be very different.
+As always, we micro-optimize Hot Chocolate to make more room for your own application logic. What these optimizations mean in your use case might be very different.
 
 ## Strawberry Shake
 
-While we did not have a strong focus on Strawberry Shake for this release we wanted to address a couple of pain points that users had. First one was that it was quite complex to setup and configure since you needed to fill in configuration and match it with the right packages. With Strawberry Shake 13 we wanted to improve developer experience and make things simple to use. We have now three application profiles which translate to three meta packages, Blazor, Maui and Server.
+While we did not have a strong focus on Strawberry Shake for this release, we wanted to address some user pain points. The first one was that it was too complex to set up and configure since you needed to fill in configuration and match it with the right packages. With Strawberry Shake 13, we wanted to improve the developer experience and simplify things. We now have three application profiles which translate to three meta-packages, Blazor, Maui, and Server.
 
-| Package                | Description                                                                                                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| StrawberryShake.Blazor | For Blazor projects use this single package in your project and we pre-configured it to generator automatically Razor components and use a client-side store for reactive web applications. |
-| StrawberryShake.Maui   | For Maui projects use this single package in your project and we pre-configured it to generator use a client-side store for reactive mobile applications.                                   |
-| StrawberryShake.Server | For consoles or backend to backend communication we hae the service profile which does not have a client store but gives you a strongly typed client.                                       |
+| Package                | Description                                                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| StrawberryShake.Blazor | For Blazor projects, use this package in your project, and we pre-configured it to generate Razor components automatically and use a client-side store for reactive web applications. |
+| StrawberryShake.Maui   | For Maui projects, use this package in your project, and we pre-configured it to generate and use a client-side store for reactive mobile applications.                               |
+| StrawberryShake.Server | For consoles or backend-to-backend communication, we have the service profile, which does not have a client store but gives you a strongly typed client.                              |
 
 Here is a basic flow to initialize a project with a Strawberry Shake client.
 
@@ -548,11 +596,11 @@ Here is a basic flow to initialize a project with a Strawberry Shake client.
    dotnet graphql init https://api-crypto-workshop.chillicream.com/graphql -n CryptoClient
    ```
 
-With theses three steps you are good to go an can start creating clients in your project.
+With these three steps, you are good to go and can start creating clients for your project.
 
 <Video videoId="-oq7YEciouM" />
 
-We also made it simpler to opt into features like persisted queries. Configuration options are now neatly integrated into the project file. In order to export queries on deployment as persisted queries you just add one property `GraphQLPersistedQueryOutput` to you project file and you are done.
+We also made it simpler to opt-in to features like persisted queries. Configuration options are now neatly integrated into the project file. To export queries on deployment as persisted queries, you add one property, `GraphQLPersistedQueryOutput`, to your project file, and you are done.
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
@@ -573,20 +621,20 @@ We also made it simpler to opt into features like persisted queries. Configurati
 </Project>
 ```
 
-If you need a deep dive into the setup of persisted queries with Strawberry Shake you can have a look at the following YouTube episode.
+If you need a deep dive into the setup of persisted queries with Strawberry Shake, you can have a look at the following YouTube episode.
 
 <Video videoId="CYpBafzytB0" />
 
 ## Banana Cake Pop
 
-With version 13 we are also releasing Banana Cake Pop 4 which packs a ton of new features. You can read all about this [here](https://chillicream.com/blog/2023/02/07/new-in-banana-cake-pop-4).
+With version 13, we are also releasing Banana Cake Pop 4, which packs many new features. You can read all about this [here](https://chillicream.com/blog/2023/02/07/new-in-banana-cake-pop-4).
 
 ## Outlook
 
-There are many more features and fixes in Hot Chocolate 13, too many to go into each of them. Here some nice statistics, we had 81 contributors including the core team working on Hot Chocolate 13. We had more than 400 PRs that went into this release. Not all of them were code, some were bits and pieces of documentation, unit tests, code fixes or even complete features. The Marten database provider was for instance contributed to us.
+There are many more features and fixes in Hot Chocolate 13; too many to go into each of them. Instead, let me give you a couple of numbers around this release. We had 81 contributors, including the core team working on Hot Chocolate 13, and more than 400 PRs went into this release. Not all of them were code; some were bits and pieces of documentation, unit tests, code fixes, or even complete features. The Marten database provider, for instance, was contributed to us by a single member of the community. When I saw this, I remembered the time it was just me. I remember when my brother Rafi and I started the slack channel, and there was this single other person in there asking me questions about Hot Chocolate. Now we are over 4400 on slack.chillicream.com.
 
-Since, we were so many people I do not want to mention one specific since it was all of us who pushed this forward. You can have a look at the release for all the GitHub users that made it into main.
+Since we were so many people working on this release, I do not want to mention one or two specific names here. It was all of us together who pushed this forward. You can have a look at the GitHub release for all the people who got their commits into main.
 
 [Release Version 13.0.0](https://github.com/ChilliCream/graphql-platform/releases/tag/13.0.0)
 
-For the next couple of month the team will focus on tooling and Hot Chocolate Fusion. We want to make distributed graphs much simpler and help you with great tooling to build and manage them. Further down the road we will focus on AOT without compromise to enable much faster startup times. Also on our list is an overhaul of HotChocolate.Data, we want to make aggregations easier and also simplify creating custom providers.
+The team will focus on tooling and Hot Chocolate Fusion for the next couple of months. We want to make distributed graphs much simpler and help you with great tooling to build and manage graphs at a massive scale. Further down the road, we will focus on AOT without compromise to enable much faster startup times. Also on our list is an overhaul of HotChocolate.Data, we want to make aggregations easier and also simplify creating custom providers. Let's take the next step and get even more people into our community.
