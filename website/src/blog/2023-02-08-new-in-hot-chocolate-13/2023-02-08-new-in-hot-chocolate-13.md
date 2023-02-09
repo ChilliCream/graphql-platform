@@ -505,6 +505,13 @@ dotnet install HotChocolate.Data.Marten
 
 Performance is in every release a core concern that we have. For this release we have looked at memory consumption of the execution engine.
 
+| Method                                                 |       Mean |    Gen0 |   Gen1 | Allocated |
+| ------------------------------------------------------ | ---------: | ------: | -----: | --------: |
+| Hot Chocolate 12.17.0 / Introspection Query            |   221.2 us | 13.6719 | 0.2441 |  84.13 KB |
+| Hot Chocolate 13.0.1 / Introspection Query             |   167.9 us |  2.9297 | 0.4883 |  18.73 KB |
+| Hot Chocolate 12.17.0 / 5 parallel Introspection Query | 1,030.2 us | 68.3594 |      - | 420.63 KB |
+| Hot Chocolate 13.0.1 / 5 parallel Introspection Query  |   835.8 us | 14.6484 | 2.9297 |  93.63 KB |
+
 ## Strawberry Shake
 
 ## Banana Cake Pop
