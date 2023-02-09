@@ -379,7 +379,65 @@ builder.Services
     .AddType(new JsonType("Any", BindingBehavior.Implicit));
 ```
 
-### .NET 7 and Generic Attributes
+### Generic Attributes
+
+With Hot Chocolate 13 we are no taking advantage of generic attributes in .NET 7. Instead of writing a ugly attribute like the following:
+
+```csharp
+[ExtendObjectType(typeof(Foo))]
+public static class FooResolvers
+```
+
+You can no use it's generic version.
+
+```csharp
+[ExtendObjectType<Foo>]
+public static class FooResolvers
+```
+
+The same goes for many other projects.
+
+### Entity Framework
+
+In the past, we have optimized Hot Chocolate to use the pooled factory approach when using Entity Framework. This did not sit well with many developers since it forced them to rewrite their long-established code patterns with scoped repositories. Hot Chocolate 13 will help you here and reduce the code and complexity of using Entity Framework to almost nothing.
+
+First, when you register a DBContext as a global service with the GraphQL schema, we will handle it as a resolver-scoped service. This means that the executor will create a service scope at the resolver level and retrieve this service from there. All other services that you might use in the resolver are still retrieved from the request service provider. This is important, especially as things like DataLoader enter the scene.
+
+The DBContext, in this case, can still be coming from a pool, but instead of using the factory configuration, you can now use the standard `AddDbContext` or the `AddDbContextPool`. Whatever makes you happy.
+
+```csharp
+builder.Services.AddDbContextPool<AssetContext>(o => o.UseSqlite("Data Source=assets.db"));
+```
+
+On our schema, we just register the `AssetContext` as a DBContext.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypes()
+    .RegisterDbContext<AssetContext>();
+```
+
+With this registration, we essentially tell our resolver compiler about this well-known service and how to handle it. We now can just use it in our resolver, no attributes, no special code, nothing, just use it.
+
+```csharp
+public static IQueryable<Asset> GetAssets(AssetContext context) => context.Assets;
+```
+
+But I talked about repositories, and this again is about the DBContext. The DBContext is just a specialized well-known service to the GraphQL engine. You can do the same with any repository or service object registered with the DI.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypes()
+    .RegisterService<AssetRepository>(ServiceKind.Resolver);
+```
+
+Just in the case of `RegisterService`, you have to explicitly opt into the resolver scoping since we default here to the request scope. But again, it's now one line of code in the GraphQL configuration, and you can use it everywhere without any clutter, as the resolver compiler will generate the code to keep the state.
+
+```csharp
+public static async Task<IReadOnlyList<Asset>> GetAssets(AssetRepository repository) => await repository.GetAssetsAsync();
+```
 
 ## Authorization
 
