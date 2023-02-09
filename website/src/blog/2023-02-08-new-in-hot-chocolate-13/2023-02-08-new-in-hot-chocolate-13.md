@@ -381,7 +381,7 @@ builder.Services
 
 ### Generic Attributes
 
-With Hot Chocolate 13 we are no taking advantage of generic attributes in .NET 7. Instead of writing a ugly attribute like the following:
+With Hot Chocolate 13 we are taking advantage of generic attributes in .NET 7. Instead of writing an ugly attribute like the following:
 
 ```csharp
 [ExtendObjectType(typeof(Foo))]
