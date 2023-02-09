@@ -29,20 +29,15 @@ exports.onPreBuild = async ({
     activity.panicOnBuild("Document cache failed to load");
   }
 
-  // Unversioned pages are currently created in a special way and only to be
-  // backwards compatible. All but the root links should be versioned anyways
-  // so the link validation will not throw errors.
-  // We hardcode the root documents here to satisfy the link validation,
-  // if pages refer to the unversioned root page of a product.
-  const hardcodedPages = [
-    "/docs/hotchocolate",
-    "/docs/strawberryshake",
-    "/docs/bananacakepop",
+  const knownLinks = [
+    "/products/bananacakepop",
+    "/products/hotchocolate",
+    "/products/strawberryshake",
   ];
 
-  hardcodedPages.forEach((hardcodedPage) => {
-    documents[hardcodedPage] = {
-      slug: hardcodedPage,
+  knownLinks.forEach((knownLink) => {
+    documents[knownLink] = {
+      slug: knownLink,
       links: [],
       headingAnchors: [],
     };

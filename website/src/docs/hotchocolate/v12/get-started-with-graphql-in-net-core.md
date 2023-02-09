@@ -205,7 +205,7 @@ The Project can be started by either pressing `Ctrl + F5` or clicking the green 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-If you have setup everything correctly, you should be able to open <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> (the port might be different for you) in your browser and be greeted by our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop).
+If you have setup everything correctly, you should be able to open <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> (the port might be different for you) in your browser and be greeted by our GraphQL IDE [Banana Cake Pop](/products/bananacakepop).
 
 ![GraphQL IDE](../../../images/get-started-bcp.png)
 

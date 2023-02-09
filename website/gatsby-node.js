@@ -4,7 +4,7 @@ const git = require("simple-git/promise");
 
 /** @type import('gatsby').GatsbyNode["createPages"] */
 exports.createPages = async ({ actions, graphql, reporter }) => {
-  const { createPage } = actions;
+  const { createPage, createRedirect } = actions;
 
   const result = await graphql(`
     {
@@ -59,6 +59,29 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   const products = result.data.productsConfig.products;
 
   createDocPages(createPage, result.data.docs, products);
+
+  const latestHcVersion = products?.find(
+    (product) => product?.path === "hotchocolate"
+  )?.latestStableVersion;
+  const latestSsVersion = products?.find(
+    (product) => product?.path === "strawberryshake"
+  )?.latestStableVersion;
+
+  // temporary client-side redirects for missing product pages
+  // need to be kept till the product pages are created
+  // for SEO we have also configured redirects in NGINX
+  createRedirect({
+    fromPath: `/products/hotchocolate`,
+    toPath: `/docs/hotchocolate/${latestHcVersion}`,
+    redirectInBrowser: true,
+    isPermanent: false,
+  });
+  createRedirect({
+    fromPath: `/products/strawberryshake`,
+    toPath: `/docs/strawberryshake/${latestSsVersion}`,
+    redirectInBrowser: true,
+    isPermanent: false,
+  });
 };
 
 exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
