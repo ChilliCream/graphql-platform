@@ -501,6 +501,8 @@ dotnet install HotChocolate.Data.Marten
 
 ## Azure Functions
 
+With version 12 we have introduced an Azure Functions integration, but only targeted in-process Azure Functions. Now, with Hot Chocolate 13 we have doubled down on Azure Functions and provide you with a template for the isolated mode.
+
 ## Performance
 
 Performance is in every release a core concern that we have. For this release we have looked at memory consumption of the execution engine and were able to reduce consumption by 78% while at the same time improving execution performance by 24%.
@@ -577,8 +579,14 @@ If you need a deep dive into the setup of persisted queries with Strawberry Shak
 
 ## Banana Cake Pop
 
-With version 13 we are also releasing Banana Cake Pop 4 which packs a ton of new features. You can read all about this [here]().
+With version 13 we are also releasing Banana Cake Pop 4 which packs a ton of new features. You can read all about this [here](https://chillicream.com/blog/2023/02/07/new-in-banana-cake-pop-4).
 
 ## Outlook
 
-There are many more features and fixed in Hot Chocolate 13, too many to go into each of them. We had 81 contributors including the core team working on Hot Chocolate 13. More than 400 PRs went into this
+There are many more features and fixes in Hot Chocolate 13, too many to go into each of them. Here some nice statistics, we had 81 contributors including the core team working on Hot Chocolate 13. We had more than 400 PRs that went into this release. Not all of them were code, some were bits and pieces of documentation, unit tests, code fixes or even complete features. The Marten database provider was for instance contributed to us.
+
+Since, we were so many people I do not want to mention one specific since it was all of us who pushed this forward. You can have a look at the release for all the GitHub users that made it into main.
+
+[Release Version 13.0.0](https://github.com/ChilliCream/graphql-platform/releases/tag/13.0.0)
+
+For the next couple of month the team will focus on tooling and Hot Chocolate Fusion. We want to make distributed graphs much simpler and help you with great tooling to build and manage them. Further down the road we will focus on AOT without compromise to enable much faster startup times. Also on our list is an overhaul of HotChocolate.Data, we want to make aggregations easier and also simplify creating custom providers.
