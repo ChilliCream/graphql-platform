@@ -3,7 +3,7 @@ path: "/blog/2023/02/08/new-in-hot-chocolate-13"
 date: "2023-02-08"
 title: "What's new Hot Chocolate and Strawberry Shake 13"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
-featuredImage: "hot-chocolate-12-banner.png"
+featuredImage: "hot-chocolate-13-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
