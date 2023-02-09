@@ -21,8 +21,8 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore src/core
+      run: dotnet restore src/HotChocolate/Core
     - name: Build
-      run: dotnet build src/core --no-restore
+      run: dotnet build src/HotChocolate/Core --no-restore
     - name: Test
-      run: dotnet test src/core --no-build --verbosity normal
+      run: dotnet test src/HotChocolate/Core --no-build --verbosity normal
