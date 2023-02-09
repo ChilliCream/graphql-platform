@@ -65,6 +65,56 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Person_NoAccess_EnsureNotCached()
+    {
+        // arrange
+        var results = new Stack<AuthorizeResult>();
+        results.Push(AuthorizeResult.NotAllowed);
+        results.Push(AuthorizeResult.Allowed);
+
+        var handler = new AuthHandler2(results);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        await executor.ExecuteAsync(
+            """
+            {
+              person(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+            }
+            """);
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              person(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Authorize_Query_NoAccess()
     {
         // arrange
@@ -561,7 +611,7 @@ public class AnnotationBasedAuthorizationTests
     }
 
     private static IServiceProvider CreateServices(
-        AuthHandler handler,
+        IAuthorizationHandler handler,
         Action<AuthorizationOptions>? configure = null)
         => new ServiceCollection()
             .AddGraphQLServer()
@@ -659,6 +709,27 @@ public class AnnotationBasedAuthorizationTests
 
             return new(AuthorizeResult.Allowed);
         }
+    }
+
+    private sealed class AuthHandler2 : IAuthorizationHandler
+    {
+        private readonly Stack<AuthorizeResult> _results;
+        public AuthHandler2(Stack<AuthorizeResult> results)
+        {
+            _results = results;
+        }
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            IMiddlewareContext context,
+            AuthorizeDirective directive,
+            CancellationToken cancellationToken = default)
+            => new(AuthorizeResult.Allowed);
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            AuthorizationContext context,
+            IReadOnlyList<AuthorizeDirective> directives,
+            CancellationToken cancellationToken = default)
+            => new(_results.Pop());
     }
 
     [DirectiveType(DirectiveLocation.Object)]

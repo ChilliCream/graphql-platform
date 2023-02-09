@@ -1,7 +1,7 @@
 ---
 path: "/blog/2023/02/08/new-in-hot-chocolate-13"
 date: "2023-02-08"
-title: "What's new Hot Chocolate and Strawberry Shake 13"
+title: "What's new for Hot Chocolate 13"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 featuredImage: "hot-chocolate-13-banner.png"
 author: Michael Staib
@@ -379,7 +379,65 @@ builder.Services
     .AddType(new JsonType("Any", BindingBehavior.Implicit));
 ```
 
-### .NET 7 and Generic Attributes
+### Generic Attributes
+
+With Hot Chocolate 13 we are taking advantage of generic attributes in .NET 7. Instead of writing an ugly attribute like the following:
+
+```csharp
+[ExtendObjectType(typeof(Foo))]
+public static class FooResolvers
+```
+
+You can no use it's generic version.
+
+```csharp
+[ExtendObjectType<Foo>]
+public static class FooResolvers
+```
+
+The same goes for many other projects.
+
+### Entity Framework
+
+In the past, we have optimized Hot Chocolate to use the pooled factory approach when using Entity Framework. This did not sit well with many developers since it forced them to rewrite their long-established code patterns with scoped repositories. Hot Chocolate 13 will help you here and reduce the code and complexity of using Entity Framework to almost nothing.
+
+First, when you register a DBContext as a global service with the GraphQL schema, we will handle it as a resolver-scoped service. This means that the executor will create a service scope at the resolver level and retrieve this service from there. All other services that you might use in the resolver are still retrieved from the request service provider. This is important, especially as things like DataLoader enter the scene.
+
+The DBContext, in this case, can still be coming from a pool, but instead of using the factory configuration, you can now use the standard `AddDbContext` or the `AddDbContextPool`. Whatever makes you happy.
+
+```csharp
+builder.Services.AddDbContextPool<AssetContext>(o => o.UseSqlite("Data Source=assets.db"));
+```
+
+On our schema, we just register the `AssetContext` as a DBContext.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypes()
+    .RegisterDbContext<AssetContext>();
+```
+
+With this registration, we essentially tell our resolver compiler about this well-known service and how to handle it. We now can just use it in our resolver, no attributes, no special code, nothing, just use it.
+
+```csharp
+public static IQueryable<Asset> GetAssets(AssetContext context) => context.Assets;
+```
+
+But I talked about repositories, and this again is about the DBContext. The DBContext is just a specialized well-known service to the GraphQL engine. You can do the same with any repository or service object registered with the DI.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypes()
+    .RegisterService<AssetRepository>(ServiceKind.Resolver);
+```
+
+Just in the case of `RegisterService`, you have to explicitly opt into the resolver scoping since we default here to the request scope. But again, it's now one line of code in the GraphQL configuration, and you can use it everywhere without any clutter, as the resolver compiler will generate the code to keep the state.
+
+```csharp
+public static async Task<IReadOnlyList<Asset>> GetAssets(AssetRepository repository) => await repository.GetAssetsAsync();
+```
 
 ## Authorization
 
@@ -558,9 +616,9 @@ Performance is, in every release, a core concern that we have. For this release,
 | Method                                                 |       Mean |    Gen0 |   Gen1 | Allocated |
 | ------------------------------------------------------ | ---------: | ------: | -----: | --------: |
 | Hot Chocolate 12.17.0 / Introspection Query            |   221.2 us | 13.6719 | 0.2441 |  84.13 KB |
-| Hot Chocolate 13.0.1 / Introspection Query             |   167.9 us |  2.9297 | 0.4883 |  18.73 KB |
+| Hot Chocolate 13.0.2 / Introspection Query             |   167.9 us |  2.9297 | 0.4883 |  18.73 KB |
 | Hot Chocolate 12.17.0 / 5 parallel Introspection Query | 1,030.2 us | 68.3594 |      - | 420.63 KB |
-| Hot Chocolate 13.0.1 / 5 parallel Introspection Query  |   835.8 us | 14.6484 | 2.9297 |  93.63 KB |
+| Hot Chocolate 13.0.2 / 5 parallel Introspection Query  |   835.8 us | 14.6484 | 2.9297 |  93.63 KB |
 
 As always, we micro-optimize Hot Chocolate to make more room for your own application logic. What these optimizations mean in your use case might be very different.
 
@@ -615,7 +673,7 @@ We also made it simpler to opt-in to features like persisted queries. Configurat
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.0" PrivateAssets="all" />
-    <PackageReference Include="StrawberryShake.Blazor" Version="13.0.1" />
+    <PackageReference Include="StrawberryShake.Blazor" Version="13.0.2" />
   </ItemGroup>
 
 </Project>
