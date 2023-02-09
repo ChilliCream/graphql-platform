@@ -138,7 +138,7 @@ type OrderCollectionSegment {
 
 Notice how the CollectionSegment is named after the type being returned and not the name of the field. If you were to create a second resolver returning the same type also annotated with `UseOffsetPaging`, the previous CollectionSegment would be re-used. This could lead to issues, if you wanted to add additional information to only one of the CollectionSegments.
 
-Given the same resovler from above, we now generate the following schema in v13, where the CollectionSegment is named after the field it's being returned from and not the field's return type:
+Given the same resolver from above, we now generate the following schema in v13, where the CollectionSegment is named after the field it's being returned from and not the field's return type:
 
 ```graphql
 type Query {
