@@ -381,42 +381,105 @@ builder.Services
 
 ### .NET 7 and Generic Attributes
 
-TEXT
-
 ## Authorization
 
 Using the built-in authorization directives in Hot Chocolate was a pain. They only worked on fields and were executed for each field they were annotated on. So, basically, like with MVC, and this does not really fit into our graph world.
 
 Let me give you an example, given then the following schema:
 
-EXAMPLE
+```graphql
+type Query {
+  me: User
+  userById(id: ID!): User
+}
 
-To secure our user object, we need to annotate three fields.
+type User {
+  name: String!
+  friends: [User!]
+}
+```
 
-EXAMPLE
+To secure our user object, we would need to annotate three fields.
 
-But if we now work on our schema and introduce new ways to get a person, we will need to continue ensuring it does not leak. This is tedious, and if we throw in unions and interfaces becomes very hard to manage.
+```graphql
+type Query {
+  me: User @authorize
+  userById(id: ID!): User @authorize
+}
+
+type User {
+  name: String!
+  friends: [User!] @authorize
+}
+```
+
+But if we now work on our schema and introduce new ways to get a user, we will need to continue ensuring it does not leak. This is tedious, and if we throw in unions and interfaces becomes very hard to manage.
 
 This is where our new authorization approach comes in. You can still annotate fields, but annotating object types will ensure that all fields they are retrievable through are secured with the specified authorization rules.
 This change alone makes it much easier to ensure your data is secure.
+
+```graphql
+type Query {
+  me: User #secured because user is authorized
+  userById(id: ID!): User #secured because user is authorized
+}
+
+type User @authorize {
+  name: String!
+  friends: [User!] #secured because user is authorized
+}
+```
 
 But we also wanted to improve the performance of authorization checks and move them, when possible, out of the execution phase. In Hot Chocolate 13, by default, authorization checks are done before the execution by analyzing the query document. If the document has authorization directives that cannot be fulfilled, it will not even execute.
 
 But, sometimes, we need our authorization logic to run in the resolver, either to get the data and authorize by using the actual data it protects or to use the context in the resolver to authorize. This can be easily done by specifying when an @authorize directive shall be applied.
 
-EXAMPLE
+```graphql
+type Query {
+  me: User #secured because user is authorized
+  userById(id: ID!): User #secured because user is authorized
+}
 
-TABLE PHASES
+type User @authorize @authorize(polict: "READ_USER", apply: AFTER_RESOLVER) {
+  name: String!
+  friends: [User!] #secured because user is authorized
+}
+```
+
+| Phase           | Description                                                                                                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| VALIDATION      | The authorization directives are collected and applied in a batch during the validation phase of the document.                                                                                    |
+| BEFORE_RESOLVER | The authorization directives are merged into the resolver pipeline and executed before the resolver. The authorize policies have access to the `IMiddlewareContext` but not to the resolved data. |
+| AFTER_RESOLVER  | The authorization directives are merged into the resolver pipeline and executed after the resolver. The authorize policies have access to the `IMiddlewareContext` and the resolved data.         |
 
 ### Open Policy Agent
 
 With Hot Chocolate 13, we have abstracted our authorization API and can now support multiple authorization solutions. You can even create your own if you want to. All you have to do is to implement the `IAuthorizationHandler` interface.
 
-CODE
+```csharp
+public interface IAuthorizationHandler
+{
+    ValueTask<AuthorizeResult> AuthorizeAsync(
+        IMiddlewareContext context,
+        AuthorizeDirective directive,
+        CancellationToken cancellationToken = default);
+
+    ValueTask<AuthorizeResult> AuthorizeAsync(
+        AuthorizationContext context,
+        IReadOnlyList<AuthorizeDirective> directives,
+        CancellationToken cancellationToken = default);
+}
+```
+
+See [IAuthorizationHandler.cs](https://github.com/ChilliCream/graphql-platform/blob/main/src/HotChocolate/Core/src/Authorization/IAuthorizationHandler.cs) for more details.
 
 Out of the box, we support Microsoft's authorization policies that come with ASP.NET Core and OPA (Open Policy Agent). OPA is getting increasingly popular and can be applied to things from Kubernetes to your database, and it is now just one package away from your favorite GraphQL server.
 
-PACKAGE ID
+```bash
+dotnet install HotChocolate.AspNetCore.Authorization.Opa
+```
+
+If you want to learn more about Open Policy agent you can find more information [here](https://www.openpolicyagent.org/).
 
 ## Subscriptions
 
