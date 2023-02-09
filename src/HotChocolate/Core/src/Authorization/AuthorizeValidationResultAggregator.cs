@@ -52,7 +52,7 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
         }
     }
 
-    private IError CreateError(AuthorizeResult result)
+    private static IError CreateError(AuthorizeResult result)
     {
         return result switch
         {
