@@ -558,9 +558,9 @@ Performance is, in every release, a core concern that we have. For this release,
 | Method                                                 |       Mean |    Gen0 |   Gen1 | Allocated |
 | ------------------------------------------------------ | ---------: | ------: | -----: | --------: |
 | Hot Chocolate 12.17.0 / Introspection Query            |   221.2 us | 13.6719 | 0.2441 |  84.13 KB |
-| Hot Chocolate 13.0.1 / Introspection Query             |   167.9 us |  2.9297 | 0.4883 |  18.73 KB |
+| Hot Chocolate 13.0.2 / Introspection Query             |   167.9 us |  2.9297 | 0.4883 |  18.73 KB |
 | Hot Chocolate 12.17.0 / 5 parallel Introspection Query | 1,030.2 us | 68.3594 |      - | 420.63 KB |
-| Hot Chocolate 13.0.1 / 5 parallel Introspection Query  |   835.8 us | 14.6484 | 2.9297 |  93.63 KB |
+| Hot Chocolate 13.0.2 / 5 parallel Introspection Query  |   835.8 us | 14.6484 | 2.9297 |  93.63 KB |
 
 As always, we micro-optimize Hot Chocolate to make more room for your own application logic. What these optimizations mean in your use case might be very different.
 
@@ -615,7 +615,7 @@ We also made it simpler to opt-in to features like persisted queries. Configurat
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.0" PrivateAssets="all" />
-    <PackageReference Include="StrawberryShake.Blazor" Version="13.0.1" />
+    <PackageReference Include="StrawberryShake.Blazor" Version="13.0.2" />
   </ItemGroup>
 
 </Project>
