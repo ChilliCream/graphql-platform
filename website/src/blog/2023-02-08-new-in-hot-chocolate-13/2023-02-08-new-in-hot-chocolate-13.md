@@ -488,11 +488,22 @@ Subscription is another area where we put a lot of effort into. With Hot Chocola
 Now with Hot Chocolate 13, we have added support for NATS by using the [AlterNATS C# library](https://github.com/Cysharp/AlterNats).
 We also added support for RabbitMQ, a popular solution many of you asked us to support for subscriptions.
 
-Implementing a new subscription provider now also has become so much easier. If you want to support another system, look at the [NATS implementation]().
+Implementing a new subscription provider now also has become so much easier. If you want to support another system, look at the [NATS implementation](https://github.com/ChilliCream/graphql-platform/tree/main/src/HotChocolate/Core/src/Subscriptions.Nats).
 
 ## Data
 
+As with almost every release we have added more integrations to HotChocolate.Data. With Hot Chocolate 13 we are happy to announce built-in support for RavenDB and Marten.
+
+```bash
+dotnet install HotChocolate.Data.Raven
+dotnet install HotChocolate.Data.Marten
+```
+
 ## Azure Functions
+
+## Performance
+
+Performance is in every release a core concern that we have. For this release we have looked at memory consumption of the execution engine.
 
 ## Strawberry Shake
 
