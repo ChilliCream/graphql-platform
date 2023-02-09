@@ -503,7 +503,7 @@ dotnet install HotChocolate.Data.Marten
 
 ## Performance
 
-Performance is in every release a core concern that we have. For this release we have looked at memory consumption of the execution engine.
+Performance is in every release a core concern that we have. For this release we have looked at memory consumption of the execution engine and were able to reduce consumption by 78% while at the same time improving execution performance by 24%.
 
 | Method                                                 |       Mean |    Gen0 |   Gen1 | Allocated |
 | ------------------------------------------------------ | ---------: | ------: | -----: | --------: |
@@ -512,8 +512,73 @@ Performance is in every release a core concern that we have. For this release we
 | Hot Chocolate 12.17.0 / 5 parallel Introspection Query | 1,030.2 us | 68.3594 |      - | 420.63 KB |
 | Hot Chocolate 13.0.1 / 5 parallel Introspection Query  |   835.8 us | 14.6484 | 2.9297 |  93.63 KB |
 
+As always we micro-optimize Hot Chocolate to make more room for your own application logic. What these optimizations mean in your use-case might be very different.
+
 ## Strawberry Shake
+
+While we did not have a strong focus on Strawberry Shake for this release we wanted to address a couple of pain points that users had. First one was that it was quite complex to setup and configure since you needed to fill in configuration and match it with the right packages. With Strawberry Shake 13 we wanted to improve developer experience and make things simple to use. We have now three application profiles which translate to three meta packages, Blazor, Maui and Server.
+
+| Package                | Description                                                                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| StrawberryShake.Blazor | For Blazor projects use this single package in your project and we pre-configured it to generator automatically Razor components and use a client-side store for reactive web applications. |
+| StrawberryShake.Maui   | For Maui projects use this single package in your project and we pre-configured it to generator use a client-side store for reactive mobile applications.                                   |
+| StrawberryShake.Server | For consoles or backend to backend communication we hae the service profile which does not have a client store but gives you a strongly typed client.                                       |
+
+Here is a basic flow to initialize a project with a Strawberry Shake client.
+
+1. Create your project.
+
+   ```bash
+   dotnet new blazorwasm
+   ```
+
+2. Add client tooling to manage the GraphQL schema.
+
+   ```bash
+   dotnet new tool-manifest
+   dotnet tool install StrawberryShake.Tools
+   ```
+
+3. Register GraphQL service with your application.
+
+   ```bash
+   dotnet add package StrawberryShake.Blazor
+   dotnet graphql init https://api-crypto-workshop.chillicream.com/graphql -n CryptoClient
+   ```
+
+With theses three steps you are good to go an can start creating clients in your project.
+
+<Video videoId="-oq7YEciouM" />
+
+We also made it simpler to opt into features like persisted queries. Configuration options are now neatly integrated into the project file. In order to export queries on deployment as persisted queries you just add one property `GraphQLPersistedQueryOutput` to you project file and you are done.
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GraphQLPersistedQueryOutput Condition="'$(Configuration)' == 'Release'">../output</GraphQLPersistedQueryOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.0" PrivateAssets="all" />
+    <PackageReference Include="StrawberryShake.Blazor" Version="13.0.1" />
+  </ItemGroup>
+
+</Project>
+```
+
+If you need a deep dive into the setup of persisted queries with Strawberry Shake you can have a look at the following YouTube episode.
+
+<Video videoId="CYpBafzytB0" />
 
 ## Banana Cake Pop
 
+With version 13 we are also releasing Banana Cake Pop 4 which packs a ton of new features. You can read all about this [here]().
+
 ## Outlook
+
+There are many more features and fixed in Hot Chocolate 13, too many to go into each of them. We had 81 contributors including the core team working on Hot Chocolate 13. More than 400 PRs went into this
