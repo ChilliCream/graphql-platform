@@ -27,8 +27,8 @@ jobs:
     - name: Test
       run: dotnet test src/HotChocolate/Core --no-build --verbosity normal
     - name: Test solution [Debug] with code coverage
-        working-directory: src/HotChocolate/Core
-        run: >
+      working-directory: src/HotChocolate/Core
+      run: >
           dotnet test
           --no-restore
           --no-build
