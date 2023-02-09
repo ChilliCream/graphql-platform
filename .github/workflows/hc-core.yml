@@ -26,3 +26,19 @@ jobs:
       run: dotnet build src/HotChocolate/Core --no-restore
     - name: Test
       run: dotnet test src/HotChocolate/Core --no-build --verbosity normal
+    - name: Test solution [Debug] with code coverage
+        working-directory: src/HotChocolate/Core
+        run: >
+          dotnet test
+          --no-restore
+          --no-build
+          --collect "XPlat Code Coverage"
+          --results-directory .coverage
+          --
+          DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+          DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude=[HotChocolate.StarWars.Tests]*,[HotChocolate.Tests.Utilities]*
+    - name: Codecov
+      uses: codecov/codecov-action@v3.1.1
+      with:
+        files: 'src/HotChocolate/Core/.coverage/**/coverage.opencover.xml'
+        verbose: true
