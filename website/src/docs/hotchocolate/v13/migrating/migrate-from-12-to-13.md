@@ -190,6 +190,59 @@ PLZ --> plz
 
 If you need to retain the old naming behavior or the inferred field name doesn't match your expectation, you can still [explicitly override the name of the fields in question](/docs/hotchocolate/v13/object-types#naming).
 
+## IHttpResultSerializer
+
+In this release we have replaced the `IHttpResultSerializer`, and consequently the `DefaultHttpResultSerializer`, with the `IHttpResponseFormatter` and `DefaultHttpResponseFormatter`.
+
+Below you can see how you can port your custom HTTP status code generation logic to the new contract:
+
+**Before**
+
+```csharp
+builder.Services.AddHttpResultSerializer<CustomHttpResultSerializer>();
+
+// ...
+
+public class CustomHttpResultSerializer : DefaultHttpResultSerializer
+{
+    public override HttpStatusCode GetStatusCode(IExecutionResult result)
+    {
+        if (result is IQueryResult queryResult &&
+            queryResult.Errors?.Count > 0 &&
+            queryResult.Errors.Any(error => error.Code == "SOME_AUTH_ISSUE"))
+        {
+            return HttpStatusCode.Forbidden;
+        }
+
+        return base.GetStatusCode(result);
+    }
+}
+```
+
+**After**
+
+```csharp
+builder.Services.AddHttpResponseFormatter<CustomHttpResponseFormatter>();
+
+// ...
+
+public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
+{
+    protected override HttpStatusCode OnDetermineStatusCode(
+        IQueryResult result, FormatInfo format,
+        HttpStatusCode? proposedStatusCode)
+    {
+        if (result.Errors?.Count > 0 &&
+            result.Errors.Any(error => error.Code == "SOME_AUTH_ISSUE"))
+        {
+            return HttpStatusCode.Forbidden;
+        }
+
+        return base.OnDetermineStatusCode(result, format, proposedStatusCode);
+    }
+}
+```
+
 ## DataLoaderAttribute
 
 Previously you might have annotated [DataLoaders](/docs/hotchocolate/v13/fetching-data/dataloader) in your resolver method signature with the `[DataLoader]` attribute. This attribute has been removed in v13 and can be safely removed from your code.
