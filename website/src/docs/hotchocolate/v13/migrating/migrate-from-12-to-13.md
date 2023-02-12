@@ -168,6 +168,28 @@ builder.Services
     });
 ```
 
+## Field naming
+
+Previously only the first character in a property or method name was lowercased in the schema. This worked fine in most cases, but if a name started with multiple uppercase characters or was all uppercase, the resulting field name was pretty weird. In this release we therefore changed how those field names are being inferred.
+
+**Before**
+
+```
+FooBar --> fooBar
+IPAddress --> iPAddress
+PLZ --> pLZ
+```
+
+**After**
+
+```
+FooBar --> fooBar
+IPAddress --> ipAddress
+PLZ --> plz
+```
+
+If you need to retain the old naming behavior or the inferred field name doesn't match your expectation, you can still [explicitly override the name of the fields in question](/docs/hotchocolate/v13/object-types#naming).
+
 ## DataLoaderAttribute
 
 Previously you might have annotated [DataLoaders](/docs/hotchocolate/v13/fetching-data/dataloader) in your resolver method signature with the `[DataLoader]` attribute. This attribute has been removed in v13 and can be safely removed from your code.
