@@ -188,7 +188,7 @@ IPAddress --> ipAddress
 PLZ --> plz
 ```
 
-If you need to retain the old naming behavior or the inferred field name doesn't match your expectation, you can still [explicitly override the name of the fields in question](/docs/hotchocolate/v13/object-types#naming).
+If you need to retain the old naming behavior or the inferred field name doesn't match your expectation, you can still [explicitly override the name of the fields in question](/docs/hotchocolate/v13/defining-a-schema/object-types#naming).
 
 ## IHttpResultSerializer
 
