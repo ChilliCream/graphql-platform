@@ -4,7 +4,7 @@ title: Local state
 
 Local state represents a key-value store that is scoped to the _resolver pipeline_. It can be used to share data between [field middleware](/docs/hotchocolate/v13/execution-engine/field-middleware) or between [field middleware](/docs/hotchocolate/v13/execution-engine/field-middleware) and the actual resolver of a field.
 
-You could for example create a [field middleware](docs/hotchocolate/v13/execution-engine/field-middleware) that creates or rents an object and puts it in the local state. This value can then be read from within a resolver the middleware has been applied to.
+You could for example create a [field middleware](/docs/hotchocolate/v13/execution-engine/field-middleware) that creates or rents an object and puts it in the local state. This value can then be read from within a resolver the middleware has been applied to.
 
 # Setting local state
 
