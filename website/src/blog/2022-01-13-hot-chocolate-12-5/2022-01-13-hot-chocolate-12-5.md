@@ -65,11 +65,11 @@ With all this in place, we can execute requests against our demo server and insp
 
 The complete example can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/OpenTelemetry).
 
-Docs can be found [here](https://chillicream.com/docs/hotchocolate/server/instrumentation/#opentelemetry).
+Docs can be found [here](https://chillicream.com/docs/hotchocolate/v12/server/instrumentation/#opentelemetry).
 
 # `OneOf` Input Objects
 
-One of the most asked-for features in GraphQL is input unions. The GraphQL working group has been discussing this feature for a long time, and we have explored multiple roads to achieve this. The most likely candidate has become the _`OneOf` Input Object_ representing a structural union. A structural union means that _`OneOf` Input Object_ is a special kind of input object where each field represents one choice. The _`OneOf` Input Object_ will only allow one field to be set, and the value can not be null. The type system enforces the rules for `OneOf` Input Objects_.
+One of the most asked-for features in GraphQL is input unions. The GraphQL working group has been discussing this feature for a long time, and we have explored multiple roads to achieve this. The most likely candidate has become the _`OneOf` Input Object_ representing a structural union. A structural union means that _`OneOf` Input Object_ is a special kind of input object where each field represents one choice. The _`OneOf` Input Object_ will only allow one field to be set, and the value can not be null. The type system enforces the rules for `OneOf` Input Objects\_.
 
 We support _`OneOf` Input Objects_ in all three schema-building approaches (annotation-based, code-first, and schema-first.
 
@@ -127,7 +127,7 @@ builder.Services
 
 The complete example can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/OneOf).
 
-Docs can be found [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/input-object-types/#oneof-input-objects).
+Docs can be found [here](https://chillicream.com/docs/hotchocolate/v12/defining-a-schema/input-object-types/#oneof-input-objects).
 
 The current GraphQL spec RFC can be found [here](https://github.com/graphql/graphql-spec/pull/825).
 

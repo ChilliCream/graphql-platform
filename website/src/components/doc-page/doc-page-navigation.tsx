@@ -239,7 +239,7 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
             <ProductLink
               active={product === activeProduct}
               key={product.path!}
-              to={`/docs/${product.path!}`}
+              to={`/docs/${product.path!}/${product.latestStableVersion}`}
             >
               <ProductTitle>{product.title!}</ProductTitle>
               <ProductDescription>{product.description!}</ProductDescription>
@@ -299,6 +299,7 @@ export const DocPageNavigationGraphQLFragment = graphql`
         path
         title
         description
+        latestStableVersion
         versions {
           path
           title

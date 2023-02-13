@@ -258,10 +258,10 @@ public static class WellKnownContextData
     /// <summary>
     /// The key to access the user state on the global context.
     /// </summary>
-    public const string UserState = "HottChocolate.Authorization.UserState";
+    public const string UserState = "HotChocolate.Authorization.UserState";
 
     /// <summary>
     /// The key to access the authorization handler on the global context.
     /// </summary>
-    public const string AuthorizationHandler = "HottChocolate.Authorization.AuthorizationHandler";
+    public const string AuthorizationHandler = "HotChocolate.Authorization.AuthorizationHandler";
 }

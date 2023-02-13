@@ -32,7 +32,11 @@
     "Swashbuckle",
     "traversion",
     "Websockets",
-    "Newtonsoft"
+    "Newtonsoft",
+    "cachable",
+    "fricking",
+    "runtimes",
+    "NATS"
   ],
   "ignoreWords": [
     "Specwise",
@@ -53,6 +57,7 @@
     "Staib",
     "shoooe",
     "Senn",
+    "Rafi",
     "Snapshooter",
     "relayjs",
     "Rgba",

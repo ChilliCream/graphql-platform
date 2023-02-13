@@ -41,6 +41,7 @@ export const Footer: FC = () => {
         products: childrenDocsJson {
           path
           title
+          latestStableVersion
           versions {
             path
           }
@@ -103,8 +104,8 @@ export const Footer: FC = () => {
           <Title>Products</Title>
           <Navigation>
             <NavLink to="/products/bananacakepop">Banana Cake Pop</NavLink>
-            <NavLink to="/docs/hotchocolate">Hot Chocolate</NavLink>
-            <NavLink to="/docs/strawberryshake">Strawberry Shake</NavLink>
+            <NavLink to="/products/hotchocolate">Hot Chocolate</NavLink>
+            <NavLink to="/products/strawberryshake">Strawberry Shake</NavLink>
           </Navigation>
         </Links>
         <Links>
@@ -112,8 +113,8 @@ export const Footer: FC = () => {
           <Navigation>
             {products!.map((product, index) => (
               <NavLink
-                key={`products-item-${index}`}
-                to={`/docs/${product!.path!}/`}
+                key={`doc-item-${index}`}
+                to={`/docs/${product!.path!}/${product!.latestStableVersion!}`}
               >
                 {product!.title}
               </NavLink>

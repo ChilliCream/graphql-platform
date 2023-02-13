@@ -9,7 +9,7 @@ namespace StrawberryShake.Tools;
 
 internal static class GeneratorHelpers
 {
-    public static string[] GetConfigFiles(string path, string[] buildArtifacts)
+    public static string[] GetConfigFiles(string path, IReadOnlyList<string> buildArtifacts)
     {
         const string pattern = "**/.graphqlrc.json";
         var files = Files(path, pattern).Select(t => Combine(path, t)).ToHashSet();
@@ -20,17 +20,37 @@ internal static class GeneratorHelpers
     public static string[] GetGraphQLDocuments(
         string path,
         string pattern,
-        string[] buildArtifacts)
+        IReadOnlyList<string> buildArtifacts)
     {
         var files = Files(path, pattern).Select(t => Combine(path, t)).ToHashSet();
         files.ExceptWith(buildArtifacts);
         return files.ToArray();
     }
 
-    public static string[] GetBuildArtifacts(string path)
-        => Directory.GetFiles(Combine(path, "obj"), "*.*", SearchOption.AllDirectories)
-            .Concat(Directory.GetFiles(Combine(path, "bin"), "*.*", SearchOption.AllDirectories))
-            .ToArray();
+    public static IReadOnlyList<string> GetBuildArtifacts(string path)
+    {
+        var artifacts = new List<string>();
+        var objDir = Combine(path, "obj");
+        var binDir = Combine(path, "bin");
+
+        if (Directory.Exists(objDir))
+        {
+            artifacts.AddRange(
+                Directory.GetFiles(
+                    objDir, "*.*",
+                    SearchOption.AllDirectories));
+        }
+
+        if (Directory.Exists(binDir))
+        {
+            artifacts.AddRange(
+                Directory.GetFiles(
+                    binDir, "*.*",
+                    SearchOption.AllDirectories));
+        }
+
+        return artifacts;
+    }
 
     public static CSharpGeneratorSettings CreateSettings(
         GraphQLConfig config,

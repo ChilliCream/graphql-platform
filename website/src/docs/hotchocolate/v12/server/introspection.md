@@ -2,7 +2,7 @@
 title: Introspection
 ---
 
-Introspection is what enables GraphQL's rich tooling ecosystem as well powerful IDEs like [Banana Cake Pop](/docs/bananacakepop) or GraphiQL.
+Introspection is what enables GraphQL's rich tooling ecosystem as well powerful IDEs like [Banana Cake Pop](/products/bananacakepop) or GraphiQL.
 
 Every GraphQL server exposes a `__schema` and `__type` field on the query type as well as an `__typename` field on each type. These fields are used to gain insights into the schema of our GraphQL server.
 
