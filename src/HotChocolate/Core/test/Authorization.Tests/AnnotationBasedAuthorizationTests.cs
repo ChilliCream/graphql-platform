@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using CookieCrumble;
 using HotChocolate.Authorization;
 using HotChocolate.Execution;
@@ -608,6 +609,67 @@ public class AnnotationBasedAuthorizationTests
         Assert.NotNull(result.ContextData);
         Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
+    }
+
+    [Fact]
+    public async Task Assert_UserState_Exists()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (ctx, _)
+                => ctx.ContextData.ContainsKey(WellKnownContextData.UserState)
+                    ? AuthorizeResult.Allowed
+                    : AuthorizeResult.NotAllowed,
+            validation: (ctx, _)
+                => ctx.ContextData.ContainsKey(WellKnownContextData.UserState)
+                    ? AuthorizeResult.Allowed
+                    : AuthorizeResult.NotAllowed);
+
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor =>
+                    {
+                        descriptor.Authorize("READ_NODE");
+                    };
+            });
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetQuery(
+                        """
+                        {
+                          nodes(ids: "abc") {
+                            __typename
+                          }
+                        }
+                        """)
+                    .SetGlobalState(nameof(ClaimsPrincipal), new ClaimsPrincipal()));
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "Unable to decode the id string.",
+                      "extensions": {
+                        "operationStatus": "InvalidData",
+                        "originalValue": "abc"
+                      }
+                    }
+                  ]
+                }
+                """);
     }
 
     private static IServiceProvider CreateServices(
