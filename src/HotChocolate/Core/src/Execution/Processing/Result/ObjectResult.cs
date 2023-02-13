@@ -109,7 +109,7 @@ public sealed class ObjectResult
     {
         ref var searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
-        for(var i = 0; i < _capacity; i++)
+        for (var i = 0; i < _capacity; i++)
         {
             var item = Unsafe.Add(ref searchSpace, i);
             if (name.EqualsOrdinal(item.Name))
@@ -159,7 +159,7 @@ public sealed class ObjectResult
     {
         ref var searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
-        for(var i = 0; i < _capacity; i++)
+        for (var i = 0; i < _capacity; i++)
         {
             Unsafe.Add(ref searchSpace, i).Reset();
         }

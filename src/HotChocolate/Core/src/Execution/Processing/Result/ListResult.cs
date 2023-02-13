@@ -12,10 +12,9 @@ namespace HotChocolate.Execution.Processing;
 public sealed class ListResult : ResultData, IReadOnlyList<object?>
 {
     private object?[] _buffer = Array.Empty<object?>();
-    private int _capacity;
     private int _count;
 
-    public int Capacity => _capacity;
+    public int Capacity => _buffer.Length;
 
     /// <inheritdoc cref="IReadOnlyCollection{T}.Count"/>
     public int Count => _count;
@@ -69,17 +68,10 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     /// </param>
     internal void EnsureCapacity(int capacity)
     {
-        if (_capacity > 0)
-        {
-            Reset();
-        }
-
         if (_buffer.Length < capacity)
         {
             Array.Resize(ref _buffer, capacity);
         }
-
-        _capacity = capacity;
     }
 
     /// <summary>
@@ -87,15 +79,14 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     /// </summary>
     internal void Grow()
     {
-        if (_capacity == 0)
+        if (_buffer.Length == 0)
         {
             EnsureCapacity(4);
             return;
         }
 
-        var newCapacity = _capacity * 2;
+        var newCapacity = _buffer.Length * 2;
         Array.Resize(ref _buffer, newCapacity);
-        _capacity = newCapacity;
     }
 
     /// <summary>
@@ -103,10 +94,9 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     /// </summary>
     internal void Reset()
     {
-        if (_capacity > 0)
+        if (_buffer.Length > 0)
         {
-            _buffer.AsSpan().Slice(0, _capacity).Clear();
-            _capacity = 0;
+            _buffer.AsSpan().Slice(0, _count).Clear();
             _count = 0;
         }
     }
@@ -117,7 +107,7 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
     public IEnumerator<object?> GetEnumerator()
     {
-        for (var i = 0; i < _capacity; i++)
+        for (var i = 0; i < _count; i++)
         {
             yield return _buffer[i];
         }
