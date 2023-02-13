@@ -15,7 +15,7 @@ internal sealed class AuthorizationContextEnricher : IRequestContextEnricher
             context.ContextData.Add(AuthorizationHandler, authorizationHandler);
         }
 
-        if (!context.ContextData.ContainsKey(AuthorizationHandler) &&
+        if (!context.ContextData.ContainsKey(WellKnownContextData.UserState) &&
             context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value) &&
             value is ClaimsPrincipal principal)
         {
