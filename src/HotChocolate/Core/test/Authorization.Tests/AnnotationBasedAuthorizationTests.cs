@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using CookieCrumble;
 using HotChocolate.Authorization;
 using HotChocolate.Execution;
@@ -60,6 +61,56 @@ public class AnnotationBasedAuthorizationTests
                   "data": {
                     "person": null
                   }
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task Authorize_Person_NoAccess_EnsureNotCached()
+    {
+        // arrange
+        var results = new Stack<AuthorizeResult>();
+        results.Push(AuthorizeResult.NotAllowed);
+        results.Push(AuthorizeResult.Allowed);
+
+        var handler = new AuthHandler2(results);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        await executor.ExecuteAsync(
+            """
+            {
+              person(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+            }
+            """);
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              person(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
                 }
                 """);
     }
@@ -560,8 +611,69 @@ public class AnnotationBasedAuthorizationTests
         Assert.Equal(401, value);
     }
 
+    [Fact]
+    public async Task Assert_UserState_Exists()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (ctx, _)
+                => ctx.ContextData.ContainsKey(WellKnownContextData.UserState)
+                    ? AuthorizeResult.Allowed
+                    : AuthorizeResult.NotAllowed,
+            validation: (ctx, _)
+                => ctx.ContextData.ContainsKey(WellKnownContextData.UserState)
+                    ? AuthorizeResult.Allowed
+                    : AuthorizeResult.NotAllowed);
+
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor =>
+                    {
+                        descriptor.Authorize("READ_NODE");
+                    };
+            });
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetQuery(
+                        """
+                        {
+                          nodes(ids: "abc") {
+                            __typename
+                          }
+                        }
+                        """)
+                    .SetGlobalState(nameof(ClaimsPrincipal), new ClaimsPrincipal()));
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "Unable to decode the id string.",
+                      "extensions": {
+                        "operationStatus": "InvalidData",
+                        "originalValue": "abc"
+                      }
+                    }
+                  ]
+                }
+                """);
+    }
+
     private static IServiceProvider CreateServices(
-        AuthHandler handler,
+        IAuthorizationHandler handler,
         Action<AuthorizationOptions>? configure = null)
         => new ServiceCollection()
             .AddGraphQLServer()
@@ -588,7 +700,7 @@ public class AnnotationBasedAuthorizationTests
                 ? new Street("Somewhere")
                 : new City("Else");
 
-        [Authorize("READ_AUTH")]
+        [Authorize("READ_AUTH", ApplyPolicy.AfterResolver)]
         public bool? ThisIsAuthorized() => true;
 
         [Authorize("READ_AUTH", ApplyPolicy.Validation)]
@@ -598,7 +710,7 @@ public class AnnotationBasedAuthorizationTests
         public string Test() => "abc";
     }
 
-    [Authorize("READ_PERSON")]
+    [Authorize("READ_PERSON", ApplyPolicy.AfterResolver)]
     public sealed record Person(string Id, string? Name);
 
     public sealed record Street(string? Value) : ICityOrStreet;
@@ -659,6 +771,27 @@ public class AnnotationBasedAuthorizationTests
 
             return new(AuthorizeResult.Allowed);
         }
+    }
+
+    private sealed class AuthHandler2 : IAuthorizationHandler
+    {
+        private readonly Stack<AuthorizeResult> _results;
+        public AuthHandler2(Stack<AuthorizeResult> results)
+        {
+            _results = results;
+        }
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            IMiddlewareContext context,
+            AuthorizeDirective directive,
+            CancellationToken cancellationToken = default)
+            => new(AuthorizeResult.Allowed);
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            AuthorizationContext context,
+            IReadOnlyList<AuthorizeDirective> directives,
+            CancellationToken cancellationToken = default)
+            => new(_results.Pop());
     }
 
     [DirectiveType(DirectiveLocation.Object)]

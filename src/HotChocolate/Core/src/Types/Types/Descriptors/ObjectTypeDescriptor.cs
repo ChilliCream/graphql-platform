@@ -101,7 +101,7 @@ public class ObjectTypeDescriptor
 
         // if we find fields that match field name that are ignored we will
         // remove them from the field map.
-        foreach (var ignore in Definition.FieldIgnores)
+        foreach (var ignore in Definition.GetFieldIgnores())
         {
             fields.Remove(ignore.Name);
         }
@@ -120,20 +120,20 @@ public class ObjectTypeDescriptor
         var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
         var handledMembers = TypeMemHelper.RentMemberSet();
 
-        InferFieldsFromFieldBindingType(fields, handledMembers);
+        InferFieldsFromFieldBindingType(fields, handledMembers, false);
 
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(handledMembers);
     }
 
-    protected void InferFieldsFromFieldBindingType(
+    private protected void InferFieldsFromFieldBindingType(
         IDictionary<string, ObjectFieldDefinition> fields,
-        ISet<MemberInfo> handledMembers)
+        ISet<MemberInfo> handledMembers,
+        bool createDefinition = true)
     {
         var skip = false;
         HashSet<string>? subscribeRes = null;
         Dictionary<MemberInfo, string>? subscribeResLook = null;
-
 
         if (Definition.Fields.IsImplicitBinding() &&
             Definition.FieldBindingType is not null)
@@ -173,10 +173,13 @@ public class ObjectTypeDescriptor
                     _fields.Add(descriptor);
                     handledMembers.Add(member);
 
-                    // the create definition call will trigger the OnCompleteField call
-                    // on the field description and trigger the initialization of the
-                    // fields arguments.
-                    fields[name] = descriptor.CreateDefinition();
+                    if (createDefinition)
+                    {
+                        // the create definition call will trigger the OnCompleteField call
+                        // on the field description and trigger the initialization of the
+                        // fields arguments.
+                        fields[name] = descriptor.CreateDefinition();
+                    }
                 }
             }
         }
@@ -213,7 +216,6 @@ public class ObjectTypeDescriptor
 
             return !subscribeResolver?.Contains(current.Name) ?? true;
         }
-
     }
 
     protected virtual void OnCompleteFields(
@@ -277,9 +279,8 @@ public class ObjectTypeDescriptor
             throw new ArgumentNullException(nameof(type));
         }
 
-        Definition.Interfaces.Add(
-            new SchemaTypeReference(
-                type));
+        Definition.Interfaces.Add(new SchemaTypeReference(type));
+
         return this;
     }
 

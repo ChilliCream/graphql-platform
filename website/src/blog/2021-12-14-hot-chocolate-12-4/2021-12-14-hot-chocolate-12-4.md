@@ -391,7 +391,7 @@ public class InvalidUserNameError
 
 The error object shape defines the error type shape on our schema and ensures that even if the exception is refactored to have more or less information, we do not accidentally expose information that we do not want to expose.
 
-You can read more about all of this in our [documentation](https://chillicream.com/docs/hotchocolate/defining-a-schema/mutations/#conventions). The documentation also outlines more variants to create user errors.
+You can read more about all of this in our [documentation](https://chillicream.com/docs/hotchocolate/v12/defining-a-schema/mutations/#conventions). The documentation also outlines more variants to create user errors.
 
 One last aspect before we move on to the next topic. We also thought about result objects where a service we use does not use exceptions but already has error objects. Or F# code where we might have a union representing a result and its errors. We do not yet support these kinds of things but will further iterate on the current conventions to include these approaches towards results and errors in the future.
 

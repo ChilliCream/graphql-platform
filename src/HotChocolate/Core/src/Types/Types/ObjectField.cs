@@ -18,7 +18,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public sealed class ObjectField
     : OutputFieldBase<ObjectFieldDefinition>
-        , IObjectField
+    , IObjectField
 {
     private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
 

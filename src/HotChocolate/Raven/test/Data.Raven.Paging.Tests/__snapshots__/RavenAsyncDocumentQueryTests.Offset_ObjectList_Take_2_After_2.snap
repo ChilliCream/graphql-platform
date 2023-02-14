@@ -1,0 +1,19 @@
+{
+  "data": {
+    "foosOffset": {
+      "items": [
+        {
+          "bar": "d"
+        },
+        {
+          "bar": "e"
+        }
+      ],
+      "totalCount": 5,
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true
+      }
+    }
+  }
+}

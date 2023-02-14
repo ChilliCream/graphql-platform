@@ -120,7 +120,7 @@ public class ProjectionVisitor<TContext>
 
     protected override ISelectionVisitorAction Visit(IOutputField field, TContext context)
     {
-        if (context.Selection.Count > 1 && field.HasProjectionMiddleware())
+        if (context.Selection.Count > 1 && field.IsNotProjected())
         {
             return Skip;
         }
@@ -128,13 +128,15 @@ public class ProjectionVisitor<TContext>
         if (field.Type is IPageType and ObjectType pageType &&
             context.Selection.Peek() is { } pagingFieldSelection)
         {
-            var selections = context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
+            var selections =
+                context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
 
-            foreach (var selection in selections)
+            for (var index = selections.Count - 1; index >= 0; index--)
             {
-                if (selection.ResponseName is CombinedEdgeField)
+                if (selections[index] is { ResponseName : CombinedEdgeField } selection)
                 {
                     context.Selection.Push(selection);
+
                     return base.Visit(selection.Field, context);
                 }
             }

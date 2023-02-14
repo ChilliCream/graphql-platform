@@ -30,9 +30,7 @@ public abstract class QueryableTakeHandlerInterceptor
         ISelection selection)
     {
         var field = selection.Field;
-        if (field.ContextData.ContainsKey(_contextDataKey) &&
-            selection.Type.InnerType() is ListType lt &&
-            lt.ElementType.InnerType() is { } elementType)
+        if (field.ContextData.ContainsKey(_contextDataKey))
         {
             var instance = context.PopInstance();
 
@@ -40,7 +38,7 @@ public abstract class QueryableTakeHandlerInterceptor
                 Expression.Call(
                     typeof(Enumerable),
                     nameof(Enumerable.Take),
-                    new[] { elementType.ToRuntimeType() },
+                    new[] { selection.Type.ToRuntimeType() },
                     instance,
                     Expression.Constant(_take)));
         }

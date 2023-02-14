@@ -33,7 +33,11 @@
     "traversion",
     "Websockets",
     "Newtonsoft",
-    "supergraph"
+    "supergraph",
+    "cachable",
+    "fricking",
+    "runtimes",
+    "NATS"
   ],
   "ignoreWords": [
     "Specwise",
@@ -54,6 +58,7 @@
     "Staib",
     "shoooe",
     "Senn",
+    "Rafi",
     "Snapshooter",
     "relayjs",
     "Rgba",

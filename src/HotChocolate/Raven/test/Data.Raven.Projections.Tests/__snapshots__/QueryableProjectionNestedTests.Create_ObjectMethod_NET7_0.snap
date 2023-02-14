@@ -1,0 +1,24 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "method": {
+          "barString": "Worked"
+        }
+      },
+      {
+        "method": {
+          "barString": "Worked"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'Bars'
+---------------

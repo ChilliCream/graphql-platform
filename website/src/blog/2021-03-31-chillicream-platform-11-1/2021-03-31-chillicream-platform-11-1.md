@@ -711,4 +711,4 @@ We are doing as before a community gathering where we will walk you through all 
 [rafael]: https://twitter.com/rafaelstaib
 [pascal]: https://twitter.com/Pascal_Senn
 [fred]: https://github.com/fredericbirke
-[documentation]: /docs/strawberryshake
+[documentation]: /products/strawberryshake

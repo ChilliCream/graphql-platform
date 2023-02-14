@@ -18,7 +18,8 @@ public class QueryableProjectionSortingTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                NestedObject =
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
                 ObjectArray = new List<BarDeep>
                 {
                     new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
@@ -35,7 +36,8 @@ public class QueryableProjectionSortingTests
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                NestedObject =
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
                 ObjectArray = new List<BarDeep>
                 {
                     new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
@@ -56,7 +58,8 @@ public class QueryableProjectionSortingTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                NestedObject = new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                NestedObject =
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
                 ObjectArray = new List<BarDeepNullable?>
                 {
                     new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
@@ -73,10 +76,8 @@ public class QueryableProjectionSortingTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                NestedObject = new BarDeepNullable
-                {
-                    Foo = new FooDeep { BarShort = 12, BarString = "a" }
-                },
+                NestedObject =
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
                 ObjectArray = new List<BarDeepNullable?>
                 {
                     new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
@@ -93,10 +94,8 @@ public class QueryableProjectionSortingTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                NestedObject = new BarDeepNullable
-                {
-                    Foo = new FooDeep { BarShort = 12, BarString = "a" }
-                },
+                NestedObject =
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
                 ObjectArray = new List<BarDeepNullable?>
                 {
                     new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
@@ -151,9 +150,9 @@ public class QueryableProjectionSortingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -189,9 +188,9 @@ public class QueryableProjectionSortingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -228,9 +227,9 @@ public class QueryableProjectionSortingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -268,9 +267,9 @@ public class QueryableProjectionSortingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

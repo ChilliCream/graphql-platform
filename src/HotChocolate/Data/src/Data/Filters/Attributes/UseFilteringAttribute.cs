@@ -10,7 +10,7 @@ namespace HotChocolate.Data;
 /// <summary>
 /// Registers the middleware and adds the arguments for filtering
 /// </summary>
-public sealed class UseFilteringAttribute : ObjectFieldDescriptorAttribute
+public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
 {
     private static readonly MethodInfo _generic = typeof(FilterObjectFieldDescriptorExtensions)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
@@ -52,10 +52,20 @@ public sealed class UseFilteringAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-            _generic.MakeGenericMethod(Type)
-                .Invoke(
-                    null,
-                    new object?[] { descriptor, Scope });
+            _generic.MakeGenericMethod(Type).Invoke(null, new object?[] { descriptor, Scope });
         }
     }
 }
+
+#if NET6_0_OR_GREATER
+/// <summary>
+/// Registers the middleware and adds the arguments for filtering
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+public sealed class UseFilteringAttribute<T> : UseFilteringAttribute
+{
+    public UseFilteringAttribute([CallerLineNumber] int order = 0) : base(typeof(T), order)
+    {
+    }
+}
+#endif

@@ -22,7 +22,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
     /// </exception>
     public static IObjectFieldDescriptor Authorize(
         this IObjectFieldDescriptor descriptor,
-        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+        ApplyPolicy apply = ApplyPolicy.Validation)
     {
         if (descriptor == null)
         {
@@ -51,7 +51,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor Authorize(
         this IObjectFieldDescriptor descriptor,
         string policy,
-        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+        ApplyPolicy apply = ApplyPolicy.Validation)
     {
         if (descriptor is null)
         {

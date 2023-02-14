@@ -38,7 +38,7 @@ public sealed class Response<TBody> : IDisposable where TBody : class
     /// Additional custom data provided by client extensions.
     /// </param>
     public Response(
-        TBody? body,
+        TBody body,
         Exception? exception,
         bool isPatch = false,
         bool hasNext = false,
@@ -61,7 +61,7 @@ public sealed class Response<TBody> : IDisposable where TBody : class
     /// <summary>
     /// The serialized response body.
     /// </summary>
-    public TBody? Body { get; }
+    public TBody Body { get; }
 
     /// <summary>
     /// The transport exception.

@@ -38,8 +38,6 @@ Result:
 
 SQL:
 ---------------
-SELECT "d"."Bar", "d"."Id", "b"."Id", "b"."BarBaz", "b"."BarQux", "b"."FooId", "b"."FooId1"
+SELECT "d"."Bar"
 FROM "Data" AS "d"
-LEFT JOIN "Bar" AS "b" ON "d"."Id" = "b"."FooId1"
-ORDER BY "d"."Id"
 ---------------

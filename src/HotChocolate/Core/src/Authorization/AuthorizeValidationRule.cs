@@ -16,7 +16,7 @@ internal sealed class AuthorizeValidationRule : IDocumentValidatorRule
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
-    public bool IsCacheable => true;
+    public bool IsCacheable => false;
 
     public void Validate(IDocumentValidatorContext context, DocumentNode document)
     {

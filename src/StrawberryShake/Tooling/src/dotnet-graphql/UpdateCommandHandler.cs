@@ -79,8 +79,7 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
         var json = Encoding.UTF8.GetString(buffer);
         var configuration = GraphQLConfig.FromJson(json);
 
-        if (configuration is not null &&
-            await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
+        if (await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
                 .ConfigureAwait(false))
         {
             return 0;

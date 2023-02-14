@@ -1,0 +1,62 @@
+{
+  "data": {
+    "foos": {
+      "edges": [
+        {
+          "node": {
+            "bar": "a"
+          },
+          "cursor": "MA=="
+        },
+        {
+          "node": {
+            "bar": "b"
+          },
+          "cursor": "MQ=="
+        },
+        {
+          "node": {
+            "bar": "d"
+          },
+          "cursor": "Mg=="
+        },
+        {
+          "node": {
+            "bar": "e"
+          },
+          "cursor": "Mw=="
+        },
+        {
+          "node": {
+            "bar": "f"
+          },
+          "cursor": "NA=="
+        }
+      ],
+      "nodes": [
+        {
+          "bar": "a"
+        },
+        {
+          "bar": "b"
+        },
+        {
+          "bar": "d"
+        },
+        {
+          "bar": "e"
+        },
+        {
+          "bar": "f"
+        }
+      ],
+      "totalCount": 5,
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "NA=="
+      }
+    }
+  }
+}
