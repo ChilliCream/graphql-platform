@@ -218,9 +218,10 @@ public class Product
 }
 ```
 
-When creating the extended type, make sure you adhere to the following rules:
-* The GraphQL type of the `[Key]` must match between the subgraphs.
-* The GraphQL type name **must match**. Often, this can be accomplished by using the same class name between the projects, but you can also use tools like the `[GraphQLName(string)]` attribute to override a type name to ensure the types match.
+When creating the extended type, make sure to consider the following details
+* The GraphQL type of the `[Key]` **must match** between the subgraphs.
+* The _GraphQL type name_ **must match**. Often, this can be accomplished by using the same class name between the projects, but you can also use tools like the `[GraphQLName(string)]` attribute to override a type name to ensure the types match.
+
 ```csharp
 [ExtendedServiceType]
 [GraphQLName("Product")]
@@ -230,11 +231,62 @@ public class ExtendedProductType
 }
 ```
 
+* A `[ReferenceResolver]` method may not need to access a data store to resolve an object of the specified type.
+  * Since our goal with Apollo Federation is decomposition and [concern-based separation](https://www.apollographql.com/docs/federation/#concern-based-separation), a second subgraph may have a "foreign key" reference to the type being extended but it does not "own" the actual data of the entity itself. This is why our sample simply performs a `new Product { Id = id }` statement for the resolver.
+
 ## Contributing fields through method resolvers
-TODO
+Similar to other types in Hot Chocolate, you can include new fields in a type using method resolvers within the type. For a full set of details and examples, you can read our [documentation on resolvers](/docs/hotchocolate/v12/fetching-data/resolvers).
+```csharp
+public class Product
+{
+    [GraphQLType(typeof(NonNullType<IdType>))]
+    [Key]
+    public string Id { get; set; }
+
+    [ReferenceResolver]
+    public static async Task<Product> ResolveProductAsync(string id)
+    {
+        return new Product
+        {
+            Id = id
+        };
+    }
+
+    // Contributes the "isInStock: Boolean!" field to the type.
+    public async Task<bool> IsInStock([Service] IInventoryService inventoryService) => await inventoryService.CheckIfInStockAsync(Id);
+}
+```
 
 ## Contributing fields through property resolvers
-TODO
+An extended service type can also contribute new fields using a property resolver. Generally, these properties will need to be poplated as part of `[ReferenceResolver]` method, since that is when the object is instantiated.
+
+```csharp
+public class Product
+{
+    [GraphQLType(typeof(NonNullType<IdType>))]
+    [Key]
+    public string Id { get; set; }
+
+    // Contributes a "weight: Float!" field to the type.
+    public float Weight { get; set; }
+
+    // Contributes a "freeShipping: Boolean!" field to the type.
+    public bool FreeShipping => Weight <= 1.5;
+
+    [ReferenceResolver]
+    public static async Task<Product> ResolveProductAsync(string id, [Service] IInventoryService inventoryService)
+    {
+        return new Product
+        {
+            Id = id,
+            Weight = await inventoryService.GetProductWeightAsync(id)
+        };
+    }
+
+    // Contributes the "isInStock: Boolean!" field to the type.
+    public async Task<bool> IsInStock([Service] IInventoryService inventoryService) => await inventoryService.CheckIfInStockAsync(Id);
+}
+```
 
 ## Contributing computed entity fields
 TODO
