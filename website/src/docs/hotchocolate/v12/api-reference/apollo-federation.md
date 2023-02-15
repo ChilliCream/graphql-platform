@@ -182,4 +182,59 @@ _Entities query result_
 > **Note**: The `_entities` query is an internal detail that is necessary for the supergraph to properly resolve data. API consumers **should not** use an `_entities` query directly, nor should they use a subgraph directly. We're highlighting how to use the `_entities` so that you have the knowledge to validate your API at runtime or using tools like [`Microsoft.AspNetCore.Mvc.Testing`](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-7.0).
 
 # Extending an entity type
+Now that we have an entity defined in one of our subgraphs, let's go ahead and create a second subgraph that extends our `Product` type with more fields and data. Remember, all of this work should be performed in a _**separate API project**_.
+
+The process will start off very similarly: add the necessary package; register the services in your `IServiceCollection`; create the entity type and its `[Key]`; create a `[ReferenceResolver]` for the type; and register the type in the API. In this case, we'll only start by adding the `[Key]` attribute the subgraph will use for resolving the additional data, and a barebones reference resolver.
+
+```csharp
+public class Product
+{
+    [GraphQLType(typeof(NonNullType<IdType>))]
+    [Key]
+    public string Id { get; set; }
+
+    [ReferenceResolver]
+    public static async Task<Product> ResolveProductAsync(string id)
+    {
+        return new Product
+        {
+            Id = id
+        };
+    }
+}
+
+// In your Startup or Program
+services.AddGraphQLServer()
+    .AddApolloFederation()
+    .AddType<Product>();
+```
+
+With the type defined, we'll add the `[ExtendedServiceType]`attribute to our class to denote it's a type extension. This will indicate to the supergraph that this subgraph's type is only [contributing new entity fields](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields) to the type.
+```csharp
+[ExtendedServiceType]
+public class Product
+{
+    // Omitted for brevity
+}
+```
+
+When creating the extended type, make sure you adhere to the following rules:
+* The GraphQL type of the `[Key]` must match between the subgraphs.
+* The GraphQL type name **must match**. Often, this can be accomplished by using the same class name between the projects, but you can also use tools like the `[GraphQLName(string)]` attribute to override a type name to ensure the types match.
+```csharp
+[ExtendedServiceType]
+[GraphQLName("Product")]
+public class ExtendedProductType
+{
+    // Omitted for brevity
+}
+```
+
+## Contributing fields through method resolvers
+TODO
+
+## Contributing fields through property resolvers
+TODO
+
+## Contributing computed entity fields
 TODO
