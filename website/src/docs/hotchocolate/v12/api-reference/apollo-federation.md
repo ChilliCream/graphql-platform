@@ -290,3 +290,6 @@ public class Product
 
 ## Contributing computed entity fields
 TODO
+
+# Using the subgraphs
+TODO
