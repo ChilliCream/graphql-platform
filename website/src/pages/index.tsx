@@ -57,7 +57,7 @@ const IndexPage: FC = () => {
   `);
   const latestHcVersion = data.docNav?.products?.find(
     (product) => product?.path === "hotchocolate"
-  );
+  )?.latestStableVersion;
 
   return (
     <Layout>
