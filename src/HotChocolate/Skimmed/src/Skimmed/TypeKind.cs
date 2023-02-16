@@ -160,14 +160,4 @@ public enum TypeKind
     /// Indicates this type is a non-null. `ofType` is a valid field.
     /// </summary>
     NonNull = 64,
-
-    /// <summary>
-    /// <para>
-    /// A GraphQL schema describes directives which are used to annotate various parts of a
-    /// GraphQL document as an indicator that they should be evaluated differently by a
-    /// validator, executor, or client tool such as a code generator.
-    /// </para>
-    /// <para>http://spec.graphql.org/draft/#sec-Type-System.Directives</para>
-    /// </summary>
-    Directive = 128
 }

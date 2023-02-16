@@ -1,4 +1,7 @@
-﻿namespace HotChocolate.Skimmed;
+﻿using System.Globalization;
+using System.Runtime.CompilerServices;
+
+namespace HotChocolate.Skimmed;
 
 public class Schema
 {
@@ -11,6 +14,57 @@ public interface IType
     /// Gets the type kind.
     /// </summary>
     TypeKind Kind { get; }
+}
+
+internal static class TypeExtensions
+{
+    public static bool IsInputType(this IType type)
+        => type.Kind switch
+        {
+            TypeKind.Interface or TypeKind.Object or TypeKind.Union => false,
+            TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => true,
+            TypeKind.List => IsInputType(((ListType)type).ElementType),
+            TypeKind.NonNull => IsInputType(((NonNullType)type).InnerType),
+            _ => throw new NotSupportedException(),
+        };
+
+    public static bool IsOutputType(this IType type)
+        => type.Kind switch
+        {
+            TypeKind.Interface or TypeKind.Object or TypeKind.Union => true,
+            TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => false,
+            TypeKind.List => IsOutputType(((ListType)type).ElementType),
+            TypeKind.NonNull => IsOutputType(((NonNullType)type).InnerType),
+            _ => throw new NotSupportedException(),
+        };
+}
+
+internal static class ArgumentAssertExtensions
+{
+    public static T ExpectNotNull<T>(this T? value, [CallerArgumentExpression("value")] string name = "value") where T : class
+    {
+        if (value is null)
+        {
+            throw new ArgumentNullException(name);
+        }
+
+        return value;
+    }
+
+    public static IType ExpectInputType(this IType type, [CallerArgumentExpression("type")] string name = "type")
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(name);
+        }
+
+        if (!type.IsInputType())
+        {
+            throw new ArgumentException("Must be an input type.", name);
+        }
+
+        return type;
+    }
 }
 
 public interface INamedType : IType
@@ -46,9 +100,7 @@ public class ObjectType : INamedType
 
     public IDirectiveCollection Directives => throw new NotImplementedException();
 
-    public IDictionary<string, object?> ContextData => throw new NotImplementedException();
-
-
+    public IDictionary<string, object?> ContextData => new Dictionary<string, object?>();
 }
 
 
@@ -69,6 +121,8 @@ public interface IField
 
 
     IDictionary<string, object?> ContextData { get; }
+
+    IType Type { get; set; }
 }
 
 /// <summary>
@@ -127,14 +181,36 @@ public sealed class Directive
     /// Gets the description of the field.
     /// </summary>
     public string? Description { get; set; }
+
+
 }
 
-public class Argument : IField
+public sealed class Argument : IField
 {
-    public string Name { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public string? Description { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    private IType _type;
+    private string _name;
+
+    public Argument(string name, IType? type = null)
+    {
+        _name = name.ExpectNotNull();
+        _type = type ?? NotSetType.Default;
+    }
+
+    public string Name
+    {
+        get => _name;
+        set => _name = value.ExpectNotNull();
+    }
+
+    public string? Description { get; set; }
 
     public IDirectiveCollection Directives => throw new NotImplementedException();
 
-    public IDictionary<string, object?> ContextData => throw new NotImplementedException();
+    public IDictionary<string, object?> ContextData => new Dictionary<string, object?>();
+
+    public IType Type
+    {
+        get => _type;
+        set => _type = value.ExpectInputType();
+    }
 }
