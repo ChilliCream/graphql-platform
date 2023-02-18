@@ -243,6 +243,33 @@ public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
 }
 ```
 
+## HTTP Transport
+
+With this release we also adopted the latest [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) spec changes. Most notably the server now returns the `Content-Type: application/graphql-response+json;charset=utf-8` response header for requests without an `Accept: application/json` request header. This might break expectations of existing clients.
+
+<!-- todo: this needs to be clarified a lot -->
+
+Apollo Federation Gateway (`@apollo/gateway`) for example expects responses from subgraphs to contain the `Content-Type: application/json` header. In order for your Gateway to continue to function, you need to specify the `Accept: application/json` header in requests to your Hot Chocolate v13 subgraphs:
+
+```js
+class DataSourceWithAcceptHeader extends RemoteGraphQLDataSource {
+  willSendRequest({ request }) {
+    request.http.headers.set("Accept", "application/json");
+  }
+}
+
+// ...
+
+const gateway = new ApolloGateway({
+  supergraphSdl,
+  buildService({ url }) {
+    return new DataSourceWithAcceptHeader({ url });
+  },
+});
+```
+
+Apollo Router should be able to handle responses with the `Content-Type: application/graphql-response+json` header.
+
 ## DataLoaderAttribute
 
 Previously you might have annotated [DataLoaders](/docs/hotchocolate/v13/fetching-data/dataloader) in your resolver method signature with the `[DataLoader]` attribute. This attribute has been removed in v13 and can be safely removed from your code.
