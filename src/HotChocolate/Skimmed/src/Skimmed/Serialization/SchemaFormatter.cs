@@ -76,13 +76,13 @@ public static class SchemaFormatter
 
             context.Result =
                 type.ContextData.ContainsKey(WellKnownContextData.TypeExtension)
-                    ? new ObjectTypeExtensionNode(
+                    ? new InterfaceTypeExtensionNode(
                         null,
                         new NameNode(type.Name),
                         directives,
                         type.Implements.Select(t => new NamedTypeNode(t.Name)).ToList(),
                         fields)
-                    : new ObjectTypeDefinitionNode(
+                    : new InterfaceTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
                         type.Description is not null
