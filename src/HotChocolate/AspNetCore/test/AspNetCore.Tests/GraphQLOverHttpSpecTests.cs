@@ -19,18 +19,18 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         : base(serverFactory) { }
 
     [Theory]
-    [InlineData(null, Latest, OK, ContentType.GraphQLResponse)]
-    [InlineData(null, Legacy, OK, ContentType.Json)]
-    [InlineData("*/*", Latest, OK, ContentType.GraphQLResponse)]
-    [InlineData("*/*", Legacy, OK, ContentType.Json)]
-    [InlineData("application/*", Latest, OK, ContentType.GraphQLResponse)]
-    [InlineData("application/*", Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.GraphQLResponse, Latest, OK, ContentType.GraphQLResponse)]
-    [InlineData(ContentType.GraphQLResponse, Legacy, OK, ContentType.GraphQLResponse)]
+    [InlineData(null, Latest, ContentType.GraphQLResponse)]
+    [InlineData(null, Legacy, ContentType.Json)]
+    [InlineData("*/*", Latest, ContentType.GraphQLResponse)]
+    [InlineData("*/*", Legacy, ContentType.Json)]
+    [InlineData("application/*", Latest, ContentType.GraphQLResponse)]
+    [InlineData("application/*", Legacy, ContentType.Json)]
+    [InlineData(ContentType.Json, Latest, ContentType.Json)]
+    [InlineData(ContentType.Json, Legacy, ContentType.Json)]
+    [InlineData(ContentType.GraphQLResponse, Latest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, Legacy, ContentType.GraphQLResponse)]
     public async Task SingleResult_Success(string? acceptHeader, HttpTransportVersion transportVersion,
-        HttpStatusCode expectedStatusCode, string expectedContentType)
+        string expectedContentType)
     {
         // arrange
         var client = GetClient(transportVersion);
@@ -51,9 +51,9 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @$"Headers:
-                Content-Type: {expectedContentType.Replace(";", "; ")}
+                Content-Type: {expectedContentType}
                 -------------------------->
-                Status Code: {expectedStatusCode}
+                Status Code: OK
                 -------------------------->
                 " +
                 @"{""data"":{""__typename"":""Query""}}");
@@ -169,7 +169,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @$"Headers:
-                Content-Type: {expectedContentType.Replace(";", "; ")}
+                Content-Type: {expectedContentType}
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
@@ -210,7 +210,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @$"Headers:
-                Content-Type: {expectedContentType.Replace(";", "; ")}
+                Content-Type: {expectedContentType}
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
@@ -253,7 +253,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @$"Headers:
-                Content-Type: {expectedContentType.Replace(";", "; ")}
+                Content-Type: {expectedContentType}
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
