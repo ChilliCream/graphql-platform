@@ -10,7 +10,7 @@ authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
-Version 3 comes with a couple of neat features, e.g. Team Workspaces, Express Middleware, PWA Support, Enterprise SSO, and more. If you would like to download **Banana Cake Pop 3**, go to [bananacakepop.com](https://bananacakepop.com). Now let’s see what’s new in detail.
+Version 3 comes with a couple of neat features, e.g. Team Workspaces, Express Middleware, PWA Support, Enterprise SSO, and more. If you would like to download **Banana Cake Pop 3**, go to [bananacakepop.com](https://bananacakepop.com). Now lets see what’s new in detail.
 
 ## Team Workspaces
 

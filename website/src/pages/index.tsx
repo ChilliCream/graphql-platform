@@ -44,8 +44,20 @@ const IndexPage: FC = () => {
           }
         }
       }
+      docNav: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          latestStableVersion
+        }
+      }
     }
   `);
+  const latestHcVersion = data.docNav?.products?.find(
+    (product) => product?.path === "hotchocolate"
+  )?.latestStableVersion;
 
   return (
     <Layout>
@@ -129,7 +141,7 @@ const IndexPage: FC = () => {
               out our startup guide and see how simple it is to create your
               first API.
             </p>
-            <Link to="/docs/hotchocolate">
+            <Link to={`/docs/hotchocolate/${latestHcVersion}`}>
               Learn more<SrOnly> on how to build GraphQL .NET APIs</SrOnly>
             </Link>
           </ContentContainer>
