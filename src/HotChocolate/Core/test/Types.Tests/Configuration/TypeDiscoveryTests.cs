@@ -37,6 +37,16 @@ public class TypeDiscoveryTests
             .MatchSnapshot();
     }
 
+    [Fact]
+    public void InferInputTypeWithComputedProperty()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<QueryTypeWithComputedProperty>()
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
+
     public class QueryWithDateTime
     {
         public DateTimeOffset DateTimeOffset(DateTimeOffset time) => time;
@@ -108,5 +118,17 @@ public class TypeDiscoveryTests
         public Guid ScalarGuid { get; set; }
 
         public DateTime ScalarDateTime { get; set; }
+    }
+
+    public class InputTypeWithComputedProperty
+    {
+        public int Value { get; set; }
+
+        public int HalfValue => Value / 2 ;
+    }
+
+    public class QueryTypeWithComputedProperty
+    {
+        public int Foo(InputTypeWithComputedProperty arg) => arg.HalfValue;
     }
 }

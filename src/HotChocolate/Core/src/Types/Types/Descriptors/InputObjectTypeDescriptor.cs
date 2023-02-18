@@ -110,7 +110,7 @@ public class InputObjectTypeDescriptor
 
             foreach (var member in members)
             {
-                if (member.MemberType is MemberTypes.Property)
+                if (member is PropertyInfo property && !property.IsComputedReadOnlyProperty())
                 {
                     var name = naming.GetMemberName(member, MemberKind.InputObjectField);
 

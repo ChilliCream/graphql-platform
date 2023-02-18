@@ -5,6 +5,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using static System.Buffers.Binary.BinaryPrimitives;
+using static System.Reflection.Emit.OpCodes;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Utilities;
@@ -353,5 +355,117 @@ public static class ReflectionUtils
         return type.GetProperties().ToLookup(
             t => t.Name,
             StringComparer.OrdinalIgnoreCase);
+    }
+
+    public static bool IsComputedReadOnlyProperty(
+        this PropertyInfo property)
+    {
+        if (property.CanWrite)
+            return false;
+
+        // special case
+        if (property.DeclaringType.IsConstructedGenericType &&
+            property.DeclaringType.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
+            return false;
+
+        var getter = property.GetMethod!;
+        if (getter.IsDefined(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute)))
+            return false;
+
+        if (getter.IsVirtual || getter.GetParameters().Length != 0)
+            return true;
+
+        // Detect the old pattern for read-only properties:
+        //     readonly T m_field;
+        //     T Property => m_field;
+        // This requires us to analyze the getter IL. We simplify our task by relying
+        // on the getter being valid, verifiable IL, and ignoring weird corner cases.
+        // The getter is considered to match the old pattern if it has exactly one
+        // ldfld instruction referring to a readonly field with matching type,
+        // and no other instructions except for unconditional branches, nop, return,
+        // local variable load/stores, and argument loads. We don't need to analyze
+        // branch targets etc. because a valid, verifiable method can't do anything
+        // 'funny' with only these instructions. See ECMA-335 II.25.4 for details.
+        // With this one-shot loop we avoid adding a dependency on an IL parser library.
+        FieldInfo field = null ;
+
+        for (var il = getter.GetMethodBody().GetILAsByteArray().AsSpan() ; !il.IsEmpty ; )
+        {
+            // III.1.2.1
+            var code = (int) il[0];
+            if (code == 0xfe)
+            {
+                code = (short)((code << 8) | il[1]);
+
+                if (code == Ldarg.Value ||
+                    code == Ldloc.Value ||
+                    code == Stloc.Value)
+                {
+                    il = il.Slice(6); // 0xfe <code> <int32>
+                }
+                else
+                    return true;
+            }
+            else
+            {
+                if (code == Nop.Value ||
+                    code == Ldarg_0.Value ||
+                    code == Ldloc_0.Value ||
+                    code == Ldloc_1.Value ||
+                    code == Ldloc_2.Value ||
+                    code == Ldloc_3.Value ||
+                    code == Stloc_0.Value ||
+                    code == Stloc_1.Value ||
+                    code == Stloc_2.Value ||
+                    code == Stloc_3.Value ||
+                    code == Dup.Value ||
+                    code == Pop.Value ||
+                    code == Ret.Value)
+                {
+                    il = il.Slice(1); // <code>
+                }
+                else
+                if (code == Ldarg_S.Value ||
+                    code == Ldloc_S.Value ||
+                    code == Stloc_S.Value ||
+                    code == Br_S.Value)
+                {
+                    il = il.Slice(2); // <code> <int8>
+                }
+                else
+                if (code == Ldarg.Value ||
+                    code == Ldloc.Value ||
+                    code == Stloc.Value ||
+                    code == Br.Value)
+                {
+                    il = il.Slice(5); // <code> <int32>
+                }
+                else
+                if (code == Ldfld.Value)
+                {
+                    if (field is not null)
+                    {
+                        return true;
+                    }
+
+                    field = getter.Module.ResolveField(ReadInt32LittleEndian(il.Slice(1)),
+                        getter.DeclaringType.IsConstructedGenericType ?
+                        getter.DeclaringType.GetGenericArguments() : null, null);
+
+                    if (field is null || !field.IsInitOnly || field.FieldType != property.PropertyType)
+                    {
+                        return true;
+                    }
+
+                    il = il.Slice(5); // <code> <int32>
+                }
+                else
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
