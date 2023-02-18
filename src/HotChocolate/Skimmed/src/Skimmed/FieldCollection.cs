@@ -13,7 +13,7 @@ public sealed class FieldCollection<TField> : ICollection<TField> where TField :
 
     public TField this[string name] => _fields[name];
 
-    public bool TryGet(string name, [NotNullWhen(true)] out TField? field)
+    public bool TryGetField(string name, [NotNullWhen(true)] out TField? field)
         => _fields.TryGetValue(name, out field);
 
     public void Add(TField item)
@@ -44,6 +44,9 @@ public sealed class FieldCollection<TField> : ICollection<TField> where TField :
     }
 
     public void Clear() => _fields.Clear();
+
+    public bool ContainsName(string name)
+        => _fields.ContainsKey(name);
 
     public bool Contains(TField item)
     {

@@ -2,22 +2,11 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class NotSetType : IType
-{
-    private NotSetType()
-    {
-    }
-
-    public TypeKind Kind => TypeKind.Scalar;
-
-    public static readonly NotSetType Default = new();
-}
-
-public sealed class MissingType : INamedType
+public sealed class ScalarType : INamedType
 {
     private string _name;
 
-    public MissingType(string name)
+    public ScalarType(string name)
     {
         _name = name.EnsureGraphQLName();
     }

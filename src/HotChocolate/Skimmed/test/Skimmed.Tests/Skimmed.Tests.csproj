@@ -3,6 +3,8 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>HotChocolate.Skimmed.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Skimmed</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

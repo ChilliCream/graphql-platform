@@ -2,24 +2,24 @@ namespace HotChocolate.Skimmed;
 
 public sealed class NonNullType : IType
 {
-    public NonNullType(IType innerType)
+    public NonNullType(IType nullableType)
     {
-        if (innerType is null)
+        if (nullableType is null)
         {
-            throw new ArgumentNullException(nameof(innerType));
+            throw new ArgumentNullException(nameof(nullableType));
         }
 
-        if (innerType.Kind is TypeKind.NonNull)
+        if (nullableType.Kind is TypeKind.NonNull)
         {
             throw new ArgumentException(
                 "The inner type cannot be a non-null type.",
-                nameof(innerType));
+                nameof(nullableType));
         }
 
-        InnerType = innerType;
+        NullableType = nullableType;
     }
 
     public TypeKind Kind => TypeKind.NonNull;
 
-    public IType InnerType { get; }
+    public IType NullableType { get; }
 }

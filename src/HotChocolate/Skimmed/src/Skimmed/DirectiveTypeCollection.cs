@@ -3,20 +3,20 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class TypeCollection : ICollection<INamedType>
+public sealed class DirectiveTypeCollection : ICollection<DirectiveType>
 {
-    private readonly Dictionary<string, INamedType> _types = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DirectiveType> _types = new(StringComparer.Ordinal);
 
     public int Count => _types.Count;
 
     public bool IsReadOnly => false;
 
-    public INamedType this[string name] => _types[name];
+    public DirectiveType this[string name] => _types[name];
 
-    public bool TryGetType(string name, [NotNullWhen(true)] out INamedType? type)
+    public bool TryGet(string name, [NotNullWhen(true)] out DirectiveType? type)
         => _types.TryGetValue(name, out type);
 
-    public void Add(INamedType item)
+    public void Add(DirectiveType item)
     {
         if (item is null)
         {
@@ -26,7 +26,7 @@ public sealed class TypeCollection : ICollection<INamedType>
         _types.Add(item.Name, item);
     }
 
-    public bool Remove(INamedType item)
+    public bool Remove(DirectiveType item)
     {
         if (item is null)
         {
@@ -48,7 +48,7 @@ public sealed class TypeCollection : ICollection<INamedType>
     public bool ContainsName(string name)
         => _types.ContainsKey(name);
 
-    public bool Contains(INamedType item)
+    public bool Contains(DirectiveType item)
     {
         if (item is null)
         {
@@ -64,7 +64,7 @@ public sealed class TypeCollection : ICollection<INamedType>
         return false;
     }
 
-    public void CopyTo(INamedType[] array, int arrayIndex)
+    public void CopyTo(DirectiveType[] array, int arrayIndex)
     {
         foreach (var item in _types)
         {
@@ -72,7 +72,7 @@ public sealed class TypeCollection : ICollection<INamedType>
         }
     }
 
-    public IEnumerator<INamedType> GetEnumerator()
+    public IEnumerator<DirectiveType> GetEnumerator()
         => _types.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()

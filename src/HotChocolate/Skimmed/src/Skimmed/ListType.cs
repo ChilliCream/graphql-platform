@@ -12,7 +12,7 @@ public sealed class ListType : IType
         ElementType = elementType;
     }
 
-    public TypeKind Kind => TypeKind.NonNull;
+    public TypeKind Kind => TypeKind.List;
 
     public IType ElementType { get; }
 }
