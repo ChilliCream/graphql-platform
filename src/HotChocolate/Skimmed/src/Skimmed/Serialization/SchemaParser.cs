@@ -53,7 +53,8 @@ public static class SchemaParser
 
                 switch (typeDef)
                 {
-                    case EnumTypeDefinitionNode def:
+                    case EnumTypeDefinitionNode:
+                        schema.Types.Add(new EnumType(typeDef.Name.Value));
                         break;
 
                     case InputObjectTypeDefinitionNode:
@@ -72,7 +73,8 @@ public static class SchemaParser
                         schema.Types.Add(new ScalarType(typeDef.Name.Value));
                         break;
 
-                    case UnionTypeDefinitionNode def:
+                    case UnionTypeDefinitionNode:
+                        schema.Types.Add(new UnionType(typeDef.Name.Value));
                         break;
 
                     default:
@@ -93,6 +95,9 @@ public static class SchemaParser
                 switch (definition)
                 {
                     case EnumTypeExtensionNode:
+                        var enumType = new EnumType(typeExt.Name.Value);
+                        enumType.ContextData.Add(TypeExtension, true);
+                        schema.Types.Add(enumType);
                         break;
 
                     case InputObjectTypeExtensionNode:
@@ -120,6 +125,9 @@ public static class SchemaParser
                         break;
 
                     case UnionTypeExtensionNode:
+                        var unionType = new UnionType(typeExt.Name.Value);
+                        unionType.ContextData.Add(TypeExtension, true);
+                        schema.Types.Add(unionType);
                         break;
 
                     default:
@@ -138,7 +146,11 @@ public static class SchemaParser
             {
                 switch (definition)
                 {
-                    case EnumTypeDefinitionNode:
+                    case EnumTypeDefinitionNode typeDef:
+                        BuildEnumType(
+                            schema,
+                            (EnumType)schema.Types[typeDef.Name.Value],
+                            typeDef);
                         break;
 
                     case InputObjectTypeDefinitionNode typeDef:
@@ -188,7 +200,11 @@ public static class SchemaParser
             {
                 switch (definition)
                 {
-                    case EnumTypeExtensionNode:
+                    case EnumTypeExtensionNode typeDef:
+                        ExtendEnumType(
+                            schema,
+                            (EnumType)schema.Types[typeDef.Name.Value],
+                            typeDef);
                         break;
 
                     case InputObjectTypeExtensionNode typeDef:
@@ -212,7 +228,11 @@ public static class SchemaParser
                             typeDef);
                         break;
 
-                    case ScalarTypeExtensionNode def:
+                    case ScalarTypeExtensionNode typeDef:
+                        ExtendScalarType(
+                            schema,
+                            (ScalarType)schema.Types[typeDef.Name.Value],
+                            typeDef);
                         break;
 
                     case UnionTypeExtensionNode def:
@@ -356,12 +376,60 @@ public static class SchemaParser
         }
     }
 
+    private static void BuildEnumType(
+        Schema schema,
+        EnumType type,
+        EnumTypeDefinitionNode node)
+    {
+        type.Description = node.Description?.Value;
+        ExtendEnumType(schema, type, node);
+    }
+
+    private static void ExtendEnumType(
+        Schema schema,
+        EnumType type,
+        EnumTypeDefinitionNodeBase node)
+    {
+        BuildDirectiveCollection(schema, type.Directives, node.Directives);
+
+        foreach (var enumValue in node.Values)
+        {
+            if (type.Values.ContainsName(enumValue.Name.Value))
+            {
+                // todo : parser error
+                throw new Exception("");
+            }
+
+            var value = new EnumValue(enumValue.Name.Value);
+            value.Description = enumValue.Description?.Value;
+
+            BuildDirectiveCollection(schema, value.Directives, enumValue.Directives);
+
+            if (IsDeprecated(value.Directives, out var reason))
+            {
+                value.IsDeprecated = true;
+                value.DeprecationReason = reason;
+            }
+
+            type.Values.Add(value);
+        }
+    }
+
     private static void BuildScalarType(
         Schema schema,
         ScalarType type,
         ScalarTypeDefinitionNode node)
     {
+        type.Description = node.Description?.Value;
+        BuildDirectiveCollection(schema, type.Directives, node.Directives);
+    }
 
+    private static void ExtendScalarType(
+        Schema schema,
+        ScalarType type,
+        ScalarTypeExtensionNode node)
+    {
+        BuildDirectiveCollection(schema, type.Directives, node.Directives);
     }
 
     private static void BuildDirectiveCollection(

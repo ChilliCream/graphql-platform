@@ -3,20 +3,20 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class FieldCollection<TField> : ICollection<TField> where TField : IField
+public sealed class EnumValueCollection : ICollection<EnumValue>
 {
-    private readonly Dictionary<string, TField> _fields = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EnumValue> _fields = new(StringComparer.Ordinal);
 
     public int Count => _fields.Count;
 
     public bool IsReadOnly => false;
 
-    public TField this[string name] => _fields[name];
+    public EnumValue this[string name] => _fields[name];
 
-    public bool TryGetField(string name, [NotNullWhen(true)] out TField? field)
+    public bool TryGetField(string name, [NotNullWhen(true)] out EnumValue? field)
         => _fields.TryGetValue(name, out field);
 
-    public void Add(TField item)
+    public void Add(EnumValue item)
     {
         if (item is null)
         {
@@ -26,7 +26,7 @@ public sealed class FieldCollection<TField> : ICollection<TField> where TField :
         _fields.Add(item.Name, item);
     }
 
-    public bool Remove(TField item)
+    public bool Remove(EnumValue item)
     {
         if (item is null)
         {
@@ -48,7 +48,7 @@ public sealed class FieldCollection<TField> : ICollection<TField> where TField :
     public bool ContainsName(string name)
         => _fields.ContainsKey(name);
 
-    public bool Contains(TField item)
+    public bool Contains(EnumValue item)
     {
         if (item is null)
         {
@@ -64,7 +64,7 @@ public sealed class FieldCollection<TField> : ICollection<TField> where TField :
         return false;
     }
 
-    public void CopyTo(TField[] array, int arrayIndex)
+    public void CopyTo(EnumValue[] array, int arrayIndex)
     {
         foreach (var item in _fields)
         {
@@ -72,7 +72,7 @@ public sealed class FieldCollection<TField> : ICollection<TField> where TField :
         }
     }
 
-    public IEnumerator<TField> GetEnumerator()
+    public IEnumerator<EnumValue> GetEnumerator()
         => _fields.Values.OrderBy(t => t.Name, StringComparer.Ordinal).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()

@@ -23,7 +23,7 @@ public sealed class EnumType : INamedType
 
     public DirectiveCollection Directives { get; } = new();
 
-    public IList<EnumValue> Values { get; } = new List<EnumValue>();
+    public EnumValueCollection Values { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 }
