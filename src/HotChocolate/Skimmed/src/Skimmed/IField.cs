@@ -1,6 +1,6 @@
 namespace HotChocolate.Skimmed;
 
-public interface IField
+public interface IField : IHasDirectives
 {
     /// <summary>
     /// Gets the field name.
@@ -21,9 +21,6 @@ public interface IField
     /// Gets the deprecation reason.
     /// </summary>
     string? DeprecationReason { get; set; }
-
-    DirectiveCollection Directives { get; }
-
 
     IDictionary<string, object?> ContextData { get; }
 

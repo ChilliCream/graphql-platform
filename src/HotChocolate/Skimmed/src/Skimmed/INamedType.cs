@@ -12,8 +12,5 @@ public interface INamedType : IType
     /// </summary>
     string? Description { get; set; }
 
-
-    DirectiveCollection Directives { get; }
-
     IDictionary<string, object?> ContextData { get; }
 }

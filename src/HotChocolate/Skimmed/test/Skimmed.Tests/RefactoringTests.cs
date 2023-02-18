@@ -24,23 +24,74 @@ public class RefactoringTests
             """;
 
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
-        schema.RenameType("Bar", "Baz");
 
         // act
-        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+        var success = schema.RenameType("Bar", "Baz");
 
         // assert
-        formattedSdl.MatchInlineSnapshot(
+        Assert.True(success);
+
+        SchemaFormatter
+            .FormatAsString(schema)
+            .MatchInlineSnapshot(
+                """
+                type Foo {
+                    field: Baz
+                }
+
+                type Baz {
+                    field: String
+                }
+
+                scalar String
+                """);
+    }
+
+    [Fact]
+    public void AddDirective_To_Type()
+    {
+        // arrange
+        var sdl =
             """
             type Foo {
-                field: Baz
+                field: Bar
             }
 
-            type Baz {
+            type Bar {
                 field: String
             }
 
             scalar String
-            """);
+            """;
+
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        var directiveType = new DirectiveType("source");
+        directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
+        schema.Directives.Add(directiveType);
+
+        // act
+        var success = schema.AddDirective(
+            "Bar",
+            new Directive(
+                directiveType,
+                new Argument("name", "abc")));
+
+        // assert
+        Assert.True(success);
+
+        SchemaFormatter
+            .FormatAsString(schema)
+            .MatchInlineSnapshot(
+                """
+                type Foo {
+                  field: Bar
+                }
+                
+                type Bar @source(name: "abc") {
+                  field: String
+                }
+                
+                scalar String
+                """);
     }
 }

@@ -13,7 +13,7 @@ public sealed class DirectiveTypeCollection : ICollection<DirectiveType>
 
     public DirectiveType this[string name] => _types[name];
 
-    public bool TryGet(string name, [NotNullWhen(true)] out DirectiveType? type)
+    public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveType? type)
         => _types.TryGetValue(name, out type);
 
     public void Add(DirectiveType item)

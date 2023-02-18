@@ -13,7 +13,7 @@ public sealed class EnumValueCollection : ICollection<EnumValue>
 
     public EnumValue this[string name] => _fields[name];
 
-    public bool TryGetField(string name, [NotNullWhen(true)] out EnumValue? field)
+    public bool TryGetValue(string name, [NotNullWhen(true)] out EnumValue? field)
         => _fields.TryGetValue(name, out field);
 
     public void Add(EnumValue item)

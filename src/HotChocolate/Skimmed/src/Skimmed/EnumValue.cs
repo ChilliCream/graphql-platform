@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class EnumValue
+public sealed class EnumValue : IHasDirectives
 {
     private string _name;
     private bool _isDeprecated;
