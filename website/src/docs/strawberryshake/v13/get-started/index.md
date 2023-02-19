@@ -179,7 +179,7 @@ await builder.Build().RunAsync();
 @using StrawberryShake
 ```
 
-# Step 5: Use the generated Razor component to disply the data.
+# Step 5: Use the generated Razor component to display the data.
 
 In this section we will integrated the Razor component and print a simple list on our index page to display the crypto currencies.
 
