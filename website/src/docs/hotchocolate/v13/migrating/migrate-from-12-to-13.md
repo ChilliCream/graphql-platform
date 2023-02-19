@@ -340,9 +340,9 @@ We moved the extension methods from the `IServiceCollection` to our `IRequestExe
 **Before**
 
 ```csharp
-builder.Services.AddInMemorySubscriptins();
+builder.Services.AddInMemorySubscriptions();
 // or
-builder.Services.AddRedisSubscriptins();
+builder.Services.AddRedisSubscriptions();
 ```
 
 **After**
@@ -350,9 +350,9 @@ builder.Services.AddRedisSubscriptins();
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .AddInMemorySubscriptins()
+    .AddInMemorySubscriptions()
     // or
-    .AddRedisSubscriptins();
+    .AddRedisSubscriptions();
 ```
 
 ## @defer / @stream
