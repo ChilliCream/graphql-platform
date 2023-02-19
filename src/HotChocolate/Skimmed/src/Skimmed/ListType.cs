@@ -4,12 +4,8 @@ public sealed class ListType : IType
 {
     public ListType(IType elementType)
     {
-        if (elementType is null)
-        {
+        ElementType = elementType ??
             throw new ArgumentNullException(nameof(elementType));
-        }
-
-        ElementType = elementType;
     }
 
     public TypeKind Kind => TypeKind.List;

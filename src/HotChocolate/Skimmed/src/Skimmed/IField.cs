@@ -1,6 +1,6 @@
 namespace HotChocolate.Skimmed;
 
-public interface IField : IHasDirectives
+public interface IField : IHasName, IHasDirectives
 {
     /// <summary>
     /// Gets the field name.

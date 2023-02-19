@@ -1,6 +1,6 @@
 namespace HotChocolate.Skimmed;
 
-public interface IType : IHasDirectives
+public interface IType
 {
     /// <summary>
     /// Gets the type kind.

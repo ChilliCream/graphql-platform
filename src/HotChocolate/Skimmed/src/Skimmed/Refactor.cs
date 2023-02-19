@@ -3,17 +3,13 @@ namespace HotChocolate.Skimmed;
 public static class Refactor
 {
     public static bool RenameType(this Schema schema, string currentName, string newName)
+        => RenameMember(schema, new SchemaCoordinate(currentName), newName);
+
+    public static bool RenameMember(this Schema schema, SchemaCoordinate coordinate, string newName)
     {
         if (schema is null)
         {
             throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (string.IsNullOrEmpty(currentName))
-        {
-            throw new ArgumentException(
-                "Value cannot be null or empty.",
-                nameof(currentName));
         }
 
         if (string.IsNullOrEmpty(newName))
@@ -23,9 +19,9 @@ public static class Refactor
                 nameof(newName));
         }
 
-        if (schema.Types.TryGetType(currentName, out var type))
+        if (schema.TryGetMember<IHasName>(coordinate, out var member))
         {
-            type.Name = newName;
+            member.Name = newName;
             return true;
         }
 
