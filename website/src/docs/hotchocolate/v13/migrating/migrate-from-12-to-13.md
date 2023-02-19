@@ -243,32 +243,24 @@ public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
 }
 ```
 
-## HTTP Transport
+## HTTP transport
 
-With this release we also adopted the latest [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) spec changes. Most notably the server now returns the `Content-Type: application/graphql-response+json;charset=utf-8` response header for requests without an `Accept: application/json` request header. This might break expectations of existing clients.
+With this release we adopted the latest [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification changes.
 
-<!-- todo: this needs to be clarified a lot -->
+Most notably the server now returns the `Content-Type: application/graphql-response+json;charset=utf-8` response header for requests without an `Accept: application/json` request header. This might break expectations of existing clients. Apollo Federation Gateway (`@apollo/gateway`) for example still expects responses from subgraphs to contain the `Content-Type: application/json` header.
 
-Apollo Federation Gateway (`@apollo/gateway`) for example expects responses from subgraphs to contain the `Content-Type: application/json` header. In order for your Gateway to continue to function, you need to specify the `Accept: application/json` header in requests to your Hot Chocolate v13 subgraphs:
+If you need to support legacy clients that do not yet support the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification, you can
 
-```js
-class DataSourceWithAcceptHeader extends RemoteGraphQLDataSource {
-  willSendRequest({ request }) {
-    request.http.headers.set("Accept", "application/json");
-  }
-}
+1. Send the `Accept: application/json` header in requests from the legacy client
+2. Infer `application/json` as the `Accept` header value for requests with a missing `Accept` header or `Accept: */*`, by setting the `HttpTransportVersion` to `Legacy`:
 
-// ...
-
-const gateway = new ApolloGateway({
-  supergraphSdl,
-  buildService({ url }) {
-    return new DataSourceWithAcceptHeader({ url });
-  },
+```csharp
+builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
+    HttpTransportVersion = HttpTransportVersion.Legacy
 });
 ```
 
-Apollo Router should be able to handle responses with the `Content-Type: application/graphql-response+json` header.
+An `Accept` header with the value `application/json` will opt you out of the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification. The response `Content-Type` will now be `application/json` and a status code of 200 will be returned for every request, even if it had validation errors or a valid response could not be produced.
 
 ## DataLoaderAttribute
 
@@ -376,10 +368,14 @@ services.AddGraphQLServer()
     });
 ```
 
-<!--
-TODO: Do you need to specify the multipart Accept header now for this to work?
-TODO: The JSON payload structure changed in this release as well
--->
+If your client is setting an `Accept` header value that doesn't include `multipart/mixed` or `text/event-stream`, the server will no longer produce a response, because the client is signaling that it can't handle a streamed response.
+In order for the server to produce a streamed response, you now need to either
+
+1. Omit the `Accept` header
+2. Send an `Accept` header with the value `*/*`, signaling that your client can handle any format
+3. Send an `Accept` header which includes `multipart/mixed` and/or `text/event-stream`
+
+There have also been changes to the response format of streamed responses. You can checkout the currently proposed format [here](https://github.com/graphql/graphql-spec/blob/94363c9d5d8e53e91240ea3eabd32ff522f27a6b/spec/Section%207%20--%20Response.md).
 
 > Warning: The spec of these features is still evolving, so expect more changes on how the incremental payloads are being delivered.
 
