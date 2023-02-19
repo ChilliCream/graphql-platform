@@ -1,5 +1,5 @@
 ---
-title: Migrate from Hot Chocolate GraphQL server 12 to 13
+title: Migrate Hot Chocolate from 12 to 13
 ---
 
 This guide will walk you through the manual migration steps to update your Hot Chocolate GraphQL server to version 13.
