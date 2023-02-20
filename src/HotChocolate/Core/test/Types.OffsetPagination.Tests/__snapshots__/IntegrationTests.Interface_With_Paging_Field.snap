@@ -3,7 +3,7 @@
 }
 
 interface ISome {
-  explicitType(skip: Int take: Int): ExplicitTypeCollectionSegment
+  explicitType(skip: Int take: Int): StringCollectionSegment
 }
 
 "Information about the offset pagination."
@@ -47,4 +47,12 @@ type QueryAttr {
   nestedObjectList(skip: Int take: Int): NestedObjectListCollectionSegment
   letters(skip: Int take: Int): LettersCollectionSegment
   explicitType(skip: Int take: Int): ExplicitTypeCollectionSegment
+}
+
+"A segment of a collection."
+type StringCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [String!]
 }

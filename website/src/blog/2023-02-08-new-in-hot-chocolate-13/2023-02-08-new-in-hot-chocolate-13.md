@@ -379,6 +379,8 @@ builder.Services
     .AddType(new JsonType("Any", BindingBehavior.Implicit));
 ```
 
+<Video videoId="wODiVDT8ECI" />
+
 ### Generic Attributes
 
 With Hot Chocolate 13 we are taking advantage of generic attributes in .NET 7. Instead of writing an ugly attribute like the following:
