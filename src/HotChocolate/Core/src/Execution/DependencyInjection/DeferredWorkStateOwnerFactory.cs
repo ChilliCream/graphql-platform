@@ -15,6 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 internal sealed class DeferredWorkStateOwnerFactory : IFactory<DeferredWorkStateOwner>
 {
+    private readonly object _sync = new();
     private readonly ObjectPool<DeferredWorkState> _pool;
     private DeferredWorkStateOwner? _owner;
 
@@ -27,7 +28,7 @@ internal sealed class DeferredWorkStateOwnerFactory : IFactory<DeferredWorkState
     {
         if (_owner is null)
         {
-            lock (_pool)
+            lock (_sync)
             {
                 if (_owner is null)
                 {
