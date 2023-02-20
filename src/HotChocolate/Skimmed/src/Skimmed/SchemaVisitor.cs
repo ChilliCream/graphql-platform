@@ -4,54 +4,46 @@ namespace HotChocolate.Skimmed;
 
 public abstract class SchemaVisitor<TContext>
 {
-    public virtual void Visit(Schema schema, TContext context)
+    public virtual void VisitSchema(Schema schema, TContext context)
     {
-        Visit(schema.Types, context);
-        Visit(schema.Directives, context);
+        VisitTypes(schema.Types, context);
+        VisitDirectiveTypes(schema.Directives, context);
     }
 
-    public virtual void Visit(TypeCollection types, TContext context)
+    public virtual void VisitTypes(TypeCollection types, TContext context)
     {
         foreach (var type in types)
         {
-            Visit(type, context);
+            VisitType(type, context);
         }
     }
 
-    public virtual void Visit(IType type, TContext context)
+    public virtual void VisitType(IType type, TContext context)
     {
         switch (type.Kind)
         {
             case TypeKind.Enum:
-                Visit((EnumType)type, context);
+                VisitEnumType((EnumType)type, context);
                 break;
 
             case TypeKind.InputObject:
-                Visit((InputObjectType)type, context);
+                VisitInputObjectType((InputObjectType)type, context);
                 break;
 
             case TypeKind.Interface:
-                Visit((InterfaceType)type, context);
+                VisitInterfaceType((InterfaceType)type, context);
                 break;
 
             case TypeKind.Object:
-                Visit((ObjectType)type, context);
+                VisitObjectType((ObjectType)type, context);
                 break;
 
             case TypeKind.Scalar:
-                Visit((ScalarType)type, context);
+                VisitScalarType((ScalarType)type, context);
                 break;
 
             case TypeKind.Union:
-                Visit((UnionType)type, context);
-                break;
-
-            case TypeKind.List:
-                Visit((ListType)type, context);
-                break;
-
-            case TypeKind.NonNull:
-                Visit((NonNullType)type, context);
+                VisitUnionType((UnionType)type, context);
                 break;
 
             default:
@@ -59,123 +51,116 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void Visit(DirectiveTypeCollection directiveTypes, TContext context)
+    public virtual void VisitDirectiveTypes(DirectiveTypeCollection directiveTypes, TContext context)
     {
         foreach (var type in directiveTypes)
         {
-            Visit(type, context);
+            VisitDirectiveType(type, context);
         }
     }
 
-    public virtual void Visit(EnumType type, TContext context)
+    public virtual void VisitEnumType(EnumType type, TContext context)
     {
-        Visit(type.Directives, context);
-        Visit(type.Values, context);
+        VisitDirectives(type.Directives, context);
+        VisitEnumValues(type.Values, context);
     }
 
-    public virtual void Visit(InputObjectType type, TContext context)
+    public virtual void VisitInputObjectType(InputObjectType type, TContext context)
     {
-        Visit(type.Directives, context);
-        Visit(type.Fields, context);
+        VisitDirectives(type.Directives, context);
+        VisitInputFields(type.Fields, context);
     }
 
-    public virtual void Visit(InterfaceType type, TContext context)
+    public virtual void VisitInterfaceType(InterfaceType type, TContext context)
     {
-        Visit(type.Directives, context);
-        Visit(type.Fields, context);
+        VisitDirectives(type.Directives, context);
+        VisitOutputFields(type.Fields, context);
     }
 
-    public virtual void Visit(ObjectType type, TContext context)
+    public virtual void VisitObjectType(ObjectType type, TContext context)
     {
-        Visit(type.Directives, context);
-        Visit(type.Fields, context);
+        VisitDirectives(type.Directives, context);
+        VisitOutputFields(type.Fields, context);
     }
 
-    public virtual void Visit(UnionType type, TContext context)
+    public virtual void VisitUnionType(UnionType type, TContext context)
     {
-        Visit(type.Directives, context);
+        VisitDirectives(type.Directives, context);
     }
 
-    public virtual void Visit(ScalarType type, TContext context) { }
-
-    public virtual void Visit(ListType type, TContext context)
+    public virtual void VisitScalarType(ScalarType type, TContext context)
     {
-        Visit(type.ElementType, context);
+        VisitDirectives(type.Directives, context);
     }
 
-    public virtual void Visit(NonNullType type, TContext context)
-    {
-        Visit(type.NullableType, context);
-    }
-
-    public virtual void Visit(EnumValueCollection values, TContext context)
+    public virtual void VisitEnumValues(EnumValueCollection values, TContext context)
     {
         foreach (var value in values)
         {
-            Visit(value, context);
+            VisitEnumValue(value, context);
         }
     }
 
-    public virtual void Visit(EnumValue value, TContext context)
+    public virtual void VisitEnumValue(EnumValue value, TContext context)
     {
-        Visit(value.Directives, context);
+        VisitDirectives(value.Directives, context);
     }
 
-    public virtual void Visit(DirectiveCollection directives, TContext context)
+    public virtual void VisitDirectives(DirectiveCollection directives, TContext context)
     {
         foreach (var directive in directives)
         {
-            Visit(directive, context);
+            VisitDirective(directive, context);
         }
     }
 
-    public virtual void Visit(Directive directive, TContext context)
+    public virtual void VisitDirective(Directive directive, TContext context)
     {
-        Visit(directive.Arguments, context);
+        VisitArguments(directive.Arguments, context);
     }
 
-    public virtual void Visit(IReadOnlyList<Argument> arguments, TContext context)
+    public virtual void VisitArguments(IReadOnlyList<Argument> arguments, TContext context)
     {
         foreach (var argument in arguments)
         {
-            Visit(argument, context);
+            VisitArgument(argument, context);
         }
     }
 
-    public virtual void Visit(Argument argument, TContext context)
+    public virtual void VisitArgument(Argument argument, TContext context)
     {
 
     }
 
-    public virtual void Visit(FieldCollection<InputField> fields, TContext context)
+    public virtual void VisitInputFields(FieldCollection<InputField> fields, TContext context)
     {
         foreach (var field in fields)
         {
-            Visit(field, context);
+            VisitInputField(field, context);
         }
     }
 
-    public virtual void Visit(InputField field, TContext context)
+    public virtual void VisitInputField(InputField field, TContext context)
     {
-        Visit(field.Directives, context);
+        VisitDirectives(field.Directives, context);
     }
 
-    public virtual void Visit(FieldCollection<OutputField> fields, TContext context)
+    public virtual void VisitOutputFields(FieldCollection<OutputField> fields, TContext context)
     {
         foreach (var field in fields)
         {
-            Visit(field, context);
+            VisitOutputField(field, context);
         }
     }
 
-    public virtual void Visit(OutputField field, TContext context)
+    public virtual void VisitOutputField(OutputField field, TContext context)
     {
-        Visit(field.Directives, context);
-        Visit(field.Arguments, context);
+        VisitDirectives(field.Directives, context);
+        VisitInputFields(field.Arguments, context);
     }
 
-    public virtual void Visit(DirectiveType directive, TContext context)
+    public virtual void VisitDirectiveType(DirectiveType directive, TContext context)
     {
-        Visit(directive.Arguments, context);
+        VisitInputFields(directive.Arguments, context);
     }
 }

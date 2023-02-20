@@ -181,7 +181,11 @@ public static class SchemaParser
                             typeDef);
                         break;
 
-                    case UnionTypeDefinitionNode def:
+                    case UnionTypeDefinitionNode typeDef:
+                        BuildUnionType(
+                            schema,
+                            (UnionType)schema.Types[typeDef.Name.Value],
+                            typeDef);
                         break;
 
                     default:
@@ -235,7 +239,11 @@ public static class SchemaParser
                             typeDef);
                         break;
 
-                    case UnionTypeExtensionNode def:
+                    case UnionTypeExtensionNode typeDef:
+                        ExtendUnionType(
+                            schema,
+                            (UnionType)schema.Types[typeDef.Name.Value],
+                            typeDef);
                         break;
 
                     default:
@@ -396,8 +404,7 @@ public static class SchemaParser
         {
             if (type.Values.ContainsName(enumValue.Name.Value))
             {
-                // todo : parser error
-                throw new Exception("");
+                continue;
             }
 
             var value = new EnumValue(enumValue.Name.Value);
@@ -412,6 +419,35 @@ public static class SchemaParser
             }
 
             type.Values.Add(value);
+        }
+    }
+
+    private static void BuildUnionType(
+        Schema schema,
+        UnionType type,
+        UnionTypeDefinitionNode node)
+    {
+        type.Description = node.Description?.Value;
+        ExtendUnionType(schema, type, node);
+    }
+
+    private static void ExtendUnionType(
+        Schema schema,
+        UnionType type,
+        UnionTypeDefinitionNodeBase node)
+    {
+        BuildDirectiveCollection(schema, type.Directives, node.Directives);
+
+        foreach (var objectTypeRef in node.Types)
+        {
+            var objectType = (ObjectType)schema.Types[objectTypeRef.Name.Value];
+
+            if (type.Types.Contains(objectType))
+            {
+                continue;
+            }
+
+            type.Types.Add(objectType);
         }
     }
 

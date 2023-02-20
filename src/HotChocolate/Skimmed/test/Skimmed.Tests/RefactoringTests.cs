@@ -161,6 +161,7 @@ public class RefactoringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
         var directiveType = new DirectiveType("source");
         directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
+        directiveType.Locations = DirectiveLocation.TypeSystem;
         schema.Directives.Add(directiveType);
 
         // act
@@ -186,6 +187,8 @@ public class RefactoringTests
                 }
 
                 scalar String
+
+                directive @source(name: String!) on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
                 """);
     }
 
@@ -209,6 +212,7 @@ public class RefactoringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
         var directiveType = new DirectiveType("source");
         directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
+        directiveType.Locations = DirectiveLocation.TypeSystem;
         schema.Directives.Add(directiveType);
 
         // act
@@ -234,6 +238,8 @@ public class RefactoringTests
                 }
 
                 scalar String
+
+                directive @source(name: String!) on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
                 """);
     }
 
@@ -255,9 +261,6 @@ public class RefactoringTests
             """;
 
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
-        var directiveType = new DirectiveType("source");
-        directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
-        schema.Directives.Add(directiveType);
 
         // act
         var success = schema.RemoveMember(new SchemaCoordinate("Bar"));
@@ -270,11 +273,7 @@ public class RefactoringTests
             .MatchInlineSnapshot(
                 """
                 type Foo {
-                    field: Bar
-                }
 
-                type Bar {
-                    field: String
                 }
 
                 scalar String
