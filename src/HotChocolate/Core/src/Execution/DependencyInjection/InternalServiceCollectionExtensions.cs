@@ -94,24 +94,17 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddOperationContextPool(
         this IServiceCollection services)
     {
-        services.TryAddSingleton(sp =>
-        {
-            var provider = sp.GetRequiredService<ObjectPoolProvider>();
-            var policy = new OperationContextPooledObjectPolicy(
-                sp.GetRequiredService<IFactory<OperationContext>>());
-            return provider.Create(policy);
-        });
+        services.TryAddSingleton<IFactory<OperationContext>, OperationContextFactory>();
+        services.TryAddSingleton<IFactory<OperationContextOwner>, OperationContextOwnerFactory>();
 
-        services.TryAddTransient<OperationContext>();
-
-        services.TryAddTransient(
-            sp => sp.GetRequiredService<ObjectPool<OperationContext>>().GetOwner());
-
-        services.TryAddSingleton<IFactory<OperationContextOwner>>(
-            sp => new ServiceFactory<OperationContextOwner>(sp));
-
-        services.TryAddSingleton<IFactory<OperationContext>>(
-            sp => new ServiceFactory<OperationContext>(sp));
+        services.TryAddSingleton(
+            sp =>
+            {
+                var provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new OperationContextPooledObjectPolicy(
+                    sp.GetRequiredService<IFactory<OperationContext>>());
+                return provider.Create(policy);
+            });
 
         return services;
     }
@@ -119,22 +112,15 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddDeferredWorkStatePool(
         this IServiceCollection services)
     {
-        services.TryAddSingleton(sp =>
-        {
-            var provider = sp.GetRequiredService<ObjectPoolProvider>();
-            var policy = new DeferredWorkStatePooledObjectPolicy();
-            return provider.Create(policy);
-        });
+        services.TryAddSingleton(
+            sp =>
+            {
+                var provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new DeferredWorkStatePooledObjectPolicy();
+                return provider.Create(policy);
+            });
 
-        services.TryAddScoped(sp =>
-        {
-            var pool = sp.GetRequiredService<ObjectPool<DeferredWorkState>>();
-            var state = pool.Get();
-            return new DeferredWorkStateOwner(state, pool);
-        });
-
-        services.TryAddScoped<IFactory<DeferredWorkStateOwner>>(
-            sp => new ServiceFactory<DeferredWorkStateOwner>(sp));
+        services.TryAddScoped<IFactory<DeferredWorkStateOwner>, DeferredWorkStateOwnerFactory>();
 
         return services;
     }
