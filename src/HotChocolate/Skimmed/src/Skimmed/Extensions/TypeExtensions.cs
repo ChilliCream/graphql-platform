@@ -4,6 +4,8 @@ namespace HotChocolate.Skimmed;
 
 internal static class TypeExtensions
 {
+    static TypeExtensions() { }
+
     public static bool IsInputType(this IType type)
         => type.Kind switch
         {
@@ -23,6 +25,29 @@ internal static class TypeExtensions
             TypeKind.NonNull => IsOutputType(((NonNullType)type).NullableType),
             _ => throw new NotSupportedException(),
         };
+
+    public static INamedType NamedType(this IType type)
+    {
+        while (true)
+        {
+            switch (type)
+            {
+                case INamedType namedType:
+                    return namedType;
+
+                case ListType listType:
+                    type = listType.ElementType;
+                    continue;
+
+                case NonNullType nonNullType:
+                    type = nonNullType.NullableType;
+                    continue;
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+    }
 
     public static ITypeNode ToTypeNode(this IType type)
     {

@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Skimmed;
 
 public abstract class SchemaVisitor<TContext>
@@ -5,6 +7,7 @@ public abstract class SchemaVisitor<TContext>
     public virtual void Visit(Schema schema, TContext context)
     {
         Visit(schema.Types, context);
+        Visit(schema.Directives, context);
     }
 
     public virtual void Visit(TypeCollection types, TContext context)
@@ -20,6 +23,7 @@ public abstract class SchemaVisitor<TContext>
         switch (type.Kind)
         {
             case TypeKind.Enum:
+                Visit((EnumType)type, context);
                 break;
 
             case TypeKind.InputObject:
@@ -39,6 +43,7 @@ public abstract class SchemaVisitor<TContext>
                 break;
 
             case TypeKind.Union:
+                Visit((UnionType)type, context);
                 break;
 
             case TypeKind.List:
@@ -52,6 +57,20 @@ public abstract class SchemaVisitor<TContext>
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    public virtual void Visit(DirectiveTypeCollection directiveTypes, TContext context)
+    {
+        foreach (var type in directiveTypes)
+        {
+            Visit(type, context);
+        }
+    }
+
+    public virtual void Visit(EnumType type, TContext context)
+    {
+        Visit(type.Directives, context);
+        Visit(type.Values, context);
     }
 
     public virtual void Visit(InputObjectType type, TContext context)
@@ -72,6 +91,11 @@ public abstract class SchemaVisitor<TContext>
         Visit(type.Fields, context);
     }
 
+    public virtual void Visit(UnionType type, TContext context)
+    {
+        Visit(type.Directives, context);
+    }
+
     public virtual void Visit(ScalarType type, TContext context) { }
 
     public virtual void Visit(ListType type, TContext context)
@@ -82,6 +106,19 @@ public abstract class SchemaVisitor<TContext>
     public virtual void Visit(NonNullType type, TContext context)
     {
         Visit(type.NullableType, context);
+    }
+
+    public virtual void Visit(EnumValueCollection values, TContext context)
+    {
+        foreach (var value in values)
+        {
+            Visit(value, context);
+        }
+    }
+
+    public virtual void Visit(EnumValue value, TContext context)
+    {
+        Visit(value.Directives, context);
     }
 
     public virtual void Visit(DirectiveCollection directives, TContext context)

@@ -1,10 +1,11 @@
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Skimmed;
 
 public static class Refactor
 {
-    public static bool RenameType(this Schema schema, string currentName, string newName)
-        => RenameMember(schema, new SchemaCoordinate(currentName), newName);
-
     public static bool RenameMember(this Schema schema, SchemaCoordinate coordinate, string newName)
     {
         if (schema is null)
@@ -28,32 +29,90 @@ public static class Refactor
         return false;
     }
 
-    public static bool AddDirective(
-        this Schema schema,
-        string typeName,
-        Directive directive)
+    public static bool RemoveMember(this Schema schema, SchemaCoordinate coordinate)
     {
-        if (schema is null)
+        if (coordinate.OfDirective)
         {
-            throw new ArgumentNullException(nameof(schema));
+            if (schema.Directives.TryGetDirective(coordinate.Name, out var directive))
+            {
+                if (coordinate.ArgumentName is null)
+                {
+                    schema.Directives.Remove(directive);
+
+                    var rewriter = new RemoveDirectiveRewriter();
+                    rewriter.Visit(schema, directive);
+                    return true;
+                }
+
+                if (directive.Arguments.TryGetField(coordinate.ArgumentName, out var arg))
+                {
+                    var rewriter = new RemoveDirectiveArgRewriter();
+                    rewriter.Visit(schema, (directive, arg.Name));
+                    return true;
+                }
+            }
+
+            return false;
         }
 
-        if (directive is null)
+        if (schema.Types.TryGetType(coordinate.Name, out var type))
         {
-            throw new ArgumentNullException(nameof(directive));
-        }
+            if (coordinate.MemberName is null)
+            {
+                schema.Types.Remove(type);
+                var rewriter = new RemoveTypeRewriter();
+                rewriter.Visit(schema, type);
+                return true;
+            }
 
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentException(
-                "Value cannot be null or empty.",
-                nameof(typeName));
-        }
+            if (coordinate.ArgumentName is null)
+            {
+                if (type.Kind is TypeKind.Enum)
+                {
+                    var enumType = (EnumType)type;
 
-        if (schema.Types.TryGetType(typeName, out var type))
-        {
-            type.Directives.Add(directive);
-            return true;
+                    if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
+                    {
+                        enumType.Values.Remove(enumValue);
+                        var rewriter = new RemoveEnumValueRewriter();
+                        rewriter.Visit(schema, (enumType, enumValue));
+                        return true;
+                    }
+                }
+
+                if (type.Kind is TypeKind.InputObject)
+                {
+                    var inputType = (InputObjectType)type;
+
+                    if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
+                    {
+                        member = input;
+                        return true;
+                    }
+                }
+            }
+
+            if (type.Kind is not TypeKind.Object and not TypeKind.Interface)
+            {
+                return false;
+            }
+
+            var complexType = (ComplexType)type;
+
+            if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
+            {
+                if (coordinate.ArgumentName is null)
+                {
+                    complexType.Fields.Remove(field);
+                    return true;
+                }
+
+                if (field.Arguments.TryGetField(coordinate.ArgumentName, out var fieldArg))
+                {
+                    field.Arguments.Remove(fieldArg);
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -81,5 +140,217 @@ public static class Refactor
         }
 
         return false;
+    }
+
+    private sealed class RemoveDirectiveRewriter : SchemaVisitor<DirectiveType>
+    {
+        private readonly List<Directive> _remove = new();
+
+        public override void Visit(DirectiveCollection directives, DirectiveType directiveType)
+        {
+            foreach (var directive in directives)
+            {
+                if (ReferenceEquals(directiveType, directive.Type))
+                {
+                    _remove.Add(directive);
+                }
+            }
+
+            foreach (var directive in _remove)
+            {
+                directives.Remove(directive);
+            }
+
+            _remove.Clear();
+        }
+    }
+
+    private sealed class RemoveDirectiveArgRewriter
+        : SchemaVisitor<(DirectiveType Type, string Arg)>
+    {
+        private readonly List<(Directive, Directive)> _replace = new();
+
+        public override void Visit(
+            DirectiveCollection directives,
+            (DirectiveType Type, string Arg) context)
+        {
+            foreach (var directive in directives)
+            {
+                if (ReferenceEquals(context.Type, directive.Type))
+                {
+                    var arguments = new List<Argument>();
+
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (!argument.Name.EqualsOrdinal(context.Arg))
+                        {
+                            arguments.Add(argument);
+                        }
+                    }
+
+                    _replace.Add((directive, new Directive(context.Type, arguments)));
+                }
+            }
+
+            foreach (var (current, updated) in _replace)
+            {
+                directives.Replace(current, updated);
+            }
+
+            _replace.Clear();
+        }
+    }
+
+    private sealed class RemoveTypeRewriter : SchemaVisitor<INamedType>
+    {
+        // note: by removing fields this could clash with directive arguments
+        // we should make this more robust and also remove these.
+        private readonly List<OutputField> _removeOutputFields = new();
+        private readonly List<InputField> _removeInputFields = new();
+
+        public override void Visit(FieldCollection<OutputField> fields, INamedType context)
+        {
+            foreach (var field in fields)
+            {
+                if (ReferenceEquals(field.Type.NamedType(), context))
+                {
+                    _removeOutputFields.Add(field);
+                }
+            }
+
+            foreach (var field in _removeOutputFields)
+            {
+                fields.Remove(field);
+            }
+
+            foreach (var field in fields)
+            {
+                Visit(field, context);
+            }
+        }
+
+        public override void Visit(FieldCollection<InputField> fields, INamedType context)
+        {
+            foreach (var field in fields)
+            {
+                if (ReferenceEquals(field.Type.NamedType(), context))
+                {
+                    _removeInputFields.Add(field);
+                }
+            }
+
+            foreach (var field in _removeInputFields)
+            {
+                fields.Remove(field);
+            }
+
+            foreach (var field in fields)
+            {
+                Visit(field, context);
+            }
+        }
+
+        public override void Visit(ObjectType type, INamedType context)
+        {
+            var current = type.Implements.Count - 1;
+
+            while (current >= 0)
+            {
+                var interfaceType = type.Implements[current];
+
+                if (ReferenceEquals(interfaceType, context))
+                {
+                    type.Implements.RemoveAt(current);
+                }
+
+                current--;
+            }
+
+            base.Visit(type, context);
+        }
+
+        public override void Visit(UnionType type, INamedType context)
+        {
+            var current = type.Types.Count - 1;
+
+            while (current >= 0)
+            {
+                var interfaceType = type.Types[current];
+
+                if (ReferenceEquals(interfaceType, context))
+                {
+                    type.Types.RemoveAt(current);
+                }
+
+                current--;
+            }
+
+            base.Visit(type, context);
+        }
+    }
+
+    private sealed class RemoveEnumValueRewriter : SchemaVisitor<(EnumType Type, EnumValue Value)>
+    {
+        public override void Visit(InputField field, (EnumType Type, EnumValue Value) context)
+        {
+            if (field.DefaultValue is not null &&
+                ReferenceEquals(field.Type.NamedType(), context.Type))
+            {
+                var rewriter = new ValueRewriter();
+                var rewritten = rewriter.Rewrite(
+                    field.DefaultValue,
+                    new RewriterContext(context.Value.Name));
+                field.DefaultValue = (IValueNode?)rewritten;
+            }
+
+            base.Visit(field, context);
+        }
+
+
+        private sealed class ValueRewriter : SyntaxRewriter<RewriterContext>
+        {
+            protected override EnumValueNode? RewriteEnumValue(
+                EnumValueNode node,
+                RewriterContext context)
+            {
+                if (node.Value.EqualsOrdinal(context.Value))
+                {
+                    return null;
+                }
+
+                return base.RewriteEnumValue(node, context);
+            }
+
+            protected override ListValueNode? RewriteListValue(
+                ListValueNode node,
+                RewriterContext context)
+            {
+                var items = new List<IValueNode>();
+
+                foreach (var item in node.Items)
+                {
+                    var rewritten = RewriteNodeOrDefault(item, context);
+
+                    if (rewritten is not null)
+                    {
+                        items.Add(item);
+                    }
+                }
+
+                return items.Count == node.Items.Count
+                    ? node
+                    : node.WithItems(items);
+            }
+        }
+
+        private class RewriterContext : ISyntaxVisitorContext
+        {
+            public RewriterContext(string value)
+            {
+                Value = value;
+            }
+
+            public string Value { get; }
+        }
     }
 }

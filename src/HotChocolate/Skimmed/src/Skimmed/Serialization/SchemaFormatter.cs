@@ -1,4 +1,3 @@
-using System.Reflection.Metadata.Ecma335;
 using HotChocolate.Language;
 
 namespace HotChocolate.Skimmed.Serialization;

@@ -7,7 +7,7 @@ namespace HotChocolate.Skimmed;
 public class RefactoringTests
 {
     [Fact]
-    public void Rename_Type()
+    public void Rename_ObjectType()
     {
         // arrange
         var sdl =
@@ -26,7 +26,7 @@ public class RefactoringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // act
-        var success = schema.RenameType("Bar", "Baz");
+        var success = schema.RenameMember(new SchemaCoordinate("Bar"), "Baz");
 
         // assert
         Assert.True(success);
@@ -41,6 +41,59 @@ public class RefactoringTests
 
                 type Baz {
                     field: String
+                }
+
+                scalar String
+                """);
+    }
+
+    [Fact]
+    public void Rename_UnionType()
+    {
+        // arrange
+        var sdl =
+            """
+            union FooOrBar = Foo | Bar
+
+            type Foo {
+                field: Bar
+            }
+
+            type Bar {
+                field: String
+            }
+
+            type Baz {
+                some: FooOrBar
+            }
+
+            scalar String
+            """;
+
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var success = schema.RenameMember(new SchemaCoordinate("FooOrBar"), "FooOrBar1");
+
+        // assert
+        Assert.True(success);
+
+        SchemaFormatter
+            .FormatAsString(schema)
+            .MatchInlineSnapshot(
+                """
+                union FooOrBar1 = Foo | Bar
+
+                type Foo {
+                    field: Bar
+                }
+
+                type Bar {
+                    field: String
+                }
+
+                type Baz {
+                    some: FooOrBar1
                 }
 
                 scalar String
@@ -67,7 +120,7 @@ public class RefactoringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // act
-        var success = schema.RenameMember(new("Bar", "field"), "__field");
+        var success = schema.RenameMember(new SchemaCoordinate("Bar", "field"), "__field");
 
         // assert
         Assert.True(success);
@@ -112,7 +165,7 @@ public class RefactoringTests
 
         // act
         var success = schema.AddDirective(
-            "Bar",
+            new SchemaCoordinate("Bar"),
             new Directive(
                 directiveType,
                 new Argument("name", "abc")));
@@ -178,6 +231,50 @@ public class RefactoringTests
 
                 type Bar {
                   field: String @source(name: "abc")
+                }
+
+                scalar String
+                """);
+    }
+
+    [Fact]
+    public void Remove_ObjectType()
+    {
+        // arrange
+        var sdl =
+            """
+            type Foo {
+                field: Bar
+            }
+
+            type Bar {
+                field: String
+            }
+
+            scalar String
+            """;
+
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        var directiveType = new DirectiveType("source");
+        directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
+        schema.Directives.Add(directiveType);
+
+        // act
+        var success = schema.RemoveMember(new SchemaCoordinate("Bar"));
+
+        // assert
+        Assert.True(success);
+
+        SchemaFormatter
+            .FormatAsString(schema)
+            .MatchInlineSnapshot(
+                """
+                type Foo {
+                    field: Bar
+                }
+
+                type Bar {
+                    field: String
                 }
 
                 scalar String
