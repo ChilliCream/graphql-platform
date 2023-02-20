@@ -4,8 +4,6 @@ namespace HotChocolate.Skimmed;
 
 internal static class TypeExtensions
 {
-    static TypeExtensions() { }
-
     public static bool IsInputType(this IType type)
         => type.Kind switch
         {

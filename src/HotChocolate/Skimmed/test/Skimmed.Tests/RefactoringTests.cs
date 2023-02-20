@@ -162,7 +162,7 @@ public class RefactoringTests
         var directiveType = new DirectiveType("source");
         directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
-        schema.Directives.Add(directiveType);
+        schema.DirectivesTypes.Add(directiveType);
 
         // act
         var success = schema.AddDirective(
@@ -213,7 +213,7 @@ public class RefactoringTests
         var directiveType = new DirectiveType("source");
         directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
-        schema.Directives.Add(directiveType);
+        schema.DirectivesTypes.Add(directiveType);
 
         // act
         var success = schema.AddDirective(

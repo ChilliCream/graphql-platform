@@ -2,11 +2,21 @@
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Schema
+public sealed class Schema : IHasDirectives
 {
+    public string? Description { get; set; }
+
+    public ObjectType? QueryType { get; set; }
+
+    public ObjectType? MutationType { get; set; }
+
+    public ObjectType? SubscriptionType { get; set; }
+
     public TypeCollection Types { get; } = new();
 
-    public DirectiveTypeCollection Directives { get; } = new();
+    public DirectiveTypeCollection DirectivesTypes { get; } = new();
+
+    public DirectiveCollection Directives { get; } = new();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
@@ -55,7 +65,7 @@ public sealed class Schema
     {
         if (coordinate.OfDirective)
         {
-            if (Directives.TryGetDirective(coordinate.Name, out var directive))
+            if (DirectivesTypes.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {

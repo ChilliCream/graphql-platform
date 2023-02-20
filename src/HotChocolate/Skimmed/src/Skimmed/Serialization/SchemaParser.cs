@@ -18,6 +18,7 @@ public static class SchemaParser
 
         BuildTypes(schema, document);
         ExtendTypes(schema, document);
+        BuildAndExtendSchema(schema, document);
 
         return schema;
     }
@@ -28,13 +29,13 @@ public static class SchemaParser
         {
             if (definition is DirectiveDefinitionNode def)
             {
-                if (schema.Directives.ContainsName(def.Name.Value))
+                if (schema.DirectivesTypes.ContainsName(def.Name.Value))
                 {
                     // TODO : parsing error
                     throw new Exception("duplicate");
                 }
 
-                schema.Directives.Add(new DirectiveType(def.Name.Value));
+                schema.DirectivesTypes.Add(new DirectiveType(def.Name.Value));
             }
         }
     }
@@ -254,6 +255,26 @@ public static class SchemaParser
         }
     }
 
+    private static void BuildAndExtendSchema(Schema schema, DocumentNode document)
+    {
+        foreach (var definition in document.Definitions)
+        {
+            if (definition is SchemaDefinitionNode node)
+            {
+                BuildSchema(schema, node);
+                break;
+            }
+        }
+
+        foreach (var definition in document.Definitions)
+        {
+            if (definition is SchemaExtensionNode node)
+            {
+                ExtendSchema(schema, node);
+            }
+        }
+    }
+
     private static void BuildObjectType(
         Schema schema,
         ObjectType type,
@@ -468,16 +489,64 @@ public static class SchemaParser
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
     }
 
+    private static void BuildSchema(
+        Schema schema,
+        SchemaDefinitionNode node)
+    {
+        schema.Description = node.Description?.Value;
+        ExtendSchema(schema, node);
+    }
+
+    private static void ExtendSchema(
+        Schema schema,
+        SchemaDefinitionNodeBase node)
+    {
+        BuildDirectiveCollection(schema, schema.Directives, node.Directives);
+
+        foreach (var operationType in node.OperationTypes)
+        {
+            var typeName = operationType.Type.Name.Value;
+
+            switch (operationType.Operation)
+            {
+                case OperationType.Query:
+                    schema.QueryType = (ObjectType)schema.Types[typeName];
+                    break;
+
+                case OperationType.Mutation:
+                    schema.MutationType = (ObjectType)schema.Types[typeName];
+                    break;
+
+                case OperationType.Subscription:
+                    schema.SubscriptionType = (ObjectType)schema.Types[typeName];
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
+
     private static void BuildDirectiveCollection(
         Schema schema,
         DirectiveCollection directives,
-        IReadOnlyList<DirectiveNode> nodes) { }
+        IReadOnlyList<DirectiveNode> nodes)
+    {
+        foreach (var directiveNode in nodes)
+        {
+            var directive = new Directive(
+                schema.DirectivesTypes[directiveNode.Name.Value],
+                directiveNode.Arguments.Select(t => new Argument(t.Name.Value, t.Value)).ToList());
+            directives.Add(directive);
+        }
+    }
 
     private static bool IsDeprecated(DirectiveCollection directives, out string? reason)
     {
         reason = null;
 
         var deprecated = directives.FirstOrDefault(Deprecated);
+
         if (deprecated is not null)
         {
             var reasonArg = deprecated.Arguments.FirstOrDefault(

@@ -22,7 +22,7 @@ public static class SchemaFormatter
             VisitTypes(schema.Types, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
-            VisitDirectiveTypes(schema.Directives, context);
+            VisitDirectiveTypes(schema.DirectivesTypes, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
             context.Result = new DocumentNode(definitions);
