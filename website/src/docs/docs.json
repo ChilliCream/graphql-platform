@@ -377,7 +377,7 @@
               },
               {
                 "path": "migrate-from-10-to-11",
-                "title": "Migrate from 10.5 to 11.0"
+                "title": "Migrate from 10 to 11"
               }
             ]
           }
@@ -1285,6 +1285,16 @@
           {
             "path": "scalars",
             "title": "Scalars"
+          },
+          {
+            "path": "migrating",
+            "title": "Migrating",
+            "items": [
+              {
+                "path": "migrate-from-12-to-13",
+                "title": "Migrate from 12 to 13"
+              }
+            ]
           }
         ]
       },

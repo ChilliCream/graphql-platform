@@ -218,13 +218,20 @@ public class BookType : ObjectType<Book>
 
 Unless specified explicitly, Hot Chocolate automatically infers the names of object types and their fields. Per default the name of the class becomes the name of the object type. When using `ObjectType<T>` in Code-first, the name of `T` is chosen as the name for the object type. The names of methods and properties on the respective class are chosen as names of the fields of the object type.
 
-The following conventions are applied when transforming C# method and property names into SDL types and fields:
+The following conventions are applied when transforming C# method and property names into GraphQL fields:
 
 - **Get prefixes are removed:** The get operation is implied and therefore redundant information.
 - **Async postfixes are removed:** The `Async` is an implementation detail and therefore not relevant to the schema.
-- **The first letter is lowercased:** This is not part of the specification, but a widely agreed upon standard in the GraphQL world.
 
-If we need to we can override these inferred names.
+With the name cleaned of unnecessary information, we also change the casing at the start of the name:
+
+```
+FooBar --> fooBar
+IPAddress --> ipAddress
+PLZ --> plz
+```
+
+Of course, we can also explicitly specify the names in the resulting GraphQL schema:
 
 <ExampleTabs>
 <Annotation>
