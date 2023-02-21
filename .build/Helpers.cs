@@ -28,6 +28,7 @@ static class Helpers
         Path.Combine("HotChocolate", "MongoDb"),
         Path.Combine("HotChocolate", "Neo4J"),
         Path.Combine("HotChocolate", "Raven"),
+        Path.Combine("HotChocolate", "Skimmed"),
         Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Fusion"),
         Path.Combine("HotChocolate", "Spatial"),
