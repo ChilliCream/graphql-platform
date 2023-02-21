@@ -25,6 +25,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     [InlineData("*/*", Legacy, ContentType.Json)]
     [InlineData("application/*", Latest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, ContentType.Json)]
+    [InlineData("application/json, */*", Latest, ContentType.GraphQLResponse)]
+    [InlineData("application/json, */*", Legacy, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, ContentType.Json)]
     [InlineData(ContentType.GraphQLResponse, Latest, ContentType.GraphQLResponse)]

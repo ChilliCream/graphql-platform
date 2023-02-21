@@ -461,7 +461,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             if (resultKind is ResultKind.Single &&
                 start.Kind is AllApplication or All)
             {
-                possibleFormat = _defaultFormat;
+                return _defaultFormat;
             }
 
             if (resultKind is ResultKind.Single &&
