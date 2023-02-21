@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Composition</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Composition</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
+  </ItemGroup>
+
+</Project>

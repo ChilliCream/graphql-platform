@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.WellKnownContextData;
@@ -7,6 +8,9 @@ namespace HotChocolate.Skimmed.Serialization;
 
 public static class SchemaParser
 {
+    public static Schema Parse(string sourceText)
+        => Parse(Encoding.UTF8.GetBytes(sourceText));
+
     public static Schema Parse(ReadOnlySpan<byte> sourceText)
     {
         var document = Utf8GraphQLParser.Parse(sourceText);

@@ -4,6 +4,8 @@ namespace HotChocolate.Skimmed;
 
 public sealed class Schema : IHasDirectives
 {
+    public string Name { get; set; } = "default";
+
     public string? Description { get; set; }
 
     public ObjectType? QueryType { get; set; }
