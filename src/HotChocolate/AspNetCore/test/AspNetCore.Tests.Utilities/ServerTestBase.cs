@@ -111,7 +111,8 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                         endpoints.MapGraphQL("/batching").
                             WithOptions(new GraphQLServerOptions
                             {
-
+                                // with defaults
+                                // EnableBatching = false
                             });
                     }));
     }
