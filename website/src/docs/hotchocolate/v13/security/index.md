@@ -51,7 +51,7 @@ builder.Services.AddGraphQLServer()
 
 The execution of a GraphQL request is automatically aborted after 30 seconds to prevent long-running queries affecting the performance of your GraphQL server.
 
-This default can be overriden as shown below:
+This default can be overridden as shown below:
 
 ```csharp
 builder.Services.AddGraphQLServer()
@@ -67,7 +67,7 @@ The `ExecutionTimeout` is not honored, if a debugger is attached.
 
 To protect against malicious queries that intentionally craft payloads, which would generate a large number of validation errors, Hot Chocolate limits the number of validation errors to 5 per default. As soon as the execution engine tries to produce a 6th validation error, the validation process is aborted and the previous 5 errors are returned.
 
-The maximum number of validation errors can be overriden as shown below:
+The maximum number of validation errors can be overridden as shown below:
 
 ```csharp
 builder.Services.AddGraphQLServer()
@@ -78,7 +78,7 @@ builder.Services.AddGraphQLServer()
 
 When building a [Relay.js compliant schema](/docs/hotchocolate/v13/defining-a-schema/relay#global-object-identification), our server also exposes a `nodes(ids: [ID])` field besides the `node(id: ID)` field, required by the Relay specification. This `nodes` field allows users to fetch multiple nodes at once. An attacker could exploit this and attempt to fetch a large quantity of nodes to degrade the performance of your GraphQL server. To prevent this, we limit the number of nodes that can be requested to 10.
 
-You can change this default to suite the needs of your applciation as shown below:
+You can change this default to suite the needs of your application as shown below:
 
 ```csharp
 builder.Services.AddGraphQLServer()

@@ -379,9 +379,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         var length = acceptMediaTypes.Length;
 
-        // if the request does not specify the accept header then we will
-        // use the `application/graphql-response+json` response content-type,
-        // which is the new response content-type.
+        // There is no Accept header present, so the server is allowed
+        // to select what makes the most sense for the response.
         if (length == 0)
         {
             if (result.Kind is SingleResult)
@@ -414,14 +413,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         ref var start = ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes);
 
-        // if we just have one accept header we will try to determine which formatter to take.
-        // we should only be unable to find a match if there was a previous validation skipped.
+        // If we just have one Accept header value we will try to determine which formatter to take.
+        // We should only be unable to find a match if there was a previous validation skipped.
         if (length == 1)
         {
             var mediaType = start;
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
+                mediaType.Kind is ApplicationGraphQL)
             {
                 return _graphqlResponseFormat;
             }
@@ -430,6 +429,12 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 mediaType.Kind is ApplicationJson)
             {
                 return _legacyFormat;
+            }
+
+            if (resultKind is ResultKind.Single &&
+                mediaType.Kind is AllApplication or All)
+            {
+                return _defaultFormat;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single &&
@@ -446,7 +451,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             return null;
         }
 
-        // if we have more than one specified accept media-type we will try to find the best for
+        // If we have more than one specified Accept header value we will try to find the best for
         // our GraphQL result.
         ref var end = ref Unsafe.Add(ref start, length);
         FormatInfo? possibleFormat = null;
@@ -454,9 +459,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
             if (resultKind is ResultKind.Single &&
-                start.Kind is ApplicationGraphQL or AllApplication or All)
+                start.Kind is AllApplication or All)
             {
-                return _graphqlResponseFormat;
+                possibleFormat = _defaultFormat;
             }
 
             if (resultKind is ResultKind.Single &&
@@ -466,6 +471,12 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 // We will create a formatInfo but keep on validating for
                 // a better suited format.
                 possibleFormat = _legacyFormat;
+            }
+
+            if (resultKind is ResultKind.Single &&
+                start.Kind is ApplicationGraphQL)
+            {
+                return _graphqlResponseFormat;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single &&
