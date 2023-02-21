@@ -115,7 +115,7 @@
     <value>Message cannot be null or empty.</value>
   </data>
   <data name="ErrorHelper_NoSupportedAcceptMediaType" xml:space="preserve">
-    <value>None of the proved accept header media types is supported.</value>
+    <value>None of the `Accept` header values is supported.</value>
   </data>
   <data name="ThrowHelper_Formatter_ResultKindNotSupported" xml:space="preserve">
     <value>The execution result kind is not supported.</value>
