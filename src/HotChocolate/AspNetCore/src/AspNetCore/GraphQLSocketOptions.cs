@@ -20,8 +20,8 @@ public sealed class GraphQLSocketOptions
     ///
     /// If the interval is set to null the server will send no keep alive messages.
     ///
-    /// Default: <c>TimeSpan.FromSeconds(30)</c>
+    /// Default: <c>TimeSpan.FromSeconds(5)</c>
     /// </summary>
     public TimeSpan? KeepAliveInterval { get; set; } =
-        TimeSpan.FromSeconds(30);
+        TimeSpan.FromSeconds(5);
 }
