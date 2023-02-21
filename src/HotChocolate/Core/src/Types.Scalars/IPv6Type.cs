@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -45,7 +46,7 @@ public class IPv6Type : RegexType
         => new Regex(
             _validationPattern,
             RegexOptions.Compiled | RegexOptions.IgnoreCase,
-            TimeSpan.FromMilliseconds(_defaultRegexTimeoutInMs));
+            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
 #endif
 
     /// <summary>
