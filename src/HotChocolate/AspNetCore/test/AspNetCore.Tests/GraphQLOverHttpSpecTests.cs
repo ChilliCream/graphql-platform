@@ -27,6 +27,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     [InlineData("application/*", Legacy, ContentType.Json)]
     [InlineData("application/json, */*", Latest, ContentType.GraphQLResponse)]
     [InlineData("application/json, */*", Legacy, ContentType.Json)]
+    [InlineData("application/json, application/*", Latest, ContentType.GraphQLResponse)]
+    [InlineData("application/json, application/*", Legacy, ContentType.Json)]
     [InlineData("application/json, text/plain, */*", Latest, ContentType.GraphQLResponse)]
     [InlineData("application/json, text/plain, */*", Legacy, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, ContentType.Json)]
@@ -79,8 +81,10 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 @"{""data"":{""__typename"":""Query""}}");
     }
 
-    [Fact]
-    public async Task SingleResult_MultipartMixedAcceptHeader()
+    [Theory]
+    [InlineData("multipart/mixed")]
+    [InlineData("multipart/*")]
+    public async Task SingleResult_MultipartAcceptHeader(string acceptHeader)
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -93,7 +97,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 new ClientQueryRequest { Query = "{ __typename }" }),
             Headers =
             {
-                { "Accept", $"{ContentType.Types.MultiPart}/{ContentType.SubTypes.Mixed}" }
+                { "Accept", acceptHeader }
             }
         };
 
