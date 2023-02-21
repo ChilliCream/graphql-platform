@@ -50,7 +50,6 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton(_ => new ObjectResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton(_ => new ListResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton<ResultPool>();
-        services.TryAddTransient<ResultBuilder>();
         return services;
     }
 
@@ -76,10 +75,6 @@ internal static class InternalServiceCollectionExtensions
             _ => new IndexerPathSegmentPool(maximumRetained));
         services.TryAddSingleton<ObjectPool<PathSegmentBuffer<NamePathSegment>>>(
             _ => new NamePathSegmentPool(maximumRetained));
-        services.TryAddTransient(
-            sp => new PooledPathFactory(
-                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(),
-                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<NamePathSegment>>>()));
         return services;
     }
 

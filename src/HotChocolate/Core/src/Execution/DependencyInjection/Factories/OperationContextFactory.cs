@@ -1,4 +1,6 @@
 using System;
+using Microsoft.Extensions.ObjectPool;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
@@ -11,29 +13,36 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// The <see cref="OperationContextFactory"/> creates new instances of
 /// <see cref="OperationContext"/>.
 ///
-/// Operation context lifetime is managed by it's pool and the execution pipeline NOT by the DI.
+/// Operation context lifetime is managed by the OperationContext pool and
+/// the execution pipeline.
+///
+/// The lifetime MUST NOT be managed or tracked by the DI container.
 ///
 /// The <see cref="OperationContextFactory"/> MUST be a singleton.
 /// </summary>
 internal sealed class OperationContextFactory : IFactory<OperationContext>
 {
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
-    private readonly PooledPathFactory _pathFactory;
-    private readonly ResultBuilder _resultBuilder;
+    private readonly ObjectPool<PathSegmentBuffer<IndexerPathSegment>> _indexerPathPool;
+    private readonly ObjectPool<PathSegmentBuffer<NamePathSegment>> _namePathPool;
+    private readonly ResultPool _resultPool;
     private readonly ITypeConverter _typeConverter;
 
     public OperationContextFactory(
         IFactory<ResolverTask> resolverTaskFactory,
-        PooledPathFactory pathFactory,
-        ResultBuilder resultBuilder,
+        ObjectPool<PathSegmentBuffer<IndexerPathSegment>> indexerPathPool,
+        ObjectPool<PathSegmentBuffer<NamePathSegment>> namePathPool,
+        ResultPool resultPool,
         ITypeConverter typeConverter)
     {
         _resolverTaskFactory = resolverTaskFactory ??
             throw new ArgumentNullException(nameof(resolverTaskFactory));
-        _pathFactory = pathFactory ??
-            throw new ArgumentNullException(nameof(pathFactory));
-        _resultBuilder = resultBuilder ??
-            throw new ArgumentNullException(nameof(resultBuilder));
+        _indexerPathPool = indexerPathPool ??
+            throw new ArgumentNullException(nameof(indexerPathPool));
+        _namePathPool = namePathPool ??
+            throw new ArgumentNullException(nameof(namePathPool));
+        _resultPool = resultPool ??
+            throw new ArgumentNullException(nameof(resultPool));
         _typeConverter = typeConverter ??
             throw new ArgumentNullException(nameof(typeConverter));
     }
@@ -41,7 +50,7 @@ internal sealed class OperationContextFactory : IFactory<OperationContext>
     public OperationContext Create()
         => new OperationContext(
             _resolverTaskFactory,
-            _pathFactory,
-            _resultBuilder,
+            new PooledPathFactory(_indexerPathPool, _namePathPool),
+            new ResultBuilder(_resultPool),
             _typeConverter);
 }

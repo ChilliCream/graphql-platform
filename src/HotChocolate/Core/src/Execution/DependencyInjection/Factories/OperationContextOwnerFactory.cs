@@ -6,8 +6,9 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// The <see cref="OperationContextOwnerFactory"/> creates new instances of
-/// <see cref="OperationContextOwner"/>. Each create will create a new instance that MUST NOT
-/// be tracked by the DI.
+/// <see cref="OperationContextOwner"/>.
+///
+/// Each create will create a new instance that MUST NOT be managed or tracked by the DI container.
 ///
 /// The <see cref="OperationContextOwnerFactory"/> MUST be a singleton.
 /// </summary>
