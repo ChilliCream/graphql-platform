@@ -27,10 +27,28 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     [InlineData("application/*", Legacy, ContentType.Json)]
     [InlineData("application/json, */*", Latest, ContentType.GraphQLResponse)]
     [InlineData("application/json, */*", Legacy, ContentType.Json)]
+    [InlineData("application/json, text/plain, */*", Latest, ContentType.GraphQLResponse)]
+    [InlineData("application/json, text/plain, */*", Legacy, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, ContentType.Json)]
     [InlineData(ContentType.GraphQLResponse, Latest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, ContentType.GraphQLResponse)]
+    [InlineData("application/graphql-response+json; charset=utf-8, multipart/mixed; charset=utf-8",
+            Latest, ContentType.GraphQLResponse)]
+    [InlineData("application/graphql-response+json; charset=utf-8, multipart/mixed; charset=utf-8",
+            Legacy, ContentType.GraphQLResponse)]
+    [InlineData("application/graphql-response+json, multipart/mixed", Latest, ContentType.GraphQLResponse)]
+    [InlineData("application/graphql-response+json, multipart/mixed", Legacy, ContentType.GraphQLResponse)]
+    [InlineData("multipart/mixed,application/graphql-response+json", Latest, ContentType.GraphQLResponse)]
+    [InlineData("multipart/mixed,application/graphql-response+json", Legacy, ContentType.GraphQLResponse)]
+    [InlineData("text/event-stream, multipart/mixed,application/json, application/graphql-response+json",
+            Latest, ContentType.GraphQLResponse)]
+    [InlineData("text/event-stream, multipart/mixed,application/json, application/graphql-response+json",
+            Legacy, ContentType.GraphQLResponse)]
+    [InlineData("application/graphql-response+json; charset=utf-8, application/json; charset=utf-8",
+            Latest, ContentType.GraphQLResponse)]
+    [InlineData("application/graphql-response+json; charset=utf-8, application/json; charset=utf-8",
+            Legacy, ContentType.GraphQLResponse)]
     public async Task SingleResult_Success(string? acceptHeader, HttpTransportVersion transportVersion,
         string expectedContentType)
     {
@@ -98,42 +116,6 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 {""data"":{""__typename"":""Query""}}
                 -----
                 ");
-    }
-
-    [Theory]
-    [InlineData("application/graphql-response+json; charset=utf-8, multipart/mixed; charset=utf-8")]
-    [InlineData("application/graphql-response+json, multipart/mixed")]
-    [InlineData("multipart/mixed,application/graphql-response+json")]
-    [InlineData("text/event-stream, multipart/mixed,application/json, application/graphql-response+json")]
-    [InlineData("application/graphql-response+json; charset=utf-8, application/json; charset=utf-8")]
-    public async Task SingleResult_ApplicationGraphQLIsPreferred(string acceptHeader)
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-        var client = server.CreateClient();
-
-        // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
-        };
-
-        request.Headers.TryAddWithoutValidation("Accept", acceptHeader);
-
-        using var response = await client.SendAsync(request);
-
-        // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                @"Headers:
-                Content-Type: application/graphql-response+json; charset=utf-8
-                -------------------------->
-                Status Code: OK
-                -------------------------->
-                {""data"":{""__typename"":""Query""}}");
     }
 
     [Theory]
