@@ -6,13 +6,13 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class DeferredWorkStateOwner : IDisposable
 {
-    private readonly ObjectPool<DeferredWorkState> _statePool;
+    private readonly ObjectPool<DeferredWorkState> _pool;
     private int _disposed;
 
-    public DeferredWorkStateOwner(DeferredWorkState state, ObjectPool<DeferredWorkState> statePool)
+    public DeferredWorkStateOwner( ObjectPool<DeferredWorkState> pool)
     {
-        State = state ?? throw new ArgumentNullException(nameof(state));
-        _statePool = statePool ?? throw new ArgumentNullException(nameof(statePool));
+        _pool = pool ?? throw new ArgumentNullException(nameof(pool));
+        State = pool.Get();
     }
 
     public DeferredWorkState State { get; }
@@ -21,7 +21,7 @@ internal sealed class DeferredWorkStateOwner : IDisposable
     {
         if (_disposed == 0 && Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
         {
-            _statePool.Return(State);
+            _pool.Return(State);
         }
     }
 }
