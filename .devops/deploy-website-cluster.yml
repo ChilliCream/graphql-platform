@@ -43,3 +43,12 @@ steps:
       command: "buildAndPush"
       Dockerfile: ".docker/website/dockerfile"
       buildContext: "."
+
+  - task: AzureRmWebAppDeployment@4
+    inputs:
+      ConnectionType: 'AzureRM'
+      azureSubscription: 'ccc-p-us1'
+      appType: 'webAppContainer'
+      WebAppName: 'ccc-p-us1-website'
+      DockerNamespace: '$(container-registry)'
+      DockerRepository: 'ccc-website-$(Build.SourceBranchName)'
