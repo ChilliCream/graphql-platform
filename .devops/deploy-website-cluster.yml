@@ -50,6 +50,6 @@ steps:
       azureSubscription: 'ccc-p-us1'
       appType: 'webAppContainer'
       WebAppName: 'ccc-p-us1-website'
-      DockerNamespace: '$(container-registry)'
+      DockerNamespace: '$(container-registry-domain)'
       DockerRepository: 'ccc-website-$(Build.SourceBranchName)'
       DockerImageTag: '$(Build.BuildId)'
