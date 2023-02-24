@@ -1,5 +1,3 @@
-using HotChocolate.Skimmed;
-
 namespace HotChocolate.Fusion.Composition;
 
 public sealed class FusionGraphComposer
@@ -13,7 +11,9 @@ public sealed class FusionGraphComposer
                 .Use<ParseSubGraphSchemaMiddleware>()
                 .Use<ApplyRenameDirectiveMiddleware>()
                 .Use<ApplyRemoveDirectiveMiddleware>()
-                .Use(() => new EnrichObjectTypesMiddleware(enrichers))
+                .Use(() => new EnrichEntityMiddleware(enrichers))
+                .Use<PrepareFusionSchemaMiddleware>()
+                .Use<MergeEntityMiddleware>()
                 .Build();
     }
 

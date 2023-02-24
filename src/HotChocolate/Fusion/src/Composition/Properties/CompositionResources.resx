@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -20,5 +20,14 @@
   </resheader>
   <data name="LogEntryHelper_RemoveMemberNotFound" xml:space="preserve">
     <value>Could not remove the type system member `{0}` as it was not found.</value>
+  </data>
+  <data name="LogEntryHelper_DirectiveArgumentMissing" xml:space="preserve">
+    <value>The argument `{0}` is required for directive `@{1}`.</value>
+  </data>
+  <data name="LogEntryHelper_DirectiveArgumentValueInvalid" xml:space="preserve">
+    <value>The value of the argument `{0}` of the `@{1}` directive is invalid.</value>
+  </data>
+  <data name="LogEntryHelper_RenameMemberNotFound" xml:space="preserve">
+    <value>Could not rename the type system member `{0}` as it was not found.</value>
   </data>
 </root>

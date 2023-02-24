@@ -2,11 +2,11 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition;
 
-public sealed class EnrichObjectTypesMiddleware : IMergeMiddleware
+public sealed class EnrichEntityMiddleware : IMergeMiddleware
 {
     private readonly IEntityEnricher[] _enrichers;
 
-    public EnrichObjectTypesMiddleware(IEnumerable<IEntityEnricher> enrichers)
+    public EnrichEntityMiddleware(IEnumerable<IEntityEnricher> enrichers)
     {
         if (enrichers is null)
         {

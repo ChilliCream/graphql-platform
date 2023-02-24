@@ -50,5 +50,23 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RemoveMemberNotFound", resourceCulture);
             }
         }
+        
+        internal static string LogEntryHelper_DirectiveArgumentMissing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveArgumentMissing", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_DirectiveArgumentValueInvalid {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveArgumentValueInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_RenameMemberNotFound {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RenameMemberNotFound", resourceCulture);
+            }
+        }
     }
 }

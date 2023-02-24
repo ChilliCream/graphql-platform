@@ -12,9 +12,11 @@ internal static class DirectivesHelper
     public const string BindDirectiveName = "bind";
     public const string RefDirectiveName = "ref";
     public const string RemoveDirectiveName = "remove";
+    public const string RenameDirectiveName = "rename";
     public const string ToArg = "to";
     public const string AsArg = "as";
     public const string CoordinateArg = "coordinate";
+    public const string NewNameArg = "newName";
     public const string FieldArg = "field";
 
     public static string GetOriginalName<T>(this T member) where T : IHasName, IHasDirectives
@@ -62,8 +64,6 @@ internal static class DirectivesHelper
                         new Argument(AsArg, originalName)));
             }
         }
-
-
     }
 
     public static void RegisterBindDirective(this Schema schema)
@@ -92,12 +92,14 @@ internal static class DirectivesHelper
         var directive = member.Directives[RefDirectiveName].First();
 
         var arg = directive.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(CoordinateArg));
+
         if (arg is { Value: StringValueNode coordinate })
         {
             return new RefDirective(SchemaCoordinate.Parse(coordinate.Value));
         }
 
         arg = directive.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(FieldArg));
+
         if (arg is { Value: StringValueNode field })
         {
             return new RefDirective(Utf8GraphQLParser.Syntax.ParseField(field.Value));
@@ -105,20 +107,5 @@ internal static class DirectivesHelper
 
         throw new InvalidOperationException(
             "The ref argument must have a value for coordinate or field.");
-    }
-
-    public static IEnumerable<RemoveDirective> GetRemoveDirectives(this IHasDirectives member)
-    {
-        foreach (var directive in member.Directives[RemoveDirectiveName])
-        {
-            if (!directive.Arguments.TryGetValue("coordinate", out var value) ||
-                value is not StringValueNode coordinateValue)
-            {
-                throw new InvalidOperationException(
-                    "The remove directive must have a value for coordinate.");
-            }
-
-            yield return new RemoveDirective(SchemaCoordinate.Parse(coordinateValue.Value));
-        }
     }
 }

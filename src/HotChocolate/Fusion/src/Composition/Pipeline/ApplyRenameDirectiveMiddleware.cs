@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Composition.DirectivesHelper;
+using static HotChocolate.Fusion.Composition.LogEntryHelper;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -10,34 +11,56 @@ public sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
     {
         foreach (var schema in context.SubGraphs)
         {
-            foreach (var directive in schema.Directives["rename"])
+            foreach (var directive in schema.GetRenameDirectives(context))
             {
-                var coordinateArg = directive.Arguments.FirstOrDefault(
-                    t => t.Name.EqualsOrdinal("coordinate"));
-
-                var toArg = directive.Arguments.FirstOrDefault(
-                    t => t.Name.EqualsOrdinal("to"));
-
-                if (coordinateArg?.Value is not StringValueNode coordinate)
+                if (!schema.RenameMember(directive.Coordinate, directive.NewName))
                 {
-                    // TODO : FIX IT
-                    throw new Exception("");
-                }
-
-                if (toArg?.Value is not StringValueNode to)
-                {
-                    // TODO : FIX IT
-                    throw new Exception("");
-                }
-
-                if (!schema.RenameMember(SchemaCoordinate.Parse(coordinate.Value), to.Value))
-                {
-                    // TODO : FIX IT
-                    throw new Exception("");
+                    context.Log.Warning(RenameMemberNotFound(directive.Coordinate, schema));
                 }
             }
         }
 
-        await next(context).ConfigureAwait(false);
+        if (!context.Log.HasErrors)
+        {
+            await next(context).ConfigureAwait(false);
+        }
+    }
+}
+
+static file class ApplyRenameDirectiveMiddlewareExtensions
+{
+    public static IEnumerable<RenameDirective> GetRenameDirectives(
+        this Schema schema,
+        CompositionContext context)
+    {
+        foreach (var directive in schema.Directives[RenameDirectiveName])
+        {
+            if (!directive.Arguments.TryGetValue(CoordinateArg, out var argumentValue))
+            {
+                context.Log.Error(DirectiveArgumentMissing(CoordinateArg, directive, schema));
+                continue;
+            }
+
+            if (argumentValue is not StringValueNode coordinateValue ||
+                !SchemaCoordinate.TryParse(coordinateValue.Value, out var coordinate))
+            {
+                context.Log.Error(DirectiveArgumentValueInvalid(CoordinateArg, directive, schema));
+                continue;
+            }
+
+            if (!directive.Arguments.TryGetValue(NewNameArg, out argumentValue))
+            {
+                context.Log.Error(DirectiveArgumentMissing(NewNameArg, directive, schema));
+                continue;
+            }
+
+            if (argumentValue is not StringValueNode { Value: { Length: > 0 } newName })
+            {
+                context.Log.Error(DirectiveArgumentValueInvalid(NewNameArg, directive, schema));
+                continue;
+            }
+
+            yield return new RenameDirective(coordinate.Value,newName);
+        }
     }
 }

@@ -288,7 +288,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitArguments(
-            IReadOnlyList<Argument> arguments,
+            ArgumentCollection arguments,
             VisitorContext context)
         {
             var argumentNodes = new List<ArgumentNode>();

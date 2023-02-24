@@ -119,7 +119,7 @@ public abstract class SchemaVisitor<TContext>
         VisitArguments(directive.Arguments, context);
     }
 
-    public virtual void VisitArguments(IReadOnlyList<Argument> arguments, TContext context)
+    public virtual void VisitArguments(ArgumentCollection arguments, TContext context)
     {
         foreach (var argument in arguments)
         {

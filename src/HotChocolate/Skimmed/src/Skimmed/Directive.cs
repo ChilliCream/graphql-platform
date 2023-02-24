@@ -1,6 +1,6 @@
 namespace HotChocolate.Skimmed;
 
-public sealed class Directive
+public sealed class Directive : ITypeSystemMember
 {
     public Directive(DirectiveType type, params Argument[] arguments)
         : this(type, (IReadOnlyList<Argument>)arguments)
