@@ -1,29 +1,6 @@
-using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Composition;
-
-public sealed class EntityMetadata
-{
-    public List<EntityResolver> EntityResolvers { get; } = new();
-
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-
-        foreach (var resolver in EntityResolvers)
-        {
-            if (sb.Length > 0)
-            {
-                sb.AppendLine();
-            }
-
-            sb.AppendLine(resolver.ToString());
-        }
-
-        return sb.ToString();
-    }
-}
 
 public sealed class EntityResolver
 {
@@ -77,8 +54,3 @@ public sealed class EntityResolver
         }
     }
 }
-
-public sealed record VariableDefinition(
-    string Name,
-    FieldNode Field,
-    VariableDefinitionNode Definition);

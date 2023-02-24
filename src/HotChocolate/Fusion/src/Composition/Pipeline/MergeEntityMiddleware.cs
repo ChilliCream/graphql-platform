@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Composition;
 
 public class MergeEntityMiddleware : IMergeMiddleware
 {
-    public ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
+    public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         foreach (var entity in context.Entities)
         {
@@ -17,7 +17,10 @@ public class MergeEntityMiddleware : IMergeMiddleware
             }
         }
 
-        return default;
+        if (!context.Log.HasErrors)
+        {
+            await next(context);
+        }
     }
 }
 

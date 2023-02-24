@@ -14,6 +14,7 @@ public sealed class FusionGraphComposer
                 .Use(() => new EnrichEntityMiddleware(enrichers))
                 .Use<PrepareFusionSchemaMiddleware>()
                 .Use<MergeEntityMiddleware>()
+                .Use<MergeTypeMiddleware>()
                 .Build();
     }
 

@@ -8,10 +8,10 @@ public sealed class RefResolverEntityEnricher : IEntityEnricher
 {
     public ValueTask EnrichAsync(
         CompositionContext context,
-        EntityGroup typeGroup,
+        EntityGroup entity,
         CancellationToken cancellationToken = default)
     {
-        foreach (var (type, schema) in typeGroup.Parts)
+        foreach (var (type, schema) in entity.Parts)
         {
             if (schema.QueryType is not null)
             {
@@ -43,7 +43,7 @@ public sealed class RefResolverEntityEnricher : IEntityEnricher
                             resolver.Variables.Add(var, arg.CreateVariableField(directive, var));
                         }
 
-                        typeGroup.Metadata.EntityResolvers.Add(resolver);
+                        entity.Metadata.EntityResolvers.Add(resolver);
                     }
                 }
             }
