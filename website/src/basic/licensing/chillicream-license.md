@@ -1,17 +1,20 @@
-# ChilliCream License 1.0
+---
+title: "ChilliCream License 1.0"
+description: "This is the license we use for our proprietary software like Banana Cake Pop."
+---
 
-## Acceptance
+# Acceptance
 
 By using the software, you agree to all of the terms and conditions below.
 
-## Copyright License
+# Copyright License
 
 The licensor grants you a non-exclusive, royalty-free, worldwide,
 non-sublicensable, non-transferable license to use, copy, distribute, make
 available, and prepare derivative works of the software, in each case subject to
 the limitations and conditions below.
 
-## Limitations
+# Limitations
 
 You may not move, change, disable, or circumvent the license key functionality
 in the software, and you may not remove or obscure any functionality in the
@@ -34,7 +37,7 @@ the software granted under these terms ends immediately. If your company makes
 such a claim, your patent license ends immediately for work on behalf of your
 company.
 
-## Notices
+# Notices
 
 You must ensure that anyone who gets a copy of any part of the software from you
 also gets a copy of these terms.
@@ -42,12 +45,12 @@ also gets a copy of these terms.
 If you modify the software, you must include in any modified copies of the
 software prominent notices stating that you have modified the software.
 
-## No Other Rights
+# No Other Rights
 
 These terms do not imply any licenses other than those expressly granted in
 these terms.
 
-## Termination
+# Termination
 
 If you use the software in violation of these terms, such use is not licensed,
 and your licenses will automatically terminate. If the licensor provides you
@@ -57,14 +60,14 @@ reinstated retroactively. However, if you violate these terms after such
 reinstatement, any additional violation of these terms will cause your licenses
 to terminate automatically and permanently.
 
-## No Liability
+# No Liability
 
 _As far as the law allows, the software comes as is, without any warranty or
 condition, and the licensor will not be liable to you for any damages arising
 out of these terms or the use or nature of the software, under any kind of
 legal claim._
 
-## Definitions
+# Definitions
 
 The **licensor** is the entity offering these terms, and the **software** is the
 software the licensor makes available under these terms, including any portion

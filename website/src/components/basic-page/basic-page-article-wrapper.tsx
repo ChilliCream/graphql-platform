@@ -2,7 +2,7 @@ import React, { createRef, FC, ReactNode, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
 
-import { DocPageDesktopGridColumns, IsSmallDesktop } from "@/shared-style";
+import { BasicPageDesktopGridColumns, IsSmallDesktop } from "@/shared-style";
 import { setArticleHeight } from "@/state/common";
 
 export interface ArticleWrapperProps {
@@ -39,7 +39,7 @@ export const ArticleWrapper: FC<ArticleWrapperProps> = ({ children }) => {
 
 export const ArticleWrapperElement = styled.div`
   display: grid;
-  ${DocPageDesktopGridColumns};
+  ${BasicPageDesktopGridColumns};
   ${IsSmallDesktop(`
     grid-template-columns: 1fr;
   `)}
