@@ -1,29 +1,23 @@
-using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Composition.LogEntryHelper;
 
 namespace HotChocolate.Fusion.Composition;
 
+/// <summary>
+/// This composition middleware will apply the @remove directives to the
+/// schema and remove type system member that are not wanted in the fusion schema.
+/// </summary>
 public sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         foreach (var schema in context.SubGraphs)
         {
-            foreach (var directive in schema.Directives["remove"])
+            foreach (var directive in schema.GetRemoveDirectives())
             {
-                var coordinate = directive.Arguments.FirstOrDefault(
-                    t => t.Name.EqualsOrdinal("coordinate"));
-
-                if (coordinate?.Value is not StringValueNode coordinateValue)
+                if (!schema.RemoveMember(directive.Coordinate))
                 {
-                    // TODO : FIX IT
-                    throw new Exception("");
-                }
-
-                if (!schema.RemoveMember(SchemaCoordinate.Parse(coordinateValue.Value)))
-                {
-                    context.ReportWarning($"Could not remove `{coordinateValue.Value}` as this type system member was not found.");
+                    context.Log.Warning(RemoveMemberNotFound(directive.Coordinate, schema));
                 }
             }
         }

@@ -111,7 +111,14 @@ internal static class DirectivesHelper
     {
         foreach (var directive in member.Directives[RemoveDirectiveName])
         {
-            
+            if (!directive.Arguments.TryGetValue("coordinate", out var value) ||
+                value is not StringValueNode coordinateValue)
+            {
+                throw new InvalidOperationException(
+                    "The remove directive must have a value for coordinate.");
+            }
+
+            yield return new RemoveDirective(SchemaCoordinate.Parse(coordinateValue.Value));
         }
     }
 }

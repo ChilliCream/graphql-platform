@@ -38,17 +38,88 @@ public sealed class CompositionContext
 
     public CancellationToken Abort { get; set; }
 
-    public ICompositionLog Log { get; }
+    public ICompositionLog Log { get; } = new CompositionLog();
+}
+
+public class CompositionLog : ICompositionLog
+{
+    public bool HasErrors { get; }
+
+    public void Info(LogEntry entry)
+    {
+    }
+
+    public void Info(
+        string message,
+        string? code = null,
+        ITypeSystemMember? member = null,
+        Exception? exception = null)
+    {
+    }
+
+    public void Warning(LogEntry entry)
+    {
+    }
+
+    public void Warning(
+        string message,
+        string? code = null,
+        ITypeSystemMember? member = null,
+        Exception? exception = null)
+    {
+    }
+
+    public void Error(LogEntry entry)
+    {
+    }
+
+    public void Error(
+        string message,
+        string? code = null,
+        ITypeSystemMember? member = null,
+        Exception? exception = null)
+    {
+    }
 }
 
 public interface ICompositionLog
 {
     bool HasErrors { get; }
 
-    void Info(string message, string code, ITypeSystemMember? member,  Exception? exception = null);
-    void Warning(string message, string code, ITypeSystemMember? member,  Exception? exception = null);
-    void Error(string message, string code, ITypeSystemMember? member,  Exception? exception = null);
+    void Info(LogEntry entry);
+
+    void Info(
+        string message,
+        string? code = null,
+        SchemaCoordinate? coordinate = null,
+        ITypeSystemMember? member = null,
+        Exception? exception = null);
+
+    void Warning(LogEntry entry);
+
+    void Warning(
+        string message,
+        string? code = null,
+        SchemaCoordinate? coordinate = null,
+        ITypeSystemMember? member = null,
+        Exception? exception = null);
+
+    void Error(LogEntry entry);
+
+    void Error(
+        string message,
+        string? code = null,
+        SchemaCoordinate? coordinate = null,
+        ITypeSystemMember? member = null,
+        Exception? exception = null);
 }
+
+public sealed record LogEntry(
+    string Message,
+    string? Code = null,
+    SchemaCoordinate? Coordinate = null,
+    ITypeSystemMember? Member = null,
+    Exception? Exception = null);
 
 public sealed class PreProcess
 {
