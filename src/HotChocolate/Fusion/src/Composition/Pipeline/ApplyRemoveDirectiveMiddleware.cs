@@ -23,8 +23,7 @@ public sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
 
                 if (!schema.RemoveMember(SchemaCoordinate.Parse(coordinateValue.Value)))
                 {
-                    // TODO : FIX IT
-                    throw new Exception("");
+                    context.ReportWarning($"Could not remove `{coordinateValue.Value}` as this type system member was not found.");
                 }
             }
         }

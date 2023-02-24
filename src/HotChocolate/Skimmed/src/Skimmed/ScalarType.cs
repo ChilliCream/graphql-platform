@@ -21,6 +21,8 @@ public sealed class ScalarType : INamedType
 
     public string? Description { get; set; }
 
+    public bool IsSpecScalar { get; set; }
+
     public DirectiveCollection Directives { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();

@@ -38,11 +38,11 @@ public static class Refactor
 
         if (coordinate.OfDirective)
         {
-            if (schema.DirectivesTypes.TryGetDirective(coordinate.Name, out var directive))
+            if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
-                    schema.DirectivesTypes.Remove(directive);
+                    schema.DirectiveTypes.Remove(directive);
 
                     var rewriter = new RemoveDirectiveRewriter();
                     rewriter.VisitSchema(schema, directive);

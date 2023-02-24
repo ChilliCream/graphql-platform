@@ -49,11 +49,11 @@ public class Class1
             directive @remove(coordinate: String!) on SCHEMA
             """;
 
-        var composer = new FusionGraphComposer(Array.Empty<IObjectTypeMetaDataEnricher>());
-        var graph = await composer.ComposeAsync(new SubGraphConfiguration("Abc", sdl));
+        var composer = new FusionGraphComposer(Array.Empty<IEntityEnricher>());
+        var context = await composer.ComposeAsync(new SubGraphConfiguration("Abc", sdl));
 
         SchemaFormatter
-            .FormatAsString(graph)
+            .FormatAsString(context.FusionGraph)
             .MatchInlineSnapshot(
                 """
                 type Query {

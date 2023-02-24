@@ -6,21 +6,22 @@ public sealed class FusionGraphComposer
 {
     private readonly MergeDelegate _pipeline;
 
-    public FusionGraphComposer(IEnumerable<IObjectTypeMetaDataEnricher> enrichers)
+    public FusionGraphComposer(IEnumerable<IEntityEnricher> enrichers)
     {
         _pipeline =
             MergePipelineBuilder.New()
                 .Use<ParseSubGraphSchemaMiddleware>()
-                .Use<ApplyRemoveDirectiveMiddleware>()
+                .Use<ApplyRenameDirectiveMiddleware>()
                 .Use<ApplyRemoveDirectiveMiddleware>()
                 .Use(() => new EnrichObjectTypesMiddleware(enrichers))
                 .Build();
     }
 
-    public async ValueTask<Schema> ComposeAsync(params SubGraphConfiguration[] configurations)
+    public async ValueTask<CompositionContext> ComposeAsync(
+        params SubGraphConfiguration[] configurations)
     {
         var context = new CompositionContext(configurations);
         await _pipeline(context);
-        return context.FusionGraph;
+        return context;
     }
 }

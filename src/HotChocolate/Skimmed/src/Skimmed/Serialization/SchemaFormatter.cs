@@ -22,7 +22,7 @@ public static class SchemaFormatter
             VisitTypes(schema.Types, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
-            VisitDirectiveTypes(schema.DirectivesTypes, context);
+            VisitDirectiveTypes(schema.DirectiveTypes, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
             context.Result = new DocumentNode(definitions);
@@ -32,8 +32,13 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            foreach (var type in types)
+            foreach (var type in types.OrderBy(t => t.Name))
             {
+                if (type is ScalarType { IsSpecScalar: true })
+                {
+                    continue;
+                }
+
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
@@ -47,7 +52,7 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            foreach (var type in directiveTypes)
+            foreach (var type in directiveTypes.OrderBy(t => t.Name))
             {
                 VisitDirectiveType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -202,7 +207,7 @@ public static class SchemaFormatter
         {
             var fieldNodes = new List<FieldDefinitionNode>();
 
-            foreach (var field in fields)
+            foreach (var field in fields.OrderBy(t => t.Name))
             {
                 VisitOutputField(field, context);
                 fieldNodes.Add((FieldDefinitionNode)context.Result!);
@@ -236,7 +241,7 @@ public static class SchemaFormatter
         {
             var inputNodes = new List<InputValueDefinitionNode>();
 
-            foreach (var field in fields)
+            foreach (var field in fields.OrderBy(t => t.Name))
             {
                 VisitInputField(field, context);
                 inputNodes.Add((InputValueDefinitionNode)context.Result!);
@@ -288,7 +293,7 @@ public static class SchemaFormatter
         {
             var argumentNodes = new List<ArgumentNode>();
 
-            foreach (var argument in arguments)
+            foreach (var argument in arguments.OrderBy(t => t.Name))
             {
                 VisitArgument(argument, context);
                 argumentNodes.Add((ArgumentNode)context.Result!);

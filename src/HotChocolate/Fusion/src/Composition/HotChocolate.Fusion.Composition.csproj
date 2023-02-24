@@ -10,5 +10,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Nanoid" Version="2.1.0" />
+  </ItemGroup>
 
 </Project>

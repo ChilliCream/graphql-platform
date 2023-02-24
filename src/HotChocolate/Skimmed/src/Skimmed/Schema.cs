@@ -16,7 +16,7 @@ public sealed class Schema : IHasDirectives
 
     public TypeCollection Types { get; } = new();
 
-    public DirectiveTypeCollection DirectivesTypes { get; } = new();
+    public DirectiveTypeCollection DirectiveTypes { get; } = new();
 
     public DirectiveCollection Directives { get; } = new();
 
@@ -67,7 +67,7 @@ public sealed class Schema : IHasDirectives
     {
         if (coordinate.OfDirective)
         {
-            if (DirectivesTypes.TryGetDirective(coordinate.Name, out var directive))
+            if (DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {

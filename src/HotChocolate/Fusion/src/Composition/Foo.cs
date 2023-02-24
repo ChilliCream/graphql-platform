@@ -32,11 +32,22 @@ public sealed class CompositionContext
 
     public List<Schema> SubGraphs { get; } = new();
 
-    public List<ObjectTypeGroup> ObjectTypes { get; } = new();
+    public List<EntityGroup> Entities { get; } = new();
 
     public Schema FusionGraph { get; } = new();
 
     public CancellationToken Abort { get; set; }
+
+    public ICompositionLog Log { get; }
+}
+
+public interface ICompositionLog
+{
+    bool HasErrors { get; }
+
+    void Info(string message, string code, ITypeSystemMember? member,  Exception? exception = null);
+    void Warning(string message, string code, ITypeSystemMember? member,  Exception? exception = null);
+    void Error(string message, string code, ITypeSystemMember? member,  Exception? exception = null);
 }
 
 public sealed class PreProcess
