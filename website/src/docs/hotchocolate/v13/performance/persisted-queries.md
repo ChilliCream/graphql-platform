@@ -22,7 +22,7 @@ Extracting queries is supported by client libraries like [Relay](https://relay.d
 
 # Benefits
 
-<!-- There are two main benefits to using persisted queries: -->
+There are two main benefits to using persisted queries:
 
 **Performance**
 
@@ -30,9 +30,9 @@ Extracting queries is supported by client libraries like [Relay](https://relay.d
 - Queries no longer need to be embedded into the client code, reducing the bundle size in the case of websites.
 - Hot Chocolate can optimize the execution of persisted queries, as they will always be the same.
 
-<!-- **Security**
+**Security**
 
-The server can be tweaked to [only accept persisted queries](#blocking-regular-queries) and refuse queries created by a client at runtime. This is useful mainly for public APIs. -->
+The server can be tweaked to [only execute persisted queries](#blocking-regular-queries) and refuse any other queries provided by a client. This gets rid of a whole suite of potential attack vectors, since malicious actors can no longer craft and execute harmful queries against your GraphQL server.
 
 # Usage
 
@@ -130,6 +130,47 @@ AddSha256DocumentHashProvider(HashFormat.Base64)
 ```
 
 > Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm - no additional Hot Chocolate configuration is required.
+
+## Blocking regular queries
+
+If you want to disallow any dynamic queries, you can enable `OnlyAllowPersistedQueries`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    // Omitted for brevity
+    .ModifyRequestOptions(o => o.OnlyAllowPersistedQueries = true);
+```
+
+This will block any dynamic queries that do not contain the `id` of a persisted query.
+
+You might still want to allow the execution of dynamic queries in certain circumstances.You can override the `OnlyAllowPersistedQueries` rule on a per-request basis, using the `AllowNonPersistedQuery` method on the `IQueryRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v13/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedQuery` if a certain condition is met:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    // Omitted for brevity
+    .AddHttpRequestInterceptor<CustomHttpRequestInterceptor>()
+    .ModifyRequestOptions(o => o.OnlyAllowPersistedQueries = true);
+
+public class CustomHttpRequestInterceptor : DefaultHttpRequestInterceptor
+{
+    public override ValueTask OnCreateAsync(HttpContext context,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
+    {
+        if (context.Request.Headers.ContainsKey("X-Developer"))
+        {
+            requestBuilder.AllowNonPersistedQuery();
+        }
+
+        return base.OnCreateAsync(context, requestExecutor, requestBuilder,
+            cancellationToken);
+    }
+}
+```
+
+In the above example we would allow requests containing the `X-Developer` header to execute dynamic queries. This isn't particularly secure, but in your production application you could replace this check with an authorization policy, an API key or whatever fits your requirement.
 
 # Client expectations
 
