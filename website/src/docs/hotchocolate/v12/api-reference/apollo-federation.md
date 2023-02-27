@@ -52,7 +52,7 @@ public class Product
 ```
 
 ## Define a reference resolver
-Next, we'll need to [define an entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) so that the supergraph can resolve data across multiple graphs during a query. A reference resolver is similar to many other [data resolvers in Hot Chocolate](docs/hotchocolate/v12/fetching-data/resolvers) with some key requirements:
+Next, we'll need to define an [entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) so that the supergraph can resolve this entity across multiple subgraphs during a query. Every subgraph that contributes at least one unique field to an entity must define a reference resolver for that entity. A reference resolver works like a [regular resolver](docs/hotchocolate/v12/fetching-data/resolvers) with some key differences:
 1. It must be a `public static` method within the type it is resolving
 1. It must be annotated with the `[ReferenceResolver]` attribute
 ```csharp
