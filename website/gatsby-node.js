@@ -8,6 +8,20 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 
   const result = await graphql(`
     {
+      basic: allFile(
+        limit: 1000
+        filter: { sourceInstanceName: { eq: "basic" }, extension: { eq: "md" } }
+      ) {
+        pages: nodes {
+          name
+          relativeDirectory
+          childMdx {
+            fields {
+              slug
+            }
+          }
+        }
+      }
       blog: allMdx(
         limit: 1000
         filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
@@ -54,12 +68,11 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     return;
   }
 
+  createBasicPages(createPage, result.data.basic);
   createBlogArticles(createPage, result.data.blog);
+  createDocPages(createPage, result.data.docs);
 
   const products = result.data.productsConfig.products;
-
-  createDocPages(createPage, result.data.docs, products);
-
   const latestHcVersion = products?.find(
     (product) => product?.path === "hotchocolate"
   )?.latestStableVersion;
@@ -151,29 +164,40 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
   });
 };
 
-function createBlogArticles(createPage, data) {
-  const blogArticleTemplate = path.resolve(
-    `src/templates/blog-article-template.tsx`
-  );
-  const { posts, tags } = data;
+function createBasicPages(createPage, data) {
+  const component = path.resolve(`src/templates/basic-page-template.tsx`);
 
+  data.pages.forEach((page) => {
+    createPage({
+      path: page.childMdx.fields.slug,
+      component,
+      context: {
+        originPath: `${page.relativeDirectory}/${page.name}.md`,
+      },
+    });
+  });
+}
+
+function createBlogArticles(createPage, data) {
   // Create Single Pages
-  posts.forEach((post) => {
+  let component = path.resolve(`src/templates/blog-article-template.tsx`);
+
+  data.posts.forEach((post) => {
     createPage({
       path: post.fields.slug,
-      component: blogArticleTemplate,
+      component,
       context: {},
     });
   });
 
   // Create List Pages
   const postsPerPage = 20;
-  const numPages = Math.ceil(posts.length / postsPerPage);
+  const numPages = Math.ceil(data.posts.length / postsPerPage);
 
   Array.from({ length: numPages }).forEach((_, i) => {
     createPage({
       path: i === 0 ? `/blog` : `/blog/${i + 1}`,
-      component: path.resolve("./src/templates/blog-articles-template.tsx"),
+      component: path.resolve(`src/templates/blog-articles-template.tsx`),
       context: {
         limit: postsPerPage,
         skip: i * postsPerPage,
@@ -184,12 +208,11 @@ function createBlogArticles(createPage, data) {
   });
 
   // Create Tag Pages
-  const tagTemplate = path.resolve(`src/templates/blog-tag-template.tsx`);
-
-  tags.forEach((tag) => {
+  component = path.resolve(`src/templates/blog-tag-template.tsx`);
+  data.tags.forEach((tag) => {
     createPage({
       path: `/blog/tags/${tag.fieldValue}`,
-      component: tagTemplate,
+      component,
       context: {
         tag: tag.fieldValue,
       },
@@ -197,18 +220,17 @@ function createBlogArticles(createPage, data) {
   });
 }
 
-function createDocPages(createPage, data, products) {
-  const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
-  const { pages } = data;
+function createDocPages(createPage, data) {
+  const component = path.resolve(`src/templates/doc-page-template.tsx`);
 
   // Create Single Pages
-  pages.forEach((page) => {
-    const slug = page.childMdx.fields.slug;
+  data.pages.forEach((page) => {
+    const path = page.childMdx.fields.slug;
     const originPath = `${page.relativeDirectory}/${page.name}.md`;
 
     createPage({
-      path: slug,
-      component: docTemplate,
+      path,
+      component,
       context: {
         originPath,
       },

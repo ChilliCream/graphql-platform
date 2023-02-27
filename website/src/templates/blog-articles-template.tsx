@@ -7,8 +7,8 @@ import { BlogArticles } from "@/components/widgets";
 import { GetBlogArticlesQuery } from "@/graphql-types";
 
 interface BlogArticlesTemplateProps {
-  pageContext: BlogArticlesTemplatePageContext;
-  data: GetBlogArticlesQuery;
+  readonly data: GetBlogArticlesQuery;
+  readonly pageContext: BlogArticlesTemplatePageContext;
 }
 
 const BlogArticlesTemplate: FC<BlogArticlesTemplateProps> = ({
@@ -43,8 +43,8 @@ export const pageQuery = graphql`
 `;
 
 export interface BlogArticlesTemplatePageContext {
-  limit: number;
-  skip: number;
-  numPages: number;
-  currentPage: number;
+  readonly limit: number;
+  readonly skip: number;
+  readonly numPages: number;
+  readonly currentPage: number;
 }

@@ -5,14 +5,14 @@ import styled from "styled-components";
 import { BoxShadow, IsSmallDesktop } from "@/shared-style";
 import { State } from "@/state";
 import { toggleAside } from "@/state/common";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
-import { DocPageStickySideBarStyle } from "./doc-page-styles";
+import { BasicPagePaneHeader } from "./basic-page-pane-header";
+import { BasicPageStickySideBarStyle } from "./basic-page-styles";
 
-export interface DocPageAsideProps {
+export interface BasicPageAsideProps {
   readonly children: ReactNode;
 }
 
-export const DocPageAside: FC<DocPageAsideProps> = ({ children }) => {
+export const BasicPageAside: FC<BasicPageAsideProps> = ({ children }) => {
   const showAside = useSelector<State, boolean>(
     (state) => state.common.showAside
   );
@@ -29,7 +29,7 @@ export const DocPageAside: FC<DocPageAsideProps> = ({ children }) => {
 
   return (
     <Aside height={height} show={showAside}>
-      <DocPagePaneHeader
+      <BasicPagePaneHeader
         title="About this article"
         showWhenScreenWidthIsSmallerThan={1280}
         onClose={handleCloseAside}
@@ -45,7 +45,7 @@ export interface AsideProps {
 }
 
 export const Aside = styled.aside<AsideProps>`
-  ${DocPageStickySideBarStyle}
+  ${BasicPageStickySideBarStyle}
 
   margin-left: 0;
   transition: transform 250ms;

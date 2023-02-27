@@ -199,7 +199,7 @@ public static class EndpointRouteBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
     /// </exception>
-    public static IEndpointConventionBuilder MapGraphQLWebSocket(
+    public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
         string pattern = _graphQLWebSocketPath,
         string? schemaName = default)
@@ -224,7 +224,7 @@ public static class EndpointRouteBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
     /// </exception>
-    public static IEndpointConventionBuilder MapGraphQLWebSocket(
+    public static WebSocketEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern pattern,
         string? schemaName = default)
@@ -251,10 +251,12 @@ public static class EndpointRouteBuilderExtensions
                 return Task.CompletedTask;
             });
 
-        return new GraphQLEndpointConventionBuilder(
+        var builder = new GraphQLEndpointConventionBuilder(
             endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
                 .WithDisplayName("Hot Chocolate GraphQL WebSocket Pipeline"));
+
+        return new WebSocketEndpointConventionBuilder(builder);
     }
 
     /// <summary>
