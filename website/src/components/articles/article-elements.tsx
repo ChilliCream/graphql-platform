@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { IsSmallDesktop } from "@/shared-style";
 
 export interface ArticleHeaderProps {
-  readonly kind: "blog" | "doc";
+  readonly kind: "basic" | "blog" | "doc";
 }
 
 export const ArticleHeader = styled.header<ArticleHeaderProps>`
@@ -144,4 +144,9 @@ export const ArticleContent = styled.div`
       }
     }
   }
+`;
+
+export const ScrollContainer = styled.div`
+  overflow-y: auto;
+  padding-bottom: 10px;
 `;

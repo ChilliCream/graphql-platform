@@ -21,7 +21,9 @@ export const DocPagePaneHeader: FC<DocPagePaneHeaderProps> = ({
   </Header>
 );
 
-const Header = styled.header<{ showWhenScreenWidthIsSmallerThan: number }>`
+const Header = styled.header<{
+  readonly showWhenScreenWidthIsSmallerThan: number;
+}>`
   display: flex;
   flex-direction: row;
   align-items: center;
