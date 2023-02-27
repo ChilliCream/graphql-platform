@@ -43,7 +43,8 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithInputStruct>()
             .Create()
-            .Print();
+            .Print()
+            .MatchSnapshot();
     }
 
     public class QueryWithDateTime
