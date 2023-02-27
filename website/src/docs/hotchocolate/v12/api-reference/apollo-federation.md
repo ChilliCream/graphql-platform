@@ -139,7 +139,7 @@ _Example SDL response_
 }
 ```
 
-## Testing and executing your resolvers
+## Testing and executing your reference resolvers
 After creating an entity, you'll likely wonder "where is the query field to invoke and test this reference resolver?" The Hot Chocolate engine does the work behind the scenes to connect your `[ReferenceResolver]` method with the [auto-generated `_entites` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities), which serves as the entry point for _all_ entity reference resolvers.
 
 You'll invoke the query by providing an array of representations using a combination of a `__typename` and a `[Key]` field to invoke the appropriate resolver. An example query for our Product would look something like the following.
