@@ -14,9 +14,13 @@ name: "CodeQL"
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - "./website/**/*.md"
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ main ]
+    paths-ignore:
+      - "./website/**/*.md"
   schedule:
     - cron: '28 6 * * 6'
 
@@ -49,7 +53,7 @@ jobs:
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
-        
+
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v1.9.0
 
