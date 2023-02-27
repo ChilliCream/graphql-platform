@@ -179,7 +179,7 @@ _Entities query result_
 }
 ```
 
-> **Note**: The `_entities` query is an internal detail that is necessary for the supergraph to properly resolve data. API consumers **should not** use an `_entities` query directly, nor should they use a subgraph directly. We're highlighting how to use the `_entities` so that you have the knowledge to validate your API at runtime or using tools like [`Microsoft.AspNetCore.Mvc.Testing`](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-7.0).
+> **Note**: The `_entities` field is an internal implementation detail of Apollo Federation that is necessary for the supergraph to properly resolve entities. API consumers **should not** use the `_entities` field directly, nor should they issue requests to a subgraph directly. We're highlighting how to use the `_entities` field so that you can validate and test your subgraph at runtime or using tools like [`Microsoft.AspNetCore.Mvc.Testing`](https://learn.microsoft.com/aspnet/core/test/integration-tests).
 
 # Extending an entity type
 Now that we have an entity defined in one of our subgraphs, let's go ahead and create a second subgraph that extends our `Product` type with more fields and data. Remember, all of this work should be performed in a _**separate API project**_.
