@@ -1,5 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Skimmed.Serialization;
+using static HotChocolate.Fusion.Composition.ComposerFactory;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -71,8 +72,7 @@ public class FusionGraphComposerTests
             directive @ref(coordinate: String, field: String) on FIELD_DEFINITION
             """;
 
-        var composer = new FusionGraphComposer(
-            new[] { new RefResolverEntityEnricher() });
+        var composer = CreateComposer();
         var context = await composer.ComposeAsync(
             new SubGraphConfiguration("a", subGraphA),
             new SubGraphConfiguration("b", subGraphB));
@@ -82,7 +82,10 @@ public class FusionGraphComposerTests
             .MatchInlineSnapshot(
                 """
                 input ComplexInputType {
-
+                  deeper: ComplexInputType
+                  deeperArray: [ComplexInputType]
+                  value: String
+                  valueArray: [String]
                 }
 
                 type Customer {
@@ -97,6 +100,4 @@ public class FusionGraphComposerTests
                 scalar String
                 """);
     }
-
-
 }

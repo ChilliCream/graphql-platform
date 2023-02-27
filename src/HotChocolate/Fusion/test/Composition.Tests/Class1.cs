@@ -1,5 +1,6 @@
 ﻿using CookieCrumble;
 using HotChocolate.Skimmed.Serialization;
+using static HotChocolate.Fusion.Composition.ComposerFactory;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -49,7 +50,7 @@ public class Class1
             directive @remove(coordinate: String!) on SCHEMA
             """;
 
-        var composer = new FusionGraphComposer(Array.Empty<IEntityEnricher>());
+        var composer = CreateComposer();
         var context = await composer.ComposeAsync(new SubGraphConfiguration("Abc", sdl));
 
         SchemaFormatter

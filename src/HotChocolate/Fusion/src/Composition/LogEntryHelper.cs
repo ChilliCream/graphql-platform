@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Composition.Types;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 
@@ -48,6 +49,15 @@ internal static class LogEntryHelper
             LogEntryCodes.DirectiveArgumentValueInvalid,
             Member: directive,
             Schema: schema);
+
+    public static LogEntry UnableToMergeType(
+        TypeGroup typeGroup)
+        => new LogEntry(
+            string.Format(
+                LogEntryHelper_UnableToMergeType,
+                typeGroup.Name),
+            LogEntryCodes.DirectiveArgumentValueInvalid,
+            Extension: typeGroup);
 }
 
 public static class LogEntryCodes

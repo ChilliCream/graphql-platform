@@ -1,4 +1,5 @@
 using CookieCrumble;
+using static HotChocolate.Fusion.Composition.ComposerFactory;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -50,8 +51,7 @@ public class RefResolverEntityEnricherTests
             directive @ref(coordinate: String, field: String) on FIELD_DEFINITION
             """;
 
-        var composer = new FusionGraphComposer(
-            new[] { new RefResolverEntityEnricher() });
+        var composer = CreateComposer();
         var context = await composer.ComposeAsync(new SubGraphConfiguration("Abc", sdl));
 
         var snapshot = new Snapshot();
@@ -123,8 +123,7 @@ public class RefResolverEntityEnricherTests
             directive @ref(coordinate: String, field: String) on FIELD_DEFINITION
             """;
 
-        var composer = new FusionGraphComposer(
-            new[] { new RefResolverEntityEnricher() });
+        var composer = CreateComposer();
         var context = await composer.ComposeAsync(new SubGraphConfiguration("Abc", sdl));
 
         var snapshot = new Snapshot();

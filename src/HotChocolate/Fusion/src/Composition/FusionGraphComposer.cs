@@ -4,17 +4,19 @@ public sealed class FusionGraphComposer
 {
     private readonly MergeDelegate _pipeline;
 
-    public FusionGraphComposer(IEnumerable<IEntityEnricher> enrichers)
+    public FusionGraphComposer(
+        IEnumerable<IEntityEnricher> entityEnrichers,
+        IEnumerable<ITypeMergeHandler> mergeHandlers)
     {
         _pipeline =
             MergePipelineBuilder.New()
                 .Use<ParseSubGraphSchemaMiddleware>()
                 .Use<ApplyRenameDirectiveMiddleware>()
                 .Use<ApplyRemoveDirectiveMiddleware>()
-                .Use(() => new EnrichEntityMiddleware(enrichers))
+                .Use(() => new EnrichEntityMiddleware(entityEnrichers))
                 .Use<PrepareFusionSchemaMiddleware>()
                 .Use<MergeEntityMiddleware>()
-                .Use<MergeTypeMiddleware>()
+                .Use(() => new MergeTypeMiddleware(mergeHandlers))
                 .Build();
     }
 

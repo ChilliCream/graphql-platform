@@ -39,7 +39,7 @@ public sealed class CompositionContext
 
 public class CompositionLog : ICompositionLog
 {
-    public bool HasErrors { get; }
+    public bool HasErrors { get; } = false;
 
     public void Info(LogEntry entry) { }
 
@@ -107,5 +107,6 @@ public sealed record LogEntry(
     SchemaCoordinate? Coordinate = null,
     ITypeSystemMember? Member = null,
     Schema? Schema = null,
-    Exception? Exception = null);
-    
+    Exception? Exception = null,
+    object? Extension = null);
+

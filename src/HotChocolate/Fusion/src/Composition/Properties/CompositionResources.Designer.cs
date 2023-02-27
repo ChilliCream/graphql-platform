@@ -68,5 +68,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("LogEntryHelper_RenameMemberNotFound", resourceCulture);
             }
         }
+        
+        internal static string LogEntryHelper_UnableToMergeType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UnableToMergeType", resourceCulture);
+            }
+        }
     }
 }

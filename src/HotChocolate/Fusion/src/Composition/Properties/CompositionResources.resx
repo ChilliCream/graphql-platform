@@ -30,4 +30,7 @@
   <data name="LogEntryHelper_RenameMemberNotFound" xml:space="preserve">
     <value>Could not rename the type system member `{0}` as it was not found.</value>
   </data>
+  <data name="LogEntryHelper_UnableToMergeType" xml:space="preserve">
+    <value>Unable to merge the distributed type `{0}`.</value>
+  </data>
 </root>
