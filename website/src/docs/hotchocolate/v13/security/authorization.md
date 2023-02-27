@@ -2,6 +2,8 @@
 title: Authorization
 ---
 
+<Video videoId="0nRoP1_u4SE" />
+
 Authorization allows us to determine a user's permissions within our system. We can for example limit access to resources or only allow certain users to execute specific mutations.
 
 Authentication is a prerequisite of Authorization, as we first need to validate a user's "authenticity" before we can evaluate his authorization claims.

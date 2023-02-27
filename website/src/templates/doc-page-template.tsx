@@ -9,7 +9,9 @@ import { DocPageFragment } from "@/graphql-types";
 
 export interface DocPageTemplateProps {
   readonly data: DocPageFragment;
-  readonly pageContext: { originPath: string };
+  readonly pageContext: {
+    readonly originPath: string;
+  };
 }
 
 const DocPageTemplate: FC<DocPageTemplateProps> = ({ data, pageContext }) => {

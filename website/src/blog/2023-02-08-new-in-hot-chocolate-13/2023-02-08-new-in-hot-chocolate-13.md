@@ -379,6 +379,8 @@ builder.Services
     .AddType(new JsonType("Any", BindingBehavior.Implicit));
 ```
 
+<Video videoId="wODiVDT8ECI" />
+
 ### Generic Attributes
 
 With Hot Chocolate 13 we are taking advantage of generic attributes in .NET 7. Instead of writing an ugly attribute like the following:
@@ -442,6 +444,8 @@ public static async Task<IReadOnlyList<Asset>> GetAssets(AssetRepository reposit
 ## Authorization
 
 Using the built-in authorization directives in Hot Chocolate was a pain. They only worked on fields and were executed for each field they were annotated to. So, basically, like with MVC, and this does not really fit into our graph world.
+
+<Video videoId="0nRoP1_u4SE" />
 
 Let me give you an example, given then the following schema:
 
