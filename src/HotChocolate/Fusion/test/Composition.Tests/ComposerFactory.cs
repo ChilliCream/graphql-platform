@@ -7,7 +7,10 @@ internal static class ComposerFactory
             new[] { new RefResolverEntityEnricher() },
             new ITypeMergeHandler[]
             {
+                new InterfaceTypeMergeHandler(),
+                new UnionTypeMergeHandler(),
                 new InputObjectTypeMergeHandler(),
+                new EnumTypeMergeHandler(),
                 new ScalarTypeMergeHandler()
             });
 }
