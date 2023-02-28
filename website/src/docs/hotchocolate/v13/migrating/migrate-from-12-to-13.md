@@ -117,7 +117,7 @@ app.MapGraphQL().WithOptions(new GraphQLServerOptions
 ## Nodes batch size
 
 The number of nodes that can be requested through the `nodes` field is limited to 10 by default.
-See [Nodes batch size](https://chillicream.com/docs/hotchocolate/v13/security#nodes-batch-size) for the details.
+See [Nodes batch size](/docs/hotchocolate/v13/security#nodes-batch-size) for the details.
 
 You can change this default to suite the needs of your application as shown below:
 
