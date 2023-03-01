@@ -293,7 +293,7 @@ public static class SchemaFormatter
         {
             var argumentNodes = new List<ArgumentNode>();
 
-            foreach (var argument in arguments.OrderBy(t => t.Name))
+            foreach (var argument in arguments)
             {
                 VisitArgument(argument, context);
                 argumentNodes.Add((ArgumentNode)context.Result!);

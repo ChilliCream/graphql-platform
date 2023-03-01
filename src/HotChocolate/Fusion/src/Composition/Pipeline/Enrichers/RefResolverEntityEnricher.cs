@@ -33,7 +33,9 @@ public sealed class RefResolverEntityEnricher : IEntityEnricher
                             arguments,
                             null);
 
-                        var resolver = new EntityResolver(selection, type.Name, schema.Name);
+                        var selectionSet = new SelectionSetNode(new[] { selection });
+
+                        var resolver = new EntityResolver(selectionSet, type.Name, schema.Name);
 
                         foreach (var arg in entityResolverField.Arguments)
                         {

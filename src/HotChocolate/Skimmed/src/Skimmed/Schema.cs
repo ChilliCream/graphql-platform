@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Schema : IHasDirectives
+public sealed class Schema : IHasDirectives, IHasContextData
 {
     public string Name { get; set; } = "default";
 
@@ -19,6 +19,8 @@ public sealed class Schema : IHasDirectives
     public DirectiveTypeCollection DirectiveTypes { get; } = new();
 
     public DirectiveCollection Directives { get; } = new();
+
+    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.

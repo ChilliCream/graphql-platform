@@ -4,14 +4,14 @@ namespace HotChocolate.Fusion.Composition;
 
 public sealed class EntityResolver
 {
-    public EntityResolver(FieldNode field, string entityName, string schemaName)
+    public EntityResolver(SelectionSetNode selectionSet, string entityName, string schemaName)
     {
-        Field = field;
+        SelectionSet = selectionSet;
         EntityName = entityName;
         SchemaName = schemaName;
     }
 
-    public FieldNode Field { get; }
+    public SelectionSetNode SelectionSet { get; }
 
     public string EntityName { get; }
 
@@ -30,7 +30,7 @@ public sealed class EntityResolver
                 OperationType.Query,
                 Variables.Select(t => t.Value.Definition).ToList(),
                 new[] { new DirectiveNode("schema", new ArgumentNode("name", SchemaName)) },
-                new SelectionSetNode(new[] { Field })));
+                SelectionSet));
 
         if (Variables.Count > 0)
         {

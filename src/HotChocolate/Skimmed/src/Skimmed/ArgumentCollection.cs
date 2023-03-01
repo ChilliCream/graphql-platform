@@ -10,6 +10,7 @@ namespace HotChocolate.Skimmed;
 public sealed class ArgumentCollection : IReadOnlyCollection<Argument>
 {
     private readonly Dictionary<string, Argument> _arguments = new(StringComparer.Ordinal);
+    private readonly IReadOnlyList<Argument> _order;
 
     public ArgumentCollection(IReadOnlyList<Argument> arguments)
     {
@@ -17,6 +18,8 @@ public sealed class ArgumentCollection : IReadOnlyCollection<Argument>
         {
             _arguments.Add(argument.Name, argument);
         }
+
+        _order = arguments;
     }
 
     public int Count => _arguments.Count;
@@ -53,7 +56,7 @@ public sealed class ArgumentCollection : IReadOnlyCollection<Argument>
 
     public void CopyTo(Argument[] array, int arrayIndex)
     {
-        foreach (var argument in _arguments.Values)
+        foreach (var argument in _order)
         {
             array[arrayIndex++] = argument;
         }
@@ -61,7 +64,7 @@ public sealed class ArgumentCollection : IReadOnlyCollection<Argument>
 
     /// <inheritdoc />
     public IEnumerator<Argument> GetEnumerator()
-        => _arguments.Values.GetEnumerator();
+        => _order.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

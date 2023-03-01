@@ -17,6 +17,7 @@ public sealed class FusionGraphComposer
                 .Use<PrepareFusionSchemaMiddleware>()
                 .Use<MergeEntityMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
+                .Use<MergeQueryTypeMiddleware>()
                 .Build();
     }
 

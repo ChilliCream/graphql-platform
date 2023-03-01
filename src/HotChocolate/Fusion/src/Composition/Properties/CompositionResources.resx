@@ -33,4 +33,7 @@
   <data name="LogEntryHelper_UnableToMergeType" xml:space="preserve">
     <value>Unable to merge the distributed type `{0}`.</value>
   </data>
+  <data name="FusionTypes_EnsureInitialized_Failed" xml:space="preserve">
+    <value>Fusion types where initialized with different type prefixes.</value>
+  </data>
 </root>

@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Composition.Extensions;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 
@@ -9,12 +10,14 @@ public class MergeEntityMiddleware : IMergeMiddleware
     {
         foreach (var entity in context.Entities)
         {
-            var type = (ObjectType)context.FusionGraph.Types[entity.Name];
+            var entityType = (ObjectType)context.FusionGraph.Types[entity.Name];
 
             foreach (var part in entity.Parts)
             {
-                context.Merge(part.Type, type);
+                context.Merge(part.Type, entityType);
             }
+
+            context.ApplyResolvers(entityType, entity.Metadata);
         }
 
         if (!context.Log.HasErrors)
@@ -54,97 +57,45 @@ static file class MergeEntitiesMiddlewareExtensions
         }
     }
 
-
-    private static OutputField CreateField(
+    public static void ApplyResolvers(
         this CompositionContext context,
-        OutputField source)
+        ObjectType entityType,
+        EntityMetadata metadata)
     {
-        var fusionGraph = context.FusionGraph;
-        var target = new OutputField(source.Name);
-        target.Description = source.Description;
-        target.Type = source.Type.ReplaceNameType(n => fusionGraph.Types[n]);
-
-        if (source.IsDeprecated)
+        foreach (var resolver in metadata.EntityResolvers)
         {
-            target.DeprecationReason = source.DeprecationReason;
-            target.IsDeprecated = source.IsDeprecated;
-        }
+            entityType.Directives.Add(
+                CreateResolverDirective(
+                    context,
+                    resolver));
 
-        foreach (var sourceArgument in source.Arguments)
-        {
-            var targetArgument = new InputField(sourceArgument.Name);
-            targetArgument.Description = sourceArgument.Description;
-            targetArgument.DefaultValue = sourceArgument.DefaultValue;
-            targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => fusionGraph.Types[n]);
-
-            if (sourceArgument.IsDeprecated)
+            foreach (var variable in resolver.Variables)
             {
-                targetArgument.DeprecationReason = sourceArgument.DeprecationReason;
-                targetArgument.IsDeprecated = sourceArgument.IsDeprecated;
-            }
-
-            target.Arguments.Add(targetArgument);
-        }
-
-        return target;
-    }
-
-    private static void MergeField(
-        this CompositionContext context,
-        OutputField source,
-        OutputField target)
-    {
-        if (target.Arguments.Count != source.Arguments.Count)
-        {
-            // error
-        }
-
-        var argMatchCount = 0;
-
-        foreach (var targetArgument in target.Arguments)
-        {
-            if (source.Arguments.ContainsName(targetArgument.Name))
-            {
-                argMatchCount++;
-            }
-        }
-
-        if (argMatchCount != target.Arguments.Count)
-        {
-            // error
-        }
-
-        if (string.IsNullOrEmpty(target.Description))
-        {
-            target.Description = source.Description;
-        }
-
-        if (!target.IsDeprecated && source.IsDeprecated)
-        {
-            target.DeprecationReason = source.DeprecationReason;
-            target.IsDeprecated = source.IsDeprecated;
-        }
-
-        foreach (var sourceArgument in source.Arguments)
-        {
-            var targetArgument = target.Arguments[sourceArgument.Name];
-
-            if (string.IsNullOrEmpty(targetArgument.Description))
-            {
-                targetArgument.Description = sourceArgument.Description;
-            }
-
-            if (!targetArgument.IsDeprecated && sourceArgument.IsDeprecated)
-            {
-                targetArgument.DeprecationReason = sourceArgument.DeprecationReason;
-                targetArgument.IsDeprecated = sourceArgument.IsDeprecated;
-            }
-
-            if (sourceArgument.DefaultValue is not null &&
-                targetArgument.DefaultValue is null)
-            {
-                targetArgument.DefaultValue = sourceArgument.DefaultValue;
+                entityType.Directives.Add(
+                    CreateVariableDirective(
+                        context,
+                        variable,
+                        resolver.SchemaName));
             }
         }
     }
+
+    private static Directive CreateResolverDirective(
+        CompositionContext context,
+        EntityResolver resolver)
+        => new Directive(
+            context.FusionTypes.Resolver,
+            new Argument(DirectiveArguments.Select, resolver.SelectionSet.ToString(false)),
+            new Argument(DirectiveArguments.From, resolver.SchemaName));
+
+    private static Directive CreateVariableDirective(
+        CompositionContext context,
+        KeyValuePair<string, VariableDefinition> variable,
+        string schemaName)
+        => new Directive(
+            context.FusionTypes.Variable,
+            new Argument(DirectiveArguments.Name, variable.Key),
+            new Argument(DirectiveArguments.Select, variable.Value.Field.ToString(false)),
+            new Argument(DirectiveArguments.From, schemaName),
+            new Argument(DirectiveArguments.As, variable.Value.Definition.Type.ToString(false)));
 }
