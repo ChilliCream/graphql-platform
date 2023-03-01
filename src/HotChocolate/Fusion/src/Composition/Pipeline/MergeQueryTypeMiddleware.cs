@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public sealed class MergeQueryTypeMiddleware : IMergeMiddleware
 {
@@ -82,6 +82,6 @@ static file class MergeEntitiesMiddlewareExtensions
         string schemaName)
         => new Directive(
             context.FusionTypes.Resolver,
-            new Argument(DirectiveArguments.Select, selectionSet.ToString(false)),
-            new Argument(DirectiveArguments.From, schemaName));
+            new Argument(DirectiveArguments.SelectArg, selectionSet.ToString(false)),
+            new Argument(DirectiveArguments.SchemaArg, schemaName));
 }

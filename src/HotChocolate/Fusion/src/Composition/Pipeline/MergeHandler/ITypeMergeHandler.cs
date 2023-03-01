@@ -1,7 +1,4 @@
-using System.Diagnostics.Tracing;
-using HotChocolate.Fusion.Composition.Types;
-
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public interface ITypeMergeHandler
 {

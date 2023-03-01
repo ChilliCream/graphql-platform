@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Composition.Types;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 

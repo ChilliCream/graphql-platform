@@ -5,8 +5,8 @@ internal sealed class ObjectField
     public ObjectField(
         string name,
         MemberBindingCollection bindings,
-        ArgumentVariableDefinitionCollection variables,
-        FetchDefinitionCollection resolvers)
+        VariableDefinitionCollection variables,
+        ResolverDefinitionCollection resolvers)
     {
         Name = name;
         Bindings = bindings;
@@ -18,7 +18,7 @@ internal sealed class ObjectField
 
     public MemberBindingCollection Bindings { get; }
 
-    public ArgumentVariableDefinitionCollection Variables { get; }
+    public VariableDefinitionCollection Variables { get; }
 
-    public FetchDefinitionCollection Resolvers { get; }
+    public ResolverDefinitionCollection Resolvers { get; }
 }

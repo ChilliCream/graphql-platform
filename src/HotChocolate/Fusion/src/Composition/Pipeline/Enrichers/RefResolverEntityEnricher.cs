@@ -1,8 +1,7 @@
-using HotChocolate.Fusion.Composition.Extensions;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public sealed class RefResolverEntityEnricher : IEntityEnricher
 {

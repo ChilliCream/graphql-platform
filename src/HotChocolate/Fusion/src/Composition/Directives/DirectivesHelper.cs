@@ -24,7 +24,7 @@ internal static class DirectivesHelper
             ? member.GetBindDirective().OriginalName ?? member.Name
             : member.Name;
 
-    public static BindDirective GetBindDirective(this IHasDirectives member)
+    public static SourceDirective GetBindDirective(this IHasDirectives member)
     {
         var directive = member.Directives[RefDirectiveName].First();
         var toArg = directive.Arguments.First(t => t.Name.EqualsOrdinal(ToArg));
@@ -37,51 +37,8 @@ internal static class DirectivesHelper
         }
 
         return asArg?.Value is StringValueNode asValue
-            ? new BindDirective(toValue.Value, asValue.Value)
-            : new BindDirective(toValue.Value);
-    }
-
-    public static void TryAddBindDirective(
-        this IHasDirectives member,
-        Schema schema,
-        string? originalName = null)
-    {
-        if (!member.Directives.ContainsName(BindDirectiveName))
-        {
-            if (originalName is null)
-            {
-                member.Directives.Add(
-                    new Directive(
-                        schema.DirectiveTypes[BindDirectiveName],
-                        new Argument(ToArg, schema.Name)));
-            }
-            else
-            {
-                member.Directives.Add(
-                    new Directive(
-                        schema.DirectiveTypes[BindDirectiveName],
-                        new Argument(ToArg, schema.Name),
-                        new Argument(AsArg, originalName)));
-            }
-        }
-    }
-
-    public static void RegisterBindDirective(this Schema schema)
-    {
-        if (!schema.DirectiveTypes.ContainsName(BindDirectiveName))
-        {
-            var bind = new DirectiveType(BindDirectiveName);
-            bind.Locations = DirectiveLocation.FieldDefinition;
-            bind.Arguments.Add(
-                new InputField(
-                    ToArg,
-                    new NonNullType(schema.Types["String"])));
-            bind.Arguments.Add(
-                new InputField(
-                    AsArg,
-                    schema.Types["String"]));
-            schema.DirectiveTypes.Add(bind);
-        }
+            ? new SourceDirective(toValue.Value, asValue.Value)
+            : new SourceDirective(toValue.Value);
     }
 
     public static bool ContainsRefDirective(this IHasDirectives member)

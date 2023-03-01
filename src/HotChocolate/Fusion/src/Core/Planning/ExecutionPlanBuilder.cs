@@ -284,7 +284,7 @@ internal sealed class ExecutionPlanBuilder
     private void ResolveRequirements(
         QueryPlanContext context,
         ISelection parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
@@ -296,7 +296,7 @@ internal sealed class ExecutionPlanBuilder
         {
             if (resolver.Requires.Contains(variable.Name))
             {
-                var argumentValue = parent.Arguments[variable.ArgumentName];
+                var argumentValue = parent.Arguments[string.Empty];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
             }
         }
@@ -316,7 +316,7 @@ internal sealed class ExecutionPlanBuilder
         ISelection selection,
         ObjectType declaringType,
         ISelection? parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
@@ -327,7 +327,7 @@ internal sealed class ExecutionPlanBuilder
         {
             if (resolver.Requires.Contains(variable.Name))
             {
-                var argumentValue = selection.Arguments[variable.ArgumentName];
+                var argumentValue = selection.Arguments[string.Empty];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
             }
         }
@@ -342,7 +342,7 @@ internal sealed class ExecutionPlanBuilder
                 if (!context.VariableValues.ContainsKey(variable.Name) &&
                     resolver.Requires.Contains(variable.Name))
                 {
-                    var argumentValue = parent.Arguments[variable.ArgumentName];
+                    var argumentValue = parent.Arguments[string.Empty];
                     context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
                 }
             }

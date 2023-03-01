@@ -69,7 +69,7 @@ internal sealed class ServiceConfigurationReader
     {
         var bindings = ReadMemberBindings(context, typeDef.Directives, typeDef);
         var variables = ReadFieldVariableDefinitions(context, typeDef.Directives);
-        var resolvers = ReadFetchDefinitions(context, typeDef.Directives);
+        var resolvers = ReadResolverDefinitions(context, typeDef.Directives);
         var fields = ReadObjectFields(context, typeDef.Fields, typeNameField);
         return new ObjectType(typeDef.Name.Value, bindings, variables, resolvers, fields);
     }
@@ -83,9 +83,9 @@ internal sealed class ServiceConfigurationReader
 
         foreach (var fieldDef in fieldDefinitionNodes)
         {
-            var resolvers = ReadFetchDefinitions(context, fieldDef.Directives);
+            var resolvers = ReadResolverDefinitions(context, fieldDef.Directives);
             var bindings = ReadMemberBindings(context, fieldDef.Directives, fieldDef, resolvers);
-            var variables = ReadArgumentVariableDefinitions(context, fieldDef.Directives, fieldDef);
+            var variables = ReadFieldVariableDefinitions(context, fieldDef.Directives);
             var field = new ObjectField(fieldDef.Name.Value, bindings, variables, resolvers);
             collection.Add(field);
         }
@@ -100,8 +100,8 @@ internal sealed class ServiceConfigurationReader
             IntrospectionFields.TypeName,
             new MemberBindingCollection(
                 schemaNames.Select(t => new MemberBinding(t, IntrospectionFields.TypeName))),
-            ArgumentVariableDefinitionCollection.Empty,
-            FetchDefinitionCollection.Empty);
+            VariableDefinitionCollection.Empty,
+            ResolverDefinitionCollection.Empty);
 
     private IReadOnlyList<HttpClientConfig> ReadHttpClientConfigs(
         ConfigurationDirectiveNamesContext context,
@@ -151,7 +151,7 @@ internal sealed class ServiceConfigurationReader
         ConfigurationDirectiveNamesContext context,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        var definitions = new List<FieldVariableDefinition>();
+        var definitions = new List<VariableDefinition>();
 
         foreach (var directiveNode in directiveNodes)
         {
@@ -164,7 +164,7 @@ internal sealed class ServiceConfigurationReader
         return new VariableDefinitionCollection(definitions);
     }
 
-    private FieldVariableDefinition ReadFieldVariableDefinition(
+    private VariableDefinition ReadFieldVariableDefinition(
         ConfigurationDirectiveNamesContext context,
         DirectiveNode directiveNode)
     {
@@ -198,36 +198,36 @@ internal sealed class ServiceConfigurationReader
             }
         }
 
-        return new FieldVariableDefinition(name, schemaName, type, select);
+        return new VariableDefinition(name, schemaName, type, select);
     }
 
-    private FetchDefinitionCollection ReadFetchDefinitions(
+    private ResolverDefinitionCollection ReadResolverDefinitions(
         ConfigurationDirectiveNamesContext context,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        List<FetchDefinition>? definitions = null;
+        List<ResolverDefinition>? definitions = null;
 
         foreach (var directiveNode in directiveNodes)
         {
             if (directiveNode.Name.Value.EqualsOrdinal(context.FetchDirective))
             {
-                (definitions ??= new()).Add(ReadFetchDefinition(context, directiveNode));
+                (definitions ??= new()).Add(ReadResolverDefinition(context, directiveNode));
             }
         }
 
         return definitions is null
-            ? FetchDefinitionCollection.Empty
-            : new FetchDefinitionCollection(definitions);
+            ? ResolverDefinitionCollection.Empty
+            : new ResolverDefinitionCollection(definitions);
     }
 
-    private FetchDefinition ReadFetchDefinition(
+    private ResolverDefinition ReadResolverDefinition(
         ConfigurationDirectiveNamesContext context,
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.FetchDirective);
         AssertArguments(directiveNode, SelectArg, SchemaArg);
 
-        ISelectionNode select = default!;
+        SelectionSetNode select = default!;
         string schemaName = default!;
 
         foreach (var argument in directiveNode.Arguments)
@@ -235,7 +235,7 @@ internal sealed class ServiceConfigurationReader
             switch (argument.Name.Value)
             {
                 case SelectArg:
-                    select = ParseField(Expect<StringValueNode>(argument.Value).Value);
+                    select = ParseSelectionSet(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
                 case SchemaArg:
@@ -267,7 +267,7 @@ internal sealed class ServiceConfigurationReader
                 options: new() { VisitArguments = true })
             .Visit(select);
 
-        return new FetchDefinition(
+        return new ResolverDefinition(
             schemaName,
             select,
             placeholder,
@@ -301,7 +301,7 @@ internal sealed class ServiceConfigurationReader
         ConfigurationDirectiveNamesContext context,
         IReadOnlyList<DirectiveNode> directiveNodes,
         FieldDefinitionNode annotatedField,
-        FetchDefinitionCollection resolvers)
+        ResolverDefinitionCollection resolvers)
     {
         var definitions = new List<MemberBinding>();
 
@@ -324,10 +324,10 @@ internal sealed class ServiceConfigurationReader
 
             foreach (var resolver in resolvers)
             {
-                if (_assert.Add(resolver.SchemaName))
+                if (_assert.Add(resolver.SubGraphName))
                 {
                     definitions.Add(
-                        new MemberBinding(resolver.SchemaName, annotatedField.Name.Value));
+                        new MemberBinding(resolver.SubGraphName, annotatedField.Name.Value));
                 }
             }
         }
@@ -361,60 +361,6 @@ internal sealed class ServiceConfigurationReader
         }
 
         return new MemberBinding(schemaName, name ?? annotatedField.Name.Value);
-    }
-
-    private ArgumentVariableDefinitionCollection ReadArgumentVariableDefinitions(
-        ConfigurationDirectiveNamesContext context,
-        IReadOnlyList<DirectiveNode> directiveNodes,
-        FieldDefinitionNode annotatedField)
-    {
-        List<ArgumentVariableDefinition>? definitions = null;
-
-        foreach (var directiveNode in directiveNodes)
-        {
-            if (directiveNode.Name.Value.EqualsOrdinal(context.VariableDirective))
-            {
-                var argumentVarDef = ReadArgumentVariableDefinition(
-                    context,
-                    directiveNode,
-                    annotatedField);
-                (definitions ??= new()).Add(argumentVarDef);
-            }
-        }
-
-        return definitions is null
-            ? ArgumentVariableDefinitionCollection.Empty
-            : new ArgumentVariableDefinitionCollection(definitions);
-    }
-
-    private ArgumentVariableDefinition ReadArgumentVariableDefinition(
-        ConfigurationDirectiveNamesContext context,
-        DirectiveNode directiveNode,
-        FieldDefinitionNode annotatedField)
-    {
-        AssertName(directiveNode, context.VariableDirective);
-        AssertArguments(directiveNode, NameArg, ArgumentArg);
-
-        string name = default!;
-        string argumentName = default!;
-
-        foreach (var argument in directiveNode.Arguments)
-        {
-            switch (argument.Name.Value)
-            {
-                case NameArg:
-                    name = Expect<StringValueNode>(argument.Value).Value;
-                    break;
-
-                case ArgumentArg:
-                    argumentName = Expect<StringValueNode>(argument.Value).Value;
-                    break;
-            }
-        }
-
-        var arg = annotatedField.Arguments.Single(t => t.Name.Value.EqualsOrdinal(argumentName));
-
-        return new ArgumentVariableDefinition(name, arg.Type, argumentName);
     }
 
     private static T Expect<T>(IValueNode valueNode) where T : IValueNode

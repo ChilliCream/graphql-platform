@@ -46,6 +46,7 @@ public class RemoteQueryExecutorTests
                 "a",
                 () =>
                 {
+                    // ReSharper disable once AccessToDisposedClosure
                     var httpClient = server1.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
                     return httpClient;
@@ -55,6 +56,7 @@ public class RemoteQueryExecutorTests
                 "b",
                 () =>
                 {
+                    // ReSharper disable once AccessToDisposedClosure
                     var httpClient = server2.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
                     return httpClient;

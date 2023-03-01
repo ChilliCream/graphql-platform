@@ -15,6 +15,7 @@ public sealed class FusionTypes
     private const string _selectionSet = "SelectionSet";
     private const string _typeName = "TypeName";
     private const string _type = "Type";
+    private const string _source = "source";
     private readonly Schema _fusionGraph;
 
     public FusionTypes(Schema fusionGraph, string? prefix = null)
@@ -47,6 +48,10 @@ public sealed class FusionTypes
             ? string.Format(_typeFormat, _type)
             : string.Format(_prefixFormat, prefix, _type);
 
+        var source = string.IsNullOrEmpty(prefix)
+            ? _source
+            : string.Format(_prefixFormat, prefix, _source);
+
         if (_fusionGraph.ContextData.TryGetValue(nameof(FusionTypes), out var value) &&
             (value is not string prefixValue || !Prefix.EqualsOrdinal(prefixValue)))
         {
@@ -61,6 +66,7 @@ public sealed class FusionTypes
         Type = RegisterScalarType(type);
         Resolver = RegisterResolverDirectiveType(resolver, SelectionSet, TypeName);
         Variable = RegisterVariableDirectiveType(variable, TypeName, Selection, Type);
+        Source = RegisterSourceDirectiveType(source, TypeName);
     }
 
     private string Prefix { get; }
@@ -77,6 +83,8 @@ public sealed class FusionTypes
 
     public DirectiveType Variable { get; }
 
+    public DirectiveType Source { get; }
+
     private ScalarType RegisterScalarType(string name)
     {
         var selection = new ScalarType(name);
@@ -91,10 +99,10 @@ public sealed class FusionTypes
         ScalarType type)
     {
         var directiveType = new DirectiveType(name);
-        directiveType.Arguments.Add(new InputField(Name, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(Select, new NonNullType(selection)));
-        directiveType.Arguments.Add(new InputField(From, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(As, new NonNullType(type)));
+        directiveType.Arguments.Add(new InputField(NameArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selection)));
+        directiveType.Arguments.Add(new InputField(SchemaArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(TypeArg, new NonNullType(type)));
         directiveType.Locations |= DirectiveLocation.Object;
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         _fusionGraph.DirectiveTypes.Add(directiveType);
@@ -107,9 +115,19 @@ public sealed class FusionTypes
         ScalarType selectionSet)
     {
         var directiveType = new DirectiveType(name);
-        directiveType.Arguments.Add(new InputField(Select, new NonNullType(selectionSet)));
-        directiveType.Arguments.Add(new InputField(From, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selectionSet)));
+        directiveType.Arguments.Add(new InputField(SchemaArg, new NonNullType(typeName)));
         directiveType.Locations |= DirectiveLocation.Object;
+        _fusionGraph.DirectiveTypes.Add(directiveType);
+        return directiveType;
+    }
+
+    private DirectiveType RegisterSourceDirectiveType(string name, ScalarType typeName)
+    {
+        var directiveType = new DirectiveType(name);
+        directiveType.Locations = DirectiveLocation.FieldDefinition;
+        directiveType.Arguments.Add(new InputField(SchemaArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(NameArg, typeName));
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }

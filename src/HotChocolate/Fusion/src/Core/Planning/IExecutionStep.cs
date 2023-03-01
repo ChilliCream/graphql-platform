@@ -27,7 +27,7 @@ internal interface IExecutionStep
     /// <summary>
     /// Gets the resolver for this execution step.
     /// </summary>
-    FetchDefinition? Resolver { get; }
+    ResolverDefinition? Resolver { get; }
 
     /// <summary>
     /// Gets the execution steps this execution step is depending on.

@@ -3,7 +3,7 @@ using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.DirectivesHelper;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 /// <summary>
 /// This composition middleware will apply the @remove directives to the

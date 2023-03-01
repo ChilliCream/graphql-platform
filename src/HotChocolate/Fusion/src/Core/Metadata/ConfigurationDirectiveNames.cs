@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Metadata;
 internal static class ConfigurationDirectiveNames
 {
     public const string VariableDirective = "variable";
-    public const string FetchDirective = "fetch";
+    public const string ResolverDirective = "resolver";
     public const string SourceDirective = "source";
     public const string HttpDirective = "httpClient";
     public const string FusionDirective = "fusion";

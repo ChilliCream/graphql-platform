@@ -42,7 +42,7 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
         {
             return new ConfigurationDirectiveNamesContext(
                 $"{prefix}_{ConfigurationDirectiveNames.VariableDirective}",
-                $"{prefix}_{ConfigurationDirectiveNames.FetchDirective}",
+                $"{prefix}_{ConfigurationDirectiveNames.ResolverDirective}",
                 $"{prefix}_{ConfigurationDirectiveNames.SourceDirective}",
                 $"{prefix}_{ConfigurationDirectiveNames.HttpDirective}",
                 prefixSelf
@@ -52,7 +52,7 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
 
         return new ConfigurationDirectiveNamesContext(
             ConfigurationDirectiveNames.VariableDirective,
-            ConfigurationDirectiveNames.FetchDirective,
+            ConfigurationDirectiveNames.ResolverDirective,
             ConfigurationDirectiveNames.SourceDirective,
             ConfigurationDirectiveNames.HttpDirective,
             ConfigurationDirectiveNames.FusionDirective);
@@ -79,7 +79,7 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
         {
             return new ConfigurationDirectiveNamesContext(
                 $"{prefix}_{ConfigurationDirectiveNames.VariableDirective}",
-                $"{prefix}_{ConfigurationDirectiveNames.FetchDirective}",
+                $"{prefix}_{ConfigurationDirectiveNames.ResolverDirective}",
                 $"{prefix}_{ConfigurationDirectiveNames.SourceDirective}",
                 $"{prefix}_{ConfigurationDirectiveNames.HttpDirective}",
                 prefixSelf
@@ -89,7 +89,7 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
 
         return new ConfigurationDirectiveNamesContext(
             ConfigurationDirectiveNames.VariableDirective,
-            ConfigurationDirectiveNames.FetchDirective,
+            ConfigurationDirectiveNames.ResolverDirective,
             ConfigurationDirectiveNames.SourceDirective,
             ConfigurationDirectiveNames.HttpDirective,
             ConfigurationDirectiveNames.FusionDirective);

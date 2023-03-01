@@ -1,10 +1,9 @@
-using System.Reflection;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Skimmed;
 
-namespace HotChocolate.Fusion.Composition.Extensions;
+namespace HotChocolate.Fusion.Composition;
 
 internal static class SchemaExtensions
 {

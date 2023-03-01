@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Composition.Pipeline;
+
 namespace HotChocolate.Fusion.Composition;
 
 public sealed class FusionGraphComposer

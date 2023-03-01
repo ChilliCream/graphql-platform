@@ -48,7 +48,7 @@ internal sealed class RequestPlanner
             var schemaName = ResolveBestMatchingSchema(context.Operation, current, selectionSetType);
             var workItem = new SelectionExecutionStep(schemaName, selectionSetType, parentSelection);
             leftovers = null;
-            FetchDefinition? resolver;
+            ResolverDefinition? resolver;
 
             if (parentSelection is not null &&
                 selectionSetType.Resolvers.ContainsResolvers(schemaName))
@@ -174,9 +174,9 @@ internal sealed class RequestPlanner
         ObjectType typeContext)
     {
         var bestScore = 0;
-        var bestSchema = _serviceConfig.SchemaNames[0];
+        var bestSchema = _serviceConfig.SubGraphNames[0];
 
-        foreach (var schemaName in _serviceConfig.SchemaNames)
+        foreach (var schemaName in _serviceConfig.SubGraphNames)
         {
             var score = CalculateSchemaScore(operation, selections, typeContext, schemaName);
 
@@ -228,7 +228,7 @@ internal sealed class RequestPlanner
         ObjectField field,
         string schemaName,
         HashSet<string> variablesInContext,
-        [NotNullWhen(true)] out FetchDefinition? resolver)
+        [NotNullWhen(true)] out ResolverDefinition? resolver)
     {
         if (field.Resolvers.TryGetValue(schemaName, out var resolvers))
         {
@@ -261,7 +261,7 @@ internal sealed class RequestPlanner
         ObjectType declaringType,
         string schemaName,
         HashSet<string> variablesInContext,
-        [NotNullWhen(true)] out FetchDefinition? resolver)
+        [NotNullWhen(true)] out ResolverDefinition? resolver)
     {
         if (declaringType.Resolvers.TryGetValue(schemaName, out var resolvers))
         {
@@ -347,7 +347,7 @@ internal sealed class RequestPlanner
         ISelection selection,
         ObjectType declaringType,
         ISelection? parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         HashSet<string> requirements)
     {
         var field = declaringType.Fields[selection.Field.Name];
@@ -368,7 +368,7 @@ internal sealed class RequestPlanner
 
     private void CalculateRequirements(
         ISelection parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         HashSet<string> requirements)
     {
         var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);

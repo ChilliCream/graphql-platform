@@ -3,14 +3,14 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Metadata;
 
-internal sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
+internal sealed class ResolverDefinitionCollection : IEnumerable<ResolverDefinition>
 {
-    private readonly Dictionary<string, FetchDefinition[]> _fetchDefinitions;
+    private readonly Dictionary<string, ResolverDefinition[]> _fetchDefinitions;
 
-    public FetchDefinitionCollection(IEnumerable<FetchDefinition> fetchDefinitions)
+    public ResolverDefinitionCollection(IEnumerable<ResolverDefinition> fetchDefinitions)
     {
         _fetchDefinitions = fetchDefinitions
-            .GroupBy(t => t.SchemaName)
+            .GroupBy(t => t.SubGraphName)
             .ToDictionary(t => t.Key, t => t.ToArray(), StringComparer.Ordinal);
     }
 
@@ -19,10 +19,10 @@ internal sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
     // public IReadOnlyList<FetchDefinition> this[string schemaName] => throw new NotImplementedException();
 
     public bool TryGetValue(
-        string schemaName,
-        [NotNullWhen(true)] out IReadOnlyList<FetchDefinition>? values)
+        string subGraphName,
+        [NotNullWhen(true)] out IReadOnlyList<ResolverDefinition>? values)
     {
-        if (_fetchDefinitions.TryGetValue(schemaName, out var temp))
+        if (_fetchDefinitions.TryGetValue(subGraphName, out var temp))
         {
             values = temp;
             return true;
@@ -34,11 +34,11 @@ internal sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
 
     public bool ContainsResolvers(string schemaName) => _fetchDefinitions.ContainsKey(schemaName);
 
-    public IEnumerator<FetchDefinition> GetEnumerator()
+    public IEnumerator<ResolverDefinition> GetEnumerator()
         => _fetchDefinitions.Values.SelectMany(t => t).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static FetchDefinitionCollection Empty { get; } =
-        new(new List<FetchDefinition>());
+    public static ResolverDefinitionCollection Empty { get; } =
+        new(new List<ResolverDefinition>());
 }

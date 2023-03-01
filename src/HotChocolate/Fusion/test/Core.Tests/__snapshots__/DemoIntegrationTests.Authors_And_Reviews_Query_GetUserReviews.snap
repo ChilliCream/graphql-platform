@@ -1,0 +1,25 @@
+User Request
+---------------
+{
+  users {
+    name
+    reviews {
+      body
+      author {
+        name
+      }
+    }
+  }
+}
+---------------
+
+Result
+---------------
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error"
+    }
+  ]
+}
+---------------

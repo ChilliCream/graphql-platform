@@ -1,6 +1,6 @@
 using HotChocolate.Skimmed.Serialization;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public sealed class ParseSubGraphSchemaMiddleware : IMergeMiddleware
 {

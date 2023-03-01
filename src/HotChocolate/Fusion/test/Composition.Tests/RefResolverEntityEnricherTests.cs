@@ -44,8 +44,6 @@ public class RefResolverEntityEnricherTests
               query: Query
             }
 
-            scalar String
-            scalar ID
             directive @rename(coordinate: String! to: String!) on SCHEMA
             directive @remove(coordinate: String!) on SCHEMA
             directive @ref(coordinate: String, field: String) on FIELD_DEFINITION

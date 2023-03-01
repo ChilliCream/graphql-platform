@@ -22,7 +22,23 @@ public static class Refactor
 
         if (schema.TryGetMember<IHasName>(coordinate, out var member))
         {
-            member.Name = newName;
+            if (member is INamedType nt)
+            {
+                schema.Types.Remove(nt);
+                member.Name = newName;
+                schema.Types.Add(nt);
+            }
+            else if (member is DirectiveType dt)
+            {
+                schema.DirectiveTypes.Remove(dt);
+                member.Name = newName;
+                schema.DirectiveTypes.Add(dt);
+            }
+            else
+            {
+                member.Name = newName;
+            }
+
             return true;
         }
 

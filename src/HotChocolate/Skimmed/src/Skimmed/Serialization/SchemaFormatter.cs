@@ -25,6 +25,50 @@ public static class SchemaFormatter
             VisitDirectiveTypes(schema.DirectiveTypes, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
+            if (schema.QueryType is not null ||
+                schema.MutationType is not null ||
+                schema.SubscriptionType is not null)
+            {
+                var operationTypes = new List<OperationTypeDefinitionNode>();
+
+                if (schema.QueryType is not null)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Query,
+                            new NamedTypeNode(schema.QueryType.Name)));
+                }
+
+                if (schema.MutationType is not null)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Mutation,
+                            new NamedTypeNode(schema.MutationType.Name)));
+                }
+
+                if (schema.SubscriptionType is not null)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Subscription,
+                            new NamedTypeNode(schema.SubscriptionType.Name)));
+                }
+
+                var schemaDefinition = new SchemaDefinitionNode(
+                    null,
+                    string.IsNullOrEmpty(schema.Description)
+                        ? null
+                        : new(schema.Description),
+                    Array.Empty<DirectiveNode>(),
+                    operationTypes);
+                definitions.Add(schemaDefinition);
+            }
+
+
             context.Result = new DocumentNode(definitions);
         }
 

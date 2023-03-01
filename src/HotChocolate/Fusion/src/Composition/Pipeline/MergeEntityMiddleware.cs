@@ -1,8 +1,8 @@
-using HotChocolate.Fusion.Composition.Extensions;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Composition.DirectiveArguments;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public class MergeEntityMiddleware : IMergeMiddleware
 {
@@ -14,7 +14,7 @@ public class MergeEntityMiddleware : IMergeMiddleware
 
             foreach (var part in entity.Parts)
             {
-                context.Merge(part.Type, entityType);
+                context.Merge(part, entityType);
             }
 
             context.ApplyResolvers(entityType, entity.Metadata);
@@ -29,14 +29,14 @@ public class MergeEntityMiddleware : IMergeMiddleware
 
 static file class MergeEntitiesMiddlewareExtensions
 {
-    public static void Merge(this CompositionContext context, ObjectType source, ObjectType target)
+    public static void Merge(this CompositionContext context, EntityPart source, ObjectType target)
     {
         if (string.IsNullOrEmpty(target.Description))
         {
-            source.Description = target.Description;
+            target.Description = source.Type.Description;
         }
 
-        foreach (var interfaceType in source.Implements)
+        foreach (var interfaceType in source.Type.Implements)
         {
             if (!target.Implements.Any(t => t.Name.EqualsOrdinal(interfaceType.Name)))
             {
@@ -44,7 +44,7 @@ static file class MergeEntitiesMiddlewareExtensions
             }
         }
 
-        foreach (var sourceField in source.Fields)
+        foreach (var sourceField in source.Type.Fields)
         {
             if (target.Fields.TryGetField(sourceField.Name, out var targetField))
             {
@@ -52,8 +52,11 @@ static file class MergeEntitiesMiddlewareExtensions
             }
             else
             {
-                target.Fields.Add(context.CreateField(sourceField));
+                targetField = context.CreateField(sourceField);
+                target.Fields.Add(targetField);
             }
+
+            context.ApplySource(sourceField, source.Schema.Name, targetField);
         }
     }
 
@@ -80,13 +83,37 @@ static file class MergeEntitiesMiddlewareExtensions
         }
     }
 
+    private static void ApplySource(
+        this CompositionContext context,
+        OutputField sourceField,
+        string sourceSchemaName,
+        OutputField targetField)
+    {
+        if (sourceField.ContextData.TryGetValue("originalName", out var value) &&
+            value is string originalName)
+        {
+            targetField.Directives.Add(
+                new Directive(
+                    context.FusionTypes.Source,
+                    new Argument(SchemaArg, sourceSchemaName),
+                    new Argument(NameArg, originalName)));
+        }
+        else
+        {
+            targetField.Directives.Add(
+                new Directive(
+                    context.FusionTypes.Source,
+                    new Argument(SchemaArg, sourceSchemaName)));
+        }
+    }
+
     private static Directive CreateResolverDirective(
         CompositionContext context,
         EntityResolver resolver)
         => new Directive(
             context.FusionTypes.Resolver,
-            new Argument(DirectiveArguments.Select, resolver.SelectionSet.ToString(false)),
-            new Argument(DirectiveArguments.From, resolver.SchemaName));
+            new Argument(SelectArg, resolver.SelectionSet.ToString(false)),
+            new Argument(SchemaArg, resolver.SchemaName));
 
     private static Directive CreateVariableDirective(
         CompositionContext context,
@@ -94,8 +121,8 @@ static file class MergeEntitiesMiddlewareExtensions
         string schemaName)
         => new Directive(
             context.FusionTypes.Variable,
-            new Argument(DirectiveArguments.Name, variable.Key),
-            new Argument(DirectiveArguments.Select, variable.Value.Field.ToString(false)),
-            new Argument(DirectiveArguments.From, schemaName),
-            new Argument(DirectiveArguments.As, variable.Value.Definition.Type.ToString(false)));
+            new Argument(NameArg, variable.Key),
+            new Argument(SelectArg, variable.Value.Field.ToString(false)),
+            new Argument(SchemaArg, schemaName),
+            new Argument(TypeArg, variable.Value.Definition.Type.ToString(false)));
 }

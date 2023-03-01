@@ -1,8 +1,7 @@
-using HotChocolate.Fusion.Composition.Types;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
 {

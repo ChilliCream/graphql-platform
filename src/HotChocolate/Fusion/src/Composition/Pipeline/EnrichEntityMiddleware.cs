@@ -1,6 +1,6 @@
 using HotChocolate.Skimmed;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public sealed class EnrichEntityMiddleware : IMergeMiddleware
 {
@@ -22,8 +22,6 @@ public sealed class EnrichEntityMiddleware : IMergeMiddleware
 
         foreach (var schema in context.SubGraphs)
         {
-            schema.RegisterBindDirective();
-
             foreach (var type in schema.Types)
             {
                 if (type == schema.QueryType ||
@@ -46,11 +44,6 @@ public sealed class EnrichEntityMiddleware : IMergeMiddleware
                 if (schema.Types.TryGetType(typeName, out var type) &&
                     type is ObjectType objectType)
                 {
-                    foreach (var field in objectType.Fields)
-                    {
-                        field.TryAddBindDirective(schema);
-                    }
-
                     objectTypes.Add(new EntityPart(objectType, schema));
                 }
             }

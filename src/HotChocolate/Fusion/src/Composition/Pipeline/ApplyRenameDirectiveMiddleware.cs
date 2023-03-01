@@ -2,8 +2,10 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.DirectivesHelper;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
+using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
+using IHasName = HotChocolate.Skimmed.IHasName;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
 {
@@ -13,6 +15,12 @@ public sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
         {
             foreach (var directive in schema.GetRenameDirectives(context))
             {
+                if (schema.TryGetMember(directive.Coordinate, out IHasName? member) &&
+                    member is IHasContextData memberWithContext)
+                {
+                    memberWithContext.ContextData["originalName"] = member.Name;
+                }
+
                 if (!schema.RenameMember(directive.Coordinate, directive.NewName))
                 {
                     context.Log.Warning(RenameMemberNotFound(directive.Coordinate, schema));

@@ -1,0 +1,44 @@
+scalar DateTime
+
+scalar Int
+
+type Product @resolver(select: "{ productById(upc: $Product_upc) }", schema: "Reviews") @variable(name: "Product_upc", select: "upc", schema: "Reviews", type: "Int!") {
+  reviews: [Review!]! @source(schema: "Reviews")
+  upc: Int! @source(schema: "Reviews")
+}
+
+type Query {
+  productById(upc: Int!): Product @resolver(select: "{ productById(upc: $upc) }", schema: "Reviews")
+  reviews: [Review!]! @resolver(select: "{ reviews }", schema: "Reviews")
+  userById(id: Int!): User! @resolver(select: "{ userById(id: $id) }", schema: "Accounts") @resolver(select: "{ userById(id: $id) }", schema: "Reviews")
+  users: [User!]! @resolver(select: "{ users }", schema: "Accounts")
+}
+
+type Review {
+  author: User! @source(schema: "Reviews")
+  body: String! @source(schema: "Reviews")
+  id: Int! @source(schema: "Reviews")
+  upc: Product! @source(schema: "Reviews")
+}
+
+scalar String
+
+type User @resolver(select: "{ userById(id: $User_id) }", schema: "Accounts") @variable(name: "User_id", select: "id", schema: "Accounts", type: "Int!") @resolver(select: "{ userById(id: $User_id) }", schema: "Reviews") @variable(name: "User_id", select: "id", schema: "Reviews", type: "Int!") {
+  birthdate: DateTime! @source(schema: "Accounts")
+  id: Int! @source(schema: "Accounts") @source(schema: "Reviews")
+  name: String! @source(schema: "Accounts")
+  reviews: [Review!]! @source(schema: "Reviews")
+  username: String! @source(schema: "Accounts")
+}
+
+directive @resolver(schema: String! select: String!) on OBJECT
+
+directive @source(name: String schema: String!) on FIELD_DEFINITION
+
+directive @variable(name: String! schema: String! select: String! type: String!) on OBJECT | FIELD_DEFINITION
+
+schema
+  @httpClient(schema: "Reviews" baseAddress: "https://a/graphql")
+  @httpClient(schema: "Accounts" baseAddress: "https://b/graphql") {
+  query: Query
+}

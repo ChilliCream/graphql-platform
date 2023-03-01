@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class DirectiveType : ITypeSystemMember
+public sealed class DirectiveType : IHasName, IHasContextData
 {
     private string _name;
 

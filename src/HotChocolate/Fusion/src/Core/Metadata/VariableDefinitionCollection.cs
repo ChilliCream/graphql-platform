@@ -2,27 +2,24 @@ using System.Collections;
 
 namespace HotChocolate.Fusion.Metadata;
 
-internal sealed class VariableDefinitionCollection : IEnumerable<FieldVariableDefinition>
+internal sealed class VariableDefinitionCollection : IEnumerable<VariableDefinition>
 {
-    private readonly FieldVariableDefinition[] _variables;
+    private readonly IReadOnlyList<VariableDefinition> _variables;
 
-    public VariableDefinitionCollection(IEnumerable<FieldVariableDefinition> variables)
+    public VariableDefinitionCollection(
+        IReadOnlyList<VariableDefinition> variables)
     {
-        _variables = variables.ToArray();
+        _variables = variables;
     }
 
-    public int Count => _variables.Length;
+    public int Count => _variables.Count;
 
-    public IEnumerator<FieldVariableDefinition> GetEnumerator()
-    {
-        foreach (var variable in _variables)
-        {
-            yield return variable;
-        }
-    }
+    public IEnumerator<VariableDefinition> GetEnumerator()
+        => _variables.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+        => GetEnumerator();
+
+    public static VariableDefinitionCollection Empty { get; } =
+        new(new List<VariableDefinition>());
 }

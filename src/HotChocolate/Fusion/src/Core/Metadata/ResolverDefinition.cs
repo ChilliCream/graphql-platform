@@ -1,31 +1,38 @@
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Metadata;
 
-internal sealed class FetchDefinition
+internal sealed class ResolverDefinition
 {
     private static readonly FetchRewriter _rewriter = new();
+    private readonly FieldNode? _field;
 
-    public FetchDefinition(
-        string schemaName,
-        ISelectionNode select,
+    public ResolverDefinition(
+        string subGraphName,
+        SelectionSetNode select,
         FragmentSpreadNode? placeholder,
         IReadOnlyList<string> requires)
     {
-        SchemaName = schemaName;
+        SubGraphName = subGraphName;
         Select = select;
         Placeholder = placeholder;
         Requires = requires;
+
+        if (select.Selections is [FieldNode field])
+        {
+            _field = field;
+        }
     }
 
     /// <summary>
     /// Gets the schema to which the type system member is bound to.
     /// </summary>
-    public string SchemaName { get; }
+    public string SubGraphName { get; }
 
-    public ISelectionNode Select { get; }
+    public SelectionSetNode Select { get; }
 
     public FragmentSpreadNode? Placeholder { get; }
 
@@ -37,7 +44,7 @@ internal sealed class FetchDefinition
         string? responseName)
     {
         var context = new FetchRewriterContext(Placeholder, variables, selectionSet, responseName);
-        var selection = _rewriter.Rewrite(Select, context);
+        var selection = _rewriter.Rewrite(_field ?? (ISyntaxNode)Select, context);
 
         if (Placeholder is null && selectionSet is not null)
         {

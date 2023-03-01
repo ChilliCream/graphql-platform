@@ -1,8 +1,6 @@
-using System.Net.Sockets;
-using HotChocolate.Fusion.Composition.Types;
 using HotChocolate.Skimmed;
 
-namespace HotChocolate.Fusion.Composition;
+namespace HotChocolate.Fusion.Composition.Pipeline;
 
 public sealed class ScalarTypeMergeHandler : ITypeMergeHandler
 {

@@ -14,7 +14,7 @@ internal sealed class ServiceConfiguration
     {
         _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
         HttpClientConfigs = httpClientConfigs;
-        SchemaNames = httpClientConfigs.Select(t => t.SchemaName).ToArray();
+        SubGraphNames = httpClientConfigs.Select(t => t.SchemaName).ToArray();
 
         foreach (var type in types)
         {
@@ -28,8 +28,7 @@ internal sealed class ServiceConfiguration
         }
     }
 
-    // todo: Should be named SchemaNames or maybe SubGraphNames?
-    public IReadOnlyList<string> SchemaNames { get; }
+    public IReadOnlyList<string> SubGraphNames { get; }
 
     public IReadOnlyList<HttpClientConfig> HttpClientConfigs { get; }
 

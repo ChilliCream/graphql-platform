@@ -27,7 +27,7 @@ internal class SelectionExecutionStep : IExecutionStep
 
     public ISelection? ParentSelection { get; }
 
-    public FetchDefinition? Resolver { get; set; }
+    public ResolverDefinition? Resolver { get; set; }
 
     public List<RootSelection> RootSelections { get; } = new();
 

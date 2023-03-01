@@ -21,7 +21,7 @@ internal sealed class IntrospectionExecutionStep : IExecutionStep
 
     public ISelection? ParentSelection { get; }
 
-    public FetchDefinition? Resolver => null;
+    public ResolverDefinition? Resolver => null;
 
     public HashSet<IExecutionStep> DependsOn { get; } = new();
 }

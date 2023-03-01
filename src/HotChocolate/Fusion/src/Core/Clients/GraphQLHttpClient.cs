@@ -12,29 +12,32 @@ namespace HotChocolate.Fusion.Clients;
 // all and the client decides to batch if batching is available?
 public sealed class GraphQLHttpClient : IGraphQLClient
 {
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly JsonRequestFormatter _formatter = new();
     private readonly HttpClient _client;
 
     public GraphQLHttpClient(string schemaName, IHttpClientFactory httpClientFactory)
     {
-        _httpClientFactory = httpClientFactory;
-        SchemaName = schemaName;
-        _client =_httpClientFactory.CreateClient(SchemaName);
+        SubGraphName = schemaName;
+        _client = httpClientFactory.CreateClient(SubGraphName);
     }
 
     // TODO: naming? SubGraphName?
-    public string SchemaName { get; }
+    public string SubGraphName { get; }
 
-    public async Task<GraphQLResponse> ExecuteAsync(GraphQLRequest request, CancellationToken cancellationToken)
+    public async Task<GraphQLResponse> ExecuteAsync(
+        GraphQLRequest request,
+        CancellationToken cancellationToken)
     {
         // todo : this is just a naive dummy implementation
         using var writer = new ArrayWriter();
         using var requestMessage = CreateRequestMessage(writer, request);
         using var responseMessage = await _client.SendAsync(requestMessage, cancellationToken);
-        responseMessage.EnsureSuccessStatusCode(); // TODO : remove for production
 
-        await using var contentStream = await responseMessage.Content.ReadAsStreamAsync(cancellationToken);
+        // responseMessage.EnsureSuccessStatusCode(); // TODO : remove for production
+
+        await using var contentStream = await responseMessage.Content
+            .ReadAsStreamAsync(cancellationToken)
+            .ConfigureAwait(false);
         var stream = contentStream;
 
         var sourceEncoding = GetEncoding(responseMessage.Content.Headers.ContentType?.CharSet);
@@ -104,6 +107,9 @@ public sealed class GraphQLHttpClient : IGraphQLClient
 
     private static Stream GetTranscodingStream(Stream contentStream, Encoding sourceEncoding)
     {
-        return Encoding.CreateTranscodingStream(contentStream, innerStreamEncoding: sourceEncoding, outerStreamEncoding: Encoding.UTF8);
+        return Encoding.CreateTranscodingStream(
+            contentStream,
+            innerStreamEncoding: sourceEncoding,
+            outerStreamEncoding: Encoding.UTF8);
     }
 }
