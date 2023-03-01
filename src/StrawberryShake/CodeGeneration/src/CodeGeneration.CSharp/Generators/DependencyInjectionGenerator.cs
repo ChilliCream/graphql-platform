@@ -748,7 +748,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
     private static ICode RegisterHttpConnection(string clientName) =>
         MethodCallBuilder
             .New()
-            .SetMethodName(AddSingleton)
+            .SetMethodName(TryAddSingleton)
             .AddArgument(_services)
             .AddGeneric(IHttpConnection)
             .AddArgument(LambdaBuilder
