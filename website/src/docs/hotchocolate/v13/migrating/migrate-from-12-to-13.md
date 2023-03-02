@@ -391,6 +391,19 @@ There have also been changes to the response format of streamed responses. You c
 
 > Warning: The spec of these features is still evolving, so expect more changes on how the incremental payloads are being delivered.
 
+## NameString
+
+In this release we removed the `NameString`, which was used for type or field names, among other use-cases. You can now safely replace it with a simple `string`. `string` was already implicitly converted to a `NameString`, so in most places you shouldn't encounter issues regarding this.
+
+## IResolverContext / IMiddlewareContext
+
+Previously you could access properties like `Document` and `RootType` directly on the `IResolverContext` or the `IMiddlewareContext`. In this release we have moved these properties and they can now be accessed through the `Operation` property on the contexts. We have also removed the deprecated properties `Field` and `FieldSelection`.
+
+`context.Document` --> `context.Operation.Document`
+`context.RootType` --> `context.Operation.RootType`
+`context.Field` --> `context.Selection.Field`
+`context.FieldSelection` --> `context.Selection.SyntaxNode`
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
