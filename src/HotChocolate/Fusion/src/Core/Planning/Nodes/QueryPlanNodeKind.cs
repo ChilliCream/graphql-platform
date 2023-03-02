@@ -4,7 +4,7 @@ internal enum QueryPlanNodeKind
 {
     Parallel,
     Serial,
-    Fetch,
+    Resolver,
     Introspection,
-    Compose,
+    Composition,
 }

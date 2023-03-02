@@ -12,17 +12,11 @@ internal class SelectionExecutionStep : IExecutionStep
     {
         SelectionSetType = selectionSetType;
         ParentSelection = parentSelection;
-        SchemaName = schemaNameName;
+        SubGraphName = schemaNameName;
     }
 
-    public string SchemaName { get; }
+    public string SubGraphName { get; }
 
-    /// <summary>
-    /// The type name of the root selection set of this execution step.
-    /// If <see cref="ParentSelection"/> is null then the selection set is the
-    /// operation root selection set, otherwise its the selection set resolved
-    /// by using the <see cref="ParentSelection"/>.
-    /// </summary>
     public ObjectType SelectionSetType { get; }
 
     public ISelection? ParentSelection { get; }

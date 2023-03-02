@@ -12,10 +12,10 @@ internal sealed class IntrospectionExecutionStep : IExecutionStep
     {
         SelectionSetType = selectionSetType;
         ParentSelection = parentSelection;
-        SchemaName = schemaNameName;
+        SubGraphName = schemaNameName;
     }
 
-    public string SchemaName { get; }
+    public string SubGraphName { get; }
 
     public ObjectType SelectionSetType { get; }
 

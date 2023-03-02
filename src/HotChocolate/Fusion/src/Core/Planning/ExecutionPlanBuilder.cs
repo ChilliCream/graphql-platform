@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 
@@ -58,7 +57,7 @@ internal sealed class ExecutionPlanBuilder
             {
                 var node = current[0];
                 var selectionSet = ResolveSelectionSet(context, node.Key);
-                var compose = new ComposeNode(context.CreateNodeId(), selectionSet);
+                var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
                 parent.AddNode(node.Value);
                 parent.AddNode(compose);
                 context.Nodes.Remove(node.Key);
@@ -77,7 +76,7 @@ internal sealed class ExecutionPlanBuilder
                     completed.Add(node.Key);
                 }
 
-                var compose = new ComposeNode(context.CreateNodeId(), selectionSets);
+                var compose = new CompositionNode(context.CreateNodeId(), selectionSets);
 
                 parent.AddNode(parallel);
                 parent.AddNode(compose);
@@ -89,7 +88,7 @@ internal sealed class ExecutionPlanBuilder
         return parent;
     }
 
-    private FetchNode CreateFetchNode(
+    private ResolverNode CreateFetchNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
@@ -98,9 +97,9 @@ internal sealed class ExecutionPlanBuilder
 
         context.HasNodes.Add(selectionSet);
 
-        return new FetchNode(
+        return new ResolverNode(
             context.CreateNodeId(),
-            executionStep.SchemaName,
+            executionStep.SubGraphName,
             requestDocument,
             selectionSet,
             executionStep.Variables.Values.ToArray(),
@@ -226,7 +225,7 @@ internal sealed class ExecutionPlanBuilder
             selectionSetNode = CreateSelectionSetNode(context, executionStep, selection);
         }
 
-        var binding = field.Bindings[executionStep.SchemaName];
+        var binding = field.Bindings[executionStep.SubGraphName];
 
         var alias = !selection.ResponseName.Equals(binding.Name)
             ? new NameNode(selection.ResponseName)

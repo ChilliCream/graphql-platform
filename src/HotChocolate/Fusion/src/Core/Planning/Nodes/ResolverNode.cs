@@ -8,32 +8,32 @@ using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class FetchNode : QueryPlanNode
+internal sealed class ResolverNode : QueryPlanNode
 {
     private readonly IReadOnlyList<string> _path;
 
-    public FetchNode(
+    public ResolverNode(
         int id,
-        string schemaName,
+        string subGraphName,
         DocumentNode document,
         ISelectionSet selectionSet,
         IReadOnlyList<string> requires,
         IReadOnlyList<string> path)
         : base(id)
     {
-        SchemaName = schemaName;
+        SubGraphName = subGraphName;
         Document = document;
         SelectionSet = selectionSet;
         Requires = requires;
         _path = path;
     }
 
-    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Fetch;
+    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Resolver;
 
     /// <summary>
     /// Gets the schema name on which this request handler executes.
     /// </summary>
-    public string SchemaName { get; }
+    public string SubGraphName { get; }
 
     /// <summary>
     /// Gets the GraphQL request document.
@@ -57,7 +57,7 @@ internal sealed class FetchNode : QueryPlanNode
     {
         if (state.TryGetState(SelectionSet, out var values))
         {
-            var schemaName = SchemaName;
+            var schemaName = SubGraphName;
             var requests = new GraphQLRequest[values.Count];
             var selections = values[0].SelectionSet.Selections;
 
@@ -148,7 +148,7 @@ internal sealed class FetchNode : QueryPlanNode
             vars ??= new ObjectValueNode(fields);
         }
 
-        return new GraphQLRequest(SchemaName, Document, vars, null);
+        return new GraphQLRequest(SubGraphName, Document, vars, null);
     }
 
     private JsonElement UnwrapResult(GraphQLResponse response)
@@ -181,8 +181,8 @@ internal sealed class FetchNode : QueryPlanNode
 
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
-        writer.WriteString("schemaName", SchemaName);
-        writer.WriteString("document", Document.ToString());
+        writer.WriteString("schemaName", SubGraphName);
+        writer.WriteString("document", Document.ToString(false));
         writer.WriteNumber("selectionSetId", SelectionSet.Id);
 
         if (_path.Count > 0)

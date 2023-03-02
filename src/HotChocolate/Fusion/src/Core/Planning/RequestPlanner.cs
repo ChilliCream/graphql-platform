@@ -149,7 +149,7 @@ internal sealed class RequestPlanner
             {
                 var field = declaringType.Fields[selection.Field.Name];
 
-                if (field.Bindings.TryGetValue(executionStep.SchemaName, out _))
+                if (field.Bindings.TryGetValue(executionStep.SubGraphName, out _))
                 {
                     executionStep.AllSelections.Add(selection);
 
@@ -376,9 +376,9 @@ internal sealed class RequestPlanner
     {
         var parentDeclaringType = _configuration.GetType<ObjectType>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
+        var parentState = parentField.Variables.Select(t => t.Name);
 
-        foreach (var requirement in
-            resolver.Requires.Except(parentField.Variables.Select(t => t.Name)))
+        foreach (var requirement in resolver.Requires.Except(parentState))
         {
             requirements.Add(requirement);
         }

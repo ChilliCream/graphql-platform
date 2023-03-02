@@ -10,9 +10,9 @@ namespace HotChocolate.Fusion.Planning;
 internal interface IExecutionStep
 {
     /// <summary>
-    /// Gets the schema from which this execution step will fetch data.
+    /// Gets the sub-graph from which this execution step will fetch data.
     /// </summary>
-    string SchemaName { get; }
+    string SubGraphName { get; }
 
     /// <summary>
     /// Gets the declaring type of the root selection set of this execution step.

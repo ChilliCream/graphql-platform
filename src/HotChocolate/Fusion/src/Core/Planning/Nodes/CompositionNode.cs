@@ -5,21 +5,21 @@ using static HotChocolate.Fusion.Execution.ExecutorUtils;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class ComposeNode : QueryPlanNode
+internal sealed class CompositionNode : QueryPlanNode
 {
     private readonly IReadOnlyList<ISelectionSet> _selectionSets;
 
-    public ComposeNode(int id, ISelectionSet selectionSet)
+    public CompositionNode(int id, ISelectionSet selectionSet)
         : this(id, new[] { selectionSet })
     {
     }
 
-    public ComposeNode(int id, IReadOnlyList<ISelectionSet> selectionSets) : base(id)
+    public CompositionNode(int id, IReadOnlyList<ISelectionSet> selectionSets) : base(id)
     {
         _selectionSets = selectionSets ?? throw new ArgumentNullException(nameof(selectionSets));
     }
 
-    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Compose;
+    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Composition;
 
     protected override Task OnExecuteAsync(
         IFederationContext context,
