@@ -74,6 +74,13 @@ public class SchemaGeneratorTests
                     query: Query
                 }
 
+                # Breaks generation
+                scalar JSON
+
+                type TypeWithJsonScalar {
+                    json: JSON
+                }
+
                 type Query {
                     newsItems(skip: Int take: Int query: String!): NewsItemCollectionSegment
                 }
