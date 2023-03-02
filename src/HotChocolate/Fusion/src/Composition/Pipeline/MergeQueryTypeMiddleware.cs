@@ -80,8 +80,5 @@ static file class MergeEntitiesMiddlewareExtensions
         CompositionContext context,
         SelectionSetNode selectionSet,
         string schemaName)
-        => new Directive(
-            context.FusionTypes.Resolver,
-            new Argument(DirectiveArguments.SelectArg, selectionSet.ToString(false)),
-            new Argument(DirectiveArguments.SchemaArg, schemaName));
+        => context.FusionTypes.CreateResolverDirective(schemaName, selectionSet);
 }

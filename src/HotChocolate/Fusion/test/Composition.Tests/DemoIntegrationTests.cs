@@ -28,7 +28,7 @@ public sealed class DemoIntegrationTests
 
         type Query {
           users: [User!]!
-          userById(id: Int! @ref(field: "id")): User!
+          userById(id: Int!): User!
         }
 
         type User {
@@ -41,6 +41,10 @@ public sealed class DemoIntegrationTests
         scalar DateTime
 
         directive @ref(coordinate: String, field: String) on FIELD_DEFINITION
+
+        extend type Query {
+          userById(id: Int! @ref(field: "id")): User!
+        }
         """;
 
     private const string ReviewsSdl =
@@ -53,8 +57,8 @@ public sealed class DemoIntegrationTests
 
         type Query {
           reviews: [Review!]!
-          authorById(id: Int! @ref(field: "id")): Author
-          productById(upc: Int! @ref(field: "upc")): Product
+          authorById(id: Int!): Author
+          productById(upc: Int!): Product
         }
 
         type Review {
@@ -77,5 +81,10 @@ public sealed class DemoIntegrationTests
         directive @ref(coordinate: String, field: String) on FIELD_DEFINITION
         directive @rename(coordinate: String! to: String!) on SCHEMA
         directive @remove(coordinate: String!) on SCHEMA
+
+        extend type Query {
+          authorById(id: Int! @ref(field: "id")): Author
+          productById(upc: Int! @ref(field: "upc")): Product
+        }
         """;
 }

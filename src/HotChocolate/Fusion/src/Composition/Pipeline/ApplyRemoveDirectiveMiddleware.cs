@@ -19,7 +19,7 @@ public sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
             {
                 if (!schema.RemoveMember(directive.Coordinate))
                 {
-                    context.Log.Warning(RemoveMemberNotFound(directive.Coordinate, schema));
+                    context.Log.Write(RemoveMemberNotFound(directive.Coordinate, schema));
                 }
             }
         }
@@ -41,14 +41,14 @@ static file class ApplyRemoveDirectiveMiddlewareExtensions
         {
             if (!directive.Arguments.TryGetValue(CoordinateArg, out var argumentValue))
             {
-                context.Log.Error(DirectiveArgumentMissing(CoordinateArg, directive, schema));
+                context.Log.Write(DirectiveArgumentMissing(CoordinateArg, directive, schema));
                 continue;
             }
 
             if (argumentValue is not StringValueNode coordinateValue ||
                 !SchemaCoordinate.TryParse(coordinateValue.Value, out var coordinate))
             {
-                context.Log.Error(DirectiveArgumentValueInvalid(CoordinateArg, directive, schema));
+                context.Log.Write(DirectiveArgumentValueInvalid(CoordinateArg, directive, schema));
                 continue;
             }
 

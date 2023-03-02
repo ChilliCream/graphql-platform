@@ -19,7 +19,7 @@ public sealed class UnionTypeMergeHandler : ITypeMergeHandler
         foreach (var part in typeGroup.Parts)
         {
             var source = (UnionType)part.Type;
-            MergeType(context, source, target, context.FusionGraph);
+            MergeType(context, source, part.Schema, target, context.FusionGraph);
         }
 
         return new(MergeStatus.Completed);
@@ -28,9 +28,12 @@ public sealed class UnionTypeMergeHandler : ITypeMergeHandler
     private static void MergeType(
         CompositionContext context,
         UnionType source,
+        Schema sourceSchema,
         UnionType target,
         Schema targetSchema)
     {
+        context.TryApplySource(source, sourceSchema, target);
+
         if (string.IsNullOrEmpty(target.Description))
         {
             target.Description = source.Description;

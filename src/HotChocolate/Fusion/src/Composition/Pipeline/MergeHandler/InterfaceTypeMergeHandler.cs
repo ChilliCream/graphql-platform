@@ -20,7 +20,7 @@ public sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
         foreach (var part in typeGroup.Parts)
         {
             var source = (InterfaceType)part.Type;
-            MergeType(context, source, target);
+            MergeType(context, source, part.Schema, target);
         }
 
         return new(MergeStatus.Completed);
@@ -29,8 +29,11 @@ public sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
     private static void MergeType(
         CompositionContext context,
         InterfaceType source,
+        Schema sourceSchema,
         InterfaceType target)
     {
+        context.TryApplySource(source, sourceSchema, target);
+
         if (string.IsNullOrEmpty(target.Description))
         {
             source.Description = target.Description;
@@ -52,8 +55,11 @@ public sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
             }
             else
             {
-                target.Fields.Add(context.CreateField(sourceField));
+                targetField = context.CreateField(sourceField);
+                target.Fields.Add(targetField);
             }
+
+            context.TryApplySource(sourceField, sourceSchema, targetField);
         }
     }
 }

@@ -25,5 +25,5 @@ public sealed class CompositionContext
 
     public CancellationToken Abort { get; set; }
 
-    public ICompositionLog Log { get; } = new CompositionLog();
+    public ICompositionLog Log { get; } = new DefaultCompositionLog();
 }

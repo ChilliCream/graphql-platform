@@ -61,7 +61,7 @@ public sealed class MergeTypeMiddleware : IMergeMiddleware
             // must be handled by the user.
             if (status is MergeStatus.Skipped)
             {
-                context.Log.Error(LogEntryHelper.UnableToMergeType(typeGroup));
+                context.Log.Write(LogEntryHelper.UnableToMergeType(typeGroup));
             }
         }
 

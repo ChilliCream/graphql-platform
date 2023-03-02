@@ -51,7 +51,7 @@ internal sealed class QueryPlan
     {
         writer.WriteStartObject();
 
-        writer.WriteString("document", _operation.Document.ToString());
+        writer.WriteString("document", _operation.Document.ToString(false));
 
         if (!string.IsNullOrEmpty(_operation.Name))
         {

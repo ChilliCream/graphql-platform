@@ -1,6 +1,5 @@
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
-using static HotChocolate.Fusion.Composition.DirectiveArguments;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -31,6 +30,8 @@ static file class MergeEntitiesMiddlewareExtensions
 {
     public static void Merge(this CompositionContext context, EntityPart source, ObjectType target)
     {
+        context.TryApplySource(source.Type, source.Schema, target);
+
         if (string.IsNullOrEmpty(target.Description))
         {
             target.Description = source.Type.Description;
@@ -56,7 +57,7 @@ static file class MergeEntitiesMiddlewareExtensions
                 target.Fields.Add(targetField);
             }
 
-            context.ApplySource(sourceField, source.Schema.Name, targetField);
+            context.ApplySource(sourceField, source.Schema, targetField);
         }
     }
 
@@ -93,36 +94,32 @@ static file class MergeEntitiesMiddlewareExtensions
             value is string originalName)
         {
             targetField.Directives.Add(
-                new Directive(
-                    context.FusionTypes.Source,
-                    new Argument(SchemaArg, sourceSchemaName),
-                    new Argument(NameArg, originalName)));
+                context.FusionTypes.CreateSourceDirective(
+                    sourceSchemaName,
+                    originalName));
         }
         else
         {
             targetField.Directives.Add(
-                new Directive(
-                    context.FusionTypes.Source,
-                    new Argument(SchemaArg, sourceSchemaName)));
+                context.FusionTypes.CreateSourceDirective(
+                    sourceSchemaName));
         }
     }
 
     private static Directive CreateResolverDirective(
         CompositionContext context,
         EntityResolver resolver)
-        => new Directive(
-            context.FusionTypes.Resolver,
-            new Argument(SelectArg, resolver.SelectionSet.ToString(false)),
-            new Argument(SchemaArg, resolver.SchemaName));
+        => context.FusionTypes.CreateResolverDirective(
+            resolver.SchemaName,
+            resolver.SelectionSet);
 
     private static Directive CreateVariableDirective(
         CompositionContext context,
         KeyValuePair<string, VariableDefinition> variable,
         string schemaName)
-        => new Directive(
-            context.FusionTypes.Variable,
-            new Argument(NameArg, variable.Key),
-            new Argument(SelectArg, variable.Value.Field.ToString(false)),
-            new Argument(SchemaArg, schemaName),
-            new Argument(TypeArg, variable.Value.Definition.Type.ToString(false)));
+        => context.FusionTypes.CreateVariableDirective(
+            schemaName,
+            variable.Key,
+            variable.Value.Field,
+            variable.Value.Definition.Type);
 }

@@ -20,6 +20,8 @@ public sealed class ScalarTypeMergeHandler : ITypeMergeHandler
         {
             var source = (ScalarType)part.Type;
 
+            context.TryApplySource(source, part.Schema, target);
+
             if (string.IsNullOrEmpty(target.Description))
             {
                 target.Description = source.Description;

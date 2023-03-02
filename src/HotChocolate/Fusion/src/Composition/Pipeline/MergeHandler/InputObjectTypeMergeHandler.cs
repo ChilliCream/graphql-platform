@@ -19,7 +19,7 @@ public sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
         foreach (var part in typeGroup.Parts)
         {
             var source = (InputObjectType)part.Type;
-            MergeType(context, source, target, context.FusionGraph);
+            MergeType(context, source, part.Schema, target, context.FusionGraph);
         }
 
         return new(MergeStatus.Completed);
@@ -28,9 +28,12 @@ public sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
     private static void MergeType(
         CompositionContext context,
         InputObjectType source,
+        Schema sourceSchema,
         InputObjectType target,
         Schema targetSchema)
     {
+        context.TryApplySource(source, sourceSchema, target);
+
         if (string.IsNullOrEmpty(target.Description))
         {
             target.Description = source.Description;
@@ -54,6 +57,8 @@ public sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
                 targetField.IsDeprecated = sourceField.IsDeprecated;
                 target.Fields.Add(targetField);
             }
+
+            context.TryApplySource(sourceField, sourceSchema, targetField);
         }
     }
 }

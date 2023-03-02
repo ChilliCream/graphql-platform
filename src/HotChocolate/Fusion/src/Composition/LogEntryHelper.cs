@@ -11,6 +11,7 @@ internal static class LogEntryHelper
         => new LogEntry(
             string.Format(LogEntryHelper_RemoveMemberNotFound, coordinate),
             LogEntryCodes.RemoveMemberNotFound,
+            LogEntryKind.Warning,
             coordinate,
             Schema: schema);
 
@@ -20,6 +21,7 @@ internal static class LogEntryHelper
         => new LogEntry(
             string.Format(LogEntryHelper_RenameMemberNotFound, coordinate),
             LogEntryCodes.RemoveMemberNotFound,
+            LogEntryKind.Warning,
             coordinate,
             Schema: schema);
 
@@ -33,6 +35,7 @@ internal static class LogEntryHelper
                 argumentName,
                 directive.Name),
             LogEntryCodes.DirectiveArgumentMissing,
+            LogEntryKind.Error,
             Member: directive,
             Schema: schema);
 

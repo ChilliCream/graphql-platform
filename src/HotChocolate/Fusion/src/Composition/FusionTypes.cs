@@ -1,7 +1,9 @@
 using HotChocolate.Fusion.Composition.Properties;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Composition.DirectiveArguments;
+using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -92,6 +94,18 @@ public sealed class FusionTypes
         return selection;
     }
 
+    public Directive CreateVariableDirective(
+        string subGraphName,
+        string variableName,
+        FieldNode select,
+        ITypeNode type)
+        => new Directive(
+            Variable,
+            new Argument(SubGraphArg, subGraphName),
+            new Argument(NameArg, variableName),
+            new Argument(SelectArg, select.ToString()),
+            new Argument(TypeArg, type.ToString()));
+
     private DirectiveType RegisterVariableDirectiveType(
         string name,
         ScalarType typeName,
@@ -101,13 +115,21 @@ public sealed class FusionTypes
         var directiveType = new DirectiveType(name);
         directiveType.Arguments.Add(new InputField(NameArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selection)));
-        directiveType.Arguments.Add(new InputField(SchemaArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(SubGraphArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(new InputField(TypeArg, new NonNullType(type)));
         directiveType.Locations |= DirectiveLocation.Object;
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
+
+    public Directive CreateResolverDirective(
+        string subGraphName,
+        SelectionSetNode select)
+        => new Directive(
+            Resolver,
+            new Argument(SubGraphArg, subGraphName),
+            new Argument(SelectArg, select.ToString()));
 
     private DirectiveType RegisterResolverDirectiveType(
         string name,
@@ -116,17 +138,27 @@ public sealed class FusionTypes
     {
         var directiveType = new DirectiveType(name);
         directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selectionSet)));
-        directiveType.Arguments.Add(new InputField(SchemaArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(SubGraphArg, new NonNullType(typeName)));
         directiveType.Locations |= DirectiveLocation.Object;
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
+    public Directive CreateSourceDirective(string subGraphName, string? originalName = null)
+        => originalName is null
+            ? new Directive(
+                Source,
+                new Argument(SubGraphArg, subGraphName))
+            : new Directive(
+                Source,
+                new Argument(SubGraphArg, subGraphName),
+                new Argument(NameArg, originalName));
+
     private DirectiveType RegisterSourceDirectiveType(string name, ScalarType typeName)
     {
         var directiveType = new DirectiveType(name);
         directiveType.Locations = DirectiveLocation.FieldDefinition;
-        directiveType.Arguments.Add(new InputField(SchemaArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(SubGraphArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(new InputField(NameArg, typeName));
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;

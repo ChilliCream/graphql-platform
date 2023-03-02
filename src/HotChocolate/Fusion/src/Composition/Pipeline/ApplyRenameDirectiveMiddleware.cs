@@ -2,7 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.DirectivesHelper;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
-using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 using IHasName = HotChocolate.Skimmed.IHasName;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -23,7 +22,7 @@ public sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
 
                 if (!schema.RenameMember(directive.Coordinate, directive.NewName))
                 {
-                    context.Log.Warning(RenameMemberNotFound(directive.Coordinate, schema));
+                    context.Log.Write(RenameMemberNotFound(directive.Coordinate, schema));
                 }
             }
         }
@@ -45,26 +44,26 @@ static file class ApplyRenameDirectiveMiddlewareExtensions
         {
             if (!directive.Arguments.TryGetValue(CoordinateArg, out var argumentValue))
             {
-                context.Log.Error(DirectiveArgumentMissing(CoordinateArg, directive, schema));
+                context.Log.Write(DirectiveArgumentMissing(CoordinateArg, directive, schema));
                 continue;
             }
 
             if (argumentValue is not StringValueNode coordinateValue ||
                 !SchemaCoordinate.TryParse(coordinateValue.Value, out var coordinate))
             {
-                context.Log.Error(DirectiveArgumentValueInvalid(CoordinateArg, directive, schema));
+                context.Log.Write(DirectiveArgumentValueInvalid(CoordinateArg, directive, schema));
                 continue;
             }
 
             if (!directive.Arguments.TryGetValue(NewNameArg, out argumentValue))
             {
-                context.Log.Error(DirectiveArgumentMissing(NewNameArg, directive, schema));
+                context.Log.Write(DirectiveArgumentMissing(NewNameArg, directive, schema));
                 continue;
             }
 
             if (argumentValue is not StringValueNode { Value: { Length: > 0 } newName })
             {
-                context.Log.Error(DirectiveArgumentValueInvalid(NewNameArg, directive, schema));
+                context.Log.Write(DirectiveArgumentValueInvalid(NewNameArg, directive, schema));
                 continue;
             }
 
