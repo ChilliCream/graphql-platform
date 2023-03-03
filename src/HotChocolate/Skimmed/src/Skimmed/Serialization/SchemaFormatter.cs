@@ -58,12 +58,14 @@ public static class SchemaFormatter
                             new NamedTypeNode(schema.SubscriptionType.Name)));
                 }
 
+                VisitDirectives(schema.Directives, context);
+
                 var schemaDefinition = new SchemaDefinitionNode(
                     null,
                     string.IsNullOrEmpty(schema.Description)
                         ? null
                         : new(schema.Description),
-                    Array.Empty<DirectiveNode>(),
+                    (IReadOnlyList<DirectiveNode>)context.Result!,
                     operationTypes);
                 definitions.Add(schemaDefinition);
             }

@@ -13,13 +13,132 @@ User Request
 }
 ---------------
 
+QueryPlan
+---------------
+{
+  "document": "{ users { name reviews { body author { name } } } }",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "schemaName": "Accounts",
+        "document": "query Remote_023aa5d5a037424aa2a5686d2e0f1d48_1 { users { name __fusion_exports__1: id } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Resolver",
+        "schemaName": "Reviews",
+        "document": "query Remote_023aa5d5a037424aa2a5686d2e0f1d48_2($__fusion_exports__1: Int!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
+        "selectionSetId": 1,
+        "path": [
+          "authorById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          1
+        ]
+      }
+    ]
+  }
+}
+---------------
+
 Result
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
-    }
-  ]
+  "data": {
+    "users": [
+      {
+        "name": "Ada Lovelace",
+        "reviews": [
+          {
+            "body": "Love it!",
+            "author": {
+              "name": "@ada"
+            }
+          },
+          {
+            "body": "Could be better.",
+            "author": {
+              "name": "@ada"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Alan Turing",
+        "reviews": [
+          {
+            "body": "Too expensive.",
+            "author": {
+              "name": "@complete"
+            }
+          },
+          {
+            "body": "Prefer something else.",
+            "author": {
+              "name": "@complete"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Service Configuration
+---------------
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+scalar Int
+
+type Product @resolver(subGraph: "Reviews", select: "{\n  productById(upc: $Product_upc)\n}") @variable(subGraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
+  reviews: [Review!]! @source(subGraph: "Reviews")
+  upc: Int! @source(subGraph: "Reviews")
+}
+
+type Query {
+  authorById(id: Int!): User! @resolver(subGraph: "Reviews", select: "{\n  authorById(id: $id)\n}")
+  productById(upc: Int!): Product! @resolver(subGraph: "Reviews", select: "{\n  productById(upc: $upc)\n}")
+  reviews: [Review!]! @resolver(subGraph: "Reviews", select: "{\n  reviews\n}")
+  userById(id: Int!): User! @resolver(subGraph: "Accounts", select: "{\n  userById(id: $id)\n}")
+  users: [User!]! @resolver(subGraph: "Accounts", select: "{\n  users\n}")
+}
+
+type Review {
+  author: User! @source(subGraph: "Reviews")
+  body: String! @source(subGraph: "Reviews")
+  id: Int! @source(subGraph: "Reviews")
+  product: Product! @source(subGraph: "Reviews")
+}
+
+scalar String
+
+type User @resolver(subGraph: "Reviews", select: "{\n  authorById(id: $User_id)\n}") @variable(subGraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subGraph: "Accounts", select: "{\n  userById(id: $User_id)\n}") @variable(subGraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
+  birthdate: DateTime! @source(subGraph: "Accounts")
+  id: Int! @source(subGraph: "Reviews") @source(subGraph: "Accounts")
+  name: String! @source(subGraph: "Reviews") @source(subGraph: "Accounts")
+  reviews: [Review!]! @source(subGraph: "Reviews")
+  username: String! @source(subGraph: "Accounts")
+}
+
+schema @httpClient(subGraph: "Reviews", baseAddress: "https:\/\/b\/graphql") @httpClient(subGraph: "Accounts", baseAddress: "https:\/\/b\/graphql") {
+  query: Query
 }
 ---------------

@@ -12,8 +12,8 @@ public sealed class DemoIntegrationTests
         var composer = CreateComposer();
 
         var context = await composer.ComposeAsync(
-            new SubGraphConfiguration("Accounts", AccountsSdl),
-            new SubGraphConfiguration("Reviews", ReviewsSdl));
+            new SubGraphConfiguration("Accounts", AccountsSdl, AccountsExtensionSdl),
+            new SubGraphConfiguration("Reviews", ReviewsSdl, ReviewsExtensionSdl));
 
         SchemaFormatter
             .FormatAsString(context.FusionGraph)
@@ -39,9 +39,10 @@ public sealed class DemoIntegrationTests
         }
 
         scalar DateTime
+        """;
 
-        directive @ref(coordinate: String, field: String) on FIELD_DEFINITION
-
+    private const string AccountsExtensionSdl =
+        """
         extend type Query {
           userById(id: Int! @ref(field: "id")): User!
         }
@@ -81,7 +82,10 @@ public sealed class DemoIntegrationTests
         directive @ref(coordinate: String, field: String) on FIELD_DEFINITION
         directive @rename(coordinate: String! to: String!) on SCHEMA
         directive @remove(coordinate: String!) on SCHEMA
+        """;
 
+    private const string ReviewsExtensionSdl =
+        """
         extend type Query {
           authorById(id: Int! @ref(field: "id")): Author
           productById(upc: Int! @ref(field: "upc")): Product

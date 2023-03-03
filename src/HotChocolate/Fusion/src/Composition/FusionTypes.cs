@@ -89,9 +89,10 @@ public sealed class FusionTypes
 
     private ScalarType RegisterScalarType(string name)
     {
-        var selection = new ScalarType(name);
-        _fusionGraph.Types.Add(selection);
-        return selection;
+        var scalarType = new ScalarType(name);
+        scalarType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        _fusionGraph.Types.Add(scalarType);
+        return scalarType;
     }
 
     public Directive CreateVariableDirective(
@@ -119,6 +120,7 @@ public sealed class FusionTypes
         directiveType.Arguments.Add(new InputField(TypeArg, new NonNullType(type)));
         directiveType.Locations |= DirectiveLocation.Object;
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
+        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
@@ -140,6 +142,7 @@ public sealed class FusionTypes
         directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selectionSet)));
         directiveType.Arguments.Add(new InputField(SubGraphArg, new NonNullType(typeName)));
         directiveType.Locations |= DirectiveLocation.Object;
+        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
@@ -160,6 +163,7 @@ public sealed class FusionTypes
         directiveType.Locations = DirectiveLocation.FieldDefinition;
         directiveType.Arguments.Add(new InputField(SubGraphArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(new InputField(NameArg, typeName));
+        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }

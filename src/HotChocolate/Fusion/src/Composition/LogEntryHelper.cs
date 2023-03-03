@@ -60,6 +60,19 @@ internal static class LogEntryHelper
                 typeGroup.Name),
             LogEntryCodes.DirectiveArgumentValueInvalid,
             Extension: typeGroup);
+
+    public static LogEntry MergeTypeKindDoesNotMatch(
+        INamedType type,
+        TypeKind sourceKind,
+        TypeKind targetKind)
+        => new LogEntry(
+            string.Format(
+                LogEntryHelper_MergeTypeKindDoesNotMatch,
+                type.Name,
+                sourceKind,
+                targetKind),
+            LogEntryCodes.TypeKindMismatch,
+            Extension: new[] { sourceKind, targetKind });
 }
 
 public static class LogEntryCodes
@@ -68,5 +81,7 @@ public static class LogEntryCodes
 
     public const string DirectiveArgumentMissing = "HF0002";
 
-    public const string DirectiveArgumentValueInvalid = "HC0003";
+    public const string DirectiveArgumentValueInvalid = "HF0003";
+
+    public const string TypeKindMismatch = "HF0004";
 }

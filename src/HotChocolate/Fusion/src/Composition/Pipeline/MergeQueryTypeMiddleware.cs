@@ -27,7 +27,7 @@ public sealed class MergeQueryTypeMiddleware : IMergeMiddleware
                     }
                     else
                     {
-                        targetField = context.CreateField(field);
+                        targetField = context.CreateField(field, context.FusionGraph);
                         queryType.Fields.Add(targetField);
                     }
 

@@ -53,7 +53,7 @@ static file class MergeEntitiesMiddlewareExtensions
             }
             else
             {
-                targetField = context.CreateField(sourceField);
+                targetField = context.CreateField(sourceField, context.FusionGraph);
                 target.Fields.Add(targetField);
             }
 

@@ -36,4 +36,7 @@
   <data name="FusionTypes_EnsureInitialized_Failed" xml:space="preserve">
     <value>Fusion types where initialized with different type prefixes.</value>
   </data>
+  <data name="LogEntryHelper_MergeTypeKindDoesNotMatch" xml:space="preserve">
+    <value>The type extension `{0}` cannot be merged with the target type as the are of a different type kind (`{1}` and `{2}`).</value>
+  </data>
 </root>

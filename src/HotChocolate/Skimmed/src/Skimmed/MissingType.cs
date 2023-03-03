@@ -2,16 +2,16 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
+public sealed class MissingType : INamedType
 {
     private string _name;
 
-    public UnionType(string name)
+    public MissingType(string name)
     {
         _name = name.EnsureGraphQLName();
     }
 
-    public TypeKind Kind => TypeKind.Union;
+    public TypeKind Kind => TypeKind.Scalar;
 
     public string Name
     {
@@ -23,9 +23,5 @@ public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
 
     public DirectiveCollection Directives { get; } = new();
 
-    public IList<ObjectType> Types { get; } = new List<ObjectType>();
-
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
-
-    public static UnionType Create(string name) => new(name);
 }

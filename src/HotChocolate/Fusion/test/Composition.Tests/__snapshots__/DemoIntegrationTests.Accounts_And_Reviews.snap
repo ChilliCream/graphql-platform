@@ -10,40 +10,40 @@ scalar DateTime
 
 scalar Int
 
-type Product @resolver(select: "{ productById(upc: $Product_upc) }", schema: "Reviews") @variable(name: "Product_upc", select: "upc", schema: "Reviews", type: "Int!") {
-  reviews: [Review!]! @source(schema: "Reviews")
-  upc: Int! @source(schema: "Reviews")
+type Product @resolver(subGraphName: "Reviews", select: "{\n  productById(upc: $Product_upc)\n}") @variable(subGraphName: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
+  reviews: [Review!]! @source(subGraphName: "Reviews")
+  upc: Int! @source(subGraphName: "Reviews")
 }
 
 type Query {
-  productById(upc: Int!): Product @resolver(select: "{ productById(upc: $upc) }", schema: "Reviews")
-  reviews: [Review!]! @resolver(select: "{ reviews }", schema: "Reviews")
-  userById(id: Int!): User! @resolver(select: "{ userById(id: $id) }", schema: "Accounts") @resolver(select: "{ userById(id: $id) }", schema: "Reviews")
-  users: [User!]! @resolver(select: "{ users }", schema: "Accounts")
+  productById(upc: Int!): Product @resolver(subGraphName: "Reviews", select: "{\n  productById(upc: $upc)\n}")
+  reviews: [Review!]! @resolver(subGraphName: "Reviews", select: "{\n  reviews\n}")
+  userById(id: Int!): User! @resolver(subGraphName: "Accounts", select: "{\n  userById(id: $id)\n}") @resolver(subGraphName: "Reviews", select: "{\n  userById(id: $id)\n}")
+  users: [User!]! @resolver(subGraphName: "Accounts", select: "{\n  users\n}")
 }
 
 type Review {
-  author: User! @source(schema: "Reviews")
-  body: String! @source(schema: "Reviews")
-  id: Int! @source(schema: "Reviews")
-  upc: Product! @source(schema: "Reviews")
+  author: User! @source(subGraphName: "Reviews")
+  body: String! @source(subGraphName: "Reviews")
+  id: Int! @source(subGraphName: "Reviews")
+  upc: Product! @source(subGraphName: "Reviews")
 }
 
 scalar String
 
-type User @resolver(select: "{ userById(id: $User_id) }", schema: "Accounts") @variable(name: "User_id", select: "id", schema: "Accounts", type: "Int!") @resolver(select: "{ userById(id: $User_id) }", schema: "Reviews") @variable(name: "User_id", select: "id", schema: "Reviews", type: "Int!") {
-  birthdate: DateTime! @source(schema: "Accounts")
-  id: Int! @source(schema: "Accounts") @source(schema: "Reviews")
-  name: String! @source(schema: "Accounts")
-  reviews: [Review!]! @source(schema: "Reviews")
-  username: String! @source(schema: "Accounts")
+type User @resolver(subGraphName: "Accounts", select: "{\n  userById(id: $User_id)\n}") @variable(subGraphName: "Accounts", name: "User_id", select: "id", type: "Int!") @resolver(subGraphName: "Reviews", select: "{\n  userById(id: $User_id)\n}") @variable(subGraphName: "Reviews", name: "User_id", select: "id", type: "Int!") {
+  birthdate: DateTime! @source(subGraphName: "Accounts")
+  id: Int! @source(subGraphName: "Accounts") @source(subGraphName: "Reviews")
+  name: String! @source(subGraphName: "Accounts")
+  reviews: [Review!]! @source(subGraphName: "Reviews")
+  username: String! @source(subGraphName: "Accounts")
 }
 
-directive @resolver(schema: _SelectionSet! select: _TypeName!) on OBJECT
+directive @resolver(select: _TypeName! subGraphName: _SelectionSet!) on OBJECT
 
-directive @source(name: _TypeName schema: _TypeName!) on FIELD_DEFINITION
+directive @source(name: _TypeName subGraphName: _TypeName!) on FIELD_DEFINITION
 
-directive @variable(name: _TypeName! schema: _TypeName! select: _Selection! type: _Type!) on OBJECT | FIELD_DEFINITION
+directive @variable(name: _TypeName! select: _Selection! subGraphName: _TypeName! type: _Type!) on OBJECT | FIELD_DEFINITION
 
 schema {
   query: Query

@@ -43,18 +43,11 @@ public sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
         {
             if (target.Fields.TryGetField(sourceField.Name, out var targetField))
             {
-                if (sourceField.IsDeprecated && string.IsNullOrEmpty(targetField.DeprecationReason))
-                {
-                    targetField.DeprecationReason = sourceField.DeprecationReason;
-                    targetField.IsDeprecated = sourceField.IsDeprecated;
-                }
+                context.MergeField(sourceField, targetField);
             }
             else
             {
-                var targetFieldType = sourceField.Type.ReplaceNameType(n => targetSchema.Types[n]);
-                targetField = new InputField(sourceField.Name, targetFieldType);
-                targetField.DeprecationReason = sourceField.DeprecationReason;
-                targetField.IsDeprecated = sourceField.IsDeprecated;
+                targetField = context.CreateField(sourceField, targetSchema);
                 target.Fields.Add(targetField);
             }
 

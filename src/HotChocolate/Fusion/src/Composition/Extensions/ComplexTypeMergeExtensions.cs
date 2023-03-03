@@ -6,12 +6,12 @@ internal static class ComplexTypeMergeExtensions
 {
     public static OutputField CreateField(
         this CompositionContext context,
-        OutputField source)
+        OutputField source,
+        Schema targetSchema)
     {
-        var fusionGraph = context.FusionGraph;
         var target = new OutputField(source.Name);
         target.Description = source.Description;
-        target.Type = source.Type.ReplaceNameType(n => fusionGraph.Types[n]);
+        target.Type = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
 
         if (source.IsDeprecated)
         {
@@ -24,7 +24,7 @@ internal static class ComplexTypeMergeExtensions
             var targetArgument = new InputField(sourceArgument.Name);
             targetArgument.Description = sourceArgument.Description;
             targetArgument.DefaultValue = sourceArgument.DefaultValue;
-            targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => fusionGraph.Types[n]);
+            targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
 
             if (sourceArgument.IsDeprecated)
             {

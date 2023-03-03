@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Schema : IHasDirectives, IHasContextData
+public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMember<Schema>
 {
     public string Name { get; set; } = "default";
 
@@ -145,4 +145,6 @@ public sealed class Schema : IHasDirectives, IHasContextData
         member = null;
         return false;
     }
+
+    public static Schema Create(string name) => new() { Name = name };
 }

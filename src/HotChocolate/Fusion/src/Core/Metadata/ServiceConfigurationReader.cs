@@ -95,7 +95,7 @@ internal sealed class ServiceConfigurationReader
         return new ObjectFieldCollection(collection);
     }
 
-    private ObjectField CreateTypeNameField(IEnumerable<string> schemaNames)
+    private static ObjectField CreateTypeNameField(IEnumerable<string> schemaNames)
         => new ObjectField(
             IntrospectionFields.TypeName,
             new MemberBindingCollection(
@@ -125,7 +125,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.HttpDirective);
-        AssertArguments(directiveNode, SchemaArg, BaseAddressArg);
+        AssertArguments(directiveNode, SubGraphArg, BaseAddressArg);
 
         string name = default!;
         string baseAddress = default!;
@@ -134,7 +134,7 @@ internal sealed class ServiceConfigurationReader
         {
             switch (argument.Name.Value)
             {
-                case SchemaArg:
+                case SubGraphArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
@@ -169,7 +169,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.VariableDirective);
-        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, SchemaArg);
+        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, SubGraphArg);
 
         string name = default!;
         FieldNode select = default!;
@@ -192,7 +192,7 @@ internal sealed class ServiceConfigurationReader
                     type = ParseTypeReference(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case SchemaArg:
+                case SubGraphArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
@@ -225,7 +225,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.FetchDirective);
-        AssertArguments(directiveNode, SelectArg, SchemaArg);
+        AssertArguments(directiveNode, SelectArg, SubGraphArg);
 
         SelectionSetNode select = default!;
         string schemaName = default!;
@@ -238,7 +238,7 @@ internal sealed class ServiceConfigurationReader
                     select = ParseSelectionSet(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case SchemaArg:
+                case SubGraphArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
@@ -341,7 +341,7 @@ internal sealed class ServiceConfigurationReader
         NamedSyntaxNode annotatedField)
     {
         AssertName(directiveNode, context.SourceDirective);
-        AssertArguments(directiveNode, SchemaArg, NameArg);
+        AssertArguments(directiveNode, SubGraphArg, NameArg);
 
         string? name = null;
         string schemaName = default!;
@@ -354,7 +354,7 @@ internal sealed class ServiceConfigurationReader
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
-                case SchemaArg:
+                case SubGraphArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }

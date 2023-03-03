@@ -607,8 +607,16 @@ public static class SchemaParser
     {
         foreach (var directiveNode in nodes)
         {
+            if (!schema.DirectiveTypes.TryGetDirective(
+                directiveNode.Name.Value,
+                out var directiveType))
+            {
+                directiveType = new DirectiveType(directiveNode.Name.Value);
+                schema.DirectiveTypes.Add(directiveType);
+            }
+
             var directive = new Directive(
-                schema.DirectiveTypes[directiveNode.Name.Value],
+                directiveType,
                 directiveNode.Arguments.Select(t => new Argument(t.Name.Value, t.Value)).ToList());
             directives.Add(directive);
         }

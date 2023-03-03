@@ -6,5 +6,5 @@ internal static class DirectiveArguments
     public const string SelectArg = "select";
     public const string TypeArg = "type";
     public const string ToArg = "to";
-    public const string SubGraphArg = "subGraphName";
+    public const string SubGraphArg = "subGraph";
 }

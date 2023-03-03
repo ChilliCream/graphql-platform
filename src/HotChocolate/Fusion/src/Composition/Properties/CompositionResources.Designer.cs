@@ -80,5 +80,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("FusionTypes_EnsureInitialized_Failed", resourceCulture);
             }
         }
+        
+        internal static string LogEntryHelper_MergeTypeKindDoesNotMatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_MergeTypeKindDoesNotMatch", resourceCulture);
+            }
+        }
     }
 }

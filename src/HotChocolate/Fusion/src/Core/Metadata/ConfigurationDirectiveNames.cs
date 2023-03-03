@@ -10,7 +10,7 @@ internal static class ConfigurationDirectiveNames
     public const string NameArg = "name";
     public const string SelectArg = "select";
     public const string TypeArg = "type";
-    public const string SchemaArg = "schema";
+    public const string SubGraphArg = "subGraph";
     public const string ArgumentArg = "argument";
     public const string BaseAddressArg = "baseAddress";
 }

@@ -81,6 +81,14 @@ public class FusionGraphComposerTests
             .FormatAsString(context.FusionGraph)
             .MatchInlineSnapshot(
                 """
+                scalar _Selection
+
+                scalar _SelectionSet
+
+                scalar _Type
+
+                scalar _TypeName
+
                 input ComplexInputType {
                   deeper: ComplexInputType
                   deeperArray: [ComplexInputType]
@@ -88,16 +96,30 @@ public class FusionGraphComposerTests
                   valueArray: [String]
                 }
 
-                type Customer {
-                  complexArg(arg: ComplexInputType): String
-                  id: ID!
-                  name: String!
-                  notes: String!
+                type Customer @resolver(subGraphName: "a", select: "{\n  customer(id: $Customer_id)\n}") @variable(subGraphName: "a", name: "Customer_id", select: "id", type: "ID!") @resolver(subGraphName: "b", select: "{\n  customer(id: $Customer_id)\n}") @variable(subGraphName: "b", name: "Customer_id", select: "id", type: "ID!") {
+                  complexArg(arg: ComplexInputType): String @source(subGraphName: "a")
+                  id: ID! @source(subGraphName: "a") @source(subGraphName: "b")
+                  name: String! @source(subGraphName: "a")
+                  notes: String! @source(subGraphName: "b")
                 }
 
                 scalar ID
 
+                type Query {
+                  customer(id: ID!): Customer @resolver(subGraphName: "a", select: "{\n  customer(id: $id)\n}") @resolver(subGraphName: "b", select: "{\n  customer(id: $id)\n}")
+                }
+
                 scalar String
+
+                directive @resolver(select: _TypeName! subGraphName: _SelectionSet!) on OBJECT
+
+                directive @source(name: _TypeName subGraphName: _TypeName!) on FIELD_DEFINITION
+
+                directive @variable(name: _TypeName! select: _Selection! subGraphName: _TypeName! type: _Type!) on OBJECT | FIELD_DEFINITION
+
+                schema {
+                  query: Query
+                }
                 """);
     }
 }

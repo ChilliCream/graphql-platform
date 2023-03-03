@@ -7,7 +7,7 @@ namespace HotChocolate.Skimmed;
 /// <summary>
 /// Represents a collection of argument values.
 /// </summary>
-public sealed class ArgumentCollection : IReadOnlyCollection<Argument>
+public sealed class ArgumentCollection : IReadOnlyList<Argument>
 {
     private readonly Dictionary<string, Argument> _arguments = new(StringComparer.Ordinal);
     private readonly IReadOnlyList<Argument> _order;
@@ -26,10 +26,9 @@ public sealed class ArgumentCollection : IReadOnlyCollection<Argument>
 
     public bool IsReadOnly => true;
 
-    public IValueNode this[string argumentName]
-    {
-        get => _arguments[argumentName].Value;
-    }
+    public IValueNode this[string argumentName] => _arguments[argumentName].Value;
+
+    public Argument this[int index] => _order[index];
 
     public bool TryGetValue(string argumentName, [NotNullWhen(true)] out IValueNode? value)
     {
@@ -68,5 +67,4 @@ public sealed class ArgumentCollection : IReadOnlyCollection<Argument>
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
-
 }

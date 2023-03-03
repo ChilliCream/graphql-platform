@@ -55,7 +55,7 @@ public sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
             }
             else
             {
-                targetField = context.CreateField(sourceField);
+                targetField = context.CreateField(sourceField, context.FusionGraph);
                 target.Fields.Add(targetField);
             }
 

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.7.1" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="Xunit" Version="2.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
@@ -20,7 +21,7 @@
     <ProjectReference Include="..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net6.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
     <ProjectReference Include="..\..\..\HotChocolate\Fusion\src\Core\HotChocolate.Fusion.csproj" />
   </ItemGroup>
 
