@@ -10,4 +10,4 @@ namespace HotChocolate.Fusion.Composition;
 /// <param name="NewName">
 /// The new name that shall be applied to the type system member.
 /// </param>
-public sealed record RenameDirective(SchemaCoordinate Coordinate, string NewName);
+internal sealed record RenameDirective(SchemaCoordinate Coordinate, string NewName);

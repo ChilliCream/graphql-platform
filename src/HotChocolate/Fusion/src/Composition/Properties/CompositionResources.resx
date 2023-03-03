@@ -45,4 +45,7 @@
   <data name="LogEntryHelper_OutputFieldArgumentSetMismatch" xml:space="preserve">
     <value>An output field that is being merged into another has a different set of arguments.</value>
   </data>
+  <data name="DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate" xml:space="preserve">
+    <value>The is argument must have a value for coordinate or field.</value>
+  </data>
 </root>

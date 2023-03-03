@@ -7,4 +7,4 @@ namespace HotChocolate.Fusion.Composition;
 /// <param name="Coordinate">
 /// A reference to the type system member that shall be removed.
 /// </param>
-public sealed record RemoveDirective(SchemaCoordinate Coordinate);
+internal sealed record RemoveDirective(SchemaCoordinate Coordinate);

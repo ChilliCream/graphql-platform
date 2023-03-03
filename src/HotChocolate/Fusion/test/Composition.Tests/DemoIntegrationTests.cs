@@ -54,7 +54,7 @@ public sealed class DemoIntegrationTests
     private const string AccountsExtensionSdl =
         """
         extend type Query {
-          userById(id: Int! @ref(field: "id")): User!
+          userById(id: Int! @is(field: "id")): User!
         }
         """;
 
@@ -97,8 +97,8 @@ public sealed class DemoIntegrationTests
     private const string ReviewsExtensionSdl =
         """
         extend type Query {
-          authorById(id: Int! @ref(field: "id")): Author
-          productById(upc: Int! @ref(field: "upc")): Product
+          authorById(id: Int! @is(field: "id")): Author
+          productById(upc: Int! @is(field: "upc")): Product
         }
         """;
 }

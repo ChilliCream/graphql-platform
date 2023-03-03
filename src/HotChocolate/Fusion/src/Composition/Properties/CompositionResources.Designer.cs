@@ -98,5 +98,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldArgumentSetMismatch", resourceCulture);
             }
         }
+        
+        internal static string DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate {
+            get {
+                return ResourceManager.GetString("DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate", resourceCulture);
+            }
+        }
     }
 }

@@ -28,7 +28,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                     if ((entityResolverField.Type == type ||
                             entityResolverField.Type.Kind is TypeKind.NonNull &&
                             entityResolverField.Type.InnerType() == type) &&
-                        entityResolverField.Arguments.All(t => t.ContainsRefDirective()))
+                        entityResolverField.Arguments.All(t => t.ContainsIsDirective()))
                     {
                         var arguments = new List<ArgumentNode>();
 
@@ -52,7 +52,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                         // and VariableNode for the @ref directive argument
                         foreach (var arg in entityResolverField.Arguments)
                         {
-                            var directive = arg.GetRefDirective();
+                            var directive = arg.GetIsDirective();
                             var var = type.CreateVariableName(directive);
                             arguments.Add(new ArgumentNode(arg.Name, new VariableNode(var)));
                             resolver.Variables.Add(var, arg.CreateVariableField(directive, var));

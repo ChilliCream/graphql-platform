@@ -11,7 +11,7 @@ internal static class SchemaExtensions
 
     public static string CreateVariableName(
         this ObjectType type,
-        RefDirective directive)
+        IsDirective directive)
         => directive.IsCoordinate
             ? CreateVariableName(type, directive.Coordinate.Value)
             : CreateVariableName(type, directive.Field);
@@ -33,7 +33,7 @@ internal static class SchemaExtensions
 
     public static VariableDefinition CreateVariableField(
         this InputField argument,
-        RefDirective directive,
+        IsDirective directive,
         string variableName)
     {
         var field = directive.IsCoordinate
