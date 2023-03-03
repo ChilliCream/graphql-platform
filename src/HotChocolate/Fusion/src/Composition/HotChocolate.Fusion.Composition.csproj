@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
+    <ProjectReference Include="..\Abstractions\HotChocolate.Fusion.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

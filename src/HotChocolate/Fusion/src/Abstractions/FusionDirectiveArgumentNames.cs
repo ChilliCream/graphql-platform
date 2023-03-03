@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Metadata;
+namespace HotChocolate.Fusion;
 
 internal static class FusionDirectiveArgumentNames
 {
@@ -22,8 +22,24 @@ internal static class FusionDirectiveArgumentNames
     /// </summary>
     public const string SubGraphArg = "subGraph";
 
+    /// <summary>
+    /// Gets the name of the prefix argument.
+    /// </summary>
+    public const string PrefixArg = "prefix";
 
-    public const string ArgumentArg = "argument";
+    /// <summary>
+    /// Gets the name of the self prefix argument.
+    /// </summary>
+    public const string PrefixSelfArg = "prefixSelf";
+
+    /// <summary>
+    /// Gets the name of the version argument.
+    /// </summary>
+    public const string VersionArg = "version";
+
+    /// <summary>
+    /// Gets the name of the base address argument.
+    /// </summary>
     public const string BaseAddressArg = "baseAddress";
 }
 

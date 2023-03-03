@@ -1,6 +1,5 @@
 using CookieCrumble;
 using HotChocolate.Skimmed.Serialization;
-using static HotChocolate.Fusion.Composition.ComposerFactory;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -9,14 +8,14 @@ public sealed class DemoIntegrationTests
     [Fact]
     public async Task Accounts_And_Reviews()
     {
-        var composer = CreateComposer();
+        var composer = new FusionGraphComposer();
 
-        var context = await composer.ComposeAsync(
+        var fusionConfig = await composer.ComposeAsync(
             new SubGraphConfiguration("Accounts", AccountsSdl, AccountsExtensionSdl),
             new SubGraphConfiguration("Reviews", ReviewsSdl, ReviewsExtensionSdl));
 
         SchemaFormatter
-            .FormatAsString(context.FusionGraph)
+            .FormatAsString(fusionConfig)
             .MatchSnapshot();
     }
 

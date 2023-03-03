@@ -13,15 +13,16 @@ public class FusionTypeNamesTests
         // act/assert
         Assert.Null(fusionTypeNames.Prefix);
         Assert.Equal("variable", fusionTypeNames.VariableDirective);
-        Assert.Equal("resolver", fusionTypeNames.FetchDirective);
+        Assert.Equal("resolver", fusionTypeNames.ResolverDirective);
         Assert.Equal("source", fusionTypeNames.SourceDirective);
         Assert.Equal("is", fusionTypeNames.IsDirective);
         Assert.Equal("httpClient", fusionTypeNames.HttpDirective);
         Assert.Equal("fusion", fusionTypeNames.FusionDirective);
-        Assert.Equal("Selection", fusionTypeNames.SelectionScalar);
-        Assert.Equal("SelectionSet", fusionTypeNames.SelectionSetScalar);
-        Assert.Equal("TypeName", fusionTypeNames.TypeNameScalar);
-        Assert.Equal("Type", fusionTypeNames.TypeScalar);
+        Assert.Equal("_Selection", fusionTypeNames.SelectionScalar);
+        Assert.Equal("_SelectionSet", fusionTypeNames.SelectionSetScalar);
+        Assert.Equal("_TypeName", fusionTypeNames.TypeNameScalar);
+        Assert.Equal("_Type", fusionTypeNames.TypeScalar);
+        Assert.Equal("_Uri", fusionTypeNames.UriScalar);
     }
 
     [Fact]
@@ -33,7 +34,7 @@ public class FusionTypeNamesTests
         // act/assert
         Assert.Equal("MyPrefix", fusionTypeNames.Prefix);
         Assert.Equal("MyPrefix_variable", fusionTypeNames.VariableDirective);
-        Assert.Equal("MyPrefix_resolver", fusionTypeNames.FetchDirective);
+        Assert.Equal("MyPrefix_resolver", fusionTypeNames.ResolverDirective);
         Assert.Equal("MyPrefix_source", fusionTypeNames.SourceDirective);
         Assert.Equal("MyPrefix_is", fusionTypeNames.IsDirective);
         Assert.Equal("MyPrefix_httpClient", fusionTypeNames.HttpDirective);
@@ -42,6 +43,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
         Assert.Equal("MyPrefix_TypeName", fusionTypeNames.TypeNameScalar);
         Assert.Equal("MyPrefix_Type", fusionTypeNames.TypeScalar);
+        Assert.Equal("MyPrefix_Uri", fusionTypeNames.UriScalar);
     }
 
     [Fact]
@@ -55,7 +57,7 @@ public class FusionTypeNamesTests
         // act/assert
         Assert.Equal("MyPrefix", fusionTypeNames.Prefix);
         Assert.Equal("MyPrefix_variable", fusionTypeNames.VariableDirective);
-        Assert.Equal("MyPrefix_resolver", fusionTypeNames.FetchDirective);
+        Assert.Equal("MyPrefix_resolver", fusionTypeNames.ResolverDirective);
         Assert.Equal("MyPrefix_source", fusionTypeNames.SourceDirective);
         Assert.Equal("MyPrefix_is", fusionTypeNames.IsDirective);
         Assert.Equal("MyPrefix_httpClient", fusionTypeNames.HttpDirective);
@@ -64,6 +66,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
         Assert.Equal("MyPrefix_TypeName", fusionTypeNames.TypeNameScalar);
         Assert.Equal("MyPrefix_Type", fusionTypeNames.TypeScalar);
+        Assert.Equal("MyPrefix_Uri", fusionTypeNames.UriScalar);
     }
 
     [Fact]
@@ -77,7 +80,7 @@ public class FusionTypeNamesTests
         // act/assert
         Assert.Equal("MyOtherPrefix", fusionTypeNames.Prefix);
         Assert.Equal("MyOtherPrefix_variable", fusionTypeNames.VariableDirective);
-        Assert.Equal("MyOtherPrefix_resolver", fusionTypeNames.FetchDirective);
+        Assert.Equal("MyOtherPrefix_resolver", fusionTypeNames.ResolverDirective);
         Assert.Equal("MyOtherPrefix_source", fusionTypeNames.SourceDirective);
         Assert.Equal("MyOtherPrefix_is", fusionTypeNames.IsDirective);
         Assert.Equal("MyOtherPrefix_httpClient", fusionTypeNames.HttpDirective);
@@ -86,6 +89,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyOtherPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
         Assert.Equal("MyOtherPrefix_TypeName", fusionTypeNames.TypeNameScalar);
         Assert.Equal("MyOtherPrefix_Type", fusionTypeNames.TypeScalar);
+        Assert.Equal("MyOtherPrefix_Uri", fusionTypeNames.UriScalar);
     }
 
     [Fact]
@@ -93,7 +97,7 @@ public class FusionTypeNamesTests
     {
         // arrange
         var fusionTypeNames = FusionTypeNames.Create();
-        var typeName = "Selection";
+        var typeName = "_Selection";
 
         // act
         var isFusionType = fusionTypeNames.IsFusionType(typeName);

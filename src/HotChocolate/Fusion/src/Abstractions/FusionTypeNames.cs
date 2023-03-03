@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Fusion.Metadata;
+namespace HotChocolate.Fusion;
 
 /// <summary>
 /// Helper class that tracks the namespaced fusion types.
@@ -23,11 +23,12 @@ public sealed class FusionTypeNames
         string selectionScalar,
         string selectionSetScalar,
         string typeNameScalar,
-        string typeScalar)
+        string typeScalar,
+        string uriScalar)
     {
         Prefix = prefix;
         VariableDirective = variableDirective;
-        FetchDirective = fetchDirective;
+        ResolverDirective = fetchDirective;
         SourceDirective = sourceDirective;
         IsDirective = isDirective;
         HttpDirective = httpDirective;
@@ -36,6 +37,7 @@ public sealed class FusionTypeNames
         SelectionSetScalar = selectionSetScalar;
         TypeNameScalar = typeNameScalar;
         TypeScalar = typeScalar;
+        UriScalar = uriScalar;
 
         _fusionDirectives.Add(variableDirective);
         _fusionDirectives.Add(fetchDirective);
@@ -48,6 +50,7 @@ public sealed class FusionTypeNames
         _fusionTypes.Add(selectionSetScalar);
         _fusionTypes.Add(typeNameScalar);
         _fusionTypes.Add(typeScalar);
+        _fusionTypes.Add(uriScalar);
     }
 
     /// <summary>
@@ -61,27 +64,27 @@ public sealed class FusionTypeNames
     public string VariableDirective { get; }
 
     /// <summary>
-    /// Gets the name of the variable directive.
+    /// Gets the name of the resolver directive.
     /// </summary>
-    public string FetchDirective { get; }
+    public string ResolverDirective { get; }
 
     /// <summary>
-    /// Gets the name of the variable directive.
+    /// Gets the name of the source directive.
     /// </summary>
     public string SourceDirective { get; }
 
     /// <summary>
-    /// Gets the name of the variable directive.
+    /// Gets the name of the is directive.
     /// </summary>
     public string IsDirective { get; }
 
     /// <summary>
-    /// Gets the name of the variable directive.
+    /// Gets the name of the http directive.
     /// </summary>
     public string HttpDirective { get; }
 
     /// <summary>
-    /// Gets the name of the variable directive.
+    /// Gets the name of the fusion directive.
     /// </summary>
     public string FusionDirective { get; }
 
@@ -104,6 +107,11 @@ public sealed class FusionTypeNames
     /// Gets the name of the GraphQL type scalar.
     /// </summary>
     public string TypeScalar { get; }
+
+    /// <summary>
+    /// Gets the name of the URI type scalar.
+    /// </summary>
+    public string UriScalar { get; }
 
     /// <summary>
     /// Specifies if the <paramref name="directiveName"/> represents a fusion directive.
@@ -148,7 +156,8 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.Selection}",
                 $"{prefix}_{FusionTypeBaseNames.SelectionSet}",
                 $"{prefix}_{FusionTypeBaseNames.TypeName}",
-                $"{prefix}_{FusionTypeBaseNames.Type}");
+                $"{prefix}_{FusionTypeBaseNames.Type}",
+                $"{prefix}_{FusionTypeBaseNames.Uri}");
         }
 
         return new FusionTypeNames(
@@ -159,10 +168,11 @@ public sealed class FusionTypeNames
             FusionTypeBaseNames.IsDirective,
             FusionTypeBaseNames.HttpDirective,
             FusionTypeBaseNames.FusionDirective,
-            FusionTypeBaseNames.Selection,
-            FusionTypeBaseNames.SelectionSet,
-            FusionTypeBaseNames.TypeName,
-            FusionTypeBaseNames.Type);
+            $"_{FusionTypeBaseNames.Selection}",
+            $"_{FusionTypeBaseNames.SelectionSet}",
+            $"_{FusionTypeBaseNames.TypeName}",
+            $"_{FusionTypeBaseNames.Type}",
+            $"_{FusionTypeBaseNames.Uri}");
     }
 
     public static FusionTypeNames From(DocumentNode document)
@@ -185,7 +195,7 @@ public sealed class FusionTypeNames
         return Create(prefix, prefixSelf);
     }
 
-    private static bool TryGetPrefix(
+    private static void TryGetPrefix(
         IReadOnlyList<DirectiveNode> schemaDirectives,
         out bool prefixSelf,
         [NotNullWhen(true)] out string? prefix)
@@ -211,7 +221,7 @@ public sealed class FusionTypeNames
                     {
                         prefixSelf = true;
                         prefix = prefixVal.Value;
-                        return true;
+                        return;
                     }
                 }
             }
@@ -229,13 +239,12 @@ public sealed class FusionTypeNames
                 {
                     prefixSelf = false;
                     prefix = prefixVal.Value;
-                    return true;
+                    return;
                 }
             }
         }
 
         prefixSelf = false;
         prefix = null;
-        return false;
     }
 }

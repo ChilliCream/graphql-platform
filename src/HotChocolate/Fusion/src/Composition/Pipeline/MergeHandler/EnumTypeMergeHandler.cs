@@ -1,6 +1,4 @@
 using HotChocolate.Skimmed;
-using static HotChocolate.Fusion.Composition.DirectiveArguments;
-using static HotChocolate.Fusion.Composition.WellKnownContextData;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
