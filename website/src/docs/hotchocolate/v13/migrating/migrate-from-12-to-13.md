@@ -393,7 +393,7 @@ There have also been changes to the response format of streamed responses. You c
 
 ## NameString
 
-In this release we removed the `NameString`, which was used for type or field names, among other use-cases. You can now safely replace it with a simple `string`. `string` was already implicitly converted to a `NameString`, so in most places you shouldn't encounter issues regarding this.
+In this release we have abandoned the `NameString` in favor of simple `string`s. Most commonly you would encounter the `NameString` when defining names for fields or types. Since `string` was already implicitly converted to `NameString`, there shouldn't be any issues unless you were newing up a `NameString` yourself.
 
 ## IResolverContext / IMiddlewareContext
 

@@ -16,6 +16,12 @@ Hot Chocolate allows you to access dependency injection services inside your res
 
 [Learn more about Dependency Injection](/docs/hotchocolate/v13/server/dependency-injection)
 
+# HTTP transport
+
+TODO
+
+[Learn more about the HTTP transport](/docs/hotchocolate/v13/server/http-transport)
+
 # Interceptors
 
 Interceptors allow you to intercept GraphQL requests before they are executed. There are interceptors for both GraphQL requests sent via HTTP as well as via WebSockets.
@@ -47,3 +53,9 @@ Though not considered one of the responsibilities of a GraphQL server, for conve
 Hot Chocolate allows you to gather instrumentation data about your GraphQL server, by hooking into various events in the execution process of a GraphQL request. You will also learn how to setup our OpenTelemetry integration and how to utilize _Apollo Tracing_.
 
 [Learn more about instrumentation](/docs/hotchocolate/v13/server/instrumentation)
+
+# Batching
+
+Batching allows you to send and execute a sequence of GraphQL operations in a single request.
+
+[Learn more about batching](/docs/hotchocolate/v13/server/batching)
