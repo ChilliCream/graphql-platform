@@ -10,15 +10,9 @@ Hot Chocolate comes with ASP.NET Core endpoint middleware for accepting HTTP / W
 
 [Learn more about endpoints](/docs/hotchocolate/v13/server/endpoints)
 
-# Dependency injection
-
-Hot Chocolate allows you to access dependency injection services inside your resolvers. We will take a look at the different ways you can inject services and also how you can switch out the dependency injection provider.
-
-[Learn more about Dependency Injection](/docs/hotchocolate/v13/server/dependency-injection)
-
 # HTTP transport
 
-TODO
+Hot Chocolate implements the GraphQL over HTTP specification.
 
 [Learn more about the HTTP transport](/docs/hotchocolate/v13/server/http-transport)
 
@@ -29,6 +23,12 @@ Interceptors allow you to intercept GraphQL requests before they are executed. T
 In the case of WebSockets, the interceptor also allows you to handle life cycle events, such as when a client first connects.
 
 [Learn more about interceptors](/docs/hotchocolate/v13/server/interceptors)
+
+# Dependency injection
+
+Hot Chocolate allows you to access dependency injection services inside your resolvers. We will take a look at the different ways you can inject services and also how you can switch out the dependency injection provider.
+
+[Learn more about Dependency Injection](/docs/hotchocolate/v13/server/dependency-injection)
 
 # Global State
 

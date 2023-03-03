@@ -2,8 +2,6 @@
 title: Batching
 ---
 
-<!-- todo: mention that results are streamed using multipart/mixed -->
-
 Batching allows you to send and execute a sequence of GraphQL operations in a single request.
 
 This becomes really powerful in combination with our [@export](#export-directive) directive, especially considering mutations. You could for example create a sequence of mutations and export the result of an earlier mutation as the input for a later mutation.
@@ -87,6 +85,17 @@ Request batching allows you to send a JSON array of regular GraphQL documents to
 ```
 
 The documents are executed and emitted to the response stream in the order specified by their placement in the JSON array.
+
+# Response formats
+
+Batch results are delivered as a result stream. This allows us to "stream" the result data back to your client, as soon as an item in the batch has been executed.
+
+Depending on the `Accept` header your client is specifying in its requests, Hot Chocolate will decide to either use `multipart/mixed` or a `text/event-stream` response `Content-Type` to deliver the results. If no `Accept` header or a wildcard is specified, `multipart/mixed` is used.
+
+If you're using a JavaScript client, we can highly recommend
+
+- [meros](https://github.com/maraisr/meros) for handling `multipart/mixed` responses
+- [graphql-sse](https://github.com/enisdenjo/graphql-sse) for handling `text/event-stream` responses
 
 # @export directive
 

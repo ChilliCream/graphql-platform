@@ -238,16 +238,16 @@
                 "title": "Endpoints"
               },
               {
-                "path": "dependency-injection",
-                "title": "Dependency injection"
-              },
-              {
                 "path": "http-transport",
                 "title": "HTTP transport"
               },
               {
                 "path": "interceptors",
                 "title": "Interceptors"
+              },
+              {
+                "path": "dependency-injection",
+                "title": "Dependency injection"
               },
               {
                 "path": "global-state",
@@ -337,10 +337,6 @@
             "path": "api-reference",
             "title": "API Reference",
             "items": [
-              {
-                "path": "index",
-                "title": "Overview"
-              },
               {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
