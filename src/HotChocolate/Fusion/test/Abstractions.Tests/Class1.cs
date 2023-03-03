@@ -48,8 +48,7 @@ public class FusionTypeNamesTests
     public void From_SchemaWithFusionDirective_ReturnsCustomNames()
     {
         // arrange
-        var schema = "directive @fusion(prefix: \"MyPrefix\") on OBJECT\n" +
-            "type Query { field: String }";
+        var schema = "schema @fusion(prefix: \"MyPrefix\") {}";
         var document = Utf8GraphQLParser.Parse(schema);
         var fusionTypeNames = FusionTypeNames.From(document);
 
@@ -60,7 +59,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyPrefix_source", fusionTypeNames.SourceDirective);
         Assert.Equal("MyPrefix_is", fusionTypeNames.IsDirective);
         Assert.Equal("MyPrefix_httpClient", fusionTypeNames.HttpDirective);
-        Assert.Equal("MyPrefix_fusion", fusionTypeNames.FusionDirective);
+        Assert.Equal("fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("MyPrefix_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("MyPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
         Assert.Equal("MyPrefix_TypeName", fusionTypeNames.TypeNameScalar);
@@ -71,8 +70,7 @@ public class FusionTypeNamesTests
     public void From_SchemaWithPrefixedFusionDirective_ReturnsCustomNames()
     {
         // arrange
-        var schema = "directive @MyPrefix_fusion(prefixSelf: true, prefix: \"MyOtherPrefix\") on OBJECT\n" +
-            "type Query { field: String }";
+        var schema = "schema @MyOtherPrefix_fusion(prefixSelf: true, prefix: \"MyOtherPrefix\") {}";
         var document = Utf8GraphQLParser.Parse(schema);
         var fusionTypeNames = FusionTypeNames.From(document);
 
@@ -137,7 +135,7 @@ public class FusionTypeNamesTests
     {
         // arrange
         var fusionTypeNames = FusionTypeNames.Create("prefix", prefixSelf: true);
-        var typeName = "prefix_fusion";
+        var typeName = "prefix_type";
 
         // act
         var isFusionType = fusionTypeNames.IsFusionType(typeName);
