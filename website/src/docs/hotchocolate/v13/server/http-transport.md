@@ -166,7 +166,7 @@ You can alter some JSON serialization settings, when configuring the `HttpRespon
 
 ## Stripping nulls from response
 
-Per default the JSON in your GrahpQL responses contains `null`. If you want to save a couple bytes and your clients can handle it, you can strip these nulls from your responses:
+Per default the JSON in your GraphQL responses contains `null`. If you want to save a couple bytes and your clients can handle it, you can strip these nulls from your responses:
 
 ```csharp
 var options = new HttpResponseFormatterOptions
