@@ -54,7 +54,7 @@ internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
             }
         }
 
-        if (context.Log.HasErrors)
+        if (!context.Log.HasErrors)
         {
             await next(context).ConfigureAwait(false);
         }

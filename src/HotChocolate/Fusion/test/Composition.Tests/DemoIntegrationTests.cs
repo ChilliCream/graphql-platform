@@ -13,8 +13,16 @@ public sealed class DemoIntegrationTests
         var fusionConfig = await composer.ComposeAsync(
             new[]
             {
-                new SubgraphConfiguration("Accounts", AccountsSdl, AccountsExtensionSdl),
-                new SubgraphConfiguration("Reviews", ReviewsSdl, ReviewsExtensionSdl)
+                new SubgraphConfiguration(
+                    "Accounts",
+                    AccountsSdl,
+                    AccountsExtensionSdl,
+                    new HttpClientConfiguration(new Uri("http://localhost:5000"))),
+                new SubgraphConfiguration(
+                    "Reviews",
+                    ReviewsSdl,
+                    ReviewsExtensionSdl,
+                    new HttpClientConfiguration(new Uri("http://localhost:5001")))
             });
 
         SchemaFormatter

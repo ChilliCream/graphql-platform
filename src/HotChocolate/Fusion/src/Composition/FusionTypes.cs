@@ -52,6 +52,7 @@ public sealed class FusionTypes
         SelectionSet = RegisterScalarType(names.SelectionSetScalar);
         TypeName = RegisterScalarType(names.TypeNameScalar);
         Type = RegisterScalarType(names.TypeScalar);
+        Uri = RegisterScalarType(names.UriScalar);
         Resolver = RegisterResolverDirectiveType(
             names.ResolverDirective,
             SelectionSet,
@@ -64,11 +65,15 @@ public sealed class FusionTypes
         Source = RegisterSourceDirectiveType(
             names.SourceDirective,
             TypeName);
-        RegisterFusionDirectiveType(
+        Fusion = RegisterFusionDirectiveType(
             names.FusionDirective,
             TypeName,
             boolean,
             integer);
+        HttpClient = RegisterHttpDirectiveType(
+            names.HttpDirective,
+            TypeName,
+            Uri);
     }
 
     private string Prefix { get; }
@@ -81,11 +86,17 @@ public sealed class FusionTypes
 
     public ScalarType Type { get; }
 
+    public ScalarType Uri { get; }
+
     public DirectiveType Resolver { get; }
 
     public DirectiveType Variable { get; }
 
     public DirectiveType Source { get; }
+
+    public DirectiveType HttpClient { get; }
+
+    public DirectiveType Fusion { get; }
 
     private ScalarType RegisterScalarType(string name)
     {
@@ -168,6 +179,12 @@ public sealed class FusionTypes
         return directiveType;
     }
 
+    public Directive CreateHttpDirective(string subgraphName, Uri baseAddress)
+        => new Directive(
+            HttpClient,
+            new Argument(SubgraphArg, subgraphName),
+            new Argument(BaseAddressArg, baseAddress.ToString()));
+
     private DirectiveType RegisterHttpDirectiveType(
         string name,
         ScalarType typeName,
@@ -176,13 +193,13 @@ public sealed class FusionTypes
         var directiveType = new DirectiveType(name);
         directiveType.Locations = DirectiveLocation.FieldDefinition;
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(BaseAddressArg, typeName));
+        directiveType.Arguments.Add(new InputField(BaseAddressArg, uri));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
-    private void RegisterFusionDirectiveType(
+    private DirectiveType RegisterFusionDirectiveType(
         string name,
         ScalarType typeName,
         ScalarType boolean,
@@ -212,5 +229,7 @@ public sealed class FusionTypes
                     new Argument(PrefixSelfArg, _prefixSelf),
                     new Argument(VersionArg, 1)));
         }
+
+        return directiveType;
     }
 }
