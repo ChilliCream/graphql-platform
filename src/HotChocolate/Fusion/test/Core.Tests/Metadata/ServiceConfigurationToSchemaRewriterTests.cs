@@ -14,15 +14,15 @@ public class ServiceConfigurationToSchemaRewriterTests
               personById(id: ID!): Person
                 @abc_variable(name: ""personId"", argument: ""id"")
                 @abc_source(schema: ""a"")
-                @abc_fetch(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @abc_fetch(schema: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+                @abc_resolver(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @abc_resolver(schema: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
             }
 
             type Person
               @abc_variable(name: ""personId"", select: ""id"" schema: ""b"" type: ""ID!"")
               @abc_variable(name: ""personId"", select: ""id"" schema: ""b"" type: ""ID!"")
-              @abc_fetch(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @abc_fetch(schema: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+              @abc_resolver(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @abc_resolver(schema: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
 
               id: ID!
                 @abc_source(schema: ""a"")

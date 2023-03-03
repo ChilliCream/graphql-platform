@@ -196,7 +196,7 @@ public class DemoIntegrationTests
 
         var request = Parse(
             """
-            query {
+            query GetUser {
                 users {
                     name
                     reviews {
@@ -257,11 +257,16 @@ public class DemoIntegrationTests
 
     private static FusionGraphComposer CreateComposer()
         => new FusionGraphComposer(
-            new[] { new RefResolverEntityEnricher() },
+            new IEntityEnricher[]
+            {
+                new RefResolverEntityEnricher()
+            },
             new ITypeMergeHandler[]
             {
-                new InterfaceTypeMergeHandler(), new UnionTypeMergeHandler(),
-                new InputObjectTypeMergeHandler(), new EnumTypeMergeHandler(),
+                new InterfaceTypeMergeHandler(),
+                new UnionTypeMergeHandler(),
+                new InputObjectTypeMergeHandler(),
+                new EnumTypeMergeHandler(),
                 new ScalarTypeMergeHandler()
             });
 }

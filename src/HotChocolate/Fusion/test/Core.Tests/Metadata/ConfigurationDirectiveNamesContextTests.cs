@@ -127,7 +127,7 @@ public class ConfigurationDirectiveNamesContextTests
             .MatchInline(
                 @"{
                     ""VariableDirective"": ""abc_variable"",
-                    ""FetchDirective"": ""abc_fetch"",
+                    ""FetchDirective"": ""abc_resolver"",
                     ""SourceDirective"": ""abc_source"",
                     ""HttpDirective"": ""abc_httpClient"",
                     ""FusionDirective"": ""fusion""
@@ -151,7 +151,7 @@ public class ConfigurationDirectiveNamesContextTests
             .MatchInline(
                 @"{
                     ""VariableDirective"": ""abc_variable"",
-                    ""FetchDirective"": ""abc_fetch"",
+                    ""FetchDirective"": ""abc_resolver"",
                     ""SourceDirective"": ""abc_source"",
                     ""HttpDirective"": ""abc_httpClient"",
                     ""FusionDirective"": ""abc_fusion""

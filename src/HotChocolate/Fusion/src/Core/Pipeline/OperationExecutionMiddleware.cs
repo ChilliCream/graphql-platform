@@ -40,7 +40,7 @@ internal sealed class OperationExecutionMiddleware
         _schema = schema ??
             throw new ArgumentNullException(nameof(schema));
         _clientFactory = clientFactory ??
-            throw new ArgumentNullException(nameof(schema));
+            throw new ArgumentNullException(nameof(clientFactory));
     }
 
     public async ValueTask InvokeAsync(
@@ -72,7 +72,7 @@ internal sealed class OperationExecutionMiddleware
             if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
             {
                 var bufferWriter = new ArrayBufferWriter<byte>();
-                
+
                 queryPlan.Format(bufferWriter);
 
                 operationContext.Result.SetExtension(

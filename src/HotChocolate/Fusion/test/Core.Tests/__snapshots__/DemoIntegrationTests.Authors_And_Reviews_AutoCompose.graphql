@@ -3,17 +3,17 @@ scalar DateTime
 
 scalar Int
 
-type Product @resolver(subGraph: "Reviews", select: "{\n  productById(upc: $Product_upc)\n}") @variable(subGraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
+type Product @resolver(subGraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subGraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
   reviews: [Review!]! @source(subGraph: "Reviews")
   upc: Int! @source(subGraph: "Reviews")
 }
 
 type Query {
-  authorById(id: Int!): User! @resolver(subGraph: "Reviews", select: "{\n  authorById(id: $id)\n}")
-  productById(upc: Int!): Product! @resolver(subGraph: "Reviews", select: "{\n  productById(upc: $upc)\n}")
-  reviews: [Review!]! @resolver(subGraph: "Reviews", select: "{\n  reviews\n}")
-  userById(id: Int!): User! @resolver(subGraph: "Accounts", select: "{\n  userById(id: $id)\n}")
-  users: [User!]! @resolver(subGraph: "Accounts", select: "{\n  users\n}")
+  authorById(id: Int!): User! @resolver(subGraph: "Reviews", select: "{ authorById(id: $id) }")
+  productById(upc: Int!): Product! @resolver(subGraph: "Reviews", select: "{ productById(upc: $upc) }")
+  reviews: [Review!]! @resolver(subGraph: "Reviews", select: "{ reviews }")
+  userById(id: Int!): User! @resolver(subGraph: "Accounts", select: "{ userById(id: $id) }")
+  users: [User!]! @resolver(subGraph: "Accounts", select: "{ users }")
 }
 
 type Review {
@@ -25,7 +25,7 @@ type Review {
 
 scalar String
 
-type User @resolver(subGraph: "Reviews", select: "{\n  authorById(id: $User_id)\n}") @variable(subGraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subGraph: "Accounts", select: "{\n  userById(id: $User_id)\n}") @variable(subGraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
+type User @resolver(subGraph: "Reviews", select: "{ authorById(id: $User_id) }") @variable(subGraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subGraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subGraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
   birthdate: DateTime! @source(subGraph: "Accounts")
   id: Int! @source(subGraph: "Reviews") @source(subGraph: "Accounts")
   name: String! @source(subGraph: "Reviews") @source(subGraph: "Accounts")
