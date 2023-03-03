@@ -63,7 +63,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -152,7 +152,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -240,7 +240,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -328,7 +328,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -415,7 +415,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -505,7 +505,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -597,7 +597,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -776,7 +776,7 @@ public class ExecutionPlanBuilderTests
     {
         // arrange
         var serviceConfigDoc = Parse(FileResource.Open("StoreServiceConfig.graphql")!);
-        var serviceConfig = ServiceConfiguration.Load(serviceConfigDoc);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceConfigDoc);
         var context = ConfigurationDirectiveNamesContext.From(serviceConfigDoc);
         var rewriter = new ServiceConfigurationToSchemaRewriter();
         var rewritten = rewriter.Rewrite(serviceConfigDoc, context);

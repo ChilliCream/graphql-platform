@@ -8,14 +8,14 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Metadata;
 
-internal sealed class ServiceConfigurationReader
+internal sealed class FusionGraphConfigurationReader
 {
     private readonly HashSet<string> _assert = new();
 
-    public ServiceConfiguration Read(string sourceText)
+    public FusionGraphConfiguration Read(string sourceText)
         => Read(Utf8GraphQLParser.Parse(sourceText));
 
-    public ServiceConfiguration Read(DocumentNode document)
+    public FusionGraphConfiguration Read(DocumentNode document)
     {
         if (document is null)
         {
@@ -25,7 +25,7 @@ internal sealed class ServiceConfigurationReader
         return ReadServiceDefinition(document);
     }
 
-    private ServiceConfiguration ReadServiceDefinition(DocumentNode document)
+    private FusionGraphConfiguration ReadServiceDefinition(DocumentNode document)
     {
         var schemaDef = document.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
 
@@ -59,7 +59,7 @@ internal sealed class ServiceConfigurationReader
             throw ServiceConfNoTypesSpecified();
         }
 
-        return new ServiceConfiguration(types, httpClientConfigs);
+        return new FusionGraphConfiguration(types, httpClientConfigs);
     }
 
     private ObjectType ReadObjectType(

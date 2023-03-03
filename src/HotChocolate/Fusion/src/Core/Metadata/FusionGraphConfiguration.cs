@@ -3,12 +3,12 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Metadata;
 
-internal sealed class ServiceConfiguration
+internal sealed class FusionGraphConfiguration
 {
     private readonly Dictionary<string, IType> _types;
     private readonly Dictionary<(string Schema, string Type), string> _typeNameLookup = new();
 
-    public ServiceConfiguration(
+    public FusionGraphConfiguration(
         IReadOnlyList<IType> types,
         IReadOnlyList<HttpClientConfig> httpClientConfigs)
     {
@@ -77,11 +77,11 @@ internal sealed class ServiceConfiguration
         throw new NotImplementedException();
     }
 
-    public static ServiceConfiguration Load(string sourceText)
-        => new ServiceConfigurationReader().Read(sourceText);
+    public static FusionGraphConfiguration Load(string sourceText)
+        => new FusionGraphConfigurationReader().Read(sourceText);
 
-    public static ServiceConfiguration Load(DocumentNode document)
-        => new ServiceConfigurationReader().Read(document);
+    public static FusionGraphConfiguration Load(DocumentNode document)
+        => new FusionGraphConfigurationReader().Read(document);
 }
 
 public readonly struct TypeInfo

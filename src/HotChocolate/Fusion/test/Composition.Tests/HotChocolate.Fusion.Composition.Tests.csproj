@@ -4,15 +4,11 @@
     <AssemblyName>HotChocolate.Fusion.Composition.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Fusion.Composition</RootNamespace>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\..\src\Composition\HotChocolate.Fusion.Composition.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.7" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -21,5 +17,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
+  
 </Project>

@@ -7,6 +7,8 @@ namespace HotChocolate.Fusion.Metadata;
 
 internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
 {
+    
+
     private ConfigurationDirectiveNamesContext(
         string variableDirective,
         string fetchDirective,

@@ -12,9 +12,9 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal sealed class RequestPlanner
 {
-    private readonly ServiceConfiguration _configuration;
+    private readonly FusionGraphConfiguration _configuration;
 
-    public RequestPlanner(ServiceConfiguration configuration)
+    public RequestPlanner(FusionGraphConfiguration configuration)
     {
         _configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));

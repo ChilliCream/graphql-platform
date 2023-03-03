@@ -27,7 +27,7 @@ public class RequestPlannerTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
 
         var request = Parse(
             """

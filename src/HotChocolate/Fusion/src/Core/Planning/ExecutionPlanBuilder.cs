@@ -7,10 +7,10 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class ExecutionPlanBuilder
 {
-    private readonly ServiceConfiguration _serviceConfig;
+    private readonly FusionGraphConfiguration _serviceConfig;
     private readonly ISchema _schema;
 
-    public ExecutionPlanBuilder(ServiceConfiguration serviceConfig, ISchema schema)
+    public ExecutionPlanBuilder(FusionGraphConfiguration serviceConfig, ISchema schema)
     {
         _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
         _schema = schema ?? throw new ArgumentNullException(nameof(schema));
