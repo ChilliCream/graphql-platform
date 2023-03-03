@@ -104,8 +104,8 @@ public sealed class FusionTypes
             Variable,
             new Argument(SubGraphArg, subGraphName),
             new Argument(NameArg, variableName),
-            new Argument(SelectArg, select.ToString()),
-            new Argument(TypeArg, type.ToString()));
+            new Argument(SelectArg, select.ToString(false)),
+            new Argument(TypeArg, type.ToString(false)));
 
     private DirectiveType RegisterVariableDirectiveType(
         string name,
@@ -131,7 +131,7 @@ public sealed class FusionTypes
         => new Directive(
             Resolver,
             new Argument(SubGraphArg, subGraphName),
-            new Argument(SelectArg, select.ToString()));
+            new Argument(SelectArg, select.ToString(false)));
 
     private DirectiveType RegisterResolverDirectiveType(
         string name,
