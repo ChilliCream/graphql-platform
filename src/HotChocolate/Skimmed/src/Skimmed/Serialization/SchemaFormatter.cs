@@ -19,11 +19,7 @@ public static class SchemaFormatter
         {
             var definitions = new List<IDefinitionNode>();
 
-            VisitTypes(schema.Types, context);
-            definitions.AddRange((List<IDefinitionNode>)context.Result!);
-
-            VisitDirectiveTypes(schema.DirectiveTypes, context);
-            definitions.AddRange((List<IDefinitionNode>)context.Result!);
+            context.Schema = schema;
 
             if (schema.QueryType is not null ||
                 schema.MutationType is not null ||
@@ -70,6 +66,11 @@ public static class SchemaFormatter
                 definitions.Add(schemaDefinition);
             }
 
+            VisitTypes(schema.Types, context);
+            definitions.AddRange((List<IDefinitionNode>)context.Result!);
+
+            VisitDirectiveTypes(schema.DirectiveTypes, context);
+            definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
             context.Result = new DocumentNode(definitions);
         }
@@ -78,10 +79,66 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            foreach (var type in types.OrderBy(t => t.Name))
+            if (context.Schema?.QueryType is not null)
             {
-                if (type is ScalarType { IsSpecScalar: true })
+                VisitType(context.Schema.QueryType, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            if (context.Schema?.MutationType is not null)
+            {
+                VisitType(context.Schema.MutationType, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            if (context.Schema?.SubscriptionType is not null)
+            {
+                VisitType(context.Schema.SubscriptionType, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<ObjectType>().OrderBy(t => t.Name))
+            {
+                if(context.Schema?.QueryType == type ||
+                   context.Schema?.MutationType == type ||
+                   context.Schema?.SubscriptionType == type)
                 {
+                    continue;
+                }
+
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<InterfaceType>().OrderBy(t => t.Name))
+            {
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<UnionType>().OrderBy(t => t.Name))
+            {
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<InputObjectType>().OrderBy(t => t.Name))
+            {
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<EnumType>().OrderBy(t => t.Name))
+            {
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<ScalarType>().OrderBy(t => t.Name))
+            {
+                if (type is { IsSpecScalar: true }  || SpecScalarTypes.IsSpecScalar(type.Name))
+                {
+                    type.IsSpecScalar = true;
                     continue;
                 }
 
@@ -356,6 +413,8 @@ public static class SchemaFormatter
 
     private sealed class VisitorContext
     {
+        public Schema? Schema { get; set; }
+
         public object? Result { get; set; }
     }
 }

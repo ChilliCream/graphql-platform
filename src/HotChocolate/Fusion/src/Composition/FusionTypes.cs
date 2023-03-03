@@ -38,13 +38,13 @@ public sealed class FusionTypes
 
         if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Boolean, out var boolean))
         {
-            boolean = new ScalarType(SpecScalarTypes.Boolean);
+            boolean = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true };
             _fusionGraph.Types.Add(boolean);
         }
 
         if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Int, out var integer))
         {
-            integer = new ScalarType(SpecScalarTypes.Int);
+            integer = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true };
             _fusionGraph.Types.Add(integer);
         }
 

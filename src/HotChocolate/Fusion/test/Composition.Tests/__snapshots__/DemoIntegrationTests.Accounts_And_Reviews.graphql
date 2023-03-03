@@ -1,3 +1,34 @@
+schema @fusion(version: 1) {
+  query: Query
+}
+
+type Query {
+  productById(upc: Int!): Product @resolver(subGraph: "Reviews", select: "{ productById(upc: $upc) }")
+  reviews: [Review!]! @resolver(subGraph: "Reviews", select: "{ reviews }")
+  userById(id: Int!): User! @resolver(subGraph: "Accounts", select: "{ userById(id: $id) }") @resolver(subGraph: "Reviews", select: "{ userById(id: $id) }")
+  users: [User!]! @resolver(subGraph: "Accounts", select: "{ users }")
+}
+
+type Product @resolver(subGraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subGraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
+  reviews: [Review!]! @source(subGraph: "Reviews")
+  upc: Int! @source(subGraph: "Reviews")
+}
+
+type Review {
+  author: User! @source(subGraph: "Reviews")
+  body: String! @source(subGraph: "Reviews")
+  id: Int! @source(subGraph: "Reviews")
+  upc: Product! @source(subGraph: "Reviews")
+}
+
+type User @resolver(subGraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subGraph: "Accounts", name: "User_id", select: "id", type: "Int!") @resolver(subGraph: "Reviews", select: "{ userById(id: $User_id) }") @variable(subGraph: "Reviews", name: "User_id", select: "id", type: "Int!") {
+  birthdate: DateTime! @source(subGraph: "Accounts")
+  id: Int! @source(subGraph: "Accounts") @source(subGraph: "Reviews")
+  name: String! @source(subGraph: "Accounts")
+  reviews: [Review!]! @source(subGraph: "Reviews")
+  username: String! @source(subGraph: "Accounts")
+}
+
 scalar _Selection
 
 scalar _SelectionSet
@@ -8,43 +39,10 @@ scalar _TypeName
 
 scalar DateTime
 
-scalar Int
-
-type Product @resolver(subGraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subGraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
-  reviews: [Review!]! @source(subGraph: "Reviews")
-  upc: Int! @source(subGraph: "Reviews")
-}
-
-type Query {
-  productById(upc: Int!): Product @resolver(subGraph: "Reviews", select: "{ productById(upc: $upc) }")
-  reviews: [Review!]! @resolver(subGraph: "Reviews", select: "{ reviews }")
-  userById(id: Int!): User! @resolver(subGraph: "Accounts", select: "{ userById(id: $id) }") @resolver(subGraph: "Reviews", select: "{ userById(id: $id) }")
-  users: [User!]! @resolver(subGraph: "Accounts", select: "{ users }")
-}
-
-type Review {
-  author: User! @source(subGraph: "Reviews")
-  body: String! @source(subGraph: "Reviews")
-  id: Int! @source(subGraph: "Reviews")
-  upc: Product! @source(subGraph: "Reviews")
-}
-
-scalar String
-
-type User @resolver(subGraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subGraph: "Accounts", name: "User_id", select: "id", type: "Int!") @resolver(subGraph: "Reviews", select: "{ userById(id: $User_id) }") @variable(subGraph: "Reviews", name: "User_id", select: "id", type: "Int!") {
-  birthdate: DateTime! @source(subGraph: "Accounts")
-  id: Int! @source(subGraph: "Accounts") @source(subGraph: "Reviews")
-  name: String! @source(subGraph: "Accounts")
-  reviews: [Review!]! @source(subGraph: "Reviews")
-  username: String! @source(subGraph: "Accounts")
-}
+directive @fusion(prefix: _TypeName prefixSelf: Boolean version: Int) on SCHEMA
 
 directive @resolver(select: _TypeName! subGraph: _SelectionSet!) on OBJECT
 
 directive @source(name: _TypeName subGraph: _TypeName!) on FIELD_DEFINITION
 
 directive @variable(name: _TypeName! select: _Selection! subGraph: _TypeName! type: _Type!) on OBJECT | FIELD_DEFINITION
-
-schema {
-  query: Query
-}

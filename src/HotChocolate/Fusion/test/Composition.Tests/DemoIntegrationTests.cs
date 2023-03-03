@@ -19,7 +19,7 @@ public sealed class DemoIntegrationTests
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
-            .MatchSnapshot();
+            .MatchSnapshot(extension: ".graphql");
     }
 
     private const string AccountsSdl =
