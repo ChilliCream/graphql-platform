@@ -56,19 +56,19 @@ public class DemoIntegrationTests
 
         var graphComposer = CreateComposer();
         var compositionContext = await graphComposer.ComposeAsync(
-            new SubGraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
-            new SubGraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
+            new SubgraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
+            new SubgraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
         var fusionGraph = compositionContext.FusionGraph;
         var httpClientDirectiveType = new DirectiveType("httpClient");
         fusionGraph.Directives.Add(
             new Directive(
                 httpClientDirectiveType,
-                new Argument("subGraph", "Reviews"),
+                new Argument("subgraph", "Reviews"),
                 new Argument("baseAddress", "https://b/graphql")));
         fusionGraph.Directives.Add(
             new Directive(
                 httpClientDirectiveType,
-                new Argument("subGraph", "Accounts"),
+                new Argument("subgraph", "Accounts"),
                 new Argument("baseAddress", "https://b/graphql")));
 
         var fusionTypes = fusionGraph.Types
@@ -152,19 +152,19 @@ public class DemoIntegrationTests
 
         var graphComposer = CreateComposer();
         var compositionContext = await graphComposer.ComposeAsync(
-            new SubGraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
-            new SubGraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
+            new SubgraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
+            new SubgraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
         var fusionGraph = compositionContext.FusionGraph;
         var httpClientDirectiveType = new DirectiveType("httpClient");
         fusionGraph.Directives.Add(
             new Directive(
                 httpClientDirectiveType,
-                new Argument("subGraph", "Reviews"),
+                new Argument("subgraph", "Reviews"),
                 new Argument("baseAddress", "https://b/graphql")));
         fusionGraph.Directives.Add(
             new Directive(
                 httpClientDirectiveType,
-                new Argument("subGraph", "Accounts"),
+                new Argument("subgraph", "Accounts"),
                 new Argument("baseAddress", "https://b/graphql")));
 
         var fusionTypes = fusionGraph.Types
@@ -294,19 +294,19 @@ public class DemoIntegrationTests
 
         var graphComposer = CreateComposer();
         var compositionContext = await graphComposer.ComposeAsync(
-            new SubGraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
-            new SubGraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
+            new SubgraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
+            new SubgraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
         var fusionGraph = compositionContext.FusionGraph;
         var httpClientDirectiveType = new DirectiveType("httpClient");
         fusionGraph.Directives.Add(
             new Directive(
                 httpClientDirectiveType,
-                new Argument("subGraph", "Reviews"),
+                new Argument("subgraph", "Reviews"),
                 new Argument("baseAddress", "https://b/graphql")));
         fusionGraph.Directives.Add(
             new Directive(
                 httpClientDirectiveType,
-                new Argument("subGraph", "Accounts"),
+                new Argument("subgraph", "Accounts"),
                 new Argument("baseAddress", "https://b/graphql")));
 
         var fusionTypes = fusionGraph.Types

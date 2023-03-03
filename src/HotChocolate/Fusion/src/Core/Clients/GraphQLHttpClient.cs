@@ -17,12 +17,12 @@ public sealed class GraphQLHttpClient : IGraphQLClient
 
     public GraphQLHttpClient(string schemaName, IHttpClientFactory httpClientFactory)
     {
-        SubGraphName = schemaName;
-        _client = httpClientFactory.CreateClient(SubGraphName);
+        SubgraphName = schemaName;
+        _client = httpClientFactory.CreateClient(SubgraphName);
     }
 
-    // TODO: naming? SubGraphName?
-    public string SubGraphName { get; }
+    // TODO: naming? SubgraphName?
+    public string SubgraphName { get; }
 
     public async Task<GraphQLResponse> ExecuteAsync(
         GraphQLRequest request,

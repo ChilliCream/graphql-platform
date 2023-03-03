@@ -4,7 +4,7 @@ using HotChocolate.Skimmed;
 namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
-/// Composes sub-graph schemas into a single,
+/// Composes subgraph schemas into a single,
 /// merged schema representing the fusion gateway configuration.
 /// </summary>
 public sealed class FusionGraphComposer
@@ -20,7 +20,7 @@ public sealed class FusionGraphComposer
     /// The prefix that is used for the fusion types.
     /// </param>
     /// <param name="fusionTypeSelf">
-    /// Defines if the fusion types should be prefixed with the sub-graph name.
+    /// Defines if the fusion types should be prefixed with the subgraph name.
     /// </param>
     public FusionGraphComposer(
         string? fusionTypePrefix = null,
@@ -45,7 +45,7 @@ public sealed class FusionGraphComposer
         // Build the merge pipeline with the given entity enrichers and merge handlers.
         _pipeline =
             MergePipelineBuilder.New()
-                .Use<ParseSubGraphSchemaMiddleware>()
+                .Use<ParseSubgraphSchemaMiddleware>()
                 .Use<ApplyRenameDirectiveMiddleware>()
                 .Use<ApplyRemoveDirectiveMiddleware>()
                 .Use(() => new EnrichEntityMiddleware(entityEnrichers))
@@ -60,21 +60,21 @@ public sealed class FusionGraphComposer
     }
 
     /// <summary>
-    /// Composes the sub-graph schemas into a single,
+    /// Composes the subgraph schemas into a single,
     /// merged schema representing the fusion gateway configuration.
     /// </summary>
     /// <param name="configurations">
-    /// The sub-graph configurations to compose.
+    /// The subgraph configurations to compose.
     /// </param>
     /// <param name="cancellationToken">
     /// A cancellation token that can be used to cancel the operation.
     /// </param>
     /// <returns>The fusion gateway configuration.</returns>
     public async ValueTask<Schema> ComposeAsync(
-        IEnumerable<SubGraphConfiguration> configurations,
+        IEnumerable<SubgraphConfiguration> configurations,
         CancellationToken cancellationToken = default)
     {
-        // Create a new composition context with the given sub-graph configurations,
+        // Create a new composition context with the given subgraph configurations,
         // fusion type prefix, and fusion type self option.
         var context = new CompositionContext(
             configurations.ToArray(),

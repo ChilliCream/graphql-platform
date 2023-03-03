@@ -79,7 +79,7 @@ static file class MergeEntitiesMiddlewareExtensions
                     CreateVariableDirective(
                         context,
                         variable,
-                        resolver.SubGraph));
+                        resolver.Subgraph));
             }
         }
     }
@@ -110,7 +110,7 @@ static file class MergeEntitiesMiddlewareExtensions
         CompositionContext context,
         EntityResolver resolver)
         => context.FusionTypes.CreateResolverDirective(
-            resolver.SubGraph,
+            resolver.Subgraph,
             resolver.SelectionSet);
 
     private static Directive CreateVariableDirective(

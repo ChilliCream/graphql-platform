@@ -14,14 +14,14 @@ internal sealed class ResolverNode : QueryPlanNode
 
     public ResolverNode(
         int id,
-        string subGraphName,
+        string subgraphName,
         DocumentNode document,
         ISelectionSet selectionSet,
         IReadOnlyList<string> requires,
         IReadOnlyList<string> path)
         : base(id)
     {
-        SubGraphName = subGraphName;
+        SubgraphName = subgraphName;
         Document = document;
         SelectionSet = selectionSet;
         Requires = requires;
@@ -33,7 +33,7 @@ internal sealed class ResolverNode : QueryPlanNode
     /// <summary>
     /// Gets the schema name on which this request handler executes.
     /// </summary>
-    public string SubGraphName { get; }
+    public string SubgraphName { get; }
 
     /// <summary>
     /// Gets the GraphQL request document.
@@ -57,7 +57,7 @@ internal sealed class ResolverNode : QueryPlanNode
     {
         if (state.TryGetState(SelectionSet, out var values))
         {
-            var schemaName = SubGraphName;
+            var schemaName = SubgraphName;
             var requests = new GraphQLRequest[values.Count];
             var selections = values[0].SelectionSet.Selections;
 
@@ -148,7 +148,7 @@ internal sealed class ResolverNode : QueryPlanNode
             vars ??= new ObjectValueNode(fields);
         }
 
-        return new GraphQLRequest(SubGraphName, Document, vars, null);
+        return new GraphQLRequest(SubgraphName, Document, vars, null);
     }
 
     private JsonElement UnwrapResult(GraphQLResponse response)
@@ -181,7 +181,7 @@ internal sealed class ResolverNode : QueryPlanNode
 
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
-        writer.WriteString("schemaName", SubGraphName);
+        writer.WriteString("schemaName", SubgraphName);
         writer.WriteString("document", Document.ToString(false));
         writer.WriteNumber("selectionSetId", SelectionSet.Id);
 

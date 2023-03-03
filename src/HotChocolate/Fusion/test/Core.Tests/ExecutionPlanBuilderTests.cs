@@ -30,30 +30,30 @@ public class ExecutionPlanBuilderTests
             type Query {
               personById(id: ID!): Person
                 @abc_variable(name: ""personId"", argument: ""id"")
-                @abc_source(subGraph: ""a"")
-                @abc_resolver(subGraph: ""a"", select: ""{ personById(id: $personId) { ... Person } }"")
-                @abc_resolver(subGraph: ""b"", select: ""{ node(id: $personId) { ... on Person { ... Person } } }"")
+                @abc_source(subgraph: ""a"")
+                @abc_resolver(subgraph: ""a"", select: ""{ personById(id: $personId) { ... Person } }"")
+                @abc_resolver(subgraph: ""b"", select: ""{ node(id: $personId) { ... on Person { ... Person } } }"")
             }
 
             type Person
-              @abc_variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @abc_variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @abc_resolver(subGraph: ""a"", select: ""{ personById(id: $personId) { ... Person } }"")
-              @abc_resolver(subGraph: ""b"", select: ""{ node(id: $personId) { ... on Person { ... Person } } }"") {
+              @abc_variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @abc_variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @abc_resolver(subgraph: ""a"", select: ""{ personById(id: $personId) { ... Person } }"")
+              @abc_resolver(subgraph: ""b"", select: ""{ node(id: $personId) { ... on Person { ... Person } } }"") {
 
               id: ID!
-                @abc_source(subGraph: ""a"")
-                @abc_source(subGraph: ""b"")
+                @abc_source(subgraph: ""a"")
+                @abc_source(subgraph: ""b"")
               name: String!
-                @abc_source(subGraph: ""a"")
+                @abc_source(subgraph: ""a"")
               bio: String
-                @abc_source(subGraph: ""b"")
+                @abc_source(subgraph: ""b"")
             }
 
             schema
               @fusion(prefix: ""abc"")
-              @abc_httpClient(subGraph: ""a"" baseAddress: ""https://a/graphql"")
-              @abc_httpClient(subGraph: ""b"" baseAddress: ""https://b/graphql"") {
+              @abc_httpClient(subgraph: ""a"" baseAddress: ""https://a/graphql"")
+              @abc_httpClient(subgraph: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 
@@ -119,30 +119,30 @@ public class ExecutionPlanBuilderTests
             type Query {
               personById(id: ID!): Person
                 @abc_variable(name: ""personId"", argument: ""id"")
-                @abc_source(subGraph: ""a"")
-                @abc_resolver(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @abc_resolver(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+                @abc_source(subgraph: ""a"")
+                @abc_resolver(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @abc_resolver(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
             }
 
             type Person
-              @abc_variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @abc_variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @abc_resolver(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @abc_resolver(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+              @abc_variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @abc_variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @abc_resolver(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @abc_resolver(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
 
               id: ID!
-                @abc_source(subGraph: ""a"")
-                @abc_source(subGraph: ""b"")
+                @abc_source(subgraph: ""a"")
+                @abc_source(subgraph: ""b"")
               name: String!
-                @abc_source(subGraph: ""a"")
+                @abc_source(subgraph: ""a"")
               bio: String
-                @abc_source(subGraph: ""b"")
+                @abc_source(subgraph: ""b"")
             }
 
             schema
               @abc_fusion(prefix: ""abc"", prefixSelf: true)
-              @abc_httpClient(subGraph: ""a"" baseAddress: ""https://a/graphql"")
-              @abc_httpClient(subGraph: ""b"" baseAddress: ""https://b/graphql"") {
+              @abc_httpClient(subgraph: ""a"" baseAddress: ""https://a/graphql"")
+              @abc_httpClient(subgraph: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 
@@ -208,29 +208,29 @@ public class ExecutionPlanBuilderTests
             type Query {
               personById(id: ID!): Person
                 @variable(name: ""personId"", argument: ""id"")
-                @source(subGraph: ""a"")
-                @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+                @source(subgraph: ""a"")
+                @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
             }
 
             type Person
-              @variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+              @variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
 
               id: ID!
-                @source(subGraph: ""a"")
-                @source(subGraph: ""b"")
+                @source(subgraph: ""a"")
+                @source(subgraph: ""b"")
               name: String!
-                @source(subGraph: ""a"")
+                @source(subgraph: ""a"")
               bio: String
-                @source(subGraph: ""b"")
+                @source(subgraph: ""b"")
             }
 
             schema
-              @httpClient(subGraph: ""a"" baseAddress: ""https://a/graphql"")
-              @httpClient(subGraph: ""b"" baseAddress: ""https://b/graphql"") {
+              @httpClient(subgraph: ""a"" baseAddress: ""https://a/graphql"")
+              @httpClient(subgraph: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 
@@ -296,29 +296,29 @@ public class ExecutionPlanBuilderTests
             type Query {
               personById(id: ID!): Person
                 @variable(name: ""personId"", argument: ""id"")
-                @source(subGraph: ""a"")
-                @fetch(subGraph: ""a"", select: ""personByIdFoo(id: $personId) { ... Person }"")
-                @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+                @source(subgraph: ""a"")
+                @fetch(subgraph: ""a"", select: ""personByIdFoo(id: $personId) { ... Person }"")
+                @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
             }
 
             type Person
-              @variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+              @variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
 
               id: ID!
-                @source(subGraph: ""a"")
-                @source(subGraph: ""b"")
+                @source(subgraph: ""a"")
+                @source(subgraph: ""b"")
               name: String!
-                @source(subGraph: ""a"")
+                @source(subgraph: ""a"")
               bio: String
-                @source(subGraph: ""b"")
+                @source(subgraph: ""b"")
             }
 
             schema
-              @httpClient(subGraph: ""a"" baseAddress: ""https://a/graphql"")
-              @httpClient(subGraph: ""b"" baseAddress: ""https://b/graphql"") {
+              @httpClient(subgraph: ""a"" baseAddress: ""https://a/graphql"")
+              @httpClient(subgraph: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 
@@ -384,28 +384,28 @@ public class ExecutionPlanBuilderTests
             type Query {
               personById(id: ID!): Person
                 @variable(name: ""personId"", argument: ""id"")
-                @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+                @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
             }
 
             type Person
-              @variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+              @variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
 
               id: ID!
-                @source(subGraph: ""a"")
-                @source(subGraph: ""b"")
+                @source(subgraph: ""a"")
+                @source(subgraph: ""b"")
               name: String!
-                @source(subGraph: ""a"")
+                @source(subgraph: ""a"")
               bio: String
-                @source(subGraph: ""b"")
+                @source(subgraph: ""b"")
             }
 
             schema
-              @httpClient(subGraph: ""a"" baseAddress: ""https://a/graphql"")
-              @httpClient(subGraph: ""b"" baseAddress: ""https://b/graphql"") {
+              @httpClient(subgraph: ""a"" baseAddress: ""https://a/graphql"")
+              @httpClient(subgraph: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 
@@ -471,31 +471,31 @@ public class ExecutionPlanBuilderTests
             type Query {
               personById(id: ID!): Person
                 @variable(name: ""personId"", argument: ""id"")
-                @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+                @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
             }
 
             type Person
-              @variable(name: ""personId"", select: ""id"" subGraph: ""a"" type: ""ID!"")
-              @variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+              @variable(name: ""personId"", select: ""id"" subgraph: ""a"" type: ""ID!"")
+              @variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
 
               id: ID!
-                @source(subGraph: ""a"")
-                @source(subGraph: ""b"")
-                @source(subGraph: ""c"")
+                @source(subgraph: ""a"")
+                @source(subgraph: ""b"")
+                @source(subgraph: ""c"")
               name: String!
-                @source(subGraph: ""a"")
+                @source(subgraph: ""a"")
               bio: String
-                @source(subGraph: ""b"")
+                @source(subgraph: ""b"")
               friends: [Person!]
-                @source(subGraph: ""a"")
+                @source(subgraph: ""a"")
             }
 
             schema
-              @httpClient(subGraph: ""a"" baseAddress: ""https://a/graphql"")
-              @httpClient(subGraph: ""b"" baseAddress: ""https://b/graphql"") {
+              @httpClient(subgraph: ""a"" baseAddress: ""https://a/graphql"")
+              @httpClient(subgraph: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 
@@ -563,31 +563,31 @@ public class ExecutionPlanBuilderTests
             type Query {
               personById(id: ID!): Person
                 @variable(name: ""personId"", argument: ""id"")
-                @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+                @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
             }
 
             type Person
-              @variable(name: ""personId"", select: ""id"" subGraph: ""a"" type: ""ID!"")
-              @variable(name: ""personId"", select: ""id"" subGraph: ""b"" type: ""ID!"")
-              @fetch(subGraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @fetch(subGraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+              @variable(name: ""personId"", select: ""id"" subgraph: ""a"" type: ""ID!"")
+              @variable(name: ""personId"", select: ""id"" subgraph: ""b"" type: ""ID!"")
+              @fetch(subgraph: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @fetch(subgraph: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
 
               id: ID!
-                @source(subGraph: ""a"")
-                @source(subGraph: ""b"")
-                @source(subGraph: ""c"")
+                @source(subgraph: ""a"")
+                @source(subgraph: ""b"")
+                @source(subgraph: ""c"")
               name: String!
-                @source(subGraph: ""a"")
+                @source(subgraph: ""a"")
               bio: String
-                @source(subGraph: ""b"")
+                @source(subgraph: ""b"")
               friends: [Person!]
-                @source(subGraph: ""a"")
+                @source(subgraph: ""a"")
             }
 
             schema
-              @httpClient(subGraph: ""a"" baseAddress: ""https://a/graphql"")
-              @httpClient(subGraph: ""b"" baseAddress: ""https://b/graphql"") {
+              @httpClient(subgraph: ""a"" baseAddress: ""https://a/graphql"")
+              @httpClient(subgraph: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 

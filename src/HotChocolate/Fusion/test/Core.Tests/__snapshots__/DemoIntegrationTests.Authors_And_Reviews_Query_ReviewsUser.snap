@@ -184,37 +184,37 @@ scalar DateTime
 
 scalar Int
 
-type Product @resolver(subGraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subGraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
-  reviews: [Review!]! @source(subGraph: "Reviews")
-  upc: Int! @source(subGraph: "Reviews")
+type Product @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subgraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
+  reviews: [Review!]! @source(subgraph: "Reviews")
+  upc: Int! @source(subgraph: "Reviews")
 }
 
 type Query {
-  authorById(id: Int!): User! @resolver(subGraph: "Reviews", select: "{ authorById(id: $id) }")
-  productById(upc: Int!): Product! @resolver(subGraph: "Reviews", select: "{ productById(upc: $upc) }")
-  reviews: [Review!]! @resolver(subGraph: "Reviews", select: "{ reviews }")
-  userById(id: Int!): User! @resolver(subGraph: "Accounts", select: "{ userById(id: $id) }")
-  users: [User!]! @resolver(subGraph: "Accounts", select: "{ users }")
+  authorById(id: Int!): User! @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }")
+  productById(upc: Int!): Product! @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }")
+  reviews: [Review!]! @resolver(subgraph: "Reviews", select: "{ reviews }")
+  userById(id: Int!): User! @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }")
+  users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
 }
 
 type Review {
-  author: User! @source(subGraph: "Reviews")
-  body: String! @source(subGraph: "Reviews")
-  id: Int! @source(subGraph: "Reviews")
-  product: Product! @source(subGraph: "Reviews")
+  author: User! @source(subgraph: "Reviews")
+  body: String! @source(subgraph: "Reviews")
+  id: Int! @source(subgraph: "Reviews")
+  product: Product! @source(subgraph: "Reviews")
 }
 
 scalar String
 
-type User @resolver(subGraph: "Reviews", select: "{ authorById(id: $User_id) }") @variable(subGraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subGraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subGraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
-  birthdate: DateTime! @source(subGraph: "Accounts")
-  id: Int! @source(subGraph: "Reviews") @source(subGraph: "Accounts")
-  name: String! @source(subGraph: "Reviews") @source(subGraph: "Accounts")
-  reviews: [Review!]! @source(subGraph: "Reviews")
-  username: String! @source(subGraph: "Accounts")
+type User @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }") @variable(subgraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subgraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
+  birthdate: DateTime! @source(subgraph: "Accounts")
+  id: Int! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  name: String! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  reviews: [Review!]! @source(subgraph: "Reviews")
+  username: String! @source(subgraph: "Accounts")
 }
 
-schema @httpClient(subGraph: "Reviews", baseAddress: "https:\/\/b\/graphql") @httpClient(subGraph: "Accounts", baseAddress: "https:\/\/b\/graphql") {
+schema @httpClient(subgraph: "Reviews", baseAddress: "https:\/\/b\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "https:\/\/b\/graphql") {
   query: Query
 }
 ---------------

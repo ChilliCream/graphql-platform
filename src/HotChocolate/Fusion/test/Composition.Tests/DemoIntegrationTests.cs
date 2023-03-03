@@ -13,8 +13,8 @@ public sealed class DemoIntegrationTests
         var fusionConfig = await composer.ComposeAsync(
             new[]
             {
-                new SubGraphConfiguration("Accounts", AccountsSdl, AccountsExtensionSdl),
-                new SubGraphConfiguration("Reviews", ReviewsSdl, ReviewsExtensionSdl)
+                new SubgraphConfiguration("Accounts", AccountsSdl, AccountsExtensionSdl),
+                new SubgraphConfiguration("Reviews", ReviewsSdl, ReviewsExtensionSdl)
             });
 
         SchemaFormatter

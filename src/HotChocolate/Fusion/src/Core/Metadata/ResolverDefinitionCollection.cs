@@ -10,7 +10,7 @@ internal sealed class ResolverDefinitionCollection : IEnumerable<ResolverDefinit
     public ResolverDefinitionCollection(IEnumerable<ResolverDefinition> fetchDefinitions)
     {
         _fetchDefinitions = fetchDefinitions
-            .GroupBy(t => t.SubGraphName)
+            .GroupBy(t => t.SubgraphName)
             .ToDictionary(t => t.Key, t => t.ToArray(), StringComparer.Ordinal);
     }
 
@@ -19,10 +19,10 @@ internal sealed class ResolverDefinitionCollection : IEnumerable<ResolverDefinit
     // public IReadOnlyList<FetchDefinition> this[string schemaName] => throw new NotImplementedException();
 
     public bool TryGetValue(
-        string subGraphName,
+        string subgraphName,
         [NotNullWhen(true)] out IReadOnlyList<ResolverDefinition>? values)
     {
-        if (_fetchDefinitions.TryGetValue(subGraphName, out var temp))
+        if (_fetchDefinitions.TryGetValue(subgraphName, out var temp))
         {
             values = temp;
             return true;

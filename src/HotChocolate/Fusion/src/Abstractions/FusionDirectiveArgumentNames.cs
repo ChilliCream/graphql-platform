@@ -1,5 +1,8 @@
 namespace HotChocolate.Fusion;
 
+/// <summary>
+/// Defines the names of the arguments that can be used with the fusion directives.
+/// </summary>
 internal static class FusionDirectiveArgumentNames
 {
     /// <summary>
@@ -18,9 +21,9 @@ internal static class FusionDirectiveArgumentNames
     public const string TypeArg = "type";
 
     /// <summary>
-    /// Gets the name of the sub-graph argument.
+    /// Gets the name of the subgraph argument.
     /// </summary>
-    public const string SubGraphArg = "subGraph";
+    public const string SubgraphArg = "subgraph";
 
     /// <summary>
     /// Gets the name of the prefix argument.

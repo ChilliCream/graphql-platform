@@ -4,7 +4,7 @@ using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-internal sealed class ParseSubGraphSchemaMiddleware : IMergeMiddleware
+internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
@@ -12,7 +12,7 @@ internal sealed class ParseSubGraphSchemaMiddleware : IMergeMiddleware
         {
             var schema = SchemaParser.Parse(config.Schema);
             schema.Name = config.Name;
-            context.SubGraphs.Add(schema);
+            context.Subgraphs.Add(schema);
 
             foreach (var sourceText in config.Extensions)
             {

@@ -11,12 +11,12 @@ internal sealed class ResolverDefinition
     private readonly FieldNode? _field;
 
     public ResolverDefinition(
-        string subGraphName,
+        string subgraphName,
         SelectionSetNode select,
         FragmentSpreadNode? placeholder,
         IReadOnlyList<string> requires)
     {
-        SubGraphName = subGraphName;
+        SubgraphName = subgraphName;
         Select = select;
         Placeholder = placeholder;
         Requires = requires;
@@ -30,7 +30,7 @@ internal sealed class ResolverDefinition
     /// <summary>
     /// Gets the schema to which the type system member is bound to.
     /// </summary>
-    public string SubGraphName { get; }
+    public string SubgraphName { get; }
 
     public SelectionSetNode Select { get; }
 

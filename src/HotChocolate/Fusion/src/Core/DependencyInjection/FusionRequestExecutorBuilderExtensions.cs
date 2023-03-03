@@ -65,7 +65,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .ConfigureSchemaServices(
                 sc =>
                 {
-                    foreach (var schemaName in configuration.SubGraphNames)
+                    foreach (var schemaName in configuration.SubgraphNames)
                     {
                         sc.AddSingleton<IGraphQLClient>(
                             sp => new GraphQLHttpClient(

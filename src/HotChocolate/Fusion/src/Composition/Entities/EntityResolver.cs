@@ -3,7 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
-/// Represents an entity resolver for retrieving data for the entity from a sub-graph.
+/// Represents an entity resolver for retrieving data for the entity from a subgraph.
 /// </summary>
 internal sealed class EntityResolver
 {
@@ -12,12 +12,12 @@ internal sealed class EntityResolver
     /// </summary>
     /// <param name="selectionSet">The selection set for the entity.</param>
     /// <param name="entityName">The name of the entity being resolved.</param>
-    /// <param name="subGraph">The name of the schema that contains the entity.</param>
-    public EntityResolver(SelectionSetNode selectionSet, string entityName, string subGraph)
+    /// <param name="subgraph">The name of the schema that contains the entity.</param>
+    public EntityResolver(SelectionSetNode selectionSet, string entityName, string subgraph)
     {
         SelectionSet = selectionSet;
         EntityName = entityName;
-        SubGraph = subGraph;
+        Subgraph = subgraph;
     }
 
     /// <summary>
@@ -31,9 +31,9 @@ internal sealed class EntityResolver
     public string EntityName { get; }
 
     /// <summary>
-    /// Gets the name of the sub-graph that contains data for this entity.
+    /// Gets the name of the subgraph that contains data for this entity.
     /// </summary>
-    public string SubGraph { get; }
+    public string Subgraph { get; }
 
     /// <summary>
     /// Gets the variables used in the resolver.
@@ -54,7 +54,7 @@ internal sealed class EntityResolver
                 null,
                 OperationType.Query,
                 Variables.Select(t => t.Value.Definition).ToList(),
-                new[] { new DirectiveNode("schema", new ArgumentNode("name", SubGraph)) },
+                new[] { new DirectiveNode("schema", new ArgumentNode("name", Subgraph)) },
                 SelectionSet));
 
         if (Variables.Count > 0)

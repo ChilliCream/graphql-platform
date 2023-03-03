@@ -14,12 +14,12 @@ internal sealed class MemberBindingCollection : IEnumerable<MemberBinding>
 
     public int Count => _bindings.Count;
 
-    public MemberBinding this[string subGraph] => _bindings[subGraph];
+    public MemberBinding this[string subgraph] => _bindings[subgraph];
 
-    public bool TryGetValue(string subGraph, [NotNullWhen(true)] out MemberBinding? value)
-        => _bindings.TryGetValue(subGraph, out value);
+    public bool TryGetValue(string subgraph, [NotNullWhen(true)] out MemberBinding? value)
+        => _bindings.TryGetValue(subgraph, out value);
 
-    public bool ContainsSubGraph(string subGraph) => _bindings.ContainsKey(subGraph);
+    public bool ContainsSubgraph(string subgraph) => _bindings.ContainsKey(subgraph);
 
     public IEnumerator<MemberBinding> GetEnumerator() => _bindings.Values.GetEnumerator();
 

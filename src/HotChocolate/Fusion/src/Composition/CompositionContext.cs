@@ -11,16 +11,16 @@ internal sealed class CompositionContext
     /// Initializes a new instance of <see cref="CompositionContext"/>.
     /// </summary>
     /// <param name="configurations">
-    /// The sub-graph configurations.
+    /// The subgraph configurations.
     /// </param>
     /// <param name="fusionTypePrefix">
     /// The prefix that is used for the fusion types.
     /// </param>
     /// <param name="fusionTypeSelf">
-    /// Defines if the fusion types should be prefixed with the sub-graph name.
+    /// Defines if the fusion types should be prefixed with the subgraph name.
     /// </param>
     public CompositionContext(
-        IReadOnlyList<SubGraphConfiguration> configurations,
+        IReadOnlyList<SubgraphConfiguration> configurations,
         string? fusionTypePrefix = null,
         bool fusionTypeSelf = false)
     {
@@ -30,17 +30,17 @@ internal sealed class CompositionContext
     }
 
     /// <summary>
-    /// Gets the sub-graph configurations.
+    /// Gets the subgraph configurations.
     /// </summary>
-    public IReadOnlyList<SubGraphConfiguration> Configurations { get; }
+    public IReadOnlyList<SubgraphConfiguration> Configurations { get; }
 
     /// <summary>
-    /// Gets the sub-graph schemas.
+    /// Gets the subgraph schemas.
     /// </summary>
-    public List<Schema> SubGraphs { get; } = new();
+    public List<Schema> Subgraphs { get; } = new();
 
     /// <summary>
-    /// Get the grouped sub-graph entities.
+    /// Get the grouped subgraph entities.
     /// </summary>
     public List<EntityGroup> Entities { get; } = new();
 

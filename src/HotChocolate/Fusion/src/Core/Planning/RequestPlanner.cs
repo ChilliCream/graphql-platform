@@ -47,16 +47,16 @@ internal sealed class RequestPlanner
         do
         {
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
-            var subGraph = ResolveBestMatchingSubGraph(context.Operation, current, selectionSetType);
-            var workItem = new SelectionExecutionStep(subGraph, selectionSetType, parentSelection);
+            var subgraph = ResolveBestMatchingSubgraph(context.Operation, current, selectionSetType);
+            var workItem = new SelectionExecutionStep(subgraph, selectionSetType, parentSelection);
             leftovers = null;
             ResolverDefinition? resolver;
 
             if (parentSelection is not null &&
-                selectionSetType.Resolvers.ContainsResolvers(subGraph))
+                selectionSetType.Resolvers.ContainsResolvers(subgraph))
             {
                 CalculateVariablesInContext(selectionSetType, parentSelection, variablesInContext);
-                if (TryGetResolver(selectionSetType, subGraph, variablesInContext, out resolver))
+                if (TryGetResolver(selectionSetType, subgraph, variablesInContext, out resolver))
                 {
                     workItem.Resolver = resolver;
                     CalculateRequirements(parentSelection, resolver, workItem.Requires);
@@ -72,7 +72,7 @@ internal sealed class RequestPlanner
                             selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
                     {
                         var introspectionStep = new IntrospectionExecutionStep(
-                            subGraph,
+                            subgraph,
                             selectionSetType,
                             parentSelection);
                         context.Steps.Add(introspectionStep);
@@ -83,7 +83,7 @@ internal sealed class RequestPlanner
                 }
 
                 var field = selectionSetType.Fields[selection.Field.Name];
-                if (field.Bindings.ContainsSubGraph(subGraph))
+                if (field.Bindings.ContainsSubgraph(subgraph))
                 {
                     CalculateVariablesInContext(
                         selection,
@@ -92,9 +92,9 @@ internal sealed class RequestPlanner
                         variablesInContext);
 
                     resolver = null;
-                    if (field.Resolvers.ContainsResolvers(subGraph))
+                    if (field.Resolvers.ContainsResolvers(subgraph))
                     {
-                        if (!TryGetResolver(field, subGraph, variablesInContext, out resolver))
+                        if (!TryGetResolver(field, subgraph, variablesInContext, out resolver))
                         {
                             // todo : error message and type
                             throw new InvalidOperationException(
@@ -149,7 +149,7 @@ internal sealed class RequestPlanner
             {
                 var field = declaringType.Fields[selection.Field.Name];
 
-                if (field.Bindings.TryGetValue(executionStep.SubGraphName, out _))
+                if (field.Bindings.TryGetValue(executionStep.SubgraphName, out _))
                 {
                     executionStep.AllSelections.Add(selection);
 
@@ -171,26 +171,26 @@ internal sealed class RequestPlanner
         }
     }
 
-    private string ResolveBestMatchingSubGraph(
+    private string ResolveBestMatchingSubgraph(
         IOperation operation,
         IReadOnlyList<ISelection> selections,
         ObjectType typeContext)
     {
         var bestScore = 0;
-        var bestSubGraph = _configuration.SubGraphNames[0];
+        var bestSubgraph = _configuration.SubgraphNames[0];
 
-        foreach (var schemaName in _configuration.SubGraphNames)
+        foreach (var schemaName in _configuration.SubgraphNames)
         {
             var score = CalculateSchemaScore(operation, selections, typeContext, schemaName);
 
             if (score > bestScore)
             {
                 bestScore = score;
-                bestSubGraph = schemaName;
+                bestSubgraph = schemaName;
             }
         }
 
-        return bestSubGraph;
+        return bestSubgraph;
     }
 
     private int CalculateSchemaScore(
@@ -204,7 +204,7 @@ internal sealed class RequestPlanner
         foreach (var selection in selections)
         {
             if (!selection.Field.IsIntrospectionField &&
-                typeContext.Fields[selection.Field.Name].Bindings.ContainsSubGraph(schemaName))
+                typeContext.Fields[selection.Field.Name].Bindings.ContainsSubgraph(schemaName))
             {
                 score++;
 

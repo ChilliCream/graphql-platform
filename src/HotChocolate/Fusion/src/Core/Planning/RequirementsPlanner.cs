@@ -32,7 +32,7 @@ internal sealed class RequirementsPlanner
                 // clean and fill the schema execution step lookup
                 foreach (var siblingExecutionStep in siblingExecutionSteps)
                 {
-                    schemas.TryAdd(siblingExecutionStep.SubGraphName, siblingExecutionStep);
+                    schemas.TryAdd(siblingExecutionStep.SubgraphName, siblingExecutionStep);
                 }
 
                 // clean and fill requires set

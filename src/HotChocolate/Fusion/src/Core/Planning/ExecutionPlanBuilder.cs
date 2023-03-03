@@ -100,7 +100,7 @@ internal sealed class ExecutionPlanBuilder
 
         return new ResolverNode(
             context.CreateNodeId(),
-            executionStep.SubGraphName,
+            executionStep.SubgraphName,
             requestDocument,
             selectionSet,
             executionStep.Variables.Values.ToArray(),
@@ -233,7 +233,7 @@ internal sealed class ExecutionPlanBuilder
             selectionSetNode = CreateSelectionSetNode(context, executionStep, selection);
         }
 
-        var binding = field.Bindings[executionStep.SubGraphName];
+        var binding = field.Bindings[executionStep.SubgraphName];
 
         var alias = !selection.ResponseName.Equals(binding.Name)
             ? new NameNode(selection.ResponseName)

@@ -20,7 +20,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
     {
         var groupedTypes = new Dictionary<string, List<TypePart>>();
 
-        foreach (var schema in context.SubGraphs)
+        foreach (var schema in context.Subgraphs)
         {
             foreach (var type in schema.Types)
             {

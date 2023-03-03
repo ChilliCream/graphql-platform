@@ -14,7 +14,7 @@ internal sealed class FusionGraphConfiguration
     {
         _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
         HttpClientConfigs = httpClientConfigs;
-        SubGraphNames = httpClientConfigs.Select(t => t.SchemaName).ToArray();
+        SubgraphNames = httpClientConfigs.Select(t => t.SchemaName).ToArray();
 
         foreach (var type in types)
         {
@@ -28,7 +28,7 @@ internal sealed class FusionGraphConfiguration
         }
     }
 
-    public IReadOnlyList<string> SubGraphNames { get; }
+    public IReadOnlyList<string> SubgraphNames { get; }
 
     public IReadOnlyList<HttpClientConfig> HttpClientConfigs { get; }
 

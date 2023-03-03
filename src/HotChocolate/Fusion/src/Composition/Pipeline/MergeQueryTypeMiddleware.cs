@@ -7,7 +7,7 @@ internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
-        foreach (var schema in context.SubGraphs)
+        foreach (var schema in context.Subgraphs)
         {
             if (schema.QueryType is not null)
             {

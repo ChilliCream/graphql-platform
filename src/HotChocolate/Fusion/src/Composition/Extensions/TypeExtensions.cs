@@ -17,7 +17,7 @@ internal static class TypeExtensions
     public static void TryApplySource<T>(
         this CompositionContext context,
         T source,
-        string subGraphName,
+        string subgraphName,
         T target)
         where T : ITypeSystemMember, IHasContextData, IHasDirectives
     {
@@ -25,7 +25,7 @@ internal static class TypeExtensions
         {
             target.Directives.Add(
                 context.FusionTypes.CreateSourceDirective(
-                    subGraphName,
+                    subgraphName,
                     originalName));
         }
     }
@@ -41,7 +41,7 @@ internal static class TypeExtensions
     public static void ApplySource<T>(
         this CompositionContext context,
         T source,
-        string subGraphName,
+        string subgraphName,
         T target)
         where T : ITypeSystemMember, IHasContextData, IHasDirectives
     {
@@ -49,14 +49,14 @@ internal static class TypeExtensions
         {
             target.Directives.Add(
                 context.FusionTypes.CreateSourceDirective(
-                    subGraphName,
+                    subgraphName,
                     originalName));
         }
         else
         {
             target.Directives.Add(
                 context.FusionTypes.CreateSourceDirective(
-                    subGraphName));
+                    subgraphName));
         }
     }
 

@@ -125,7 +125,7 @@ internal sealed class FusionGraphConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.HttpDirective);
-        AssertArguments(directiveNode, SubGraphArg, BaseAddressArg);
+        AssertArguments(directiveNode, SubgraphArg, BaseAddressArg);
 
         string name = default!;
         string baseAddress = default!;
@@ -134,7 +134,7 @@ internal sealed class FusionGraphConfigurationReader
         {
             switch (argument.Name.Value)
             {
-                case SubGraphArg:
+                case SubgraphArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
@@ -169,7 +169,7 @@ internal sealed class FusionGraphConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.VariableDirective);
-        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, SubGraphArg);
+        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, SubgraphArg);
 
         string name = default!;
         FieldNode select = default!;
@@ -192,7 +192,7 @@ internal sealed class FusionGraphConfigurationReader
                     type = ParseTypeReference(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case SubGraphArg:
+                case SubgraphArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
@@ -225,10 +225,10 @@ internal sealed class FusionGraphConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.FetchDirective);
-        AssertArguments(directiveNode, SelectArg, SubGraphArg);
+        AssertArguments(directiveNode, SelectArg, SubgraphArg);
 
         SelectionSetNode select = default!;
-        string subGraph = default!;
+        string subgraph = default!;
 
         foreach (var argument in directiveNode.Arguments)
         {
@@ -238,8 +238,8 @@ internal sealed class FusionGraphConfigurationReader
                     select = ParseSelectionSet(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case SubGraphArg:
-                    subGraph = Expect<StringValueNode>(argument.Value).Value;
+                case SubgraphArg:
+                    subgraph = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
         }
@@ -268,7 +268,7 @@ internal sealed class FusionGraphConfigurationReader
             .Visit(select);
 
         return new ResolverDefinition(
-            subGraph,
+            subgraph,
             select,
             placeholder,
             _assert.Count == 0
@@ -324,10 +324,10 @@ internal sealed class FusionGraphConfigurationReader
 
             foreach (var resolver in resolvers)
             {
-                if (_assert.Add(resolver.SubGraphName))
+                if (_assert.Add(resolver.SubgraphName))
                 {
                     definitions.Add(
-                        new MemberBinding(resolver.SubGraphName, annotatedField.Name.Value));
+                        new MemberBinding(resolver.SubgraphName, annotatedField.Name.Value));
                 }
             }
         }
@@ -341,7 +341,7 @@ internal sealed class FusionGraphConfigurationReader
         NamedSyntaxNode annotatedField)
     {
         AssertName(directiveNode, context.SourceDirective);
-        AssertArguments(directiveNode, SubGraphArg, NameArg);
+        AssertArguments(directiveNode, SubgraphArg, NameArg);
 
         string? name = null;
         string schemaName = default!;
@@ -354,7 +354,7 @@ internal sealed class FusionGraphConfigurationReader
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
-                case SubGraphArg:
+                case SubgraphArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }

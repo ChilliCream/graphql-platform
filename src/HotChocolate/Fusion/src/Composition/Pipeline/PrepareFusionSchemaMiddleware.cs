@@ -11,7 +11,7 @@ internal sealed class PrepareFusionSchemaMiddleware : IMergeMiddleware
             context.FusionGraph.Types.Add(new ObjectType(entity.Name));
         }
 
-        foreach (var schema in context.SubGraphs)
+        foreach (var schema in context.Subgraphs)
         {
             foreach (var type in schema.Types)
             {

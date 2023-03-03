@@ -20,7 +20,7 @@ internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
     {
         var typeNames = new HashSet<string>();
 
-        foreach (var schema in context.SubGraphs)
+        foreach (var schema in context.Subgraphs)
         {
             foreach (var type in schema.Types)
             {
@@ -39,7 +39,7 @@ internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
         {
             var objectTypes = new List<EntityPart>();
 
-            foreach (var schema in context.SubGraphs)
+            foreach (var schema in context.Subgraphs)
             {
                 if (schema.Types.TryGetType(typeName, out var type) &&
                     type is ObjectType objectType)

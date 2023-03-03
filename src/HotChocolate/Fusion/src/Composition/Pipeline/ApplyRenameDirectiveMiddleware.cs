@@ -10,7 +10,7 @@ internal  sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
-        foreach (var schema in context.SubGraphs)
+        foreach (var schema in context.Subgraphs)
         {
             foreach (var directive in schema.GetRenameDirectives(context))
             {

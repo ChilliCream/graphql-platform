@@ -13,7 +13,7 @@ internal sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
-        foreach (var schema in context.SubGraphs)
+        foreach (var schema in context.Subgraphs)
         {
             foreach (var directive in schema.GetRemoveDirectives(context))
             {

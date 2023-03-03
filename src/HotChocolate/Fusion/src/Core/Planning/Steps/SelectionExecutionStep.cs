@@ -12,10 +12,10 @@ internal class SelectionExecutionStep : IExecutionStep
     {
         SelectionSetType = selectionSetType;
         ParentSelection = parentSelection;
-        SubGraphName = schemaNameName;
+        SubgraphName = schemaNameName;
     }
 
-    public string SubGraphName { get; }
+    public string SubgraphName { get; }
 
     public ObjectType SelectionSetType { get; }
 
