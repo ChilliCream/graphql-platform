@@ -1,32 +1,29 @@
-import React, { FC, ReactNode } from "react";
+import { THEME_COLORS } from "@/shared-style";
+import React, { FC } from "react";
 import styled from "styled-components";
 
-import { THEME_COLORS } from "@/shared-style";
-
-type Props = {
-  readonly children: ReactNode;
-};
-
-export const Warning: FC<Props> = ({ children }) => {
+export const Experimental: FC = () => {
   return (
     <Container>
       <Heading>
-        {warningIcon} <span>Warning</span>
+        {scienceIcon} <span>Experimental</span>
       </Heading>
-
-      {children}
+      This feature is not yet finished nor polished.
+      <br />
+      Please provide feedback if you encounter any issues or have ideas on how
+      to improve the developer experience.
     </Container>
   );
 };
 
-const warningIcon = (
+const scienceIcon = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 16 16"
+    height="24"
+    width="24"
+    viewBox="0 0 24 24"
   >
-    <path d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z" />
+    <path d="M19.8,18.4L14,10.67V6.5l1.35-1.69C15.61,4.48,15.38,4,14.96,4H9.04C8.62,4,8.39,4.48,8.65,4.81L10,6.5v4.17L4.2,18.4 C3.71,19.06,4.18,20,5,20h14C19.82,20,20.29,19.06,19.8,18.4z" />
   </svg>
 );
 
@@ -34,7 +31,7 @@ const Heading = styled.div`
   fill: ${THEME_COLORS.textContrast};
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
   > span {
     margin-bottom: 3px;

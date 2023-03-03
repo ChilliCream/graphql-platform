@@ -1,32 +1,26 @@
-import React, { FC, ReactNode } from "react";
+import { THEME_COLORS } from "@/shared-style";
+import React, { FC } from "react";
 import styled from "styled-components";
 
-import { THEME_COLORS } from "@/shared-style";
-
-type Props = {
-  readonly children: ReactNode;
-};
-
-export const Warning: FC<Props> = ({ children }) => {
+export const WorkInProgress: FC = () => {
   return (
     <Container>
       <Heading>
-        {warningIcon} <span>Warning</span>
+        {warningSignIcon} <span>Work in progress</span>
       </Heading>
-
-      {children}
+      This documentation is still being worked on.
     </Container>
   );
 };
 
-const warningIcon = (
+const warningSignIcon = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 16 16"
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
   >
-    <path d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z" />
+    <path d="M2,3H22V13H18V21H16V13H8V21H6V13H2V3M18.97,11L20,9.97V7.15L16.15,11H18.97M13.32,11L19.32,5H16.5L10.5,11H13.32M7.66,11L13.66,5H10.83L4.83,11H7.66M5.18,5L4,6.18V9L8,5H5.18Z" />
   </svg>
 );
 
