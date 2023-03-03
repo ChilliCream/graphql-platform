@@ -47,16 +47,16 @@ internal sealed class RequestPlanner
         do
         {
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
-            var schemaName = ResolveBestMatchingSchema(context.Operation, current, selectionSetType);
-            var workItem = new SelectionExecutionStep(schemaName, selectionSetType, parentSelection);
+            var subGraph = ResolveBestMatchingSubGraph(context.Operation, current, selectionSetType);
+            var workItem = new SelectionExecutionStep(subGraph, selectionSetType, parentSelection);
             leftovers = null;
             ResolverDefinition? resolver;
 
             if (parentSelection is not null &&
-                selectionSetType.Resolvers.ContainsResolvers(schemaName))
+                selectionSetType.Resolvers.ContainsResolvers(subGraph))
             {
                 CalculateVariablesInContext(selectionSetType, parentSelection, variablesInContext);
-                if (TryGetResolver(selectionSetType, schemaName, variablesInContext, out resolver))
+                if (TryGetResolver(selectionSetType, subGraph, variablesInContext, out resolver))
                 {
                     workItem.Resolver = resolver;
                     CalculateRequirements(parentSelection, resolver, workItem.Requires);
@@ -72,7 +72,7 @@ internal sealed class RequestPlanner
                             selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
                     {
                         var introspectionStep = new IntrospectionExecutionStep(
-                            schemaName,
+                            subGraph,
                             selectionSetType,
                             parentSelection);
                         context.Steps.Add(introspectionStep);
@@ -83,7 +83,7 @@ internal sealed class RequestPlanner
                 }
 
                 var field = selectionSetType.Fields[selection.Field.Name];
-                if (field.Bindings.TryGetValue(schemaName, out _))
+                if (field.Bindings.ContainsSubGraph(subGraph))
                 {
                     CalculateVariablesInContext(
                         selection,
@@ -92,9 +92,9 @@ internal sealed class RequestPlanner
                         variablesInContext);
 
                     resolver = null;
-                    if (field.Resolvers.ContainsResolvers(schemaName))
+                    if (field.Resolvers.ContainsResolvers(subGraph))
                     {
-                        if (!TryGetResolver(field, schemaName, variablesInContext, out resolver))
+                        if (!TryGetResolver(field, subGraph, variablesInContext, out resolver))
                         {
                             // todo : error message and type
                             throw new InvalidOperationException(
@@ -171,13 +171,13 @@ internal sealed class RequestPlanner
         }
     }
 
-    private string ResolveBestMatchingSchema(
+    private string ResolveBestMatchingSubGraph(
         IOperation operation,
         IReadOnlyList<ISelection> selections,
         ObjectType typeContext)
     {
         var bestScore = 0;
-        var bestSchema = _configuration.SubGraphNames[0];
+        var bestSubGraph = _configuration.SubGraphNames[0];
 
         foreach (var schemaName in _configuration.SubGraphNames)
         {
@@ -186,11 +186,11 @@ internal sealed class RequestPlanner
             if (score > bestScore)
             {
                 bestScore = score;
-                bestSchema = schemaName;
+                bestSubGraph = schemaName;
             }
         }
 
-        return bestSchema;
+        return bestSubGraph;
     }
 
     private int CalculateSchemaScore(
@@ -204,7 +204,7 @@ internal sealed class RequestPlanner
         foreach (var selection in selections)
         {
             if (!selection.Field.IsIntrospectionField &&
-                typeContext.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
+                typeContext.Fields[selection.Field.Name].Bindings.ContainsSubGraph(schemaName))
             {
                 score++;
 

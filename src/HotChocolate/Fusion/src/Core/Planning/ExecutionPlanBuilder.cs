@@ -1,6 +1,7 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -41,7 +42,7 @@ internal sealed class ExecutionPlanBuilder
             rootNode,
             context.Exports.All
                 .GroupBy(t => t.SelectionSet)
-                .ToDictionary(t => t.Key, t => t.Select(x=> x.StateKey).ToArray()),
+                .ToDictionary(t => t.Key, t => t.Select(x => x.StateKey).ToArray()),
             context.HasNodes);
     }
 
@@ -198,6 +199,13 @@ internal sealed class ExecutionPlanBuilder
                     selectionSetNode,
                     rootSelection.Selection.ResponseName);
                 selectionNode = s;
+            }
+
+            if (selectionNode is FieldNode fieldNode &&
+                !rootSelection.Selection.ResponseName.EqualsOrdinal(fieldNode.Name.Value))
+            {
+                selectionNode = fieldNode.WithAlias(
+                    new NameNode(rootSelection.Selection.ResponseName));
             }
 
             selectionNodes.Add(selectionNode);

@@ -16,7 +16,12 @@ internal sealed class CompositionNode : QueryPlanNode
 
     public CompositionNode(int id, IReadOnlyList<ISelectionSet> selectionSets) : base(id)
     {
-        _selectionSets = selectionSets ?? throw new ArgumentNullException(nameof(selectionSets));
+        if (selectionSets is null)
+        {
+            throw new ArgumentNullException(nameof(selectionSets));
+        }
+
+        _selectionSets = selectionSets.Distinct().ToArray();
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Composition;

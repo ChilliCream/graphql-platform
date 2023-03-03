@@ -228,7 +228,7 @@ internal sealed class ServiceConfigurationReader
         AssertArguments(directiveNode, SelectArg, SubGraphArg);
 
         SelectionSetNode select = default!;
-        string schemaName = default!;
+        string subGraph = default!;
 
         foreach (var argument in directiveNode.Arguments)
         {
@@ -239,7 +239,7 @@ internal sealed class ServiceConfigurationReader
                     break;
 
                 case SubGraphArg:
-                    schemaName = Expect<StringValueNode>(argument.Value).Value;
+                    subGraph = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
         }
@@ -268,7 +268,7 @@ internal sealed class ServiceConfigurationReader
             .Visit(select);
 
         return new ResolverDefinition(
-            schemaName,
+            subGraph,
             select,
             placeholder,
             _assert.Count == 0

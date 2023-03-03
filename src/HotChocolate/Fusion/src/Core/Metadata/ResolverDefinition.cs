@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Metadata;
 
 internal sealed class ResolverDefinition
 {
-    private static readonly FetchRewriter _rewriter = new();
+    private static readonly ResolverRewriter _rewriter = new();
     private readonly FieldNode? _field;
 
     public ResolverDefinition(
@@ -60,7 +60,7 @@ internal sealed class ResolverDefinition
         return ((ISelectionNode)selection!, context.SelectionPath);
     }
 
-    private class FetchRewriter : SyntaxRewriter<FetchRewriterContext>
+    private class ResolverRewriter : SyntaxRewriter<FetchRewriterContext>
     {
         protected override FieldNode? RewriteField(FieldNode node, FetchRewriterContext context)
         {
