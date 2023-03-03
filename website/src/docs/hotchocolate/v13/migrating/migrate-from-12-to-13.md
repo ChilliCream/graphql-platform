@@ -114,6 +114,16 @@ app.MapGraphQL().WithOptions(new GraphQLServerOptions
 });
 ```
 
+Previously you might have also configured the ([now replaced](#ihttpresultserializer)) `IHttpResultSerializer` to produce a `JsonArray` for your batches:
+
+```csharp
+services.AddHttpResultSerializer(batchSerialization: HttpResultSerialization.JsonArray)
+```
+
+This option has been removed in this release and batch results are now always being delivered through `multipart/mixed` responses. This allows us to send the batch results back to the client as soon as they are ready, without having to hold on to the result and performing a JSON array aggregation on the server. If you need an aggregated batch result, you should do the aggregation on the client instead.
+
+[Learn more about the batching](/docs/hotchocolate/v13/server/batching)
+
 ## Nodes batch size
 
 The number of nodes that can be requested through the `nodes` field is limited to 10 by default.
@@ -273,6 +283,8 @@ builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
 ```
 
 An `Accept` header with the value `application/json` will opt you out of the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification. The response `Content-Type` will now be `application/json` and a status code of 200 will be returned for every request, even if it had validation errors or a valid response could not be produced.
+
+[Learn more about the HTTP transport](/docs/hotchocolate/v13/server/http-transport)
 
 ## DataLoaderAttribute
 
