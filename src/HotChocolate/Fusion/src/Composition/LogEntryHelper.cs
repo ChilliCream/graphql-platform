@@ -13,7 +13,7 @@ internal static class LogEntryHelper
             LogEntryCodes.RemoveMemberNotFound,
             LogEntryKind.Warning,
             coordinate,
-            Schema: schema);
+            schema: schema);
 
     public static LogEntry RenameMemberNotFound(
         SchemaCoordinate coordinate,
@@ -23,7 +23,7 @@ internal static class LogEntryHelper
             LogEntryCodes.RemoveMemberNotFound,
             LogEntryKind.Warning,
             coordinate,
-            Schema: schema);
+            schema: schema);
 
     public static LogEntry DirectiveArgumentMissing(
         string argumentName,
@@ -36,8 +36,8 @@ internal static class LogEntryHelper
                 directive.Name),
             LogEntryCodes.DirectiveArgumentMissing,
             LogEntryKind.Error,
-            Member: directive,
-            Schema: schema);
+            member: directive,
+            schema: schema);
 
     public static LogEntry DirectiveArgumentValueInvalid(
         string argumentName,
@@ -49,8 +49,8 @@ internal static class LogEntryHelper
                 argumentName,
                 directive.Name),
             LogEntryCodes.DirectiveArgumentValueInvalid,
-            Member: directive,
-            Schema: schema);
+            member: directive,
+            schema: schema);
 
     public static LogEntry UnableToMergeType(
         TypeGroup typeGroup)
@@ -59,7 +59,7 @@ internal static class LogEntryHelper
                 LogEntryHelper_UnableToMergeType,
                 typeGroup.Name),
             LogEntryCodes.DirectiveArgumentValueInvalid,
-            Extension: typeGroup);
+            extension: typeGroup);
 
     public static LogEntry MergeTypeKindDoesNotMatch(
         INamedType type,
@@ -72,7 +72,7 @@ internal static class LogEntryHelper
                 sourceKind,
                 targetKind),
             LogEntryCodes.TypeKindMismatch,
-            Extension: new[] { sourceKind, targetKind });
+            extension: new[] { sourceKind, targetKind });
 }
 
 public static class LogEntryCodes

@@ -12,7 +12,6 @@ namespace HotChocolate.Fusion.Composition;
 /// </summary>
 public sealed class FusionTypes
 {
-    private readonly FusionTypeNames _names;
     private readonly Schema _fusionGraph;
     private readonly bool _prefixSelf;
 
@@ -23,7 +22,7 @@ public sealed class FusionTypes
             throw new ArgumentNullException(nameof(fusionGraph));
         }
 
-        _names = FusionTypeNames.Create(prefix, prefixSelf);
+        var names = FusionTypeNames.Create(prefix, prefixSelf);
         _fusionGraph = fusionGraph;
         _prefixSelf = prefixSelf;
 
@@ -49,24 +48,24 @@ public sealed class FusionTypes
             _fusionGraph.Types.Add(integer);
         }
 
-        Selection = RegisterScalarType(_names.SelectionScalar);
-        SelectionSet = RegisterScalarType(_names.SelectionSetScalar);
-        TypeName = RegisterScalarType(_names.TypeNameScalar);
-        Type = RegisterScalarType(_names.TypeScalar);
+        Selection = RegisterScalarType(names.SelectionScalar);
+        SelectionSet = RegisterScalarType(names.SelectionSetScalar);
+        TypeName = RegisterScalarType(names.TypeNameScalar);
+        Type = RegisterScalarType(names.TypeScalar);
         Resolver = RegisterResolverDirectiveType(
-            _names.ResolverDirective,
+            names.ResolverDirective,
             SelectionSet,
             TypeName);
         Variable = RegisterVariableDirectiveType(
-            _names.VariableDirective,
+            names.VariableDirective,
             TypeName,
             Selection,
             Type);
         Source = RegisterSourceDirectiveType(
-            _names.SourceDirective,
+            names.SourceDirective,
             TypeName);
         RegisterFusionDirectiveType(
-            _names.FusionDirective,
+            names.FusionDirective,
             TypeName,
             boolean,
             integer);

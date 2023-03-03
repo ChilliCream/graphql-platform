@@ -2,7 +2,7 @@ using System.Collections;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class DefaultCompositionLog : ICompositionLog, IEnumerable<LogEntry>
+internal sealed class DefaultCompositionLog : ICompositionLog, IEnumerable<LogEntry>
 {
     private readonly List<LogEntry> _entries = new();
 
