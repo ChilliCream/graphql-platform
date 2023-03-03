@@ -1,9 +1,15 @@
+// This static class provides extension methods to facilitate merging InputObject types
+// in a Fusion graph.
+
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition;
 
 internal static class InputObjectMergeExtensions
 {
+    // This extension method creates a new InputField instance by replacing any
+    // named types in the source field's type with the equivalent type in the target
+    // schema. This is used to create a new merged field in the target schema.
     public static InputField CreateField(
         this CompositionContext context,
         InputField source,
@@ -17,6 +23,11 @@ internal static class InputObjectMergeExtensions
         return target;
     }
 
+    // This extension method merges the source InputField into the target InputField.
+    // If the target field does not have a description but the source field does, the
+    // description is copied from the source to the target. If the source field is
+    // deprecated and the target is not, the deprecation reason and status are copied
+    // from the source to the target.
     public static void MergeField(
         this CompositionContext context,
         InputField source,

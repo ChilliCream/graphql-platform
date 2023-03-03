@@ -86,5 +86,17 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("LogEntryHelper_MergeTypeKindDoesNotMatch", resourceCulture);
             }
         }
+        
+        internal static string LogEntryHelper_OutputFieldArgumentMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OutputFieldArgumentMismatch", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_OutputFieldArgumentSetMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OutputFieldArgumentSetMismatch", resourceCulture);
+            }
+        }
     }
 }

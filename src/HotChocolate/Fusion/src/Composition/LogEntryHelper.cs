@@ -73,9 +73,29 @@ internal static class LogEntryHelper
                 targetKind),
             LogEntryCodes.TypeKindMismatch,
             extension: new[] { sourceKind, targetKind });
+
+    public static LogEntry OutputFieldArgumentMismatch(
+        SchemaCoordinate coordinate,
+        OutputField field)
+        => new LogEntry(
+            LogEntryHelper_OutputFieldArgumentMismatch,
+            code: LogEntryCodes.OutputFieldArgumentMismatch,
+            kind: LogEntryKind.Error,
+            coordinate: coordinate,
+            member: field);
+
+    public static LogEntry OutputFieldArgumentSetMismatch(
+        SchemaCoordinate coordinate,
+        OutputField field)
+        => new LogEntry(
+            LogEntryHelper_OutputFieldArgumentSetMismatch,
+            code: LogEntryCodes.OutputFieldArgumentSetMismatch,
+            kind: LogEntryKind.Error,
+            coordinate: coordinate,
+            member: field);
 }
 
-public static class LogEntryCodes
+internal static class LogEntryCodes
 {
     public const string RemoveMemberNotFound = "HF0001";
 
@@ -84,4 +104,8 @@ public static class LogEntryCodes
     public const string DirectiveArgumentValueInvalid = "HF0003";
 
     public const string TypeKindMismatch = "HF0004";
+
+    public const string OutputFieldArgumentMismatch = "HF0005";
+
+    public const string OutputFieldArgumentSetMismatch = "HF0006";
 }

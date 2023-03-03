@@ -23,7 +23,7 @@ internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
                 {
                     if (queryType.Fields.TryGetField(field.Name, out var targetField))
                     {
-                        context.MergeField(field, targetField);
+                        context.MergeField(field, targetField, queryType.Name);
                     }
                     else
                     {

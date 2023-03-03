@@ -39,4 +39,10 @@
   <data name="LogEntryHelper_MergeTypeKindDoesNotMatch" xml:space="preserve">
     <value>The type extension `{0}` cannot be merged with the target type as the are of a different type kind (`{1}` and `{2}`).</value>
   </data>
+  <data name="LogEntryHelper_OutputFieldArgumentMismatch" xml:space="preserve">
+    <value>The number of arguments in an output field does not match the number of arguments in the same field in of a sub-graph schema.</value>
+  </data>
+  <data name="LogEntryHelper_OutputFieldArgumentSetMismatch" xml:space="preserve">
+    <value>An output field that is being merged into another has a different set of arguments.</value>
+  </data>
 </root>

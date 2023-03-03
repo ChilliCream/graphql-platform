@@ -49,7 +49,7 @@ static file class MergeEntitiesMiddlewareExtensions
         {
             if (target.Fields.TryGetField(sourceField.Name, out var targetField))
             {
-                context.MergeField(sourceField, targetField);
+                context.MergeField(sourceField, targetField, source.Type.Name);
             }
             else
             {
