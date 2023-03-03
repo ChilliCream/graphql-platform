@@ -2,23 +2,48 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Composition;
 
-public sealed class EntityResolver
+/// <summary>
+/// Represents an entity resolver for retrieving data for the entity from a sub-graph.
+/// </summary>
+internal sealed class EntityResolver
 {
-    public EntityResolver(SelectionSetNode selectionSet, string entityName, string schemaName)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityResolver"/> class.
+    /// </summary>
+    /// <param name="selectionSet">The selection set for the entity.</param>
+    /// <param name="entityName">The name of the entity being resolved.</param>
+    /// <param name="subGraph">The name of the schema that contains the entity.</param>
+    public EntityResolver(SelectionSetNode selectionSet, string entityName, string subGraph)
     {
         SelectionSet = selectionSet;
         EntityName = entityName;
-        SchemaName = schemaName;
+        SubGraph = subGraph;
     }
 
+    /// <summary>
+    /// Gets the selection set that specifies how to retrieve data for the entity.
+    /// </summary>
     public SelectionSetNode SelectionSet { get; }
 
+    /// <summary>
+    /// Gets the name of the entity being resolved.
+    /// </summary>
     public string EntityName { get; }
 
-    public string SchemaName { get; }
+    /// <summary>
+    /// Gets the name of the sub-graph that contains data for this entity.
+    /// </summary>
+    public string SubGraph { get; }
 
+    /// <summary>
+    /// Gets the variables used in the resolver.
+    /// </summary>
     public Dictionary<string, VariableDefinition> Variables { get; } = new();
 
+    /// <summary>
+    /// Returns a string representation of the entity resolver.
+    /// </summary>
+    /// <returns>A string representation of the entity resolver.</returns>
     public override string ToString()
     {
         var definitions = new List<IDefinitionNode>();
@@ -29,7 +54,7 @@ public sealed class EntityResolver
                 null,
                 OperationType.Query,
                 Variables.Select(t => t.Value.Definition).ToList(),
-                new[] { new DirectiveNode("schema", new ArgumentNode("name", SchemaName)) },
+                new[] { new DirectiveNode("schema", new ArgumentNode("name", SubGraph)) },
                 SelectionSet));
 
         if (Variables.Count > 0)

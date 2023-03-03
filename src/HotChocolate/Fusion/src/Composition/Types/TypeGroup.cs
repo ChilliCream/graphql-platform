@@ -9,6 +9,6 @@ namespace HotChocolate.Fusion.Composition;
 /// <param name="Parts">
 /// Gets the parts that make up the merged type.
 /// </param>
-public sealed record TypeGroup(
+internal sealed record TypeGroup(
     string Name,
     IReadOnlyList<TypePart> Parts);

@@ -4,8 +4,6 @@ namespace HotChocolate.Fusion.Composition;
 
 internal static class ComplexTypeMergeExtensions
 {
-    private const string _logCategory = "ComplexTypeMergeExtensions";
-
     // This extension method creates a new OutputField by replacing the type name of each field
     // in the source with the corresponding type name in the target schema.
     public static OutputField CreateField(
