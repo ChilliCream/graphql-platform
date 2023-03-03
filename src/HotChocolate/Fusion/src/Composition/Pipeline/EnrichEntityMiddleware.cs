@@ -2,7 +2,7 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-public sealed class EnrichEntityMiddleware : IMergeMiddleware
+internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
 {
     private readonly IEntityEnricher[] _enrichers;
 

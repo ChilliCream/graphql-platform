@@ -6,7 +6,7 @@ using IHasName = HotChocolate.Skimmed.IHasName;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-public sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
+internal  sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {

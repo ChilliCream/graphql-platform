@@ -11,8 +11,11 @@ public sealed class DemoIntegrationTests
         var composer = new FusionGraphComposer();
 
         var fusionConfig = await composer.ComposeAsync(
-            new SubGraphConfiguration("Accounts", AccountsSdl, AccountsExtensionSdl),
-            new SubGraphConfiguration("Reviews", ReviewsSdl, ReviewsExtensionSdl));
+            new[]
+            {
+                new SubGraphConfiguration("Accounts", AccountsSdl, AccountsExtensionSdl),
+                new SubGraphConfiguration("Reviews", ReviewsSdl, ReviewsExtensionSdl)
+            });
 
         SchemaFormatter
             .FormatAsString(fusionConfig)

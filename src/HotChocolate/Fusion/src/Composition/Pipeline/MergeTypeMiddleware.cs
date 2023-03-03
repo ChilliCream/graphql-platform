@@ -2,7 +2,7 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-public sealed class MergeTypeMiddleware : IMergeMiddleware
+internal sealed class MergeTypeMiddleware : IMergeMiddleware
 {
     private readonly ITypeMergeHandler[] _mergeHandlers;
 

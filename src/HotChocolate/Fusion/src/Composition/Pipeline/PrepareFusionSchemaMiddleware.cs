@@ -2,7 +2,7 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-public sealed class PrepareFusionSchemaMiddleware : IMergeMiddleware
+internal sealed class PrepareFusionSchemaMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {

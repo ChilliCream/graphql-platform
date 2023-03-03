@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 /// This composition middleware will apply the @remove directives to the
 /// schema and remove type system member that are not wanted in the fusion schema.
 /// </summary>
-public sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
+internal sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
