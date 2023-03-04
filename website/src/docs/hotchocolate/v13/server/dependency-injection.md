@@ -1,5 +1,5 @@
 ---
-title: Dependency Injection
+title: Dependency injection
 ---
 
 If you are unfamiliar with the term "dependency injection", we recommend the following articles to get you started:

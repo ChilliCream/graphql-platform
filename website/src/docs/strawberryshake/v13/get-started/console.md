@@ -57,30 +57,10 @@ dotnet sln add ./Demo
 
 Strawberry Shake supports multiple GraphQL transport protocols. In this example we will use the standard GraphQL over HTTP protocol to interact with our GraphQL server.
 
-1. Add the `StrawberryShake.Transport.Http` package to your project.
+1. Add the `StrawberryShake.Server` package to your project in order to add our code generation.
 
 ```bash
-dotnet add Demo package StrawberryShake.Transport.Http
-```
-
-2. Add the `StrawberryShake.CodeGeneration.CSharp.Analyzers` package to your project in order to add our code generation.
-
-```bash
-dotnet add Demo package StrawberryShake.CodeGeneration.CSharp.Analyzers
-```
-
-When using the HTTP protocol we also need the HttpClientFactory and the Microsoft dependency injection.
-
-3. Add the `Microsoft.Extensions.DependencyInjection` package to your project in order to add our code generation.
-
-```bash
-dotnet add Demo package Microsoft.Extensions.DependencyInjection
-```
-
-3. Add the `Microsoft.Extensions.Http` package to your project in order to add our code generation.
-
-```bash
-dotnet add Demo package Microsoft.Extensions.Http
+dotnet add Demo package StrawberryShake.Server
 ```
 
 ## Step 4: Add a GraphQL client to your project using the CLI tools

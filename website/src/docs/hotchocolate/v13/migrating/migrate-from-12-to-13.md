@@ -114,6 +114,16 @@ app.MapGraphQL().WithOptions(new GraphQLServerOptions
 });
 ```
 
+Previously you might have also configured the ([now replaced](#ihttpresultserializer)) `IHttpResultSerializer` to produce a `JsonArray` for your batches:
+
+```csharp
+services.AddHttpResultSerializer(batchSerialization: HttpResultSerialization.JsonArray)
+```
+
+This option has been removed in this release and batch results are now always being delivered through `multipart/mixed` responses. This allows us to send the batch results back to the client as soon as they are ready, without having to hold on to the result and performing a JSON array aggregation on the server. If you need an aggregated batch result, you should do the aggregation on the client instead.
+
+[Learn more about the batching](/docs/hotchocolate/v13/server/batching)
+
 ## Nodes batch size
 
 The number of nodes that can be requested through the `nodes` field is limited to 10 by default.
@@ -274,6 +284,8 @@ builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
 
 An `Accept` header with the value `application/json` will opt you out of the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification. The response `Content-Type` will now be `application/json` and a status code of 200 will be returned for every request, even if it had validation errors or a valid response could not be produced.
 
+[Learn more about the HTTP transport](/docs/hotchocolate/v13/server/http-transport)
+
 ## DataLoaderAttribute
 
 Previously you might have annotated [DataLoaders](/docs/hotchocolate/v13/fetching-data/dataloader) in your resolver method signature with the `[DataLoader]` attribute. This attribute has been removed in v13 and can be safely removed from your code.
@@ -390,6 +402,19 @@ In order for the server to produce a streamed response, you now need to either
 There have also been changes to the response format of streamed responses. You can checkout the currently proposed format [here](https://github.com/graphql/graphql-spec/blob/94363c9d5d8e53e91240ea3eabd32ff522f27a6b/spec/Section%207%20--%20Response.md).
 
 > Warning: The spec of these features is still evolving, so expect more changes on how the incremental payloads are being delivered.
+
+## NameString
+
+In this release we have abandoned the `NameString` in favor of simple `string`s. Most commonly you would encounter the `NameString` when defining names for fields or types. Since `string` was already implicitly converted to `NameString`, there shouldn't be any issues unless you were instantiating a `NameString` yourself.
+
+## IResolverContext / IMiddlewareContext
+
+Previously you could access properties like `Document` and `RootType` directly on the `IResolverContext` or the `IMiddlewareContext`. In this release we have moved these properties and they can now be accessed through the `Operation` property on the contexts. We have also removed the deprecated properties `Field` and `FieldSelection`.
+
+`context.Document` --> `context.Operation.Document`
+`context.RootType` --> `context.Operation.RootType`
+`context.Field` --> `context.Selection.Field`
+`context.FieldSelection` --> `context.Selection.SyntaxNode`
 
 # Deprecations
 

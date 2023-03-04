@@ -38,7 +38,8 @@
     "runtimes",
     "NATS",
     "cypher",
-    "sublicensable"
+    "sublicensable",
+    "meros"
   ],
   "ignoreWords": [
     "Specwise",
