@@ -38,12 +38,12 @@ internal readonly struct SelectionResult
     {
         if (Multiple is null)
         {
-            return Single.Element.ValueKind is JsonValueKind.Null;
+            return Single.Element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
         }
 
         for (var i = 0; i < Multiple.Count; i++)
         {
-            if (Multiple[i].Element.ValueKind is not JsonValueKind.Null)
+            if (Multiple[i].Element.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
             {
                 return false;
             }

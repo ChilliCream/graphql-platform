@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Execution;
 
 internal interface IFederationContext
 {
-    ServiceConfiguration ServiceConfig { get; }
+    FusionGraphConfiguration ServiceConfig { get; }
 
     OperationContext OperationContext { get; }
 

@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Planning;
 
 internal readonly struct RootSelection
 {
-    public RootSelection(ISelection selection, FetchDefinition? resolver)
+    public RootSelection(ISelection selection, ResolverDefinition? resolver)
     {
         Selection = selection;
         Resolver = resolver;
@@ -13,5 +13,5 @@ internal readonly struct RootSelection
 
     public ISelection Selection { get; }
 
-    public FetchDefinition? Resolver { get; }
+    public ResolverDefinition? Resolver { get; }
 }

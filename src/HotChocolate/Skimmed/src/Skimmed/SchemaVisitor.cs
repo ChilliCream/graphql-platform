@@ -7,7 +7,7 @@ public abstract class SchemaVisitor<TContext>
     public virtual void VisitSchema(Schema schema, TContext context)
     {
         VisitTypes(schema.Types, context);
-        VisitDirectiveTypes(schema.DirectivesTypes, context);
+        VisitDirectiveTypes(schema.DirectiveTypes, context);
     }
 
     public virtual void VisitTypes(TypeCollection types, TContext context)
@@ -119,7 +119,7 @@ public abstract class SchemaVisitor<TContext>
         VisitArguments(directive.Arguments, context);
     }
 
-    public virtual void VisitArguments(IReadOnlyList<Argument> arguments, TContext context)
+    public virtual void VisitArguments(ArgumentCollection arguments, TContext context)
     {
         foreach (var argument in arguments)
         {

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Language.Properties;
 
@@ -111,7 +112,11 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
     public static bool IsValidName(string value)
         => _cache.ContainsKey(value);
 
+#if NET6_0_OR_GREATER
+    public static bool TryParse(string value, [NotNullWhen(true)] out DirectiveLocation? location)
+#else
     public static bool TryParse(string value, out DirectiveLocation? location)
+#endif
         => _cache.TryGetValue(value, out location);
 
     private static IEnumerable<DirectiveLocation> GetAll()

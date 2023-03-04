@@ -2,8 +2,10 @@
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Schema : IHasDirectives
+public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMember<Schema>
 {
+    public string Name { get; set; } = "default";
+
     public string? Description { get; set; }
 
     public ObjectType? QueryType { get; set; }
@@ -14,9 +16,11 @@ public sealed class Schema : IHasDirectives
 
     public TypeCollection Types { get; } = new();
 
-    public DirectiveTypeCollection DirectivesTypes { get; } = new();
+    public DirectiveTypeCollection DirectiveTypes { get; } = new();
 
     public DirectiveCollection Directives { get; } = new();
+
+    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
@@ -65,7 +69,7 @@ public sealed class Schema : IHasDirectives
     {
         if (coordinate.OfDirective)
         {
-            if (DirectivesTypes.TryGetDirective(coordinate.Name, out var directive))
+            if (DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
@@ -141,4 +145,6 @@ public sealed class Schema : IHasDirectives
         member = null;
         return false;
     }
+
+    public static Schema Create(string name) => new() { Name = name };
 }

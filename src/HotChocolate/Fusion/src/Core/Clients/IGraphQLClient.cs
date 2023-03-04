@@ -2,7 +2,7 @@ namespace HotChocolate.Fusion.Clients;
 
 public interface IGraphQLClient
 {
-    string SchemaName { get; }
+    string SubgraphName { get; }
 
     Task<GraphQLResponse> ExecuteAsync(
         GraphQLRequest request,

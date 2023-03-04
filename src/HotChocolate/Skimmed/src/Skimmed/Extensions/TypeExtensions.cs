@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Skimmed;
 
-internal static class TypeExtensions
+public static class TypeExtensions
 {
     public static bool IsInputType(this IType type)
         => type.Kind switch
@@ -23,6 +23,22 @@ internal static class TypeExtensions
             TypeKind.NonNull => IsOutputType(((NonNullType)type).NullableType),
             _ => throw new NotSupportedException(),
         };
+
+    public static IType InnerType(this IType type)
+    {
+        switch (type)
+        {
+            case ListType listType:
+                return listType.ElementType;
+
+
+            case NonNullType nonNullType:
+                return nonNullType.NullableType;
+
+            default:
+                return type;
+        }
+    }
 
     public static INamedType NamedType(this IType type)
     {
@@ -59,6 +75,24 @@ internal static class TypeExtensions
 
             case NonNullType nonNullType:
                 return new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType));
+
+            default:
+                throw new NotSupportedException();
+        }
+    }
+
+    public static IType ReplaceNameType(this IType type, Func<string, INamedType> newNamedType)
+    {
+        switch (type)
+        {
+            case INamedType namedType:
+                return newNamedType(namedType.Name);
+
+            case ListType listType:
+                return new ListType(ReplaceNameType(listType.ElementType, newNamedType));
+
+            case NonNullType nonNullType:
+                return new NonNullType(ReplaceNameType(nonNullType.NullableType, newNamedType));
 
             default:
                 throw new NotSupportedException();

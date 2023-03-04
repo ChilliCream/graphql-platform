@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\src\Core\HotChocolate.Fusion.csproj" />
   </ItemGroup>
 
@@ -21,6 +22,11 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Metadata" />
+    <Folder Include="Schemas\Accounts" />
   </ItemGroup>
 
 </Project>
