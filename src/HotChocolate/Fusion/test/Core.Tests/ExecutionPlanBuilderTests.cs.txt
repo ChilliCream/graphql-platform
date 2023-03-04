@@ -778,7 +778,7 @@ public class ExecutionPlanBuilderTests
         var serviceConfigDoc = Parse(FileResource.Open("StoreServiceConfig.graphql")!);
         var serviceConfig = FusionGraphConfiguration.Load(serviceConfigDoc);
         var context = ConfigurationDirectiveNamesContext.From(serviceConfigDoc);
-        var rewriter = new ServiceConfigurationToSchemaRewriter();
+        var rewriter = new FusionGraphConfigurationToSchemaRewriter();
         var rewritten = rewriter.Rewrite(serviceConfigDoc, context);
         var sdl = rewritten!.ToString();
 

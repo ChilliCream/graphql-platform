@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
@@ -45,9 +46,9 @@ public static class FusionRequestExecutorBuilderExtensions
         }
 
         var configuration = FusionGraphConfiguration.Load(serviceConfiguration);
-        var context = ConfigurationDirectiveNamesContext.From(serviceConfiguration);
-        var rewriter = new ServiceConfigurationToSchemaRewriter();
-        var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, context);
+        var context = FusionTypeNames.From(serviceConfiguration);
+        var rewriter = new FusionGraphConfigurationToSchemaRewriter();
+        var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, new(context));
 
         if (schemaDoc is null)
         {

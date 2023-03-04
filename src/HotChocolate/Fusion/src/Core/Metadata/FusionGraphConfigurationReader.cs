@@ -2,7 +2,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
-using static HotChocolate.Fusion.Metadata.ConfigurationDirectiveNames;
+using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 using static HotChocolate.Fusion.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
@@ -35,16 +35,16 @@ internal sealed class FusionGraphConfigurationReader
         }
 
         var types = new List<IType>();
-        var context = ConfigurationDirectiveNamesContext.From(document);
-        var httpClientConfigs = ReadHttpClientConfigs(context, schemaDef.Directives);
-        var typeNameField = CreateTypeNameField(httpClientConfigs.Select(t => t.SchemaName));
+        var typeNames = FusionTypeNames.From(document);
+        var httpClientConfigs = ReadHttpClientConfigs(typeNames, schemaDef.Directives);
+        var typeNameField = CreateTypeNameField(httpClientConfigs.Select(t => t.Subgraph));
 
         foreach (var definition in document.Definitions)
         {
             switch (definition)
             {
                 case ObjectTypeDefinitionNode node:
-                    types.Add(ReadObjectType(context, node, typeNameField));
+                    types.Add(ReadObjectType(typeNames, node, typeNameField));
                     break;
             }
         }
@@ -63,19 +63,19 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private ObjectType ReadObjectType(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         ObjectTypeDefinitionNode typeDef,
         ObjectField typeNameField)
     {
-        var bindings = ReadMemberBindings(context, typeDef.Directives, typeDef);
-        var variables = ReadFieldVariableDefinitions(context, typeDef.Directives);
-        var resolvers = ReadResolverDefinitions(context, typeDef.Directives);
-        var fields = ReadObjectFields(context, typeDef.Fields, typeNameField);
+        var bindings = ReadMemberBindings(typeNames, typeDef.Directives, typeDef);
+        var variables = ReadFieldVariableDefinitions(typeNames, typeDef.Directives);
+        var resolvers = ReadResolverDefinitions(typeNames, typeDef.Directives);
+        var fields = ReadObjectFields(typeNames, typeDef.Fields, typeNameField);
         return new ObjectType(typeDef.Name.Value, bindings, variables, resolvers, fields);
     }
 
     private ObjectFieldCollection ReadObjectFields(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         IReadOnlyList<FieldDefinitionNode> fieldDefinitionNodes,
         ObjectField typeNameField)
     {
@@ -83,9 +83,9 @@ internal sealed class FusionGraphConfigurationReader
 
         foreach (var fieldDef in fieldDefinitionNodes)
         {
-            var resolvers = ReadResolverDefinitions(context, fieldDef.Directives);
-            var bindings = ReadMemberBindings(context, fieldDef.Directives, fieldDef, resolvers);
-            var variables = ReadFieldVariableDefinitions(context, fieldDef.Directives);
+            var resolvers = ReadResolverDefinitions(typeNames, fieldDef.Directives);
+            var bindings = ReadMemberBindings(typeNames, fieldDef.Directives, fieldDef, resolvers);
+            var variables = ReadFieldVariableDefinitions(typeNames, fieldDef.Directives);
             var field = new ObjectField(fieldDef.Name.Value, bindings, variables, resolvers);
             collection.Add(field);
         }
@@ -104,16 +104,16 @@ internal sealed class FusionGraphConfigurationReader
             ResolverDefinitionCollection.Empty);
 
     private IReadOnlyList<HttpClientConfig> ReadHttpClientConfigs(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
         var configs = new List<HttpClientConfig>();
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(context.HttpDirective))
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.HttpDirective))
             {
-                configs.Add(ReadHttpClientConfig(context, directiveNode));
+                configs.Add(ReadHttpClientConfig(typeNames, directiveNode));
             }
         }
 
@@ -121,10 +121,10 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private HttpClientConfig ReadHttpClientConfig(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         DirectiveNode directiveNode)
     {
-        AssertName(directiveNode, context.HttpDirective);
+        AssertName(directiveNode, typeNames.HttpDirective);
         AssertArguments(directiveNode, SubgraphArg, BaseAddressArg);
 
         string name = default!;
@@ -148,16 +148,16 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private VariableDefinitionCollection ReadFieldVariableDefinitions(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
         var definitions = new List<VariableDefinition>();
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(context.VariableDirective))
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.VariableDirective))
             {
-                definitions.Add(ReadFieldVariableDefinition(context, directiveNode));
+                definitions.Add(ReadFieldVariableDefinition(typeNames, directiveNode));
             }
         }
 
@@ -165,10 +165,10 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private VariableDefinition ReadFieldVariableDefinition(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         DirectiveNode directiveNode)
     {
-        AssertName(directiveNode, context.VariableDirective);
+        AssertName(directiveNode, typeNames.VariableDirective);
         AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, SubgraphArg);
 
         string name = default!;
@@ -202,16 +202,16 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private ResolverDefinitionCollection ReadResolverDefinitions(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
         List<ResolverDefinition>? definitions = null;
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(context.FetchDirective))
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.ResolverDirective))
             {
-                (definitions ??= new()).Add(ReadResolverDefinition(context, directiveNode));
+                (definitions ??= new()).Add(ReadResolverDefinition(typeNames, directiveNode));
             }
         }
 
@@ -221,10 +221,10 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private ResolverDefinition ReadResolverDefinition(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         DirectiveNode directiveNode)
     {
-        AssertName(directiveNode, context.FetchDirective);
+        AssertName(directiveNode, typeNames.ResolverDirective);
         AssertArguments(directiveNode, SelectArg, SubgraphArg);
 
         SelectionSetNode select = default!;
@@ -277,7 +277,7 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private MemberBindingCollection ReadMemberBindings(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         IReadOnlyList<DirectiveNode> directiveNodes,
         NamedSyntaxNode annotatedMember)
     {
@@ -285,9 +285,9 @@ internal sealed class FusionGraphConfigurationReader
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(context.SourceDirective))
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.SourceDirective))
             {
-                var memberBinding = ReadMemberBinding(context, directiveNode, annotatedMember);
+                var memberBinding = ReadMemberBinding(typeNames, directiveNode, annotatedMember);
                 (definitions ??= new()).Add(memberBinding);
             }
         }
@@ -298,7 +298,7 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private MemberBindingCollection ReadMemberBindings(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         IReadOnlyList<DirectiveNode> directiveNodes,
         FieldDefinitionNode annotatedField,
         ResolverDefinitionCollection resolvers)
@@ -307,9 +307,9 @@ internal sealed class FusionGraphConfigurationReader
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(context.SourceDirective))
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.SourceDirective))
             {
-                definitions.Add(ReadMemberBinding(context, directiveNode, annotatedField));
+                definitions.Add(ReadMemberBinding(typeNames, directiveNode, annotatedField));
             }
         }
 
@@ -336,11 +336,11 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private MemberBinding ReadMemberBinding(
-        ConfigurationDirectiveNamesContext context,
+        FusionTypeNames typeNames,
         DirectiveNode directiveNode,
         NamedSyntaxNode annotatedField)
     {
-        AssertName(directiveNode, context.SourceDirective);
+        AssertName(directiveNode, typeNames.SourceDirective);
         AssertArguments(directiveNode, SubgraphArg, NameArg);
 
         string? name = null;

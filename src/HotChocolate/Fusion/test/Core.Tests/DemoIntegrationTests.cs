@@ -1,16 +1,13 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
-using HotChocolate.Fusion.Composition.Pipeline;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Schemas.Reviews;
 using HotChocolate.Fusion.Schemas.Accounts;
-using HotChocolate.Skimmed;
+using HotChocolate.Fusion.Schemas.Reviews;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Fusion.Composition.WellKnownContextData;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Fusion;
@@ -23,175 +20,39 @@ public class DemoIntegrationTests
     public async Task Authors_And_Reviews_AutoCompose()
     {
         // arrange
-        using var reviews = _testServerFactory.Create(
-            s => s
-                .AddRouting()
-                .AddSingleton<ReviewRepository>()
-                .AddGraphQLServer()
-                .AddQueryType<ReviewQuery>(),
-            c => c
-                .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        using var demoProject = await DemoProject.CreateAsync();
 
-        using var accounts = _testServerFactory.Create(
-            s => s
-                .AddRouting()
-                .AddSingleton<UserRepository>()
-                .AddGraphQLServer()
-                .AddQueryType<AccountQuery>(),
-            c => c
-                .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
 
-
-        var introspectionClient = new IntrospectionClient();
-
-        var reviewsClient = reviews.CreateClient();
-        reviewsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var reviewsSchema = await introspectionClient.DownloadSchemaAsync(reviewsClient);
-
-        var accountsClient = accounts.CreateClient();
-        accountsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var accountsSchema = await introspectionClient.DownloadSchemaAsync(accountsClient);
-
-        var graphComposer = CreateComposer();
-        var compositionContext = await graphComposer.ComposeAsync(
-            new SubgraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
-            new SubgraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
-        var fusionGraph = compositionContext.FusionGraph;
-        var httpClientDirectiveType = new DirectiveType("httpClient");
-        fusionGraph.Directives.Add(
-            new Directive(
-                httpClientDirectiveType,
-                new Argument("subgraph", "Reviews"),
-                new Argument("baseAddress", "https://b/graphql")));
-        fusionGraph.Directives.Add(
-            new Directive(
-                httpClientDirectiveType,
-                new Argument("subgraph", "Accounts"),
-                new Argument("baseAddress", "https://b/graphql")));
-
-        var fusionTypes = fusionGraph.Types
-            .Where(t => t.ContextData.ContainsKey(IsFusionType))
-            .ToArray();
-
-        foreach (var type in fusionTypes)
-        {
-            fusionGraph.Types.Remove(type);
-        }
-
-        var fusionDirectiveTypes = fusionGraph.DirectiveTypes
-            .Where(t => t.ContextData.ContainsKey(IsFusionType))
-            .ToArray();
-
-        foreach (var type in fusionDirectiveTypes)
-        {
-            fusionGraph.DirectiveTypes.Remove(type);
-        }
-
-        var serviceConfig = SchemaFormatter.FormatAsString(fusionGraph);
-        serviceConfig.MatchSnapshot(extension: ".graphql");
+        // assert
+        SchemaFormatter
+            .FormatAsString(fusionGraph)
+            .MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
     public async Task Authors_And_Reviews_Query_GetUserReviews()
     {
         // arrange
-        using var reviews = _testServerFactory.Create(
-            s => s
-                .AddRouting()
-                .AddSingleton<ReviewRepository>()
-                .AddGraphQLServer()
-                .AddQueryType<ReviewQuery>(),
-            c => c
-                .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        using var demoProject = await DemoProject.CreateAsync();
 
-        using var accounts = _testServerFactory.Create(
-            s => s
-                .AddRouting()
-                .AddSingleton<UserRepository>()
-                .AddGraphQLServer()
-                .AddQueryType<AccountQuery>(),
-            c => c
-                .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-
-
-        var introspectionClient = new IntrospectionClient();
-
-        var reviewsClient = reviews.CreateClient();
-        reviewsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var reviewsSchema = await introspectionClient.DownloadSchemaAsync(reviewsClient);
-
-        var accountsClient = accounts.CreateClient();
-        accountsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var accountsSchema = await introspectionClient.DownloadSchemaAsync(accountsClient);
-
-        var clients = new Dictionary<string, Func<HttpClient>>
-        {
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
             {
-                "Reviews", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = reviews.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    return httpClient;
-                }
-            },
-            {
-                "Accounts", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = accounts.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    return httpClient;
-                }
-            },
-        };
-
-        var graphComposer = CreateComposer();
-        var compositionContext = await graphComposer.ComposeAsync(
-            new SubgraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
-            new SubgraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
-        var fusionGraph = compositionContext.FusionGraph;
-        var httpClientDirectiveType = new DirectiveType("httpClient");
-        fusionGraph.Directives.Add(
-            new Directive(
-                httpClientDirectiveType,
-                new Argument("subgraph", "Reviews"),
-                new Argument("baseAddress", "https://b/graphql")));
-        fusionGraph.Directives.Add(
-            new Directive(
-                httpClientDirectiveType,
-                new Argument("subgraph", "Accounts"),
-                new Argument("baseAddress", "https://b/graphql")));
-
-        var fusionTypes = fusionGraph.Types
-            .Where(t => t.ContextData.ContainsKey(IsFusionType))
-            .ToArray();
-
-        foreach (var type in fusionTypes)
-        {
-            fusionGraph.Types.Remove(type);
-        }
-
-        var fusionDirectiveTypes = fusionGraph.DirectiveTypes
-            .Where(t => t.ContextData.ContainsKey(IsFusionType))
-            .ToArray();
-
-        foreach (var type in fusionDirectiveTypes)
-        {
-            fusionGraph.DirectiveTypes.Remove(type);
-        }
-
-        var serviceConfig = SchemaFormatter.FormatAsString(fusionGraph);
-
-        var clientFactory = new RemoteQueryExecutorTests.MockHttpClientFactory(clients);
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
 
         var executor = await new ServiceCollection()
-            .AddSingleton<IHttpClientFactory>(clientFactory)
-            .AddFusionGatewayServer(serviceConfig)
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -230,7 +91,7 @@ public class DemoIntegrationTests
         }
 
         snapshot.Add(result, "Result");
-        snapshot.Add(serviceConfig, "Service Configuration");
+        snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
 
         await snapshot.MatchAsync();
     }
@@ -239,101 +100,19 @@ public class DemoIntegrationTests
     public async Task Authors_And_Reviews_Query_ReviewsUser()
     {
         // arrange
-        using var reviews = _testServerFactory.Create(
-            s => s
-                .AddRouting()
-                .AddSingleton<ReviewRepository>()
-                .AddGraphQLServer()
-                .AddQueryType<ReviewQuery>(),
-            c => c
-                .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        using var demoProject = await DemoProject.CreateAsync();
 
-        using var accounts = _testServerFactory.Create(
-            s => s
-                .AddRouting()
-                .AddSingleton<UserRepository>()
-                .AddGraphQLServer()
-                .AddQueryType<AccountQuery>(),
-            c => c
-                .UseRouting()
-                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-
-
-        var introspectionClient = new IntrospectionClient();
-
-        var reviewsClient = reviews.CreateClient();
-        reviewsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var reviewsSchema = await introspectionClient.DownloadSchemaAsync(reviewsClient);
-
-        var accountsClient = accounts.CreateClient();
-        accountsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var accountsSchema = await introspectionClient.DownloadSchemaAsync(accountsClient);
-
-        var clients = new Dictionary<string, Func<HttpClient>>
-        {
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
             {
-                "Reviews", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = reviews.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    return httpClient;
-                }
-            },
-            {
-                "Accounts", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = accounts.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    return httpClient;
-                }
-            },
-        };
-
-        var graphComposer = CreateComposer();
-        var compositionContext = await graphComposer.ComposeAsync(
-            new SubgraphConfiguration("Reviews", reviewsSchema.ToString(), ReviewsExtensionSdl),
-            new SubgraphConfiguration("Accounts", accountsSchema.ToString(), AccountsExtensionSdl));
-        var fusionGraph = compositionContext.FusionGraph;
-        var httpClientDirectiveType = new DirectiveType("httpClient");
-        fusionGraph.Directives.Add(
-            new Directive(
-                httpClientDirectiveType,
-                new Argument("subgraph", "Reviews"),
-                new Argument("baseAddress", "https://b/graphql")));
-        fusionGraph.Directives.Add(
-            new Directive(
-                httpClientDirectiveType,
-                new Argument("subgraph", "Accounts"),
-                new Argument("baseAddress", "https://b/graphql")));
-
-        var fusionTypes = fusionGraph.Types
-            .Where(t => t.ContextData.ContainsKey(IsFusionType))
-            .ToArray();
-
-        foreach (var type in fusionTypes)
-        {
-            fusionGraph.Types.Remove(type);
-        }
-
-        var fusionDirectiveTypes = fusionGraph.DirectiveTypes
-            .Where(t => t.ContextData.ContainsKey(IsFusionType))
-            .ToArray();
-
-        foreach (var type in fusionDirectiveTypes)
-        {
-            fusionGraph.DirectiveTypes.Remove(type);
-        }
-
-        var serviceConfig = SchemaFormatter.FormatAsString(fusionGraph);
-
-        var clientFactory = new RemoteQueryExecutorTests.MockHttpClientFactory(clients);
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
 
         var executor = await new ServiceCollection()
-            .AddSingleton<IHttpClientFactory>(clientFactory)
-            .AddFusionGatewayServer(serviceConfig)
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -384,7 +163,7 @@ public class DemoIntegrationTests
         }
 
         snapshot.Add(result, "Result");
-        snapshot.Add(serviceConfig, "Service Configuration");
+        snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
 
         await snapshot.MatchAsync();
     }
@@ -392,15 +171,15 @@ public class DemoIntegrationTests
     private const string AccountsExtensionSdl =
         """
         extend type Query {
-          userById(id: Int! @ref(field: "id")): User!
+          userById(id: Int! @is(field: "id")): User!
         }
         """;
 
     private const string ReviewsExtensionSdl =
         """
         extend type Query {
-          authorById(id: Int! @ref(field: "id")): Author
-          productById(upc: Int! @ref(field: "upc")): Product
+          authorById(id: Int! @is(field: "id")): Author
+          productById(upc: Int! @is(field: "upc")): Product
         }
 
         schema
@@ -408,19 +187,4 @@ public class DemoIntegrationTests
             @rename(coordinate: "Author", newName: "User") {
         }
         """;
-
-    private static FusionGraphComposer CreateComposer()
-        => new FusionGraphComposer(
-            new IEntityEnricher[]
-            {
-                new RefResolverEntityEnricher()
-            },
-            new ITypeMergeHandler[]
-            {
-                new InterfaceTypeMergeHandler(),
-                new UnionTypeMergeHandler(),
-                new InputObjectTypeMergeHandler(),
-                new EnumTypeMergeHandler(),
-                new ScalarTypeMergeHandler()
-            });
 }

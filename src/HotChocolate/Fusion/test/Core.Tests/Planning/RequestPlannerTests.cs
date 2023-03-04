@@ -17,9 +17,9 @@ public class RequestPlannerTests
         var serviceDefinition = FileResource.Open("AccountsAndReviews.graphql");
         var document = Parse(serviceDefinition);
 
-        var context = ConfigurationDirectiveNamesContext.From(document);
-        var rewriter = new ServiceConfigurationToSchemaRewriter();
-        var rewritten = rewriter.Rewrite(document, context)!;
+        var context = FusionTypeNames.From(document);
+        var rewriter = new FusionGraphConfigurationToSchemaRewriter();
+        var rewritten = rewriter.Rewrite(document, new(context))!;
 
         var schema = await new ServiceCollection()
             .AddGraphQL()

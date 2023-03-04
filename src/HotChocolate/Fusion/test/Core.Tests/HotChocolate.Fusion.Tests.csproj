@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Metadata" />
     <Folder Include="Schemas\Accounts" />
   </ItemGroup>
 

@@ -14,7 +14,7 @@ internal sealed class FusionGraphConfiguration
     {
         _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
         HttpClientConfigs = httpClientConfigs;
-        SubgraphNames = httpClientConfigs.Select(t => t.SchemaName).ToArray();
+        SubgraphNames = httpClientConfigs.Select(t => t.Subgraph).ToArray();
 
         foreach (var type in types)
         {
