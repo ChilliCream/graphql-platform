@@ -60,6 +60,10 @@ export const FULL_ROTATION = keyframes`
   }
 `;
 
+export const BasicPageDesktopGridColumns = css`
+  grid-template-columns: 1fr 820px 250px 1fr;
+`;
+
 export const DocPageDesktopGridColumns = css`
   grid-template-columns: 1fr 250px 820px 250px 1fr;
 `;
