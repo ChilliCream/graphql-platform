@@ -26,7 +26,7 @@ sequenceDiagram
     GraphQL Server->>Generated Client: Response: { "data": { "foo": { ... } } }
 ```
 
-You can learn more about the benefits of persisted queries and how you can setup them up in your Hot Chocolate GraphQL server [here](/docs/hotchocolate/v13/performance/persisted-queries/#benefits).
+You can learn more about the benefits of persisted queries and how you can setup them up in your Hot Chocolate GraphQL server [here](/docs/hotchocolate/v13/performance/persisted-queries#benefits).
 
 # Usage
 
