@@ -1,7 +1,7 @@
 User Request
 ---------------
 query TopProducts {
-  topProducts {
+  topProducts(first: 2) {
     name
     reviews {
       body
@@ -18,19 +18,7 @@ Result
 {
   "errors": [
     {
-      "message": "The argument \u0060first\u0060 is required.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 5
-        }
-      ],
-      "extensions": {
-        "type": "Query",
-        "field": "topProducts",
-        "argument": "first",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
-      }
+      "message": "Unexpected Execution Error"
     }
   ]
 }

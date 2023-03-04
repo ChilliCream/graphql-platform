@@ -45,10 +45,10 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(serviceConfiguration));
         }
 
-        var configuration = FusionGraphConfiguration.Load(serviceConfiguration);
         var context = FusionTypeNames.From(serviceConfiguration);
         var rewriter = new FusionGraphConfigurationToSchemaRewriter();
         var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, new(context));
+        var configuration = FusionGraphConfiguration.Load(serviceConfiguration);
 
         if (schemaDoc is null)
         {
