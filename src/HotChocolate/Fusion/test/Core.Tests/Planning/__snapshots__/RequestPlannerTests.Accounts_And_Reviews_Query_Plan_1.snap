@@ -1,0 +1,58 @@
+User Request
+---------------
+{
+  users {
+    name
+    reviews {
+      body
+      author {
+        name
+      }
+    }
+  }
+}
+---------------
+
+Query Plan
+---------------
+{
+  "document": "{\n  users {\n    name\n    reviews {\n      body\n      author {\n        name\n      }\n    }\n  }\n}",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Fetch",
+        "schemaName": "Accounts",
+        "document": "query Remote_5e3bce836c20440aa0811d64a26c1cbc_1 {\n  users {\n    name\n    __fusion_exports__1: id\n  }\n}",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Fetch",
+        "schemaName": "Reviews",
+        "document": "query Remote_5e3bce836c20440aa0811d64a26c1cbc_2($__fusion_exports__1: Int!) {\n  authorById(id: $__fusion_exports__1) {\n    reviews {\n      body\n      author {\n        name\n      }\n    }\n  }\n}",
+        "selectionSetId": 1,
+        "path": [
+          "authorById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          1
+        ]
+      }
+    ]
+  }
+}
+---------------

@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class OutputField : IField
+public sealed class OutputField : IField, INamedTypeSystemMember<OutputField>
 {
     private string _name;
     private bool _isDeprecated;
@@ -57,4 +57,6 @@ public sealed class OutputField : IField
     public IType Type { get; set; }
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public static OutputField Create(string name) => new(name);
 }

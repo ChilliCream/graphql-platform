@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class UnionType : INamedType
+public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
 {
     private string _name;
 
@@ -26,4 +26,6 @@ public sealed class UnionType : INamedType
     public IList<ObjectType> Types { get; } = new List<ObjectType>();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public static UnionType Create(string name) => new(name);
 }

@@ -2,7 +2,11 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class EnumValue : IHasName, IHasDirectives
+public sealed class EnumValue
+    : IHasName
+    , IHasDirectives
+    , IHasContextData
+    , INamedTypeSystemMember<EnumValue>
 {
     private string _name;
     private bool _isDeprecated;
@@ -52,4 +56,6 @@ public sealed class EnumValue : IHasName, IHasDirectives
     public DirectiveCollection Directives { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public static EnumValue Create(string name) => new(name);
 }

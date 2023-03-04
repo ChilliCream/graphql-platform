@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -22,7 +22,7 @@
     <value>The service configuration must contain a schema definition.</value>
   </data>
   <data name="ThrowHelper_ServiceConfNoClientsSpecified" xml:space="preserve">
-    <value>There are now clients and capabilities specified in the service configuration.</value>
+    <value>There are no clients and capabilities specified in the service configuration.</value>
   </data>
   <data name="ThrowHelper_ServiceConfNoTypesSpecified" xml:space="preserve">
     <value>The service configuration does not specify any clients.</value>

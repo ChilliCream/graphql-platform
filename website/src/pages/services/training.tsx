@@ -73,7 +73,7 @@ const TrainingPage: FC = () => {
       url: "https://dotnetdays.ro/workshops/Building-Modern-Apps-with-GraphQL-and-net7",
     },
     {
-      title: "Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18",
+      title: "Fullstack GraphQL",
       date: "22 - 23 May 2023",
       host: "NDC",
       place: "{ Oslo }",

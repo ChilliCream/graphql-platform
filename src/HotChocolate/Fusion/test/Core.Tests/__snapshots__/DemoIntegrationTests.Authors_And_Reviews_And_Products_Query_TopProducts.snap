@@ -1,0 +1,139 @@
+User Request
+---------------
+query TopProducts {
+  topProducts(first: 2) {
+    name
+    reviews {
+      body
+      author {
+        name
+      }
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query TopProducts { topProducts(first: 2) { name reviews { body author { name } } } }",
+  "operation": "TopProducts",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "schemaName": "Products",
+        "document": "query TopProducts_1 { topProducts(first: 2) { name __fusion_exports__1: upc } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Resolver",
+        "schemaName": "Reviews",
+        "document": "query TopProducts_2($__fusion_exports__1: Int!) { productById(upc: $__fusion_exports__1) { reviews { body author { name } } } }",
+        "selectionSetId": 1,
+        "path": [
+          "productById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          1
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Result
+---------------
+{
+  "data": {
+    "topProducts": [
+      {
+        "name": "Table",
+        "reviews": [
+          {
+            "body": "Love it!",
+            "author": {
+              "name": "@ada"
+            }
+          },
+          {
+            "body": "Prefer something else.",
+            "author": {
+              "name": "@complete"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Couch",
+        "reviews": [
+          {
+            "body": "Too expensive.",
+            "author": {
+              "name": "@complete"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Fusion Graph
+---------------
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql") {
+  query: Query
+}
+
+type Query {
+  authorById(id: Int!): User! @variable(subgraph: "Reviews", name: "id", argument: "id", type: "Int!") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }")
+  productById(upc: Int!): Product! @variable(subgraph: "Reviews", name: "upc", argument: "upc", type: "Int!") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }") @variable(subgraph: "Products", name: "upc", argument: "upc", type: "Int!") @resolver(subgraph: "Products", select: "{ productById(upc: $upc) }")
+  reviews: [Review!]! @resolver(subgraph: "Reviews", select: "{ reviews }")
+  topProducts(first: Int!): [Product!]! @variable(subgraph: "Products", name: "first", argument: "first", type: "Int!") @resolver(subgraph: "Products", select: "{ topProducts(first: $first) }")
+  userById(id: Int!): User! @variable(subgraph: "Accounts", name: "id", argument: "id", type: "Int!") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }")
+  users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
+}
+
+type Product @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subgraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") @resolver(subgraph: "Products", select: "{ productById(upc: $Product_upc) }") @variable(subgraph: "Products", name: "Product_upc", select: "upc", type: "Int!") {
+  name: String! @source(subgraph: "Products")
+  price: Int! @source(subgraph: "Products")
+  reviews: [Review!]! @source(subgraph: "Reviews")
+  upc: Int! @source(subgraph: "Reviews") @source(subgraph: "Products")
+  weight: Int! @source(subgraph: "Products")
+}
+
+type Review {
+  author: User! @source(subgraph: "Reviews")
+  body: String! @source(subgraph: "Reviews")
+  id: Int! @source(subgraph: "Reviews")
+  product: Product! @source(subgraph: "Reviews")
+}
+
+type User @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }") @variable(subgraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subgraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
+  birthdate: DateTime! @source(subgraph: "Accounts")
+  id: Int! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  name: String! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  reviews: [Review!]! @source(subgraph: "Reviews")
+  username: String! @source(subgraph: "Accounts")
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+---------------
