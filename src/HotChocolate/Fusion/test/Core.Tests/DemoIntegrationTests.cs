@@ -2,11 +2,9 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Schemas.Accounts;
-using HotChocolate.Fusion.Schemas.Reviews;
+using HotChocolate.Fusion.Schemas;
+using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Utilities.Introspection;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
@@ -14,8 +12,6 @@ namespace HotChocolate.Fusion;
 
 public class DemoIntegrationTests
 {
-    private readonly TestServerFactory _testServerFactory = new();
-
     [Fact]
     public async Task Authors_And_Reviews_AutoCompose()
     {
@@ -28,6 +24,27 @@ public class DemoIntegrationTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        // assert
+        SchemaFormatter
+            .FormatAsString(fusionGraph)
+            .MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_And_Products_AutoCompose()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             });
 
         // assert
@@ -80,19 +97,7 @@ public class DemoIntegrationTests
 
         // assert
         var snapshot = new Snapshot();
-
-        snapshot.Add(request, "User Request");
-
-        if (result.ContextData is not null &&
-            result.ContextData.TryGetValue("queryPlan", out var value) &&
-            value is QueryPlan queryPlan)
-        {
-            snapshot.Add(queryPlan, "QueryPlan");
-        }
-
-        snapshot.Add(result, "Result");
-        snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
-
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
     }
 
@@ -152,7 +157,64 @@ public class DemoIntegrationTests
 
         // assert
         var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
 
+    [Fact]
+    public async Task Authors_And_Reviews_And_Products_Query_TopProducts()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query TopProducts {
+                topProducts(first: 2) {
+                    name
+                    reviews {
+                        body
+                        author {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
+
+    private static void CollectSnapshotData(
+        Snapshot snapshot,
+        DocumentNode request,
+        IExecutionResult result,
+        Skimmed.Schema fusionGraph)
+    {
         snapshot.Add(request, "User Request");
 
         if (result.ContextData is not null &&
@@ -164,8 +226,6 @@ public class DemoIntegrationTests
 
         snapshot.Add(result, "Result");
         snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
-
-        await snapshot.MatchAsync();
     }
 
     private const string AccountsExtensionSdl =
@@ -185,6 +245,13 @@ public class DemoIntegrationTests
         schema
             @rename(coordinate: "Query.authorById", newName: "userById")
             @rename(coordinate: "Author", newName: "User") {
+        }
+        """;
+
+    private const string ProductsExtensionSdl =
+        """
+        extend type Query {
+          productById(upc: Int! @is(field: "upc")): Product
         }
         """;
 }

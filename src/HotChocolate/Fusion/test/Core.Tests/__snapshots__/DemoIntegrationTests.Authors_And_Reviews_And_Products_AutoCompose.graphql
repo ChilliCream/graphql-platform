@@ -1,0 +1,38 @@
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql") {
+  query: Query
+}
+
+type Query {
+  authorById(id: Int!): User! @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }")
+  productById(upc: Int!): Product! @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }") @resolver(subgraph: "Products", select: "{ productById(upc: $upc) }")
+  reviews: [Review!]! @resolver(subgraph: "Reviews", select: "{ reviews }")
+  topProducts(first: Int!): [Product!]! @resolver(subgraph: "Products", select: "{ topProducts(first: $first) }")
+  userById(id: Int!): User! @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }")
+  users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
+}
+
+type Product @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subgraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") @resolver(subgraph: "Products", select: "{ productById(upc: $Product_upc) }") @variable(subgraph: "Products", name: "Product_upc", select: "upc", type: "Int!") {
+  name: String! @source(subgraph: "Products")
+  price: Int! @source(subgraph: "Products")
+  reviews: [Review!]! @source(subgraph: "Reviews")
+  upc: Int! @source(subgraph: "Reviews") @source(subgraph: "Products")
+  weight: Int! @source(subgraph: "Products")
+}
+
+type Review {
+  author: User! @source(subgraph: "Reviews")
+  body: String! @source(subgraph: "Reviews")
+  id: Int! @source(subgraph: "Reviews")
+  product: Product! @source(subgraph: "Reviews")
+}
+
+type User @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }") @variable(subgraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subgraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
+  birthdate: DateTime! @source(subgraph: "Accounts")
+  id: Int! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  name: String! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  reviews: [Review!]! @source(subgraph: "Reviews")
+  username: String! @source(subgraph: "Accounts")
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime

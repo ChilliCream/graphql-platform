@@ -2,7 +2,7 @@ using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.TestHost;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Schemas;
 
 public sealed class DemoSubgraph
 {

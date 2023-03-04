@@ -1,11 +1,12 @@
 using System.Diagnostics.Contracts;
 using HotChocolate.Fusion.Schemas.Accounts;
+using HotChocolate.Fusion.Schemas.Products;
 using HotChocolate.Fusion.Schemas.Reviews;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Schemas;
 
 public sealed class DemoProject : IDisposable
 {
@@ -17,18 +18,20 @@ public sealed class DemoProject : IDisposable
         IReadOnlyList<IDisposable> disposables,
         DemoSubgraph accounts,
         DemoSubgraph reviews,
+        DemoSubgraph products,
         IHttpClientFactory clientFactory)
     {
         _disposables = disposables;
         Accounts = accounts;
         Reviews = reviews;
+        Products = products;
         _clientFactory = clientFactory;
     }
 
     public IHttpClientFactory HttpClientFactory => _clientFactory;
 
     public DemoSubgraph Reviews { get; }
-
+    public DemoSubgraph Products { get; }
     public DemoSubgraph Accounts { get; }
 
     public static async Task<DemoProject> CreateAsync(CancellationToken ct = default)
@@ -73,6 +76,23 @@ public sealed class DemoProject : IDisposable
             .DownloadSchemaAsync(accountsClient, ct)
             .ConfigureAwait(false);
 
+        var products = testServerFactory.Create(
+            s => s
+                .AddRouting()
+                .AddSingleton<ProductRepository>()
+                .AddGraphQLServer()
+                .AddQueryType<ProductQuery>(),
+            c => c
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        disposables.Add(products);
+
+        var productsClient = products.CreateClient();
+        productsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+        var productsSchema = await introspection
+            .DownloadSchemaAsync(productsClient, ct)
+            .ConfigureAwait(false);
+
 
         var clients = new Dictionary<string, Func<HttpClient>>
         {
@@ -94,12 +114,22 @@ public sealed class DemoProject : IDisposable
                     return httpClient;
                 }
             },
+             {
+                "Products", () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = products.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    return httpClient;
+                }
+            },
         };
 
         return new DemoProject(
             disposables,
             new DemoSubgraph("Accounts", accountsClient.BaseAddress, accountsSchema, accounts),
             new DemoSubgraph("Reviews", reviewsClient.BaseAddress, reviewsSchema, reviews),
+            new DemoSubgraph("Products", productsClient.BaseAddress, productsSchema, products),
             new MockHttpClientFactory(clients));
     }
 
