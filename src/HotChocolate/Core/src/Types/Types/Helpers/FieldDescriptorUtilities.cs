@@ -36,6 +36,7 @@ public static class FieldDescriptorUtilities
 
     public static void AddImplicitFields<TDescriptor, TMember, TField>(
         TDescriptor descriptor,
+        TypeContext typeContext,
         Func<TMember, TField> createdFieldDefinition,
         IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
@@ -46,6 +47,7 @@ public static class FieldDescriptorUtilities
         AddImplicitFields(
             descriptor,
             descriptor.RuntimeType,
+            typeContext,
             createdFieldDefinition,
             fields,
             handledMembers);
@@ -54,6 +56,7 @@ public static class FieldDescriptorUtilities
     public static void AddImplicitFields<TDescriptor, TMember, TField>(
         TDescriptor descriptor,
         Type fieldBindingType,
+        TypeContext typeContext,
         Func<TMember, TField> createdFieldDefinition,
         IDictionary<string, TField> fields,
         ISet<TMember> handledMembers,
@@ -68,7 +71,7 @@ public static class FieldDescriptorUtilities
             var inspector = descriptor.Context.TypeInspector;
             var members = new List<TMember>();
 
-            foreach (var member in inspector.GetMembers(fieldBindingType, includeIgnoredMembers))
+            foreach (var member in inspector.GetMembers(fieldBindingType, typeContext, includeIgnoredMembers))
             {
                 if (member is TMember m)
                 {

@@ -47,6 +47,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     /// <inheritdoc />
     public ReadOnlySpan<MemberInfo> GetMembers(
         Type type,
+        TypeContext context,
         bool includeIgnored = false,
         bool includeStatic = false,
         bool allowObject = false)
@@ -290,7 +291,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(type));
         }
 
-        foreach (var member in GetMembers(type))
+        foreach (var member in GetMembers(type, TypeContext.Output))
         {
             if (member.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
                 member.Name.Equals("GetId", StringComparison.OrdinalIgnoreCase) ||
@@ -346,7 +347,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
         // if there is no static load method we will move on the check
         // for instance load methods.
-        foreach (var member in GetMembers(resolverType))
+        foreach (var member in GetMembers(resolverType, TypeContext.Output))
         {
             if (member is MethodInfo m && IsPossibleExternalNodeResolver(m, nodeType))
             {

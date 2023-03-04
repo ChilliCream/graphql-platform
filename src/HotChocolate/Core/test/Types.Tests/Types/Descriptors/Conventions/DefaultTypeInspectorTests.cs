@@ -17,7 +17,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var discovered =
-            typeInspector.GetMembers(typeof(ObjectPropWithTypeAttribute)).ToArray();
+            typeInspector.GetMembers(typeof(ObjectPropWithTypeAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -32,7 +32,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var discovered =
-            typeInspector.GetMembers(typeof(ObjectPropWithDescriptorAttribute)).ToArray();
+            typeInspector.GetMembers(typeof(ObjectPropWithDescriptorAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -47,7 +47,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var discovered =
-            typeInspector.GetMembers(typeof(ObjectMethodWithTypeAttribute)).ToArray();
+            typeInspector.GetMembers(typeof(ObjectMethodWithTypeAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -62,7 +62,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var discovered =
-            typeInspector.GetMembers(typeof(ObjectMethodWithDescriptorAttribute)).ToArray();
+            typeInspector.GetMembers(typeof(ObjectMethodWithDescriptorAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -78,7 +78,7 @@ public class DefaultTypeInspectorTests
         // act
         var discovered =
             typeInspector.GetMembers(
-                typeof(MethodAndObjectParameterWithTypeAttribute)).ToArray();
+                typeof(MethodAndObjectParameterWithTypeAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -94,7 +94,7 @@ public class DefaultTypeInspectorTests
         // act
         var discovered =
             typeInspector.GetMembers(
-                typeof(MethodAndObjectParameterWithDescriptorAttribute)).ToArray();
+                typeof(MethodAndObjectParameterWithDescriptorAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -109,7 +109,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var discovered =
-            typeInspector.GetMembers(typeof(TaskObjectMethodWithTypeAttribute)).ToArray();
+            typeInspector.GetMembers(typeof(TaskObjectMethodWithTypeAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -124,7 +124,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var discovered =
-            typeInspector.GetMembers(typeof(TaskObjectMethodWithDescriptorAttribute)).ToArray();
+            typeInspector.GetMembers(typeof(TaskObjectMethodWithDescriptorAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -139,7 +139,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var discovered =
-            typeInspector.GetMembers(typeof(ValueTaskObjectMethodWithTypeAttribute)).ToArray();
+            typeInspector.GetMembers(typeof(ValueTaskObjectMethodWithTypeAttribute), TypeContext.None).ToArray();
 
         // assert
         Assert.Collection(discovered,
@@ -155,7 +155,7 @@ public class DefaultTypeInspectorTests
         // act
         var discovered =
             typeInspector.GetMembers(
-                    typeof(ValueTaskObjectMethodWithDescriptorAttribute))
+                    typeof(ValueTaskObjectMethodWithDescriptorAttribute), TypeContext.None)
                 .ToArray();
 
         // assert
@@ -633,7 +633,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var members = new List<MemberInfo>();
-        foreach (var member in typeInspector.GetMembers(typeof(DoNotInfer)))
+        foreach (var member in typeInspector.GetMembers(typeof(DoNotInfer), TypeContext.None))
         {
             members.Add(member);
         }

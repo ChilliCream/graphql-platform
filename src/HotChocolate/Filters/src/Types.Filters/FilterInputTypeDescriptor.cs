@@ -119,7 +119,7 @@ public class FilterInputTypeDescriptor<T>
         if (Definition.Fields.IsImplicitBinding()
             && Definition.EntityType != typeof(object))
         {
-            foreach (var member in Context.TypeInspector.GetMembers(Definition.EntityType!))
+            foreach (var member in Context.TypeInspector.GetMembers(Definition.EntityType!, TypeContext.Output))
             {
                 if (member is PropertyInfo property
                     && !handledProperties.Contains(property)

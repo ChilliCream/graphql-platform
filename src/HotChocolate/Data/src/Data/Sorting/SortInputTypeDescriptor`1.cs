@@ -50,6 +50,7 @@ public class SortInputTypeDescriptor<T>
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
                 Definition.EntityType,
+                TypeContext.Output, // NB: building an input type to filter output types
                 p => SortFieldDescriptor
                     .New(Context, Definition.Scope, p)
                     .CreateDefinition(),

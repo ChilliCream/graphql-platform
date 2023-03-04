@@ -49,6 +49,7 @@ public class FilterInputTypeDescriptor<T>
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
                 Definition.EntityType!,
+                TypeContext.Output, // NB: building an input type to filter output types
                 p => FilterFieldDescriptor
                     .New(Context, Definition.Scope, p)
                     .CreateDefinition(),

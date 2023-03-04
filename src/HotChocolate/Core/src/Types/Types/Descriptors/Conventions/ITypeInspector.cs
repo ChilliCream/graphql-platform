@@ -20,6 +20,9 @@ public interface ITypeInspector : IConvention
     /// <param name="type">
     /// The type that represents the object type.
     /// </param>
+    /// <param name="context">
+    /// The context defines if members are requested in an input or output context.
+    /// </param>
     /// <param name="includeIgnored">
     /// Specifies if also by default ignored members shall be returned.
     /// </param>
@@ -34,6 +37,7 @@ public interface ITypeInspector : IConvention
     /// </returns>
     ReadOnlySpan<MemberInfo> GetMembers(
         Type type,
+        TypeContext context,
         bool includeIgnored = false,
         bool includeStatic = false,
         bool allowObject = false);

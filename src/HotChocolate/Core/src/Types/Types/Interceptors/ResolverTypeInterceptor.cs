@@ -162,7 +162,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         CompletionContext context,
         ObjectTypeDefinition objectTypeDef)
     {
-        CollectResolverMembers(context, objectTypeDef.Name);
+        CollectResolverMembers(context, objectTypeDef.Name, TypeContext.Output);
 
         if (context.Members.Count > 0)
         {
@@ -241,7 +241,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         {
             if (!initialized && field.Member is null)
             {
-                CollectSourceMembers(context, objectTypeDef.RuntimeType);
+                CollectSourceMembers(context, objectTypeDef.RuntimeType, TypeContext.Output);
                 initialized = true;
             }
 
@@ -297,7 +297,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         {
             if (!initialized && field.Property is null)
             {
-                CollectSourceMembers(context, inputTypeDef.RuntimeType);
+                CollectSourceMembers(context, inputTypeDef.RuntimeType, TypeContext.Input);
                 initialized = true;
             }
 
@@ -356,7 +356,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         context.ValuesToName.Clear();
     }
 
-    private void CollectResolverMembers(CompletionContext context, string typeName)
+    private void CollectResolverMembers(CompletionContext context, string typeName, TypeContext typeContext)
     {
         if (!_resolverTypes.Contains(typeName))
         {
@@ -365,13 +365,13 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
         foreach (var resolverType in _resolverTypes[typeName])
         {
-            CollectSourceMembers(context, resolverType);
+            CollectSourceMembers(context, resolverType, typeContext);
         }
     }
 
-    private void CollectSourceMembers(CompletionContext context, Type runtimeType)
+    private void CollectSourceMembers(CompletionContext context, Type runtimeType, TypeContext typeContext)
     {
-        foreach (var member in _typeInspector.GetMembers(runtimeType, allowObject: true))
+        foreach (var member in _typeInspector.GetMembers(runtimeType, typeContext, allowObject: true))
         {
             var name = _naming.GetMemberName(member, MemberKind.ObjectField);
             context.Members[name] = member;
