@@ -16,8 +16,6 @@ internal sealed class ResolverDefinitionCollection : IEnumerable<ResolverDefinit
 
     public int Count => _fetchDefinitions.Count;
 
-    // public IReadOnlyList<FetchDefinition> this[string schemaName] => throw new NotImplementedException();
-
     public bool TryGetValue(
         string subgraphName,
         [NotNullWhen(true)] out IReadOnlyList<ResolverDefinition>? values)

@@ -16,7 +16,7 @@ internal sealed class ExportDefinitionRegistry
 
     public string Register(
         ISelectionSet selectionSet,
-        VariableDefinition variableDefinition,
+        FieldVariableDefinition variableDefinition,
         IExecutionStep executionStep)
     {
         var exportDefinition = new ExportDefinition(

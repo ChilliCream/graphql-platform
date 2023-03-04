@@ -68,7 +68,7 @@ internal sealed class FusionGraphConfigurationReader
         ObjectField typeNameField)
     {
         var bindings = ReadMemberBindings(typeNames, typeDef.Directives, typeDef);
-        var variables = ReadFieldVariableDefinitions(typeNames, typeDef.Directives);
+        var variables = ReadObjectVariableDefinitions(typeNames, typeDef.Directives);
         var resolvers = ReadResolverDefinitions(typeNames, typeDef.Directives);
         var fields = ReadObjectFields(typeNames, typeDef.Fields, typeNameField);
         return new ObjectType(typeDef.Name.Value, bindings, variables, resolvers, fields);
@@ -100,7 +100,7 @@ internal sealed class FusionGraphConfigurationReader
             IntrospectionFields.TypeName,
             new MemberBindingCollection(
                 schemaNames.Select(t => new MemberBinding(t, IntrospectionFields.TypeName))),
-            VariableDefinitionCollection.Empty,
+            FieldVariableDefinitionCollection.Empty,
             ResolverDefinitionCollection.Empty);
 
     private IReadOnlyList<HttpClientConfig> ReadHttpClientConfigs(
@@ -147,11 +147,11 @@ internal sealed class FusionGraphConfigurationReader
         return new HttpClientConfig(name, new Uri(baseAddress));
     }
 
-    private VariableDefinitionCollection ReadFieldVariableDefinitions(
+    private VariableDefinitionCollection ReadObjectVariableDefinitions(
         FusionTypeNames typeNames,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        var definitions = new List<VariableDefinition>();
+        var definitions = new List<FieldVariableDefinition>();
 
         foreach (var directiveNode in directiveNodes)
         {
@@ -164,7 +164,68 @@ internal sealed class FusionGraphConfigurationReader
         return new VariableDefinitionCollection(definitions);
     }
 
-    private VariableDefinition ReadFieldVariableDefinition(
+    private FieldVariableDefinitionCollection ReadFieldVariableDefinitions(
+        FusionTypeNames typeNames,
+        IReadOnlyList<DirectiveNode> directiveNodes)
+    {
+        var definitions = new List<IVariableDefinition>();
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.VariableDirective))
+            {
+                if (directiveNode.Arguments.Any(t => t.Name.Value.EqualsOrdinal(ArgumentArg)))
+                {
+                    definitions.Add(ReadArgumentVariableDefinition(typeNames, directiveNode));
+                }
+                else
+                {
+                    definitions.Add(ReadFieldVariableDefinition(typeNames, directiveNode));
+                }
+            }
+        }
+
+        return new FieldVariableDefinitionCollection(definitions);
+    }
+
+    private ArgumentVariableDefinition ReadArgumentVariableDefinition(
+       FusionTypeNames typeNames,
+       DirectiveNode directiveNode)
+    {
+        AssertName(directiveNode, typeNames.VariableDirective);
+        AssertArguments(directiveNode, NameArg, ArgumentArg, TypeArg, SubgraphArg);
+
+        string name = default!;
+        string argumentName = default!;
+        ITypeNode type = default!;
+        string schemaName = default!;
+
+        foreach (var argument in directiveNode.Arguments)
+        {
+            switch (argument.Name.Value)
+            {
+                case NameArg:
+                    name = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case ArgumentArg:
+                    argumentName = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case TypeArg:
+                    type = ParseTypeReference(Expect<StringValueNode>(argument.Value).Value);
+                    break;
+
+                case SubgraphArg:
+                    schemaName = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+            }
+        }
+
+        return new ArgumentVariableDefinition(name, schemaName, type, argumentName);
+    }
+
+    private FieldVariableDefinition ReadFieldVariableDefinition(
         FusionTypeNames typeNames,
         DirectiveNode directiveNode)
     {
@@ -198,7 +259,7 @@ internal sealed class FusionGraphConfigurationReader
             }
         }
 
-        return new VariableDefinition(name, schemaName, type, select);
+        return new FieldVariableDefinition(name, schemaName, type, select);
     }
 
     private ResolverDefinitionCollection ReadResolverDefinitions(

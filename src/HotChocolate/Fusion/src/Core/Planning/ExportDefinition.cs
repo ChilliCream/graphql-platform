@@ -8,7 +8,7 @@ internal readonly struct ExportDefinition
     public ExportDefinition(
         string stateKey,
         ISelectionSet selectionSet,
-        VariableDefinition variableDefinition,
+        FieldVariableDefinition variableDefinition,
         IExecutionStep executionStep)
     {
         StateKey = stateKey;
@@ -21,7 +21,7 @@ internal readonly struct ExportDefinition
 
     public ISelectionSet SelectionSet { get; }
 
-    public VariableDefinition VariableDefinition { get; }
+    public FieldVariableDefinition VariableDefinition { get; }
 
     public IExecutionStep ExecutionStep { get; }
 }

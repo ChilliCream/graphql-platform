@@ -2,6 +2,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Server.IIS.Core;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -303,8 +304,16 @@ internal sealed class ExecutionPlanBuilder
         {
             if (resolver.Requires.Contains(variable.Name))
             {
-                var argumentValue = parent.Arguments[string.Empty];
-                context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                if (variable is ArgumentVariableDefinition argumentVariable)
+                {
+                    var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
+                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                }
+                else
+                {
+                    // TODO : handle this case
+                    throw new NotImplementedException();
+                }
             }
         }
 
@@ -334,8 +343,16 @@ internal sealed class ExecutionPlanBuilder
         {
             if (resolver.Requires.Contains(variable.Name))
             {
-                var argumentValue = selection.Arguments[string.Empty];
-                context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                if (variable is ArgumentVariableDefinition argumentVariable)
+                {
+                    var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
+                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                }
+                else
+                {
+                    // todo : handle this case
+                    throw new NotImplementedException();
+                }
             }
         }
 
@@ -349,8 +366,16 @@ internal sealed class ExecutionPlanBuilder
                 if (!context.VariableValues.ContainsKey(variable.Name) &&
                     resolver.Requires.Contains(variable.Name))
                 {
-                    var argumentValue = parent.Arguments[string.Empty];
-                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                    if (variable is ArgumentVariableDefinition argumentVariable)
+                    {
+                        var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
+                        context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                    }
+                    else
+                    {
+                        // todo : handle this case
+                        throw new NotImplementedException();
+                    }
                 }
             }
         }
