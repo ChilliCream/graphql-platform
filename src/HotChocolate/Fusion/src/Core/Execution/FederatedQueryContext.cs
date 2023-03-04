@@ -11,7 +11,7 @@ internal sealed class FederatedQueryContext : IFederationContext
     private readonly GraphQLClientFactory _clientFactory;
 
     public FederatedQueryContext(
-        ServiceConfiguration serviceConfig,
+        FusionGraphConfiguration serviceConfig,
         QueryPlan queryPlan,
         OperationContext operationContext,
         GraphQLClientFactory clientFactory)
@@ -25,7 +25,7 @@ internal sealed class FederatedQueryContext : IFederationContext
         _clientFactory = clientFactory;
     }
 
-    public ServiceConfiguration ServiceConfig { get; }
+    public FusionGraphConfiguration ServiceConfig { get; }
 
     public QueryPlan QueryPlan { get; }
 

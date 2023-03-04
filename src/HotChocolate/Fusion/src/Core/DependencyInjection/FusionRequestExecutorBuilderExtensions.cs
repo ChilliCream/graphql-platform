@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
@@ -44,10 +45,10 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(serviceConfiguration));
         }
 
-        var configuration = ServiceConfiguration.Load(serviceConfiguration);
-        var context = ConfigurationDirectiveNamesContext.From(serviceConfiguration);
-        var rewriter = new ServiceConfigurationToSchemaRewriter();
-        var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, context);
+        var context = FusionTypeNames.From(serviceConfiguration);
+        var rewriter = new FusionGraphConfigurationToSchemaRewriter();
+        var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, new(context));
+        var configuration = FusionGraphConfiguration.Load(serviceConfiguration);
 
         if (schemaDoc is null)
         {
@@ -65,7 +66,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .ConfigureSchemaServices(
                 sc =>
                 {
-                    foreach (var schemaName in configuration.SchemaNames)
+                    foreach (var schemaName in configuration.SubgraphNames)
                     {
                         sc.AddSingleton<IGraphQLClient>(
                             sp => new GraphQLHttpClient(

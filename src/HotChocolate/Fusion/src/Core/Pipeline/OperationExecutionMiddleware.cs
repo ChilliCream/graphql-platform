@@ -16,7 +16,7 @@ internal sealed class OperationExecutionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly FederatedQueryExecutor _executor;
-    private readonly ServiceConfiguration _serviceConfig;
+    private readonly FusionGraphConfiguration _serviceConfig;
     private readonly ISchema _schema;
     private readonly ObjectPool<OperationContext> _operationContextPool;
     private readonly GraphQLClientFactory _clientFactory;
@@ -25,7 +25,7 @@ internal sealed class OperationExecutionMiddleware
         RequestDelegate next,
         ObjectPool<OperationContext> operationContextPool,
         [SchemaService] FederatedQueryExecutor executor,
-        [SchemaService] ServiceConfiguration serviceConfig,
+        [SchemaService] FusionGraphConfiguration serviceConfig,
         [SchemaService] GraphQLClientFactory clientFactory,
         [SchemaService] ISchema schema)
     {
@@ -40,7 +40,7 @@ internal sealed class OperationExecutionMiddleware
         _schema = schema ??
             throw new ArgumentNullException(nameof(schema));
         _clientFactory = clientFactory ??
-            throw new ArgumentNullException(nameof(schema));
+            throw new ArgumentNullException(nameof(clientFactory));
     }
 
     public async ValueTask InvokeAsync(
@@ -72,7 +72,7 @@ internal sealed class OperationExecutionMiddleware
             if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
             {
                 var bufferWriter = new ArrayBufferWriter<byte>();
-                
+
                 queryPlan.Format(bufferWriter);
 
                 operationContext.Result.SetExtension(

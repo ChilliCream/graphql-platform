@@ -6,7 +6,7 @@ internal sealed class GraphQLClientFactory
 
     public GraphQLClientFactory(IEnumerable<IGraphQLClient> executors)
     {
-        _executors = executors.ToDictionary(t => t.SchemaName);
+        _executors = executors.ToDictionary(t => t.SubgraphName);
     }
 
     public IGraphQLClient Create(string schemaName)

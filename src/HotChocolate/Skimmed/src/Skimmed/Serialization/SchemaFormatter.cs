@@ -19,10 +19,57 @@ public static class SchemaFormatter
         {
             var definitions = new List<IDefinitionNode>();
 
+            context.Schema = schema;
+
+            if (schema.QueryType is not null ||
+                schema.MutationType is not null ||
+                schema.SubscriptionType is not null)
+            {
+                var operationTypes = new List<OperationTypeDefinitionNode>();
+
+                if (schema.QueryType is not null)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Query,
+                            new NamedTypeNode(schema.QueryType.Name)));
+                }
+
+                if (schema.MutationType is not null)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Mutation,
+                            new NamedTypeNode(schema.MutationType.Name)));
+                }
+
+                if (schema.SubscriptionType is not null)
+                {
+                    operationTypes.Add(
+                        new OperationTypeDefinitionNode(
+                            null,
+                            OperationType.Subscription,
+                            new NamedTypeNode(schema.SubscriptionType.Name)));
+                }
+
+                VisitDirectives(schema.Directives, context);
+
+                var schemaDefinition = new SchemaDefinitionNode(
+                    null,
+                    string.IsNullOrEmpty(schema.Description)
+                        ? null
+                        : new(schema.Description),
+                    (IReadOnlyList<DirectiveNode>)context.Result!,
+                    operationTypes);
+                definitions.Add(schemaDefinition);
+            }
+
             VisitTypes(schema.Types, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
-            VisitDirectiveTypes(schema.DirectivesTypes, context);
+            VisitDirectiveTypes(schema.DirectiveTypes, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
             context.Result = new DocumentNode(definitions);
@@ -32,8 +79,69 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            foreach (var type in types)
+            if (context.Schema?.QueryType is not null)
             {
+                VisitType(context.Schema.QueryType, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            if (context.Schema?.MutationType is not null)
+            {
+                VisitType(context.Schema.MutationType, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            if (context.Schema?.SubscriptionType is not null)
+            {
+                VisitType(context.Schema.SubscriptionType, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<ObjectType>().OrderBy(t => t.Name))
+            {
+                if(context.Schema?.QueryType == type ||
+                   context.Schema?.MutationType == type ||
+                   context.Schema?.SubscriptionType == type)
+                {
+                    continue;
+                }
+
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<InterfaceType>().OrderBy(t => t.Name))
+            {
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<UnionType>().OrderBy(t => t.Name))
+            {
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<InputObjectType>().OrderBy(t => t.Name))
+            {
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<EnumType>().OrderBy(t => t.Name))
+            {
+                VisitType(type, context);
+                definitionNodes.Add((IDefinitionNode)context.Result!);
+            }
+
+            foreach (var type in types.OfType<ScalarType>().OrderBy(t => t.Name))
+            {
+                if (type is { IsSpecScalar: true }  || SpecScalarTypes.IsSpecScalar(type.Name))
+                {
+                    type.IsSpecScalar = true;
+                    continue;
+                }
+
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
@@ -47,7 +155,7 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            foreach (var type in directiveTypes)
+            foreach (var type in directiveTypes.OrderBy(t => t.Name))
             {
                 VisitDirectiveType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -202,7 +310,7 @@ public static class SchemaFormatter
         {
             var fieldNodes = new List<FieldDefinitionNode>();
 
-            foreach (var field in fields)
+            foreach (var field in fields.OrderBy(t => t.Name))
             {
                 VisitOutputField(field, context);
                 fieldNodes.Add((FieldDefinitionNode)context.Result!);
@@ -236,7 +344,7 @@ public static class SchemaFormatter
         {
             var inputNodes = new List<InputValueDefinitionNode>();
 
-            foreach (var field in fields)
+            foreach (var field in fields.OrderBy(t => t.Name))
             {
                 VisitInputField(field, context);
                 inputNodes.Add((InputValueDefinitionNode)context.Result!);
@@ -283,7 +391,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitArguments(
-            IReadOnlyList<Argument> arguments,
+            ArgumentCollection arguments,
             VisitorContext context)
         {
             var argumentNodes = new List<ArgumentNode>();
@@ -305,6 +413,8 @@ public static class SchemaFormatter
 
     private sealed class VisitorContext
     {
+        public Schema? Schema { get; set; }
+
         public object? Result { get; set; }
     }
 }

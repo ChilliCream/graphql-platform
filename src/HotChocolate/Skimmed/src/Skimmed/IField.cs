@@ -1,12 +1,7 @@
 namespace HotChocolate.Skimmed;
 
-public interface IField : IHasName, IHasDirectives
+public interface IField : IHasName, IHasDirectives, IHasContextData
 {
-    /// <summary>
-    /// Gets the field name.
-    /// </summary>
-    string Name { get; set; }
-
     /// <summary>
     /// Gets the description of the field.
     /// </summary>
@@ -21,8 +16,6 @@ public interface IField : IHasName, IHasDirectives
     /// Gets the deprecation reason.
     /// </summary>
     string? DeprecationReason { get; set; }
-
-    IDictionary<string, object?> ContextData { get; }
 
     IType Type { get; set; }
 }
