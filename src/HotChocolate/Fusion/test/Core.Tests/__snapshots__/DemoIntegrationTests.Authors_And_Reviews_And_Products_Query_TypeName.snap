@@ -1,3 +1,105 @@
+User Request
+---------------
+query TopProducts {
+  __typename
+  topProducts(first: 2) {
+    __typename
+    reviews {
+      __typename
+      author {
+        __typename
+      }
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query TopProducts { __typename topProducts(first: 2) { __typename reviews { __typename author { __typename } } } }",
+  "operation": "TopProducts",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "schemaName": "Products",
+        "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: upc } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Resolver",
+        "schemaName": "Reviews",
+        "document": "query TopProducts_2($__fusion_exports__1: Int!) { productById(upc: $__fusion_exports__1) { reviews { __typename author { __typename } } } }",
+        "selectionSetId": 1,
+        "path": [
+          "productById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          1
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Result
+---------------
+{
+  "data": {
+    "__typename": "Query",
+    "topProducts": [
+      {
+        "__typename": "Product",
+        "reviews": [
+          {
+            "__typename": "Review",
+            "author": {
+              "__typename": "User"
+            }
+          },
+          {
+            "__typename": "Review",
+            "author": {
+              "__typename": "User"
+            }
+          }
+        ]
+      },
+      {
+        "__typename": "Product",
+        "reviews": [
+          {
+            "__typename": "Review",
+            "author": {
+              "__typename": "User"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Fusion Graph
+---------------
 schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql") {
   query: Query
 }
@@ -36,3 +138,4 @@ type User @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }")
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
+---------------
