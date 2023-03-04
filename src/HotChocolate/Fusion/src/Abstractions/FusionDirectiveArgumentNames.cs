@@ -11,9 +11,14 @@ internal static class FusionDirectiveArgumentNames
     public const string NameArg = "name";
 
     /// <summary>
-    /// Gets the name of the type argument.
+    /// Gets the name of the select argument.
     /// </summary>
     public const string SelectArg = "select";
+
+    /// <summary>
+    /// Gets the name of the argument argument.
+    /// </summary>
+    public const string ArgumentArg = "argument";
 
     /// <summary>
     /// Gets the name of the type argument.

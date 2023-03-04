@@ -118,6 +118,18 @@ public sealed class FusionTypes
             new Argument(SelectArg, select.ToString(false)),
             new Argument(TypeArg, type.ToString(false)));
 
+    public Directive CreateVariableDirective(
+        string subgraphName,
+        string variableName,
+        string argumentName,
+        ITypeNode type)
+        => new Directive(
+            Variable,
+            new Argument(SubgraphArg, subgraphName),
+            new Argument(NameArg, variableName),
+            new Argument(ArgumentArg, argumentName),
+            new Argument(TypeArg, type.ToString(false)));
+
     private DirectiveType RegisterVariableDirectiveType(
         string name,
         ScalarType typeName,
@@ -126,7 +138,8 @@ public sealed class FusionTypes
     {
         var directiveType = new DirectiveType(name);
         directiveType.Arguments.Add(new InputField(NameArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selection)));
+        directiveType.Arguments.Add(new InputField(SelectArg, selection));
+        directiveType.Arguments.Add(new InputField(ArgumentArg, typeName));
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(new InputField(TypeArg, new NonNullType(type)));
         directiveType.Locations |= DirectiveLocation.Object;

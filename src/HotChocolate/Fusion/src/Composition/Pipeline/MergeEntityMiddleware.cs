@@ -3,7 +3,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-internal  class MergeEntityMiddleware : IMergeMiddleware
+internal class MergeEntityMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
@@ -58,6 +58,17 @@ static file class MergeEntitiesMiddlewareExtensions
             }
 
             context.ApplySource(sourceField, source.Schema, targetField);
+
+
+            foreach (var argument in targetField.Arguments)
+            {
+                targetField.Directives.Add(
+                    CreateVariableDirective(
+                        context,
+                        argument.Name,
+                        argument.Type,
+                        source.Schema.Name));
+            }
         }
     }
 
@@ -84,26 +95,18 @@ static file class MergeEntitiesMiddlewareExtensions
         }
     }
 
-    private static void ApplySource(
-        this CompositionContext context,
-        OutputField sourceField,
-        string sourceSchemaName,
-        OutputField targetField)
+    public static void ApplyVariable(
+         this CompositionContext context,
+         OutputField field,
+         InputField argument,
+         string subgraphName)
     {
-        if (sourceField.ContextData.TryGetValue("originalName", out var value) &&
-            value is string originalName)
-        {
-            targetField.Directives.Add(
-                context.FusionTypes.CreateSourceDirective(
-                    sourceSchemaName,
-                    originalName));
-        }
-        else
-        {
-            targetField.Directives.Add(
-                context.FusionTypes.CreateSourceDirective(
-                    sourceSchemaName));
-        }
+        field.Directives.Add(
+            CreateVariableDirective(
+                context,
+                argument.Name,
+                argument.Type,
+                subgraphName));
     }
 
     private static Directive CreateResolverDirective(
@@ -122,4 +125,15 @@ static file class MergeEntitiesMiddlewareExtensions
             variable.Key,
             variable.Value.Field,
             variable.Value.Definition.Type);
+
+    private static Directive CreateVariableDirective(
+        CompositionContext context,
+        string variableName,
+        IType argumentType,
+        string subgraphName)
+        => context.FusionTypes.CreateVariableDirective(
+            subgraphName,
+            variableName,
+            variableName,
+            argumentType.ToTypeNode());
 }

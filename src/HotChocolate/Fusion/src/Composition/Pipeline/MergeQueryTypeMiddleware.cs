@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -47,6 +48,7 @@ internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
                     foreach (var arg in field.Arguments)
                     {
                         arguments.Add(new ArgumentNode(arg.Name, new VariableNode(arg.Name)));
+                        context.ApplyVariable(targetField, arg, schema.Name);
                     }
 
                     context.ApplyResolvers(targetField, selectionSet, schema.Name);
@@ -76,9 +78,34 @@ static file class MergeEntitiesMiddlewareExtensions
                 schemaName));
     }
 
+    public static void ApplyVariable(
+        this CompositionContext context,
+        OutputField field,
+        InputField argument,
+        string subgraphName)
+    {
+        field.Directives.Add(
+            CreateVariableDirective(
+                context,
+                argument.Name,
+                argument.Type,
+                subgraphName));
+    }
+
     private static Directive CreateResolverDirective(
         CompositionContext context,
         SelectionSetNode selectionSet,
-        string schemaName)
-        => context.FusionTypes.CreateResolverDirective(schemaName, selectionSet);
+        string subgraphName)
+        => context.FusionTypes.CreateResolverDirective(subgraphName, selectionSet);
+
+    private static Directive CreateVariableDirective(
+        CompositionContext context,
+        string variableName,
+        IType argumentType,
+        string subgraphName)
+        => context.FusionTypes.CreateVariableDirective(
+            subgraphName,
+            variableName,
+            variableName,
+            argumentType.ToTypeNode());
 }
