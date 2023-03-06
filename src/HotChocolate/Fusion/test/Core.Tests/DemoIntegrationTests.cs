@@ -2,7 +2,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Schemas;
+using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
@@ -147,6 +147,49 @@ public class DemoIntegrationTests
             }
             """);
 
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Batch_Requests()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query GetUser {
+                reviews {
+                    body
+                    author {
+                        birthdate
+                    }
+                }
+            }
+            """);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -332,7 +375,8 @@ public class DemoIntegrationTests
     private const string AccountsExtensionSdl =
         """
         extend type Query {
-          userById(id: Int! @is(field: "id")): User!
+          # userById(id: Int! @is(field: "id")): User!
+          usersById(ids: [Int!]! @is(field: "id")): [User!]!
         }
         """;
 

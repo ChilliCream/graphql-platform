@@ -612,6 +612,7 @@ public static class SchemaParser
                 out var directiveType))
             {
                 directiveType = new DirectiveType(directiveNode.Name.Value);
+                directiveType.IsRepeatable = true;
                 schema.DirectiveTypes.Add(directiveType);
             }
 

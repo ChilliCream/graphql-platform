@@ -7,63 +7,70 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Clients;
 
-// note: should the GraphQL client handle the capabilities?
-// meaning the execution engine should just use batching and
-// all and the client decides to batch if batching is available?
-public sealed class GraphQLHttpClient : IGraphQLClient
+public sealed class HttpGraphQLClient : IGraphQLClient
 {
+    private const string _jsonMediaType = "application/json";
+    private const string _graphqlMediaType = "application/graphql-response+json";
+    private static readonly Encoding _utf8 = Encoding.UTF8;
     private readonly JsonRequestFormatter _formatter = new();
     private readonly HttpClient _client;
 
-    public GraphQLHttpClient(string schemaName, IHttpClientFactory httpClientFactory)
+    public HttpGraphQLClient(string subgraph, HttpClient httpClient)
     {
-        SubgraphName = schemaName;
-        _client = httpClientFactory.CreateClient(SubgraphName);
+        SubgraphName = subgraph;
+        _client = httpClient;
     }
 
-    // TODO: naming? SubgraphName?
     public string SubgraphName { get; }
 
-    public async Task<GraphQLResponse> ExecuteAsync(
+    public Task<GraphQLResponse> ExecuteAsync(
         GraphQLRequest request,
         CancellationToken cancellationToken)
     {
-        // todo : this is just a naive dummy implementation
+        if (request is null)
+        {
+            throw new ArgumentNullException(nameof(request));
+        }
+
+        return ExecuteInternalAsync(request, cancellationToken);
+    }
+
+    private async Task<GraphQLResponse> ExecuteInternalAsync(
+        GraphQLRequest request,
+        CancellationToken ct)
+    {
         using var writer = new ArrayWriter();
         using var requestMessage = CreateRequestMessage(writer, request);
-        using var responseMessage = await _client.SendAsync(requestMessage, cancellationToken);
-
-        // responseMessage.EnsureSuccessStatusCode(); // TODO : remove for production
+        using var responseMessage = await _client.SendAsync(requestMessage, ct);
 
         await using var contentStream = await responseMessage.Content
-            .ReadAsStreamAsync(cancellationToken)
+            .ReadAsStreamAsync(ct)
             .ConfigureAwait(false);
+
         var stream = contentStream;
+        var contentType = responseMessage.Content.Headers.ContentType;
+        var sourceEncoding = GetEncoding(contentType?.CharSet);
 
-        var sourceEncoding = GetEncoding(responseMessage.Content.Headers.ContentType?.CharSet);
-
-        if (sourceEncoding is not null &&
-            !Equals(sourceEncoding.EncodingName, Encoding.UTF8.EncodingName))
+        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
         {
             stream = GetTranscodingStream(contentStream, sourceEncoding);
         }
 
-        var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
-        return new GraphQLResponse(document);
-    }
+        if (contentType?.MediaType.EqualsOrdinal(_jsonMediaType) ?? false)
+        {
+            responseMessage.EnsureSuccessStatusCode();
+            var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+            return new GraphQLResponse(document);
+        }
 
-    public Task<IAsyncEnumerable<GraphQLResponse>> ExecuteBatchAsync(
-        IReadOnlyList<GraphQLRequest> requests,
-        CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+        if (contentType?.MediaType.EqualsOrdinal(_graphqlMediaType) ?? false)
+        {
+            var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+            return new GraphQLResponse(document);
+        }
 
-    public Task<IAsyncEnumerable<GraphQLResponse>> SubscribeAsync(
-        GraphQLRequest graphQLRequests,
-        CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
+        throw new InvalidContentTypeException(
+            FusionResources.GraphQLHttpClient_InvalidContentType);
     }
 
     private HttpRequestMessage CreateRequestMessage(ArrayWriter writer, GraphQLRequest request)
@@ -72,7 +79,9 @@ public sealed class GraphQLHttpClient : IGraphQLClient
 
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, default(Uri));
         requestMessage.Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
-        requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(_jsonMediaType);
+        requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(_graphqlMediaType));
+        requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(_jsonMediaType));
         return requestMessage;
     }
 
@@ -112,4 +121,7 @@ public sealed class GraphQLHttpClient : IGraphQLClient
             innerStreamEncoding: sourceEncoding,
             outerStreamEncoding: Encoding.UTF8);
     }
+
+    public void Dispose()
+        => _client.Dispose();
 }

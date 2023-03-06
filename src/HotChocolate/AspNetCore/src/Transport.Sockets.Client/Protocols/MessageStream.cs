@@ -33,7 +33,7 @@ internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<
 
     private void OnNext(IOperationMessage value, ImmutableList<Subscription> subscriptions)
     {
-        foreach (Subscription subscription in subscriptions)
+        foreach (var subscription in subscriptions)
         {
             subscription.Observer.OnNext(value);
         }
@@ -43,7 +43,7 @@ internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<
 
     private void OnError(Exception error, ImmutableList<Subscription> subscriptions)
     {
-        foreach (Subscription subscription in subscriptions)
+        foreach (var subscription in subscriptions)
         {
             subscription.Observer.OnError(error);
         }
@@ -53,7 +53,7 @@ internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<
 
     private void OnCompleted(ImmutableList<Subscription> subscriptions)
     {
-        foreach (Subscription subscription in subscriptions)
+        foreach (var subscription in subscriptions)
         {
             subscription.Observer.OnCompleted();
         }

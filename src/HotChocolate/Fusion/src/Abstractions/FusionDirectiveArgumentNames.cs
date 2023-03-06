@@ -31,6 +31,11 @@ internal static class FusionDirectiveArgumentNames
     public const string SubgraphArg = "subgraph";
 
     /// <summary>
+    /// Gets the name of the kind argument.
+    /// </summary>
+    public const string KindArg = "kind";
+
+    /// <summary>
     /// Gets the name of the prefix argument.
     /// </summary>
     public const string PrefixArg = "prefix";

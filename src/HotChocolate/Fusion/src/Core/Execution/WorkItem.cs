@@ -3,11 +3,11 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal struct WorkItem
+internal readonly struct WorkItem
 {
     public WorkItem(
         ISelectionSet selectionSet,
-        ObjectResult result, 
+        ObjectResult result,
         IReadOnlyList<string> exportKeys)
     {
         SelectionSet = selectionSet;

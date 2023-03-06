@@ -15,9 +15,9 @@ internal sealed class EntityResolver
     /// <param name="subgraph">The name of the schema that contains the entity.</param>
     public EntityResolver(SelectionSetNode selectionSet, string entityName, string subgraph)
     {
-        SelectionSet = selectionSet;
-        EntityName = entityName;
-        Subgraph = subgraph;
+        SelectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
+        EntityName = entityName ?? throw new ArgumentNullException(nameof(entityName));
+        Subgraph = subgraph ?? throw new ArgumentNullException(nameof(subgraph));
     }
 
     /// <summary>
@@ -46,16 +46,16 @@ internal sealed class EntityResolver
     /// <returns>A string representation of the entity resolver.</returns>
     public override string ToString()
     {
-        var definitions = new List<IDefinitionNode>();
-
-        definitions.Add(
+        var definitions = new List<IDefinitionNode>
+        {
             new OperationDefinitionNode(
                 null,
                 null,
                 OperationType.Query,
                 Variables.Select(t => t.Value.Definition).ToList(),
                 new[] { new DirectiveNode("schema", new ArgumentNode("name", Subgraph)) },
-                SelectionSet));
+                SelectionSet)
+        };
 
         if (Variables.Count > 0)
         {

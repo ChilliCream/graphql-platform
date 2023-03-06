@@ -24,7 +24,7 @@ internal interface IFederationContext
     bool NeedsMoreData(ISelectionSet selectionSet);
 
     Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
-        string schemaName,
+        string subgraphName,
         IReadOnlyList<GraphQLRequest> requests,
         CancellationToken cancellationToken);
 }

@@ -1,4 +1,3 @@
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
@@ -12,11 +11,13 @@ internal sealed class ResolverDefinition
 
     public ResolverDefinition(
         string subgraphName,
+        ResolverKind kind,
         SelectionSetNode select,
         FragmentSpreadNode? placeholder,
         IReadOnlyList<string> requires)
     {
         SubgraphName = subgraphName;
+        Kind = kind;
         Select = select;
         Placeholder = placeholder;
         Requires = requires;
@@ -31,6 +32,8 @@ internal sealed class ResolverDefinition
     /// Gets the schema to which the type system member is bound to.
     /// </summary>
     public string SubgraphName { get; }
+
+    public ResolverKind Kind { get; }
 
     public SelectionSetNode Select { get; }
 
@@ -195,4 +198,11 @@ internal sealed class ResolverDefinition
 
         public IReadOnlyList<string> SelectionPath { get; set; } = Array.Empty<string>();
     }
+}
+
+internal enum ResolverKind
+{
+    Query,
+    Subscription,
+    Batch
 }

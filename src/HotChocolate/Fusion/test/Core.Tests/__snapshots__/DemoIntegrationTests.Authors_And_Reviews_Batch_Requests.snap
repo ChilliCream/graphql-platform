@@ -1,3 +1,96 @@
+User Request
+---------------
+query GetUser {
+  reviews {
+    body
+    author {
+      birthdate
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query GetUser { reviews { body author { birthdate } } }",
+  "operation": "GetUser",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "schemaName": "Reviews",
+        "document": "query GetUser_1 { reviews { body author { __fusion_exports__1: id } } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Resolver",
+        "schemaName": "Accounts",
+        "document": "query GetUser_2($__fusion_exports__1: Int!) { userById(id: $__fusion_exports__1) { birthdate } }",
+        "selectionSetId": 2,
+        "path": [
+          "userById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          2
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Result
+---------------
+{
+  "data": {
+    "reviews": [
+      {
+        "body": "Love it!",
+        "author": {
+          "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
+        }
+      },
+      {
+        "body": "Too expensive.",
+        "author": {
+          "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
+        }
+      },
+      {
+        "body": "Could be better.",
+        "author": {
+          "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
+        }
+      },
+      {
+        "body": "Prefer something else.",
+        "author": {
+          "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+Fusion Graph
+---------------
 schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") {
   query: Query
 }
@@ -32,3 +125,4 @@ type User @resolver(subgraph: "Reviews", select: "{ userById(id: $User_id) }") @
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
+---------------

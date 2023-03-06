@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Shared;
 
 public class MockHttpClientFactory : IHttpClientFactory
 {

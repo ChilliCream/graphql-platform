@@ -290,6 +290,7 @@ internal sealed class FusionGraphConfigurationReader
 
         SelectionSetNode select = default!;
         string subgraph = default!;
+        var kind = ResolverKind.Query;
 
         foreach (var argument in directiveNode.Arguments)
         {
@@ -301,6 +302,10 @@ internal sealed class FusionGraphConfigurationReader
 
                 case SubgraphArg:
                     subgraph = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case KindArg:
+                    kind = Enum.Parse<ResolverKind>(Expect<StringValueNode>(argument.Value).Value);
                     break;
             }
         }
@@ -330,6 +335,7 @@ internal sealed class FusionGraphConfigurationReader
 
         return new ResolverDefinition(
             subgraph,
+            kind,
             select,
             placeholder,
             _assert.Count == 0

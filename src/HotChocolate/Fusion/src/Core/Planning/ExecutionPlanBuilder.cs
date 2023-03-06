@@ -23,7 +23,7 @@ internal sealed class ExecutionPlanBuilder
         {
             if (step is SelectionExecutionStep selectionStep)
             {
-                var fetchNode = CreateFetchNode(context, selectionStep);
+                var fetchNode = CreateResolverNode(context, selectionStep);
                 context.Nodes.Add(selectionStep, fetchNode);
             }
             else if (step is IntrospectionExecutionStep)
@@ -90,7 +90,7 @@ internal sealed class ExecutionPlanBuilder
         return parent;
     }
 
-    private ResolverNode CreateFetchNode(
+    private ResolverNode CreateResolverNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
@@ -100,6 +100,24 @@ internal sealed class ExecutionPlanBuilder
         context.HasNodes.Add(selectionSet);
 
         return new ResolverNode(
+            context.CreateNodeId(),
+            executionStep.SubgraphName,
+            requestDocument,
+            selectionSet,
+            executionStep.Variables.Values.ToArray(),
+            path);
+    }
+
+    private BatchResolverNode CreateBatchResolverNode(
+        QueryPlanContext context,
+        SelectionExecutionStep executionStep)
+    {
+        var selectionSet = ResolveSelectionSet(context, executionStep);
+        var (requestDocument, path) = CreateRequestDocument(context, executionStep);
+
+        context.HasNodes.Add(selectionSet);
+
+        return new BatchResolverNode(
             context.CreateNodeId(),
             executionStep.SubgraphName,
             requestDocument,

@@ -1,9 +1,9 @@
 namespace HotChocolate.Fusion.Clients;
 
 /// <summary>
-/// Represents a client for making GraphQL requests to a subgraph.
+/// Represents a client for subscribing to a GraphQL subgraph.
 /// </summary>
-public interface IGraphQLClient : IDisposable
+public interface IGraphQLSubscriptionClient : IDisposable
 {
     /// <summary>
     /// Gets the name of the subgraph that this client is connected to.
@@ -11,18 +11,18 @@ public interface IGraphQLClient : IDisposable
     string SubgraphName { get; }
 
     /// <summary>
-    /// Executes a single GraphQL request asynchronously and returns the response.
+    /// Subscribes to a GraphQL subscription asynchronously and returns a stream of responses.
     /// </summary>
     /// <param name="request">
-    /// The GraphQL request to execute.
+    /// The GraphQL subscription to subscribe to.
     /// </param>
     /// <param name="cancellationToken">
     /// A cancellation token that can be used to cancel the operation.
     /// </param>
     /// <returns>
-    /// A task representing the asynchronous operation, which returns the GraphQL response.
+    /// A task representing the asynchronous operation, which returns a stream of GraphQL responses.
     /// </returns>
-    Task<GraphQLResponse> ExecuteAsync(
+    ValueTask<IAsyncEnumerable<GraphQLResponse>> SubscribeAsync(
         GraphQLRequest request,
         CancellationToken cancellationToken);
 }

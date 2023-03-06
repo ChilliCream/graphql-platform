@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Schemas.Products;
+namespace HotChocolate.Fusion.Shared.Products;
 
 [GraphQLName("Query")]
 public class ProductQuery

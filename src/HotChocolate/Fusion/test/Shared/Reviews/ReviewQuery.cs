@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Schemas.Reviews;
+namespace HotChocolate.Fusion.Shared.Reviews;
 
 [GraphQLName("Query")]
 public sealed class ReviewQuery
