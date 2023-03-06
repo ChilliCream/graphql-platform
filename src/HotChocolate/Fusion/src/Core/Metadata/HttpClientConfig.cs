@@ -2,13 +2,13 @@ namespace HotChocolate.Fusion.Metadata;
 
 internal sealed class HttpClientConfig
 {
-    public HttpClientConfig(string schemaName, Uri baseAddress)
+    public HttpClientConfig(string subgraph, Uri baseAddress)
     {
-        SchemaName = schemaName;
+        Subgraph = subgraph;
         BaseAddress = baseAddress;
     }
 
-    public string SchemaName { get; }
+    public string Subgraph { get; }
 
     public Uri BaseAddress { get; }
 }

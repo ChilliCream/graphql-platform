@@ -54,8 +54,7 @@ public interface IFilterInputTypeDescriptor<T>
     IFilterInputTypeDescriptor<T> BindFieldsExplicitly();
 
     /// <summary>
-    /// The filter type will will add
-    /// filters for all compatible fields.
+    /// The filter type will add filters for all compatible fields.
     /// </summary>
     IFilterInputTypeDescriptor<T> BindFieldsImplicitly();
 

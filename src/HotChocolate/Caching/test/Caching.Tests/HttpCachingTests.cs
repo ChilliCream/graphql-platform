@@ -12,7 +12,7 @@ namespace HotChocolate.Caching.Http.Tests;
 public class HttpCachingTests : ServerTestBase
 {
     public HttpCachingTests(TestServerFactory serverFactory)
-            : base(serverFactory)
+        : base(serverFactory)
     {
     }
 

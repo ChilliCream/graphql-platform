@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.WellKnownContextData;
@@ -7,10 +8,22 @@ namespace HotChocolate.Skimmed.Serialization;
 
 public static class SchemaParser
 {
+    public static Schema Parse(string sourceText)
+        => Parse(Encoding.UTF8.GetBytes(sourceText));
+
     public static Schema Parse(ReadOnlySpan<byte> sourceText)
     {
-        var document = Utf8GraphQLParser.Parse(sourceText);
         var schema = new Schema();
+        Parse(schema, sourceText);
+        return schema;
+    }
+
+    public static void Parse(Schema schema, string sourceText)
+        => Parse(schema, Encoding.UTF8.GetBytes(sourceText));
+
+    public static void Parse(Schema schema, ReadOnlySpan<byte> sourceText)
+    {
+        var document = Utf8GraphQLParser.Parse(sourceText);
 
         DiscoverDirectives(schema, document);
         DiscoverTypes(schema, document);
@@ -18,9 +31,8 @@ public static class SchemaParser
 
         BuildTypes(schema, document);
         ExtendTypes(schema, document);
+        BuildDirectiveTypes(schema, document);
         BuildAndExtendSchema(schema, document);
-
-        return schema;
     }
 
     private static void DiscoverDirectives(Schema schema, DocumentNode document)
@@ -29,13 +41,13 @@ public static class SchemaParser
         {
             if (definition is DirectiveDefinitionNode def)
             {
-                if (schema.DirectivesTypes.ContainsName(def.Name.Value))
+                if (schema.DirectiveTypes.ContainsName(def.Name.Value))
                 {
                     // TODO : parsing error
                     throw new Exception("duplicate");
                 }
 
-                schema.DirectivesTypes.Add(new DirectiveType(def.Name.Value));
+                schema.DirectiveTypes.Add(new DirectiveType(def.Name.Value));
             }
         }
     }
@@ -46,6 +58,11 @@ public static class SchemaParser
         {
             if (definition is ITypeDefinitionNode typeDef)
             {
+                if (SpecScalarTypes.IsSpecScalar(typeDef.Name.Value))
+                {
+                    continue;
+                }
+
                 if (schema.Types.ContainsName(typeDef.Name.Value))
                 {
                     // TODO : parsing error
@@ -176,6 +193,11 @@ public static class SchemaParser
                         break;
 
                     case ScalarTypeDefinitionNode typeDef:
+                        if (SpecScalarTypes.IsSpecScalar(typeDef.Name.Value))
+                        {
+                            continue;
+                        }
+
                         BuildScalarType(
                             schema,
                             (ScalarType)schema.Types[typeDef.Name.Value],
@@ -489,6 +511,57 @@ public static class SchemaParser
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
     }
 
+    private static void BuildDirectiveTypes(Schema schema, DocumentNode document)
+    {
+        foreach (var definition in document.Definitions)
+        {
+            if (definition is DirectiveDefinitionNode directiveDef)
+            {
+                BuildDirectiveType(
+                    schema,
+                    schema.DirectiveTypes[directiveDef.Name.Value],
+                    directiveDef);
+            }
+        }
+    }
+
+    private static void BuildDirectiveType(
+        Schema schema,
+        DirectiveType type,
+        DirectiveDefinitionNode node)
+    {
+        type.Description = node.Description?.Value;
+        type.IsRepeatable = node.IsRepeatable;
+
+        foreach (var argumentNode in node.Arguments)
+        {
+            var argument = new InputField(argumentNode.Name.Value);
+            argument.Description = argumentNode.Description?.Value;
+            argument.Type = schema.Types.ResolveType(argumentNode.Type);
+            argument.DefaultValue = argumentNode.DefaultValue;
+
+            BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
+
+            if (IsDeprecated(argument.Directives, out var reason))
+            {
+                argument.IsDeprecated = true;
+                argument.DeprecationReason = reason;
+            }
+
+            type.Arguments.Add(argument);
+        }
+
+        foreach (var locationNode in node.Locations)
+        {
+            if (!Language.DirectiveLocation.TryParse(locationNode.Value, out var parsedLocation))
+            {
+                throw new Exception("");
+            }
+
+            type.Locations |= parsedLocation.MapLocation();
+        }
+    }
+
     private static void BuildSchema(
         Schema schema,
         SchemaDefinitionNode node)
@@ -534,8 +607,16 @@ public static class SchemaParser
     {
         foreach (var directiveNode in nodes)
         {
+            if (!schema.DirectiveTypes.TryGetDirective(
+                directiveNode.Name.Value,
+                out var directiveType))
+            {
+                directiveType = new DirectiveType(directiveNode.Name.Value);
+                schema.DirectiveTypes.Add(directiveType);
+            }
+
             var directive = new Directive(
-                schema.DirectivesTypes[directiveNode.Name.Value],
+                directiveType,
                 directiveNode.Arguments.Select(t => new Argument(t.Name.Value, t.Value)).ToList());
             directives.Add(directive);
         }
@@ -584,6 +665,13 @@ static file class SchemaParserExtensions
                 if (types.TryGetType(namedTypeRef.Name.Value, out var type))
                 {
                     return type;
+                }
+
+                if (SpecScalarTypes.IsSpecScalar(namedTypeRef.Name.Value))
+                {
+                    var scalar = new ScalarType(namedTypeRef.Name.Value) { IsSpecScalar = true };
+                    types.Add(scalar);
+                    return scalar;
                 }
 
                 var missing = new MissingType(namedTypeRef.Name.Value);

@@ -1,16 +1,17 @@
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Server.IIS.Core;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class ExecutionPlanBuilder
 {
-    private readonly ServiceConfiguration _serviceConfig;
+    private readonly FusionGraphConfiguration _serviceConfig;
     private readonly ISchema _schema;
 
-    public ExecutionPlanBuilder(ServiceConfiguration serviceConfig, ISchema schema)
+    public ExecutionPlanBuilder(FusionGraphConfiguration serviceConfig, ISchema schema)
     {
         _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
         _schema = schema ?? throw new ArgumentNullException(nameof(schema));
@@ -42,7 +43,7 @@ internal sealed class ExecutionPlanBuilder
             rootNode,
             context.Exports.All
                 .GroupBy(t => t.SelectionSet)
-                .ToDictionary(t => t.Key, t => t.Select(x=> x.StateKey).ToArray()),
+                .ToDictionary(t => t.Key, t => t.Select(x => x.StateKey).ToArray()),
             context.HasNodes);
     }
 
@@ -58,7 +59,7 @@ internal sealed class ExecutionPlanBuilder
             {
                 var node = current[0];
                 var selectionSet = ResolveSelectionSet(context, node.Key);
-                var compose = new ComposeNode(context.CreateNodeId(), selectionSet);
+                var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
                 parent.AddNode(node.Value);
                 parent.AddNode(compose);
                 context.Nodes.Remove(node.Key);
@@ -77,7 +78,7 @@ internal sealed class ExecutionPlanBuilder
                     completed.Add(node.Key);
                 }
 
-                var compose = new ComposeNode(context.CreateNodeId(), selectionSets);
+                var compose = new CompositionNode(context.CreateNodeId(), selectionSets);
 
                 parent.AddNode(parallel);
                 parent.AddNode(compose);
@@ -89,7 +90,7 @@ internal sealed class ExecutionPlanBuilder
         return parent;
     }
 
-    private FetchNode CreateFetchNode(
+    private ResolverNode CreateFetchNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
@@ -98,9 +99,9 @@ internal sealed class ExecutionPlanBuilder
 
         context.HasNodes.Add(selectionSet);
 
-        return new FetchNode(
+        return new ResolverNode(
             context.CreateNodeId(),
-            executionStep.SchemaName,
+            executionStep.SubgraphName,
             requestDocument,
             selectionSet,
             executionStep.Variables.Values.ToArray(),
@@ -201,6 +202,13 @@ internal sealed class ExecutionPlanBuilder
                 selectionNode = s;
             }
 
+            if (selectionNode is FieldNode fieldNode &&
+                !rootSelection.Selection.ResponseName.EqualsOrdinal(fieldNode.Name.Value))
+            {
+                selectionNode = fieldNode.WithAlias(
+                    new NameNode(rootSelection.Selection.ResponseName));
+            }
+
             selectionNodes.Add(selectionNode);
         }
 
@@ -226,7 +234,7 @@ internal sealed class ExecutionPlanBuilder
             selectionSetNode = CreateSelectionSetNode(context, executionStep, selection);
         }
 
-        var binding = field.Bindings[executionStep.SchemaName];
+        var binding = field.Bindings[executionStep.SubgraphName];
 
         var alias = !selection.ResponseName.Equals(binding.Name)
             ? new NameNode(selection.ResponseName)
@@ -284,7 +292,7 @@ internal sealed class ExecutionPlanBuilder
     private void ResolveRequirements(
         QueryPlanContext context,
         ISelection parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
@@ -296,8 +304,16 @@ internal sealed class ExecutionPlanBuilder
         {
             if (resolver.Requires.Contains(variable.Name))
             {
-                var argumentValue = parent.Arguments[variable.ArgumentName];
-                context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                if (variable is ArgumentVariableDefinition argumentVariable)
+                {
+                    var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
+                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                }
+                else
+                {
+                    // TODO : handle this case
+                    throw new NotImplementedException();
+                }
             }
         }
 
@@ -316,7 +332,7 @@ internal sealed class ExecutionPlanBuilder
         ISelection selection,
         ObjectType declaringType,
         ISelection? parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
@@ -327,8 +343,16 @@ internal sealed class ExecutionPlanBuilder
         {
             if (resolver.Requires.Contains(variable.Name))
             {
-                var argumentValue = selection.Arguments[variable.ArgumentName];
-                context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                if (variable is ArgumentVariableDefinition argumentVariable)
+                {
+                    var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
+                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                }
+                else
+                {
+                    // todo : handle this case
+                    throw new NotImplementedException();
+                }
             }
         }
 
@@ -342,8 +366,16 @@ internal sealed class ExecutionPlanBuilder
                 if (!context.VariableValues.ContainsKey(variable.Name) &&
                     resolver.Requires.Contains(variable.Name))
                 {
-                    var argumentValue = parent.Arguments[variable.ArgumentName];
-                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                    if (variable is ArgumentVariableDefinition argumentVariable)
+                    {
+                        var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
+                        context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                    }
+                    else
+                    {
+                        // todo : handle this case
+                        throw new NotImplementedException();
+                    }
                 }
             }
         }

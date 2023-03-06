@@ -32,7 +32,7 @@ internal sealed class RequirementsPlanner
                 // clean and fill the schema execution step lookup
                 foreach (var siblingExecutionStep in siblingExecutionSteps)
                 {
-                    schemas.TryAdd(siblingExecutionStep.SchemaName, siblingExecutionStep);
+                    schemas.TryAdd(siblingExecutionStep.SubgraphName, siblingExecutionStep);
                 }
 
                 // clean and fill requires set
@@ -58,7 +58,7 @@ internal sealed class RequirementsPlanner
                 // from sibling execution steps.
                 foreach (var variable in step.SelectionSetType.Variables)
                 {
-                    var schemaName = variable.SchemaName;
+                    var schemaName = variable.Subgraph;
                     if (requires.Contains(variable.Name) &&
                         schemas.TryGetValue(schemaName, out var providingExecutionStep))
                     {
