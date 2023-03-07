@@ -5,22 +5,23 @@ using HotChocolate.Fusion.Planning;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class FederatedQueryContext : IFederationContext
+internal sealed class FusionExecutionContext : IDisposable
 {
     private readonly GraphQLClientFactory _clientFactory;
+    private readonly OperationContextOwner _operationContextOwner;
 
-    public FederatedQueryContext(
+    public FusionExecutionContext(
         FusionGraphConfiguration serviceConfig,
         QueryPlan queryPlan,
-        OperationContext operationContext,
+        OperationContextOwner operationContextOwner,
         GraphQLClientFactory clientFactory)
     {
         ServiceConfig = serviceConfig ??
             throw new ArgumentNullException(nameof(serviceConfig));
         QueryPlan = queryPlan ??
             throw new ArgumentNullException(nameof(queryPlan));
-        OperationContext = operationContext ??
-            throw new ArgumentNullException(nameof(operationContext));
+        _operationContextOwner = operationContextOwner ??
+            throw new ArgumentNullException(nameof(operationContextOwner));
         _clientFactory = clientFactory;
     }
 
@@ -30,7 +31,13 @@ internal sealed class FederatedQueryContext : IFederationContext
 
     public IExecutionState State { get; } = new ExecutionState();
 
-    public OperationContext OperationContext { get; }
+    public OperationContext OperationContext => _operationContextOwner.OperationContext;
+
+    public ISchema Schema => OperationContext.Schema;
+
+    public ResultBuilder Result => OperationContext.Result;
+
+    public IOperation Operation => OperationContext.Operation;
 
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodes(selectionSet);
@@ -58,4 +65,24 @@ internal sealed class FederatedQueryContext : IFederationContext
 
         return responses;
     }
+
+    public IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
+        string subgraphName,
+        GraphQLRequest request,
+        CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Dispose()
+        => _operationContextOwner.Dispose();
+
+    public static FusionExecutionContext CreateFrom(
+        FusionExecutionContext context,
+        OperationContextOwner operationContextOwner)
+        => new FusionExecutionContext(
+            context.ServiceConfig,
+            context.QueryPlan,
+            operationContextOwner,
+            context._clientFactory);
 }

@@ -20,8 +20,6 @@ public class ReviewRepository
             new Review(3, _authors[1], new Product(3), "Could be better."),
             new Review(4, _authors[2], new Product(1), "Prefer something else.")
         }.ToDictionary(t => t.Id);
-
-
     }
 
     public IEnumerable<Review> GetReviews() =>

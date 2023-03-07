@@ -47,7 +47,8 @@ public sealed class DemoProject : IDisposable
                 .AddRouting()
                 .AddSingleton<ReviewRepository>()
                 .AddGraphQLServer()
-                .AddQueryType<ReviewQuery>(),
+                .AddQueryType<ReviewQuery>()
+                .AddSubscriptionType<ReviewsSubscription>(),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
@@ -92,7 +93,6 @@ public sealed class DemoProject : IDisposable
         var productsSchema = await introspection
             .DownloadSchemaAsync(productsClient, ct)
             .ConfigureAwait(false);
-
 
         var clients = new Dictionary<string, Func<HttpClient>>
         {

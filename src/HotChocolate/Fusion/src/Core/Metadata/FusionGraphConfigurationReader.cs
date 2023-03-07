@@ -307,7 +307,9 @@ internal sealed class FusionGraphConfigurationReader
                         FusionEnumValueNames.Query => ResolverKind.Query,
                         FusionEnumValueNames.Batch => ResolverKind.Batch,
                         FusionEnumValueNames.BatchByKey => ResolverKind.BatchByKey,
-                        _ => throw new InvalidOperationException()
+                        FusionEnumValueNames.Subscription => ResolverKind.Subscription,
+                        _ => throw new InvalidOperationException(
+                            FusionResources.FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue)
                     };
                     break;
 

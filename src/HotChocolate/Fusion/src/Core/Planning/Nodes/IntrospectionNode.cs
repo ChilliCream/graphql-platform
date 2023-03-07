@@ -16,7 +16,7 @@ internal sealed class IntrospectionNode : QueryPlanNode
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Introspection;
 
     protected override async Task OnExecuteAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {

@@ -19,4 +19,9 @@ internal static class FusionEnumValueNames
     /// Gets the name of the batch by key resolver kind.
     /// </summary>
     public const string BatchByKey = "BATCH_BY_KEY";
+
+    /// <summary>
+    /// Gets the name of the subscription resolver kind.
+    /// </summary>
+    public const string Subscription = "SUBSCRIPTION";
 }

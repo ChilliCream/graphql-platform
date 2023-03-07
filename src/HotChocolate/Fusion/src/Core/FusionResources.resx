@@ -42,4 +42,7 @@
   <data name="GraphQLHttpClient_InvalidContentType" xml:space="preserve">
     <value>The GraphQL server returned an invalid content type. The content type must be either application/json or application/graphql-response+json.</value>
   </data>
+  <data name="FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue" xml:space="preserve">
+    <value>The kind must be of the values query, batch, batchByKey or subscription.</value>
+  </data>
 </root>

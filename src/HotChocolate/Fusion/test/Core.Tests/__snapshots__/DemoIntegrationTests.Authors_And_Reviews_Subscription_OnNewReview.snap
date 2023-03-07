@@ -1,0 +1,69 @@
+User Request
+---------------
+subscription OnNewReview {
+  onNewReview {
+    body
+    author {
+      name
+    }
+  }
+}
+---------------
+
+Result
+---------------
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "extensions": {
+        "message": "A query execution plan can not be executed as a subscription.",
+        "stackTrace": "   at HotChocolate.Fusion.Planning.QueryPlan.SubscribeAsync(FusionExecutionContext context, CancellationToken cancellationToken) in /Users/michael/local/hc-3/src/HotChocolate/Fusion/src/Core/Planning/Nodes/QueryPlan.cs:line 89\n   at HotChocolate.Fusion.Execution.FederatedQueryExecutor.ExecuteAsync(FusionExecutionContext context, CancellationToken cancellationToken) in /Users/michael/local/hc-3/src/HotChocolate/Fusion/src/Core/Execution/FederatedQueryExecutor.cs:line 24\n   at HotChocolate.Fusion.Pipeline.OperationExecutionMiddleware.InvokeAsync(IRequestContext context, IBatchDispatcher batchDispatcher) in /Users/michael/local/hc-3/src/HotChocolate/Fusion/src/Core/Pipeline/OperationExecutionMiddleware.cs:line 67\n   at HotChocolate.Execution.Pipeline.OperationVariableCoercionMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/OperationVariableCoercionMiddleware.cs:line 32\n   at HotChocolate.Execution.Pipeline.OperationResolverMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/OperationResolverMiddleware.cs:line 60\n   at HotChocolate.Execution.Pipeline.OperationComplexityMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/OperationComplexityMiddleware.cs:line 50\n   at HotChocolate.Execution.Pipeline.OperationCacheMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/OperationCacheMiddleware.cs:line 56\n   at HotChocolate.Execution.Pipeline.DocumentValidationMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/DocumentValidationMiddleware.cs:line 85\n   at HotChocolate.Execution.Pipeline.DocumentParserMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/DocumentParserMiddleware.cs:line 86\n   at HotChocolate.Execution.Pipeline.DocumentCacheMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/DocumentCacheMiddleware.cs:line 76\n   at HotChocolate.Execution.Pipeline.TimeoutMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/TimeoutMiddleware.cs:line 33\n   at HotChocolate.Execution.Pipeline.ExceptionMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/ExceptionMiddleware.cs:line 21"
+      }
+    }
+  ]
+}
+---------------
+
+Fusion Graph
+---------------
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") {
+  query: Query
+  subscription: Subscription
+}
+
+type Query {
+  productById(upc: Int!): Product! @variable(subgraph: "Reviews", name: "upc", argument: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }", arguments: [ { name: "upc", type: "Int!" } ])
+  reviews: [Review!]! @resolver(subgraph: "Reviews", select: "{ reviews }")
+  userById(id: Int!): User! @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ])
+  users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
+  usersById(ids: [Int!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[Int!]!" } ])
+}
+
+type Subscription {
+  onNewReview: Review! @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIPTION")
+}
+
+type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) {
+  reviews: [Review!]! @source(subgraph: "Reviews")
+  upc: Int! @source(subgraph: "Reviews")
+}
+
+type Review {
+  author: User! @source(subgraph: "Reviews")
+  body: String! @source(subgraph: "Reviews")
+  id: Int! @source(subgraph: "Reviews")
+  product: Product! @source(subgraph: "Reviews")
+}
+
+type User @source(subgraph: "Reviews", name: "Author") @variable(subgraph: "Reviews", name: "User_id", select: "id") @variable(subgraph: "Accounts", name: "User_id", select: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[Int!]!" } ], kind: "BATCH_BY_KEY") {
+  birthdate: DateTime! @source(subgraph: "Accounts")
+  id: Int! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  name: String! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  reviews: [Review!]! @source(subgraph: "Reviews")
+  username: String! @source(subgraph: "Accounts")
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+---------------

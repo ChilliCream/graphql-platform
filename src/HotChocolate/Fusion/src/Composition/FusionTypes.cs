@@ -132,6 +132,7 @@ public sealed class FusionTypes
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Query));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.BatchByKey));
+        resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscription));
         resolverKind.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.Types.Add(resolverKind);
         return resolverKind;
@@ -211,6 +212,7 @@ public sealed class FusionTypes
             {
                 EntityResolverKind.Batch => FusionEnumValueNames.Batch,
                 EntityResolverKind.BatchWithKey => FusionEnumValueNames.BatchByKey,
+                EntityResolverKind.Subscription => FusionEnumValueNames.Subscription,
                 _ => throw new NotSupportedException()
             };
 

@@ -89,7 +89,6 @@ public static class FusionRequestExecutorBuilderExtensions
                     sc.TryAddSingleton<RequestPlanner>();
                     sc.TryAddSingleton<RequirementsPlanner>();
                     sc.TryAddSingleton<ExecutionPlanBuilder>();
-                    sc.TryAddSingleton<FederatedQueryExecutor>();
                 });
     }
 
