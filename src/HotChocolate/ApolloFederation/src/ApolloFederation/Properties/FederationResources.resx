@@ -132,6 +132,9 @@
   <data name="RequiresDirective_Description" xml:space="preserve">
     <value>Used to annotate the required input fieldset from a base type for a resolver.</value>
   </data>
+  <data name="TagDirective_Description" xml:space="preserve">
+    <value>Used to apply arbitrary string metadata to a schema location.</value>
+  </data>
   <data name="EntityType_Description" xml:space="preserve">
     <value>Union of all types that key directive applied. This information is needed by the Apollo federation gateway.</value>
   </data>
@@ -150,10 +153,16 @@
   <data name="ThrowHelper_Requires_FieldSet_CannotBeEmpty" xml:space="preserve">
     <value>FieldSet is null or empty on type</value>
   </data>
+  <data name="ThrowHelper_Tag_Name_CannotBeEmpty" xml:space="preserve">
+    <value>Name is null or empty on type</value>
+  </data>
   <data name="FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
   <data name="FieldDescriptorExtensions_Requires_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="FieldDescriptorExtensions_Tag_Name_CannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
   <data name="FieldDescriptorExtensions_Provides_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">

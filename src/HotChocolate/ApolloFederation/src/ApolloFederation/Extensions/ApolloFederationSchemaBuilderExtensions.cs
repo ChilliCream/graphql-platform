@@ -34,6 +34,7 @@ public static class ApolloFederationSchemaBuilderExtensions
         builder.AddType<FieldSetType>();
         builder.AddType<ExternalDirectiveType>();
         builder.AddType<ProvidesDirectiveType>();
+        builder.AddType<TagDirectiveType>();
         builder.AddType<KeyDirectiveType>();
         builder.AddType<RequiresDirectiveType>();
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();

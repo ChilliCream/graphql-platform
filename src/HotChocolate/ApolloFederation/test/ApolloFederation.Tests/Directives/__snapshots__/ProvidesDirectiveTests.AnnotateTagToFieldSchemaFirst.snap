@@ -1,0 +1,22 @@
+﻿schema {
+  query: Query
+}
+
+type Product {
+  name: String!
+}
+
+type Query {
+  someField(a: Int): Review
+}
+
+type Review @key(fields: "id") {
+  id: Int!
+  product: Product! @tag(name: "public")
+}
+
+"Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
+directive @tag(name: String!) repeatable on FIELD_DEFINITION | INTERFACE | OBJECT | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+"Scalar representing a set of fields."
+scalar _FieldSet

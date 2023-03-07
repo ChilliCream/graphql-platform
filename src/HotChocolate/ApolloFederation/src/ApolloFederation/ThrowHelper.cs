@@ -141,4 +141,17 @@ internal static class ThrowHelper
                 // .SetCode(ErrorCodes.ApolloFederation.RequiresFieldSetNullOrEmpty)
                 .SetExtension(nameof(member), member)
                 .Build());
+
+        /// <summary>
+    /// The tag attribute is used and the name is set to <c>null</c> or
+    /// <see cref="string.Empty"/>.
+    /// </summary>
+    public static SchemaException Tag_Name_CannotBeEmpty(
+        MemberInfo member) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(ThrowHelper_Requires_FieldSet_CannotBeEmpty)
+                // .SetCode(ErrorCodes.ApolloFederation.RequiresFieldSetNullOrEmpty)
+                .SetExtension(nameof(member), member)
+                .Build());
 }

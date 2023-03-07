@@ -150,6 +150,60 @@ public static partial class ApolloFederationDescriptorExtensions
     }
 
     /// <summary>
+    /// The @tag directive is used to applies arbitrary string
+    /// metadata to a schema location. Custom tooling can use
+    /// this metadata during any step of the schema delivery flow,
+    /// including composition, static analysis, and documentation
+    ///
+    /// <example>
+    /// # extended from the Users service
+    /// extend type User @key(fields: "id") {
+    ///   id: ID! @external
+    ///   email: String @tag(name: "public")
+    ///   customerNotes: String @tag(name: "internal")
+    /// }
+    /// </example>
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor on which this directive shall be annotated.
+    /// </param>
+    /// <param name="name">
+    /// The <paramref name="name"/> applies arbitrary string metadata
+    /// to a schema location
+    /// </param>
+    /// <returns>
+    /// Returns the object field descriptor.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
+    /// </exception>
+    public static IObjectFieldDescriptor Tag(
+        this IObjectFieldDescriptor descriptor,
+        string name)
+    {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentException(
+                FieldDescriptorExtensions_Tag_Name_CannotBeNullOrEmpty,
+                nameof(name));
+        }
+
+        return descriptor.Directive(
+            WellKnownTypeNames.Tag,
+            new ArgumentNode(
+                WellKnownArgumentNames.Name,
+                new StringValueNode(name)));
+    }
+
+    /// <summary>
     /// Adds the @provides directive which is used to annotate the expected returned
     /// fieldset from a field on a base type that is guaranteed to be selectable by
     /// the gateway.
