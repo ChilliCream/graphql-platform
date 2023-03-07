@@ -1,12 +1,12 @@
-using System.Diagnostics.Contracts;
-using HotChocolate.Fusion.Schemas.Accounts;
-using HotChocolate.Fusion.Schemas.Products;
-using HotChocolate.Fusion.Schemas.Reviews;
+using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Fusion.Shared.Accounts;
+using HotChocolate.Fusion.Shared.Products;
+using HotChocolate.Fusion.Shared.Reviews;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Fusion.Schemas;
+namespace HotChocolate.Fusion.Shared;
 
 public sealed class DemoProject : IDisposable
 {

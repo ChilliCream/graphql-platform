@@ -29,7 +29,7 @@ namespace HotChocolate.Utilities.Introspection
 
         internal static JsonSerializerOptions SerializerOptions => _serializerOptions;
 
-        public static IntrospectionClient Default { get; } = new IntrospectionClient();
+        public static IntrospectionClient Default { get; } = new();
 
         public async Task DownloadSchemaAsync(
             HttpClient client,

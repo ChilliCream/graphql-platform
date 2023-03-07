@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 
 namespace HotChocolate.Skimmed;
@@ -24,13 +25,13 @@ public static class TypeExtensions
             _ => throw new NotSupportedException(),
         };
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IType InnerType(this IType type)
     {
         switch (type)
         {
             case ListType listType:
                 return listType.ElementType;
-
 
             case NonNullType nonNullType:
                 return nonNullType.NullableType;

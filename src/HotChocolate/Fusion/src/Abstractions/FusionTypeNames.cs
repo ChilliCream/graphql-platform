@@ -24,7 +24,9 @@ public sealed class FusionTypeNames
         string selectionSetScalar,
         string typeNameScalar,
         string typeScalar,
-        string uriScalar)
+        string uriScalar,
+        string argumentDefinition,
+        string resolverKind)
     {
         Prefix = prefix;
         VariableDirective = variableDirective;
@@ -38,6 +40,8 @@ public sealed class FusionTypeNames
         TypeNameScalar = typeNameScalar;
         TypeScalar = typeScalar;
         UriScalar = uriScalar;
+        ArgumentDefinition = argumentDefinition;
+        ResolverKind = resolverKind;
 
         _fusionDirectives.Add(variableDirective);
         _fusionDirectives.Add(fetchDirective);
@@ -114,6 +118,16 @@ public sealed class FusionTypeNames
     public string UriScalar { get; }
 
     /// <summary>
+    /// Gets the name of the GraphQL type scalar.
+    /// </summary>
+    public string ArgumentDefinition { get; }
+
+    /// <summary>
+    /// Gets the name of the URI type scalar.
+    /// </summary>
+    public string ResolverKind { get; }
+
+    /// <summary>
     /// Specifies if the <paramref name="directiveName"/> represents a fusion directive.
     /// </summary>
     /// <param name="directiveName">
@@ -157,7 +171,9 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.SelectionSet}",
                 $"{prefix}_{FusionTypeBaseNames.TypeName}",
                 $"{prefix}_{FusionTypeBaseNames.Type}",
-                $"{prefix}_{FusionTypeBaseNames.Uri}");
+                $"{prefix}_{FusionTypeBaseNames.Uri}",
+                $"{prefix}_{FusionTypeBaseNames.ArgumentDefinition}",
+                $"{prefix}_{FusionTypeBaseNames.ResolverKind}");
         }
 
         return new FusionTypeNames(
@@ -172,7 +188,9 @@ public sealed class FusionTypeNames
             $"_{FusionTypeBaseNames.SelectionSet}",
             $"_{FusionTypeBaseNames.TypeName}",
             $"_{FusionTypeBaseNames.Type}",
-            $"_{FusionTypeBaseNames.Uri}");
+            $"_{FusionTypeBaseNames.Uri}",
+            $"_{FusionTypeBaseNames.ArgumentDefinition}",
+            $"_{FusionTypeBaseNames.ResolverKind}");
     }
 
     public static FusionTypeNames From(DocumentNode document)

@@ -19,7 +19,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         CancellationToken cancellationToken = default)
     {
         var observer = new ConnectionMessageObserver<ConnectionAcceptMessage>(cancellationToken);
-        using IDisposable subscription = context.Messages.Subscribe(observer);
+        using var subscription = context.Messages.Subscribe(observer);
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
         await observer.Accepted;
     }
@@ -32,7 +32,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         var id = Guid.NewGuid().ToString("N");
         var observer = new DataMessageObserver(id);
         var completion = new DataCompletion(context.Socket, id);
-        IDisposable subscription = context.Messages.Subscribe(observer);
+        var subscription = context.Messages.Subscribe(observer);
 
         await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
 
@@ -62,9 +62,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         try
         {
             document = JsonDocument.Parse(message);
-            JsonElement root = document.RootElement;
+            var root = document.RootElement;
 
-            if (root.TryGetProperty(TypeProp, out JsonElement typeProp))
+            if (root.TryGetProperty(TypeProp, out var typeProp))
             {
                 if (typeProp.ValueEquals(Utf8Messages.Ping))
                 {

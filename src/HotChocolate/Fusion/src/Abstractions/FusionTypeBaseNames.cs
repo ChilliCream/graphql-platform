@@ -59,5 +59,15 @@ internal static class FusionTypeBaseNames
     /// The base name of the URI scalar.
     /// </summary>
     public const string Uri = "Uri";
+
+    /// <summary>
+    /// The base name of the ArgumentDefinition input.
+    /// </summary>
+    public const string ArgumentDefinition = "ArgumentDefinition";
+
+    /// <summary>
+    /// The base name of the ResolverKind input.
+    /// </summary>
+    public const string ResolverKind = "ResolverKind";
 }
 

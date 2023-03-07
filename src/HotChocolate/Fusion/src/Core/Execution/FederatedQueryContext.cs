@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
@@ -33,22 +32,21 @@ internal sealed class FederatedQueryContext : IFederationContext
 
     public OperationContext OperationContext { get; }
 
-    public ConcurrentQueue<WorkItem> Work { get; } = new();
-
-    public Dictionary<QueryPlanNode, List<WorkItem>> WorkByNode { get; } = new();
-
-    public HashSet<QueryPlanNode> Completed { get; } = new();
-
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodes(selectionSet);
 
-    // TODO : implement batching here
+    public async Task<GraphQLResponse> ExecuteAsync(string subgraphName, GraphQLRequest request, CancellationToken cancellationToken)
+    {
+        using var client = _clientFactory.Create(subgraphName);
+        return await client.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
-        string schemaName,
+        string subgraphName,
         IReadOnlyList<GraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
-        var client = _clientFactory.Create(schemaName);
+        using var client = _clientFactory.Create(subgraphName);
         var responses = new GraphQLResponse[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)

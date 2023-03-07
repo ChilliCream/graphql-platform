@@ -11,7 +11,7 @@ using static HotChocolate.Transport.Sockets.SocketDefaults;
 
 namespace HotChocolate.Transport.Sockets.Client;
 
-public class SocketClient : ISocket
+public sealed class SocketClient : ISocket
 {
     private static readonly IProtocolHandler[] _protocolHandlers =
     {
@@ -156,7 +156,7 @@ public class SocketClient : ISocket
                 socketResult = await _socket.ReceiveAsync(arraySegment, cancellationToken);
 
                 // copy message segment to writer.
-                Memory<byte> memory = writer.GetMemory(socketResult.Count);
+                var memory = writer.GetMemory(socketResult.Count);
                 buffer.AsSpan().Slice(0, socketResult.Count).CopyTo(memory.Span);
                 writer.Advance(socketResult.Count);
                 read += socketResult.Count;

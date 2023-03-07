@@ -25,7 +25,7 @@ internal static class MessageHelper
             jsonWriter.WritePropertyName(PayloadProp);
             JsonSerializer.Serialize(jsonWriter, payload, JsonDefaults.SerializerOptions);
         }
-        
+
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
@@ -44,6 +44,7 @@ internal static class MessageHelper
     {
         using var arrayWriter = new ArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(IdProp, operationSessionId);
         jsonWriter.WriteString(TypeProp, Utf8Messages.Subscribe);

@@ -1,11 +1,29 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using static HotChocolate.Transport.Sockets.Client.Properties.SocketClientResources;
 
 namespace HotChocolate.Transport.Sockets.Client;
 
 public readonly struct OperationRequest : IEquatable<OperationRequest>
 {
+    public OperationRequest(
+        string? query,
+        string? id,
+        ObjectValueNode? variables,
+        ObjectValueNode? extensions)
+    {
+        if (query is null && id is null && extensions is null)
+        {
+            throw new ArgumentException(OperationRequest_QueryOrPersistedQueryId, nameof(query));
+        }
+
+        Query = query;
+        Id = id;
+        VariablesNode = variables;
+        ExtensionsNode = extensions;
+    }
+
     public OperationRequest(
         string? query = null,
         string? id = null,
@@ -29,7 +47,11 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
 
     public IReadOnlyDictionary<string, object?>? Variables { get; }
 
+    public ObjectValueNode? VariablesNode { get; }
+
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
+
+    public ObjectValueNode? ExtensionsNode { get; }
 
     public bool Equals(OperationRequest other)
         => Id == other.Id &&

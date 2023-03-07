@@ -86,5 +86,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("ThrowHelper_ServiceConfInvalidDirectiveArgs", resourceCulture);
             }
         }
+        
+        internal static string GraphQLHttpClient_InvalidContentType {
+            get {
+                return ResourceManager.GetString("GraphQLHttpClient_InvalidContentType", resourceCulture);
+            }
+        }
     }
 }

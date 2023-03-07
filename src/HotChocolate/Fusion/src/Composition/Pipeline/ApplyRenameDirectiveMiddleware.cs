@@ -17,7 +17,7 @@ internal  sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
                 if (schema.TryGetMember(directive.Coordinate, out IHasName? member) &&
                     member is IHasContextData memberWithContext)
                 {
-                    memberWithContext.ContextData["originalName"] = member.Name;
+                    memberWithContext.ContextData[WellKnownContextData.OriginalName] = member.Name;
                 }
 
                 if (!schema.RenameMember(directive.Coordinate, directive.NewName))

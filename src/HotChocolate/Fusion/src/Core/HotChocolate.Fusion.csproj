@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\HotChocolate.Transport.Sockets.Client.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Fusion.Abstractions.csproj" />
   </ItemGroup>
@@ -35,6 +36,12 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FusionResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Metadata\ResolverDefinition.FetchRewriterContext.cs">
+      <DependentUpon>ResolverDefinition.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Metadata\ResolverDefinition.ResolverRewriter.cs">
+      <DependentUpon>ResolverDefinition.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

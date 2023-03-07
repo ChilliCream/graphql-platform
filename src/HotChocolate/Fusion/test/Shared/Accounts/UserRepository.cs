@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Schemas.Accounts;
+namespace HotChocolate.Fusion.Shared.Accounts;
 
 public class UserRepository
 {
@@ -13,7 +13,15 @@ public class UserRepository
         }.ToDictionary(t => t.Id);
     }
 
-    public User GetUser(int id) => _users[id];
+    public User? GetUser(int id)
+    {
+        if (_users.TryGetValue(id, out var value))
+        {
+            return value;
+        }
+
+        return null;
+    }
 
     public IEnumerable<User> GetUsers() => _users.Values;
 }

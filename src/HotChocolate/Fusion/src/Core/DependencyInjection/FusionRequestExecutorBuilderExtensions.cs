@@ -66,19 +66,29 @@ public static class FusionRequestExecutorBuilderExtensions
             .ConfigureSchemaServices(
                 sc =>
                 {
-                    foreach (var schemaName in configuration.SubgraphNames)
-                    {
-                        sc.AddSingleton<IGraphQLClient>(
-                            sp => new GraphQLHttpClient(
-                                schemaName,
-                                sp.GetApplicationService<IHttpClientFactory>()));
-                    }
+                    sc.AddSingleton<GraphQLClientFactory>(
+                        sp =>
+                        {
+                            var clientFactory = sp.GetApplicationService<IHttpClientFactory>();
+                            var map = new Dictionary<string, Func<IGraphQLClient>>();
+
+                            IGraphQLClient Create(string subgraphName)
+                                => new HttpGraphQLClient(
+                                    subgraphName,
+                                    clientFactory.CreateClient(subgraphName));
+
+                            foreach (var subgraphName in configuration.SubgraphNames)
+                            {
+                                map.Add(subgraphName, () => Create(subgraphName));
+                            }
+
+                            return new GraphQLClientFactory(map);
+                        });
 
                     sc.TryAddSingleton(configuration);
                     sc.TryAddSingleton<RequestPlanner>();
                     sc.TryAddSingleton<RequirementsPlanner>();
                     sc.TryAddSingleton<ExecutionPlanBuilder>();
-                    sc.TryAddSingleton<GraphQLClientFactory>();
                     sc.TryAddSingleton<FederatedQueryExecutor>();
                 });
     }

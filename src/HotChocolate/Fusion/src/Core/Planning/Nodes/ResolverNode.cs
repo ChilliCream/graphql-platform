@@ -55,18 +55,18 @@ internal sealed class ResolverNode : QueryPlanNode
         IExecutionState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var values))
+        if (state.TryGetState(SelectionSet, out var workItems))
         {
             var schemaName = SubgraphName;
-            var requests = new GraphQLRequest[values.Count];
-            var selections = values[0].SelectionSet.Selections;
+            var requests = new GraphQLRequest[workItems.Count];
+            var selections = workItems[0].SelectionSet.Selections;
 
             // first we will create a request for all of our work items.
-            for (var i = 0; i < values.Count; i++)
+            for (var i = 0; i < workItems.Count; i++)
             {
-                var value = values[i];
-                ExtractPartialResult(value);
-                requests[i] = CreateRequest(value.VariableValues);
+                var workItem = workItems[i];
+                ExtractPartialResult(workItem);
+                requests[i] = CreateRequest(workItem.VariableValues);
             }
 
             // once we have the requests, we will enqueue them for execution with the execution engine.
@@ -96,7 +96,7 @@ internal sealed class ResolverNode : QueryPlanNode
             {
                 var response = responses[i];
                 var data = UnwrapResult(response);
-                var workItem = values[i];
+                var workItem = workItems[i];
                 var selectionResults = workItem.SelectionResults;
                 var exportKeys = workItem.ExportKeys;
                 var variableValues = workItem.VariableValues;
