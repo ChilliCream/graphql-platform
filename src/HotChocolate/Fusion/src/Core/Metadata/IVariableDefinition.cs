@@ -15,5 +15,5 @@ internal interface IVariableDefinition
     /// <summary>
     /// Gets the name of the subgraph the variable is defined for.
     /// </summary>
-    string Subgraph { get; }
+    string SubgraphName { get; }
 }

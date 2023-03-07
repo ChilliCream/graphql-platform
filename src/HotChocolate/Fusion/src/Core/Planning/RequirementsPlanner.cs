@@ -60,10 +60,10 @@ internal sealed class RequirementsPlanner
                 // from sibling execution steps.
                 foreach (var variable in step.SelectionSetType.Variables)
                 {
-                    var schemaName = variable.Subgraph;
+                    var subgraphName = variable.SubgraphName;
 
                     if (requires.Contains(variable.Name) &&
-                        schemas.TryGetValue(schemaName, out var providingExecutionStep))
+                        schemas.TryGetValue(subgraphName, out var providingExecutionStep))
                     {
                         requires.Remove(variable.Name);
 
@@ -98,7 +98,7 @@ internal sealed class RequirementsPlanner
                     foreach (var variable in step.SelectionSetType.Variables)
                     {
                         if (executionStep.Requires.Contains(variable.Name) &&
-                            executionStep.SubgraphName.EqualsOrdinal(variable.Subgraph) &&
+                            executionStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
                             context.Exports.TryGetStateKey(selectionSet, variable.Name, out var stateKey, out _))
                         {
                             context.Exports.RegisterAdditionExport(variable, executionStep, stateKey);

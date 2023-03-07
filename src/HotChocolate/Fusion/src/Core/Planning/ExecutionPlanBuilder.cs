@@ -393,7 +393,8 @@ internal sealed class ExecutionPlanBuilder
 
         foreach (var variable in field.Variables)
         {
-            if (resolver.Requires.Contains(variable.Name))
+            if (resolver.Requires.Contains(variable.Name) &&
+                resolver.SubgraphName.Equals(variable.SubgraphName))
             {
                 if (variable is ArgumentVariableDefinition argumentVariable)
                 {

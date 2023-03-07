@@ -10,13 +10,13 @@ internal sealed class FieldVariableDefinition : IVariableDefinition
         FieldNode select)
     {
         Name = name;
-        Subgraph = subgraph;
+        SubgraphName = subgraph;
         Select = select;
     }
 
     public string Name { get; }
 
-    public string Subgraph { get; }
+    public string SubgraphName { get; }
 
     public FieldNode Select { get; }
 }
