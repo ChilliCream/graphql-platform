@@ -37,6 +37,12 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FusionResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Metadata\ResolverDefinition.FetchRewriterContext.cs">
+      <DependentUpon>ResolverDefinition.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Metadata\ResolverDefinition.ResolverRewriter.cs">
+      <DependentUpon>ResolverDefinition.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

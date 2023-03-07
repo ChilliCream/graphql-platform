@@ -3,14 +3,14 @@ schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\
 }
 
 type Query {
-  productById(upc: Int!): Product! @variable(subgraph: "Reviews", name: "upc", argument: "upc", type: "Int!") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }")
+  productById(upc: Int!): Product! @variable(subgraph: "Reviews", name: "upc", argument: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }", arguments: [ { name: "upc", type: "Int!" } ])
   reviews: [Review!]! @resolver(subgraph: "Reviews", select: "{ reviews }")
-  userById(id: Int!): User! @variable(subgraph: "Reviews", name: "id", argument: "id", type: "Int!") @resolver(subgraph: "Reviews", select: "{ userById(id: $id) }") @variable(subgraph: "Accounts", name: "id", argument: "id", type: "Int!") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }")
+  userById(id: Int!): User! @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ])
   users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
-  usersById(ids: [Int!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids", type: "[Int!]!") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }")
+  usersById(ids: [Int!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[Int!]!" } ])
 }
 
-type Product @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subgraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
+type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) {
   reviews: [Review!]! @source(subgraph: "Reviews")
   upc: Int! @source(subgraph: "Reviews")
 }
@@ -22,7 +22,7 @@ type Review {
   product: Product! @source(subgraph: "Reviews")
 }
 
-type User @resolver(subgraph: "Reviews", select: "{ userById(id: $User_id) }") @variable(subgraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subgraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
+type User @source(subgraph: "Reviews", name: "Author") @variable(subgraph: "Reviews", name: "User_id", select: "id") @variable(subgraph: "Accounts", name: "User_id", select: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[Int!]!" } ], kind: "BATCH_BY_KEY") {
   birthdate: DateTime! @source(subgraph: "Accounts")
   id: Int! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
   name: String! @source(subgraph: "Reviews") @source(subgraph: "Accounts")

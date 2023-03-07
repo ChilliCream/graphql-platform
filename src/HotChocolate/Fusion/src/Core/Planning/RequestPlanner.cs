@@ -26,11 +26,23 @@ internal sealed class RequestPlanner
         var selections = context.Operation.RootSelectionSet.Selections;
         var backlog = new Queue<BacklogItem>();
 
-        Plan(context, backlog, selectionSetType, selections, null);
+        Plan(
+            context,
+            backlog,
+            selectionSetType,
+            selections,
+            null,
+            false);
 
-        while (backlog .TryDequeue(out var item))
+        while (backlog.TryDequeue(out var item))
         {
-            Plan(context, backlog, item.DeclaringType, item.Selections, item.ParentSelection);
+            Plan(
+                context,
+                backlog,
+                item.DeclaringType,
+                item.Selections,
+                item.ParentSelection,
+                item.PreferBatching);
         }
     }
 
@@ -39,7 +51,8 @@ internal sealed class RequestPlanner
         Queue<BacklogItem> backlog,
         ObjectType selectionSetType,
         IReadOnlyList<ISelection> selections,
-        ISelection? parentSelection)
+        ISelection? parentSelection,
+        bool preferBatching)
     {
         var variablesInContext = new HashSet<string>();
         List<ISelection>? leftovers = null;
@@ -47,7 +60,7 @@ internal sealed class RequestPlanner
         do
         {
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
-            var subgraph = ResolveBestMatchingSubgraph(context.Operation, current, selectionSetType);
+            var subgraph = GetBestMatchingSubgraph(context.Operation, current, selectionSetType);
             var workItem = new SelectionExecutionStep(subgraph, selectionSetType, parentSelection);
             leftovers = null;
             ResolverDefinition? resolver;
@@ -56,7 +69,12 @@ internal sealed class RequestPlanner
                 selectionSetType.Resolvers.ContainsResolvers(subgraph))
             {
                 CalculateVariablesInContext(selectionSetType, parentSelection, variablesInContext);
-                if (TryGetResolver(selectionSetType, subgraph, variablesInContext, out resolver))
+                if (TryGetResolver(
+                        selectionSetType,
+                        subgraph,
+                        variablesInContext,
+                        preferBatching,
+                        out resolver))
                 {
                     workItem.Resolver = resolver;
                     CalculateRequirements(parentSelection, resolver, workItem.Requires);
@@ -94,7 +112,12 @@ internal sealed class RequestPlanner
                     resolver = null;
                     if (field.Resolvers.ContainsResolvers(subgraph))
                     {
-                        if (!TryGetResolver(field, subgraph, variablesInContext, out resolver))
+                        if (!TryGetResolver(
+                                field,
+                                subgraph,
+                                variablesInContext,
+                                preferBatching,
+                                out resolver))
                         {
                             // todo : error message and type
                             throw new InvalidOperationException(
@@ -114,7 +137,12 @@ internal sealed class RequestPlanner
 
                     if (selection.SelectionSet is not null)
                     {
-                        CollectChildSelections(backlog, context.Operation, selection, workItem);
+                        CollectChildSelections(
+                            backlog,
+                            context.Operation,
+                            selection,
+                            workItem,
+                            preferBatching);
                     }
                 }
                 else
@@ -135,8 +163,14 @@ internal sealed class RequestPlanner
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
-        SelectionExecutionStep executionStep)
+        SelectionExecutionStep executionStep,
+        bool preferBatching)
     {
+        if (!preferBatching)
+        {
+            preferBatching = Types.TypeExtensions.IsListType(parentSelection.Type);
+        }
+
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
         {
             var declaringType = _configuration.GetType<ObjectType>(possibleType.Name);
@@ -155,7 +189,12 @@ internal sealed class RequestPlanner
 
                     if (selection.SelectionSet is not null)
                     {
-                        CollectChildSelections(backlog, operation, selection, executionStep);
+                        CollectChildSelections(
+                            backlog,
+                            operation,
+                            selection,
+                            executionStep,
+                            preferBatching);
                     }
                 }
                 else
@@ -166,12 +205,17 @@ internal sealed class RequestPlanner
 
             if (leftovers is not null)
             {
-                backlog.Enqueue(new BacklogItem(parentSelection, declaringType, leftovers));
+                backlog.Enqueue(
+                    new BacklogItem(
+                        parentSelection,
+                        declaringType,
+                        leftovers,
+                        preferBatching));
             }
         }
     }
 
-    private string ResolveBestMatchingSubgraph(
+    private string GetBestMatchingSubgraph(
         IOperation operation,
         IReadOnlyList<ISelection> selections,
         ObjectType typeContext)
@@ -231,42 +275,38 @@ internal sealed class RequestPlanner
         ObjectField field,
         string schemaName,
         HashSet<string> variablesInContext,
+        bool preferBatching,
         [NotNullWhen(true)] out ResolverDefinition? resolver)
-    {
-        if (field.Resolvers.TryGetValue(schemaName, out var resolvers))
-        {
-            foreach (var current in resolvers)
-            {
-                var canBeUsed = true;
-
-                foreach (var requirement in current.Requires)
-                {
-                    if (!variablesInContext.Contains(requirement))
-                    {
-                        canBeUsed = false;
-                        break;
-                    }
-                }
-
-                if (canBeUsed)
-                {
-                    resolver = current;
-                    return true;
-                }
-            }
-        }
-
-        resolver = null;
-        return false;
-    }
+        => TryGetResolver(
+            field.Resolvers,
+            schemaName,
+            variablesInContext,
+            preferBatching,
+            out resolver);
 
     private static bool TryGetResolver(
         ObjectType declaringType,
         string schemaName,
         HashSet<string> variablesInContext,
+        bool preferBatching,
+        [NotNullWhen(true)] out ResolverDefinition? resolver)
+        => TryGetResolver(
+            declaringType.Resolvers,
+            schemaName,
+            variablesInContext,
+            preferBatching,
+            out resolver);
+
+    private static bool TryGetResolver(
+        ResolverDefinitionCollection resolverDefinitions,
+        string schemaName,
+        HashSet<string> variablesInContext,
+        bool preferBatching,
         [NotNullWhen(true)] out ResolverDefinition? resolver)
     {
-        if (declaringType.Resolvers.TryGetValue(schemaName, out var resolvers))
+        resolver = null;
+
+        if (resolverDefinitions.TryGetValue(schemaName, out var resolvers))
         {
             foreach (var current in resolvers)
             {
@@ -283,14 +323,39 @@ internal sealed class RequestPlanner
 
                 if (canBeUsed)
                 {
-                    resolver = current;
-                    return true;
+                    switch (current.Kind)
+                    {
+                        case ResolverKind.Batch:
+                            resolver = current;
+                            if (preferBatching)
+                            {
+                                return true;
+                            }
+                            break;
+
+                        case ResolverKind.BatchByKey:
+                            resolver = current;
+                            break;
+
+                        case ResolverKind.Subscription:
+                            throw new NotImplementedException();
+
+                        case ResolverKind.Query:
+                        default:
+                            if (!preferBatching)
+                            {
+                                resolver = current;
+                                return true;
+                            }
+
+                            resolver ??= current;
+                            break;
+                    }
                 }
             }
         }
 
-        resolver = null;
-        return false;
+        return resolver is not null;
     }
 
     private void CalculateVariablesInContext(
@@ -389,11 +454,13 @@ internal sealed class RequestPlanner
         public BacklogItem(
             ISelection parentSelection,
             ObjectType declaringType,
-            IReadOnlyList<ISelection> selections)
+            IReadOnlyList<ISelection> selections,
+            bool preferBatching)
         {
             ParentSelection = parentSelection;
             DeclaringType = declaringType;
             Selections = selections;
+            PreferBatching = preferBatching;
         }
 
         public ISelection ParentSelection { get; }
@@ -401,5 +468,7 @@ internal sealed class RequestPlanner
         public ObjectType DeclaringType { get; }
 
         public IReadOnlyList<ISelection> Selections { get; }
+
+        public bool PreferBatching { get; }
     }
 }

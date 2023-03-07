@@ -375,7 +375,7 @@ public class DemoIntegrationTests
     private const string AccountsExtensionSdl =
         """
         extend type Query {
-          # userById(id: Int! @is(field: "id")): User!
+          userById(id: Int! @is(field: "id")): User!
           usersById(ids: [Int!]! @is(field: "id")): [User!]!
         }
         """;

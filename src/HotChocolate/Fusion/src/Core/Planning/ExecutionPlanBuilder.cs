@@ -1,8 +1,8 @@
+using System.Diagnostics;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Microsoft.AspNetCore.Server.IIS.Core;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -21,7 +21,12 @@ internal sealed class ExecutionPlanBuilder
     {
         foreach (var step in context.Steps)
         {
-            if (step is SelectionExecutionStep selectionStep)
+            if (step is SelectionExecutionStep { Resolver.Kind: ResolverKind.BatchByKey } batchStep)
+            {
+                var fetchNode = CreateBatchResolverNode(context, batchStep, batchStep.Resolver);
+                context.Nodes.Add(batchStep, fetchNode);
+            }
+            else if (step is SelectionExecutionStep selectionStep)
             {
                 var fetchNode = CreateResolverNode(context, selectionStep);
                 context.Nodes.Add(selectionStep, fetchNode);
@@ -108,22 +113,48 @@ internal sealed class ExecutionPlanBuilder
             path);
     }
 
-    private BatchResolverNode CreateBatchResolverNode(
+    private BatchByKeyResolverNode CreateBatchResolverNode(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep)
+        SelectionExecutionStep executionStep,
+        ResolverDefinition resolver)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
         var (requestDocument, path) = CreateRequestDocument(context, executionStep);
 
         context.HasNodes.Add(selectionSet);
 
-        return new BatchResolverNode(
+        var argumentTypes = resolver.Arguments;
+
+        if (argumentTypes.Count > 0)
+        {
+            var temp = new Dictionary<string, ITypeNode>();
+
+            foreach (var argument in resolver.Arguments)
+            {
+                if (!context.Exports.TryGetStateKey(
+                        executionStep.RootSelections[0].Selection.DeclaringSelectionSet,
+                        argument.Key,
+                        out var stateKey,
+                        out _))
+                {
+                    // TODO : Exception
+                    throw new InvalidOperationException("The state is inconsistent.");
+                }
+
+                temp.Add(stateKey, argument.Value);
+            }
+
+            argumentTypes = temp;
+        }
+
+        return new BatchByKeyResolverNode(
             context.CreateNodeId(),
             executionStep.SubgraphName,
             requestDocument,
             selectionSet,
             executionStep.Variables.Values.ToArray(),
-            path);
+            path,
+            argumentTypes);
     }
 
     private ISelectionSet ResolveSelectionSet(
@@ -164,7 +195,9 @@ internal sealed class ExecutionPlanBuilder
             null,
             context.CreateRemoteOperationName(),
             OperationType.Query,
-            context.Exports.CreateVariableDefinitions(executionStep.Variables.Values),
+            context.Exports.CreateVariableDefinitions(
+                executionStep.Variables.Values,
+                executionStep.Resolver?.Arguments),
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
@@ -178,6 +211,7 @@ internal sealed class ExecutionPlanBuilder
         var selectionNodes = new List<ISelectionNode>();
         var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
         var selectionSetType = executionStep.SelectionSetType;
+        Debug.Assert(selectionSet is not null);
 
         // create
         foreach (var rootSelection in executionStep.RootSelections)

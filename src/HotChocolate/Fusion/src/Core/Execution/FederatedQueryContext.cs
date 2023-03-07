@@ -35,6 +35,12 @@ internal sealed class FederatedQueryContext : IFederationContext
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodes(selectionSet);
 
+    public async Task<GraphQLResponse> ExecuteAsync(string subgraphName, GraphQLRequest request, CancellationToken cancellationToken)
+    {
+        using var client = _clientFactory.Create(subgraphName);
+        return await client.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
         string subgraphName,
         IReadOnlyList<GraphQLRequest> requests,

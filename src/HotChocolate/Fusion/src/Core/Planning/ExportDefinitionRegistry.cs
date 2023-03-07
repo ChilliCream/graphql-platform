@@ -8,25 +8,41 @@ namespace HotChocolate.Fusion.Planning;
 internal sealed class ExportDefinitionRegistry
 {
     private readonly Dictionary<(ISelectionSet, string), string> _stateKeyLookup = new();
-    private readonly Dictionary<string, ExportDefinition> _exportDefinitions = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ExportDefinition> _exportLookup = new(StringComparer.Ordinal);
+    private readonly List<ExportDefinition> _exports = new();
     private readonly string _groupKey = "_fusion_exports_";
     private int _stateId;
 
-    public IReadOnlyCollection<ExportDefinition> All => _exportDefinitions.Values;
+    public IReadOnlyCollection<ExportDefinition> All => _exportLookup.Values;
 
     public string Register(
         ISelectionSet selectionSet,
         FieldVariableDefinition variableDefinition,
-        IExecutionStep executionStep)
+        IExecutionStep providingExecutionStep)
     {
         var exportDefinition = new ExportDefinition(
             $"_{_groupKey}_{++_stateId}",
             selectionSet,
             variableDefinition,
-            executionStep);
-        _exportDefinitions.Add(exportDefinition.StateKey, exportDefinition);
+            providingExecutionStep);
+        _exportLookup.Add(exportDefinition.StateKey, exportDefinition);
         _stateKeyLookup.Add((selectionSet, variableDefinition.Name), exportDefinition.StateKey);
+        _exports.Add(exportDefinition);
         return exportDefinition.StateKey;
+    }
+
+    public void RegisterAdditionExport(
+        FieldVariableDefinition variableDefinition,
+        IExecutionStep providingExecutionStep,
+        string stateKey)
+    {
+        var originalExport = _exportLookup[stateKey];
+        var exportDefinition = new ExportDefinition(
+            stateKey,
+            originalExport.SelectionSet,
+            variableDefinition,
+            providingExecutionStep);
+        _exports.Add(exportDefinition);
     }
 
     public bool TryGetStateKey(
@@ -37,7 +53,7 @@ internal sealed class ExportDefinitionRegistry
     {
         if (_stateKeyLookup.TryGetValue((selectionSet, variableName), out stateKey))
         {
-            executionStep = _exportDefinitions[stateKey].ExecutionStep;
+            executionStep = _exportLookup[stateKey].ExecutionStep;
             return true;
         }
 
@@ -47,9 +63,10 @@ internal sealed class ExportDefinitionRegistry
     }
 
     public IReadOnlyList<VariableDefinitionNode> CreateVariableDefinitions(
-        IReadOnlyCollection<string> stateKeys)
+        IReadOnlyCollection<string> stateKeys,
+        IReadOnlyDictionary<string, ITypeNode>? argumentTypes)
     {
-        if (stateKeys.Count == 0)
+        if (stateKeys.Count == 0 || argumentTypes is null)
         {
             return Array.Empty<VariableDefinitionNode>();
         }
@@ -59,11 +76,11 @@ internal sealed class ExportDefinitionRegistry
 
         foreach (var stateKey in stateKeys)
         {
-            var variableDefinition = _exportDefinitions[stateKey].VariableDefinition;
+            var variableDefinition = _exportLookup[stateKey].VariableDefinition;
             definitions[index++] = new VariableDefinitionNode(
                 null,
                 new VariableNode(stateKey),
-                variableDefinition.Type,
+                argumentTypes[variableDefinition.Name],
                 null,
                 Array.Empty<DirectiveNode>());
         }
@@ -75,7 +92,7 @@ internal sealed class ExportDefinitionRegistry
         IExecutionStep executionStep,
         ISelectionSet selectionSet)
     {
-        foreach (var exportDefinition in _exportDefinitions.Values)
+        foreach (var exportDefinition in _exports)
         {
             if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
                 ReferenceEquals(exportDefinition.SelectionSet, selectionSet))

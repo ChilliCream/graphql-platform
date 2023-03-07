@@ -47,7 +47,11 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                         var selectionSet = new SelectionSetNode(new[] { selection });
 
                         // Create a new EntityResolver for the entity
-                        var resolver = new EntityResolver(selectionSet, type.Name, schema.Name);
+                        var resolver = new EntityResolver(
+                            EntityResolverKind.Single,
+                            selectionSet,
+                            type.Name,
+                            schema.Name);
 
                         // Loop through each argument and create a new ArgumentNode
                         // and VariableNode for the @ref directive argument
@@ -63,10 +67,12 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                         entity.Metadata.EntityResolvers.Add(resolver);
                     }
 
+                    // Check if the query field can be used to infer a batch by key resolver.
                     if (IsListOf(entityResolverField.Type, type) &&
                         entityResolverField.Arguments.Count == 1)
                     {
                         var argument = entityResolverField.Arguments.First();
+
                         if (argument.ContainsIsDirective() && IsListOfScalar(argument.Type))
                         {
                             var arguments = new List<ArgumentNode>();
@@ -85,7 +91,11 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                             var selectionSet = new SelectionSetNode(new[] { selection });
 
                             // Create a new EntityResolver for the entity
-                            var resolver = new EntityResolver(selectionSet, type.Name, schema.Name);
+                            var resolver = new EntityResolver(
+                                EntityResolverKind.BatchWithKey,
+                                selectionSet,
+                                type.Name,
+                                schema.Name);
 
                             // Loop through each argument and create a new ArgumentNode
                             // and VariableNode for the @ref directive argument
@@ -94,7 +104,9 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                                 var directive = arg.GetIsDirective();
                                 var var = type.CreateVariableName(directive);
                                 arguments.Add(new ArgumentNode(arg.Name, new VariableNode(var)));
-                                resolver.Variables.Add(var, arg.CreateVariableField(directive, var));
+                                resolver.Variables.Add(
+                                    var,
+                                    arg.CreateVariableField(directive, var));
                             }
 
                             // Add the new EntityResolver to the entity metadata
@@ -111,19 +123,19 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsListOf(IType type, IType entityType)
     {
-        if(type.Kind == TypeKind.NonNull)
+        if (type.Kind == TypeKind.NonNull)
         {
             type = type.InnerType();
         }
 
-        if(type.Kind != TypeKind.List)
+        if (type.Kind != TypeKind.List)
         {
             return false;
         }
 
         type = type.InnerType();
 
-        if(type.Kind == TypeKind.NonNull)
+        if (type.Kind == TypeKind.NonNull)
         {
             type = type.InnerType();
         }
@@ -134,19 +146,19 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsListOfScalar(IType type)
     {
-        if(type.Kind == TypeKind.NonNull)
+        if (type.Kind == TypeKind.NonNull)
         {
             type = type.InnerType();
         }
 
-        if(type.Kind != TypeKind.List)
+        if (type.Kind != TypeKind.List)
         {
             return false;
         }
 
         type = type.InnerType();
 
-        if(type.Kind == TypeKind.NonNull)
+        if (type.Kind == TypeKind.NonNull)
         {
             type = type.InnerType();
         }

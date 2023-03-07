@@ -21,6 +21,11 @@ internal static class FusionDirectiveArgumentNames
     public const string ArgumentArg = "argument";
 
     /// <summary>
+    /// Gets the name of the arguments argument.
+    /// </summary>
+    public const string ArgumentsArg = "arguments";
+
+    /// <summary>
     /// Gets the name of the type argument.
     /// </summary>
     public const string TypeArg = "type";
@@ -55,4 +60,3 @@ internal static class FusionDirectiveArgumentNames
     /// </summary>
     public const string BaseAddressArg = "baseAddress";
 }
-

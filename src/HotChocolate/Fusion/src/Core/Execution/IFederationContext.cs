@@ -23,6 +23,11 @@ internal interface IFederationContext
 
     bool NeedsMoreData(ISelectionSet selectionSet);
 
+    Task<GraphQLResponse> ExecuteAsync(
+        string subgraphName,
+        GraphQLRequest request,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
         string subgraphName,
         IReadOnlyList<GraphQLRequest> requests,
