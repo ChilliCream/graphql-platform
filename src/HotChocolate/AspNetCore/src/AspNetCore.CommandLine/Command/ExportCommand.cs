@@ -12,7 +12,6 @@ namespace Microsoft.AspNetCore.Builder;
 
 /// <summary>
 /// The export command can be used to export the schema to a file.
-///
 /// </summary>
 internal sealed class ExportCommand : Command
 {
@@ -21,11 +20,12 @@ internal sealed class ExportCommand : Command
     /// </summary>
     public ExportCommand() : base("export")
     {
+        Description =
+            "Export the graphql schema. If no output (--output) is specified the schema will be " +
+            "printed to the console.";
+
         AddOption(Opt<OutputOption>.Instance);
         AddOption(Opt<SchemaNameOption>.Instance);
-
-        Description =
-            "Export the graphql schema. If no output (--output) is specified the schema will be printed to the console.";
 
         this.SetHandler(
             ExecuteAsync,

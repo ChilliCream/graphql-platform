@@ -13,6 +13,7 @@ internal sealed class GraphQLRootCommand : Command
     public GraphQLRootCommand() : base("graphql")
     {
         Description = "A command line tool for a GraphQL Server.";
+
         AddCommand(new SchemaCommand());
     }
 }

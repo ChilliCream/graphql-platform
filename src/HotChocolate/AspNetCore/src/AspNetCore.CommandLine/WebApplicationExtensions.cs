@@ -10,10 +10,10 @@ namespace Microsoft.AspNetCore.Builder;
 public static class HostBuilderExtensions
 {
     /// <summary>
-    /// Extension method to run GraphQL commands on IHostBuilder interface with the provided
-    /// arguments. The method starts a GraphQL server that listens for command-line arguments. You
-    /// can use these arguments to invoke different tasks for CI / CD purposes, e.g. exporting the
-    /// schema.
+    /// Extension method to run GraphQL commands on <see cref="IHostBuilder"/> with the provided
+    /// arguments. The method either starts the server or executes the cli based on the provided
+    /// arguments. You can use these arguments to invoke different tasks for CI / CD purposes,
+    /// e.g. exporting the schema.
     /// </summary>
     /// <example>
     /// dotnet run -- schema export --output schema.graphql
@@ -26,10 +26,10 @@ public static class HostBuilderExtensions
         => await builder.Build().RunWithGraphQLCommandsAsync(args);
 
     /// <summary>
-    /// Extension method to run GraphQL commands on IHostBuilder interface with the provided
-    /// arguments. The method starts a GraphQL server that listens for command-line arguments. You
-    /// can use these arguments to invoke different tasks for CI / CD purposes, e.g. exporting the
-    /// schema.
+    /// Extension method to run GraphQL commands on <see cref="IHostBuilder"/> with the provided
+    /// arguments. The method either starts the server or executes the cli based on the provided
+    /// arguments. You can use these arguments to invoke different tasks for CI / CD purposes,
+    /// e.g. exporting the schema.
     /// </summary>
     /// <example>
     /// dotnet run -- schema export --output schema.graphql
@@ -42,10 +42,10 @@ public static class HostBuilderExtensions
         => builder.Build().RunWithGraphQLCommands(args);
 
     /// <summary>
-    /// Extension method to run GraphQL commands on IHostBuilder interface with the provided
-    /// arguments. The method starts a GraphQL server that listens for command-line arguments. You
-    /// can use these arguments to invoke different tasks for CI / CD purposes, e.g. exporting the
-    /// schema.
+    /// Extension method to run GraphQL commands on <see cref="IHost"/> with the provided
+    /// arguments. The method either starts the server or executes the cli based on the provided
+    /// arguments. You can use these arguments to invoke different tasks for CI / CD purposes,
+    /// e.g. exporting the schema.
     /// </summary>
     /// <example>
     /// dotnet run -- schema export --output schema.graphql
@@ -69,10 +69,10 @@ public static class HostBuilderExtensions
     }
 
     /// <summary>
-    /// Extension method to run GraphQL commands on IHostBuilder interface with the provided
-    /// arguments. The method starts a GraphQL server that listens for command-line arguments. You
-    /// can use these arguments to invoke different tasks for CI / CD purposes, e.g. exporting the
-    /// schema.
+    /// Extension method to run GraphQL commands on <see cref="IHost"/> with the provided
+    /// arguments. The method either starts the server or executes the cli based on the provided
+    /// arguments. You can use these arguments to invoke different tasks for CI / CD purposes,
+    /// e.g. exporting the schema.
     /// </summary>
     /// <example>
     /// dotnet run -- schema export --output schema.graphql

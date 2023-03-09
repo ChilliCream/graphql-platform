@@ -3,7 +3,7 @@ using System.CommandLine;
 namespace Microsoft.AspNetCore.Builder;
 
 /// <summary>
-/// The schema command .
+/// The schema command
 /// </summary>
 internal sealed class SchemaCommand : Command
 {
@@ -13,6 +13,7 @@ internal sealed class SchemaCommand : Command
     public SchemaCommand() : base("schema")
     {
         Description = "Schema management commands.";
+
         AddCommand(new ExportCommand());
     }
 }
