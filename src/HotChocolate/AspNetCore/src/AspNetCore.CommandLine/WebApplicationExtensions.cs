@@ -1,4 +1,6 @@
+using System.CommandLine.Parsing;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.CommandLine;
 
 namespace Microsoft.Extensions.Hosting;
 
