@@ -6,6 +6,9 @@ using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messa
 
 namespace HotChocolate.Transport.Sockets.Client;
 
+/// <summary>
+/// Represents the result of a WebSocket operation that returns a stream of data.
+/// </summary>
 public sealed class SocketResult : IDisposable
 {
     private readonly ResultEnumerable _enumerable;
@@ -29,9 +32,16 @@ public sealed class SocketResult : IDisposable
         _enumerable = new ResultEnumerable(observer, subscription, completion);
     }
 
-    public IAsyncEnumerable<OperationResult> ReadResultsAsync()
-        => _enumerable;
+    /// <summary>
+    /// Returns an asynchronous stream of <see cref="OperationResult"/> objects
+    /// representing the data returned by the WebSocket operation.
+    /// </summary>
+    /// <returns>An asynchronous stream of <see cref="OperationResult"/> objects.</returns>
+    public IAsyncEnumerable<OperationResult> ReadResultsAsync() => _enumerable;
 
+    /// <summary>
+    /// Releases the resources used by this <see cref="SocketResult"/> object.
+    /// </summary>
     public void Dispose()
     {
         if (!_disposed)
@@ -90,7 +100,6 @@ public sealed class SocketResult : IDisposable
                         _completion.SetCompleted();
                         break;
                 }
-
             } while (!cancellationToken.IsCancellationRequested && message is not null);
 
             _completion.TryComplete();

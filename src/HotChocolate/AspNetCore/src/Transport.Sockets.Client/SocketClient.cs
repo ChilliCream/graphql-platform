@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
