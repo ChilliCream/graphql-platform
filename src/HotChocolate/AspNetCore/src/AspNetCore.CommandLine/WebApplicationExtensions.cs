@@ -1,8 +1,6 @@
-using System.CommandLine.Parsing;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace Microsoft.Extensions.Hosting;
 
 /// <summary>
 /// Common extension of HostBuilder to run the GraphQL cli.

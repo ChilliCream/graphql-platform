@@ -1,7 +1,7 @@
 using System.CommandLine.Binding;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace HotChocolate.AspNetCore.CommandLine;
 
 internal static class Bind
 {

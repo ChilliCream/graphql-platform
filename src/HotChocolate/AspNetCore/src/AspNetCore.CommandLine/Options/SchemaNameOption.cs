@@ -1,9 +1,9 @@
 using System.CommandLine;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// A option for the schema command. The option is used to specify the name of the schema 
+/// A option for the schema command. The option is used to specify the name of the schema
 /// </summary>
 internal sealed class SchemaNameOption : Option<string>
 {

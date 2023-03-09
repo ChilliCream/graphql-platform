@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.CommandLine.Builder;
 using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
 /// A command line builder for the GraphQL server.

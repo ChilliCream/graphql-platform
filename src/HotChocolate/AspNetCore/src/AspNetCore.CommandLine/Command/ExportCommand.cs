@@ -1,14 +1,12 @@
-using System;
 using System.CommandLine;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
 /// The export command can be used to export the schema to a file.

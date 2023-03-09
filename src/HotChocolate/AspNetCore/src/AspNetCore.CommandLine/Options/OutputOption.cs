@@ -1,10 +1,10 @@
 using System.CommandLine;
 using System.IO;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// A option for the schema command. The option is used to specify the path to the file 
+/// A option for the schema command. The option is used to specify the path to the file
 /// </summary>
 internal sealed class OutputOption : Option<FileInfo?>
 {

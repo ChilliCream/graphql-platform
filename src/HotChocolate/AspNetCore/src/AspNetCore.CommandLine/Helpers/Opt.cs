@@ -1,10 +1,10 @@
 using System.CommandLine;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
 /// This class is a helper class that allows us to create a singleton instance of
-/// <see cref="Option"/> 
+/// <see cref="Option"/>
 /// </summary>
 internal static class Opt<TOption> where TOption : new()
 {

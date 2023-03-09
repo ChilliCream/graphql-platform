@@ -1,6 +1,6 @@
 using System.CommandLine;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
 /// The root command of the GraphQL CLI.
