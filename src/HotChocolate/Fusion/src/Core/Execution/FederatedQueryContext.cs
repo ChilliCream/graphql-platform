@@ -1,7 +1,9 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -22,7 +24,8 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(queryPlan));
         _operationContextOwner = operationContextOwner ??
             throw new ArgumentNullException(nameof(operationContextOwner));
-        _clientFactory = clientFactory;
+        _clientFactory = clientFactory ??
+            throw new ArgumentNullException(nameof(clientFactory));
     }
 
     public FusionGraphConfiguration ServiceConfig { get; }
@@ -42,9 +45,12 @@ internal sealed class FusionExecutionContext : IDisposable
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodes(selectionSet);
 
-    public async Task<GraphQLResponse> ExecuteAsync(string subgraphName, GraphQLRequest request, CancellationToken cancellationToken)
+    public async Task<GraphQLResponse> ExecuteAsync(
+        string subgraphName,
+        GraphQLRequest request,
+        CancellationToken cancellationToken)
     {
-        using var client = _clientFactory.Create(subgraphName);
+        await using var client = _clientFactory.CreateClient(subgraphName);
         return await client.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
@@ -53,7 +59,7 @@ internal sealed class FusionExecutionContext : IDisposable
         IReadOnlyList<GraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
-        using var client = _clientFactory.Create(subgraphName);
+        await using var client = _clientFactory.CreateClient(subgraphName);
         var responses = new GraphQLResponse[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
@@ -66,12 +72,18 @@ internal sealed class FusionExecutionContext : IDisposable
         return responses;
     }
 
-    public IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
+    public async IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
         string subgraphName,
         GraphQLRequest request,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await using var client = _clientFactory.CreateSubscriptionClient(subgraphName);
+
+        await foreach (var response in client.SubscribeAsync(request, cancellationToken)
+            .ConfigureAwait(false))
+        {
+            yield return response;
+        }
     }
 
     public void Dispose()

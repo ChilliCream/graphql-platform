@@ -10,24 +10,84 @@ subscription OnNewReview {
 }
 ---------------
 
-Result
+QueryPlan
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "extensions": {
-        "message": "A query execution plan can not be executed as a subscription.",
-        "stackTrace": "   at HotChocolate.Fusion.Planning.QueryPlan.SubscribeAsync(FusionExecutionContext context, CancellationToken cancellationToken) in /Users/michael/local/hc-3/src/HotChocolate/Fusion/src/Core/Planning/Nodes/QueryPlan.cs:line 89\n   at HotChocolate.Fusion.Execution.FederatedQueryExecutor.ExecuteAsync(FusionExecutionContext context, CancellationToken cancellationToken) in /Users/michael/local/hc-3/src/HotChocolate/Fusion/src/Core/Execution/FederatedQueryExecutor.cs:line 24\n   at HotChocolate.Fusion.Pipeline.OperationExecutionMiddleware.InvokeAsync(IRequestContext context, IBatchDispatcher batchDispatcher) in /Users/michael/local/hc-3/src/HotChocolate/Fusion/src/Core/Pipeline/OperationExecutionMiddleware.cs:line 67\n   at HotChocolate.Execution.Pipeline.OperationVariableCoercionMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/OperationVariableCoercionMiddleware.cs:line 32\n   at HotChocolate.Execution.Pipeline.OperationResolverMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/OperationResolverMiddleware.cs:line 60\n   at HotChocolate.Execution.Pipeline.OperationComplexityMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/OperationComplexityMiddleware.cs:line 50\n   at HotChocolate.Execution.Pipeline.OperationCacheMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/OperationCacheMiddleware.cs:line 56\n   at HotChocolate.Execution.Pipeline.DocumentValidationMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/DocumentValidationMiddleware.cs:line 85\n   at HotChocolate.Execution.Pipeline.DocumentParserMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/DocumentParserMiddleware.cs:line 86\n   at HotChocolate.Execution.Pipeline.DocumentCacheMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/DocumentCacheMiddleware.cs:line 76\n   at HotChocolate.Execution.Pipeline.TimeoutMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/TimeoutMiddleware.cs:line 33\n   at HotChocolate.Execution.Pipeline.ExceptionMiddleware.InvokeAsync(IRequestContext context) in /Users/michael/local/hc-3/src/HotChocolate/Core/src/Execution/Pipeline/ExceptionMiddleware.cs:line 21"
+  "document": "subscription OnNewReview { onNewReview { body author { name } } }",
+  "operation": "OnNewReview",
+  "rootNode": {
+    "type": "Subscription",
+    "nodes": [
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Result 1
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Could be",
+      "author": {
+        "name": "\u0022nam"
       }
     }
-  ]
+  }
+}
+---------------
+
+Result 2
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Too expensive.",
+      "author": {
+        "name": "@complete"
+      }
+    }
+  }
+}
+---------------
+
+Result 3
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Could be better.",
+      "author": {
+        "name": "@ada"
+      }
+    }
+  }
+}
+---------------
+
+Result 4
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Prefer something else.",
+      "author": {
+        "name": "@complete"
+      }
+    }
+  }
 }
 ---------------
 
 Fusion Graph
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") {
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") {
   query: Query
   subscription: Subscription
 }

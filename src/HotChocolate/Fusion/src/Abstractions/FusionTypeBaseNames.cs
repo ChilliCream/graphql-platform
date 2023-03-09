@@ -31,6 +31,11 @@ internal static class FusionTypeBaseNames
     public const string HttpDirective = "httpClient";
 
     /// <summary>
+    /// The base name of the HTTP directive.
+    /// </summary>
+    public const string WebSocketDirective = "webSocketClient";
+
+    /// <summary>
     /// The base name of the fusion directive.
     /// </summary>
     public const string FusionDirective = "fusion";

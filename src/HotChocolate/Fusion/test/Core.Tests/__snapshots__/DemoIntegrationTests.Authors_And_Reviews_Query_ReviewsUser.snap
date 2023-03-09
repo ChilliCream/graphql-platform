@@ -25,162 +25,22 @@ query GetUser {
 }
 ---------------
 
-QueryPlan
----------------
-{
-  "document": "query GetUser { a: reviews { body author { name } } b: reviews { body author { name } } users { name reviews { body author { name } } } }",
-  "operation": "GetUser",
-  "rootNode": {
-    "type": "Serial",
-    "nodes": [
-      {
-        "type": "Parallel",
-        "nodes": [
-          {
-            "type": "Resolver",
-            "schemaName": "Reviews",
-            "document": "query GetUser_1 { a: reviews { body author { name } } b: reviews { body author { name } } }",
-            "selectionSetId": 0
-          },
-          {
-            "type": "Resolver",
-            "schemaName": "Accounts",
-            "document": "query GetUser_2 { users { name __fusion_exports__1: id } }",
-            "selectionSetId": 0
-          }
-        ]
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          0
-        ]
-      },
-      {
-        "type": "Resolver",
-        "schemaName": "Reviews",
-        "document": "query GetUser_3($__fusion_exports__1: Int!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
-        "selectionSetId": 1,
-        "path": [
-          "authorById"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          1
-        ]
-      }
-    ]
-  }
-}
----------------
-
 Result
 ---------------
 {
-  "data": {
-    "a": [
-      {
-        "body": "Love it!",
-        "author": {
-          "name": "@ada"
-        }
-      },
-      {
-        "body": "Too expensive.",
-        "author": {
-          "name": "@complete"
-        }
-      },
-      {
-        "body": "Could be better.",
-        "author": {
-          "name": "@ada"
-        }
-      },
-      {
-        "body": "Prefer something else.",
-        "author": {
-          "name": "@complete"
-        }
-      }
-    ],
-    "b": [
-      {
-        "body": "Love it!",
-        "author": {
-          "name": "@ada"
-        }
-      },
-      {
-        "body": "Too expensive.",
-        "author": {
-          "name": "@complete"
-        }
-      },
-      {
-        "body": "Could be better.",
-        "author": {
-          "name": "@ada"
-        }
-      },
-      {
-        "body": "Prefer something else.",
-        "author": {
-          "name": "@complete"
-        }
-      }
-    ],
-    "users": [
-      {
-        "name": "Ada Lovelace",
-        "reviews": [
-          {
-            "body": "Love it!",
-            "author": {
-              "name": "@ada"
-            }
-          },
-          {
-            "body": "Could be better.",
-            "author": {
-              "name": "@ada"
-            }
-          }
-        ]
-      },
-      {
-        "name": "Alan Turing",
-        "reviews": [
-          {
-            "body": "Too expensive.",
-            "author": {
-              "name": "@complete"
-            }
-          },
-          {
-            "body": "Prefer something else.",
-            "author": {
-              "name": "@complete"
-            }
-          }
-        ]
-      }
-    ]
-  }
+  "errors": [
+    {
+      "message": "Unexpected Execution Error"
+    }
+  ]
 }
 ---------------
 
 Fusion Graph
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") {
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") {
   query: Query
+  subscription: Subscription
 }
 
 type Query {
@@ -189,6 +49,10 @@ type Query {
   userById(id: Int!): User! @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ])
   users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
   usersById(ids: [Int!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[Int!]!" } ])
+}
+
+type Subscription {
+  onNewReview: Review! @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIPTION")
 }
 
 type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) {

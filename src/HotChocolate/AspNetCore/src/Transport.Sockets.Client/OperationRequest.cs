@@ -10,6 +10,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
     public OperationRequest(
         string? query,
         string? id,
+        string? operationName,
         ObjectValueNode? variables,
         ObjectValueNode? extensions)
     {
@@ -20,6 +21,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
 
         Query = query;
         Id = id;
+        OperationName = operationName;
         VariablesNode = variables;
         ExtensionsNode = extensions;
     }
@@ -27,6 +29,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
     public OperationRequest(
         string? query = null,
         string? id = null,
+        string? operationName = null,
         IReadOnlyDictionary<string, object?>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
@@ -37,6 +40,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
 
         Query = query;
         Id = id;
+        OperationName = operationName;
         Variables = variables;
         Extensions = extensions;
     }
@@ -44,6 +48,8 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
     public string? Id { get; }
 
     public string? Query { get; }
+
+    public string? OperationName { get; }
 
     public IReadOnlyDictionary<string, object?>? Variables { get; }
 
@@ -63,16 +69,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
         => obj is OperationRequest other && Equals(other);
 
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = Id != null ? Id.GetHashCode() : 0;
-            hashCode = (hashCode * 397) ^ (Query != null ? Query.GetHashCode() : 0);
-            hashCode = (hashCode * 397) ^ (Variables != null ? Variables.GetHashCode() : 0);
-            hashCode = (hashCode * 397) ^ (Extensions != null ? Extensions.GetHashCode() : 0);
-            return hashCode;
-        }
-    }
+        => HashCode.Combine(Id, Query, Variables, Extensions);
 
     public static bool operator ==(OperationRequest left, OperationRequest right)
         => left.Equals(right);

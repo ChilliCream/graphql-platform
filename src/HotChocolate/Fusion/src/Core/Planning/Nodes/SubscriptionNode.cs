@@ -61,6 +61,7 @@ internal sealed class SubscriptionNode : QueryPlanNode
     {
         var variableValues = new Dictionary<string, IValueNode>();
         var request = CreateRequest(variableValues);
+        var initialResponse = true;
 
         await foreach (var response in rootContext
             .SubscribeAsync(SubgraphName, request, cancellationToken)
@@ -69,17 +70,21 @@ internal sealed class SubscriptionNode : QueryPlanNode
             var context = rootContext.Clone();
             var operationContext = context.OperationContext;
 
-            if (operationContext.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
+            if (initialResponse)
             {
-                var bufferWriter = new ArrayBufferWriter<byte>();
-                context.QueryPlan.Format(bufferWriter);
-                operationContext.Result.SetExtension(
-                    "queryPlan",
-                    new RawJsonValue(bufferWriter.WrittenMemory));
-            }
+                if (operationContext.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
+                {
+                    var bufferWriter = new ArrayBufferWriter<byte>();
+                    context.QueryPlan.Format(bufferWriter);
+                    operationContext.Result.SetExtension(
+                        "queryPlan",
+                        new RawJsonValue(bufferWriter.WrittenMemory));
+                }
 
-            // we store the context on the result for unit tests.
-            operationContext.Result.SetContextData("queryPlan", context.QueryPlan);
+                // we store the context on the result for unit tests.
+                operationContext.Result.SetContextData("queryPlan", context.QueryPlan);
+            }
+            initialResponse = false;
 
             // Enqueue root node to initiate the execution process.
             var rootSelectionSet = context.Operation.RootSelectionSet;

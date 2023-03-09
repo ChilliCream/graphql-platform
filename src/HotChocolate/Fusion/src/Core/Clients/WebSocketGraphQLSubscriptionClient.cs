@@ -1,24 +1,27 @@
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Metadata;
+using HotChocolate.Transport.Sockets;
 using HotChocolate.Transport.Sockets.Client;
 
 namespace HotChocolate.Fusion.Clients;
 
 internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionClient
 {
-    private readonly Func<WebSocket> _webSocketFactory;
+    private readonly WebSocketClientConfiguration _configuration;
+    private readonly IWebSocketConnection _connection;
 
     public WebSocketGraphQLSubscriptionClient(
-        string subgraphName,
-        Func<WebSocket> webSocketFactory)
+        WebSocketClientConfiguration configuration,
+        IWebSocketConnection connection)
     {
-        SubgraphName = subgraphName;
-        _webSocketFactory = webSocketFactory;
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _connection = connection ?? throw new ArgumentNullException(nameof(connection));
     }
 
-    public string SubgraphName { get; }
+    public string SubgraphName => _configuration.SubgraphName;
 
-    public ValueTask<IAsyncEnumerable<GraphQLResponse>> SubscribeAsync(
+    public IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
         GraphQLRequest request,
         CancellationToken cancellationToken)
     {
@@ -27,28 +30,79 @@ internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
             throw new ArgumentNullException(nameof(request));
         }
 
-        return new(SubscribeInternalAsync(request, _webSocketFactory(), cancellationToken));
+        return SubscribeInternalAsync(request, cancellationToken);
     }
 
-    private static async IAsyncEnumerable<GraphQLResponse> SubscribeInternalAsync(
+    private async IAsyncEnumerable<GraphQLResponse> SubscribeInternalAsync(
         GraphQLRequest request,
-        WebSocket webSocket,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        var operationRequest = new OperationRequest(
-            query: request.Document.ToString(false),
-            id: null,
-            variables: request.VariableValues,
-            extensions: request.Extensions);
+        using var socket = await _connection.ConnectAsync(
+                _configuration.EndpointUri,
+                WellKnownProtocols.GraphQL_Transport_WS,
+                ct)
+            .ConfigureAwait(false);
 
-        var client = await SocketClient.ConnectAsync(webSocket, ct).ConfigureAwait(false);
-        using var socketResult = await client.ExecuteAsync(operationRequest, ct);
-
-        await foreach (var operationResult in socketResult.ReadResultsAsync().WithCancellation(ct))
+        try
         {
-            yield return new GraphQLResponse(operationResult);
+            var operationRequest = new OperationRequest(
+                query: request.Document.ToString(false),
+                id: null,
+                operationName: null,
+                variables: request.VariableValues,
+                extensions: request.Extensions);
+
+            await using var client = await SocketClient.ConnectAsync(socket, ct)
+                .ConfigureAwait(false);
+            using var socketResult = await client.ExecuteAsync(operationRequest, ct)
+                .ConfigureAwait(false);
+
+            await foreach (var operationResult in socketResult.ReadResultsAsync()
+                .WithCancellation(ct).ConfigureAwait(false))
+            {
+                yield return new GraphQLResponse(operationResult);
+            }
+        }
+        finally
+        {
+            try
+            {
+                await CloseWebSocketAsync(
+                        socket,
+                        WebSocketCloseStatus.NormalClosure,
+                        "Completed",
+                        ct)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // we will try to close the socket but if this fails we will ignore it.
+            }
         }
     }
 
-    public void Dispose() { }
+    private static async Task CloseWebSocketAsync(
+        WebSocket webSocket,
+        WebSocketCloseStatus closeStatus,
+        string closeDescription,
+        CancellationToken ct)
+    {
+        if (webSocket.State == WebSocketState.Open)
+        {
+            await webSocket.CloseOutputAsync(closeStatus, closeDescription, ct);
+
+            await Task.Delay(50, ct);
+
+            if (webSocket.State is WebSocketState.Open or WebSocketState.CloseSent)
+            {
+                await webSocket.CloseAsync(closeStatus, closeDescription, ct);
+            }
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        _connection.Dispose();
+        return default;
+    }
 }

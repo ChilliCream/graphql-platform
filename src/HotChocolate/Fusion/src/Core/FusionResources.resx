@@ -45,4 +45,7 @@
   <data name="FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue" xml:space="preserve">
     <value>The kind must be of the values query, batch, batchByKey or subscription.</value>
   </data>
+  <data name="FusionRequestExecutorBuilderExtensions_AddFusionGatewayServer_NoSchema" xml:space="preserve">
+    <value>A valid service configuration must always produce a schema document.</value>
+  </data>
 </root>

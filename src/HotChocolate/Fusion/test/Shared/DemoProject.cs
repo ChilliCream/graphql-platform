@@ -1,4 +1,5 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Shared.Accounts;
 using HotChocolate.Fusion.Shared.Products;
 using HotChocolate.Fusion.Shared.Reviews;
@@ -11,7 +12,6 @@ namespace HotChocolate.Fusion.Shared;
 public sealed class DemoProject : IDisposable
 {
     private readonly IReadOnlyList<IDisposable> _disposables;
-    private readonly IHttpClientFactory _clientFactory;
     private bool _disposed;
 
     private DemoProject(
@@ -19,19 +19,25 @@ public sealed class DemoProject : IDisposable
         DemoSubgraph accounts,
         DemoSubgraph reviews,
         DemoSubgraph products,
-        IHttpClientFactory clientFactory)
+        IHttpClientFactory clientFactory,
+        IWebSocketConnectionFactory webSocketConnectionFactory)
     {
         _disposables = disposables;
         Accounts = accounts;
         Reviews = reviews;
         Products = products;
-        _clientFactory = clientFactory;
+        HttpClientFactory = clientFactory;
+        WebSocketConnectionFactory = webSocketConnectionFactory;
     }
 
-    public IHttpClientFactory HttpClientFactory => _clientFactory;
+    public IHttpClientFactory HttpClientFactory { get; }
+
+    public IWebSocketConnectionFactory WebSocketConnectionFactory { get; }
 
     public DemoSubgraph Reviews { get; }
+
     public DemoSubgraph Products { get; }
+
     public DemoSubgraph Accounts { get; }
 
     public static async Task<DemoProject> CreateAsync(CancellationToken ct = default)
@@ -50,6 +56,7 @@ public sealed class DemoProject : IDisposable
                 .AddQueryType<ReviewQuery>()
                 .AddSubscriptionType<ReviewsSubscription>(),
             c => c
+                .UseWebSockets()
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
         disposables.Add(reviews);
@@ -94,7 +101,7 @@ public sealed class DemoProject : IDisposable
             .DownloadSchemaAsync(productsClient, ct)
             .ConfigureAwait(false);
 
-        var clients = new Dictionary<string, Func<HttpClient>>
+        var httpClients = new Dictionary<string, Func<HttpClient>>
         {
             {
                 "Reviews", () =>
@@ -114,7 +121,7 @@ public sealed class DemoProject : IDisposable
                     return httpClient;
                 }
             },
-             {
+            {
                 "Products", () =>
                 {
                     // ReSharper disable once AccessToDisposedClosure
@@ -125,12 +132,41 @@ public sealed class DemoProject : IDisposable
             },
         };
 
+        var webSocketClients = new Dictionary<string, Func<IWebSocketConnection>>
+        {
+            {
+                "Reviews", () => new MockWebSocketConnection(reviews.CreateWebSocketClient())
+            },
+            {
+                "Accounts", () => new MockWebSocketConnection(accounts.CreateWebSocketClient())
+            },
+            {
+                "Products", () => new MockWebSocketConnection(products.CreateWebSocketClient())
+            },
+        };
+
         return new DemoProject(
             disposables,
-            new DemoSubgraph("Accounts", accountsClient.BaseAddress, accountsSchema, accounts),
-            new DemoSubgraph("Reviews", reviewsClient.BaseAddress, reviewsSchema, reviews),
-            new DemoSubgraph("Products", productsClient.BaseAddress, productsSchema, products),
-            new MockHttpClientFactory(clients));
+            new DemoSubgraph(
+                "Accounts",
+                accountsClient.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                accountsSchema,
+                accounts),
+            new DemoSubgraph(
+                "Reviews",
+                reviewsClient.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                reviewsSchema,
+                reviews),
+            new DemoSubgraph(
+                "Products",
+                productsClient.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                productsSchema,
+                products),
+            new MockHttpClientFactory(httpClients),
+            new MockWebSocketConnectionFactory(webSocketClients));
     }
 
     public void Dispose()

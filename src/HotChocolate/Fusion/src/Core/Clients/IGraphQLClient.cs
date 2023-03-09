@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Clients;
 /// <summary>
 /// Represents a client for making GraphQL requests to a subgraph.
 /// </summary>
-public interface IGraphQLClient : IDisposable
+public interface IGraphQLClient : IAsyncDisposable
 {
     /// <summary>
     /// Gets the name of the subgraph that this client is connected to.

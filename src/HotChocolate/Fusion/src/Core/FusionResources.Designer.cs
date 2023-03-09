@@ -98,5 +98,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue", resourceCulture);
             }
         }
+        
+        internal static string FusionRequestExecutorBuilderExtensions_AddFusionGatewayServer_NoSchema {
+            get {
+                return ResourceManager.GetString("FusionRequestExecutorBuilderExtensions_AddFusionGatewayServer_NoSchema", resourceCulture);
+            }
+        }
     }
 }

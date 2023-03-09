@@ -14,10 +14,10 @@ public sealed class ReviewsSubscription
 
         var reviews = new Review[]
         {
-            new Review(1, authors[1], new Product(1), "Love it!"),
-            new Review(2, authors[2], new Product(2), "Too expensive."),
-            new Review(3, authors[1], new Product(3), "Could be better."),
-            new Review(4, authors[2], new Product(1), "Prefer something else.")
+            new Review(1, authors[0], new Product(1), "Love it!"),
+            new Review(2, authors[1], new Product(2), "Too expensive."),
+            new Review(3, authors[0], new Product(3), "Could be better."),
+            new Review(4, authors[1], new Product(1), "Prefer something else.")
         };
 
         foreach (var review in reviews)

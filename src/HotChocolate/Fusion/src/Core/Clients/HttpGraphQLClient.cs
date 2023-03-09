@@ -2,26 +2,30 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Clients;
 
-public sealed class HttpGraphQLClient : IGraphQLClient
+internal sealed class HttpGraphQLClient : IGraphQLClient
 {
     private const string _jsonMediaType = "application/json";
     private const string _graphqlMediaType = "application/graphql-response+json";
     private static readonly Encoding _utf8 = Encoding.UTF8;
     private readonly JsonRequestFormatter _formatter = new();
+    private HttpClientConfiguration _config;
     private readonly HttpClient _client;
 
-    public HttpGraphQLClient(string subgraph, HttpClient httpClient)
+    public HttpGraphQLClient(
+        HttpClientConfiguration configuration,
+        HttpClient httpClient)
     {
-        SubgraphName = subgraph;
-        _client = httpClient;
+        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _client = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
-    public string SubgraphName { get; }
+    public string SubgraphName => _config.SubgraphName;
 
     public Task<GraphQLResponse> ExecuteAsync(
         GraphQLRequest request,
@@ -78,6 +82,7 @@ public sealed class HttpGraphQLClient : IGraphQLClient
         _formatter.Write(writer, request);
 
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, default(Uri));
+        requestMessage.RequestUri = _config.EndpointUri;
         requestMessage.Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
         requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(_jsonMediaType);
         requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(_graphqlMediaType));
@@ -122,6 +127,9 @@ public sealed class HttpGraphQLClient : IGraphQLClient
             outerStreamEncoding: Encoding.UTF8);
     }
 
-    public void Dispose()
-        => _client.Dispose();
+    public ValueTask DisposeAsync()
+    {
+        _client.Dispose();
+        return default;
+    }
 }

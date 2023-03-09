@@ -86,6 +86,7 @@ internal sealed class ExecutionPlanBuilder
             var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
             parent.AddNode(compose);
             completed.Add(root.Key);
+            context.Nodes.Remove(root.Key);
 
             current = context.Nodes.Where(t => completed.IsSupersetOf(t.Key.DependsOn)).ToArray();
         }
@@ -164,10 +165,10 @@ internal sealed class ExecutionPlanBuilder
             foreach (var argument in resolver.Arguments)
             {
                 if (!context.Exports.TryGetStateKey(
-                        executionStep.RootSelections[0].Selection.DeclaringSelectionSet,
-                        argument.Key,
-                        out var stateKey,
-                        out _))
+                    executionStep.RootSelections[0].Selection.DeclaringSelectionSet,
+                    argument.Key,
+                    out var stateKey,
+                    out _))
                 {
                     // TODO : Exception
                     throw new InvalidOperationException("The state is inconsistent.");
@@ -194,7 +195,11 @@ internal sealed class ExecutionPlanBuilder
         SelectionExecutionStep executionStep)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
-        var (requestDocument, path) = CreateRequestDocument(context, executionStep);
+        var (requestDocument, path) =
+            CreateRequestDocument(
+                context,
+                executionStep,
+                OperationType.Subscription);
 
         context.HasNodes.Add(selectionSet);
 
@@ -218,7 +223,8 @@ internal sealed class ExecutionPlanBuilder
 
     private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep)
+        SelectionExecutionStep executionStep,
+        OperationType operationType = OperationType.Query)
     {
         var rootSelectionSetNode = CreateRootSelectionSetNode(context, executionStep);
         IReadOnlyList<string> path = Array.Empty<string>();
@@ -244,7 +250,7 @@ internal sealed class ExecutionPlanBuilder
         var operationDefinitionNode = new OperationDefinitionNode(
             null,
             context.CreateRemoteOperationName(),
-            OperationType.Query,
+            operationType,
             context.Exports.CreateVariableDefinitions(
                 executionStep.Variables.Values,
                 executionStep.Resolver?.Arguments),

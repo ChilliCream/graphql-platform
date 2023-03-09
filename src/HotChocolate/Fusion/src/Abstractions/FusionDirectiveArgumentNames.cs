@@ -11,6 +11,11 @@ internal static class FusionDirectiveArgumentNames
     public const string NameArg = "name";
 
     /// <summary>
+    /// Gets the name of the client name argument.
+    /// </summary>
+    public const string ClientNameArg = "clientName";
+
+    /// <summary>
     /// Gets the name of the select argument.
     /// </summary>
     public const string SelectArg = "select";

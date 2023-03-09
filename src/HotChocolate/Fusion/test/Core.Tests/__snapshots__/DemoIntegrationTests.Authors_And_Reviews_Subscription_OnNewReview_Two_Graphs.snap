@@ -1,20 +1,112 @@
 User Request
 ---------------
-query GetUser {
-  userById(id: 1) {
-    id
+subscription OnNewReview {
+  onNewReview {
+    body
+    author {
+      name
+      birthdate
+    }
   }
 }
 ---------------
 
-Result
+QueryPlan
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
+  "document": "subscription OnNewReview { onNewReview { body author { name birthdate } } }",
+  "operation": "OnNewReview",
+  "rootNode": {
+    "type": "Subscription",
+    "nodes": [
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Resolver",
+        "schemaName": "Accounts",
+        "document": "query OnNewReview_2($__fusion_exports__1: Int!) { userById(id: $__fusion_exports__1) { birthdate } }",
+        "selectionSetId": 2,
+        "path": [
+          "userById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          2
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Result 1
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "__1) {\\n",
+      "author": {
+        "name": "}\u0022,\n",
+        "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
+      }
     }
-  ]
+  }
+}
+---------------
+
+Result 2
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "__1) {\\n    bi",
+      "author": {
+        "name": "\u0022variable",
+        "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
+      }
+    }
+  }
+}
+---------------
+
+Result 3
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Could be better.",
+      "author": {
+        "name": "@ada",
+        "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
+      }
+    }
+  }
+}
+---------------
+
+Result 4
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Prefer something else.",
+      "author": {
+        "name": "@complete",
+        "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
+      }
+    }
+  }
 }
 ---------------
 

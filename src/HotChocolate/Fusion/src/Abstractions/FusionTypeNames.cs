@@ -19,6 +19,7 @@ public sealed class FusionTypeNames
         string sourceDirective,
         string isDirective,
         string httpDirective,
+        string webSocketDirective,
         string fusionDirective,
         string selectionScalar,
         string selectionSetScalar,
@@ -34,6 +35,7 @@ public sealed class FusionTypeNames
         SourceDirective = sourceDirective;
         IsDirective = isDirective;
         HttpDirective = httpDirective;
+        WebSocketDirective = webSocketDirective;
         FusionDirective = fusionDirective;
         SelectionScalar = selectionScalar;
         SelectionSetScalar = selectionSetScalar;
@@ -48,6 +50,7 @@ public sealed class FusionTypeNames
         _fusionDirectives.Add(sourceDirective);
         _fusionDirectives.Add(isDirective);
         _fusionDirectives.Add(httpDirective);
+        _fusionDirectives.Add(webSocketDirective);
         _fusionDirectives.Add(fusionDirective);
 
         _fusionTypes.Add(selectionScalar);
@@ -55,6 +58,8 @@ public sealed class FusionTypeNames
         _fusionTypes.Add(typeNameScalar);
         _fusionTypes.Add(typeScalar);
         _fusionTypes.Add(uriScalar);
+        _fusionTypes.Add(argumentDefinition);
+        _fusionTypes.Add(resolverKind);
     }
 
     /// <summary>
@@ -86,6 +91,11 @@ public sealed class FusionTypeNames
     /// Gets the name of the http directive.
     /// </summary>
     public string HttpDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the http directive.
+    /// </summary>
+    public string WebSocketDirective { get; }
 
     /// <summary>
     /// Gets the name of the fusion directive.
@@ -164,6 +174,7 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.SourceDirective}",
                 $"{prefix}_{FusionTypeBaseNames.IsDirective}",
                 $"{prefix}_{FusionTypeBaseNames.HttpDirective}",
+                $"{prefix}_{FusionTypeBaseNames.WebSocketDirective}",
                 prefixSelf
                     ? $"{prefix}_{FusionTypeBaseNames.FusionDirective}"
                     : FusionTypeBaseNames.FusionDirective,
@@ -183,6 +194,7 @@ public sealed class FusionTypeNames
             FusionTypeBaseNames.SourceDirective,
             FusionTypeBaseNames.IsDirective,
             FusionTypeBaseNames.HttpDirective,
+            FusionTypeBaseNames.WebSocketDirective,
             FusionTypeBaseNames.FusionDirective,
             $"_{FusionTypeBaseNames.Selection}",
             $"_{FusionTypeBaseNames.SelectionSet}",

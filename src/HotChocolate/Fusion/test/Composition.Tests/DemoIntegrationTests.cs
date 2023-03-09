@@ -26,6 +26,27 @@ public sealed class DemoIntegrationTests
             .MatchSnapshot(extension: ".graphql");
     }
 
+    [Fact]
+    public async Task Accounts_And_Reviews_Products()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer();
+
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+            });
+
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
+
     private const string AccountsExtensionSdl =
         """
         extend type Query {
