@@ -1,0 +1,12 @@
+Description:
+  Schema management commands.
+
+Usage:
+  graphql schema [command] [options]
+
+Options:
+  -?, -h, --help  Show help and usage information
+
+Commands:
+  export  Export the graphql schema. If no output (--output) is specified the schema will be printed to the console.
+
