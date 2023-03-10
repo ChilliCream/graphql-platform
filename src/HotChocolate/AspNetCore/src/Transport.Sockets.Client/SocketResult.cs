@@ -92,22 +92,22 @@ public sealed class SocketResult : IDisposable
                     case ErrorMessage error:
                         yield return error.Payload;
                         message = null;
-                        _completion.SetCompleted();
+                        _completion.MarkDataStreamCompleted();
                         break;
 
                     case CompleteMessage:
                         message = null;
-                        _completion.SetCompleted();
+                        _completion.MarkDataStreamCompleted();
                         break;
                 }
             } while (!cancellationToken.IsCancellationRequested && message is not null);
 
-            _completion.TryComplete();
+            _completion.TrySendCompleteMessage();
         }
 
         public void Dispose()
         {
-            _completion.TryComplete();
+            _completion.TrySendCompleteMessage();
             _subscription.Dispose();
             _observer.Dispose();
         }

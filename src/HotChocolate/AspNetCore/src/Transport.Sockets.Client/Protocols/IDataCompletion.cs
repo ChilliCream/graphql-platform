@@ -9,10 +9,10 @@ internal interface IDataCompletion
     /// <summary>
     /// Marks the data stream as completed.
     /// </summary>
-    void SetCompleted();
+    void MarkDataStreamCompleted();
 
     /// <summary>
     /// Tries to send a data complete message to the server.
     /// </summary>
-    void TryComplete();
+    void TrySendCompleteMessage();
 }

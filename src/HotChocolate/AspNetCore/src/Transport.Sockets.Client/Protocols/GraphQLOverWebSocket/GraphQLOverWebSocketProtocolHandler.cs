@@ -38,7 +38,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         // if the user cancels this stream we will send the server a complete request
         // so that we no longer receive new result messages.
-        cancellationToken.Register(completion.TryComplete);
+        cancellationToken.Register(completion.TrySendCompleteMessage);
 
         try
         {
@@ -134,10 +134,10 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             _id = id;
         }
 
-        public void SetCompleted()
+        public void MarkDataStreamCompleted()
             => _completed = true;
 
-        public void TryComplete()
+        public void TrySendCompleteMessage()
         {
             if (!_completed)
             {
