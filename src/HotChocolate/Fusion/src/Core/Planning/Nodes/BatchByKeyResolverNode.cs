@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
@@ -19,7 +20,8 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
         ISelectionSet selectionSet,
         IReadOnlyList<string> requires,
         IReadOnlyList<string> path,
-        IReadOnlyDictionary<string, ITypeNode> argumentTypes)
+        IReadOnlyDictionary<string, ITypeNode> argumentTypes,
+        IReadOnlyList<string> forwardedVariables)
         : base(id)
     {
         SubgraphName = subgraphName;
@@ -27,6 +29,7 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
         SelectionSet = selectionSet;
         Requires = requires;
         ArgumentTypes = argumentTypes;
+        ForwardedVariables = forwardedVariables;
         _path = path;
     }
 
@@ -55,8 +58,12 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
     /// <summary>
     /// Gets the type lookup of resolver arguments.
     /// </summary>
-    /// <value></value>
     public IReadOnlyDictionary<string, ITypeNode> ArgumentTypes { get; }
+
+    /// <summary>
+    /// Gets the variables that this request handler forwards to the subgraph.
+    /// </summary>
+    public IReadOnlyList<string> ForwardedVariables { get; }
 
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
@@ -77,7 +84,9 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
 
             // Create the batch subgraph request.
             var variableValues = BuildVariables(workItems);
-            var request = CreateRequest(variableValues);
+            var request = CreateRequest(
+                context.OperationContext.Variables,
+                variableValues);
 
             // Once we have the batch request, we will enqueue it for execution with
             // the execution engine.
@@ -123,13 +132,24 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
         }
     }
 
-    private GraphQLRequest CreateRequest(IReadOnlyDictionary<string, IValueNode> variableValues)
+    private GraphQLRequest CreateRequest(
+        IVariableValueCollection variables,
+        IReadOnlyDictionary<string, IValueNode> variableValues)
     {
         ObjectValueNode? vars = null;
 
-        if (Requires.Count > 0)
+        if (Requires.Count > 0 || ForwardedVariables.Count > 0)
         {
             var fields = new List<ObjectFieldNode>();
+
+            foreach (var forwardedVariable in ForwardedVariables)
+            {
+                if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
+                    value is not null)
+                {
+                    fields.Add(new ObjectFieldNode(forwardedVariable, value));
+                }
+            }
 
             foreach (var requirement in Requires)
             {

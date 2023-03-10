@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
@@ -18,7 +19,8 @@ internal sealed class ResolverNode : QueryPlanNode
         DocumentNode document,
         ISelectionSet selectionSet,
         IReadOnlyList<string> requires,
-        IReadOnlyList<string> path)
+        IReadOnlyList<string> path,
+        IReadOnlyList<string> forwardedVariables)
         : base(id)
     {
         SubgraphName = subgraphName;
@@ -26,6 +28,7 @@ internal sealed class ResolverNode : QueryPlanNode
         SelectionSet = selectionSet;
         Requires = requires;
         _path = path;
+        ForwardedVariables = forwardedVariables;
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Resolver;
@@ -50,6 +53,11 @@ internal sealed class ResolverNode : QueryPlanNode
     /// </summary>
     public IReadOnlyList<string> Requires { get; }
 
+    /// <summary>
+    /// Gets the variables that this request handler forwards to the subgraph.
+    /// </summary>
+    public IReadOnlyList<string> ForwardedVariables { get; }
+
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
         IExecutionState state,
@@ -66,7 +74,9 @@ internal sealed class ResolverNode : QueryPlanNode
             {
                 var workItem = workItems[i];
                 ExtractPartialResult(workItem);
-                requests[i] = CreateRequest(workItem.VariableValues);
+                requests[i] = CreateRequest(
+                    context.OperationContext.Variables,
+                    workItem.VariableValues);
             }
 
             // once we have the requests, we will enqueue them for execution with the execution engine.
@@ -121,13 +131,24 @@ internal sealed class ResolverNode : QueryPlanNode
         }
     }
 
-    private GraphQLRequest CreateRequest(IReadOnlyDictionary<string, IValueNode> variableValues)
+    private GraphQLRequest CreateRequest(
+        IVariableValueCollection variables,
+        IReadOnlyDictionary<string, IValueNode> variableValues)
     {
         ObjectValueNode? vars = null;
 
-        if (Requires.Count > 0)
+        if (Requires.Count > 0 || ForwardedVariables.Count > 0)
         {
             var fields = new List<ObjectFieldNode>();
+
+            foreach (var forwardedVariable in ForwardedVariables)
+            {
+                if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
+                    value is not null)
+                {
+                    fields.Add(new ObjectFieldNode(forwardedVariable, value));
+                }
+            }
 
             foreach (var requirement in Requires)
             {

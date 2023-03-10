@@ -41,5 +41,3 @@ type User @source(subgraph: "Reviews", name: "Author") @variable(subgraph: "Acco
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
-
-directive @webSocketClient(baseAddress: _Uri subgraph: _TypeName!) on FIELD_DEFINITION
