@@ -8,7 +8,10 @@ namespace HotChocolate.Fusion.Planning;
 internal sealed class ExportDefinitionRegistry
 {
     private readonly Dictionary<(ISelectionSet, string), string> _stateKeyLookup = new();
-    private readonly Dictionary<string, ExportDefinition> _exportLookup = new(StringComparer.Ordinal);
+
+    private readonly Dictionary<string, ExportDefinition> _exportLookup =
+        new(StringComparer.Ordinal);
+
     private readonly List<ExportDefinition> _exports = new();
     private readonly string _groupKey = "_fusion_exports_";
     private int _stateId;
@@ -63,26 +66,38 @@ internal sealed class ExportDefinitionRegistry
     }
 
     public IReadOnlyList<VariableDefinitionNode> CreateVariableDefinitions(
+        IReadOnlySet<VariableDefinitionNode> forwardedVariables,
         IReadOnlyCollection<string> stateKeys,
         IReadOnlyDictionary<string, ITypeNode>? argumentTypes)
     {
-        if (stateKeys.Count == 0 || argumentTypes is null)
+        if (forwardedVariables.Count == 0 && (stateKeys.Count == 0 || argumentTypes is null))
         {
             return Array.Empty<VariableDefinitionNode>();
         }
 
-        var definitions = new VariableDefinitionNode[stateKeys.Count];
+        var definitions = new VariableDefinitionNode[stateKeys.Count + forwardedVariables.Count];
         var index = 0;
 
-        foreach (var stateKey in stateKeys)
+        if (stateKeys.Count != 0 && argumentTypes is not null)
         {
-            var variableDefinition = _exportLookup[stateKey].VariableDefinition;
-            definitions[index++] = new VariableDefinitionNode(
-                null,
-                new VariableNode(stateKey),
-                argumentTypes[variableDefinition.Name],
-                null,
-                Array.Empty<DirectiveNode>());
+            foreach (var stateKey in stateKeys)
+            {
+                var variableDefinition = _exportLookup[stateKey].VariableDefinition;
+                definitions[index++] = new VariableDefinitionNode(
+                    null,
+                    new VariableNode(stateKey),
+                    argumentTypes[variableDefinition.Name],
+                    null,
+                    Array.Empty<DirectiveNode>());
+            }
+        }
+
+        if (forwardedVariables.Count > 0)
+        {
+            foreach (var variableDefinitionNode in forwardedVariables)
+            {
+                definitions[index++] = variableDefinitionNode;
+            }
         }
 
         return definitions;
@@ -104,5 +119,4 @@ internal sealed class ExportDefinitionRegistry
             }
         }
     }
-
 }

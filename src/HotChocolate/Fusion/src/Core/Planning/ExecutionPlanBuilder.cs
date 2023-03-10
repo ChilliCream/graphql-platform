@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices.JavaScript;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Metadata.ResolverKind;
 
@@ -22,6 +24,8 @@ internal sealed class ExecutionPlanBuilder
     {
         foreach (var step in context.Steps)
         {
+            context.ForwardedVariables.Clear();
+
             if (step is SelectionExecutionStep selectionStep)
             {
                 if (selectionStep.Resolver?.Kind == BatchByKey)
@@ -143,7 +147,8 @@ internal sealed class ExecutionPlanBuilder
             requestDocument,
             selectionSet,
             executionStep.Variables.Values.ToArray(),
-            path);
+            path,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
     }
 
     private BatchByKeyResolverNode CreateBatchResolverNode(
@@ -187,7 +192,8 @@ internal sealed class ExecutionPlanBuilder
             selectionSet,
             executionStep.Variables.Values.ToArray(),
             path,
-            argumentTypes);
+            argumentTypes,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
     }
 
     private SubscriptionNode CreateSubscription(
@@ -209,7 +215,8 @@ internal sealed class ExecutionPlanBuilder
             requestDocument,
             selectionSet,
             executionStep.Variables.Values.ToArray(),
-            path);
+            path,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
     }
 
     private ISelectionSet ResolveSelectionSet(
@@ -252,6 +259,7 @@ internal sealed class ExecutionPlanBuilder
             context.CreateRemoteOperationName(),
             operationType,
             context.Exports.CreateVariableDefinitions(
+                context.ForwardedVariables,
                 executionStep.Variables.Values,
                 executionStep.Resolver?.Arguments),
             Array.Empty<DirectiveNode>(),
@@ -456,6 +464,7 @@ internal sealed class ExecutionPlanBuilder
                 {
                     var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
                     context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                    TryForwardVariable(context, resolver, argumentValue, argumentVariable);
                 }
                 else
                 {
@@ -479,6 +488,7 @@ internal sealed class ExecutionPlanBuilder
                     {
                         var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
                         context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                        TryForwardVariable(context, resolver, argumentValue, argumentVariable);
                     }
                     else
                     {
@@ -495,6 +505,26 @@ internal sealed class ExecutionPlanBuilder
             {
                 var stateKey = variableStateLookup[requirement];
                 context.VariableValues.Add(requirement, new VariableNode(stateKey));
+            }
+        }
+
+        static void TryForwardVariable(
+            QueryPlanContext context,
+            ResolverDefinition resolver,
+            ArgumentValue argumentValue,
+            ArgumentVariableDefinition argumentVariable)
+        {
+            if (argumentValue.ValueLiteral is VariableNode variableValue)
+            {
+                context.ForwardedVariables.Add(
+                    new VariableDefinitionNode(
+                        null,
+                        variableValue,
+                        resolver.Arguments[argumentVariable.ArgumentName],
+                        context.Operation.Definition.VariableDefinitions.First(
+                                t => t.Variable.Equals(variableValue, SyntaxComparison.Syntax))
+                            .DefaultValue,
+                        Array.Empty<DirectiveNode>()));
             }
         }
     }

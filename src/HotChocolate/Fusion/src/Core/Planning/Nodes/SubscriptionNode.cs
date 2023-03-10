@@ -23,10 +23,12 @@ internal sealed class SubscriptionNode : QueryPlanNode
         DocumentNode document,
         ISelectionSet selectionSet,
         IReadOnlyList<string> requires,
-        IReadOnlyList<string> path)
+        IReadOnlyList<string> path,
+        IReadOnlyList<string> forwardedVariables)
         : base(id)
     {
         _path = path;
+        ForwardedVariables = forwardedVariables;
         SubgraphName = subgraphName;
         Document = document;
         SelectionSet = selectionSet;
@@ -55,12 +57,17 @@ internal sealed class SubscriptionNode : QueryPlanNode
     /// </summary>
     public IReadOnlyList<string> Requires { get; }
 
+    /// <summary>
+    /// Gets the variables that this request handler forwards to the subgraph.
+    /// </summary>
+    public IReadOnlyList<string> ForwardedVariables { get; }
+
     internal async IAsyncEnumerable<IQueryResult> SubscribeAsync(
         FusionExecutionContext rootContext,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var variableValues = new Dictionary<string, IValueNode>();
-        var request = CreateRequest(variableValues);
+        var request = CreateRequest(rootContext.OperationContext.Variables, variableValues);
         var initialResponse = true;
 
         await foreach (var response in rootContext
@@ -118,13 +125,24 @@ internal sealed class SubscriptionNode : QueryPlanNode
         }
     }
 
-    private GraphQLRequest CreateRequest(IReadOnlyDictionary<string, IValueNode> variableValues)
+    private GraphQLRequest CreateRequest(
+        IVariableValueCollection variables,
+        IReadOnlyDictionary<string, IValueNode> variableValues)
     {
         ObjectValueNode? vars = null;
 
-        if (Requires.Count > 0)
+        if (Requires.Count > 0 || ForwardedVariables.Count > 0)
         {
             var fields = new List<ObjectFieldNode>();
+
+            foreach (var forwardedVariable in ForwardedVariables)
+            {
+                if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
+                    value is not null)
+                {
+                    fields.Add(new ObjectFieldNode(forwardedVariable, value));
+                }
+            }
 
             foreach (var requirement in Requires)
             {
