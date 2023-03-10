@@ -77,6 +77,10 @@ public sealed class FusionTypes
             names.HttpDirective,
             TypeName,
             Uri);
+        WebSocketClient = RegisterWebSocketDirectiveType(
+            names.WebSocketDirective,
+            TypeName,
+            Uri);
     }
 
     private string Prefix { get; }
@@ -102,6 +106,8 @@ public sealed class FusionTypes
     public DirectiveType Source { get; }
 
     public DirectiveType HttpClient { get; }
+
+    public DirectiveType WebSocketClient { get; }
 
     public DirectiveType Fusion { get; }
 
@@ -132,6 +138,7 @@ public sealed class FusionTypes
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Query));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.BatchByKey));
+        resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscription));
         resolverKind.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.Types.Add(resolverKind);
         return resolverKind;
@@ -211,6 +218,7 @@ public sealed class FusionTypes
             {
                 EntityResolverKind.Batch => FusionEnumValueNames.Batch,
                 EntityResolverKind.BatchWithKey => FusionEnumValueNames.BatchByKey,
+                EntityResolverKind.Subscription => FusionEnumValueNames.Subscription,
                 _ => throw new NotSupportedException()
             };
 
@@ -267,6 +275,26 @@ public sealed class FusionTypes
             new Argument(BaseAddressArg, baseAddress.ToString()));
 
     private DirectiveType RegisterHttpDirectiveType(
+        string name,
+        ScalarType typeName,
+        ScalarType uri)
+    {
+        var directiveType = new DirectiveType(name);
+        directiveType.Locations = DirectiveLocation.FieldDefinition;
+        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(BaseAddressArg, uri));
+        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        _fusionGraph.DirectiveTypes.Add(directiveType);
+        return directiveType;
+    }
+
+    public Directive CreateWebSocketDirective(string subgraphName, Uri baseAddress)
+        => new Directive(
+            WebSocketClient,
+            new Argument(SubgraphArg, subgraphName),
+            new Argument(BaseAddressArg, baseAddress.ToString()));
+
+    private DirectiveType RegisterWebSocketDirectiveType(
         string name,
         ScalarType typeName,
         ScalarType uri)

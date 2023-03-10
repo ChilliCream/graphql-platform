@@ -9,7 +9,7 @@ internal sealed class ParallelNode : QueryPlanNode
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Parallel;
 
     protected override async Task OnExecuteNodesAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {

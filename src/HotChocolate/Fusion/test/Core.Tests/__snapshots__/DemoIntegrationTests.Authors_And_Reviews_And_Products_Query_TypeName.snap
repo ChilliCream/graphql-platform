@@ -14,94 +14,22 @@ query TopProducts {
 }
 ---------------
 
-QueryPlan
----------------
-{
-  "document": "query TopProducts { __typename topProducts(first: 2) { __typename reviews { __typename author { __typename } } } }",
-  "operation": "TopProducts",
-  "rootNode": {
-    "type": "Serial",
-    "nodes": [
-      {
-        "type": "Resolver",
-        "schemaName": "Products",
-        "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: upc } }",
-        "selectionSetId": 0
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          0
-        ]
-      },
-      {
-        "type": "Resolver",
-        "schemaName": "Reviews",
-        "document": "query TopProducts_2($__fusion_exports__1: Int!) { productById(upc: $__fusion_exports__1) { reviews { __typename author { __typename } } } }",
-        "selectionSetId": 1,
-        "path": [
-          "productById"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          1
-        ]
-      }
-    ]
-  }
-}
----------------
-
 Result
 ---------------
 {
-  "data": {
-    "__typename": "Query",
-    "topProducts": [
-      {
-        "__typename": "Product",
-        "reviews": [
-          {
-            "__typename": "Review",
-            "author": {
-              "__typename": "User"
-            }
-          },
-          {
-            "__typename": "Review",
-            "author": {
-              "__typename": "User"
-            }
-          }
-        ]
-      },
-      {
-        "__typename": "Product",
-        "reviews": [
-          {
-            "__typename": "Review",
-            "author": {
-              "__typename": "User"
-            }
-          }
-        ]
-      }
-    ]
-  }
+  "errors": [
+    {
+      "message": "Unexpected Execution Error"
+    }
+  ]
 }
 ---------------
 
 Fusion Graph
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql") {
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Products", baseAddress: "ws:\/\/localhost:5000\/graphql") {
   query: Query
+  subscription: Subscription
 }
 
 type Query {
@@ -111,6 +39,10 @@ type Query {
   userById(id: Int!): User! @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ])
   users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
   usersById(ids: [Int!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[Int!]!" } ])
+}
+
+type Subscription {
+  onNewReview: Review! @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIPTION")
 }
 
 type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @variable(subgraph: "Products", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) @resolver(subgraph: "Products", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) {

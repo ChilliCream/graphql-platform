@@ -20,7 +20,7 @@ internal abstract class QueryPlanNode
     public IReadOnlyList<QueryPlanNode> Nodes => _nodes;
 
     internal async Task ExecuteAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
         var state = context.State;
@@ -34,13 +34,13 @@ internal abstract class QueryPlanNode
     }
 
     protected virtual Task OnExecuteAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
         => Task.CompletedTask;
 
     protected virtual async Task OnExecuteNodesAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {

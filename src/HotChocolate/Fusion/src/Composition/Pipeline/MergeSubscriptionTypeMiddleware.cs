@@ -3,32 +3,32 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
+internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         foreach (var schema in context.Subgraphs)
         {
-            if (schema.QueryType is not null)
+            if (schema.SubscriptionType is not null)
             {
-                var queryType = context.FusionGraph.QueryType!;
+                var subscriptionType = context.FusionGraph.SubscriptionType!;
 
-                if (context.FusionGraph.QueryType is null)
+                if (context.FusionGraph.SubscriptionType is null)
                 {
-                    queryType = context.FusionGraph.QueryType = new ObjectType("Query");
-                    context.FusionGraph.Types.Add(queryType);
+                    subscriptionType = context.FusionGraph.SubscriptionType = new ObjectType("Subscription");
+                    context.FusionGraph.Types.Add(subscriptionType);
                 }
 
-                foreach (var field in schema.QueryType.Fields)
+                foreach (var field in schema.SubscriptionType.Fields)
                 {
-                    if (queryType.Fields.TryGetField(field.Name, out var targetField))
+                    if (subscriptionType.Fields.TryGetField(field.Name, out var targetField))
                     {
-                        context.MergeField(field, targetField, queryType.Name);
+                        context.MergeField(field, targetField, subscriptionType.Name);
                     }
                     else
                     {
                         targetField = context.CreateField(field, context.FusionGraph);
-                        queryType.Fields.Add(targetField);
+                        subscriptionType.Fields.Add(targetField);
                     }
 
                     var arguments = new List<ArgumentNode>();
@@ -62,7 +62,7 @@ internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
     }
 }
 
-static file class MergeQueryTypeMiddlewareExtensions
+static file class MergeSubscriptionTypeMiddlewareExtensions
 {
     public static void ApplyResolvers(
         this CompositionContext context,
@@ -107,7 +107,8 @@ static file class MergeQueryTypeMiddlewareExtensions
         => context.FusionTypes.CreateResolverDirective(
             subgraphName,
             selectionSet,
-            arguments);
+            arguments,
+            EntityResolverKind.Subscription);
 
     private static Directive CreateVariableDirective(
         CompositionContext context,

@@ -38,7 +38,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         // if the user cancels this stream we will send the server a complete request
         // so that we no longer receive new result messages.
-        cancellationToken.Register(completion.TryComplete);
+        cancellationToken.Register(completion.TrySendCompleteMessage);
 
         try
         {
@@ -134,27 +134,36 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             _id = id;
         }
 
-        public void SetCompleted()
+        public void MarkDataStreamCompleted()
             => _completed = true;
 
-        public void TryComplete()
+        public void TrySendCompleteMessage()
         {
             if (!_completed)
             {
                 Task.Factory.StartNew(
                     async () =>
                     {
+                        using var cts = new CancellationTokenSource(2000);
+
                         try
                         {
                             if (_socket.IsOpen())
                             {
-                                await _socket.SendCompleteMessageAsync(_id, CancellationToken.None);
+                                await _socket.SendCompleteMessageAsync(_id, cts.Token);
                             }
                         }
                         catch
                         {
-                            // we ignore any error here.
-                            // Most likely the connection is already closed.
+                            // if we cannot send the complete message we will just abort the socket.
+                            try
+                            {
+                                _socket.Abort();
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
                         }
                     },
                     CancellationToken.None,

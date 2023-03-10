@@ -3,6 +3,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Metadata.ResolverKind;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -21,15 +22,28 @@ internal sealed class ExecutionPlanBuilder
     {
         foreach (var step in context.Steps)
         {
-            if (step is SelectionExecutionStep { Resolver.Kind: ResolverKind.BatchByKey } batchStep)
+            if (step is SelectionExecutionStep selectionStep)
             {
-                var fetchNode = CreateBatchResolverNode(context, batchStep, batchStep.Resolver);
-                context.Nodes.Add(batchStep, fetchNode);
-            }
-            else if (step is SelectionExecutionStep selectionStep)
-            {
-                var fetchNode = CreateResolverNode(context, selectionStep);
-                context.Nodes.Add(selectionStep, fetchNode);
+                if (selectionStep.Resolver?.Kind == BatchByKey)
+                {
+                    var fetchNode = CreateBatchResolverNode(
+                        context,
+                        selectionStep,
+                        selectionStep.Resolver);
+                    context.Nodes.Add(selectionStep, fetchNode);
+                }
+                else if (selectionStep.Resolver is null &&
+                    selectionStep.RootSelections.Count == 1 &&
+                    selectionStep.RootSelections[0].Resolver?.Kind is Subscription)
+                {
+                    var fetchNode = CreateSubscription(context, selectionStep);
+                    context.Nodes.Add(selectionStep, fetchNode);
+                }
+                else
+                {
+                    var fetchNode = CreateResolverNode(context, selectionStep);
+                    context.Nodes.Add(selectionStep, fetchNode);
+                }
             }
             else if (step is IntrospectionExecutionStep)
             {
@@ -55,8 +69,27 @@ internal sealed class ExecutionPlanBuilder
     private QueryPlanNode BuildQueryTree(QueryPlanContext context)
     {
         var completed = new HashSet<IExecutionStep>();
-        var current = context.Nodes.Where(t => t.Key.DependsOn.Count is 0).ToArray();
-        var parent = new SerialNode(context.CreateNodeId());
+        KeyValuePair<IExecutionStep, QueryPlanNode>[] current;
+        QueryPlanNode parent;
+
+        if (context.Operation.Type is not OperationType.Subscription)
+        {
+            current = context.Nodes.Where(t => t.Key.DependsOn.Count is 0).ToArray();
+            parent = new SerialNode(context.CreateNodeId());
+        }
+        else
+        {
+            var root = context.Nodes.First(t => t.Value.Kind is QueryPlanNodeKind.Subscription);
+            parent = root.Value;
+
+            var selectionSet = ResolveSelectionSet(context, root.Key);
+            var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
+            parent.AddNode(compose);
+            completed.Add(root.Key);
+            context.Nodes.Remove(root.Key);
+
+            current = context.Nodes.Where(t => completed.IsSupersetOf(t.Key.DependsOn)).ToArray();
+        }
 
         while (current.Length > 0)
         {
@@ -132,10 +165,10 @@ internal sealed class ExecutionPlanBuilder
             foreach (var argument in resolver.Arguments)
             {
                 if (!context.Exports.TryGetStateKey(
-                        executionStep.RootSelections[0].Selection.DeclaringSelectionSet,
-                        argument.Key,
-                        out var stateKey,
-                        out _))
+                    executionStep.RootSelections[0].Selection.DeclaringSelectionSet,
+                    argument.Key,
+                    out var stateKey,
+                    out _))
                 {
                     // TODO : Exception
                     throw new InvalidOperationException("The state is inconsistent.");
@@ -157,6 +190,28 @@ internal sealed class ExecutionPlanBuilder
             argumentTypes);
     }
 
+    private SubscriptionNode CreateSubscription(
+        QueryPlanContext context,
+        SelectionExecutionStep executionStep)
+    {
+        var selectionSet = ResolveSelectionSet(context, executionStep);
+        var (requestDocument, path) =
+            CreateRequestDocument(
+                context,
+                executionStep,
+                OperationType.Subscription);
+
+        context.HasNodes.Add(selectionSet);
+
+        return new SubscriptionNode(
+            context.CreateNodeId(),
+            executionStep.SubgraphName,
+            requestDocument,
+            selectionSet,
+            executionStep.Variables.Values.ToArray(),
+            path);
+    }
+
     private ISelectionSet ResolveSelectionSet(
         QueryPlanContext context,
         IExecutionStep executionStep)
@@ -168,7 +223,8 @@ internal sealed class ExecutionPlanBuilder
 
     private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep)
+        SelectionExecutionStep executionStep,
+        OperationType operationType = OperationType.Query)
     {
         var rootSelectionSetNode = CreateRootSelectionSetNode(context, executionStep);
         IReadOnlyList<string> path = Array.Empty<string>();
@@ -194,7 +250,7 @@ internal sealed class ExecutionPlanBuilder
         var operationDefinitionNode = new OperationDefinitionNode(
             null,
             context.CreateRemoteOperationName(),
-            OperationType.Query,
+            operationType,
             context.Exports.CreateVariableDefinitions(
                 executionStep.Variables.Values,
                 executionStep.Resolver?.Arguments),

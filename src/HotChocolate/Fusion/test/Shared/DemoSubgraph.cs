@@ -6,17 +6,28 @@ namespace HotChocolate.Fusion.Shared;
 
 public sealed class DemoSubgraph
 {
-    public DemoSubgraph(string name, Uri httpBaseAddress, DocumentNode schema, TestServer server)
+    public DemoSubgraph(
+        string name,
+        Uri httpEndpointUri,
+        Uri webSocketEndpointUri,
+        DocumentNode schema,
+        TestServer server)
     {
         Name = name;
-        HttpBaseAddress = httpBaseAddress;
+        HttpEndpointUri = httpEndpointUri;
+        WebSocketEndpointUri = webSocketEndpointUri;
         Schema = schema;
         Server = server;
     }
 
     public string Name { get; }
-    public Uri HttpBaseAddress { get; }
+
+    public Uri HttpEndpointUri { get; }
+
+    public Uri WebSocketEndpointUri { get; }
+
     public DocumentNode Schema { get; }
+
     public TestServer Server { get; }
 
     public SubgraphConfiguration ToConfiguration(
@@ -25,5 +36,9 @@ public sealed class DemoSubgraph
             Name,
             Schema.ToString(),
             extensions,
-            new[] { new HttpClientConfiguration(HttpBaseAddress) });
+            new IClientConfiguration[]
+            {
+                new HttpClientConfiguration(HttpEndpointUri),
+                new WebSocketClientConfiguration(WebSocketEndpointUri)
+            });
 }

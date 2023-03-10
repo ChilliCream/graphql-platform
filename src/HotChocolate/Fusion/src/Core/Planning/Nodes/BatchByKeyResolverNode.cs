@@ -59,7 +59,7 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
     public IReadOnlyDictionary<string, ITypeNode> ArgumentTypes { get; }
 
     protected override async Task OnExecuteAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {
@@ -113,7 +113,7 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
     }
 
     protected override async Task OnExecuteNodesAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {

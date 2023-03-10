@@ -51,7 +51,7 @@ internal sealed class ResolverNode : QueryPlanNode
     public IReadOnlyList<string> Requires { get; }
 
     protected override async Task OnExecuteAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {
@@ -111,7 +111,7 @@ internal sealed class ResolverNode : QueryPlanNode
     }
 
     protected override async Task OnExecuteNodesAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {

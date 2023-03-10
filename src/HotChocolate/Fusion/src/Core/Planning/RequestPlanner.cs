@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Language;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 
@@ -69,12 +70,13 @@ internal sealed class RequestPlanner
                 selectionSetType.Resolvers.ContainsResolvers(subgraph))
             {
                 CalculateVariablesInContext(selectionSetType, parentSelection, variablesInContext);
+
                 if (TryGetResolver(
-                        selectionSetType,
-                        subgraph,
-                        variablesInContext,
-                        preferBatching,
-                        out resolver))
+                    selectionSetType,
+                    subgraph,
+                    variablesInContext,
+                    preferBatching,
+                    out resolver))
                 {
                     workItem.Resolver = resolver;
                     CalculateRequirements(parentSelection, resolver, workItem.Requires);
@@ -101,6 +103,7 @@ internal sealed class RequestPlanner
                 }
 
                 var field = selectionSetType.Fields[selection.Field.Name];
+
                 if (field.Bindings.ContainsSubgraph(subgraph))
                 {
                     CalculateVariablesInContext(
@@ -110,14 +113,23 @@ internal sealed class RequestPlanner
                         variablesInContext);
 
                     resolver = null;
+
                     if (field.Resolvers.ContainsResolvers(subgraph))
                     {
+                        var reference =
+                            context.Operation.Type is OperationType.Subscription &&
+                                parentSelection is null
+                                    ? PreferredResolverKind.Subscription
+                                    : preferBatching
+                                        ? PreferredResolverKind.Batch
+                                        : PreferredResolverKind.Query;
+
                         if (!TryGetResolver(
-                                field,
-                                subgraph,
-                                variablesInContext,
-                                preferBatching,
-                                out resolver))
+                            field,
+                            subgraph,
+                            variablesInContext,
+                            reference,
+                            out resolver))
                         {
                             // todo : error message and type
                             throw new InvalidOperationException(
@@ -155,7 +167,6 @@ internal sealed class RequestPlanner
             {
                 context.Steps.Add(workItem);
             }
-
         } while (leftovers is not null);
     }
 
@@ -244,25 +255,29 @@ internal sealed class RequestPlanner
         string schemaName)
     {
         var score = 0;
+        var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectType typeContext)>();
+        stack.Push((selections, typeContext));
 
-        foreach (var selection in selections)
+        while (stack.Count > 0)
         {
-            if (!selection.Field.IsIntrospectionField &&
-                typeContext.Fields[selection.Field.Name].Bindings.ContainsSubgraph(schemaName))
-            {
-                score++;
+            var (currentSelections, currentTypeContext) = stack.Pop();
 
-                if (selection.SelectionSet is not null)
+            foreach (var selection in currentSelections)
+            {
+                if (!selection.Field.IsIntrospectionField &&
+                    currentTypeContext.Fields[selection.Field.Name].Bindings
+                        .ContainsSubgraph(schemaName))
                 {
-                    foreach (var possibleType in operation.GetPossibleTypes(selection))
+                    score++;
+
+                    if (selection.SelectionSet is not null)
                     {
-                        var type = _configuration.GetType<ObjectType>(possibleType.Name);
-                        var selectionSet = operation.GetSelectionSet(selection, possibleType);
-                        score += CalculateSchemaScore(
-                            operation,
-                            selectionSet.Selections,
-                            type,
-                            schemaName);
+                        foreach (var possibleType in operation.GetPossibleTypes(selection))
+                        {
+                            var type = _configuration.GetType<ObjectType>(possibleType.Name);
+                            var selectionSet = operation.GetSelectionSet(selection, possibleType);
+                            stack.Push((selectionSet.Selections, type));
+                        }
                     }
                 }
             }
@@ -275,13 +290,13 @@ internal sealed class RequestPlanner
         ObjectField field,
         string schemaName,
         HashSet<string> variablesInContext,
-        bool preferBatching,
+        PreferredResolverKind preference,
         [NotNullWhen(true)] out ResolverDefinition? resolver)
         => TryGetResolver(
             field.Resolvers,
             schemaName,
             variablesInContext,
-            preferBatching,
+            preference,
             out resolver);
 
     private static bool TryGetResolver(
@@ -294,14 +309,16 @@ internal sealed class RequestPlanner
             declaringType.Resolvers,
             schemaName,
             variablesInContext,
-            preferBatching,
+            preferBatching
+                ? PreferredResolverKind.Batch
+                : PreferredResolverKind.Query,
             out resolver);
 
     private static bool TryGetResolver(
         ResolverDefinitionCollection resolverDefinitions,
         string schemaName,
         HashSet<string> variablesInContext,
-        bool preferBatching,
+        PreferredResolverKind preference,
         [NotNullWhen(true)] out ResolverDefinition? resolver)
     {
         resolver = null;
@@ -323,33 +340,44 @@ internal sealed class RequestPlanner
 
                 if (canBeUsed)
                 {
-                    switch (current.Kind)
+                    if (preference is PreferredResolverKind.Subscription)
                     {
-                        case ResolverKind.Batch:
+                        if (current.Kind is ResolverKind.Subscription)
+                        {
                             resolver = current;
-                            if (preferBatching)
-                            {
-                                return true;
-                            }
-                            break;
+                            return true;
+                        }
 
-                        case ResolverKind.BatchByKey:
-                            resolver = current;
-                            break;
-
-                        case ResolverKind.Subscription:
-                            throw new NotImplementedException();
-
-                        case ResolverKind.Query:
-                        default:
-                            if (!preferBatching)
-                            {
+                        resolver = null;
+                    }
+                    else
+                    {
+                        switch (current.Kind)
+                        {
+                            case ResolverKind.Batch:
                                 resolver = current;
-                                return true;
-                            }
 
-                            resolver ??= current;
-                            break;
+                                if (preference is PreferredResolverKind.Batch)
+                                {
+                                    return true;
+                                }
+                                break;
+
+                            case ResolverKind.BatchByKey:
+                                resolver = current;
+                                break;
+
+                            case ResolverKind.Query:
+                            default:
+                                if (preference is PreferredResolverKind.Query)
+                                {
+                                    resolver = current;
+                                    return true;
+                                }
+
+                                resolver ??= current;
+                                break;
+                        }
                     }
                 }
             }
@@ -470,5 +498,12 @@ internal sealed class RequestPlanner
         public IReadOnlyList<ISelection> Selections { get; }
 
         public bool PreferBatching { get; }
+    }
+
+    private enum PreferredResolverKind
+    {
+        Query,
+        Batch,
+        Subscription
     }
 }

@@ -2,10 +2,10 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal static class FederationContextExtensions
+internal static class FusionContextExtensions
 {
-    public static void RegisterState(
-        this IFederationContext context,
+    public static WorkItem RegisterState(
+        this FusionExecutionContext context,
         ISelectionSet selectionSet,
         ObjectResult result,
         SelectionResult parentResult = default)
@@ -18,5 +18,7 @@ internal static class FederationContextExtensions
         };
 
         context.State.RegisterState(workItem);
+
+        return workItem;
     }
 }

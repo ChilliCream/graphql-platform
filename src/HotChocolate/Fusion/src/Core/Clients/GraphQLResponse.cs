@@ -10,9 +10,9 @@ public sealed class GraphQLResponse : IDisposable
     internal GraphQLResponse(OperationResult result)
     {
         _resource = result;
-        Data = result.Data ?? new();
-        Errors = result.Errors ?? new();
-        Extensions = result.Extensions ?? new();
+        Data = result.Data;
+        Errors = result.Errors;
+        Extensions = result.Extensions;
     }
 
     public GraphQLResponse(JsonDocument document)

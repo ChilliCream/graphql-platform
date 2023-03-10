@@ -33,8 +33,8 @@ internal sealed class NextMessage : IDataMessage
         return new NextMessage(id, result);
     }
 
-    private static JsonElement? TryGetProperty(JsonElement element, ReadOnlySpan<byte> name)
+    private static JsonElement TryGetProperty(JsonElement element, ReadOnlySpan<byte> name)
         => element.TryGetProperty(name, out var property)
             ? property
-            : null;
+            : default;
 }
