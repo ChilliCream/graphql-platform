@@ -144,17 +144,26 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                 Task.Factory.StartNew(
                     async () =>
                     {
+                        using var cts = new CancellationTokenSource(2000);
+
                         try
                         {
                             if (_socket.IsOpen())
                             {
-                                await _socket.SendCompleteMessageAsync(_id, CancellationToken.None);
+                                await _socket.SendCompleteMessageAsync(_id, cts.Token);
                             }
                         }
                         catch
                         {
-                            // we ignore any error here.
-                            // Most likely the connection is already closed.
+                            // if we cannot send the complete message we will just abort the socket.
+                            try
+                            {
+                                _socket.Abort();
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
                         }
                     },
                     CancellationToken.None,

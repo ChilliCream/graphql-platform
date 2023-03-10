@@ -1,5 +1,9 @@
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
+/// <summary>
+/// Represents an abstraction for marking a data stream as completed and sending a data complete
+/// message to the server.
+/// </summary>
 internal interface IDataCompletion
 {
     /// <summary>
