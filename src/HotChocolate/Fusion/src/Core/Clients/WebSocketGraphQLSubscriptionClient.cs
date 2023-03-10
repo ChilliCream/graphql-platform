@@ -46,7 +46,7 @@ internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
         try
         {
             var operationRequest = new OperationRequest(
-                query: request.Document.ToString(false),
+                query: request.Document,
                 id: null,
                 operationName: null,
                 variables: request.VariableValues,
