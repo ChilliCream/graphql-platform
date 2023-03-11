@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class EnumType : INamedType
+public sealed class EnumType : INamedType, INamedTypeSystemMember<EnumType>
 {
     private string _name;
 
@@ -26,4 +26,6 @@ public sealed class EnumType : INamedType
     public EnumValueCollection Values { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public static EnumType Create(string name) => new(name);
 }

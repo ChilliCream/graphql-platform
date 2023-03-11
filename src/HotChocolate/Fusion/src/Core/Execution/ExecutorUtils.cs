@@ -12,7 +12,7 @@ namespace HotChocolate.Fusion.Execution;
 internal static class ExecutorUtils
 {
     public static void ComposeResult(
-        IFederationContext context,
+        FusionExecutionContext context,
         WorkItem workItem)
         => ComposeResult(
             context,
@@ -21,7 +21,7 @@ internal static class ExecutorUtils
             workItem.Result);
 
     private static void ComposeResult(
-        IFederationContext context,
+        FusionExecutionContext context,
         IReadOnlyList<ISelection> selections,
         IReadOnlyList<SelectionResult> selectionResults,
         ObjectResult selectionSetResult)
@@ -70,7 +70,7 @@ internal static class ExecutorUtils
     }
 
     private static ListResult? ComposeList(
-        IFederationContext context,
+        FusionExecutionContext context,
         ISelection selection,
         SelectionResult selectionResult,
         IType type)
@@ -116,7 +116,7 @@ internal static class ExecutorUtils
     }
 
     private static ObjectResult? ComposeObject(
-        IFederationContext context,
+        FusionExecutionContext context,
         ISelection selection,
         SelectionResult selectionResult)
     {

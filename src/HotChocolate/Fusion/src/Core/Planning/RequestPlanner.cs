@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Language;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 
@@ -8,36 +9,51 @@ namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
 /// The request planer will rewrite the <see cref="IOperation"/> into
-/// queries against the downstream services.
+/// requests against the downstream services.
 /// </summary>
 internal sealed class RequestPlanner
 {
-    private readonly ServiceConfiguration _serviceConfig;
-    private readonly Queue<BacklogItem> _backlog = new(); // TODO: we should get rid of this, maybe put it on the context?
+    private readonly FusionGraphConfiguration _configuration;
 
-    public RequestPlanner(ServiceConfiguration serviceConfig)
+    public RequestPlanner(FusionGraphConfiguration configuration)
     {
-        _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
+        _configuration = configuration ??
+            throw new ArgumentNullException(nameof(configuration));
     }
 
     public void Plan(QueryPlanContext context)
     {
-        var selectionSetType = _serviceConfig.GetType<ObjectType>(context.Operation.RootType.Name);
+        var selectionSetType = _configuration.GetType<ObjectType>(context.Operation.RootType.Name);
         var selections = context.Operation.RootSelectionSet.Selections;
+        var backlog = new Queue<BacklogItem>();
 
-        Plan(context, selectionSetType, selections, null);
+        Plan(
+            context,
+            backlog,
+            selectionSetType,
+            selections,
+            null,
+            false);
 
-        while (_backlog.TryDequeue(out var item))
+        while (backlog.TryDequeue(out var item))
         {
-            Plan(context, item.DeclaringType, item.Selections, item.ParentSelection);
+            Plan(
+                context,
+                backlog,
+                item.DeclaringType,
+                item.Selections,
+                item.ParentSelection,
+                item.PreferBatching);
         }
     }
 
     private void Plan(
         QueryPlanContext context,
+        Queue<BacklogItem> backlog,
         ObjectType selectionSetType,
         IReadOnlyList<ISelection> selections,
-        ISelection? parentSelection)
+        ISelection? parentSelection,
+        bool preferBatching)
     {
         var variablesInContext = new HashSet<string>();
         List<ISelection>? leftovers = null;
@@ -45,16 +61,22 @@ internal sealed class RequestPlanner
         do
         {
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
-            var schemaName = ResolveBestMatchingSchema(context.Operation, current, selectionSetType);
-            var workItem = new SelectionExecutionStep(schemaName, selectionSetType, parentSelection);
+            var subgraph = GetBestMatchingSubgraph(context.Operation, current, selectionSetType);
+            var workItem = new SelectionExecutionStep(subgraph, selectionSetType, parentSelection);
             leftovers = null;
-            FetchDefinition? resolver;
+            ResolverDefinition? resolver;
 
             if (parentSelection is not null &&
-                selectionSetType.Resolvers.ContainsResolvers(schemaName))
+                selectionSetType.Resolvers.ContainsResolvers(subgraph))
             {
                 CalculateVariablesInContext(selectionSetType, parentSelection, variablesInContext);
-                if (TryGetResolver(selectionSetType, schemaName, variablesInContext, out resolver))
+
+                if (TryGetResolver(
+                    selectionSetType,
+                    subgraph,
+                    variablesInContext,
+                    preferBatching,
+                    out resolver))
                 {
                     workItem.Resolver = resolver;
                     CalculateRequirements(parentSelection, resolver, workItem.Requires);
@@ -70,7 +92,7 @@ internal sealed class RequestPlanner
                             selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
                     {
                         var introspectionStep = new IntrospectionExecutionStep(
-                            schemaName,
+                            subgraph,
                             selectionSetType,
                             parentSelection);
                         context.Steps.Add(introspectionStep);
@@ -81,7 +103,8 @@ internal sealed class RequestPlanner
                 }
 
                 var field = selectionSetType.Fields[selection.Field.Name];
-                if (field.Bindings.TryGetValue(schemaName, out _))
+
+                if (field.Bindings.ContainsSubgraph(subgraph))
                 {
                     CalculateVariablesInContext(
                         selection,
@@ -90,13 +113,27 @@ internal sealed class RequestPlanner
                         variablesInContext);
 
                     resolver = null;
-                    if (field.Resolvers.ContainsResolvers(schemaName))
+
+                    if (field.Resolvers.ContainsResolvers(subgraph))
                     {
-                        if (!TryGetResolver(field, schemaName, variablesInContext, out resolver))
+                        var reference =
+                            context.Operation.Type is OperationType.Subscription &&
+                                parentSelection is null
+                                    ? PreferredResolverKind.Subscription
+                                    : preferBatching
+                                        ? PreferredResolverKind.Batch
+                                        : PreferredResolverKind.Query;
+
+                        if (!TryGetResolver(
+                            field,
+                            subgraph,
+                            variablesInContext,
+                            reference,
+                            out resolver))
                         {
                             // todo : error message and type
                             throw new InvalidOperationException(
-                                "There must be a field fetch definition valid in this context!");
+                                "There must be a field resolver definition valid in this context!");
                         }
 
                         CalculateRequirements(
@@ -112,7 +149,12 @@ internal sealed class RequestPlanner
 
                     if (selection.SelectionSet is not null)
                     {
-                        CollectChildSelections(context.Operation, selection, workItem);
+                        CollectChildSelections(
+                            backlog,
+                            context.Operation,
+                            selection,
+                            workItem,
+                            preferBatching);
                     }
                 }
                 else
@@ -125,18 +167,24 @@ internal sealed class RequestPlanner
             {
                 context.Steps.Add(workItem);
             }
-
         } while (leftovers is not null);
     }
 
     private void CollectChildSelections(
+        Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
-        SelectionExecutionStep executionStep)
+        SelectionExecutionStep executionStep,
+        bool preferBatching)
     {
+        if (!preferBatching)
+        {
+            preferBatching = Types.TypeExtensions.IsListType(parentSelection.Type);
+        }
+
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
         {
-            var declaringType = _serviceConfig.GetType<ObjectType>(possibleType.Name);
+            var declaringType = _configuration.GetType<ObjectType>(possibleType.Name);
             var selectionSet = operation.GetSelectionSet(parentSelection, possibleType);
             List<ISelection>? leftovers = null;
 
@@ -146,13 +194,18 @@ internal sealed class RequestPlanner
             {
                 var field = declaringType.Fields[selection.Field.Name];
 
-                if (field.Bindings.TryGetValue(executionStep.SchemaName, out _))
+                if (field.Bindings.TryGetValue(executionStep.SubgraphName, out _))
                 {
                     executionStep.AllSelections.Add(selection);
 
                     if (selection.SelectionSet is not null)
                     {
-                        CollectChildSelections(operation, selection, executionStep);
+                        CollectChildSelections(
+                            backlog,
+                            operation,
+                            selection,
+                            executionStep,
+                            preferBatching);
                     }
                 }
                 else
@@ -163,31 +216,36 @@ internal sealed class RequestPlanner
 
             if (leftovers is not null)
             {
-                _backlog.Enqueue(new BacklogItem(parentSelection, declaringType, leftovers));
+                backlog.Enqueue(
+                    new BacklogItem(
+                        parentSelection,
+                        declaringType,
+                        leftovers,
+                        preferBatching));
             }
         }
     }
 
-    private string ResolveBestMatchingSchema(
+    private string GetBestMatchingSubgraph(
         IOperation operation,
         IReadOnlyList<ISelection> selections,
         ObjectType typeContext)
     {
         var bestScore = 0;
-        var bestSchema = _serviceConfig.SchemaNames[0];
+        var bestSubgraph = _configuration.SubgraphNames[0];
 
-        foreach (var schemaName in _serviceConfig.SchemaNames)
+        foreach (var schemaName in _configuration.SubgraphNames)
         {
             var score = CalculateSchemaScore(operation, selections, typeContext, schemaName);
 
             if (score > bestScore)
             {
                 bestScore = score;
-                bestSchema = schemaName;
+                bestSubgraph = schemaName;
             }
         }
 
-        return bestSchema;
+        return bestSubgraph;
     }
 
     private int CalculateSchemaScore(
@@ -197,25 +255,29 @@ internal sealed class RequestPlanner
         string schemaName)
     {
         var score = 0;
+        var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectType typeContext)>();
+        stack.Push((selections, typeContext));
 
-        foreach (var selection in selections)
+        while (stack.Count > 0)
         {
-            if (!selection.Field.IsIntrospectionField &&
-                typeContext.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
-            {
-                score++;
+            var (currentSelections, currentTypeContext) = stack.Pop();
 
-                if (selection.SelectionSet is not null)
+            foreach (var selection in currentSelections)
+            {
+                if (!selection.Field.IsIntrospectionField &&
+                    currentTypeContext.Fields[selection.Field.Name].Bindings
+                        .ContainsSubgraph(schemaName))
                 {
-                    foreach (var possibleType in operation.GetPossibleTypes(selection))
+                    score++;
+
+                    if (selection.SelectionSet is not null)
                     {
-                        var type = _serviceConfig.GetType<ObjectType>(possibleType.Name);
-                        var selectionSet = operation.GetSelectionSet(selection, possibleType);
-                        score += CalculateSchemaScore(
-                            operation,
-                            selectionSet.Selections,
-                            type,
-                            schemaName);
+                        foreach (var possibleType in operation.GetPossibleTypes(selection))
+                        {
+                            var type = _configuration.GetType<ObjectType>(possibleType.Name);
+                            var selectionSet = operation.GetSelectionSet(selection, possibleType);
+                            stack.Push((selectionSet.Selections, type));
+                        }
                     }
                 }
             }
@@ -228,42 +290,40 @@ internal sealed class RequestPlanner
         ObjectField field,
         string schemaName,
         HashSet<string> variablesInContext,
-        [NotNullWhen(true)] out FetchDefinition? resolver)
-    {
-        if (field.Resolvers.TryGetValue(schemaName, out var resolvers))
-        {
-            foreach (var current in resolvers)
-            {
-                var canBeUsed = true;
-
-                foreach (var requirement in current.Requires)
-                {
-                    if (!variablesInContext.Contains(requirement))
-                    {
-                        canBeUsed = false;
-                        break;
-                    }
-                }
-
-                if (canBeUsed)
-                {
-                    resolver = current;
-                    return true;
-                }
-            }
-        }
-
-        resolver = null;
-        return false;
-    }
+        PreferredResolverKind preference,
+        [NotNullWhen(true)] out ResolverDefinition? resolver)
+        => TryGetResolver(
+            field.Resolvers,
+            schemaName,
+            variablesInContext,
+            preference,
+            out resolver);
 
     private static bool TryGetResolver(
         ObjectType declaringType,
         string schemaName,
         HashSet<string> variablesInContext,
-        [NotNullWhen(true)] out FetchDefinition? resolver)
+        bool preferBatching,
+        [NotNullWhen(true)] out ResolverDefinition? resolver)
+        => TryGetResolver(
+            declaringType.Resolvers,
+            schemaName,
+            variablesInContext,
+            preferBatching
+                ? PreferredResolverKind.Batch
+                : PreferredResolverKind.Query,
+            out resolver);
+
+    private static bool TryGetResolver(
+        ResolverDefinitionCollection resolverDefinitions,
+        string schemaName,
+        HashSet<string> variablesInContext,
+        PreferredResolverKind preference,
+        [NotNullWhen(true)] out ResolverDefinition? resolver)
     {
-        if (declaringType.Resolvers.TryGetValue(schemaName, out var resolvers))
+        resolver = null;
+
+        if (resolverDefinitions.TryGetValue(schemaName, out var resolvers))
         {
             foreach (var current in resolvers)
             {
@@ -280,14 +340,50 @@ internal sealed class RequestPlanner
 
                 if (canBeUsed)
                 {
-                    resolver = current;
-                    return true;
+                    if (preference is PreferredResolverKind.Subscription)
+                    {
+                        if (current.Kind is ResolverKind.Subscription)
+                        {
+                            resolver = current;
+                            return true;
+                        }
+
+                        resolver = null;
+                    }
+                    else
+                    {
+                        switch (current.Kind)
+                        {
+                            case ResolverKind.Batch:
+                                resolver = current;
+
+                                if (preference is PreferredResolverKind.Batch)
+                                {
+                                    return true;
+                                }
+                                break;
+
+                            case ResolverKind.BatchByKey:
+                                resolver = current;
+                                break;
+
+                            case ResolverKind.Query:
+                            default:
+                                if (preference is PreferredResolverKind.Query)
+                                {
+                                    resolver = current;
+                                    return true;
+                                }
+
+                                resolver ??= current;
+                                break;
+                        }
+                    }
                 }
             }
         }
 
-        resolver = null;
-        return false;
+        return resolver is not null;
     }
 
     private void CalculateVariablesInContext(
@@ -300,7 +396,7 @@ internal sealed class RequestPlanner
 
         if (parent is not null)
         {
-            var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
+            var parentDeclaringType = _configuration.GetType<ObjectType>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
             foreach (var variable in parentField.Variables)
@@ -329,7 +425,7 @@ internal sealed class RequestPlanner
     {
         variablesInContext.Clear();
 
-        var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
+        var parentDeclaringType = _configuration.GetType<ObjectType>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
         foreach (var variable in parentField.Variables)
@@ -347,7 +443,7 @@ internal sealed class RequestPlanner
         ISelection selection,
         ObjectType declaringType,
         ISelection? parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         HashSet<string> requirements)
     {
         var field = declaringType.Fields[selection.Field.Name];
@@ -355,7 +451,7 @@ internal sealed class RequestPlanner
 
         if (parent is not null)
         {
-            var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
+            var parentDeclaringType = _configuration.GetType<ObjectType>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
             inContext = inContext.Concat(parentField.Variables.Select(t => t.Name));
         }
@@ -368,14 +464,14 @@ internal sealed class RequestPlanner
 
     private void CalculateRequirements(
         ISelection parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         HashSet<string> requirements)
     {
-        var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
+        var parentDeclaringType = _configuration.GetType<ObjectType>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
+        var parentState = parentField.Variables.Select(t => t.Name);
 
-        foreach (var requirement in
-            resolver.Requires.Except(parentField.Variables.Select(t => t.Name)))
+        foreach (var requirement in resolver.Requires.Except(parentState))
         {
             requirements.Add(requirement);
         }
@@ -386,11 +482,13 @@ internal sealed class RequestPlanner
         public BacklogItem(
             ISelection parentSelection,
             ObjectType declaringType,
-            IReadOnlyList<ISelection> selections)
+            IReadOnlyList<ISelection> selections,
+            bool preferBatching)
         {
             ParentSelection = parentSelection;
             DeclaringType = declaringType;
             Selections = selections;
+            PreferBatching = preferBatching;
         }
 
         public ISelection ParentSelection { get; }
@@ -398,5 +496,14 @@ internal sealed class RequestPlanner
         public ObjectType DeclaringType { get; }
 
         public IReadOnlyList<ISelection> Selections { get; }
+
+        public bool PreferBatching { get; }
+    }
+
+    private enum PreferredResolverKind
+    {
+        Query,
+        Batch,
+        Subscription
     }
 }

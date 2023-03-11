@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -311,6 +309,23 @@ public class Selection : ISelection
 
         _streamIfCondition = ifCondition;
         _flags |= Flags.Stream;
+    }
+
+    /// <summary>
+    /// Completes the selection without sealing it.
+    /// </summary>
+    internal void Complete(ISelectionSet declaringSelectionSet)
+    {
+        Debug.Assert(declaringSelectionSet is not null);
+
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            DeclaringSelectionSet = declaringSelectionSet;
+        }
+
+        Debug.Assert(
+            ReferenceEquals(declaringSelectionSet, DeclaringSelectionSet),
+            "Selections can only belong to a single selectionSet.");
     }
 
     internal void Seal(ISelectionSet declaringSelectionSet)

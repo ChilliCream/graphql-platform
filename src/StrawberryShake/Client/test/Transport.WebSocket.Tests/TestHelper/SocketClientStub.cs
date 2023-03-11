@@ -47,9 +47,9 @@ public sealed class SocketClientStub : ISocketClient
         set => _isClosed = value;
     }
 
-    public bool KeepOpen { get; set; } = false;
+    public bool KeepOpen { get; set; }
 
-    public bool IsDisposed { get; set; } = false;
+    public bool IsDisposed { get; set; }
 
     public ValueTask SendAsync(
         ReadOnlyMemory<byte> message,

@@ -1,11 +1,12 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Clients;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using static HotChocolate.Fusion.FusionResources;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -44,16 +45,16 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(serviceConfiguration));
         }
 
-        var configuration = ServiceConfiguration.Load(serviceConfiguration);
-        var context = ConfigurationDirectiveNamesContext.From(serviceConfiguration);
-        var rewriter = new ServiceConfigurationToSchemaRewriter();
-        var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, context);
+        var context = FusionTypeNames.From(serviceConfiguration);
+        var rewriter = new FusionGraphConfigurationToSchemaRewriter();
+        var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, new(context));
+        var configuration = FusionGraphConfiguration.Load(serviceConfiguration);
 
         if (schemaDoc is null)
         {
-            // todo : exception.
+            // This should not happen as we have already validated the fusion graph configuration.
             throw new InvalidOperationException(
-                "A valid service configuration must always produce a schema document.");
+                FusionRequestExecutorBuilderExtensions_AddFusionGatewayServer_NoSchema);
         }
 
         return services
@@ -65,20 +66,47 @@ public static class FusionRequestExecutorBuilderExtensions
             .ConfigureSchemaServices(
                 sc =>
                 {
-                    foreach (var schemaName in configuration.SchemaNames)
-                    {
-                        sc.AddSingleton<IGraphQLClient>(
-                            sp => new GraphQLHttpClient(
-                                schemaName,
-                                sp.GetApplicationService<IHttpClientFactory>()));
-                    }
+                    sc.AddSingleton<GraphQLClientFactory>(
+                        sp =>
+                        {
+                            var appSp = sp.GetApplicationServices();
+                            var clientFactory = appSp.GetRequiredService<IHttpClientFactory>();
+                            var map1 = new Dictionary<string, Func<IGraphQLClient>>();
+                            var map2 = new Dictionary<string, Func<IGraphQLSubscriptionClient>>();
+
+                            IGraphQLClient CreateClient(HttpClientConfiguration clientConfig)
+                                => new HttpGraphQLClient(
+                                    clientConfig,
+                                    clientFactory.CreateClient(clientConfig.ClientName));
+
+                            foreach (var config in configuration.HttpClients)
+                            {
+                                map1.Add(config.SubgraphName, () => CreateClient(config));
+                            }
+
+                            var subClientFactory = appSp.GetService<IWebSocketConnectionFactory>();
+                            if (subClientFactory is not null)
+                            {
+                                IGraphQLSubscriptionClient Create(
+                                    WebSocketClientConfiguration clientConfig)
+                                    => new WebSocketGraphQLSubscriptionClient(
+                                        clientConfig,
+                                        subClientFactory.CreateConnection(clientConfig.ClientName));
+
+
+                                foreach (var config in configuration.WebSocketClients)
+                                {
+                                    map2.Add(config.SubgraphName, () => Create(config));
+                                }
+                            }
+
+                            return new GraphQLClientFactory(map1, map2);
+                        });
 
                     sc.TryAddSingleton(configuration);
                     sc.TryAddSingleton<RequestPlanner>();
                     sc.TryAddSingleton<RequirementsPlanner>();
                     sc.TryAddSingleton<ExecutionPlanBuilder>();
-                    sc.TryAddSingleton<GraphQLClientFactory>();
-                    sc.TryAddSingleton<FederatedQueryExecutor>();
                 });
     }
 

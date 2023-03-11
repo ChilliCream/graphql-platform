@@ -35,15 +35,13 @@ public class RefactoringTests
             .FormatAsString(schema)
             .MatchInlineSnapshot(
                 """
-                type Foo {
-                    field: Baz
-                }
-
                 type Baz {
-                    field: String
+                  field: String
                 }
 
-                scalar String
+                type Foo {
+                  field: Baz
+                }
                 """);
     }
 
@@ -82,21 +80,19 @@ public class RefactoringTests
             .FormatAsString(schema)
             .MatchInlineSnapshot(
                 """
-                union FooOrBar1 = Foo | Bar
-
-                type Foo {
-                    field: Bar
-                }
-
                 type Bar {
-                    field: String
+                  field: String
                 }
 
                 type Baz {
-                    some: FooOrBar1
+                  some: FooOrBar1
                 }
 
-                scalar String
+                type Foo {
+                  field: Bar
+                }
+
+                union FooOrBar1 = Foo | Bar
                 """);
     }
 
@@ -129,15 +125,13 @@ public class RefactoringTests
             .FormatAsString(schema)
             .MatchInlineSnapshot(
                 """
-                type Foo {
-                  field: Bar
-                }
-
                 type Bar {
                   __field: String
                 }
 
-                scalar String
+                type Foo {
+                  field: Bar
+                }
                 """);
     }
 
@@ -162,7 +156,7 @@ public class RefactoringTests
         var directiveType = new DirectiveType("source");
         directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
-        schema.DirectivesTypes.Add(directiveType);
+        schema.DirectiveTypes.Add(directiveType);
 
         // act
         var success = schema.AddDirective(
@@ -178,15 +172,13 @@ public class RefactoringTests
             .FormatAsString(schema)
             .MatchInlineSnapshot(
                 """
-                type Foo {
-                  field: Bar
-                }
-
                 type Bar @source(name: "abc") {
                   field: String
                 }
 
-                scalar String
+                type Foo {
+                  field: Bar
+                }
 
                 directive @source(name: String!) on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
                 """);
@@ -213,7 +205,7 @@ public class RefactoringTests
         var directiveType = new DirectiveType("source");
         directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
-        schema.DirectivesTypes.Add(directiveType);
+        schema.DirectiveTypes.Add(directiveType);
 
         // act
         var success = schema.AddDirective(
@@ -229,15 +221,13 @@ public class RefactoringTests
             .FormatAsString(schema)
             .MatchInlineSnapshot(
                 """
-                type Foo {
-                  field: Bar
-                }
-
                 type Bar {
                   field: String @source(name: "abc")
                 }
 
-                scalar String
+                type Foo {
+                  field: Bar
+                }
 
                 directive @source(name: String!) on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
                 """);
@@ -275,8 +265,6 @@ public class RefactoringTests
                 type Foo {
 
                 }
-
-                scalar String
                 """);
     }
 }

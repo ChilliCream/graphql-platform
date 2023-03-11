@@ -15,7 +15,7 @@ internal sealed class CompleteMessage : IDataMessage
 
     public static CompleteMessage From(JsonDocument document)
     {
-        JsonElement root = document.RootElement;
+        var root = document.RootElement;
         var id = root.GetProperty(Utf8MessageProperties.IdProp).GetString()!;
         return new CompleteMessage(id);
     }

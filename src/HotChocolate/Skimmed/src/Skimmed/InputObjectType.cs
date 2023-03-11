@@ -3,7 +3,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class InputObjectType : INamedType
+public sealed class InputObjectType : INamedType, INamedTypeSystemMember<InputObjectType>
 {
     private string _name;
 
@@ -27,4 +27,6 @@ public sealed class InputObjectType : INamedType
     public FieldCollection<InputField> Fields { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public static InputObjectType Create(string name) => new(name);
 }

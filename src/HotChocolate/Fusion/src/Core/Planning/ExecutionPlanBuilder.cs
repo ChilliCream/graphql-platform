@@ -1,16 +1,20 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices.JavaScript;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Metadata.ResolverKind;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class ExecutionPlanBuilder
 {
-    private readonly ServiceConfiguration _serviceConfig;
+    private readonly FusionGraphConfiguration _serviceConfig;
     private readonly ISchema _schema;
 
-    public ExecutionPlanBuilder(ServiceConfiguration serviceConfig, ISchema schema)
+    public ExecutionPlanBuilder(FusionGraphConfiguration serviceConfig, ISchema schema)
     {
         _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
         _schema = schema ?? throw new ArgumentNullException(nameof(schema));
@@ -20,10 +24,30 @@ internal sealed class ExecutionPlanBuilder
     {
         foreach (var step in context.Steps)
         {
+            context.ForwardedVariables.Clear();
+
             if (step is SelectionExecutionStep selectionStep)
             {
-                var fetchNode = CreateFetchNode(context, selectionStep);
-                context.Nodes.Add(selectionStep, fetchNode);
+                if (selectionStep.Resolver?.Kind == BatchByKey)
+                {
+                    var fetchNode = CreateBatchResolverNode(
+                        context,
+                        selectionStep,
+                        selectionStep.Resolver);
+                    context.Nodes.Add(selectionStep, fetchNode);
+                }
+                else if (selectionStep.Resolver is null &&
+                    selectionStep.RootSelections.Count == 1 &&
+                    selectionStep.RootSelections[0].Resolver?.Kind is Subscription)
+                {
+                    var fetchNode = CreateSubscription(context, selectionStep);
+                    context.Nodes.Add(selectionStep, fetchNode);
+                }
+                else
+                {
+                    var fetchNode = CreateResolverNode(context, selectionStep);
+                    context.Nodes.Add(selectionStep, fetchNode);
+                }
             }
             else if (step is IntrospectionExecutionStep)
             {
@@ -42,15 +66,34 @@ internal sealed class ExecutionPlanBuilder
             rootNode,
             context.Exports.All
                 .GroupBy(t => t.SelectionSet)
-                .ToDictionary(t => t.Key, t => t.Select(x=> x.StateKey).ToArray()),
+                .ToDictionary(t => t.Key, t => t.Select(x => x.StateKey).ToArray()),
             context.HasNodes);
     }
 
     private QueryPlanNode BuildQueryTree(QueryPlanContext context)
     {
         var completed = new HashSet<IExecutionStep>();
-        var current = context.Nodes.Where(t => t.Key.DependsOn.Count is 0).ToArray();
-        var parent = new SerialNode(context.CreateNodeId());
+        KeyValuePair<IExecutionStep, QueryPlanNode>[] current;
+        QueryPlanNode parent;
+
+        if (context.Operation.Type is not OperationType.Subscription)
+        {
+            current = context.Nodes.Where(t => t.Key.DependsOn.Count is 0).ToArray();
+            parent = new SerialNode(context.CreateNodeId());
+        }
+        else
+        {
+            var root = context.Nodes.First(t => t.Value.Kind is QueryPlanNodeKind.Subscription);
+            parent = root.Value;
+
+            var selectionSet = ResolveSelectionSet(context, root.Key);
+            var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
+            parent.AddNode(compose);
+            completed.Add(root.Key);
+            context.Nodes.Remove(root.Key);
+
+            current = context.Nodes.Where(t => completed.IsSupersetOf(t.Key.DependsOn)).ToArray();
+        }
 
         while (current.Length > 0)
         {
@@ -58,7 +101,7 @@ internal sealed class ExecutionPlanBuilder
             {
                 var node = current[0];
                 var selectionSet = ResolveSelectionSet(context, node.Key);
-                var compose = new ComposeNode(context.CreateNodeId(), selectionSet);
+                var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
                 parent.AddNode(node.Value);
                 parent.AddNode(compose);
                 context.Nodes.Remove(node.Key);
@@ -77,7 +120,7 @@ internal sealed class ExecutionPlanBuilder
                     completed.Add(node.Key);
                 }
 
-                var compose = new ComposeNode(context.CreateNodeId(), selectionSets);
+                var compose = new CompositionNode(context.CreateNodeId(), selectionSets);
 
                 parent.AddNode(parallel);
                 parent.AddNode(compose);
@@ -89,7 +132,7 @@ internal sealed class ExecutionPlanBuilder
         return parent;
     }
 
-    private FetchNode CreateFetchNode(
+    private ResolverNode CreateResolverNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
@@ -98,13 +141,82 @@ internal sealed class ExecutionPlanBuilder
 
         context.HasNodes.Add(selectionSet);
 
-        return new FetchNode(
+        return new ResolverNode(
             context.CreateNodeId(),
-            executionStep.SchemaName,
+            executionStep.SubgraphName,
             requestDocument,
             selectionSet,
             executionStep.Variables.Values.ToArray(),
-            path);
+            path,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
+    }
+
+    private BatchByKeyResolverNode CreateBatchResolverNode(
+        QueryPlanContext context,
+        SelectionExecutionStep executionStep,
+        ResolverDefinition resolver)
+    {
+        var selectionSet = ResolveSelectionSet(context, executionStep);
+        var (requestDocument, path) = CreateRequestDocument(context, executionStep);
+
+        context.HasNodes.Add(selectionSet);
+
+        var argumentTypes = resolver.Arguments;
+
+        if (argumentTypes.Count > 0)
+        {
+            var temp = new Dictionary<string, ITypeNode>();
+
+            foreach (var argument in resolver.Arguments)
+            {
+                if (!context.Exports.TryGetStateKey(
+                    executionStep.RootSelections[0].Selection.DeclaringSelectionSet,
+                    argument.Key,
+                    out var stateKey,
+                    out _))
+                {
+                    // TODO : Exception
+                    throw new InvalidOperationException("The state is inconsistent.");
+                }
+
+                temp.Add(stateKey, argument.Value);
+            }
+
+            argumentTypes = temp;
+        }
+
+        return new BatchByKeyResolverNode(
+            context.CreateNodeId(),
+            executionStep.SubgraphName,
+            requestDocument,
+            selectionSet,
+            executionStep.Variables.Values.ToArray(),
+            path,
+            argumentTypes,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
+    }
+
+    private SubscriptionNode CreateSubscription(
+        QueryPlanContext context,
+        SelectionExecutionStep executionStep)
+    {
+        var selectionSet = ResolveSelectionSet(context, executionStep);
+        var (requestDocument, path) =
+            CreateRequestDocument(
+                context,
+                executionStep,
+                OperationType.Subscription);
+
+        context.HasNodes.Add(selectionSet);
+
+        return new SubscriptionNode(
+            context.CreateNodeId(),
+            executionStep.SubgraphName,
+            requestDocument,
+            selectionSet,
+            executionStep.Variables.Values.ToArray(),
+            path,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
     }
 
     private ISelectionSet ResolveSelectionSet(
@@ -118,7 +230,8 @@ internal sealed class ExecutionPlanBuilder
 
     private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep)
+        SelectionExecutionStep executionStep,
+        OperationType operationType = OperationType.Query)
     {
         var rootSelectionSetNode = CreateRootSelectionSetNode(context, executionStep);
         IReadOnlyList<string> path = Array.Empty<string>();
@@ -144,8 +257,11 @@ internal sealed class ExecutionPlanBuilder
         var operationDefinitionNode = new OperationDefinitionNode(
             null,
             context.CreateRemoteOperationName(),
-            OperationType.Query,
-            context.Exports.CreateVariableDefinitions(executionStep.Variables.Values),
+            operationType,
+            context.Exports.CreateVariableDefinitions(
+                context.ForwardedVariables,
+                executionStep.Variables.Values,
+                executionStep.Resolver?.Arguments),
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
@@ -159,6 +275,7 @@ internal sealed class ExecutionPlanBuilder
         var selectionNodes = new List<ISelectionNode>();
         var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
         var selectionSetType = executionStep.SelectionSetType;
+        Debug.Assert(selectionSet is not null);
 
         // create
         foreach (var rootSelection in executionStep.RootSelections)
@@ -201,6 +318,13 @@ internal sealed class ExecutionPlanBuilder
                 selectionNode = s;
             }
 
+            if (selectionNode is FieldNode fieldNode &&
+                !rootSelection.Selection.ResponseName.EqualsOrdinal(fieldNode.Name.Value))
+            {
+                selectionNode = fieldNode.WithAlias(
+                    new NameNode(rootSelection.Selection.ResponseName));
+            }
+
             selectionNodes.Add(selectionNode);
         }
 
@@ -226,7 +350,7 @@ internal sealed class ExecutionPlanBuilder
             selectionSetNode = CreateSelectionSetNode(context, executionStep, selection);
         }
 
-        var binding = field.Bindings[executionStep.SchemaName];
+        var binding = field.Bindings[executionStep.SubgraphName];
 
         var alias = !selection.ResponseName.Equals(binding.Name)
             ? new NameNode(selection.ResponseName)
@@ -284,7 +408,7 @@ internal sealed class ExecutionPlanBuilder
     private void ResolveRequirements(
         QueryPlanContext context,
         ISelection parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
@@ -296,8 +420,16 @@ internal sealed class ExecutionPlanBuilder
         {
             if (resolver.Requires.Contains(variable.Name))
             {
-                var argumentValue = parent.Arguments[variable.ArgumentName];
-                context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                if (variable is ArgumentVariableDefinition argumentVariable)
+                {
+                    var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
+                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                }
+                else
+                {
+                    // TODO : handle this case
+                    throw new NotImplementedException();
+                }
             }
         }
 
@@ -316,7 +448,7 @@ internal sealed class ExecutionPlanBuilder
         ISelection selection,
         ObjectType declaringType,
         ISelection? parent,
-        FetchDefinition resolver,
+        ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
@@ -325,10 +457,20 @@ internal sealed class ExecutionPlanBuilder
 
         foreach (var variable in field.Variables)
         {
-            if (resolver.Requires.Contains(variable.Name))
+            if (resolver.Requires.Contains(variable.Name) &&
+                resolver.SubgraphName.Equals(variable.SubgraphName))
             {
-                var argumentValue = selection.Arguments[variable.ArgumentName];
-                context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                if (variable is ArgumentVariableDefinition argumentVariable)
+                {
+                    var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
+                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                    TryForwardVariable(context, resolver, argumentValue, argumentVariable);
+                }
+                else
+                {
+                    // todo : handle this case
+                    throw new NotImplementedException();
+                }
             }
         }
 
@@ -342,8 +484,17 @@ internal sealed class ExecutionPlanBuilder
                 if (!context.VariableValues.ContainsKey(variable.Name) &&
                     resolver.Requires.Contains(variable.Name))
                 {
-                    var argumentValue = parent.Arguments[variable.ArgumentName];
-                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                    if (variable is ArgumentVariableDefinition argumentVariable)
+                    {
+                        var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
+                        context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                        TryForwardVariable(context, resolver, argumentValue, argumentVariable);
+                    }
+                    else
+                    {
+                        // todo : handle this case
+                        throw new NotImplementedException();
+                    }
                 }
             }
         }
@@ -354,6 +505,26 @@ internal sealed class ExecutionPlanBuilder
             {
                 var stateKey = variableStateLookup[requirement];
                 context.VariableValues.Add(requirement, new VariableNode(stateKey));
+            }
+        }
+
+        static void TryForwardVariable(
+            QueryPlanContext context,
+            ResolverDefinition resolver,
+            ArgumentValue argumentValue,
+            ArgumentVariableDefinition argumentVariable)
+        {
+            if (argumentValue.ValueLiteral is VariableNode variableValue)
+            {
+                context.ForwardedVariables.Add(
+                    new VariableDefinitionNode(
+                        null,
+                        variableValue,
+                        resolver.Arguments[argumentVariable.ArgumentName],
+                        context.Operation.Definition.VariableDefinitions.First(
+                                t => t.Variable.Equals(variableValue, SyntaxComparison.Syntax))
+                            .DefaultValue,
+                        Array.Empty<DirectiveNode>()));
             }
         }
     }
