@@ -7,6 +7,7 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.Fusion.Execution.ExecutorUtils;
 using static HotChocolate.Fusion.FusionContextDataKeys;
 using static HotChocolate.WellKnownContextData;
 
@@ -88,7 +89,7 @@ internal sealed class SubscriptionNode : ResolverNodeBase
             var context = rootContext.Clone();
             var operationContext = context.OperationContext;
 
-            // we ensure that the query plan is only included once per stream
+                // we ensure that the query plan is only included once per stream
             // in order to not inflate response sizes.
             if (initialResponse)
             {
@@ -110,13 +111,21 @@ internal sealed class SubscriptionNode : ResolverNodeBase
             }
             initialResponse = false;
 
-            // Enqueue root node to initiate the execution process.
+            // Before we can start building requests we need to rent state for the execution result.
             var rootSelectionSet = context.Operation.RootSelectionSet;
             var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
 
+            // by registering the state we will get a work item which represents the state for
+            // this execution step.
             var workItem = context.RegisterState(rootSelectionSet, rootResult);
+
+            // Since we are at the root level we need to register the result object we rented
+            // as data property of the GraphQL request.
             context.Result.SetData(rootResult);
 
+            // In a normal execution plan node we would be ready to execute now.
+            // In this case the result was pushed to us by the subgraph subscription.
+            // So we skip execution and just unwrap the result and extract the selection data.
             var data = UnwrapResult(response);
             var selections = workItem.SelectionSet.Selections;
             var selectionResults = workItem.SelectionResults;
@@ -124,13 +133,18 @@ internal sealed class SubscriptionNode : ResolverNodeBase
             variableValues = workItem.VariableValues;
 
             // we extract the selection data from the request and add it to the workItem results.
-            ExecutorUtils.ExtractSelectionResults(selections, SubgraphName, data, selectionResults);
+            ExtractSelectionResults(selections, SubgraphName, data, selectionResults);
 
-            // next we need to extract any variables that we need for followup requests.
-            ExecutorUtils.ExtractVariables(data, exportKeys, variableValues);
+            // Next we need to extract any variables that we need for followup requests.
+            // The variables we extract here are requirements for the next execution step.
+            ExtractVariables(data, exportKeys, variableValues);
 
+            // We now execute the rest of the execution tree.
             await ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
 
+            // Before we yield back the result we register with it the rented operation context.
+            // When the result is disposed in the transport after usage
+            // so will the operation context.
             context.Result.RegisterForCleanup(
                 () =>
                 {
@@ -145,6 +159,12 @@ internal sealed class SubscriptionNode : ResolverNodeBase
 
 static file class SubscriptionNodeExtensions
 {
+    public static FusionExecutionContext Clone(this FusionExecutionContext context)
+    {
+        var owner = context.CreateOperationContextOwner();
+        return FusionExecutionContext.CreateFrom(context, owner);
+    }
+
     private static OperationContextOwner CreateOperationContextOwner(
         this FusionExecutionContext context)
     {
@@ -153,11 +173,5 @@ static file class SubscriptionNodeExtensions
             .Create();
         owner.OperationContext.InitializeFrom(context.OperationContext);
         return owner;
-    }
-
-    public static FusionExecutionContext Clone(this FusionExecutionContext context)
-    {
-        var owner = context.CreateOperationContextOwner();
-        return FusionExecutionContext.CreateFrom(context, owner);
     }
 }
