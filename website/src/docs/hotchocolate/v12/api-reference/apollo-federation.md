@@ -181,7 +181,7 @@ _Entities query result_
 
 Now that we have an entity defined in one of our subgraphs, let's go ahead and create a second subgraph that extends our `Product` type with more fields and data. Remember, all of this work should be performed in a _**separate API project**_.
 
-The process will start off very similarly: add the necessary package; register the services in your `IServiceCollection`; create the entity type and its `[Key]`; create a `[ReferenceResolver]` for the type; and register the type in the API. In this case, we'll only start by adding the `[Key]` attribute the subgraph will use for resolving the additional data, and a barebones reference resolver.
+The process will start off very similarly: add the necessary package; register the services in your `IServiceCollection`; create the entity type and its `[Key]`; create a `[ReferenceResolver]` for the type; and register the type in the API. In this case, we'll only start by adding the `[Key]` attribute the subgraph will use for resolving the additional data, and a bare-bones reference resolver.
 
 ```csharp
 public class Product
@@ -260,7 +260,7 @@ public class Product
 
 ## Contributing fields through property resolvers
 
-An extended service type can also contribute new fields using a property resolver. Generally, these properties will need to be poplated as part of `[ReferenceResolver]` method, since that is when the object is instantiated.
+An extended service type can also contribute new fields using a property resolver. Generally, these properties will need to be populated as part of `[ReferenceResolver]` method, since that is when the object is instantiated.
 
 ```csharp
 public class Product
