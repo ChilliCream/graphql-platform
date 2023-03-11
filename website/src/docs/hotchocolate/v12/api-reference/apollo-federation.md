@@ -27,21 +27,62 @@ services.AddGraphQLServer()
 
 Now that the API is ready to support Apollo Federation, we'll need to define an **entity**&mdash;an object type that can resolve its fields across multiple subgraphs. We'll work with a `Product` entity to provide an example of how to do this.
 
+<ExampleTabs>
+<Annotation>
+
+  ```csharp
+  public class Product
+  {
+      [GraphQLType(typeof(NonNullType<IdType>))]
+      public string Id { get; set; }
+
+      public string Name { get; set; }
+
+      public float Price { get; set; }
+  }
+  ```
+
+</Annotation>
+
+<Code>
+
 ```csharp
 public class Product
 {
-    [GraphQLType(typeof(NonNullType<IdType>))]
-    public string Id { get; set; }
+      public string Id { get; set; }
 
-    public string Name { get; set; }
+      public string Name { get; set; }
 
-    public float Price { get; set; }
+      public float Price { get; set; }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+    }
 }
 ```
 
+</Code>
+
+<Schema>
+
+**Coming soon**
+
+</Schema>
+</ExampleTabs>
+
 ## Define an entity key
 
-Once we have an object type to work with, we'll [define a key](https://www.apollographql.com/docs/federation/entities#1-define-a-key) for the entity by marking one or more properties with the `[Key]` attribute. This effectively serves as an "identifier" that can uniquely locate an individual record of that type. This will typically be something like a record's primary key, a SKU, or an account number.
+Once we have an object type to work with, we'll [define a key](https://www.apollographql.com/docs/federation/entities#1-define-a-key) for the entity. A key in an Apollo Federated subgraph effectively serves as an "identifier" that can uniquely locate an individual record of that type. This will typically be something like a record's primary key, a SKU, or an account number.
+
+<ExampleTabs>
+
+<Annotation>
+
+In an annotation-based approach, we'll use the `[Key]` attribute on any property or properties that can be referenced as a key by another subgraph.
 
 ```csharp
 public class Product
@@ -56,12 +97,56 @@ public class Product
 }
 ```
 
+</Annotation>
+
+<Code>
+
+In a code-first approach, we'll use the `Key()` method to designate any GraphQL fields that can be reference as a key by another subgraph.
+
+```csharp
+public class Product
+{
+      public string Id { get; set; }
+
+      public string Name { get; set; }
+
+      public float Price { get; set; }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+
+        // Matches the Id property when it is converted to the GraphQL schema
+        descriptor.Key("id");
+    }
+}
+```
+
+</Code>
+
+<Schema>
+
+**Coming soon**
+
+</Schema>
+
+</ExampleTabs>
+
 ## Define a reference resolver
 
-Next, we'll need to define an [entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) so that the supergraph can resolve this entity across multiple subgraphs during a query. Every subgraph that contributes at least one unique field to an entity must define a reference resolver for that entity. A reference resolver works like a [regular resolver](docs/hotchocolate/v12/fetching-data/resolvers) with some key differences:
+Next, we'll need to define an [entity reference resolver](https://www.apollographql.com/docs/federation/entities#2-define-a-reference-resolver) so that the supergraph can resolve this entity across multiple subgraphs during a query. Every subgraph that contributes at least one unique field to an entity must define a reference resolver for that entity.
 
-1. It must be a `public static` method within the type it is resolving
+<ExampleTabs>
+
+<Annotation>
+
+In an annotation-based implementation, a reference resolver will work just like a [regular resolver](docs/hotchocolate/v12/fetching-data/resolvers) with some key differences:
+
 1. It must be annotated with the `[ReferenceResolver]` attribute
+1. It must be a `public static` method _within_ the type it is resolving
 
 ```csharp
 public class Product
@@ -91,8 +176,7 @@ Some important details to highlight about `[ReferenceResolver]` methods.
 
 1. The name of the method decorated with the `[ReferenceResolver]` attribute does not matter. However, as with all programming endeavors, you should aim to provide a descriptive name that reveals the method's intention.
 1. The parameter name and type used in the reference resolver **must match** the GraphQL field name of the `[Key]` attribute, e.g., if the GraphQL key field is `id: String!` or `id: ID!` then the reference resolver's parameter must be `string id`.
-1. If you're using [nullable reference types](https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references), you should make sure the return type is marked as possibly null.
-1. It's recommended to use a [dataloader](/docs/hotchocolate/v12/fetching-data/dataloader) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgraph.
+1. If you're using [nullable reference types](https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references), you should make sure the return type is marked as possibly null, i.e., `T?`.
 1. If you have multiple keys defined for an entity, you should include a reference resolver for _each key_ so that the supergraph is able to resolve your entity regardless of which key(s) another graph uses to reference that entity.
 
 ```csharp
@@ -118,11 +202,92 @@ public class Product
 }
 ```
 
+</Annotation>
+
+<Code>
+
+We'll now chain a `ResolveReferenceWith()` method call off of the `Key()` method call from the previous step. This will create a [resolver](docs/hotchocolate/v12/fetching-data/resolvers) that the Hot Chocolate engine can invoke.
+
+```csharp
+public class Product
+{
+      public string Id { get; set; }
+
+      public string Name { get; set; }
+
+      public float Price { get; set; }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+
+        descriptor.Key("id")
+            .ResolveReferenceWith(_ => ResolveByIdAsync(default!, default!));
+    }
+
+    private static Task<Product?> ResolveByIdAsync(
+        string id,
+        ProductBatchDataLoader dataLoader)
+    {
+        return await dataLoader.LoadAsync(id);
+    }
+}
+```
+
+Some important details to highlight about entity reference resolvers.
+
+1. The parameter name and type used in the reference resolver **must match** the GraphQL field name of the `Key()` field set, e.g., if the GraphQL key field is `id: String!` or `id: ID!` then the reference resolver's parameter must be `string id`.
+1. If you're using [nullable reference types](https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references), you should make sure the return type is marked as possibly null, i.e., `T?`.
+1. For each call to the `Key()` method, you should include a reference resolver so that the supergraph is able to resolve your entity regardless of which key(s) another graph uses to reference that entity.
+
+```csharp
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Key("id")
+            .ResolveReferenceWith(_ => ResolveByIdAsync(default!));
+
+        descriptor.Key("sku")
+            .ResolveReferenceWith(_ => ResolveBySkuAsync(default!))
+    }
+
+    private static Task<Product?> ResolveByIdAsync(string id)
+    {
+        // Locate the product by its Id
+    }
+
+    private static Task<Product?> ResolveBySkuAsync(default!)
+    {
+        // Locate the product by its SKU instead
+    }
+}
+```
+
+</Code>
+
+<Schema>
+
+**Coming soon**
+
+</Schema>
+</ExampleTabs>
+
+> #### A note about reference resolvers
+> It's recommended to use a [dataloader](/docs/hotchocolate/v12/fetching-data/dataloader) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgraph.
+
 ## Register the entity
 
 After our type has a key or keys and a reference resolver defined, you'll register the type in the GraphQL schema, which will register it as a type within the GraphQL API itself as well as within the [auto-generated `_service { sdl }` field](https://www.apollographql.com/docs/federation/subgraph-spec/#required-resolvers-for-introspection) within the API.
 
 _Entity type registration_
+
+<ExampleTabs>
+
+<Annotation>
 
 ```csharp
 services.AddGraphQLServer()
@@ -130,8 +295,28 @@ services.AddGraphQLServer()
     .AddType<Product>()
     // other registrations...
     ;
-
 ```
+
+</Annotation>
+
+<Code>
+
+```csharp
+services.AddGraphQLServer()
+    .AddApolloFederation()
+    .AddType<ProductType>()
+    // other registrations...
+    ;
+```
+
+</Code>
+
+<Schema>
+
+**Coming soon**
+
+</Schema>
+</ExampleTabs>
 
 ## Testing and executing your reference resolvers
 
