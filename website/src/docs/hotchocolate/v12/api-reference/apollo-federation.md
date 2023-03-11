@@ -8,6 +8,8 @@ Hot Chocolate includes an implementation of the Apollo Federation v1 specificati
 
 The documentation describes the syntax for creating an Apollo Federated subgraph using Hot Chocolate and relates the implementation specifics to its counterpart in the Apollo Federation docs. This document _will not_ provide a thorough explanation of the Apollo Federation core concepts nor will it describe how you go about creating a supergraph to stitch together various subgraphs, as the Apollo Federation team already provides thorough documentation of those principles.
 
+You can find example projects of the Apollo Federation library in [Hot Chocolate examples](https://github.com/ChilliCream/graphql-platform/tree/main/src/HotChocolate/ApolloFederation/examples).
+
 # Get Started
 
 To use the Apollo Federation tools, you need to first install v12.6 or later of the `HotChocolate.ApolloFederation` package.
@@ -229,7 +231,9 @@ public class ProductType : ObjectType<Product>
     }
 
     private static Task<Product?> ResolveByIdAsync(
+        // Represents the value that would be in the Id property of a Product
         string id,
+        // Example of a service that can resolve the Products
         ProductBatchDataLoader dataLoader)
     {
         return await dataLoader.LoadAsync(id);
@@ -322,7 +326,7 @@ services.AddGraphQLServer()
 
 After creating an entity, you'll likely wonder "how do I invoke and test this reference resolver?" Entities that define a reference resolver can be queried through the [auto-generated `_entites` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities) at the subgraph level.
 
-You'll invoke the query by providing an array of representations using a combination of a `__typename` and a `[Key]` field values to invoke the appropriate resolver. An example query for our Product would look something like the following.
+You'll invoke the query by providing an array of representations using a combination of a `__typename` and key field values to invoke the appropriate resolver. An example query for our `Product` would look something like the following.
 
 _Entities query_
 
@@ -362,7 +366,9 @@ _Entities query result_
 
 > **Note**: The `_entities` field is an internal implementation detail of Apollo Federation that is necessary for the supergraph to properly resolve entities. API consumers **should not** use the `_entities` field directly nor should they send requests to a subgraph directly. We're only highlighting how to use the `_entities` field so that you can validate and test your subgraph and its entity reference resolvers at runtime or using tools like [`Microsoft.AspNetCore.Mvc.Testing`](https://learn.microsoft.com/aspnet/core/test/integration-tests).
 
-# Extending an entity type
+# Referencing an entity type
+
+**TODO: structure section with "reference a type", "contibute new fields" followed by "extend with computed fields"**
 
 Now that we have an entity defined in one of our subgraphs, let's go ahead and create a second subgraph that extends our `Product` type with more fields and data. Remember, all of this work should be performed in a _**separate API project**_.
 
