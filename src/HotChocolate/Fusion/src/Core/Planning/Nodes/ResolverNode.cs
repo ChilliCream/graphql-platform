@@ -1,6 +1,4 @@
-using System.Text.Json;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
@@ -8,8 +6,35 @@ using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// The resolver node is responsible for executing a GraphQL request on a subgraph.
+/// </summary>
 internal sealed class ResolverNode : ResolverNodeBase
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ResolverNode"/>.
+    /// </summary>
+    /// <param name="id">
+    /// The unique id of this node.
+    /// </param>
+    /// <param name="subgraphName">
+    /// The name of the subgraph on which this request handler executes.
+    /// </param>
+    /// <param name="document">
+    /// The GraphQL request document.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The selection set for which this request provides a patch.
+    /// </param>
+    /// <param name="requires">
+    /// The variables that this request handler requires to create a request.
+    /// </param>
+    /// <param name="path">
+    /// The path to the data that this request handler needs to extract.
+    /// </param>
+    /// <param name="forwardedVariables">
+    /// The variables that this request handler forwards to the subgraph.
+    /// </param>
     public ResolverNode(
         int id,
         string subgraphName,
@@ -22,8 +47,23 @@ internal sealed class ResolverNode : ResolverNodeBase
     {
     }
 
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Resolver;
 
+    /// <summary>
+    /// Executes this resolver node.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="state">
+    /// The execution state.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
         IExecutionState state,
