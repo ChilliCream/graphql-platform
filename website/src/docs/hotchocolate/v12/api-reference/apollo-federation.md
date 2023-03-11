@@ -4,7 +4,7 @@ title: Apollo Federation Subgraph Support
 
 > If you want to read more about Apollo Federation in general, you can head over to the [Apollo Federation documentation](https://www.apollographql.com/docs/federation/), which provides a robust overview and set of examples for this GraphQL architectural pattern. Many of the core principles and concepts are referenced within this document.
 
-Hot Chocolate includes an implementation of the Apollo Federation v2 specification for creating Apollo Federated subgraphs. Through Apollo Federation, you can combine multiple GraphQL APIs into a single API for your consumers.
+Hot Chocolate includes an implementation of the Apollo Federation v1 specification for creating Apollo Federated subgraphs. Through Apollo Federation, you can combine multiple GraphQL APIs into a single API for your consumers.
 
 The documentation describes the syntax for creating an Apollo Federated subgraph using Hot Chocolate and relates the implementation specifics to its counterpart in the Apollo Federation docs. This document _will not_ provide a thorough explanation of the Apollo Federation core concepts nor will it describe how you go about creating a supergraph to stitch together various subgraphs, as the Apollo Federation team already provides thorough documentation of those principles.
 
@@ -135,9 +135,9 @@ services.AddGraphQLServer()
 
 ## Testing and executing your reference resolvers
 
-After creating an entity, you'll likely wonder "where is the query field to invoke and test this reference resolver?" The Hot Chocolate engine does the work behind the scenes to connect your `[ReferenceResolver]` method with the [auto-generated `_entites` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities), which serves as the entry point for _all_ entity reference resolvers.
+After creating an entity, you'll likely wonder "how do I invoke and test this reference resolver?" Entities that define a reference resolver can be queried through the [auto-generated `_entites` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities) at the subgraph level.
 
-You'll invoke the query by providing an array of representations using a combination of a `__typename` and a `[Key]` field to invoke the appropriate resolver. An example query for our Product would look something like the following.
+You'll invoke the query by providing an array of representations using a combination of a `__typename` and a `[Key]` field values to invoke the appropriate resolver. An example query for our Product would look something like the following.
 
 _Entities query_
 
@@ -175,7 +175,7 @@ _Entities query result_
 }
 ```
 
-> **Note**: The `_entities` field is an internal implementation detail of Apollo Federation that is necessary for the supergraph to properly resolve entities. API consumers **should not** use the `_entities` field directly, nor should they issue requests to a subgraph directly. We're highlighting how to use the `_entities` field so that you can validate and test your subgraph at runtime or using tools like [`Microsoft.AspNetCore.Mvc.Testing`](https://learn.microsoft.com/aspnet/core/test/integration-tests).
+> **Note**: The `_entities` field is an internal implementation detail of Apollo Federation that is necessary for the supergraph to properly resolve entities. API consumers **should not** use the `_entities` field directly nor should they send requests to a subgraph directly. We're only highlighting how to use the `_entities` field so that you can validate and test your subgraph and its entity reference resolvers at runtime or using tools like [`Microsoft.AspNetCore.Mvc.Testing`](https://learn.microsoft.com/aspnet/core/test/integration-tests).
 
 # Extending an entity type
 
