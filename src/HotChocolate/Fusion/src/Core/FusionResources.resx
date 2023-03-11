@@ -48,4 +48,7 @@
   <data name="FusionRequestExecutorBuilderExtensions_AddFusionGatewayServer_NoSchema" xml:space="preserve">
     <value>A valid service configuration must always produce a schema document.</value>
   </data>
+  <data name="ThrowHelper_Requirement_Is_Missing" xml:space="preserve">
+    <value>The variable value `{0}` was not provided but is required.</value>
+  </data>
 </root>

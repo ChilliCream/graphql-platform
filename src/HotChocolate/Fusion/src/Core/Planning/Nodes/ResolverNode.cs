@@ -1,5 +1,4 @@
 using System.Text.Json;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
@@ -9,10 +8,8 @@ using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class ResolverNode : QueryPlanNode
+internal sealed class ResolverNode : ResolverNodeBase
 {
-    private readonly IReadOnlyList<string> _path;
-
     public ResolverNode(
         int id,
         string subgraphName,
@@ -21,42 +18,11 @@ internal sealed class ResolverNode : QueryPlanNode
         IReadOnlyList<string> requires,
         IReadOnlyList<string> path,
         IReadOnlyList<string> forwardedVariables)
-        : base(id)
+        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables)
     {
-        SubgraphName = subgraphName;
-        Document = document;
-        SelectionSet = selectionSet;
-        Requires = requires;
-        _path = path;
-        ForwardedVariables = forwardedVariables;
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Resolver;
-
-    /// <summary>
-    /// Gets the schema name on which this request handler executes.
-    /// </summary>
-    public string SubgraphName { get; }
-
-    /// <summary>
-    /// Gets the GraphQL request document.
-    /// </summary>
-    public DocumentNode Document { get; }
-
-    /// <summary>
-    /// Gets the selection set for which this request provides a patch.
-    /// </summary>
-    public ISelectionSet SelectionSet { get; }
-
-    /// <summary>
-    /// Gets the variables that this request handler requires to create a request.
-    /// </summary>
-    public IReadOnlyList<string> Requires { get; }
-
-    /// <summary>
-    /// Gets the variables that this request handler forwards to the subgraph.
-    /// </summary>
-    public IReadOnlyList<string> ForwardedVariables { get; }
 
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
@@ -128,108 +94,6 @@ internal sealed class ResolverNode : QueryPlanNode
         if (state.ContainsState(SelectionSet))
         {
             await base.OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private GraphQLRequest CreateRequest(
-        IVariableValueCollection variables,
-        IReadOnlyDictionary<string, IValueNode> variableValues)
-    {
-        ObjectValueNode? vars = null;
-
-        if (Requires.Count > 0 || ForwardedVariables.Count > 0)
-        {
-            var fields = new List<ObjectFieldNode>();
-
-            foreach (var forwardedVariable in ForwardedVariables)
-            {
-                if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
-                    value is not null)
-                {
-                    fields.Add(new ObjectFieldNode(forwardedVariable, value));
-                }
-            }
-
-            foreach (var requirement in Requires)
-            {
-                if (variableValues.TryGetValue(requirement, out var value))
-                {
-                    fields.Add(new ObjectFieldNode(requirement, value));
-                }
-                else
-                {
-                    // TODO : error helper
-                    throw new ArgumentException(
-                        $"The variable value `{requirement}` was not provided " +
-                        "but is required.",
-                        nameof(variableValues));
-                }
-            }
-
-            vars ??= new ObjectValueNode(fields);
-        }
-
-        return new GraphQLRequest(SubgraphName, Document, vars, null);
-    }
-
-    private JsonElement UnwrapResult(GraphQLResponse response)
-    {
-        if (_path.Count == 0)
-        {
-            return response.Data;
-        }
-
-        if (response.Data.ValueKind is not JsonValueKind.Undefined and not JsonValueKind.Null)
-        {
-            var current = response.Data;
-
-            for (var i = 0; i < _path.Count; i++)
-            {
-                if (current.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
-                {
-                    return current;
-                }
-
-                current.TryGetProperty(_path[i], out var propertyValue);
-                current = propertyValue;
-            }
-
-            return current;
-        }
-
-        return response.Data;
-    }
-
-    protected override void FormatProperties(Utf8JsonWriter writer)
-    {
-        writer.WriteString("schemaName", SubgraphName);
-        writer.WriteString("document", Document.ToString(false));
-        writer.WriteNumber("selectionSetId", SelectionSet.Id);
-
-        if (_path.Count > 0)
-        {
-            writer.WritePropertyName("path");
-            writer.WriteStartArray();
-
-            foreach (var path in _path)
-            {
-                writer.WriteStringValue(path);
-            }
-            writer.WriteEndArray();
-        }
-
-        if (Requires.Count > 0)
-        {
-            writer.WritePropertyName("requires");
-            writer.WriteStartArray();
-
-            foreach (var requirement in Requires)
-            {
-                writer.WriteStartObject();
-                writer.WriteString("variable", requirement);
-                writer.WriteEndObject();
-            }
-            writer.WriteEndArray();
         }
     }
 }
