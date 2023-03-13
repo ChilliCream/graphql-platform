@@ -10,7 +10,9 @@ namespace HotChocolate.Fusion.Metadata;
 
 internal sealed class FusionGraphConfigurationReader
 {
+    private readonly Dictionary<string, ITypeNode> _emptyArgumentDefs = new();
     private readonly HashSet<string> _assert = new();
+    private readonly HashSet<string> _subgraphNames = new();
 
     public FusionGraphConfiguration Read(string sourceText)
         => Read(Utf8GraphQLParser.Parse(sourceText));
@@ -37,7 +39,8 @@ internal sealed class FusionGraphConfigurationReader
         var types = new List<IType>();
         var typeNames = FusionTypeNames.From(document);
         var httpClientConfigs = ReadHttpClientConfigs(typeNames, schemaDef.Directives);
-        var typeNameField = CreateTypeNameField(httpClientConfigs.Select(t => t.Subgraph));
+        var webSocketClientConfigs = ReadWebSocketClientConfigs(typeNames, schemaDef.Directives);
+        var typeNameField = CreateTypeNameField(_subgraphNames);
 
         foreach (var definition in document.Definitions)
         {
@@ -59,7 +62,11 @@ internal sealed class FusionGraphConfigurationReader
             throw ServiceConfNoTypesSpecified();
         }
 
-        return new FusionGraphConfiguration(types, httpClientConfigs);
+        return new FusionGraphConfiguration(
+            types,
+            _subgraphNames.ToArray(),
+            httpClientConfigs,
+            webSocketClientConfigs);
     }
 
     private ObjectType ReadObjectType(
@@ -95,19 +102,19 @@ internal sealed class FusionGraphConfigurationReader
         return new ObjectFieldCollection(collection);
     }
 
-    private static ObjectField CreateTypeNameField(IEnumerable<string> schemaNames)
+    private static ObjectField CreateTypeNameField(IEnumerable<string> subgraphNames)
         => new ObjectField(
             IntrospectionFields.TypeName,
             new MemberBindingCollection(
-                schemaNames.Select(t => new MemberBinding(t, IntrospectionFields.TypeName))),
+                subgraphNames.Select(t => new MemberBinding(t, IntrospectionFields.TypeName))),
             FieldVariableDefinitionCollection.Empty,
             ResolverDefinitionCollection.Empty);
 
-    private IReadOnlyList<HttpClientConfig> ReadHttpClientConfigs(
+    private IReadOnlyList<HttpClientConfiguration> ReadHttpClientConfigs(
         FusionTypeNames typeNames,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        var configs = new List<HttpClientConfig>();
+        var configs = new List<HttpClientConfiguration>();
 
         foreach (var directiveNode in directiveNodes)
         {
@@ -120,22 +127,27 @@ internal sealed class FusionGraphConfigurationReader
         return configs;
     }
 
-    private HttpClientConfig ReadHttpClientConfig(
+    private HttpClientConfiguration ReadHttpClientConfig(
         FusionTypeNames typeNames,
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, typeNames.HttpDirective);
-        AssertArguments(directiveNode, SubgraphArg, BaseAddressArg);
+        AssertArguments(directiveNode, OptionalArgs, SubgraphArg, BaseAddressArg);
 
         string name = default!;
+        string subgraph = default!;
         string baseAddress = default!;
 
         foreach (var argument in directiveNode.Arguments)
         {
             switch (argument.Name.Value)
             {
-                case SubgraphArg:
+                case ClientNameArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case SubgraphArg:
+                    subgraph = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
                 case BaseAddressArg:
@@ -144,7 +156,76 @@ internal sealed class FusionGraphConfigurationReader
             }
         }
 
-        return new HttpClientConfig(name, new Uri(baseAddress));
+        if (string.IsNullOrEmpty(name))
+        {
+            name = subgraph;
+        }
+
+        return new HttpClientConfiguration(name, subgraph, new Uri(baseAddress));
+
+        static void OptionalArgs(HashSet<string> assert)
+        {
+            assert.Remove(ClientNameArg);
+        }
+    }
+
+    private IReadOnlyList<WebSocketClientConfiguration> ReadWebSocketClientConfigs(
+        FusionTypeNames typeNames,
+        IReadOnlyList<DirectiveNode> directiveNodes)
+    {
+        var configs = new List<WebSocketClientConfiguration>();
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.WebSocketDirective))
+            {
+                configs.Add(ReadWebSocketClientConfig(typeNames, directiveNode));
+            }
+        }
+
+        return configs;
+    }
+
+    private WebSocketClientConfiguration ReadWebSocketClientConfig(
+        FusionTypeNames typeNames,
+        DirectiveNode directiveNode)
+    {
+        AssertName(directiveNode, typeNames.WebSocketDirective);
+        AssertArguments(directiveNode, OptionalArgs, SubgraphArg, BaseAddressArg);
+
+        string name = default!;
+        string subgraph = default!;
+        string baseAddress = default!;
+
+        foreach (var argument in directiveNode.Arguments)
+        {
+            switch (argument.Name.Value)
+            {
+                case ClientNameArg:
+                    name = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case SubgraphArg:
+                    subgraph = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case BaseAddressArg:
+                    baseAddress = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+            }
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            name = subgraph;
+        }
+
+        return new WebSocketClientConfiguration(name, subgraph, new Uri(baseAddress));
+
+        static void OptionalArgs(HashSet<string> assert)
+        {
+            assert.Remove(ClientNameArg);
+        }
     }
 
     private VariableDefinitionCollection ReadObjectVariableDefinitions(
@@ -189,8 +270,8 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private ArgumentVariableDefinition ReadArgumentVariableDefinition(
-       FusionTypeNames typeNames,
-       DirectiveNode directiveNode)
+        FusionTypeNames typeNames,
+        DirectiveNode directiveNode)
     {
         AssertName(directiveNode, typeNames.VariableDirective);
         AssertArguments(directiveNode, NameArg, ArgumentArg, TypeArg, SubgraphArg);
@@ -230,11 +311,10 @@ internal sealed class FusionGraphConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, typeNames.VariableDirective);
-        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, SubgraphArg);
+        AssertArguments(directiveNode, NameArg, SelectArg, SubgraphArg);
 
         string name = default!;
         FieldNode select = default!;
-        ITypeNode type = default!;
         string schemaName = default!;
 
         foreach (var argument in directiveNode.Arguments)
@@ -249,17 +329,13 @@ internal sealed class FusionGraphConfigurationReader
                     select = ParseField(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case TypeArg:
-                    type = ParseTypeReference(Expect<StringValueNode>(argument.Value).Value);
-                    break;
-
                 case SubgraphArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
         }
 
-        return new FieldVariableDefinition(name, schemaName, type, select);
+        return new FieldVariableDefinition(name, schemaName, select);
     }
 
     private ResolverDefinitionCollection ReadResolverDefinitions(
@@ -286,10 +362,12 @@ internal sealed class FusionGraphConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, typeNames.ResolverDirective);
-        AssertArguments(directiveNode, SelectArg, SubgraphArg);
+        AssertArguments(directiveNode, OptionalArgs, SelectArg, SubgraphArg);
 
         SelectionSetNode select = default!;
         string subgraph = default!;
+        var kind = ResolverKind.Query;
+        Dictionary<string, ITypeNode>? arguments = null;
 
         foreach (var argument in directiveNode.Arguments)
         {
@@ -301,6 +379,23 @@ internal sealed class FusionGraphConfigurationReader
 
                 case SubgraphArg:
                     subgraph = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case KindArg:
+                    kind = Expect<StringValueNode>(argument.Value).Value switch
+                    {
+                        FusionEnumValueNames.Query => ResolverKind.Query,
+                        FusionEnumValueNames.Batch => ResolverKind.Batch,
+                        FusionEnumValueNames.BatchByKey => ResolverKind.BatchByKey,
+                        FusionEnumValueNames.Subscription => ResolverKind.Subscription,
+                        _ => throw new InvalidOperationException(
+                            FusionResources
+                                .FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue)
+                    };
+                    break;
+
+                case ArgumentsArg:
+                    arguments = ReadResolverArgumentDefinitions(argument.Value);
                     break;
             }
         }
@@ -330,11 +425,57 @@ internal sealed class FusionGraphConfigurationReader
 
         return new ResolverDefinition(
             subgraph,
+            kind,
             select,
             placeholder,
             _assert.Count == 0
                 ? Array.Empty<string>()
-                : _assert.ToArray());
+                : _assert.ToArray(),
+            arguments ?? _emptyArgumentDefs);
+
+        static void OptionalArgs(HashSet<string> assert)
+        {
+            assert.Remove(KindArg);
+            assert.Remove(ArgumentsArg);
+        }
+    }
+
+    private Dictionary<string, ITypeNode>? ReadResolverArgumentDefinitions(
+        IValueNode argumentDefinitions)
+    {
+        if (argumentDefinitions is NullValueNode)
+        {
+            return null;
+        }
+
+        var arguments = new Dictionary<string, ITypeNode>();
+
+        foreach (var argumentDef in Expect<ListValueNode>(argumentDefinitions).Items)
+        {
+            var argumentDefNode = Expect<ObjectValueNode>(argumentDef);
+
+            string argumentName = default!;
+            ITypeNode argumentType = default!;
+
+            foreach (var argumentDefArgument in argumentDefNode.Fields)
+            {
+                switch (argumentDefArgument.Name.Value)
+                {
+                    case NameArg:
+                        argumentName = Expect<StringValueNode>(argumentDefArgument.Value).Value;
+                        break;
+
+                    case TypeArg:
+                        argumentType = ParseTypeReference(
+                            Expect<StringValueNode>(argumentDefArgument.Value).Value);
+                        break;
+                }
+            }
+
+            arguments.Add(argumentName, argumentType);
+        }
+
+        return arguments;
     }
 
     private MemberBindingCollection ReadMemberBindings(
@@ -405,7 +546,7 @@ internal sealed class FusionGraphConfigurationReader
         AssertArguments(directiveNode, SubgraphArg, NameArg);
 
         string? name = null;
-        string schemaName = default!;
+        string subgraphName = default!;
 
         foreach (var argument in directiveNode.Arguments)
         {
@@ -416,12 +557,14 @@ internal sealed class FusionGraphConfigurationReader
                     break;
 
                 case SubgraphArg:
-                    schemaName = Expect<StringValueNode>(argument.Value).Value;
+                    subgraphName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
         }
 
-        return new MemberBinding(schemaName, name ?? annotatedField.Name.Value);
+        _subgraphNames.Add(subgraphName);
+
+        return new MemberBinding(subgraphName, name ?? annotatedField.Name.Value);
     }
 
     private static T Expect<T>(IValueNode valueNode) where T : IValueNode
@@ -443,6 +586,12 @@ internal sealed class FusionGraphConfigurationReader
     }
 
     private void AssertArguments(DirectiveNode directive, params string[] expectedArguments)
+        => AssertArguments(directive, null, expectedArguments);
+
+    private void AssertArguments(
+        DirectiveNode directive,
+        Action<HashSet<string>>? beforeAssert,
+        params string[] expectedArguments)
     {
         if (directive.Arguments.Count == 0)
         {
@@ -457,6 +606,7 @@ internal sealed class FusionGraphConfigurationReader
         }
 
         _assert.ExceptWith(expectedArguments);
+        beforeAssert?.Invoke(_assert);
 
         if (_assert.Count > 0)
         {

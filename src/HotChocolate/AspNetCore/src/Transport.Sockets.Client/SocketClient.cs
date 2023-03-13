@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ using static HotChocolate.Transport.Sockets.SocketDefaults;
 
 namespace HotChocolate.Transport.Sockets.Client;
 
-public class SocketClient : ISocket
+public sealed class SocketClient : ISocket
 {
     private static readonly IProtocolHandler[] _protocolHandlers =
     {
@@ -79,7 +78,8 @@ public class SocketClient : ISocket
         return _protocol.InitializeAsync(_context, payload, cancellationToken);
     }
 
-    private void BeginRunPipeline() => _pipeline.RunAsync(_ct);
+    private void BeginRunPipeline()
+        => Task.Factory.StartNew(() => _pipeline.RunAsync(_ct), _ct);
 
     public ValueTask<SocketResult> ExecuteAsync(
         OperationRequest request,
@@ -156,7 +156,7 @@ public class SocketClient : ISocket
                 socketResult = await _socket.ReceiveAsync(arraySegment, cancellationToken);
 
                 // copy message segment to writer.
-                Memory<byte> memory = writer.GetMemory(socketResult.Count);
+                var memory = writer.GetMemory(socketResult.Count);
                 buffer.AsSpan().Slice(0, socketResult.Count).CopyTo(memory.Span);
                 writer.Advance(socketResult.Count);
                 read += socketResult.Count;

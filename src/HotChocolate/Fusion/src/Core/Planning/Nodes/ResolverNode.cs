@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
@@ -18,7 +19,8 @@ internal sealed class ResolverNode : QueryPlanNode
         DocumentNode document,
         ISelectionSet selectionSet,
         IReadOnlyList<string> requires,
-        IReadOnlyList<string> path)
+        IReadOnlyList<string> path,
+        IReadOnlyList<string> forwardedVariables)
         : base(id)
     {
         SubgraphName = subgraphName;
@@ -26,6 +28,7 @@ internal sealed class ResolverNode : QueryPlanNode
         SelectionSet = selectionSet;
         Requires = requires;
         _path = path;
+        ForwardedVariables = forwardedVariables;
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Resolver;
@@ -50,23 +53,30 @@ internal sealed class ResolverNode : QueryPlanNode
     /// </summary>
     public IReadOnlyList<string> Requires { get; }
 
+    /// <summary>
+    /// Gets the variables that this request handler forwards to the subgraph.
+    /// </summary>
+    public IReadOnlyList<string> ForwardedVariables { get; }
+
     protected override async Task OnExecuteAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var values))
+        if (state.TryGetState(SelectionSet, out var workItems))
         {
             var schemaName = SubgraphName;
-            var requests = new GraphQLRequest[values.Count];
-            var selections = values[0].SelectionSet.Selections;
+            var requests = new GraphQLRequest[workItems.Count];
+            var selections = workItems[0].SelectionSet.Selections;
 
             // first we will create a request for all of our work items.
-            for (var i = 0; i < values.Count; i++)
+            for (var i = 0; i < workItems.Count; i++)
             {
-                var value = values[i];
-                ExtractPartialResult(value);
-                requests[i] = CreateRequest(value.VariableValues);
+                var workItem = workItems[i];
+                ExtractPartialResult(workItem);
+                requests[i] = CreateRequest(
+                    context.OperationContext.Variables,
+                    workItem.VariableValues);
             }
 
             // once we have the requests, we will enqueue them for execution with the execution engine.
@@ -96,7 +106,7 @@ internal sealed class ResolverNode : QueryPlanNode
             {
                 var response = responses[i];
                 var data = UnwrapResult(response);
-                var workItem = values[i];
+                var workItem = workItems[i];
                 var selectionResults = workItem.SelectionResults;
                 var exportKeys = workItem.ExportKeys;
                 var variableValues = workItem.VariableValues;
@@ -111,7 +121,7 @@ internal sealed class ResolverNode : QueryPlanNode
     }
 
     protected override async Task OnExecuteNodesAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {
@@ -121,13 +131,24 @@ internal sealed class ResolverNode : QueryPlanNode
         }
     }
 
-    private GraphQLRequest CreateRequest(IReadOnlyDictionary<string, IValueNode> variableValues)
+    private GraphQLRequest CreateRequest(
+        IVariableValueCollection variables,
+        IReadOnlyDictionary<string, IValueNode> variableValues)
     {
         ObjectValueNode? vars = null;
 
-        if (Requires.Count > 0)
+        if (Requires.Count > 0 || ForwardedVariables.Count > 0)
         {
             var fields = new List<ObjectFieldNode>();
+
+            foreach (var forwardedVariable in ForwardedVariables)
+            {
+                if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
+                    value is not null)
+                {
+                    fields.Add(new ObjectFieldNode(forwardedVariable, value));
+                }
+            }
 
             foreach (var requirement in Requires)
             {

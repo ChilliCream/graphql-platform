@@ -125,6 +125,34 @@ public class JsonTypeTests
     }
 
     [Fact]
+    public async Task Input_Json_Object_List()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        inputJson(input: { a: ["abc"] })
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "inputJson": {
+                  "a": [
+                    "abc"
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Input_Json_Object_Variables()
     {
         var input = JsonDocument.Parse(

@@ -21,6 +21,13 @@ internal sealed class RegisterClientMiddleware : IMergeMiddleware
                                 httpClient.BaseAddress));
                         break;
 
+                    case WebSocketClientConfiguration webSocketClient:
+                        context.FusionGraph.Directives.Add(
+                            context.FusionTypes.CreateWebSocketDirective(
+                                configuration.Name,
+                                webSocketClient.BaseAddress));
+                        break;
+
                     default:
                         throw new ArgumentOutOfRangeException(nameof(client));
                 }

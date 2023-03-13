@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -63,19 +62,28 @@ internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
     }
 }
 
-static file class MergeEntitiesMiddlewareExtensions
+static file class MergeQueryTypeMiddlewareExtensions
 {
     public static void ApplyResolvers(
         this CompositionContext context,
         OutputField field,
         SelectionSetNode selectionSet,
-        string schemaName)
+        string subgraphName)
     {
+        Dictionary<string, ITypeNode>? arguments = null;
+
+        foreach (var argument in field.Arguments)
+        {
+            arguments ??= new Dictionary<string, ITypeNode>();
+            arguments.Add(argument.Name, argument.Type.ToTypeNode());
+        }
+
         field.Directives.Add(
             CreateResolverDirective(
                 context,
                 selectionSet,
-                schemaName));
+                subgraphName,
+                arguments));
     }
 
     public static void ApplyVariable(
@@ -88,24 +96,25 @@ static file class MergeEntitiesMiddlewareExtensions
             CreateVariableDirective(
                 context,
                 argument.Name,
-                argument.Type,
                 subgraphName));
     }
 
     private static Directive CreateResolverDirective(
         CompositionContext context,
         SelectionSetNode selectionSet,
-        string subgraphName)
-        => context.FusionTypes.CreateResolverDirective(subgraphName, selectionSet);
+        string subgraphName,
+        Dictionary<string, ITypeNode>? arguments = null)
+        => context.FusionTypes.CreateResolverDirective(
+            subgraphName,
+            selectionSet,
+            arguments);
 
     private static Directive CreateVariableDirective(
         CompositionContext context,
         string variableName,
-        IType argumentType,
         string subgraphName)
         => context.FusionTypes.CreateVariableDirective(
             subgraphName,
             variableName,
-            variableName,
-            argumentType.ToTypeNode());
+            variableName);
 }

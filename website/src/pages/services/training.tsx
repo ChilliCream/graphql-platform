@@ -74,6 +74,13 @@ const TrainingPage: FC = () => {
     },
     {
       title: "Fullstack GraphQL",
+      date: "10 - 11 May 2023",
+      host: "ONLINE",
+      place: "9AM-5PM CDT",
+      url: "https://www.eventbrite.com/e/fullstack-graphql-tickets-583856048157",
+    },
+    {
+      title: "Fullstack GraphQL",
       date: "22 - 23 May 2023",
       host: "NDC",
       place: "{ Oslo }",

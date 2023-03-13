@@ -2,7 +2,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Schemas;
+using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,6 +69,7 @@ public class DemoIntegrationTests
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
             .BuildRequestExecutorAsync();
 
@@ -87,6 +88,47 @@ public class DemoIntegrationTests
             }
             """);
 
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Query_GetUserById()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query GetUser {
+              userById(id: 1) {
+                id
+              }
+            }
+            """);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -99,6 +141,103 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Subscription_OnNewReview()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(10_000);
+        using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            },
+            cts.Token);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+        var request = Parse(
+            """
+            subscription OnNewReview {
+                onNewReview {
+                    body
+                    author {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create(),
+            cts.Token);
+
+        // assert
+        var snapshot = new Snapshot();
+        await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
+        await snapshot.MatchAsync(cts.Token);
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Subscription_OnNewReview_Two_Graphs()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(10_000);
+        using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            },
+            cts.Token);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+        var request = Parse(
+            """
+            subscription OnNewReview {
+                onNewReview {
+                    body
+                    author {
+                        name
+                        birthdate
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create(),
+            cts.Token);
+
+        // assert
+        var snapshot = new Snapshot();
+        await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
+        await snapshot.MatchAsync(cts.Token);
     }
 
     [Fact]
@@ -117,6 +256,7 @@ public class DemoIntegrationTests
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
             .BuildRequestExecutorAsync();
 
@@ -147,6 +287,50 @@ public class DemoIntegrationTests
             }
             """);
 
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Batch_Requests()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query GetUser {
+                reviews {
+                    body
+                    author {
+                        birthdate
+                    }
+                }
+            }
+            """);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -178,6 +362,7 @@ public class DemoIntegrationTests
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
             .BuildRequestExecutorAsync();
 
@@ -226,6 +411,7 @@ public class DemoIntegrationTests
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
             .BuildRequestExecutorAsync();
 
@@ -259,6 +445,50 @@ public class DemoIntegrationTests
     }
 
     [Fact]
+    public async Task Authors_And_Reviews_And_Products_With_Variables()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query TopProducts($first: Int!) {
+                topProducts(first: $first) {
+                    upc
+                }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("first", 2)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
     public async Task Authors_And_Reviews_And_Products_Introspection()
     {
         // arrange
@@ -275,6 +505,7 @@ public class DemoIntegrationTests
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
             .BuildRequestExecutorAsync();
 
@@ -329,10 +560,37 @@ public class DemoIntegrationTests
         snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
     }
 
+    private static async Task CollectStreamSnapshotData(
+        Snapshot snapshot,
+        DocumentNode request,
+        IExecutionResult result,
+        Skimmed.Schema fusionGraph,
+        CancellationToken cancellationToken)
+    {
+        snapshot.Add(request, "User Request");
+
+        var i = 0;
+        await foreach(var item in result.ExpectResponseStream()
+            .ReadResultsAsync().WithCancellation(cancellationToken))
+        {
+            if (item.ContextData is not null &&
+                item.ContextData.TryGetValue("queryPlan", out var value) &&
+                value is QueryPlan queryPlan)
+            {
+                snapshot.Add(queryPlan, "QueryPlan");
+            }
+
+            snapshot.Add(item, $"Result {++i}");
+        }
+
+        snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
+    }
+
     private const string AccountsExtensionSdl =
         """
         extend type Query {
           userById(id: Int! @is(field: "id")): User!
+          usersById(ids: [Int!]! @is(field: "id")): [User!]!
         }
         """;
 

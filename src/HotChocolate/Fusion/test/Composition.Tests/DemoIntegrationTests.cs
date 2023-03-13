@@ -1,4 +1,5 @@
 using CookieCrumble;
+using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Fusion.Composition;
@@ -8,21 +9,16 @@ public sealed class DemoIntegrationTests
     [Fact]
     public async Task Accounts_And_Reviews()
     {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
         var composer = new FusionGraphComposer();
 
         var fusionConfig = await composer.ComposeAsync(
             new[]
             {
-                new SubgraphConfiguration(
-                    "Accounts",
-                    AccountsSdl,
-                    AccountsExtensionSdl,
-                    new HttpClientConfiguration(new Uri("http://localhost:5000"))),
-                new SubgraphConfiguration(
-                    "Reviews",
-                    ReviewsSdl,
-                    ReviewsExtensionSdl,
-                    new HttpClientConfiguration(new Uri("http://localhost:5001")))
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
             });
 
         SchemaFormatter
@@ -30,74 +26,51 @@ public sealed class DemoIntegrationTests
             .MatchSnapshot(extension: ".graphql");
     }
 
-    private const string AccountsSdl =
-        """
-        schema {
-          query: Query
-        }
+    [Fact]
+    public async Task Accounts_And_Reviews_Products()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
 
-        type Query {
-          users: [User!]!
-          userById(id: Int!): User!
-        }
+        var composer = new FusionGraphComposer();
 
-        type User {
-          id: Int!
-          name: String!
-          birthdate: DateTime!
-          username: String!
-        }
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+            });
 
-        scalar DateTime
-        """;
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
 
     private const string AccountsExtensionSdl =
         """
         extend type Query {
           userById(id: Int! @is(field: "id")): User!
+          usersById(ids: [Int!]! @is(field: "id")): [User!]!
         }
-        """;
-
-    private const string ReviewsSdl =
-        """
-        schema
-          @rename(coordinate: "Author", newName: "User")
-          @rename(coordinate: "Query.authorById", newName: "userById") {
-          query: Query
-        }
-
-        type Query {
-          reviews: [Review!]!
-          authorById(id: Int!): Author
-          productById(upc: Int!): Product
-        }
-
-        type Review {
-          id: Int!
-          author: Author!
-          upc: Product!
-          body: String!
-        }
-
-        type Author {
-            id: Int!
-            reviews: [Review!]!
-        }
-
-        type Product {
-            upc: Int!
-            reviews: [Review!]!
-        }
-
-        directive @ref(coordinate: String, field: String) on FIELD_DEFINITION
-        directive @rename(coordinate: String! to: String!) on SCHEMA
-        directive @remove(coordinate: String!) on SCHEMA
         """;
 
     private const string ReviewsExtensionSdl =
         """
         extend type Query {
           authorById(id: Int! @is(field: "id")): Author
+          productById(upc: Int! @is(field: "upc")): Product
+        }
+
+        schema
+            @rename(coordinate: "Query.authorById", newName: "userById")
+            @rename(coordinate: "Author", newName: "User") {
+        }
+        """;
+
+    private const string ProductsExtensionSdl =
+        """
+        extend type Query {
           productById(upc: Int! @is(field: "upc")): Product
         }
         """;

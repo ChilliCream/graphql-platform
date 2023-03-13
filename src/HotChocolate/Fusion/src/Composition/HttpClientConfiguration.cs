@@ -11,10 +11,19 @@ public sealed class HttpClientConfiguration : IClientConfiguration
     /// <param name="baseAddress">
     /// The base address of the client.
     /// </param>
-    public HttpClientConfiguration(Uri baseAddress)
+    /// <param name="clientName">
+    /// The name of the client.
+    /// </param>
+    public HttpClientConfiguration(Uri baseAddress, string? clientName = null)
     {
         BaseAddress = baseAddress;
+        ClientName = clientName;
     }
+
+    /// <summary>
+    /// Gets the name of the client.
+    /// </summary>
+    public string? ClientName { get; }
 
     /// <summary>
     /// Gets the base address of the client.

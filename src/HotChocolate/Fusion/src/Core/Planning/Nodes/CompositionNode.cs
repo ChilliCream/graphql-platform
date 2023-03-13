@@ -27,7 +27,7 @@ internal sealed class CompositionNode : QueryPlanNode
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Composition;
 
     protected override Task OnExecuteAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {
@@ -66,7 +66,7 @@ internal sealed class CompositionNode : QueryPlanNode
     }
 
     protected override async Task OnExecuteNodesAsync(
-        IFederationContext context,
+        FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {

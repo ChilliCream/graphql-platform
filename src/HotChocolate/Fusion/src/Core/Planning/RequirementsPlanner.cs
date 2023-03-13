@@ -1,4 +1,6 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Metadata;
+using HotChocolate.Utilities;
 using static System.StringComparer;
 
 namespace HotChocolate.Fusion.Planning;
@@ -54,13 +56,14 @@ internal sealed class RequirementsPlanner
                     }
                 }
 
-                // if we still have requirements unfulfilled will try to resolve them
+                // if we still have requirements unfulfilled, we will try to resolve them
                 // from sibling execution steps.
                 foreach (var variable in step.SelectionSetType.Variables)
                 {
-                    var schemaName = variable.Subgraph;
+                    var subgraphName = variable.SubgraphName;
+
                     if (requires.Contains(variable.Name) &&
-                        schemas.TryGetValue(schemaName, out var providingExecutionStep))
+                        schemas.TryGetValue(subgraphName, out var providingExecutionStep))
                     {
                         requires.Remove(variable.Name);
 
@@ -87,12 +90,27 @@ internal sealed class RequirementsPlanner
                     // TODO : NEEDS A PROPER EXCEPTION
                     throw new Exception("NEEDS A PROPER EXCEPTION");
                 }
+
+                // if we do by key batching the current execution step must
+                // re-export its requirements.
+                if (executionStep.Resolver.Kind is ResolverKind.BatchByKey)
+                {
+                    foreach (var variable in step.SelectionSetType.Variables)
+                    {
+                        if (executionStep.Requires.Contains(variable.Name) &&
+                            executionStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
+                            context.Exports.TryGetStateKey(selectionSet, variable.Name, out var stateKey, out _))
+                        {
+                            context.Exports.RegisterAdditionExport(variable, executionStep, stateKey);
+                        }
+                    }
+                }
             }
         }
     }
 
     private static HashSet<SelectionExecutionStep> GetSiblingExecutionSteps(
-        Dictionary<object, SelectionExecutionStep>  selectionLookup,
+        Dictionary<object, SelectionExecutionStep> selectionLookup,
         ISelectionSet selectionSet)
     {
         var executionSteps = new HashSet<SelectionExecutionStep>();
