@@ -3,7 +3,7 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
+internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
@@ -19,45 +19,67 @@ internal sealed class MergeQueryTypeMiddleware : IMergeMiddleware
                     context.FusionGraph.Types.Add(queryType);
                 }
 
-                foreach (var field in schema.QueryType.Fields)
+                MergeRootFields(context, schema, schema.QueryType, queryType);
+            }
+
+            if (schema.MutationType is not null)
+            {
+                var queryType = context.FusionGraph.MutationType!;
+
+                if (context.FusionGraph.MutationType is null)
                 {
-                    if (queryType.Fields.TryGetField(field.Name, out var targetField))
-                    {
-                        context.MergeField(field, targetField, queryType.Name);
-                    }
-                    else
-                    {
-                        targetField = context.CreateField(field, context.FusionGraph);
-                        queryType.Fields.Add(targetField);
-                    }
-
-                    var arguments = new List<ArgumentNode>();
-
-                    var selection = new FieldNode(
-                        null,
-                        new NameNode(field.GetOriginalName()),
-                        null,
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        arguments,
-                        null);
-
-                    var selectionSet = new SelectionSetNode(new[] { selection });
-
-                    foreach (var arg in field.Arguments)
-                    {
-                        arguments.Add(new ArgumentNode(arg.Name, new VariableNode(arg.Name)));
-                        context.ApplyVariable(targetField, arg, schema.Name);
-                    }
-
-                    context.ApplyResolvers(targetField, selectionSet, schema.Name);
+                    queryType = context.FusionGraph.MutationType = new ObjectType("Mutation");
+                    context.FusionGraph.Types.Add(queryType);
                 }
+
+                MergeRootFields(context, schema, schema.MutationType, queryType);
             }
         }
 
         if (!context.Log.HasErrors)
         {
             await next(context).ConfigureAwait(false);
+        }
+    }
+
+    private static void MergeRootFields(
+        CompositionContext context,
+        Schema sourceSchema,
+        ObjectType sourceRootType,
+        ObjectType targetRootType)
+    {
+        foreach (var field in sourceRootType.Fields)
+        {
+            if (targetRootType.Fields.TryGetField(field.Name, out var targetField))
+            {
+                context.MergeField(field, targetField, targetRootType.Name);
+            }
+            else
+            {
+                targetField = context.CreateField(field, context.FusionGraph);
+                targetRootType.Fields.Add(targetField);
+            }
+
+            var arguments = new List<ArgumentNode>();
+
+            var selection = new FieldNode(
+                null,
+                new NameNode(field.GetOriginalName()),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                arguments,
+                null);
+
+            var selectionSet = new SelectionSetNode(new[] { selection });
+
+            foreach (var arg in field.Arguments)
+            {
+                arguments.Add(new ArgumentNode(arg.Name, new VariableNode(arg.Name)));
+                context.ApplyVariable(targetField, arg, sourceSchema.Name);
+            }
+
+            context.ApplyResolvers(targetField, selectionSet, sourceSchema.Name);
         }
     }
 }

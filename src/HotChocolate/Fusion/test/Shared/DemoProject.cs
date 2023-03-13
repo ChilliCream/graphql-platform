@@ -53,8 +53,10 @@ public sealed class DemoProject : IDisposable
                 .AddRouting()
                 .AddSingleton<ReviewRepository>()
                 .AddGraphQLServer()
-                .AddQueryType<ReviewQuery>()
-                .AddSubscriptionType<ReviewsSubscription>(),
+                .AddQueryType<ReviewsQuery>()
+                .AddMutationType<ReviewsMutation>()
+                .AddSubscriptionType<ReviewsSubscription>()
+                .AddMutationConventions(),
             c => c
                 .UseWebSockets()
                 .UseRouting()

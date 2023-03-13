@@ -1,18 +1,18 @@
 namespace HotChocolate.Fusion.Shared.Reviews;
 
 [GraphQLName("Query")]
-public sealed class ReviewQuery
+public sealed class ReviewsQuery
 {
     public IEnumerable<Review> GetReviews(
         [Service] ReviewRepository repository) =>
         repository.GetReviews();
 
-    public Author GetAuthorById(
+    public Author? GetAuthorById(
         [Service] ReviewRepository repository,
         int id)
-        => new Author(id, "some name");
+        => repository.GetAuthor(id);
 
-    public Product GetProductById(
+    public Product? GetProductById(
         [Service] ReviewRepository repository,
         int upc)
         => new Product(upc);

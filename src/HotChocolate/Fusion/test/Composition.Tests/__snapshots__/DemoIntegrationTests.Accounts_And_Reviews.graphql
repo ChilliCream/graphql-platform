@@ -1,18 +1,27 @@
 schema @fusion(version: 1) @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews", baseAddress: "ws:\/\/localhost:5000\/graphql") {
   query: Query
+  mutation: Mutation
   subscription: Subscription
 }
 
 type Query {
-  productById(upc: Int!): Product! @variable(subgraph: "Reviews", name: "upc", argument: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }", arguments: [ { name: "upc", type: "Int!" } ])
+  productById(upc: Int!): Product @variable(subgraph: "Reviews", name: "upc", argument: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }", arguments: [ { name: "upc", type: "Int!" } ])
   reviews: [Review!]! @resolver(subgraph: "Reviews", select: "{ reviews }")
   userById(id: Int!): User @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ]) @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ])
   users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
   usersById(ids: [Int!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[Int!]!" } ])
 }
 
+type Mutation {
+  addReview(input: AddReviewInput!): AddReviewPayload! @variable(subgraph: "Reviews", name: "input", argument: "input") @resolver(subgraph: "Reviews", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
+}
+
 type Subscription {
   onNewReview: Review! @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIPTION")
+}
+
+type AddReviewPayload {
+  review: Review @source(subgraph: "Reviews")
 }
 
 type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) {
@@ -33,6 +42,12 @@ type User @source(subgraph: "Reviews", name: "Author") @variable(subgraph: "Acco
   name: String! @source(subgraph: "Accounts") @source(subgraph: "Reviews")
   reviews: [Review!]! @source(subgraph: "Reviews")
   username: String! @source(subgraph: "Accounts")
+}
+
+input AddReviewInput {
+  authorId: Int!
+  body: String!
+  upc: Int!
 }
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."

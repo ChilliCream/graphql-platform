@@ -6,7 +6,7 @@ public class ProductRepository
 
     public ProductRepository()
     {
-        _products = new Product[]
+        _products = new[]
         {
             new Product(1, "Table", 899, 100),
             new Product(2, "Couch", 1299, 1000),

@@ -93,8 +93,8 @@ internal sealed class ResolverNode : ResolverNodeBase
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            // before we extract the data from the responses we will enqueue the responses for cleanup
-            // so that the memory can be released at the end of the execution.
+            // before we extract the data from the responses we will enqueue the responses
+            // for cleanup so that the memory can be released at the end of the execution.
             // Since we are not fully deserializing the responses we cannot release the memory here
             // but need to wait until the transport layer is finished and disposes the result.
             context.Result.RegisterForCleanup(
@@ -126,6 +126,18 @@ internal sealed class ResolverNode : ResolverNodeBase
         }
     }
 
+    /// <summary>
+    /// Executes this resolver node.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="state">
+    /// The execution state.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
         IExecutionState state,
