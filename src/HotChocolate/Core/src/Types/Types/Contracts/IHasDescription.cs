@@ -8,7 +8,7 @@ namespace HotChocolate.Types;
 public interface IHasDescription
 {
     /// <summary>
-    /// Gets the description of the object.
+    /// Gets the description of the type system member.
     /// </summary>
     string? Description { get; }
 }

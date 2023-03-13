@@ -2,21 +2,21 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Clients;
 
-public readonly struct GraphQLRequest
+public sealed class GraphQLRequest
 {
     public GraphQLRequest(
-        string schemaName,
+        string subgraph,
         DocumentNode document,
         ObjectValueNode? variableValues,
         ObjectValueNode? extensions)
     {
-        SchemaName = schemaName;
+        Subgraph = subgraph;
         Document = document;
         VariableValues = variableValues;
         Extensions = extensions;
     }
 
-    public string SchemaName { get; }
+    public string Subgraph { get; }
 
     public DocumentNode Document { get; }
 

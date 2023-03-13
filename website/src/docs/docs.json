@@ -238,12 +238,16 @@
                 "title": "Endpoints"
               },
               {
-                "path": "dependency-injection",
-                "title": "Dependency Injection"
+                "path": "http-transport",
+                "title": "HTTP transport"
               },
               {
                 "path": "interceptors",
                 "title": "Interceptors"
+              },
+              {
+                "path": "dependency-injection",
+                "title": "Dependency injection"
               },
               {
                 "path": "global-state",
@@ -260,6 +264,10 @@
               {
                 "path": "instrumentation",
                 "title": "Instrumentation"
+              },
+              {
+                "path": "batching",
+                "title": "Batching"
               }
             ]
           },
@@ -330,10 +338,6 @@
             "title": "API Reference",
             "items": [
               {
-                "path": "index",
-                "title": "Overview"
-              },
-              {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
               },
@@ -348,10 +352,6 @@
               {
                 "path": "visitors",
                 "title": "Visitors"
-              },
-              {
-                "path": "aspnetcore",
-                "title": "ASP.NET Core"
               },
               {
                 "path": "apollo-federation",

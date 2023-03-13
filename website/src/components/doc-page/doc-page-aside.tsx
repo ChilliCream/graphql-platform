@@ -1,14 +1,18 @@
-import React, { FC, PropsWithChildren, useCallback } from "react";
+import React, { FC, ReactNode, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { BoxShadow, IsSmallDesktop } from "@/shared-style";
 import { State } from "@/state";
 import { toggleAside } from "@/state/common";
-import { DocPageStickySideBarStyle } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
+import { DocPageStickySideBarStyle } from "./doc-page-styles";
 
-export const DocPageAside: FC<PropsWithChildren<unknown>> = ({ children }) => {
+export interface DocPageAsideProps {
+  readonly children: ReactNode;
+}
+
+export const DocPageAside: FC<DocPageAsideProps> = ({ children }) => {
   const showAside = useSelector<State, boolean>(
     (state) => state.common.showAside
   );
@@ -35,7 +39,12 @@ export const DocPageAside: FC<PropsWithChildren<unknown>> = ({ children }) => {
   );
 };
 
-export const Aside = styled.aside<{ height: string; show: boolean }>`
+export interface AsideProps {
+  readonly height: string;
+  readonly show: boolean;
+}
+
+export const Aside = styled.aside<AsideProps>`
   ${DocPageStickySideBarStyle}
 
   margin-left: 0;

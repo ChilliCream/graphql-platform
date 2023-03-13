@@ -27,6 +27,7 @@ namespace HotChocolate.Utilities.Introspection
 
             var directive = result.Data.Schema.Types.FirstOrDefault(t =>
                  t.Name.Equals(__Directive, StringComparison.Ordinal));
+
             if (directive is not null)
             {
                 features.HasRepeatableDirectives = directive.Fields.Any(t =>
@@ -37,6 +38,7 @@ namespace HotChocolate.Utilities.Introspection
 
             var schema = result.Data.Schema.Types.FirstOrDefault(t =>
                  t.Name.Equals(__Schema, StringComparison.Ordinal));
+
             if (schema is not null)
             {
                 features.HasSubscriptionSupport = schema.Fields.Any(t =>

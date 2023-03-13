@@ -33,7 +33,7 @@ internal sealed class DataMessageObserver : IObserver<IOperationMessage>, IDispo
             throw _error;
         }
 
-        _messages.TryDequeue(out IDataMessage? message);
+        _messages.TryDequeue(out var message);
         return message;
     }
 

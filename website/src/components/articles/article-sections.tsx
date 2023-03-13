@@ -6,7 +6,7 @@ import { asyncScheduler } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 import styled, { css } from "styled-components";
 
-import { MostProminentSection } from "@/components/doc-page/doc-page-elements";
+import { MostProminentSection } from "@/components/doc-page/doc-page-styles";
 import { ArticleSectionsFragment } from "@/graphql-types";
 import { THEME_COLORS } from "@/shared-style";
 import { useObservable } from "@/state";

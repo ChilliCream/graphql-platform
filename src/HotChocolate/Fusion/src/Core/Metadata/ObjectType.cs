@@ -6,7 +6,7 @@ internal sealed class ObjectType : IType
         string name,
         MemberBindingCollection bindings,
         VariableDefinitionCollection variables,
-        FetchDefinitionCollection resolvers,
+        ResolverDefinitionCollection resolvers,
         ObjectFieldCollection fields)
     {
         Name = name;
@@ -22,7 +22,7 @@ internal sealed class ObjectType : IType
 
     public VariableDefinitionCollection Variables { get; }
 
-    public FetchDefinitionCollection Resolvers { get; }
+    public ResolverDefinitionCollection Resolvers { get; }
 
     public ObjectFieldCollection Fields { get; }
 

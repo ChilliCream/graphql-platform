@@ -7,10 +7,10 @@ import { BlogArticles } from "@/components/widgets";
 import { GetBlogArticlesByTagQuery } from "@/graphql-types";
 
 interface BlogTagTemplateProps {
-  pageContext: {
-    tag: string;
+  readonly data: GetBlogArticlesByTagQuery;
+  readonly pageContext: {
+    readonly tag: string;
   };
-  data: GetBlogArticlesByTagQuery;
 }
 
 const BlogTagTemplate: FC<BlogTagTemplateProps> = ({

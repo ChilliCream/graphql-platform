@@ -22,11 +22,12 @@ import ArrowDownIconSvg from "@/images/arrow-down.svg";
 import ArrowUpIconSvg from "@/images/arrow-up.svg";
 import ProductSwitcherIconSvg from "@/images/th-large.svg";
 
+import { ScrollContainer } from "@/components/articles/article-elements";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
 import {
   DocPageStickySideBarStyle,
   MostProminentSection,
-} from "./doc-page-elements";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
+} from "./doc-page-styles";
 
 interface NavigationContainerProps {
   readonly basePath: string;
@@ -577,9 +578,4 @@ const NavigationItem = styled.li<{ active: boolean }>`
         font-weight: 600;
       }
     `}
-`;
-
-export const ScrollContainer = styled.div`
-  overflow-y: auto;
-  padding-bottom: 10px;
 `;

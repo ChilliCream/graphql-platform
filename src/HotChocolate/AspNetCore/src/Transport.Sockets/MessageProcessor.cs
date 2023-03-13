@@ -26,7 +26,8 @@ internal sealed class MessageProcessor
             while (true)
             {
                 SequencePosition? position;
-                var result = await _reader.ReadAsync(cancellationToken);
+                var result = await _reader.ReadAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 var buffer = result.Buffer;
 
                 do
@@ -37,7 +38,8 @@ internal sealed class MessageProcessor
                     {
                         await _messageHandler.OnReceiveAsync(
                             buffer.Slice(0, position.Value),
-                            cancellationToken);
+                            cancellationToken)
+                            .ConfigureAwait(false);
 
                         // Skip the message which was read.
                         buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
@@ -64,7 +66,7 @@ internal sealed class MessageProcessor
         {
             // reader should be completed always, so that related pipe writer can
             // stop write new messages
-            await _reader.CompleteAsync();
+            await _reader.CompleteAsync().ConfigureAwait(false);
         }
     }
 }
