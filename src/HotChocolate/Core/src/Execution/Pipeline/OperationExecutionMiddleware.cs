@@ -4,7 +4,6 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.GraphQLRequestFlags;
 using static HotChocolate.Execution.ThrowHelper;
 

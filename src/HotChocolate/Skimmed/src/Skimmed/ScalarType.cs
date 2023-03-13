@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ScalarType : INamedType
+public sealed class ScalarType : INamedType, INamedTypeSystemMember<ScalarType>
 {
     private string _name;
 
@@ -21,7 +21,11 @@ public sealed class ScalarType : INamedType
 
     public string? Description { get; set; }
 
+    public bool IsSpecScalar { get; set; }
+
     public DirectiveCollection Directives { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public static ScalarType Create(string name) => new(name);
 }

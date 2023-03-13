@@ -1,31 +1,37 @@
 using System.Text.Json;
+using HotChocolate.Transport.Sockets.Client;
 
 namespace HotChocolate.Fusion.Clients;
 
 public sealed class GraphQLResponse : IDisposable
 {
-    private readonly JsonDocument? _document;
+    private readonly IDisposable? _resource;
 
-    public GraphQLResponse(JsonDocument? document)
+    internal GraphQLResponse(OperationResult result)
     {
-        _document = document;
+        _resource = result;
+        Data = result.Data;
+        Errors = result.Errors;
+        Extensions = result.Extensions;
+    }
 
-        if (_document is not null)
+    public GraphQLResponse(JsonDocument document)
+    {
+        _resource = document;
+
+        if (document.RootElement.TryGetProperty(ResponseProperties.Data, out var value))
         {
-            if (_document.RootElement.TryGetProperty(ResponseProperties.Data, out var value))
-            {
-                Data = value;
-            }
+            Data = value;
+        }
 
-            if (_document.RootElement.TryGetProperty(ResponseProperties.Errors, out value))
-            {
-                Errors = value;
-            }
+        if (document.RootElement.TryGetProperty(ResponseProperties.Errors, out value))
+        {
+            Errors = value;
+        }
 
-            if (_document.RootElement.TryGetProperty(ResponseProperties.Extensions, out value))
-            {
-                Extensions = value;
-            }
+        if (document.RootElement.TryGetProperty(ResponseProperties.Extensions, out value))
+        {
+            Extensions = value;
         }
     }
 
@@ -36,7 +42,5 @@ public sealed class GraphQLResponse : IDisposable
     public JsonElement Extensions { get; }
 
     public void Dispose()
-    {
-        _document?.Dispose();
-    }
+        => _resource?.Dispose();
 }

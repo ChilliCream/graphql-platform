@@ -29,7 +29,7 @@ Update `StrawberryShake.Tools` in the `dotnet-tools.json` file to the latest `13
 
 Remove the following packages from your project:
 
-- StrawberryShake.CodeGeneration.CSharp.Analyzer
+- StrawberryShake.CodeGeneration.CSharp.Analyzers
 - StrawberryShake.Transport.Http
 - StrawberryShake.Transport.WebSockets
 

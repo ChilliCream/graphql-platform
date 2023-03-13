@@ -2,7 +2,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class DirectiveType : ITypeSystemMember
+public sealed class DirectiveType : IHasName, IHasContextData, INamedTypeSystemMember<DirectiveType>
 {
     private string _name;
 
@@ -29,4 +29,7 @@ public sealed class DirectiveType : ITypeSystemMember
     public DirectiveLocation Locations { get; set; }
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public static DirectiveType Create(string name)
+        => new(name);
 }

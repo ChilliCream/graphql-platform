@@ -3,7 +3,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class InputField : IField
+public sealed class InputField : IField, INamedTypeSystemMember<InputField>
 {
     private IType _type;
     private string _name;
@@ -63,4 +63,6 @@ public sealed class InputField : IField
         get => _type;
         set => _type = value.ExpectInputType();
     }
+
+    public static InputField Create(string name) => new(name);
 }

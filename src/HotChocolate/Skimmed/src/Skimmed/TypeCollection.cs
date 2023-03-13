@@ -16,6 +16,18 @@ public sealed class TypeCollection : ICollection<INamedType>
     public bool TryGetType(string name, [NotNullWhen(true)] out INamedType? type)
         => _types.TryGetValue(name, out type);
 
+    public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : INamedType
+    {
+        if (_types.TryGetValue(name, out var namedType) && namedType is T casted)
+        {
+            type = casted;
+            return true;
+        }
+
+        type = default;
+        return false;
+    }
+
     public void Add(INamedType item)
     {
         if (item is null)

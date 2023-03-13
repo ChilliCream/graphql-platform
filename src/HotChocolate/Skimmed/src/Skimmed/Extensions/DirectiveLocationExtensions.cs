@@ -2,9 +2,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Skimmed;
 
-public static class DirectiveLocationExtensions
+internal static class DirectiveLocationExtensions
 {
-    private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> _locs =
+    private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> _typeToLang =
        new()
        {
            {
@@ -81,7 +81,87 @@ public static class DirectiveLocationExtensions
            },
        };
 
-    internal static IEnumerable<DirectiveLocation> AsEnumerable(
+    private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> _langToType =
+        new()
+        {
+            {
+                Language.DirectiveLocation.Query,
+                DirectiveLocation.Query
+            },
+            {
+                Language.DirectiveLocation.Mutation,
+                DirectiveLocation.Mutation
+            },
+            {
+                Language.DirectiveLocation.Subscription,
+                DirectiveLocation.Subscription
+            },
+            {
+                Language.DirectiveLocation.Field,
+                DirectiveLocation.Field
+            },
+            {
+                Language.DirectiveLocation.FragmentDefinition,
+                DirectiveLocation.FragmentDefinition
+            },
+            {
+                Language.DirectiveLocation.FragmentSpread,
+                DirectiveLocation.FragmentSpread
+            },
+            {
+                Language.DirectiveLocation.InlineFragment,
+                DirectiveLocation.InlineFragment
+            },
+            {
+                Language.DirectiveLocation.Schema,
+                DirectiveLocation.Schema
+            },
+            {
+                Language.DirectiveLocation.Scalar,
+                DirectiveLocation.Scalar
+            },
+            {
+                Language.DirectiveLocation.Object,
+                DirectiveLocation.Object
+            },
+            {
+                Language.DirectiveLocation.FieldDefinition,
+                DirectiveLocation.FieldDefinition
+            },
+            {
+                Language.DirectiveLocation.ArgumentDefinition,
+                DirectiveLocation.ArgumentDefinition
+            },
+            {
+                Language.DirectiveLocation.Interface,
+                DirectiveLocation.Interface
+            },
+            {
+                Language.DirectiveLocation.Union,
+                DirectiveLocation.Union
+            },
+            {
+                Language.DirectiveLocation.Enum,
+                DirectiveLocation.Enum
+            },
+            {
+                Language.DirectiveLocation.EnumValue,
+                DirectiveLocation.EnumValue
+            },
+            {
+                Language.DirectiveLocation.InputObject,
+                DirectiveLocation.InputObject
+            },
+            {
+                Language.DirectiveLocation.InputFieldDefinition,
+                DirectiveLocation.InputFieldDefinition
+            },
+        };
+
+    public static DirectiveLocation MapLocation(this Language.DirectiveLocation location)
+        => _langToType[location];
+
+    public static IEnumerable<DirectiveLocation> AsEnumerable(
         this DirectiveLocation locations)
     {
         if ((locations & DirectiveLocation.Query) == DirectiveLocation.Query)
@@ -185,9 +265,9 @@ public static class DirectiveLocationExtensions
         }
     }
 
-    internal static IReadOnlyList<NameNode> ToNameNodes(
+    public static IReadOnlyList<NameNode> ToNameNodes(
         this DirectiveLocation locations)
         => AsEnumerable(locations)
-            .Select(t => new NameNode(null, _locs[t].Value))
+            .Select(t => new NameNode(null, _typeToLang[t].Value))
             .ToArray();
 }

@@ -4,20 +4,19 @@ namespace HotChocolate.Fusion.Metadata;
 
 internal sealed class FieldVariableDefinition : IVariableDefinition
 {
-    public FieldVariableDefinition(string name, string schemaName, ITypeNode type, FieldNode select)
+    public FieldVariableDefinition(
+        string name,
+        string subgraph,
+        FieldNode select)
     {
         Name = name;
-        SchemaName = schemaName;
-        Type = type;
+        SubgraphName = subgraph;
         Select = select;
     }
 
     public string Name { get; }
 
-    public string SchemaName { get; }
+    public string SubgraphName { get; }
 
-    public ITypeNode Type { get; }
-
-    // TODO : this probably should be a selection set ...
     public FieldNode Select { get; }
 }
