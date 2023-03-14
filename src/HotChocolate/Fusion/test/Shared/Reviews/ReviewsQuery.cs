@@ -6,8 +6,8 @@ namespace HotChocolate.Fusion.Shared.Reviews;
 public sealed class ReviewsQuery
 {
     public IEnumerable<Review> GetReviews(
-        [Service] ReviewRepository repository) =>
-        repository.GetReviews();
+        [Service] ReviewRepository repository)
+        => repository.GetReviews();
 
     [NodeResolver]
     public Review? GetReviewById(
@@ -25,4 +25,8 @@ public sealed class ReviewsQuery
         [Service] ReviewRepository repository,
         [ID(nameof(Product))] int id)
         => new(id);
+
+    public IReviewOrAuthor GetReviewOrAuthor(
+        [Service] ReviewRepository repository)
+        => repository.GetReviews().First();
 }
