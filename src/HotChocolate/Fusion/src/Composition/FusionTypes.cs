@@ -71,6 +71,8 @@ public sealed class FusionTypes
         Node = RegisterNodeDirectiveType(
             names.NodeDirective,
             TypeName);
+        ReEncodeId = RegisterReEncodeIdDirectiveType(
+            names.ReEncodeIdDirective);
         Fusion = RegisterFusionDirectiveType(
             names.FusionDirective,
             TypeName,
@@ -109,6 +111,8 @@ public sealed class FusionTypes
     public DirectiveType Source { get; }
 
     public DirectiveType Node { get; }
+
+    public DirectiveType ReEncodeId { get; }
 
     public DirectiveType HttpClient { get; }
 
@@ -180,6 +184,18 @@ public sealed class FusionTypes
         directiveType.Arguments.Add(new InputField(ArgumentArg, typeName));
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
         directiveType.Locations |= DirectiveLocation.Object;
+        directiveType.Locations |= DirectiveLocation.FieldDefinition;
+        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        _fusionGraph.DirectiveTypes.Add(directiveType);
+        return directiveType;
+    }
+
+    public Directive CreateReEncodeIdDirective()
+        => new Directive(ReEncodeId);
+
+    private DirectiveType RegisterReEncodeIdDirectiveType(string name)
+    {
+        var directiveType = new DirectiveType(name);
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);

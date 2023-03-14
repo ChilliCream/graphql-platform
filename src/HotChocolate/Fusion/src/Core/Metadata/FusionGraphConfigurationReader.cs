@@ -99,7 +99,8 @@ internal sealed class FusionGraphConfigurationReader
             var resolvers = ReadResolverDefinitions(typeNames, fieldDef.Directives);
             var bindings = ReadMemberBindings(typeNames, fieldDef.Directives, fieldDef, resolvers);
             var variables = ReadFieldVariableDefinitions(typeNames, fieldDef.Directives);
-            var field = new ObjectField(fieldDef.Name.Value, bindings, variables, resolvers);
+            var flags = ReadFlags(typeNames, fieldDef.Directives);
+            var field = new ObjectField(fieldDef.Name.Value, flags, bindings, variables, resolvers);
             collection.Add(field);
         }
 
@@ -113,6 +114,7 @@ internal sealed class FusionGraphConfigurationReader
     {
         return new ObjectField(
                 IntrospectionFields.TypeName,
+                ObjectFieldFlags.TypeName,
                 new MemberBindingCollection(bindings),
                 FieldVariableDefinitionCollection.Empty,
                 ResolverDefinitionCollection.Empty);
@@ -543,6 +545,24 @@ internal sealed class FusionGraphConfigurationReader
         }
 
         return new MemberBindingCollection(definitions);
+    }
+
+    private ObjectFieldFlags ReadFlags(
+        FusionTypeNames typeNames,
+        IReadOnlyList<DirectiveNode> directiveNodes)
+    {
+        var flags = ObjectFieldFlags.None;
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.ReEncodeIdDirective))
+            {
+                flags |= ObjectFieldFlags.ReEncodeId;
+                break;
+            }
+        }
+
+        return flags;
     }
 
     private MemberBinding ReadMemberBinding(

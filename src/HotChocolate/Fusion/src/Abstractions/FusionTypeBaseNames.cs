@@ -31,6 +31,11 @@ internal static class FusionTypeBaseNames
     public static string NodeDirective = "node";
 
     /// <summary>
+    /// The base name of the reEncodeId directive.
+    /// </summary>
+    public static string ReEncodeIdDirective = "reEncodeId";
+
+    /// <summary>
     /// The base name of the HTTP directive.
     /// </summary>
     public const string HttpDirective = "httpClient";

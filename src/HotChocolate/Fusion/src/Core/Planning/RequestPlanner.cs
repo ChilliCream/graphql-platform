@@ -193,7 +193,7 @@ internal sealed class RequestPlanner
             {
                 var field = declaringType.Fields[selection.Field.Name];
 
-                if (field.Bindings.TryGetValue(executionStep.SubgraphName, out _))
+                if (field.Bindings.TryGetBinding(executionStep.SubgraphName, out _))
                 {
                     executionStep.AllSelections.Add(selection);
 

@@ -19,6 +19,7 @@ public sealed class FusionTypeNames
         string sourceDirective,
         string isDirective,
         string nodeDirective,
+        string reEncodeIdDirective,
         string httpDirective,
         string webSocketDirective,
         string fusionDirective,
@@ -36,6 +37,7 @@ public sealed class FusionTypeNames
         SourceDirective = sourceDirective;
         IsDirective = isDirective;
         NodeDirective = nodeDirective;
+        ReEncodeIdDirective = reEncodeIdDirective;
         HttpDirective = httpDirective;
         WebSocketDirective = webSocketDirective;
         FusionDirective = fusionDirective;
@@ -94,6 +96,12 @@ public sealed class FusionTypeNames
     /// Gets the name of the node directive.
     /// </summary>
     public string NodeDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the reEncodeId directive.
+    /// </summary>
+    public string ReEncodeIdDirective { get; }
+
 
     /// <summary>
     /// Gets the name of the http directive.
@@ -171,6 +179,18 @@ public sealed class FusionTypeNames
     public bool IsFusionType(string typeName)
         => _fusionTypes.Contains(typeName);
 
+    /// <summary>
+    /// Creates a new instance of <see cref="FusionTypeNames"/>.
+    /// </summary>
+    /// <param name="prefix">
+    /// The prefix for the fusion types.
+    /// </param>
+    /// <param name="prefixSelf">
+    /// Specifies if the fusion directive itself should be prefixed.
+    /// </param>
+    /// <returns>
+    /// Returns a new instance of <see cref="FusionTypeNames"/>.
+    /// </returns>
     public static FusionTypeNames Create(string? prefix = null, bool prefixSelf = false)
     {
         if (prefix is not null)
@@ -182,6 +202,7 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.SourceDirective}",
                 $"{prefix}_{FusionTypeBaseNames.IsDirective}",
                 $"{prefix}_{FusionTypeBaseNames.NodeDirective}",
+                $"{prefix}_{FusionTypeBaseNames.ReEncodeIdDirective}",
                 $"{prefix}_{FusionTypeBaseNames.HttpDirective}",
                 $"{prefix}_{FusionTypeBaseNames.WebSocketDirective}",
                 prefixSelf
@@ -203,6 +224,7 @@ public sealed class FusionTypeNames
             FusionTypeBaseNames.SourceDirective,
             FusionTypeBaseNames.IsDirective,
             FusionTypeBaseNames.NodeDirective,
+            FusionTypeBaseNames.ReEncodeIdDirective,
             FusionTypeBaseNames.HttpDirective,
             FusionTypeBaseNames.WebSocketDirective,
             FusionTypeBaseNames.FusionDirective,

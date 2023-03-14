@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -7,11 +8,14 @@ internal sealed class NodeMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
-        if (context.FusionGraph.QueryType is not null &&
+        var fusionGraph = context.FusionGraph;
+        var fusionTypes = context.FusionTypes;
+
+        if (fusionGraph.QueryType is not null &&
             (context.Features & FusionFeatureFlags.NodeField) == FusionFeatureFlags.NodeField &&
-            context.FusionGraph.QueryType.Fields.TryGetField("node", out var nodeField))
+            fusionGraph.QueryType.Fields.TryGetField("node", out var nodeField))
         {
-            context.FusionGraph.QueryType.Fields.TryGetField("nodes", out var nodesField);
+            fusionGraph.QueryType.Fields.TryGetField("nodes", out var nodesField);
 
             var nodes = new HashSet<ObjectType>();
 
@@ -21,11 +25,20 @@ internal sealed class NodeMiddleware : IMergeMiddleware
 
                 if (schema.Types.TryGetType<InterfaceType>("Node", out var nodeInterface))
                 {
-                    foreach (var objectType in schema.Types.OfType<ObjectType>())
+                    foreach (var possibleNode in schema.Types.OfType<ObjectType>())
                     {
-                        if (objectType.Implements.Contains(nodeInterface))
+                        if (possibleNode.Implements.Contains(nodeInterface))
                         {
-                            nodes.Add(objectType);
+                            var nodeName = possibleNode.Name;
+                            nodes.Add(possibleNode);
+
+                            if (possibleNode.TryGetOriginalName(out var originalNodeName) &&
+                                !originalNodeName.EqualsOrdinal(nodeName) &&
+                                fusionGraph.Types.TryGetType<ObjectType>(nodeName, out var node) &&
+                                node.Fields.TryGetField("id", out var idField))
+                            {
+                                idField.Directives.Add(fusionTypes.CreateReEncodeIdDirective());
+                            }
                         }
                     }
                 }
