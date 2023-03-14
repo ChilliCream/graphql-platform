@@ -15,6 +15,7 @@ type Query {
 
 type Mutation {
   addReview(input: AddReviewInput!): AddReviewPayload! @variable(subgraph: "Reviews", name: "input", argument: "input") @resolver(subgraph: "Reviews", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
+  addUser(input: AddUserInput!): AddUserPayload! @variable(subgraph: "Accounts", name: "input", argument: "input") @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
 }
 
 type Subscription {
@@ -23,6 +24,10 @@ type Subscription {
 
 type AddReviewPayload {
   review: Review @source(subgraph: "Reviews")
+}
+
+type AddUserPayload {
+  user: User @source(subgraph: "Accounts")
 }
 
 type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @variable(subgraph: "Products", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) @resolver(subgraph: "Products", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) {
@@ -52,6 +57,12 @@ input AddReviewInput {
   authorId: Int!
   body: String!
   upc: Int!
+}
+
+input AddUserInput {
+  birthdate: DateTime!
+  name: String!
+  username: String!
 }
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."

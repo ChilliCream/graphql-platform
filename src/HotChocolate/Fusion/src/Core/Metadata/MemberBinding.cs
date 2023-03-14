@@ -16,6 +16,20 @@ internal class MemberBinding
     /// </param>
     public MemberBinding(string subgraphName, string name)
     {
+        if (string.IsNullOrWhiteSpace(subgraphName))
+        {
+            throw new ArgumentException(
+                $"'{nameof(subgraphName)}' cannot be null or whitespace.",
+                nameof(subgraphName));
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException(
+                $"'{nameof(name)}' cannot be null or whitespace.",
+                nameof(name));
+        }
+
         SubgraphName = subgraphName;
         Name = name;
     }

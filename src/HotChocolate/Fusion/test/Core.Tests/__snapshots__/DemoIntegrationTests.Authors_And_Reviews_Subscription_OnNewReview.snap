@@ -37,9 +37,9 @@ Result 1
 {
   "data": {
     "onNewReview": {
-      "body": "Love it!",
+      "body": "Could be",
       "author": {
-        "name": "@ada"
+        "name": "\u0022nam"
       }
     }
   }

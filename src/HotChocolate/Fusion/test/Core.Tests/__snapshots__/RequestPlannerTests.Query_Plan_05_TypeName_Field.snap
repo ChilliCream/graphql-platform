@@ -25,7 +25,7 @@ QueryPlan
       {
         "type": "Resolver",
         "subgraph": "Products",
-        "document": "query TopProducts_1 { topProducts(first: 2) { __fusion_exports__1: upc } }",
+        "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: upc } }",
         "selectionSetId": 0
       },
       {
@@ -37,7 +37,7 @@ QueryPlan
       {
         "type": "Resolver",
         "subgraph": "Reviews",
-        "document": "query TopProducts_2($__fusion_exports__1: Int!) { productById(upc: $__fusion_exports__1) { reviews { author {  } } } }",
+        "document": "query TopProducts_2($__fusion_exports__1: Int!) { productById(upc: $__fusion_exports__1) { reviews { __typename author { __typename } } } }",
         "selectionSetId": 1,
         "path": [
           "productById"

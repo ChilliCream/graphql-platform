@@ -58,9 +58,9 @@ Result 1
 {
   "data": {
     "onNewReview": {
-      "body": "__1) {\\n",
+      "body": "Could be",
       "author": {
-        "name": "}\u0022,\n",
+        "name": "\u0022nam",
         "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
       }
     }
@@ -73,9 +73,9 @@ Result 2
 {
   "data": {
     "onNewReview": {
-      "body": "__1) {\\n    bi",
+      "body": "Too expensive.",
       "author": {
-        "name": "\u0022variable",
+        "name": "@complete",
         "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
       }
     }
@@ -103,9 +103,9 @@ Result 4
 {
   "data": {
     "onNewReview": {
-      "body": "Prefer something else.",
+      "body": "__1) {\\n    birthdate\\",
       "author": {
-        "name": "@complete",
+        "name": "es\u0022: {\n  ",
         "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
       }
     }
