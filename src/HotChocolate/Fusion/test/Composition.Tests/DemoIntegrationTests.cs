@@ -1,18 +1,26 @@
 using CookieCrumble;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
+using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
 
 public sealed class DemoIntegrationTests
 {
+    private readonly Func<ICompositionLog> _logFactory;
+
+    public DemoIntegrationTests(ITestOutputHelper output)
+    {
+        _logFactory = () => new TestCompositionLog(output);
+    }
+
     [Fact]
     public async Task Accounts_And_Reviews()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var composer = new FusionGraphComposer();
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
 
         var fusionConfig = await composer.ComposeAsync(
             new[]
@@ -32,7 +40,7 @@ public sealed class DemoIntegrationTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var composer = new FusionGraphComposer();
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
 
         var fusionConfig = await composer.ComposeAsync(
             new[]
@@ -47,19 +55,41 @@ public sealed class DemoIntegrationTests
             .MatchSnapshot(extension: ".graphql");
     }
 
+    [Fact]
+    public async Task Accounts_And_Reviews_Products_With_Nodes()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+            },
+            FusionFeatureFlags.NodeField);
+
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
+
     private const string AccountsExtensionSdl =
         """
         extend type Query {
-          userById(id: Int! @is(field: "id")): User!
-          usersById(ids: [Int!]! @is(field: "id")): [User!]!
+          userById(id: ID! @is(field: "id")): User!
+          usersById(ids: [ID!]! @is(field: "id")): [User!]!
         }
         """;
 
     private const string ReviewsExtensionSdl =
         """
         extend type Query {
-          authorById(id: Int! @is(field: "id")): Author
-          productById(upc: Int! @is(field: "upc")): Product
+          authorById(id: ID! @is(field: "id")): Author
+          productById(id: ID! @is(field: "id")): Product
         }
 
         schema
@@ -71,7 +101,7 @@ public sealed class DemoIntegrationTests
     private const string ProductsExtensionSdl =
         """
         extend type Query {
-          productById(upc: Int! @is(field: "upc")): Product
+          productById(id: ID! @is(field: "id")): Product
         }
         """;
 }

@@ -23,6 +23,6 @@ public sealed class ReviewsQuery
 
     public Product? GetProductById(
         [Service] ReviewRepository repository,
-        [ID(nameof(Product))] int upc)
-        => new(upc);
+        [ID(nameof(Product))] int id)
+        => new(id);
 }

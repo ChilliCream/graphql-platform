@@ -18,6 +18,7 @@ public sealed class FusionTypeNames
         string fetchDirective,
         string sourceDirective,
         string isDirective,
+        string nodeDirective,
         string httpDirective,
         string webSocketDirective,
         string fusionDirective,
@@ -34,6 +35,7 @@ public sealed class FusionTypeNames
         ResolverDirective = fetchDirective;
         SourceDirective = sourceDirective;
         IsDirective = isDirective;
+        NodeDirective = nodeDirective;
         HttpDirective = httpDirective;
         WebSocketDirective = webSocketDirective;
         FusionDirective = fusionDirective;
@@ -49,6 +51,7 @@ public sealed class FusionTypeNames
         _fusionDirectives.Add(fetchDirective);
         _fusionDirectives.Add(sourceDirective);
         _fusionDirectives.Add(isDirective);
+        _fusionDirectives.Add(nodeDirective);
         _fusionDirectives.Add(httpDirective);
         _fusionDirectives.Add(webSocketDirective);
         _fusionDirectives.Add(fusionDirective);
@@ -86,6 +89,11 @@ public sealed class FusionTypeNames
     /// Gets the name of the is directive.
     /// </summary>
     public string IsDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the node directive.
+    /// </summary>
+    public string NodeDirective { get; }
 
     /// <summary>
     /// Gets the name of the http directive.
@@ -173,6 +181,7 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.ResolverDirective}",
                 $"{prefix}_{FusionTypeBaseNames.SourceDirective}",
                 $"{prefix}_{FusionTypeBaseNames.IsDirective}",
+                $"{prefix}_{FusionTypeBaseNames.NodeDirective}",
                 $"{prefix}_{FusionTypeBaseNames.HttpDirective}",
                 $"{prefix}_{FusionTypeBaseNames.WebSocketDirective}",
                 prefixSelf
@@ -193,6 +202,7 @@ public sealed class FusionTypeNames
             FusionTypeBaseNames.ResolverDirective,
             FusionTypeBaseNames.SourceDirective,
             FusionTypeBaseNames.IsDirective,
+            FusionTypeBaseNames.NodeDirective,
             FusionTypeBaseNames.HttpDirective,
             FusionTypeBaseNames.WebSocketDirective,
             FusionTypeBaseNames.FusionDirective,

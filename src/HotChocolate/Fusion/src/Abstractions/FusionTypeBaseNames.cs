@@ -26,6 +26,11 @@ internal static class FusionTypeBaseNames
     public const string IsDirective = "is";
 
     /// <summary>
+    /// The base name of the node directive.
+    /// </summary>
+    public static string NodeDirective = "node";
+
+    /// <summary>
     /// The base name of the HTTP directive.
     /// </summary>
     public const string HttpDirective = "httpClient";

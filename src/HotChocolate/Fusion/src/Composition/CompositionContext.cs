@@ -19,14 +19,19 @@ internal sealed class CompositionContext
     /// <param name="fusionTypeSelf">
     /// Defines if the fusion types should be prefixed with the subgraph name.
     /// </param>
+    /// <param name="log">
+    /// The composition log.
+    /// </param>
     public CompositionContext(
         IReadOnlyList<SubgraphConfiguration> configurations,
+        ICompositionLog log,
         string? fusionTypePrefix = null,
         bool fusionTypeSelf = false)
     {
         Configurations = configurations;
         FusionGraph = new();
         FusionTypes = new FusionTypes(FusionGraph, fusionTypePrefix, fusionTypeSelf);
+        Log = log;
     }
 
     /// <summary>
@@ -55,6 +60,11 @@ internal sealed class CompositionContext
     public FusionTypes FusionTypes { get; }
 
     /// <summary>
+    /// Gets or sets the composition feature flags.
+    /// </summary>
+    public FusionFeatureFlags Features { get; set; }
+
+    /// <summary>
     /// Gets or sets a cancellation token that can be used to abort composition.
     /// </summary>
     public CancellationToken Abort { get; set; }
@@ -62,5 +72,12 @@ internal sealed class CompositionContext
     /// <summary>
     /// Gets the composition log.
     /// </summary>
-    public ICompositionLog Log { get; } = new DefaultCompositionLog();
+    public ICompositionLog Log { get; }
+}
+
+[Flags]
+public enum FusionFeatureFlags
+{
+    None = 0,
+    NodeField = 1 << 0
 }

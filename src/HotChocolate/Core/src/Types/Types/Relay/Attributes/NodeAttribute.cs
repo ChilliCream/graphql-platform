@@ -48,7 +48,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
         });
 
         descriptor.Extend().OnBeforeNaming(
-            (_, definition) =>
+            (completionContext, definition) =>
             {
                 // first we try to resolve the id field.
                 if (IdField is not null)
@@ -71,6 +71,16 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 {
                     nodeDescriptor.IdField(sid);
                 }
+
+                // we trigger a late id field configuration
+                var typeDescriptor = ObjectTypeDescriptor.From(
+                    completionContext.DescriptorContext,
+                    definition);
+                nodeDescriptor.ConfigureNodeField(typeDescriptor);
+                typeDescriptor.CreateDefinition();
+
+                // invoke completion explicitly.
+                nodeDescriptor.OnCompleteDefinition(completionContext, definition);
             });
 
         descriptor.Extend().OnBeforeCompletion((completionContext, definition) =>

@@ -162,6 +162,7 @@ public class DemoIntegrationTests
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
+            default,
             cts.Token);
 
         var executor = await new ServiceCollection()
@@ -210,6 +211,7 @@ public class DemoIntegrationTests
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
+            default,
             cts.Token);
 
         var executor = await new ServiceCollection()

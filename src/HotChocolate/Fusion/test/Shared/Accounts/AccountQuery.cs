@@ -13,7 +13,7 @@ public class AccountQuery
         repository.GetUser(id);
 
     public IEnumerable<User> GetUsersById(
-        IEnumerable<int> ids,
+        [ID(nameof(User))] IEnumerable<int> ids,
         [Service] UserRepository repository)
     {
         foreach (var id in ids)

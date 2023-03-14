@@ -12,7 +12,7 @@ public sealed class ProductQuery
 
     [NodeResolver]
     public Product? GetProductById(
-        int upc,
+        int id,
         [Service] ProductRepository repository)
-        => repository.GetProductById(upc);
+        => repository.GetProductById(id);
 }
