@@ -9,7 +9,22 @@ internal sealed class MemberBindingCollection : IEnumerable<MemberBinding>
 
     public MemberBindingCollection(IEnumerable<MemberBinding> bindings)
     {
-        _bindings = bindings.ToDictionary(t => t.SchemaName, StringComparer.Ordinal);
+        if (bindings is null)
+        {
+            throw new ArgumentNullException(nameof(bindings));
+        }
+
+        _bindings = bindings.ToDictionary(t => t.SubgraphName, StringComparer.Ordinal);
+    }
+
+    public MemberBindingCollection(Dictionary<string, MemberBinding> bindings)
+    {
+        if (bindings is null)
+        {
+            throw new ArgumentNullException(nameof(bindings));
+        }
+
+        _bindings = bindings;
     }
 
     public int Count => _bindings.Count;

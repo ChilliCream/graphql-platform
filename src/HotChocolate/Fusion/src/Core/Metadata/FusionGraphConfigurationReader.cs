@@ -38,9 +38,10 @@ internal sealed class FusionGraphConfigurationReader
 
         var types = new List<IType>();
         var typeNames = FusionTypeNames.From(document);
+        var typeNameBindings = new Dictionary<string, MemberBinding>();
         var httpClientConfigs = ReadHttpClientConfigs(typeNames, schemaDef.Directives);
         var webSocketClientConfigs = ReadWebSocketClientConfigs(typeNames, schemaDef.Directives);
-        var typeNameField = CreateTypeNameField(_subgraphNames);
+        var typeNameField = CreateTypeNameField(typeNameBindings);
 
         foreach (var definition in document.Definitions)
         {
@@ -50,6 +51,11 @@ internal sealed class FusionGraphConfigurationReader
                     types.Add(ReadObjectType(typeNames, node, typeNameField));
                     break;
             }
+        }
+
+        foreach (var subgraphName in _subgraphNames)
+        {
+            typeNameBindings.Add(subgraphName, new MemberBinding(subgraphName, typeNameField.Name));
         }
 
         if (httpClientConfigs is not { Count: > 0 })
@@ -102,13 +108,15 @@ internal sealed class FusionGraphConfigurationReader
         return new ObjectFieldCollection(collection);
     }
 
-    private static ObjectField CreateTypeNameField(IEnumerable<string> subgraphNames)
-        => new ObjectField(
-            IntrospectionFields.TypeName,
-            new MemberBindingCollection(
-                subgraphNames.Select(t => new MemberBinding(t, IntrospectionFields.TypeName))),
-            FieldVariableDefinitionCollection.Empty,
-            ResolverDefinitionCollection.Empty);
+    private static ObjectField CreateTypeNameField(
+        Dictionary<string, MemberBinding> bindings)
+    {
+        return new ObjectField(
+                IntrospectionFields.TypeName,
+                new MemberBindingCollection(bindings),
+                FieldVariableDefinitionCollection.Empty,
+                ResolverDefinitionCollection.Empty);
+    }
 
     private IReadOnlyList<HttpClientConfiguration> ReadHttpClientConfigs(
         FusionTypeNames typeNames,
@@ -521,7 +529,7 @@ internal sealed class FusionGraphConfigurationReader
 
             foreach (var binding in definitions)
             {
-                _assert.Add(binding.SchemaName);
+                _assert.Add(binding.SubgraphName);
             }
 
             foreach (var resolver in resolvers)

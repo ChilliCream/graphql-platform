@@ -1,9 +1,9 @@
 using System.Diagnostics;
-using System.Runtime.InteropServices.JavaScript;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Metadata.ResolverKind;
 
@@ -97,7 +97,9 @@ internal sealed class ExecutionPlanBuilder
 
         while (current.Length > 0)
         {
-            if (current.Length is 1)
+            if (current.Length is 1 ||
+                (_schema.MutationType is not null &&
+                    _schema.MutationType.Name.EqualsOrdinal(current[0].Key.SelectionSetType.Name)))
             {
                 var node = current[0];
                 var selectionSet = ResolveSelectionSet(context, node.Key);
@@ -382,7 +384,8 @@ internal sealed class ExecutionPlanBuilder
 
             foreach (var selection in selectionSet.Selections)
             {
-                if (executionStep.AllSelections.Contains(selection))
+                if (executionStep.AllSelections.Contains(selection) ||
+                    selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
                 {
                     var field = typeContext.Fields[selection.Field.Name];
                     var selectionNode = CreateSelectionNode(
@@ -399,6 +402,12 @@ internal sealed class ExecutionPlanBuilder
                 context.Exports.GetExportSelections(executionStep, selectionSet))
             {
                 selectionNodes.Add(selection);
+            }
+
+            if(selectionNodes.Count == 0)
+            {
+                // TODO : ThrowHelper
+                throw new InvalidOperationException("A selection set must not be empty.");
             }
         }
 
