@@ -6,6 +6,7 @@ internal enum QueryPlanNodeKind
     Serial,
     Resolver,
     BatchResolver,
+    NodeResolver,
     Subscription,
     Introspection,
     Composition,

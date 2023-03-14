@@ -56,7 +56,8 @@ public sealed class DemoProject : IDisposable
                 .AddQueryType<ReviewsQuery>()
                 .AddMutationType<ReviewsMutation>()
                 .AddSubscriptionType<ReviewsSubscription>()
-                .AddMutationConventions(),
+                .AddMutationConventions()
+                .AddGlobalObjectIdentification(),
             c => c
                 .UseWebSockets()
                 .UseRouting()
@@ -76,7 +77,8 @@ public sealed class DemoProject : IDisposable
                 .AddGraphQLServer()
                 .AddQueryType<AccountQuery>()
                 .AddMutationType<AccountMutation>()
-                .AddMutationConventions(),
+                .AddMutationConventions()
+                .AddGlobalObjectIdentification(),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
@@ -93,7 +95,8 @@ public sealed class DemoProject : IDisposable
                 .AddRouting()
                 .AddSingleton<ProductRepository>()
                 .AddGraphQLServer()
-                .AddQueryType<ProductQuery>(),
+                .AddQueryType<ProductQuery>()
+                .AddGlobalObjectIdentification(),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));

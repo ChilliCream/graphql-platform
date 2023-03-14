@@ -1,5 +1,8 @@
+using HotChocolate.Types.Relay;
+
 namespace HotChocolate.Fusion.Shared.Reviews;
 
+[Node]
 public sealed class Author
 {
     public Author(int id, string name)

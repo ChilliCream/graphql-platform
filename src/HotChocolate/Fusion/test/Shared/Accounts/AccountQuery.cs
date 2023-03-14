@@ -1,3 +1,5 @@
+using HotChocolate.Types.Relay;
+
 namespace HotChocolate.Fusion.Shared.Accounts;
 
 [GraphQLName("Query")]
@@ -6,6 +8,7 @@ public class AccountQuery
     public IEnumerable<User> GetUsers([Service] UserRepository repository) =>
         repository.GetUsers();
 
+    [NodeResolver]
     public User? GetUserById(int id, [Service] UserRepository repository) =>
         repository.GetUser(id);
 

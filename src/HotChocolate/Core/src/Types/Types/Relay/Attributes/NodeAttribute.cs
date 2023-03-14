@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay.Descriptors;
@@ -46,29 +47,34 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 context.TypeInspector.GetType(typeof(IdType))));
         });
 
+        descriptor.Extend().OnBeforeNaming(
+            (_, definition) =>
+            {
+                // first we try to resolve the id field.
+                if (IdField is not null)
+                {
+                    var idField = type.GetMember(IdField).FirstOrDefault(
+                        t => t.MemberType is MemberTypes.Method or MemberTypes.Property);
+
+                    if (idField is null)
+                    {
+                        throw NodeAttribute_IdFieldNotFound(type, IdField);
+                    }
+
+                    nodeDescriptor.IdField(idField);
+                }
+                else if (context.TypeInspector.GetNodeIdMember(type) is { } id)
+                {
+                    nodeDescriptor.IdField(id);
+                }
+                else if (context.TypeInspector.GetNodeIdMember(definition.RuntimeType) is { } sid)
+                {
+                    nodeDescriptor.IdField(sid);
+                }
+            });
+
         descriptor.Extend().OnBeforeCompletion((completionContext, definition) =>
         {
-            // first we try to resolve the id field.
-            if (IdField is not null)
-            {
-                var idField = type.GetMember(IdField).FirstOrDefault();
-
-                if (idField is null)
-                {
-                    throw NodeAttribute_IdFieldNotFound(type, IdField);
-                }
-
-                nodeDescriptor.IdField(idField);
-            }
-            else if (context.TypeInspector.GetNodeIdMember(type) is { } id)
-            {
-                nodeDescriptor.IdField(id);
-            }
-            else if (context.TypeInspector.GetNodeIdMember(definition.RuntimeType) is { } sid)
-            {
-                nodeDescriptor.IdField(sid);
-            }
-
             // after that we look for the node resolver.
             if (NodeResolverType is not null)
             {
