@@ -1,0 +1,33 @@
+UserRequest
+---------------
+query GetUser {
+  userById(id: 1) {
+    id
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query GetUser { userById(id: 1) { id } }",
+  "operation": "GetUser",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "subgraph": "Reviews",
+        "document": "query GetUser_1 { userById: authorById(id: 1) { id } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------

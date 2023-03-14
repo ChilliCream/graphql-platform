@@ -74,7 +74,9 @@ public sealed class DemoProject : IDisposable
                 .AddRouting()
                 .AddSingleton<UserRepository>()
                 .AddGraphQLServer()
-                .AddQueryType<AccountQuery>(),
+                .AddQueryType<AccountQuery>()
+                .AddMutationType<AccountMutation>()
+                .AddMutationConventions(),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));

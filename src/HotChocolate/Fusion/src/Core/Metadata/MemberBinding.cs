@@ -8,25 +8,26 @@ internal class MemberBinding
     /// <summary>
     /// Initializes a new instance of <see cref="MemberBinding"/>.
     /// </summary>
-    /// <param name="schemaName">
-    /// The schema to which the type system member is bound to.
+    /// <param name="subgraphName">
+    /// The name of the subgraph to which the type system member is bound to.
     /// </param>
     /// <param name="name">
-    /// The name which the type system member has in the <see cref="SchemaName"/>.
+    /// The name which the type system member has in the <see cref="SubgraphName"/>.
     /// </param>
-    public MemberBinding(string schemaName, string name)
+    public MemberBinding(string subgraphName, string name)
     {
-        SchemaName = schemaName;
+        SubgraphName = subgraphName;
         Name = name;
     }
 
     /// <summary>
-    /// Gets the schema to which the type system member is bound to.
+    /// Gets the name of the subgraph to which the type system member is bound to.
     /// </summary>
-    public string SchemaName { get; }
+    public string SubgraphName { get; }
 
     /// <summary>
-    /// Gets the name which the type system member has in the <see cref="SchemaName"/>.
+    /// Gets the name which the type system member has on a certain the subgraph
+    /// represented by the <see cref="SubgraphName" />.
     /// </summary>
     public string Name { get; }
 }

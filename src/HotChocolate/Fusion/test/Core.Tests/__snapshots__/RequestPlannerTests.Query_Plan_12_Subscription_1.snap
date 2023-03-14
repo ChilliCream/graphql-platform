@@ -1,0 +1,33 @@
+UserRequest
+---------------
+subscription OnNewReview {
+  onNewReview {
+    body
+    author {
+      name
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "subscription OnNewReview { onNewReview { body author { name } } }",
+  "operation": "OnNewReview",
+  "rootNode": {
+    "type": "Subscription",
+    "nodes": [
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ],
+    "subgraph": "Reviews",
+    "document": "subscription OnNewReview_1 { onNewReview { body author { name } } }",
+    "selectionSetId": 0
+  }
+}
+---------------

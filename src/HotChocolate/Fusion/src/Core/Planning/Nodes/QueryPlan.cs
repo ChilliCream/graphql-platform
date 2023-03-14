@@ -1,12 +1,10 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
-using System.Transactions;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Planning;
 
