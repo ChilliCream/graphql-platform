@@ -1,20 +1,20 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Shared;
 
 public static class DemoProjectSchemaExtensions
 {
     public const string AccountsExtensionSdl =
         """
         extend type Query {
-          userById(id: Int! @is(field: "id")): User!
-          usersById(ids: [Int!]! @is(field: "id")): [User!]!
+          userById(id: ID! @is(field: "id")): User!
+          usersById(ids: [ID!]! @is(field: "id")): [User!]!
         }
         """;
 
     public const string ReviewsExtensionSdl =
         """
         extend type Query {
-          authorById(id: Int! @is(field: "id")): Author
-          productById(upc: Int! @is(field: "upc")): Product
+          authorById(id: ID! @is(field: "id")): Author
+          productById(id: ID! @is(field: "id")): Product
         }
 
         schema
@@ -26,7 +26,7 @@ public static class DemoProjectSchemaExtensions
     public const string ProductsExtensionSdl =
         """
         extend type Query {
-          productById(upc: Int! @is(field: "upc")): Product
+          productById(id: ID! @is(field: "id")): Product
         }
         """;
 }

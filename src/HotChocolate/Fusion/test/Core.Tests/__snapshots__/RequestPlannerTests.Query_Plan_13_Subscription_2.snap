@@ -28,7 +28,7 @@ QueryPlan
       {
         "type": "Resolver",
         "subgraph": "Accounts",
-        "document": "query OnNewReview_2($__fusion_exports__1: Int!) { userById(id: $__fusion_exports__1) { birthdate } }",
+        "document": "query OnNewReview_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
         "selectionSetId": 2,
         "path": [
           "userById"

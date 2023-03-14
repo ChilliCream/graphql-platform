@@ -6,13 +6,21 @@ using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
+using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
-using static HotChocolate.Fusion.DemoProjectSchemaExtensions;
 
 namespace HotChocolate.Fusion;
 
 public class DemoIntegrationTests
 {
+    private readonly Func<ICompositionLog> _logFactory;
+
+    public DemoIntegrationTests(ITestOutputHelper output)
+    {
+        _logFactory = () => new TestCompositionLog(output);
+    }
+
     [Fact]
     public async Task Authors_And_Reviews_AutoCompose()
     {
@@ -20,7 +28,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -40,7 +48,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -61,7 +69,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -111,7 +119,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -156,7 +164,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync(cts.Token);
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -205,7 +213,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync(cts.Token);
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -254,7 +262,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -316,7 +324,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -363,7 +371,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -414,7 +422,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -466,7 +474,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -512,7 +520,7 @@ public class DemoIntegrationTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -589,7 +597,7 @@ public class DemoIntegrationTests
         snapshot.Add(request, "User Request");
 
         var i = 0;
-        await foreach(var item in result.ExpectResponseStream()
+        await foreach (var item in result.ExpectResponseStream()
             .ReadResultsAsync().WithCancellation(cancellationToken))
         {
             if (item.ContextData is not null &&

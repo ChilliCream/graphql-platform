@@ -10,82 +10,14 @@ query GetUser {
 }
 ---------------
 
-QueryPlan
----------------
-{
-  "document": "query GetUser { reviews { body author { birthdate } } }",
-  "operation": "GetUser",
-  "rootNode": {
-    "type": "Serial",
-    "nodes": [
-      {
-        "type": "Resolver",
-        "subgraph": "Reviews",
-        "document": "query GetUser_1 { reviews { body author { __fusion_exports__1: id } } }",
-        "selectionSetId": 0
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          0
-        ]
-      },
-      {
-        "type": "BatchResolver",
-        "schemaName": "Accounts",
-        "document": "query GetUser_2($__fusion_exports__1: [Int!]!) { usersById(ids: $__fusion_exports__1) { birthdate __fusion_exports__1: id } }",
-        "selectionSetId": 2,
-        "path": [
-          "usersById"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          2
-        ]
-      }
-    ]
-  }
-}
----------------
-
 Result
 ---------------
 {
-  "data": {
-    "reviews": [
-      {
-        "body": "Love it!",
-        "author": {
-          "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
-        }
-      },
-      {
-        "body": "Too expensive.",
-        "author": {
-          "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
-        }
-      },
-      {
-        "body": "Could be better.",
-        "author": {
-          "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
-        }
-      },
-      {
-        "body": "Prefer something else.",
-        "author": {
-          "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
-        }
-      }
-    ]
-  }
+  "errors": [
+    {
+      "message": "Unexpected Execution Error"
+    }
+  ]
 }
 ---------------
 
@@ -98,9 +30,14 @@ schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\
 }
 
 type Query {
-  productById(upc: Int!): Product @variable(subgraph: "Reviews", name: "upc", argument: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }", arguments: [ { name: "upc", type: "Int!" } ])
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @variable(subgraph: "Reviews", name: "ids", argument: "ids") @resolver(subgraph: "Reviews", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ]) @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+  productById(upc: ID!): Product @variable(subgraph: "Reviews", name: "upc", argument: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }", arguments: [ { name: "upc", type: "ID!" } ])
+  reviewById(id: ID!): Review @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviews: [Review!]! @resolver(subgraph: "Reviews", select: "{ reviews }")
-  userById(id: Int!): User @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ])
+  userById(id: ID!): User @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
   usersById(ids: [Int!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[Int!]!" } ])
 }
@@ -122,24 +59,28 @@ type AddUserPayload {
   user: User @source(subgraph: "Accounts")
 }
 
-type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) {
+type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "ID!" } ]) {
   reviews: [Review!]! @source(subgraph: "Reviews")
   upc: Int! @source(subgraph: "Reviews")
 }
 
-type Review {
+type Review implements Node {
   author: User! @source(subgraph: "Reviews")
   body: String! @source(subgraph: "Reviews")
-  id: Int! @source(subgraph: "Reviews")
+  id: ID! @source(subgraph: "Reviews")
   product: Product! @source(subgraph: "Reviews")
 }
 
-type User @source(subgraph: "Reviews", name: "Author") @variable(subgraph: "Reviews", name: "User_id", select: "id") @variable(subgraph: "Accounts", name: "User_id", select: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[Int!]!" } ], kind: "BATCH_BY_KEY") {
+type User implements Node @source(subgraph: "Reviews", name: "Author") @variable(subgraph: "Reviews", name: "User_id", select: "id") @variable(subgraph: "Accounts", name: "User_id", select: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[Int!]!" } ], kind: "BATCH_BY_KEY") {
   birthdate: DateTime! @source(subgraph: "Accounts")
-  id: Int! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
+  id: ID! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
   name: String! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
   reviews: [Review!]! @source(subgraph: "Reviews")
   username: String! @source(subgraph: "Accounts")
+}
+
+interface Node {
+  id: ID!
 }
 
 input AddReviewInput {

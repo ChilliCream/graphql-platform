@@ -36,7 +36,7 @@ QueryPlan
       {
         "type": "Resolver",
         "subgraph": "Reviews",
-        "document": "query GetUser_2($__fusion_exports__1: Int!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
+        "document": "query GetUser_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
         "selectionSetId": 1,
         "path": [
           "authorById"

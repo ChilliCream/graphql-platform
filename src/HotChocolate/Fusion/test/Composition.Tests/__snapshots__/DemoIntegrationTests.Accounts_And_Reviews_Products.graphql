@@ -76,5 +76,3 @@ input AddUserInput {
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
-
-directive @node(subgraph: _TypeName! types: [_TypeName!]!) on FIELD_DEFINITION

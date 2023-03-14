@@ -18,7 +18,7 @@ QueryPlan
       {
         "type": "Resolver",
         "subgraph": "Products",
-        "document": "query TopProducts_1($first: Int!) { topProducts(first: $first) { upc } }",
+        "document": "query TopProducts_1($first: Int!) { topProducts(first: $first) { __fusion_exports__1: id } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
@@ -30,6 +30,26 @@ QueryPlan
         "type": "Composition",
         "selectionSetIds": [
           0
+        ]
+      },
+      {
+        "type": "Resolver",
+        "subgraph": "Reviews",
+        "document": "query TopProducts_2($__fusion_exports__1: ID!) { productById(id: $__fusion_exports__1) { upc } }",
+        "selectionSetId": 1,
+        "path": [
+          "productById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          1
         ]
       }
     ]

@@ -47,7 +47,7 @@ QueryPlan
           {
             "type": "Resolver",
             "subgraph": "Accounts",
-            "document": "query AddReviews_2($__fusion_exports__1: Int!) { userById(id: $__fusion_exports__1) { birthdate } }",
+            "document": "query AddReviews_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
             "selectionSetId": 6,
             "path": [
               "userById"
@@ -61,7 +61,7 @@ QueryPlan
           {
             "type": "Resolver",
             "subgraph": "Accounts",
-            "document": "query AddReviews_3($__fusion_exports__2: Int!) { userById(id: $__fusion_exports__2) { birthdate } }",
+            "document": "query AddReviews_3($__fusion_exports__2: ID!) { userById(id: $__fusion_exports__2) { birthdate } }",
             "selectionSetId": 3,
             "path": [
               "userById"
