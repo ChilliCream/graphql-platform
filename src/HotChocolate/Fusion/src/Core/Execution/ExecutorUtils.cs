@@ -53,7 +53,7 @@ internal static class ExecutorUtils
                     selectionSetResult.SetValueUnsafe(i, responseName, value, nullable);
 
                     if (value.ValueKind is JsonValueKind.String &&
-                        (selection.CustomOptions | _reEncodeIdFlag) == _reEncodeIdFlag)
+                        (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
                     {
                         var subgraphName = selectionResult.Single.SubgraphName;
                         var reformattedId = context.ReformatId(value.GetString()!, subgraphName);
@@ -77,7 +77,7 @@ internal static class ExecutorUtils
                     selectionSetResult.SetValueUnsafe(i, responseName, value);
                 }
             }
-            else if ((selection.CustomOptions | _typeNameFlag) == _typeNameFlag)
+            else if ((selection.CustomOptions & _typeNameFlag) == _typeNameFlag)
             {
                 var value = selection.DeclaringType.Name;
                 selectionSetResult.SetValueUnsafe(i, responseName, value, false);

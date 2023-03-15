@@ -14,13 +14,14 @@ internal sealed class FieldFlagsOptimizer : ISelectionSetOptimizer
 
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {
-        var typeInfo = _config.GetType<ObjectType>(context.Type.Name);
-
-        foreach (var selection in context.Selections.Values)
+        if (_config.TryGetType<ObjectType>(context.Type.Name, out var typeInfo))
         {
-            if (typeInfo.Fields.TryGetValue(selection.Field.Name, out var fieldInfo))
+            foreach (var selection in context.Selections.Values)
             {
-                selection.SetOption((Selection.CustomOptionsFlags)fieldInfo.Flags);
+                if (typeInfo.Fields.TryGetValue(selection.Field.Name, out var fieldInfo))
+                {
+                    selection.SetOption((Selection.CustomOptionsFlags)fieldInfo.Flags);
+                }
             }
         }
     }

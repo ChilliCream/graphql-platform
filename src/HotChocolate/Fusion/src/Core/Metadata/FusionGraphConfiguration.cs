@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -71,6 +72,18 @@ internal sealed class FusionGraphConfiguration
         }
 
         throw new InvalidOperationException("Type not found.");
+    }
+
+    public bool TryGetType<T>(string typeName, [NotNullWhen(true)] out T? type) where T : IType
+    {
+        if (_types.TryGetValue(typeName, out var value) && value is T casted)
+        {
+            type = casted;
+            return true;
+        }
+
+        type = default!;
+        return false;
     }
 
     /// <summary>
