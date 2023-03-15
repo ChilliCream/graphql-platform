@@ -15,14 +15,29 @@ internal class SelectionExecutionStep : IExecutionStep
         SubgraphName = schemaNameName;
     }
 
+    /// <summary>
+    /// Gets the subgraph from which this execution step will fetch data.
+    /// </summary>
     public string SubgraphName { get; }
 
+    /// <summary>
+    /// Gets the declaring type of the root selection set of this execution step.
+    /// </summary>
     public ObjectType SelectionSetType { get; }
 
+    /// <summary>
+    /// Gets the parent selection.
+    /// </summary>
     public ISelection? ParentSelection { get; }
 
+    /// <summary>
+    /// Gets the resolver for this execution step.
+    /// </summary>
     public ResolverDefinition? Resolver { get; set; }
 
+    /// <summary>
+    /// Gets the root selections of this execution step.
+    /// </summary>
     public List<RootSelection> RootSelections { get; } = new();
 
     public HashSet<ISelection> AllSelections { get; } = new();

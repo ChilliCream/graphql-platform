@@ -23,6 +23,9 @@ public sealed class FusionGraphComposer
     /// <param name="fusionTypeSelf">
     /// Defines if the fusion types should be prefixed with the subgraph name.
     /// </param>
+    /// <param name="logFactory">
+    /// A factory that creates a new composition log.
+    /// </param>
     public FusionGraphComposer(
         string? fusionTypePrefix = null,
         bool fusionTypeSelf = false,

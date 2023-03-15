@@ -54,6 +54,7 @@ public sealed class FusionTypeNames
         _fusionDirectives.Add(sourceDirective);
         _fusionDirectives.Add(isDirective);
         _fusionDirectives.Add(nodeDirective);
+        _fusionDirectives.Add(reEncodeIdDirective);
         _fusionDirectives.Add(httpDirective);
         _fusionDirectives.Add(webSocketDirective);
         _fusionDirectives.Add(fusionDirective);
