@@ -1,9 +1,7 @@
 import React, { FC, useEffect } from "react";
-import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
-import { Button } from "@/components/misc/button";
 import { Close } from "@/components/misc/close";
 import { State } from "@/state";
 import { hidePromo, showPromo } from "@/state/common";
@@ -12,25 +10,20 @@ import { Link } from "./link";
 export const Promo: FC = () => {
   const show = useSelector<State, boolean>((state) => state.common.showPromo);
   const dispatch = useDispatch();
-  const cookieName = "chillicream-promo-workshop-230510";
-  const [cookies, setCookie] = useCookies([cookieName]);
-  const consentCookieValue = cookies[cookieName];
+  const promoName = "chillicream-promo-workshop-230510";
 
   const clickDismiss = () => {
-    const expires = new Date();
-
-    expires.setFullYear(new Date().getFullYear() + 1);
-
-    setCookie(cookieName, "true", { path: "/", expires });
+    localStorage.setItem(promoName, "true");
+    dispatch(hidePromo());
   };
 
   useEffect(() => {
-    if (consentCookieValue === "true") {
-      dispatch(hidePromo());
-    } else {
+    const dismissed = localStorage.getItem(promoName);
+
+    if (dismissed !== "true") {
       dispatch(showPromo());
     }
-  }, [consentCookieValue]);
+  }, []);
 
   return (
     <Dialog
