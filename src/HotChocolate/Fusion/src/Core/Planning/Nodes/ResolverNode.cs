@@ -117,8 +117,12 @@ internal sealed class ResolverNode : ResolverNodeBase
                 var exportKeys = workItem.ExportKeys;
                 var variableValues = workItem.VariableValues;
 
-                // we extract the selection data from the request and add it to the workItem results.
+                // we extract the selection data from the request and add it to the
+                // workItem results.
                 ExtractSelectionResults(selections, schemaName, data, selectionResults);
+
+                // TODO : only show debug info if we pass it into the context.
+                ExtractErrors(context.Result, response.Errors, addDebugInfo: true);
 
                 // next we need to extract any variables that we need for followup requests.
                 ExtractVariables(data, exportKeys, variableValues);

@@ -502,7 +502,7 @@ public sealed partial class OperationCompiler
             {
                 // if this is the first time we find a selection to this field we have to
                 // create a new prepared selection.
-                preparedSelection = new Selection(
+                preparedSelection = new Selection.Sealed(
                     GetNextSelectionId(),
                     context.Type,
                     field,

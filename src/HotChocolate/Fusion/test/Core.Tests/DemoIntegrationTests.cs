@@ -156,6 +156,51 @@ public class DemoIntegrationTests
         Assert.Null(result.ExpectQueryResult().Errors);
     }
 
+    [Fact]
+    public async Task Authors_And_Reviews_Query_GetUserById_With_Invalid_Id_Value()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query GetUser {
+              userById(id: 1) {
+                id
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+
+        Assert.NotNull(result.ExpectQueryResult().Errors);
+        Assert.NotEmpty(result.ExpectQueryResult().Errors!);
+    }
+
     [Fact(Skip = "The message order is not guaranteed, this needs to be fixed.")]
     public async Task Authors_And_Reviews_Subscription_OnNewReview()
     {

@@ -3,20 +3,24 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace HotChocolate.Fusion.Execution;
 
 internal sealed class FusionExecutionContext : IDisposable
 {
+    private readonly string _schemaName;
     private readonly GraphQLClientFactory _clientFactory;
+    private readonly IIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
 
     public FusionExecutionContext(
         FusionGraphConfiguration serviceConfig,
         QueryPlan queryPlan,
         OperationContextOwner operationContextOwner,
-        GraphQLClientFactory clientFactory)
+        GraphQLClientFactory clientFactory,
+        IIdSerializer idSerializer)
     {
         ServiceConfig = serviceConfig ??
             throw new ArgumentNullException(nameof(serviceConfig));
@@ -26,6 +30,9 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(operationContextOwner));
         _clientFactory = clientFactory ??
             throw new ArgumentNullException(nameof(clientFactory));
+        _idSerializer = idSerializer ??
+            throw new ArgumentNullException(nameof(idSerializer));
+        _schemaName = Schema.Name;
     }
 
     public FusionGraphConfiguration ServiceConfig { get; }
@@ -44,6 +51,13 @@ internal sealed class FusionExecutionContext : IDisposable
 
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodes(selectionSet);
+
+    public string? ReformatId(string formattedId, string subgraphName)
+    {
+        var id = _idSerializer.Deserialize(formattedId);
+        var typeName = ServiceConfig.GetTypeName(subgraphName, id.TypeName);
+        return _idSerializer.Serialize(_schemaName, typeName, id.Value);
+    }
 
     public async Task<GraphQLResponse> ExecuteAsync(
         string subgraphName,
@@ -96,5 +110,6 @@ internal sealed class FusionExecutionContext : IDisposable
             context.ServiceConfig,
             context.QueryPlan,
             operationContextOwner,
-            context._clientFactory);
+            context._clientFactory,
+            context._idSerializer);
 }

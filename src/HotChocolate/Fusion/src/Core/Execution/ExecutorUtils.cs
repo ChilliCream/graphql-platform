@@ -1,16 +1,24 @@
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
+using static HotChocolate.Execution.Processing.Selection;
+using IType = HotChocolate.Types.IType;
+using ObjectType = HotChocolate.Types.ObjectType;
 
 namespace HotChocolate.Fusion.Execution;
 
 internal static class ExecutorUtils
 {
+    private const CustomOptionsFlags _reEncodeIdFlag =
+        (CustomOptionsFlags)ObjectFieldFlags.ReEncodeId;
+
+    private const CustomOptionsFlags _typeNameFlag =
+        (CustomOptionsFlags)ObjectFieldFlags.TypeName;
+
     public static void ComposeResult(
         FusionExecutionContext context,
         WorkItem workItem)
@@ -28,7 +36,7 @@ internal static class ExecutorUtils
     {
         for (var i = 0; i < selections.Count; i++)
         {
-            var selection = selections[i];
+            var selection = (Selection)selections[i];
             var selectionType = selection.Type;
             var responseName = selection.ResponseName;
             var field = selection.Field;
@@ -43,6 +51,14 @@ internal static class ExecutorUtils
                 {
                     var value = selectionResult.Single.Element;
                     selectionSetResult.SetValueUnsafe(i, responseName, value, nullable);
+
+                    if (value.ValueKind is JsonValueKind.String &&
+                        (selection.CustomOptions | _reEncodeIdFlag) == _reEncodeIdFlag)
+                    {
+                        var subgraphName = selectionResult.Single.SubgraphName;
+                        var reformattedId = context.ReformatId(value.GetString()!, subgraphName);
+                        selectionSetResult.SetValueUnsafe(i, responseName, reformattedId, nullable);
+                    }
                 }
                 else if (namedType.IsEnumType())
                 {
@@ -61,7 +77,7 @@ internal static class ExecutorUtils
                     selectionSetResult.SetValueUnsafe(i, responseName, value);
                 }
             }
-            else if (field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
+            else if ((selection.CustomOptions | _typeNameFlag) == _typeNameFlag)
             {
                 var value = selection.DeclaringType.Name;
                 selectionSetResult.SetValueUnsafe(i, responseName, value, false);
@@ -81,9 +97,11 @@ internal static class ExecutorUtils
         }
 
         var json = selectionResult.Single.Element;
-        var schemaName = selectionResult.Single.SchemaName;
+        var schemaName = selectionResult.Single.SubgraphName;
         Debug.Assert(selectionResult.Multiple is null, "selectionResult.Multiple is null");
-        Debug.Assert(json.ValueKind is JsonValueKind.Array, "json.ValueKind is JsonValueKind.Array");
+        Debug.Assert(
+            json.ValueKind is JsonValueKind.Array,
+            "json.ValueKind is JsonValueKind.Array");
 
         var elementType = type.ElementType();
         var result = context.Result.RentList(json.GetArrayLength());
@@ -163,7 +181,7 @@ internal static class ExecutorUtils
     {
         if (parent.Multiple is null)
         {
-            var schemaName = parent.Single.SchemaName;
+            var schemaName = parent.Single.SubgraphName;
             var data = parent.Single.Element;
 
             for (var i = 0; i < selections.Count; i++)
@@ -182,7 +200,7 @@ internal static class ExecutorUtils
         {
             foreach (var result in parent.Multiple)
             {
-                var schemaName = result.SchemaName;
+                var schemaName = result.SubgraphName;
                 var data = result.Element;
 
                 for (var i = 0; i < selections.Count; i++)
@@ -206,6 +224,11 @@ internal static class ExecutorUtils
         JsonElement data,
         SelectionResult[] selectionResults)
     {
+        if (data.ValueKind is not JsonValueKind.Object)
+        {
+            return;
+        }
+
         for (var i = 0; i < selections.Count; i++)
         {
             if (data.TryGetProperty(selections[i].ResponseName, out var property))
@@ -218,7 +241,7 @@ internal static class ExecutorUtils
                 }
                 else
                 {
-                    selectionResults[i] = new SelectionResult(new JsonResult(schemaName, property));
+                    selectionResults[i] = new(new JsonResult(schemaName, property));
                 }
             }
         }
@@ -250,6 +273,83 @@ internal static class ExecutorUtils
         }
     }
 
+    public static void ExtractErrors(
+        ResultBuilder resultBuilder,
+        JsonElement errors,
+        bool addDebugInfo)
+    {
+        if (errors.ValueKind is not JsonValueKind.Array)
+        {
+            return;
+        }
+
+        foreach (var error in errors.EnumerateArray())
+        {
+            ExtractError(resultBuilder, error, addDebugInfo);
+        }
+    }
+
+    private static void ExtractError(
+        ResultBuilder resultBuilder,
+        JsonElement error,
+        bool addDebugInfo)
+    {
+        if (error.ValueKind is not JsonValueKind.Object)
+        {
+            return;
+        }
+
+        if (error.TryGetProperty("message", out var message) &&
+            message.ValueKind is JsonValueKind.String)
+        {
+            var errorBuilder = new ErrorBuilder();
+            errorBuilder.SetMessage(message.GetString()!);
+
+            if (error.TryGetProperty("code", out var code) &&
+                code.ValueKind is JsonValueKind.String)
+            {
+                errorBuilder.SetCode(code.GetString()!);
+            }
+
+            if (error.TryGetProperty("extensions", out var extensions) &&
+                extensions.ValueKind is JsonValueKind.Object)
+            {
+                foreach (var property in extensions.EnumerateObject())
+                {
+                    errorBuilder.SetExtension(property.Name, property.Value);
+                }
+            }
+
+            if (error.TryGetProperty("path", out var remotePath) &&
+                remotePath.ValueKind is JsonValueKind.Array)
+            {
+                // TODO : rewrite remote path if possible!
+
+                if (addDebugInfo)
+                {
+                    errorBuilder.SetExtension("remotePath", remotePath);
+                }
+            }
+
+            if (error.TryGetProperty("locations", out var locations) &&
+                locations.ValueKind is JsonValueKind.Array)
+            {
+                foreach (var location in extensions.EnumerateArray())
+                {
+                    if (location.TryGetProperty("line", out var lineValue) &&
+                        location.TryGetProperty("column", out var columnValue) &&
+                        lineValue.TryGetInt32(out var line)&&
+                        columnValue.TryGetInt32(out var column))
+                    {
+                        errorBuilder.AddLocation(line, column);
+                    }
+                }
+            }
+
+            resultBuilder.AddError(errorBuilder.Build());
+        }
+    }
+
     public static void ExtractVariables(
         SelectionResult parent,
         IReadOnlyList<string> exportKeys,
@@ -276,6 +376,11 @@ internal static class ExecutorUtils
         IReadOnlyList<string> exportKeys,
         Dictionary<string, IValueNode> variableValues)
     {
+        if (parent.ValueKind is not JsonValueKind.Object)
+        {
+            return;
+        }
+
         if (exportKeys.Count > 0 &&
             parent.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
         {

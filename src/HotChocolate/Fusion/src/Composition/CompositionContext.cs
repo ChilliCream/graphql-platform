@@ -74,10 +74,3 @@ internal sealed class CompositionContext
     /// </summary>
     public ICompositionLog Log { get; }
 }
-
-[Flags]
-public enum FusionFeatureFlags
-{
-    None = 0,
-    NodeField = 1 << 0
-}

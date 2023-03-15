@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Metadata;
 
 [Flags]
-public enum ObjectFieldFlags
+public enum ObjectFieldFlags : byte
 {
     /// <summary>
     /// No flags are set.

@@ -43,21 +43,14 @@ internal sealed class CompositionNode : QueryPlanNode
         }
         else
         {
-            var aggregated = new List<WorkItem>();
-
             foreach (var selectionSet in _selectionSets)
             {
                 if (state.TryGetState(selectionSet, out var values))
                 {
-                    aggregated.AddRange(values);
-                }
-            }
-
-            if (aggregated.Count > 0)
-            {
-                for (var i = 0; i < aggregated.Count; i++)
-                {
-                    ComposeResult(context, aggregated[i]);
+                    for (var i = 0; i < values.Count; i++)
+                    {
+                        ComposeResult(context, values[i]);
+                    }
                 }
             }
         }

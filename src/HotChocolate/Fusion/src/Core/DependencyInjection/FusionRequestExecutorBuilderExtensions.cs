@@ -63,6 +63,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseField(next => next)
             .UseDefaultGatewayPipeline()
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
+            .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
             .ConfigureSchemaServices(
                 sc =>
                 {

@@ -35,7 +35,8 @@ internal sealed class NodeMiddleware : IMergeMiddleware
                             if (possibleNode.TryGetOriginalName(out var originalNodeName) &&
                                 !originalNodeName.EqualsOrdinal(nodeName) &&
                                 fusionGraph.Types.TryGetType<ObjectType>(nodeName, out var node) &&
-                                node.Fields.TryGetField("id", out var idField))
+                                node.Fields.TryGetField("id", out var idField) &&
+                                !node.Directives.ContainsName(fusionTypes.ReEncodeId.Name))
                             {
                                 idField.Directives.Add(fusionTypes.CreateReEncodeIdDirective());
                             }

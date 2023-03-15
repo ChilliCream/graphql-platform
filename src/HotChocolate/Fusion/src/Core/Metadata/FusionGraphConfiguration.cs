@@ -101,9 +101,9 @@ internal sealed class FusionGraphConfiguration
         throw new NotImplementedException();
     }
 
-    public string GetTypeName(string schemaName, string typeName)
+    public string GetTypeName(string subgraphName, string typeName)
     {
-        if (!_typeNameLookup.TryGetValue((schemaName, typeName), out var temp))
+        if (!_typeNameLookup.TryGetValue((subgraphName, typeName), out var temp))
         {
             temp = typeName;
         }

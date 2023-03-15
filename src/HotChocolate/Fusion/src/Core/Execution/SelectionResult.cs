@@ -30,7 +30,7 @@ internal readonly struct SelectionResult
         var result = Multiple is null ? Single : Multiple[0];
 
         return new TypeInfo(
-            result.SchemaName,
+            result.SubgraphName,
             result.Element.GetProperty("__typename").GetString()!);
     }
 
