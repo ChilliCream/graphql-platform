@@ -3,14 +3,14 @@ import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { GetBlogPostChilliCreamPlatformImageQuery } from "@/graphql-types";
+import { GetBlogPostHotChocolate13ImageQuery } from "@/graphql-types";
 
-export const BlogPostHotChocolate12: FC = () => {
-  const data = useStaticQuery<GetBlogPostChilliCreamPlatformImageQuery>(graphql`
-    query getBlogPostChilliCreamPlatformImage {
+export const BlogPostHotChocolate13: FC = () => {
+  const data = useStaticQuery<GetBlogPostHotChocolate13ImageQuery>(graphql`
+    query getBlogPostHotChocolate13Image {
       file(
         relativePath: {
-          eq: "2021-09-27-hot-chocolate-12/hot-chocolate-12-banner.png"
+          eq: "2023-02-08-new-in-hot-chocolate-13/hot-chocolate-13-banner.png"
         }
         sourceInstanceName: { eq: "blog" }
       ) {
@@ -25,7 +25,7 @@ export const BlogPostHotChocolate12: FC = () => {
     <Container>
       <GatsbyImage
         image={data.file?.childImageSharp?.gatsbyImageData}
-        alt="Hot Chocolate Version 12"
+        alt="Hot Chocolate Version 13"
       />
     </Container>
   );
