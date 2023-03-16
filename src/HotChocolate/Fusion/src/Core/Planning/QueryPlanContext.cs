@@ -19,11 +19,11 @@ internal sealed class QueryPlanContext
 
     public ExportDefinitionRegistry Exports { get; } = new();
 
-    public List<IExecutionStep> Steps { get; } = new();
+    public List<ExecutionStep> Steps { get; } = new();
 
     public Dictionary<string, IValueNode> VariableValues { get; } = new();
 
-    public Dictionary<IExecutionStep, QueryPlanNode> Nodes { get; } = new();
+    public Dictionary<ExecutionStep, QueryPlanNode> Nodes { get; } = new();
 
     public HashSet<VariableDefinitionNode> ForwardedVariables { get; } =
         new(SyntaxComparer.BySyntax);
@@ -36,4 +36,6 @@ internal sealed class QueryPlanContext
         => new($"{_opName}_{++_opId}");
 
     public int CreateNodeId() => ++_nodeId;
+
+    public QueryPlan? Plan { get; set; }
 }

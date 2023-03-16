@@ -87,7 +87,7 @@ internal abstract class QueryPlanNode
     {
     }
 
-    private void FormatNodesProperty(Utf8JsonWriter writer)
+    private protected virtual void FormatNodesProperty(Utf8JsonWriter writer)
     {
         if (_nodes.Count > 0)
         {

@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.FusionResources;
 
@@ -50,23 +49,7 @@ internal static class ThrowHelper
 
     public static ArgumentException Requirement_Is_Missing(string requirement, string argumentName)
         => new(string.Format(ThrowHelper_Requirement_Is_Missing, requirement), argumentName);
-}
 
-[Serializable]
-public class ServiceConfigurationException : Exception
-{
-    public ServiceConfigurationException() { }
-
-    public ServiceConfigurationException(
-        string message)
-        : base(message) { }
-    public ServiceConfigurationException(
-        string message,
-        Exception inner)
-        : base(message, inner) { }
-
-    protected ServiceConfigurationException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context) { }
+    public static InvalidOperationException NoResolverInContext()
+        => new(ThrowHelper_NoResolverInContext);
 }

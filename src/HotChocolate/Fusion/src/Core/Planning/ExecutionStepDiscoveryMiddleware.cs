@@ -1,27 +1,57 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using ObjectField = HotChocolate.Fusion.Metadata.ObjectField;
+using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
 
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
 /// The request planer will rewrite the <see cref="IOperation"/> into
-/// requests against the downstream services.
+/// execution steps that outline the rough structure of the execution
+/// plan.
 /// </summary>
-internal sealed class RequestPlanner
+internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 {
     private readonly FusionGraphConfiguration _configuration;
 
-    public RequestPlanner(FusionGraphConfiguration configuration)
+    /// <summary>
+    /// Creates a new instance of <see cref="ExecutionStepDiscoveryMiddleware"/>.
+    /// </summary>
+    /// <param name="configuration">
+    /// The fusion gateway configuration.
+    /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public ExecutionStepDiscoveryMiddleware(FusionGraphConfiguration configuration)
     {
         _configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));
     }
 
-    public void Plan(QueryPlanContext context)
+    /// <summary>
+    /// Rewrites the <see cref="IOperation"/> into
+    /// execution steps that outline the rough structure of the query
+    /// plan.
+    /// </summary>
+    /// <param name="context">
+    /// The query plan context.
+    /// </param>
+    /// <param name="next">
+    /// The next middleware in the pipeline.
+    /// </param>
+    public void Invoke(QueryPlanContext context, QueryPlanDelegate next)
+    {
+        Plan(context);
+
+        next(context);
+    }
+
+    private void Plan(QueryPlanContext context)
     {
         var selectionSetType = _configuration.GetType<ObjectType>(context.Operation.RootType.Name);
         var selections = context.Operation.RootSelectionSet.Selections;
@@ -62,7 +92,10 @@ internal sealed class RequestPlanner
         {
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
             var subgraph = GetBestMatchingSubgraph(context.Operation, current, selectionSetType);
-            var workItem = new SelectionExecutionStep(subgraph, selectionSetType, parentSelection);
+            var executionStep = new DefaultExecutionStep(
+                subgraph,
+                selectionSetType,
+                parentSelection);
             leftovers = null;
             ResolverDefinition? resolver;
 
@@ -78,32 +111,37 @@ internal sealed class RequestPlanner
                     preferBatching,
                     out resolver))
                 {
-                    workItem.Resolver = resolver;
-                    CalculateRequirements(parentSelection, resolver, workItem.Requires);
+                    executionStep.Resolver = resolver;
+                    CalculateRequirements(parentSelection, resolver, executionStep.Requires);
                 }
             }
 
             foreach (var selection in current)
             {
-                if (selection.Field.IsIntrospectionField)
+                var field = selection.Field;
+
+                if (field.IsIntrospectionField)
                 {
-                    if (!context.HasIntrospectionSelections &&
-                        (selection.Field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
-                            selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
-                    {
-                        var introspectionStep = new IntrospectionExecutionStep(
-                            subgraph,
-                            selectionSetType,
-                            parentSelection);
-                        context.Steps.Add(introspectionStep);
-                        context.HasIntrospectionSelections = true;
-                    }
+                    TryCreateIntrospectionExecutionStep(
+                        context,
+                        field,
+                        selectionSetType);
                     continue;
                 }
 
-                var field = selectionSetType.Fields[selection.Field.Name];
+                if (IsNodeField(field))
+                {
+                    CreateNodeExecutionStep(
+                        context,
+                        backlog,
+                        selection,
+                        selectionSetType);
+                    continue;
+                }
 
-                if (field.Bindings.ContainsSubgraph(subgraph))
+                var fieldInfo = selectionSetType.Fields[field.Name];
+
+                if (fieldInfo.Bindings.ContainsSubgraph(subgraph))
                 {
                     CalculateVariablesInContext(
                         selection,
@@ -113,26 +151,22 @@ internal sealed class RequestPlanner
 
                     resolver = null;
 
-                    if (field.Resolvers.ContainsResolvers(subgraph))
+                    if (fieldInfo.Resolvers.ContainsResolvers(subgraph))
                     {
-                        var reference =
-                            context.Operation.Type is OperationType.Subscription &&
-                                parentSelection is null
-                                    ? PreferredResolverKind.Subscription
-                                    : preferBatching
-                                        ? PreferredResolverKind.Batch
-                                        : PreferredResolverKind.Query;
+                        var resolverPreference =
+                            DetermineResolverPreference(
+                                context.Operation,
+                                parentSelection,
+                                preferBatching);
 
                         if (!TryGetResolver(
-                            field,
+                            fieldInfo,
                             subgraph,
                             variablesInContext,
-                            reference,
+                            resolverPreference,
                             out resolver))
                         {
-                            // todo : error message and type
-                            throw new InvalidOperationException(
-                                "There must be a field resolver definition valid in this context!");
+                            throw ThrowHelper.NoResolverInContext();
                         }
 
                         CalculateRequirements(
@@ -140,11 +174,11 @@ internal sealed class RequestPlanner
                             selectionSetType,
                             parentSelection,
                             resolver,
-                            workItem.Requires);
+                            executionStep.Requires);
                     }
 
-                    workItem.AllSelections.Add(selection);
-                    workItem.RootSelections.Add(new RootSelection(selection, resolver));
+                    executionStep.AllSelections.Add(selection);
+                    executionStep.RootSelections.Add(new RootSelection(selection, resolver));
 
                     if (selection.SelectionSet is not null)
                     {
@@ -152,7 +186,7 @@ internal sealed class RequestPlanner
                             backlog,
                             context.Operation,
                             selection,
-                            workItem,
+                            executionStep,
                             preferBatching);
                     }
                 }
@@ -162,9 +196,9 @@ internal sealed class RequestPlanner
                 }
             }
 
-            if (workItem.RootSelections.Count > 0)
+            if (executionStep.RootSelections.Count > 0)
             {
-                context.Steps.Add(workItem);
+                context.Steps.Add(executionStep);
             }
         } while (leftovers is not null);
     }
@@ -173,12 +207,12 @@ internal sealed class RequestPlanner
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
-        SelectionExecutionStep executionStep,
+        DefaultExecutionStep executionStep,
         bool preferBatching)
     {
         if (!preferBatching)
         {
-            preferBatching = Types.TypeExtensions.IsListType(parentSelection.Type);
+            preferBatching = parentSelection.Type.IsListType();
         }
 
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
@@ -224,6 +258,56 @@ internal sealed class RequestPlanner
             }
         }
     }
+
+    private static void TryCreateIntrospectionExecutionStep(
+        QueryPlanContext context,
+        IObjectField field,
+        ObjectType queryType)
+    {
+        if (!context.HasIntrospectionSelections &&
+            (field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
+                field.Name.EqualsOrdinal(IntrospectionFields.Type)))
+        {
+            context.Steps.Add(new IntrospectionExecutionStep(queryType));
+            context.HasIntrospectionSelections = true;
+        }
+    }
+
+    private void CreateNodeExecutionStep(
+        QueryPlanContext context,
+        Queue<BacklogItem> backlog,
+        ISelection nodeSelection,
+        ObjectType queryType
+    )
+    {
+        var operation = context.Operation;
+        var nodeExecutionStep = new NodeExecutionStep(nodeSelection, queryType);
+        context.Steps.Add(nodeExecutionStep);
+
+        foreach (var possibleType in operation.GetPossibleTypes(nodeSelection))
+        {
+            var declaringType = _configuration.GetType<ObjectType>(possibleType.Name);
+            var selectionSet = operation.GetSelectionSet(nodeSelection, possibleType);
+
+            backlog.Enqueue(
+                new BacklogItem(
+                    nodeSelection,
+                    declaringType,
+                    selectionSet.Selections,
+                    false));
+        }
+    }
+
+    private static PreferredResolverKind DetermineResolverPreference(
+        IOperation operation,
+        ISelection? parentSelection,
+        bool preferBatching)
+        => operation.Type is OperationType.Subscription &&
+            parentSelection is null
+                ? PreferredResolverKind.Subscription
+                : preferBatching
+                    ? PreferredResolverKind.Batch
+                    : PreferredResolverKind.Query;
 
     private string GetBestMatchingSubgraph(
         IOperation operation,
@@ -475,6 +559,11 @@ internal sealed class RequestPlanner
             requirements.Add(requirement);
         }
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsNodeField(IObjectField field)
+        => field.Name.EqualsOrdinal("node") ||
+            field.Name.EqualsOrdinal("nodes");
 
     private readonly struct BacklogItem
     {

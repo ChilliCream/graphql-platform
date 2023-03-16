@@ -9,24 +9,31 @@ using static HotChocolate.Fusion.Metadata.ResolverKind;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class ExecutionPlanBuilder
+internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 {
     private readonly FusionGraphConfiguration _serviceConfig;
     private readonly ISchema _schema;
 
-    public ExecutionPlanBuilder(FusionGraphConfiguration serviceConfig, ISchema schema)
+    public ExecutionTreeBuilderMiddleware(FusionGraphConfiguration serviceConfig, ISchema schema)
     {
         _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
         _schema = schema ?? throw new ArgumentNullException(nameof(schema));
     }
 
-    public QueryPlan Build(QueryPlanContext context)
+    public void Invoke(QueryPlanContext context, QueryPlanDelegate next)
+    {
+        var plan = Build(context);
+        context.Plan = plan;
+        next(context);
+    }
+
+    private QueryPlan Build(QueryPlanContext context)
     {
         foreach (var step in context.Steps)
         {
             context.ForwardedVariables.Clear();
 
-            if (step is SelectionExecutionStep selectionStep)
+            if (step is DefaultExecutionStep selectionStep)
             {
                 if (selectionStep.Resolver?.Kind == BatchByKey)
                 {
@@ -72,8 +79,8 @@ internal sealed class ExecutionPlanBuilder
 
     private QueryPlanNode BuildQueryTree(QueryPlanContext context)
     {
-        var completed = new HashSet<IExecutionStep>();
-        KeyValuePair<IExecutionStep, QueryPlanNode>[] current;
+        var completed = new HashSet<ExecutionStep>();
+        KeyValuePair<ExecutionStep, QueryPlanNode>[] current;
         QueryPlanNode parent;
 
         if (context.Operation.Type is not OperationType.Subscription)
@@ -136,7 +143,7 @@ internal sealed class ExecutionPlanBuilder
 
     private ResolverNode CreateResolverNode(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep)
+        DefaultExecutionStep executionStep)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
         var (requestDocument, path) = CreateRequestDocument(context, executionStep);
@@ -155,7 +162,7 @@ internal sealed class ExecutionPlanBuilder
 
     private BatchByKeyResolverNode CreateBatchResolverNode(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep,
+        DefaultExecutionStep executionStep,
         ResolverDefinition resolver)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
@@ -200,7 +207,7 @@ internal sealed class ExecutionPlanBuilder
 
     private SubscriptionNode CreateSubscription(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep)
+        DefaultExecutionStep executionStep)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
         var (requestDocument, path) =
@@ -223,7 +230,7 @@ internal sealed class ExecutionPlanBuilder
 
     private ISelectionSet ResolveSelectionSet(
         QueryPlanContext context,
-        IExecutionStep executionStep)
+        ExecutionStep executionStep)
         => executionStep.ParentSelection is null
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
@@ -232,7 +239,7 @@ internal sealed class ExecutionPlanBuilder
 
     private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep,
+        DefaultExecutionStep executionStep,
         OperationType operationType = OperationType.Query)
     {
         var rootSelectionSetNode = CreateRootSelectionSetNode(context, executionStep);
@@ -272,7 +279,7 @@ internal sealed class ExecutionPlanBuilder
 
     private SelectionSetNode CreateRootSelectionSetNode(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep)
+        DefaultExecutionStep executionStep)
     {
         var selectionNodes = new List<ISelectionNode>();
         var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
@@ -341,7 +348,7 @@ internal sealed class ExecutionPlanBuilder
 
     private ISelectionNode CreateSelectionNode(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep,
+        DefaultExecutionStep executionStep,
         ISelection selection,
         ObjectField field)
     {
@@ -370,7 +377,7 @@ internal sealed class ExecutionPlanBuilder
 
     private SelectionSetNode CreateSelectionSetNode(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep,
+        DefaultExecutionStep executionStep,
         ISelection parentSelection)
     {
         // TODO : we need to spec inline fragments or a simple selectionsSet depending on pt
@@ -398,13 +405,13 @@ internal sealed class ExecutionPlanBuilder
             }
 
             // append exports that were required by other execution steps.
-            foreach (var selection in
+            foreach (var exportSelection in
                 context.Exports.GetExportSelections(executionStep, selectionSet))
             {
-                selectionNodes.Add(selection);
+                selectionNodes.Add(exportSelection);
             }
 
-            if(selectionNodes.Count == 0)
+            if(selectionSet.Selections.Count > 0 && selectionNodes.Count == 0)
             {
                 // TODO : ThrowHelper
                 throw new InvalidOperationException("A selection set must not be empty.");

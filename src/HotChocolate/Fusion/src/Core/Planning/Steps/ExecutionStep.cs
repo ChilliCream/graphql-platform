@@ -7,30 +7,27 @@ namespace HotChocolate.Fusion.Planning;
 /// Represents a execution step within the execution plan while being in the planing phase.
 /// After the planing phase execution steps are compiled into execution nodes.
 /// </summary>
-internal interface IExecutionStep
+internal abstract class ExecutionStep
 {
-    /// <summary>
-    /// Gets the subgraph from which this execution step will fetch data.
-    /// </summary>
-    string SubgraphName { get; }
+    protected ExecutionStep(ObjectType selectionSetType, ISelection? parentSelection)
+    {
+        SelectionSetType = selectionSetType ??
+            throw new ArgumentNullException(nameof(selectionSetType));
+        ParentSelection = parentSelection;
+    }
 
     /// <summary>
     /// Gets the declaring type of the root selection set of this execution step.
     /// </summary>
-    ObjectType SelectionSetType { get; }
+    public ObjectType SelectionSetType { get; }
 
     /// <summary>
     /// Gets the parent selection.
     /// </summary>
-    ISelection? ParentSelection { get; }
-
-    /// <summary>
-    /// Gets the resolver for this execution step.
-    /// </summary>
-    ResolverDefinition? Resolver { get; }
+    public ISelection? ParentSelection { get; }
 
     /// <summary>
     /// Gets the execution steps this execution step is depending on.
     /// </summary>
-    HashSet<IExecutionStep> DependsOn { get; }
+    public HashSet<ExecutionStep> DependsOn { get; } = new();
 }

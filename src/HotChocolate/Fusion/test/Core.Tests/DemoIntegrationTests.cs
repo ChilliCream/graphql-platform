@@ -1,4 +1,3 @@
-using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;

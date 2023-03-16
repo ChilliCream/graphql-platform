@@ -10,26 +10,32 @@ namespace HotChocolate.Fusion.Planning;
 /// request to a downstream service and enrich these so that all requirements for each requests
 /// are fulfilled.
 /// </summary>
-internal sealed class RequirementsPlanner
+internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 {
-    public void Plan(QueryPlanContext context)
+    public void Invoke(QueryPlanContext context, QueryPlanDelegate next)
+    {
+        Plan(context);
+        next(context);
+    }
+
+    private static void Plan(QueryPlanContext context)
     {
         var selectionLookup = CreateSelectionLookup(context.Steps);
-        var schemas = new Dictionary<string, SelectionExecutionStep>(Ordinal);
+        var schemas = new Dictionary<string, DefaultExecutionStep>(Ordinal);
         var requires = new HashSet<string>(Ordinal);
 
         foreach (var step in context.Steps)
         {
-            if (step is SelectionExecutionStep executionStep &&
-                executionStep.ParentSelection is { } parent &&
-                executionStep.Resolver is { })
+            if (step is DefaultExecutionStep defaultExecutionStep &&
+                defaultExecutionStep.ParentSelection is { } parent &&
+                defaultExecutionStep.Resolver is not null)
             {
-                var declaringType = executionStep.RootSelections[0].Selection.DeclaringType;
+                var declaringType = defaultExecutionStep.RootSelections[0].Selection.DeclaringType;
                 var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
                 var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
 
                 // remove the execution step for which we try to resolve dependencies.
-                siblingExecutionSteps.Remove(executionStep);
+                siblingExecutionSteps.Remove(defaultExecutionStep);
 
                 // clean and fill the schema execution step lookup
                 foreach (var siblingExecutionStep in siblingExecutionSteps)
@@ -38,7 +44,7 @@ internal sealed class RequirementsPlanner
                 }
 
                 // clean and fill requires set
-                InitializeSet(requires, executionStep.Requires);
+                InitializeSet(requires, defaultExecutionStep.Requires);
 
                 // first we need to check if the selectionSet from which we want to do the
                 // exports already is exporting the required variables
@@ -51,8 +57,8 @@ internal sealed class RequirementsPlanner
                         out var stateKey,
                         out var providingExecutionStep))
                     {
-                        executionStep.DependsOn.Add(providingExecutionStep);
-                        executionStep.Variables.Add(requirement, stateKey);
+                        defaultExecutionStep.DependsOn.Add(providingExecutionStep);
+                        defaultExecutionStep.Variables.Add(requirement, stateKey);
                     }
                 }
 
@@ -72,8 +78,8 @@ internal sealed class RequirementsPlanner
                             variable,
                             providingExecutionStep);
 
-                        executionStep.DependsOn.Add(providingExecutionStep);
-                        executionStep.Variables.Add(variable.Name, stateKey);
+                        defaultExecutionStep.DependsOn.Add(providingExecutionStep);
+                        defaultExecutionStep.Variables.Add(variable.Name, stateKey);
                     }
                 }
 
@@ -93,15 +99,22 @@ internal sealed class RequirementsPlanner
 
                 // if we do by key batching the current execution step must
                 // re-export its requirements.
-                if (executionStep.Resolver.Kind is ResolverKind.BatchByKey)
+                if (defaultExecutionStep.Resolver.Kind is ResolverKind.BatchByKey)
                 {
                     foreach (var variable in step.SelectionSetType.Variables)
                     {
-                        if (executionStep.Requires.Contains(variable.Name) &&
-                            executionStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
-                            context.Exports.TryGetStateKey(selectionSet, variable.Name, out var stateKey, out _))
+                        if (defaultExecutionStep.Requires.Contains(variable.Name) &&
+                            defaultExecutionStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
+                            context.Exports.TryGetStateKey(
+                                selectionSet,
+                                variable.Name,
+                                out var stateKey,
+                                out _))
                         {
-                            context.Exports.RegisterAdditionExport(variable, executionStep, stateKey);
+                            context.Exports.RegisterAdditionExport(
+                                variable,
+                                defaultExecutionStep,
+                                stateKey);
                         }
                     }
                 }
@@ -109,11 +122,11 @@ internal sealed class RequirementsPlanner
         }
     }
 
-    private static HashSet<SelectionExecutionStep> GetSiblingExecutionSteps(
-        Dictionary<object, SelectionExecutionStep> selectionLookup,
+    private static HashSet<DefaultExecutionStep> GetSiblingExecutionSteps(
+        Dictionary<object, DefaultExecutionStep> selectionLookup,
         ISelectionSet selectionSet)
     {
-        var executionSteps = new HashSet<SelectionExecutionStep>();
+        var executionSteps = new HashSet<DefaultExecutionStep>();
 
         if (selectionLookup.TryGetValue(selectionSet, out var executionStep))
         {
@@ -131,14 +144,14 @@ internal sealed class RequirementsPlanner
         return executionSteps;
     }
 
-    private static Dictionary<object, SelectionExecutionStep> CreateSelectionLookup(
-        IReadOnlyList<IExecutionStep> executionSteps)
+    private static Dictionary<object, DefaultExecutionStep> CreateSelectionLookup(
+        IReadOnlyList<ExecutionStep> executionSteps)
     {
-        var dictionary = new Dictionary<object, SelectionExecutionStep>();
+        var dictionary = new Dictionary<object, DefaultExecutionStep>();
 
         foreach (var executionStep in executionSteps)
         {
-            if (executionStep is SelectionExecutionStep ses)
+            if (executionStep is DefaultExecutionStep ses)
             {
                 foreach (var selection in ses.AllSelections)
                 {
