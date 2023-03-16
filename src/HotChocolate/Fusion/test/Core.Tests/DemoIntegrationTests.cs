@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
@@ -31,7 +32,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             });
 
@@ -51,7 +52,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             });
@@ -72,7 +73,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             });
 
@@ -122,7 +123,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             });
 
@@ -135,7 +136,7 @@ public class DemoIntegrationTests
         var request = Parse(
             """
             query GetUser {
-              userById(id: 1) {
+              userById(id: "VXNlcgppMQ==") {
                 id
               }
             }
@@ -166,7 +167,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             });
 
@@ -212,7 +213,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             default,
@@ -261,7 +262,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             default,
@@ -310,7 +311,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             });
 
@@ -423,7 +424,7 @@ public class DemoIntegrationTests
                 .ComposeAsync(
                     new[]
                     {
-                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                        demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
                     },
                     FusionFeatureFlags.ReEncodeAllIds);
@@ -472,7 +473,7 @@ public class DemoIntegrationTests
                 .ComposeAsync(
                     new[]
                     {
-                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                        demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
                     },
                     FusionFeatureFlags.NodeField);
@@ -520,7 +521,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             });
@@ -571,7 +572,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             });
@@ -623,7 +624,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             });
@@ -669,7 +670,7 @@ public class DemoIntegrationTests
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             });

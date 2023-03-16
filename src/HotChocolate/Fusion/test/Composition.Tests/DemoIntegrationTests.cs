@@ -77,4 +77,26 @@ public sealed class DemoIntegrationTests
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
+
+    [Fact]
+    public async Task Accounts_And_Reviews2_Products_With_Nodes()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+            },
+            FusionFeatureFlags.NodeField);
+
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
 }

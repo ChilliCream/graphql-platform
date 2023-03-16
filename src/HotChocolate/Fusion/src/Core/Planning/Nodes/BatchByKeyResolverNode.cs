@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -242,7 +243,7 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
             {
                 if (element.TryGetProperty(key, out var keyValue))
                 {
-                    result.TryAdd(keyValue.ToString(), element);
+                    result.TryAdd(FormatKeyValue(keyValue), element);
                 }
             }
         }
@@ -256,7 +257,7 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
                 {
                     if (element.TryGetProperty(exportKey, out var keyValue))
                     {
-                        key += keyValue.ToString();
+                        key += FormatKeyValue(keyValue);
                     }
                 }
 
@@ -290,39 +291,6 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
         }
     }
 
-    protected override void FormatProperties(Utf8JsonWriter writer)
-    {
-        writer.WriteString("schemaName", SubgraphName);
-        writer.WriteString("document", Document.ToString(false));
-        writer.WriteNumber("selectionSetId", SelectionSet.Id);
-
-        if (_path.Count > 0)
-        {
-            writer.WritePropertyName("path");
-            writer.WriteStartArray();
-
-            foreach (var path in _path)
-            {
-                writer.WriteStringValue(path);
-            }
-            writer.WriteEndArray();
-        }
-
-        if (Requires.Count > 0)
-        {
-            writer.WritePropertyName("requires");
-            writer.WriteStartArray();
-
-            foreach (var requirement in Requires)
-            {
-                writer.WriteStartObject();
-                writer.WriteString("variable", requirement);
-                writer.WriteEndObject();
-            }
-            writer.WriteEndArray();
-        }
-    }
-
     private static BatchWorkItem[] CreateBatchWorkItem(IReadOnlyList<WorkItem> workItems)
     {
         var exportKeys = workItems[0].ExportKeys;
@@ -333,7 +301,7 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
             for (var i = 0; i < workItems.Count; i++)
             {
                 var workItem = workItems[i];
-                var key = workItem.VariableValues.First().Value.ToString();
+                var key = FormatKeyValue(workItem.VariableValues.First().Value);
                 batchWorkItems[i] = new BatchWorkItem(key, workItem);
             }
         }
@@ -346,7 +314,7 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
 
                 for (var j = 0; j < exportKeys.Count; j++)
                 {
-                    var value = workItem.VariableValues[exportKeys[j]].ToString();
+                    var value = FormatKeyValue(workItem.VariableValues[exportKeys[j]]);
                     key += value;
                 }
 
@@ -356,6 +324,31 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
 
         return batchWorkItems;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string FormatKeyValue(JsonElement element)
+        => element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString()!,
+            JsonValueKind.Number => element.GetRawText(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            JsonValueKind.Null => "null",
+            _ => throw new NotSupportedException(),
+        };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string FormatKeyValue(IValueNode element)
+        => element switch
+        {
+            StringValueNode value => value.Value,
+            IntValueNode value => value.ToString(),
+            FloatValueNode value => value.ToString(),
+            BooleanValueNode { Value: true } => "true",
+            BooleanValueNode { Value: false } => "false",
+            NullValueNode => "null",
+            _ => throw new NotSupportedException(),
+        };
 
     private readonly struct BatchWorkItem
     {

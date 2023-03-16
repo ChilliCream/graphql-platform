@@ -23,6 +23,18 @@ public static class DemoProjectSchemaExtensions
         }
         """;
 
+    public const string Reviews2ExtensionSdl =
+        """
+        extend type Query {
+          authorById(id: ID! @is(field: "id")): User
+          productById(id: ID! @is(field: "id")): Product
+        }
+
+        schema
+            @rename(coordinate: "Query.authorById", newName: "userById") {
+        }
+        """;
+
     public const string ProductsExtensionSdl =
         """
         extend type Query {
