@@ -25,6 +25,9 @@ internal sealed class QueryPlanContext
 
     public Dictionary<IExecutionStep, QueryPlanNode> Nodes { get; } = new();
 
+    public HashSet<VariableDefinitionNode> ForwardedVariables { get; } =
+        new(SyntaxComparer.BySyntax);
+
     public HashSet<ISelectionSet> HasNodes { get; } = new();
 
     public bool HasIntrospectionSelections { get; set; }

@@ -11,14 +11,14 @@ internal sealed class ArgumentVariableDefinition : IVariableDefinition
         string argumentName)
     {
         Name = name;
-        Subgraph = subgraph;
+        SubgraphName = subgraph;
         Type = type;
         ArgumentName = argumentName;
     }
 
     public string Name { get; }
 
-    public string Subgraph { get; }
+    public string SubgraphName { get; }
 
     public ITypeNode Type { get; }
 

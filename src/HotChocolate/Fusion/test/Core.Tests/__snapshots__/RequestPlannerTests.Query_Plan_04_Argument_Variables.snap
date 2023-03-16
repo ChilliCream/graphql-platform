@@ -1,0 +1,38 @@
+UserRequest
+---------------
+query TopProducts($first: Int!) {
+  topProducts(first: $first) {
+    upc
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query TopProducts($first: Int!) { topProducts(first: $first) { upc } }",
+  "operation": "TopProducts",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "subgraph": "Products",
+        "document": "query TopProducts_1($first: Int!) { topProducts(first: $first) { upc } }",
+        "selectionSetId": 0,
+        "forwardedVariables": [
+          {
+            "variable": "first"
+          }
+        ]
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------

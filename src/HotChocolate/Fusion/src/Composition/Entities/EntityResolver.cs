@@ -10,15 +10,31 @@ internal sealed class EntityResolver
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityResolver"/> class.
     /// </summary>
-    /// <param name="selectionSet">The selection set for the entity.</param>
-    /// <param name="entityName">The name of the entity being resolved.</param>
-    /// <param name="subgraph">The name of the schema that contains the entity.</param>
-    public EntityResolver(SelectionSetNode selectionSet, string entityName, string subgraph)
+    /// <param name="kind">
+    /// The kind of entity resolver. This is used to determine how to resolve the entity.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The selection set for the entity.
+    /// </param>
+    /// <param name="entityName">
+    /// The name of the entity being resolved.
+    /// </param>
+    /// <param name="subgraphName">
+    /// The name of the schema that contains the entity.
+    /// </param>
+    public EntityResolver(
+        EntityResolverKind kind,
+        SelectionSetNode selectionSet,
+        string entityName,
+        string subgraphName)
     {
-        SelectionSet = selectionSet;
-        EntityName = entityName;
-        Subgraph = subgraph;
+        Kind = kind;
+        SelectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
+        EntityName = entityName ?? throw new ArgumentNullException(nameof(entityName));
+        SubgraphName = subgraphName ?? throw new ArgumentNullException(nameof(subgraphName));
     }
+
+    public EntityResolverKind Kind { get; }
 
     /// <summary>
     /// Gets the selection set that specifies how to retrieve data for the entity.
@@ -33,7 +49,7 @@ internal sealed class EntityResolver
     /// <summary>
     /// Gets the name of the subgraph that contains data for this entity.
     /// </summary>
-    public string Subgraph { get; }
+    public string SubgraphName { get; }
 
     /// <summary>
     /// Gets the variables used in the resolver.
@@ -46,16 +62,16 @@ internal sealed class EntityResolver
     /// <returns>A string representation of the entity resolver.</returns>
     public override string ToString()
     {
-        var definitions = new List<IDefinitionNode>();
-
-        definitions.Add(
+        var definitions = new List<IDefinitionNode>
+        {
             new OperationDefinitionNode(
                 null,
                 null,
                 OperationType.Query,
                 Variables.Select(t => t.Value.Definition).ToList(),
-                new[] { new DirectiveNode("schema", new ArgumentNode("name", Subgraph)) },
-                SelectionSet));
+                new[] { new DirectiveNode("schema", new ArgumentNode("name", SubgraphName)) },
+                SelectionSet)
+        };
 
         if (Variables.Count > 0)
         {

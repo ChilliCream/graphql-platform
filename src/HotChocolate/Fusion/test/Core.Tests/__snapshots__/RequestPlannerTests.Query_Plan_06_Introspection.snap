@@ -1,0 +1,40 @@
+UserRequest
+---------------
+query Introspect {
+  __schema {
+    types {
+      name
+      kind
+      fields {
+        name
+        type {
+          name
+          kind
+        }
+      }
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query Introspect { __schema { types { name kind fields { name type { name kind } } } } }",
+  "operation": "Introspect",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Introspection"
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------

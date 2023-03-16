@@ -239,7 +239,7 @@ public class SchemaFirstTests
 
     public class Bar
     {
-        public string Baz { get; set; }
+        public string Baz { get; set; } = default!;
     }
 
     public class EnumQuery

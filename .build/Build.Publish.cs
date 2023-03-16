@@ -26,6 +26,7 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
+            /*
             var packages = PackageDirectory.GlobFiles("*.*.nupkg");
 
             DotNetNuGetPush(
@@ -37,6 +38,7 @@ partial class Build
                         (_, v) => _.SetTargetPath(v)),
                 degreeOfParallelism: 2,
                 completeOnFailure: true);
+            */
         });
 
 
@@ -106,9 +108,7 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
-            // we do not push fusion yet.
-            var packages = PackageDirectory.GlobFiles("*.*.nupkg")
-                .Where(t => !t.Contains("Fusion")).ToArray();
+            var packages = PackageDirectory.GlobFiles("*.*.nupkg");
 
             DotNetNuGetPush(
                 _ => _

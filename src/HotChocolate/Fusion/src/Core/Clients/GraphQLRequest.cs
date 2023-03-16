@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Clients;
 
-public readonly struct GraphQLRequest
+public sealed class GraphQLRequest
 {
     public GraphQLRequest(
         string subgraph,

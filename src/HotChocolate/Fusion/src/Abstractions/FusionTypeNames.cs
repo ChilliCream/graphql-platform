@@ -19,12 +19,15 @@ public sealed class FusionTypeNames
         string sourceDirective,
         string isDirective,
         string httpDirective,
+        string webSocketDirective,
         string fusionDirective,
         string selectionScalar,
         string selectionSetScalar,
         string typeNameScalar,
         string typeScalar,
-        string uriScalar)
+        string uriScalar,
+        string argumentDefinition,
+        string resolverKind)
     {
         Prefix = prefix;
         VariableDirective = variableDirective;
@@ -32,18 +35,22 @@ public sealed class FusionTypeNames
         SourceDirective = sourceDirective;
         IsDirective = isDirective;
         HttpDirective = httpDirective;
+        WebSocketDirective = webSocketDirective;
         FusionDirective = fusionDirective;
         SelectionScalar = selectionScalar;
         SelectionSetScalar = selectionSetScalar;
         TypeNameScalar = typeNameScalar;
         TypeScalar = typeScalar;
         UriScalar = uriScalar;
+        ArgumentDefinition = argumentDefinition;
+        ResolverKind = resolverKind;
 
         _fusionDirectives.Add(variableDirective);
         _fusionDirectives.Add(fetchDirective);
         _fusionDirectives.Add(sourceDirective);
         _fusionDirectives.Add(isDirective);
         _fusionDirectives.Add(httpDirective);
+        _fusionDirectives.Add(webSocketDirective);
         _fusionDirectives.Add(fusionDirective);
 
         _fusionTypes.Add(selectionScalar);
@@ -51,6 +58,8 @@ public sealed class FusionTypeNames
         _fusionTypes.Add(typeNameScalar);
         _fusionTypes.Add(typeScalar);
         _fusionTypes.Add(uriScalar);
+        _fusionTypes.Add(argumentDefinition);
+        _fusionTypes.Add(resolverKind);
     }
 
     /// <summary>
@@ -84,6 +93,11 @@ public sealed class FusionTypeNames
     public string HttpDirective { get; }
 
     /// <summary>
+    /// Gets the name of the http directive.
+    /// </summary>
+    public string WebSocketDirective { get; }
+
+    /// <summary>
     /// Gets the name of the fusion directive.
     /// </summary>
     public string FusionDirective { get; }
@@ -112,6 +126,16 @@ public sealed class FusionTypeNames
     /// Gets the name of the URI type scalar.
     /// </summary>
     public string UriScalar { get; }
+
+    /// <summary>
+    /// Gets the name of the GraphQL type scalar.
+    /// </summary>
+    public string ArgumentDefinition { get; }
+
+    /// <summary>
+    /// Gets the name of the URI type scalar.
+    /// </summary>
+    public string ResolverKind { get; }
 
     /// <summary>
     /// Specifies if the <paramref name="directiveName"/> represents a fusion directive.
@@ -150,6 +174,7 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.SourceDirective}",
                 $"{prefix}_{FusionTypeBaseNames.IsDirective}",
                 $"{prefix}_{FusionTypeBaseNames.HttpDirective}",
+                $"{prefix}_{FusionTypeBaseNames.WebSocketDirective}",
                 prefixSelf
                     ? $"{prefix}_{FusionTypeBaseNames.FusionDirective}"
                     : FusionTypeBaseNames.FusionDirective,
@@ -157,7 +182,9 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.SelectionSet}",
                 $"{prefix}_{FusionTypeBaseNames.TypeName}",
                 $"{prefix}_{FusionTypeBaseNames.Type}",
-                $"{prefix}_{FusionTypeBaseNames.Uri}");
+                $"{prefix}_{FusionTypeBaseNames.Uri}",
+                $"{prefix}_{FusionTypeBaseNames.ArgumentDefinition}",
+                $"{prefix}_{FusionTypeBaseNames.ResolverKind}");
         }
 
         return new FusionTypeNames(
@@ -167,12 +194,15 @@ public sealed class FusionTypeNames
             FusionTypeBaseNames.SourceDirective,
             FusionTypeBaseNames.IsDirective,
             FusionTypeBaseNames.HttpDirective,
+            FusionTypeBaseNames.WebSocketDirective,
             FusionTypeBaseNames.FusionDirective,
             $"_{FusionTypeBaseNames.Selection}",
             $"_{FusionTypeBaseNames.SelectionSet}",
             $"_{FusionTypeBaseNames.TypeName}",
             $"_{FusionTypeBaseNames.Type}",
-            $"_{FusionTypeBaseNames.Uri}");
+            $"_{FusionTypeBaseNames.Uri}",
+            $"_{FusionTypeBaseNames.ArgumentDefinition}",
+            $"_{FusionTypeBaseNames.ResolverKind}");
     }
 
     public static FusionTypeNames From(DocumentNode document)

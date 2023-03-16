@@ -208,12 +208,28 @@ public sealed partial class OperationCompiler
                 variants[item.Key] = item.Value;
             }
 
-#if NET5_0_OR_GREATER
-            ref var optSpace = ref GetReference(AsSpan(_operationOptimizers));
+            // we will complete the selection variants, sets and selections
+            // without sealing them so that analyzers in this step can fully
+            // inspect them.
+            var variantsSpan = variants.AsSpan();
+            ref var variantsStart = ref GetReference(variantsSpan);
+            ref var variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length);
 
-            for (var i = 0; i < _operationOptimizers.Count; i++)
+            while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                Unsafe.Add(ref optSpace, i).OptimizeOperation(context);
+                variantsStart.Complete();
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1);
+            }
+
+#if NET5_0_OR_GREATER
+            var optSpan = AsSpan(_operationOptimizers);
+            ref var optStart = ref GetReference(optSpan);
+            ref var optEnd = ref Unsafe.Add(ref optStart, optSpan.Length);
+
+            while (Unsafe.IsAddressLessThan(ref optStart, ref optEnd))
+            {
+                optStart.OptimizeOperation(context);
+                optStart = ref Unsafe.Add(ref optStart, 1);
             }
 #else
             for (var i = 0; i < _operationOptimizers.Count; i++)
@@ -224,11 +240,14 @@ public sealed partial class OperationCompiler
 
             CompleteResolvers(schema);
 
-            ref var varSpace = ref GetReference(variants.AsSpan());
+            variantsSpan = variants.AsSpan();
+            variantsStart = ref GetReference(variantsSpan);
+            variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length);
 
-            for (var i = 0; i < _operationOptimizers.Count; i++)
+            while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                Unsafe.Add(ref varSpace, i).Seal();
+                variantsStart.Seal();
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1);
             }
         }
 

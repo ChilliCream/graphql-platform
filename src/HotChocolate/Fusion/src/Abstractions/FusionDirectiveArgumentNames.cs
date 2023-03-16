@@ -11,6 +11,11 @@ internal static class FusionDirectiveArgumentNames
     public const string NameArg = "name";
 
     /// <summary>
+    /// Gets the name of the client name argument.
+    /// </summary>
+    public const string ClientNameArg = "clientName";
+
+    /// <summary>
     /// Gets the name of the select argument.
     /// </summary>
     public const string SelectArg = "select";
@@ -21,6 +26,11 @@ internal static class FusionDirectiveArgumentNames
     public const string ArgumentArg = "argument";
 
     /// <summary>
+    /// Gets the name of the arguments argument.
+    /// </summary>
+    public const string ArgumentsArg = "arguments";
+
+    /// <summary>
     /// Gets the name of the type argument.
     /// </summary>
     public const string TypeArg = "type";
@@ -29,6 +39,11 @@ internal static class FusionDirectiveArgumentNames
     /// Gets the name of the subgraph argument.
     /// </summary>
     public const string SubgraphArg = "subgraph";
+
+    /// <summary>
+    /// Gets the name of the kind argument.
+    /// </summary>
+    public const string KindArg = "kind";
 
     /// <summary>
     /// Gets the name of the prefix argument.
@@ -50,4 +65,3 @@ internal static class FusionDirectiveArgumentNames
     /// </summary>
     public const string BaseAddressArg = "baseAddress";
 }
-

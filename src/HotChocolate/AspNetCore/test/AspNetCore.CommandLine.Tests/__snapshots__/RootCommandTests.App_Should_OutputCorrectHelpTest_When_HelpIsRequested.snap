@@ -1,0 +1,13 @@
+Description:
+  A command line tool for a GraphQL Server.
+
+Usage:
+  graphql [command] [options]
+
+Options:
+  --version       Show version information
+  -?, -h, --help  Show help and usage information
+
+Commands:
+  schema  Schema management commands.
+

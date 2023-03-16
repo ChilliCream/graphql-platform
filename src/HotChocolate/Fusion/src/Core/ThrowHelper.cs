@@ -47,6 +47,9 @@ internal static class ThrowHelper
             string.Join(", ", expectedArguments),
             string.Join(", ", actualArguments),
             line));
+
+    public static ArgumentException Requirement_Is_Missing(string requirement, string argumentName)
+        => new(string.Format(ThrowHelper_Requirement_Is_Missing, requirement), argumentName);
 }
 
 [Serializable]

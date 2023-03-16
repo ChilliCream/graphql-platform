@@ -215,7 +215,7 @@ public sealed class JsonType : ScalarType<JsonElement>
                 ListValueNode node,
                 JsonFormatterContext context)
             {
-                context.Writer.WriteEndObject();
+                context.Writer.WriteEndArray();
                 return base.Enter(node, context);
             }
 

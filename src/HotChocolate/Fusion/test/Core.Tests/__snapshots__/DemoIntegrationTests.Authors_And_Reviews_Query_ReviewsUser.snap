@@ -38,13 +38,13 @@ QueryPlan
         "nodes": [
           {
             "type": "Resolver",
-            "schemaName": "Reviews",
+            "subgraph": "Reviews",
             "document": "query GetUser_1 { a: reviews { body author { name } } b: reviews { body author { name } } }",
             "selectionSetId": 0
           },
           {
             "type": "Resolver",
-            "schemaName": "Accounts",
+            "subgraph": "Accounts",
             "document": "query GetUser_2 { users { name __fusion_exports__1: id } }",
             "selectionSetId": 0
           }
@@ -58,7 +58,7 @@ QueryPlan
       },
       {
         "type": "Resolver",
-        "schemaName": "Reviews",
+        "subgraph": "Reviews",
         "document": "query GetUser_3($__fusion_exports__1: Int!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
         "selectionSetId": 1,
         "path": [
@@ -95,7 +95,7 @@ Result
       {
         "body": "Too expensive.",
         "author": {
-          "name": "@complete"
+          "name": "@alan"
         }
       },
       {
@@ -107,7 +107,7 @@ Result
       {
         "body": "Prefer something else.",
         "author": {
-          "name": "@complete"
+          "name": "@alan"
         }
       }
     ],
@@ -121,7 +121,7 @@ Result
       {
         "body": "Too expensive.",
         "author": {
-          "name": "@complete"
+          "name": "@alan"
         }
       },
       {
@@ -133,7 +133,7 @@ Result
       {
         "body": "Prefer something else.",
         "author": {
-          "name": "@complete"
+          "name": "@alan"
         }
       }
     ],
@@ -161,13 +161,13 @@ Result
           {
             "body": "Too expensive.",
             "author": {
-              "name": "@complete"
+              "name": "@alan"
             }
           },
           {
             "body": "Prefer something else.",
             "author": {
-              "name": "@complete"
+              "name": "@alan"
             }
           }
         ]
@@ -179,19 +179,38 @@ Result
 
 Fusion Graph
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") {
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") {
   query: Query
+  mutation: Mutation
+  subscription: Subscription
 }
 
 type Query {
-  authorById(id: Int!): User! @variable(subgraph: "Reviews", name: "id", argument: "id", type: "Int!") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }")
-  productById(upc: Int!): Product! @variable(subgraph: "Reviews", name: "upc", argument: "upc", type: "Int!") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }")
+  productById(upc: Int!): Product @variable(subgraph: "Reviews", name: "upc", argument: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $upc) }", arguments: [ { name: "upc", type: "Int!" } ])
   reviews: [Review!]! @resolver(subgraph: "Reviews", select: "{ reviews }")
-  userById(id: Int!): User! @variable(subgraph: "Accounts", name: "id", argument: "id", type: "Int!") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }")
+  userById(id: Int!): User @variable(subgraph: "Reviews", name: "id", argument: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "Int!" } ])
   users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
+  usersById(ids: [Int!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[Int!]!" } ])
 }
 
-type Product @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }") @variable(subgraph: "Reviews", name: "Product_upc", select: "upc", type: "Int!") {
+type Mutation {
+  addReview(input: AddReviewInput!): AddReviewPayload! @variable(subgraph: "Reviews", name: "input", argument: "input") @resolver(subgraph: "Reviews", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
+  addUser(input: AddUserInput!): AddUserPayload! @variable(subgraph: "Accounts", name: "input", argument: "input") @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+}
+
+type Subscription {
+  onNewReview: Review! @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIPTION")
+}
+
+type AddReviewPayload {
+  review: Review @source(subgraph: "Reviews")
+}
+
+type AddUserPayload {
+  user: User @source(subgraph: "Accounts")
+}
+
+type Product @variable(subgraph: "Reviews", name: "Product_upc", select: "upc") @resolver(subgraph: "Reviews", select: "{ productById(upc: $Product_upc) }", arguments: [ { name: "Product_upc", type: "Int!" } ]) {
   reviews: [Review!]! @source(subgraph: "Reviews")
   upc: Int! @source(subgraph: "Reviews")
 }
@@ -203,12 +222,24 @@ type Review {
   product: Product! @source(subgraph: "Reviews")
 }
 
-type User @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }") @variable(subgraph: "Reviews", name: "User_id", select: "id", type: "Int!") @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }") @variable(subgraph: "Accounts", name: "User_id", select: "id", type: "Int!") {
+type User @source(subgraph: "Reviews", name: "Author") @variable(subgraph: "Reviews", name: "User_id", select: "id") @variable(subgraph: "Accounts", name: "User_id", select: "id") @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "Int!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[Int!]!" } ], kind: "BATCH_BY_KEY") {
   birthdate: DateTime! @source(subgraph: "Accounts")
   id: Int! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
   name: String! @source(subgraph: "Reviews") @source(subgraph: "Accounts")
   reviews: [Review!]! @source(subgraph: "Reviews")
   username: String! @source(subgraph: "Accounts")
+}
+
+input AddReviewInput {
+  authorId: Int!
+  body: String!
+  upc: Int!
+}
+
+input AddUserInput {
+  birthdate: DateTime!
+  name: String!
+  username: String!
 }
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."

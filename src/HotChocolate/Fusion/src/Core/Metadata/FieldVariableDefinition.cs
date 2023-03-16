@@ -7,20 +7,16 @@ internal sealed class FieldVariableDefinition : IVariableDefinition
     public FieldVariableDefinition(
         string name,
         string subgraph,
-        ITypeNode type,
         FieldNode select)
     {
         Name = name;
-        Subgraph = subgraph;
-        Type = type;
+        SubgraphName = subgraph;
         Select = select;
     }
 
     public string Name { get; }
 
-    public string Subgraph { get; }
-
-    public ITypeNode Type { get; }
+    public string SubgraphName { get; }
 
     public FieldNode Select { get; }
 }

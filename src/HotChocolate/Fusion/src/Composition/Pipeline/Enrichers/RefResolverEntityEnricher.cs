@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
@@ -46,7 +47,11 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                         var selectionSet = new SelectionSetNode(new[] { selection });
 
                         // Create a new EntityResolver for the entity
-                        var resolver = new EntityResolver(selectionSet, type.Name, schema.Name);
+                        var resolver = new EntityResolver(
+                            EntityResolverKind.Single,
+                            selectionSet,
+                            type.Name,
+                            schema.Name);
 
                         // Loop through each argument and create a new ArgumentNode
                         // and VariableNode for the @ref directive argument
@@ -61,10 +66,103 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                         // Add the new EntityResolver to the entity metadata
                         entity.Metadata.EntityResolvers.Add(resolver);
                     }
+
+                    // Check if the query field can be used to infer a batch by key resolver.
+                    if (IsListOf(entityResolverField.Type, type) &&
+                        entityResolverField.Arguments.Count == 1)
+                    {
+                        var argument = entityResolverField.Arguments.First();
+
+                        if (argument.ContainsIsDirective() && IsListOfScalar(argument.Type))
+                        {
+                            var arguments = new List<ArgumentNode>();
+
+                            // Create a new FieldNode for the entity resolver
+                            var selection = new FieldNode(
+                                null,
+                                new NameNode(entityResolverField.GetOriginalName()),
+                                null,
+                                null,
+                                Array.Empty<DirectiveNode>(),
+                                arguments,
+                                null);
+
+                            // Create a new SelectionSetNode for the entity resolver
+                            var selectionSet = new SelectionSetNode(new[] { selection });
+
+                            // Create a new EntityResolver for the entity
+                            var resolver = new EntityResolver(
+                                EntityResolverKind.BatchWithKey,
+                                selectionSet,
+                                type.Name,
+                                schema.Name);
+
+                            // Loop through each argument and create a new ArgumentNode
+                            // and VariableNode for the @ref directive argument
+                            foreach (var arg in entityResolverField.Arguments)
+                            {
+                                var directive = arg.GetIsDirective();
+                                var var = type.CreateVariableName(directive);
+                                arguments.Add(new ArgumentNode(arg.Name, new VariableNode(var)));
+                                resolver.Variables.Add(
+                                    var,
+                                    arg.CreateVariableField(directive, var));
+                            }
+
+                            // Add the new EntityResolver to the entity metadata
+                            entity.Metadata.EntityResolvers.Add(resolver);
+                        }
+                    }
                 }
             }
         }
 
         return default;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsListOf(IType type, IType entityType)
+    {
+        if (type.Kind == TypeKind.NonNull)
+        {
+            type = type.InnerType();
+        }
+
+        if (type.Kind != TypeKind.List)
+        {
+            return false;
+        }
+
+        type = type.InnerType();
+
+        if (type.Kind == TypeKind.NonNull)
+        {
+            type = type.InnerType();
+        }
+
+        return ReferenceEquals(type, entityType);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsListOfScalar(IType type)
+    {
+        if (type.Kind == TypeKind.NonNull)
+        {
+            type = type.InnerType();
+        }
+
+        if (type.Kind != TypeKind.List)
+        {
+            return false;
+        }
+
+        type = type.InnerType();
+
+        if (type.Kind == TypeKind.NonNull)
+        {
+            type = type.InnerType();
+        }
+
+        return type.Kind == TypeKind.Scalar;
     }
 }

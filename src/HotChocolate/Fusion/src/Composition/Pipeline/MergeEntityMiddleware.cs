@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 
@@ -59,14 +60,12 @@ static file class MergeEntitiesMiddlewareExtensions
 
             context.ApplySource(sourceField, source.Schema, targetField);
 
-
             foreach (var argument in targetField.Arguments)
             {
                 targetField.Directives.Add(
                     CreateVariableDirective(
                         context,
                         argument.Name,
-                        argument.Type,
                         source.Schema.Name));
             }
         }
@@ -77,44 +76,52 @@ static file class MergeEntitiesMiddlewareExtensions
         ObjectType entityType,
         EntityMetadata metadata)
     {
+        var variables = new HashSet<(string, string)>();
+
         foreach (var resolver in metadata.EntityResolvers)
         {
-            entityType.Directives.Add(
-                CreateResolverDirective(
-                    context,
-                    resolver));
+            foreach (var variable in resolver.Variables)
+            {
+                if (variables.Add((variable.Key, resolver.SubgraphName)))
+                {
+                    entityType.Directives.Add(
+                        CreateVariableDirective(
+                            context,
+                            variable,
+                            resolver.SubgraphName));
+                }
+            }
+        }
+
+        foreach (var resolver in metadata.EntityResolvers)
+        {
+            Dictionary<string, ITypeNode>? arguments = null;
 
             foreach (var variable in resolver.Variables)
             {
-                entityType.Directives.Add(
-                    CreateVariableDirective(
-                        context,
-                        variable,
-                        resolver.Subgraph));
+                arguments ??= new Dictionary<string, ITypeNode>();
+                arguments.Add(variable.Key, variable.Value.Definition.Type);
             }
-        }
-    }
 
-    public static void ApplyVariable(
-         this CompositionContext context,
-         OutputField field,
-         InputField argument,
-         string subgraphName)
-    {
-        field.Directives.Add(
-            CreateVariableDirective(
-                context,
-                argument.Name,
-                argument.Type,
-                subgraphName));
+            entityType.Directives.Add(
+                CreateResolverDirective(
+                    context,
+                    resolver,
+                    arguments,
+                    resolver.Kind));
+        }
     }
 
     private static Directive CreateResolverDirective(
         CompositionContext context,
-        EntityResolver resolver)
+        EntityResolver resolver,
+        Dictionary<string, ITypeNode>? arguments = null,
+        EntityResolverKind kind = EntityResolverKind.Single)
         => context.FusionTypes.CreateResolverDirective(
-            resolver.Subgraph,
-            resolver.SelectionSet);
+            resolver.SubgraphName,
+            resolver.SelectionSet,
+            arguments,
+            kind);
 
     private static Directive CreateVariableDirective(
         CompositionContext context,
@@ -123,17 +130,14 @@ static file class MergeEntitiesMiddlewareExtensions
         => context.FusionTypes.CreateVariableDirective(
             schemaName,
             variable.Key,
-            variable.Value.Field,
-            variable.Value.Definition.Type);
+            variable.Value.Field);
 
     private static Directive CreateVariableDirective(
         CompositionContext context,
         string variableName,
-        IType argumentType,
         string subgraphName)
         => context.FusionTypes.CreateVariableDirective(
             subgraphName,
             variableName,
-            variableName,
-            argumentType.ToTypeNode());
+            variableName);
 }
