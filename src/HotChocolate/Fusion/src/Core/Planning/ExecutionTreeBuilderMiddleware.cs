@@ -56,6 +56,13 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
                     context.Nodes.Add(selectionStep, fetchNode);
                 }
             }
+            else if (step is NodeExecutionStep nodeExecutionStep)
+            {
+                var nodeResolverNode = new NodeResolverNode(
+                    context.CreateNodeId());
+                context.Nodes.Add(step, nodeResolverNode);
+                context.HasNodes.Add(context.Operation.RootSelectionSet);
+            }
             else if (step is IntrospectionExecutionStep)
             {
                 var introspectionNode = new IntrospectionNode(

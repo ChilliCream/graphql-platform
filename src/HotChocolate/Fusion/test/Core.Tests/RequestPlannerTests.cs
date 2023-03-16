@@ -552,7 +552,7 @@ public class RequestPlannerTests
             query FetchNode($id: ID!) {
                 node(id: $id) {
                     ... on User {
-                        name
+                        id
                     }
                 }
             }
@@ -594,14 +594,8 @@ public class RequestPlannerTests
             request,
             schema);
 
-        var queryPlanContext = new QueryPlanContext(operation);
-        var requestPlaner = new ExecutionStepDiscoveryMiddleware(serviceConfig);
-        var requirementsPlaner = new RequirementsPlanner();
-        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
-
-        requestPlaner.Plan(queryPlanContext);
-        requirementsPlaner.Plan(queryPlanContext);
-        var queryPlan = executionPlanBuilder.Build(queryPlanContext);
+        var queryPlanner = new QueryPlanner(serviceConfig, schema);
+        var queryPlan = queryPlanner.Plan(operation);
 
         return (request, queryPlan);
     }

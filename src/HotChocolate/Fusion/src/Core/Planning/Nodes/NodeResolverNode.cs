@@ -4,44 +4,28 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class NodeResolverNode : ResolverNodeBase
+internal sealed class NodeResolverNode : QueryPlanNode
 {
-    public NodeResolverNode(
-        int id,
-        string subgraphName,
-        DocumentNode document,
-        ISelectionSet selectionSet,
-        IReadOnlyList<string> requires,
-        IReadOnlyList<string> path,
-        IReadOnlyList<string> forwardedVariables)
-        : base(
-            id,
-            subgraphName,
-            document,
-            selectionSet,
-            requires,
-            path,
-            forwardedVariables)
+    public NodeResolverNode(int id) : base(id)
     {
+
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.NodeResolver;
 
-    protected override async Task OnExecuteAsync(
+    protected override Task OnExecuteAsync(
         FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var workItems))
-        {
-
-
-        }
+        return Task.CompletedTask;
     }
 
     protected override Task OnExecuteNodesAsync(
         FusionExecutionContext context,
         IExecutionState state,
         CancellationToken cancellationToken)
-        => Task.CompletedTask;
+    {
+        return Task.CompletedTask;
+    }
 }

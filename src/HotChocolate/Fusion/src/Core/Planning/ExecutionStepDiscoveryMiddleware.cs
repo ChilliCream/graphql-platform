@@ -86,12 +86,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         bool preferBatching)
     {
         var variablesInContext = new HashSet<string>();
+        var operation = context.Operation;
         List<ISelection>? leftovers = null;
 
         do
         {
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
-            var subgraph = GetBestMatchingSubgraph(context.Operation, current, selectionSetType);
+            var subgraph = GetBestMatchingSubgraph(operation, current, selectionSetType);
             var executionStep = new DefaultExecutionStep(
                 subgraph,
                 selectionSetType,
@@ -129,7 +130,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     continue;
                 }
 
-                if (IsNodeField(field))
+                if (IsNodeField(field, operation))
                 {
                     CreateNodeExecutionStep(
                         context,
@@ -155,7 +156,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     {
                         var resolverPreference =
                             DetermineResolverPreference(
-                                context.Operation,
+                                operation,
                                 parentSelection,
                                 preferBatching);
 
@@ -184,7 +185,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     {
                         CollectChildSelections(
                             backlog,
-                            context.Operation,
+                            operation,
                             selection,
                             executionStep,
                             preferBatching);
@@ -561,9 +562,10 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsNodeField(IObjectField field)
-        => field.Name.EqualsOrdinal("node") ||
-            field.Name.EqualsOrdinal("nodes");
+    private static bool IsNodeField(IObjectField field, IOperation operation)
+        => operation.Type is OperationType.Query &&
+            field.DeclaringType.Equals(operation.RootType) &&
+            (field.Name.EqualsOrdinal("node") || field.Name.EqualsOrdinal("nodes"));
 
     private readonly struct BacklogItem
     {
