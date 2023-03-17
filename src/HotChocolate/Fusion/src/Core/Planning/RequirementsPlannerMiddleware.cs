@@ -73,7 +73,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
                 // if we still have requirements unfulfilled, we will try to resolve them
                 // from sibling execution steps.
-                foreach (var variable in step.SelectionSetType.Variables)
+                foreach (var variable in step.SelectionSetTypeInfo.Variables)
                 {
                     var subgraphName = variable.SubgraphName;
 
@@ -110,7 +110,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 // re-export its requirements.
                 if (defaultExecutionStep.Resolver.Kind is ResolverKind.BatchByKey)
                 {
-                    foreach (var variable in step.SelectionSetType.Variables)
+                    foreach (var variable in step.SelectionSetTypeInfo.Variables)
                     {
                         if (defaultExecutionStep.Requires.Contains(variable.Name) &&
                             defaultExecutionStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
@@ -164,12 +164,12 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
             {
                 foreach (var selection in ses.AllSelections)
                 {
-                    dictionary.Add(selection, ses);
+                    dictionary.TryAdd(selection, ses);
                 }
 
                 foreach (var selectionSet in ses.AllSelectionSets)
                 {
-                    dictionary.Add(selectionSet, ses);
+                    dictionary.TryAdd(selectionSet, ses);
                 }
             }
         }

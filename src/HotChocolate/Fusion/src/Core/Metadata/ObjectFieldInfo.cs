@@ -1,8 +1,8 @@
 namespace HotChocolate.Fusion.Metadata;
 
-internal sealed class ObjectField
+internal sealed class ObjectFieldInfo
 {
-    public ObjectField(
+    public ObjectFieldInfo(
         string name,
         ObjectFieldFlags flags,
         MemberBindingCollection bindings,

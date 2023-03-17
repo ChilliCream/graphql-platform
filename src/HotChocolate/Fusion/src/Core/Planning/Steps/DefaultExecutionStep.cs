@@ -11,9 +11,9 @@ internal sealed class DefaultExecutionStep : ExecutionStep
 {
     public DefaultExecutionStep(
         string subgraphName,
-        ObjectType selectionSetType,
+        ObjectTypeInfo selectionSetTypeInfo,
         ISelection? parentSelection)
-        : base(selectionSetType, parentSelection)
+        : base(selectionSetTypeInfo, parentSelection)
     {
         SubgraphName = subgraphName;
     }

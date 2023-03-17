@@ -301,7 +301,7 @@ public sealed class FusionTypes
     private DirectiveType RegisterNodeDirectiveType(string name, ScalarType typeName)
     {
         var directiveType = new DirectiveType(name);
-        directiveType.Locations = DirectiveLocation.FieldDefinition;
+        directiveType.Locations = DirectiveLocation.Schema;
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(
             new InputField(TypesArg, new NonNullType(new ListType(new NonNullType(typeName)))));

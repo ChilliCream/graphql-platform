@@ -9,17 +9,17 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal abstract class ExecutionStep
 {
-    protected ExecutionStep(ObjectType selectionSetType, ISelection? parentSelection)
+    protected ExecutionStep(ObjectTypeInfo selectionSetTypeInfo, ISelection? parentSelection)
     {
-        SelectionSetType = selectionSetType ??
-            throw new ArgumentNullException(nameof(selectionSetType));
+        SelectionSetTypeInfo = selectionSetTypeInfo ??
+            throw new ArgumentNullException(nameof(selectionSetTypeInfo));
         ParentSelection = parentSelection;
     }
 
     /// <summary>
     /// Gets the declaring type of the root selection set of this execution step.
     /// </summary>
-    public ObjectType SelectionSetType { get; }
+    public ObjectTypeInfo SelectionSetTypeInfo { get; }
 
     /// <summary>
     /// Gets the parent selection.

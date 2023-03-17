@@ -113,7 +113,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         {
             if (current.Length is 1 ||
                 (_schema.MutationType is not null &&
-                    _schema.MutationType.Name.EqualsOrdinal(current[0].Key.SelectionSetType.Name)))
+                    _schema.MutationType.Name.EqualsOrdinal(current[0].Key.SelectionSetTypeInfo.Name)))
             {
                 var node = current[0];
                 var selectionSet = ResolveSelectionSet(context, node.Key);
@@ -242,7 +242,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
-                _schema.GetType<Types.ObjectType>(executionStep.SelectionSetType.Name));
+                _schema.GetType<Types.ObjectType>(executionStep.SelectionSetTypeInfo.Name));
 
     private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
         QueryPlanContext context,
@@ -290,7 +290,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
     {
         var selectionNodes = new List<ISelectionNode>();
         var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
-        var selectionSetType = executionStep.SelectionSetType;
+        var selectionSetType = executionStep.SelectionSetTypeInfo;
         Debug.Assert(selectionSet is not null);
 
         // create
@@ -357,7 +357,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         QueryPlanContext context,
         DefaultExecutionStep executionStep,
         ISelection selection,
-        ObjectField field)
+        ObjectFieldInfo fieldInfo)
     {
         SelectionSetNode? selectionSetNode = null;
 
@@ -366,7 +366,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             selectionSetNode = CreateSelectionSetNode(context, executionStep, selection);
         }
 
-        var binding = field.Bindings[executionStep.SubgraphName];
+        var binding = fieldInfo.Bindings[executionStep.SubgraphName];
 
         var alias = !selection.ResponseName.Equals(binding.Name)
             ? new NameNode(selection.ResponseName)
@@ -393,7 +393,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
         foreach (var possibleType in possibleTypes)
         {
-            var typeContext = _serviceConfig.GetType<ObjectType>(possibleType.Name);
+            var typeContext = _serviceConfig.GetType<ObjectTypeInfo>(possibleType.Name);
             var selectionSet = context.Operation.GetSelectionSet(parentSelection, possibleType);
 
             foreach (var selection in selectionSet.Selections)
@@ -436,7 +436,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
     {
         context.VariableValues.Clear();
 
-        var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
+        var parentDeclaringType = _serviceConfig.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
         foreach (var variable in parentField.Variables)
@@ -469,14 +469,14 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
     private void ResolveRequirements(
         QueryPlanContext context,
         ISelection selection,
-        ObjectType declaringType,
+        ObjectTypeInfo declaringTypeInfo,
         ISelection? parent,
         ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
 
-        var field = declaringType.Fields[selection.Field.Name];
+        var field = declaringTypeInfo.Fields[selection.Field.Name];
 
         foreach (var variable in field.Variables)
         {
@@ -499,7 +499,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
         if (parent is not null)
         {
-            var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
+            var parentDeclaringType = _serviceConfig.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
             foreach (var variable in parentField.Variables)

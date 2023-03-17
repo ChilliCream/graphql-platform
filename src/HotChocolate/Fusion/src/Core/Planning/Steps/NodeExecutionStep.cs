@@ -15,7 +15,7 @@ internal sealed class NodeExecutionStep : ExecutionStep
     /// <param name="nodeSelection">
     /// The node selection.
     /// </param>
-    /// <param name="queryType">
+    /// <param name="queryTypeInfo">
     /// The query type.
     /// </param>
     /// <exception cref="ArgumentNullException">
@@ -23,8 +23,8 @@ internal sealed class NodeExecutionStep : ExecutionStep
     /// </exception>
     public NodeExecutionStep(
         ISelection nodeSelection,
-        ObjectType queryType)
-        : base(queryType, null)
+        ObjectTypeInfo queryTypeInfo)
+        : base(queryTypeInfo, null)
     {
         NodeSelection = nodeSelection ??
             throw new ArgumentNullException(nameof(nodeSelection));

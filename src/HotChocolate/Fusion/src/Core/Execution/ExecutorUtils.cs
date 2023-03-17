@@ -152,7 +152,7 @@ internal static class ExecutorUtils
         else
         {
             var typeInfo = selectionResult.GetTypeInfo();
-            var typeMetadata = context.ServiceConfig.GetType<Metadata.ObjectType>(typeInfo);
+            var typeMetadata = context.ServiceConfig.GetType<Metadata.ObjectTypeInfo>(typeInfo);
             type = context.Schema.GetType<ObjectType>(typeMetadata.Name);
         }
 

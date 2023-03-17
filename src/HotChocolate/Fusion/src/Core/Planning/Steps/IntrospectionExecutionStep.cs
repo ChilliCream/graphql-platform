@@ -5,8 +5,8 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class IntrospectionExecutionStep : ExecutionStep
 {
-    public IntrospectionExecutionStep(ObjectType queryType)
-        : base(queryType, null)
+    public IntrospectionExecutionStep(ObjectTypeInfo queryTypeInfo)
+        : base(queryTypeInfo, null)
     {
     }
 }

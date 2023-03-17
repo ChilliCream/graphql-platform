@@ -12,21 +12,49 @@ internal sealed class FusionGraphConfiguration
     private readonly Dictionary<string, IType> _types;
     private readonly Dictionary<(string Schema, string Type), string> _typeNameLookup = new();
 
+    private readonly Dictionary<string, List<string>> _entitySubgraphMap =
+        new(StringComparer.Ordinal);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FusionGraphConfiguration"/> class.
     /// </summary>
-    /// <param name="types">The list of types.</param>
-    /// <param name="subgraphNames">The list of subgraph names.</param>
-    /// <param name="httpClients">The list of HTTP clients.</param>
-    /// <param name="webSocketClients">The list of WebSocket clients.</param>
+    /// <param name="types">
+    /// The list of types.
+    /// </param>
+    /// <param name="subgraphs">
+    /// The list of entities.
+    /// </param>
+    /// <param name="subgraphNames">
+    /// The list of subgraph names.
+    /// </param>
+    /// <param name="httpClients">
+    /// The list of HTTP clients.
+    /// </param>
+    /// <param name="webSocketClients">
+    /// The list of WebSocket clients.
+    /// </param>
     public FusionGraphConfiguration(
-        IReadOnlyList<IType> types,
-        IReadOnlyList<string> subgraphNames,
+        IReadOnlyCollection<IType> types,
+        IReadOnlyCollection<SubgraphInfo> subgraphs,
         IReadOnlyList<HttpClientConfiguration> httpClients,
         IReadOnlyList<WebSocketClientConfiguration> webSocketClients)
     {
         _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
-        SubgraphNames = subgraphNames;
+
+        foreach (var subgraph in subgraphs)
+        {
+            foreach (var entityName in subgraph.Entities)
+            {
+                if (!_entitySubgraphMap.TryGetValue(entityName, out var availableOnSubgraphs))
+                {
+                    availableOnSubgraphs = new List<string>();
+                    _entitySubgraphMap.Add(entityName, availableOnSubgraphs);
+                }
+                availableOnSubgraphs.Add(subgraph.Name);
+            }
+        }
+
+        SubgraphNames = subgraphs.OrderBy(t => t.Name).Select(t => t.Name).ToList();
         HttpClients = httpClients;
         WebSocketClients = webSocketClients;
 
@@ -130,6 +158,23 @@ internal sealed class FusionGraphConfiguration
     }
 
     /// <summary>
+    /// Gets the subgraphs that are able to resolve the specified entity.
+    /// </summary>
+    /// <param name="entityName">The entity name.</param>
+    /// <returns>
+    /// Returns a list of subgraph names that are able to resolve the specified entity.
+    /// </returns>
+    public IReadOnlyList<string> GetAvailableSubgraphs(string entityName)
+    {
+        if (_entitySubgraphMap.TryGetValue(entityName, out var subgraphs))
+        {
+            return subgraphs;
+        }
+
+        return Array.Empty<string>();
+    }
+
+    /// <summary>
     /// Loads the configuration from the specified source text.
     /// </summary>
     /// <param name="sourceText">
@@ -152,6 +197,18 @@ internal sealed class FusionGraphConfiguration
     /// </returns>
     public static FusionGraphConfiguration Load(DocumentNode document)
         => new FusionGraphConfigurationReader().Read(document);
+}
+
+internal sealed class SubgraphInfo
+{
+    public SubgraphInfo(string name)
+    {
+        Name = name;
+    }
+
+    public string Name { get; }
+
+    public List<string> Entities { get; } = new();
 }
 
 public readonly struct TypeInfo
