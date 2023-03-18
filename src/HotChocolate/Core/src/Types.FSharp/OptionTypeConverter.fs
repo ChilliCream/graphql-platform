@@ -2,13 +2,13 @@
 
 open System
 open HotChocolate.Utilities
-
+open Microsoft.FSharp.Reflection
 
 type OptionTypeConverter() =
-  let ty = typedefof<option<_>>
+  let optionTypedef = typedefof<option<_>>
 
   let isOptionType (t: Type) =
-    t.IsGenericType && t.GetGenericTypeDefinition() = ty
+    t.IsGenericType && t.GetGenericTypeDefinition() = optionTypedef
 
   let getUnderlyingType (t: Type) =
     if isOptionType t then
@@ -16,22 +16,16 @@ type OptionTypeConverter() =
     else
       None
 
-  // HotChocolate expects us to provide a converter of type `obj -> obj`
-  // but we know that we'll receive an `option<_>`. However F# only allows you
-  // to define generic type parameters in function declarations. So our only
-  // solution is to rely on reflection trickery to unpack the internal obj
-  // See https://stackoverflow.com/questions/6289761/how-to-downcast-from-obj-to-optionobj
-  let (|SomeObj|_|) (a: obj) =
-    if a = null then
-      None
-    else
-      let aty = a.GetType()
-      let v = aty.GetProperty("Value")
+  let (|SomeObj|_|) (value: obj) =
+    value
+    |> Option.ofObj
+    |> Option.map (fun x -> x.GetType())
+    |> Option.filter isOptionType
+    |> Option.map (fun x -> FSharpValue.GetUnionFields(value, x))
+    |> Option.filter (fun (case, _) -> case.Name = "Some")
+    |> Option.bind (fun (_, xs) -> Array.tryHead xs)
 
-      if aty.IsGenericType && aty.GetGenericTypeDefinition() = ty then
-        if a = null then None else Some(v.GetValue(a, [||]))
-      else
-        None
+
 
   let convertToNullable inner (value: obj) =
     match value with
@@ -39,7 +33,9 @@ type OptionTypeConverter() =
     | _ -> null
 
   let createTypedSome value =
-    ty.MakeGenericType(value.GetType()).GetMethod("Some").Invoke(null, [| value |])
+    let optionalType = optionTypedef.MakeGenericType(value.GetType())
+    let case = FSharpType.GetUnionCases optionalType |> Array.find (fun x -> x.Name = "Some")
+    FSharpValue.MakeUnion(case, [| value |])
 
   let mapInner inner (value: obj) =
     match value with
@@ -63,6 +59,7 @@ type OptionTypeConverter() =
         | true, innerConverter ->
           converter <- ChangeType(mapInner innerConverter.Invoke)
           true
+        | false, _ -> false
       | Some source, None ->
         match root.Invoke(source, target) with
         | true, innerConverter ->
