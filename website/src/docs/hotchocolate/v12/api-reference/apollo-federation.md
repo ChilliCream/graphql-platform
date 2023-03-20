@@ -370,7 +370,110 @@ _Entities query result_
 
 **TODO: structure section with "reference a type", "contibute new fields" followed by "extend with computed fields"**
 
-Now that we have an entity defined in one of our subgraphs, let's go ahead and create a second subgraph that extends our `Product` type with more fields and data. Remember, all of this work should be performed in a _**separate API project**_.
+Now that we have an entity defined in one of our subgraphs, let's go ahead and create a second subgraph that will make use of our `Product` type. Remember, all of this work should be performed in a _**separate API project**_.
+
+In the second subgraph, we'll create a `Review` type that is focused on providing reviews of `Product` entities from the other subgraph. We'll do that by defining our `Review` type along with a [service type reference](https://www.apollographql.com/docs/federation/entities/#referencing-an-entity-without-contributing-fields) that represents the `Product`.
+
+In our new subgraph API we'll need to start by creating the `Product` and defining it with an entity key that matches at least one key from the original subgraph, in our case the `id: ID!` field.
+
+<ExampleTabs>
+
+<Annotation>
+
+```csharp
+[ExtendServiceType]
+public class Product
+{
+    [Key]
+    public string Id { get; set; }
+}
+
+// In your Startup or Program
+services.AddGraphQLServer()
+    .AddApolloFederation()
+    .AddType<Product>();
+```
+
+</Annotation>
+
+<Code>
+
+```csharp
+public class Product
+{
+    public string Id { get; set; }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.ExtendServiceType();
+
+        descriptor.Key("id");
+    }
+}
+
+// In your Startup or Program
+services.AddGraphQLServer()
+    .AddApolloFederation()
+    .AddType<ProductType>();
+```
+
+</Code>
+
+<Schema>
+
+**Coming soon**
+
+</Schema>
+
+</ExampleTabs>
+
+Next, we'll create our `Review` type that has a reference to the `Product` entity. Similar to our first class, we'll need to denote the type's key(s) and the corresponding entity reference resovlers.
+
+<ExampleTabs>
+
+<Annotation>
+
+```csharp
+public class Review
+{
+    [GraphQLType(typeof(NonNullType<IdType>))]
+    [Key]
+    public string Id { get; set; }
+
+    public string Content { get; set; }
+
+    [GraphQLIgnore]
+    public string ProductId { get; set; }
+
+    [GraphQLName("product")]
+    public Product GetReviewedProduct() => new Product { Id = ProductId };
+
+    [ReferenceResolver]
+    public static Review? ResolveReference(string id)
+    {
+        // Omitted for brevity; some kind of service to retrieve the review.
+    }
+}
+```
+
+</Annotation>
+
+<Code>
+
+
+
+</Code>
+
+<Schema>
+
+**Coming soon**
+
+</Schema>
+
+</ExampleTabs>
 
 The process will start off very similarly: add the necessary package; register the services in your `IServiceCollection`; create the entity type and its `[Key]`; create a `[ReferenceResolver]` for the type; and register the type in the API. In this case, we'll only start by adding the `[Key]` attribute the subgraph will use for resolving the additional data, and a bare-bones reference resolver.
 
