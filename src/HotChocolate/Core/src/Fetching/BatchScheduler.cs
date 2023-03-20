@@ -24,6 +24,8 @@ public class BatchScheduler
     private readonly List<Func<ValueTask>> _tasks = new();
     private bool _dispatchOnSchedule;
     private readonly List<EventHandler> _listeners = new();
+    private bool _suspended;
+    private bool _dispatchOnResume;
 
     /// <inheritdoc />
     public event EventHandler TaskEnqueued
@@ -105,6 +107,11 @@ public class BatchScheduler
 
         lock (_sync)
         {
+            if (_suspended)
+            {
+                _dispatchOnResume = true;
+                return;
+            }
             switch (_tasks.Count)
             {
                 case 0:
@@ -224,6 +231,25 @@ public class BatchScheduler
         finally
         {
             _semaphore.Release();
+        }
+    }
+
+    public void Suspend()
+    {
+        lock(_sync) {
+            _suspended = true;
+        }
+    }
+
+    public void Resume()
+    {
+        lock (_sync)
+        {
+            _suspended = false;
+            if (_dispatchOnResume)
+            {
+                BeginDispatch();
+            }
         }
     }
 }

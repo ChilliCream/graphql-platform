@@ -51,6 +51,11 @@ internal sealed class RemoteRequestExecutor
                 _batchScheduler.Schedule(() => ExecuteRequestsInternal(cancellationToken));
                 _taskRegistered = true;
             }
+
+            if (t != null)
+            {
+                await t.Value.ConfigureAwait(false);
+            }
         }
         finally
         {
@@ -64,16 +69,19 @@ internal sealed class RemoteRequestExecutor
     {
         await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
+        ValueTask? t;
         try
         {
             if (_bufferedRequests.Count == 1)
             {
-                await ExecuteSingleRequestAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            if (_bufferedRequests.Count > 1)
+                t = ExecuteSingleRequestAsync(cancellationToken);
+            } else if (_bufferedRequests.Count > 1)
             {
-                await ExecuteBufferedRequestBatchAsync(cancellationToken).ConfigureAwait(false);
+                t = ExecuteBufferedRequestBatchAsync(cancellationToken);
+            }
+            else
+            {
+                t = null;
             }
 
             // reset the states so that we are ready for new requests to be buffered.
@@ -83,6 +91,10 @@ internal sealed class RemoteRequestExecutor
         finally
         {
             _semaphore.Release();
+        }
+        if (t != null)
+        {
+            await t.Value.ConfigureAwait(false);
         }
     }
 

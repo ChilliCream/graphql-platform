@@ -26,7 +26,8 @@ internal partial class BatchExecutor
 
     public IAsyncEnumerable<IQueryResult> ExecuteAsync(
         IRequestExecutor requestExecutor,
-        IReadOnlyList<IQueryRequest> requestBatch)
+        IReadOnlyList<IQueryRequest> requestBatch,
+        bool allowParallelExecution)
         => new BatchExecutorEnumerable(
             requestBatch,
             requestExecutor,
