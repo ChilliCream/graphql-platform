@@ -33,5 +33,6 @@ internal partial class BatchExecutor
             requestExecutor,
             _errorHandler,
             _typeConverter,
-            _inputFormatter);
+            _inputFormatter,
+            allowParallelExecution);
 }

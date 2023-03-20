@@ -127,7 +127,7 @@ internal sealed class RequestExecutor : IRequestExecutor
 
         return Task.FromResult<IResponseStream>(
             new ResponseStream(
-                () => _batchExecutor.ExecuteAsync(this, requestBatch, allowParallelExecution),
+                () => _batchExecutor.ExecuteAsync(this, requestBatch, allowParallelExecution: true),
                 ExecutionResultKind.BatchResult));
     }
 

@@ -29,7 +29,7 @@ internal partial class BatchExecutor
         private readonly CollectVariablesVisitationMap _visitationMap = new();
         private DocumentNode? _previous;
         private Dictionary<string, FragmentDefinitionNode>? _fragments;
-        private bool _allowParallelExecution;
+        private readonly bool _allowParallelExecution;
 
         public BatchExecutorEnumerable(
             IReadOnlyList<IQueryRequest> requestBatch,
@@ -73,7 +73,7 @@ internal partial class BatchExecutor
             var exportCount = _exportedVariables.Count;
             var hasMutatedState = false;
             BatchScheduler? scheduler = null;
-            foreach (IQueryRequest queryRequest in _requestBatch)
+            foreach (var queryRequest in _requestBatch)
             {
                 var nextScheduler = queryRequest.Services.GetRequiredService<IBatchDispatcher>() as BatchScheduler;
                 if (scheduler != nextScheduler)
@@ -86,24 +86,23 @@ internal partial class BatchExecutor
                     scheduler = nextScheduler;
                 }
                 scheduler?.Suspend();
-                var request = (IReadOnlyQueryRequest)queryRequest;
-                var canMutateState = CanAffectState(request);
+                var canMutateState = CanAffectState(queryRequest);
                 if (_exportedVariables.Count > exportCount || canMutateState || hasMutatedState)
                 {
                     exportCount = _exportedVariables.Count;
                     scheduler?.Resume();
                     await Task.WhenAll(pending).ConfigureAwait(false);
-                    scheduler.Suspend();
+                    scheduler?.Suspend();
                 }
 
                 hasMutatedState = canMutateState;
-                pending.Add(ExecuteNextAsync(request, cancellationToken));
+                pending.Add(ExecuteNextAsync(queryRequest, cancellationToken));
             }
             scheduler?.Resume();
 
-            foreach (Task<IQueryResult> task in pending)
+            foreach (var task in pending)
             {
-                IQueryResult result = await task.ConfigureAwait(false);
+                var result = await task.ConfigureAwait(false);
                 yield return result;
 
                 if (result.Data is null)

@@ -51,11 +51,6 @@ internal sealed class RemoteRequestExecutor
                 _batchScheduler.Schedule(() => ExecuteRequestsInternal(cancellationToken));
                 _taskRegistered = true;
             }
-
-            if (t != null)
-            {
-                await t.Value.ConfigureAwait(false);
-            }
         }
         finally
         {
