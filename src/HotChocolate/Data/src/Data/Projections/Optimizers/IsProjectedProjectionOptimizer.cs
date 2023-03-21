@@ -65,7 +65,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 arguments: selection.Arguments,
                 isInternal: true);
 
-            context.AddSelection(alias, compiledSelection);
+            context.AddSelection(compiledSelection);
         }
 
         return selection;

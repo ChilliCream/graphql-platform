@@ -1,6 +1,4 @@
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
@@ -9,7 +7,6 @@ using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -990,6 +987,50 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public async Task Crypto_Include()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query Crypto {
+                assetBySymbol(symbol: "BTC") {
+                    price {
+                        lastPrice
+                    }
+                    ... PriceInfo @include(if: false)
+                }
+            }
+
+            fragment PriceInfo on Asset {
+              price {
+                lastPrice
+              }
+            }
+            """);
+
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
     public async Task Crypto_List_Test()
     {
         // arrange
@@ -1045,11 +1086,6 @@ public class OperationCompilerTests
     public class Baz
     {
         public string Text => "Baz";
-    }
-
-    public class NoopOptimizer : ISelectionSetOptimizer
-    {
-        public void OptimizeSelectionSet(SelectionSetOptimizerContext context) { }
     }
 
     public class SimpleOptimizer : ISelectionSetOptimizer

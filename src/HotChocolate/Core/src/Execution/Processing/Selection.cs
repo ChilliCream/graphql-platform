@@ -198,14 +198,37 @@ public class Selection : ISelection
         {
             throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
         }
-
-        if (includeCondition is not 0 &&
+#if NET7_0_OR_GREATER
+        if (includeCondition == 0)
+        {
+            if (_includeConditions is not [0L])
+            {
+                _includeConditions = new[] { 0L };
+            }
+        }
+        else if (_includeConditions is not [0L] &&
             Array.IndexOf(_includeConditions, includeCondition) == -1)
         {
             var next = _includeConditions.Length;
             Array.Resize(ref _includeConditions, next + 1);
             _includeConditions[next] = includeCondition;
         }
+#else
+        if (includeCondition == 0)
+        {
+            if (_includeConditions.Length > 1 || _includeConditions[0] != 0)
+            {
+                _includeConditions = new[] { 0L };
+            }
+        }
+        else if ((_includeConditions.Length > 1 || _includeConditions[0] != 0) &&
+            Array.IndexOf(_includeConditions, includeCondition) == -1)
+        {
+            var next = _includeConditions.Length;
+            Array.Resize(ref _includeConditions, next + 1);
+            _includeConditions[next] = includeCondition;
+        }
+#endif
 
         if (!SyntaxNode.Equals(selectionSyntax, SyntaxComparison.Syntax))
         {
