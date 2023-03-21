@@ -20,11 +20,12 @@ public class OperationCompilerTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
             .Create();
 
         var document = Utf8GraphQLParser.Parse("{ foo }");
@@ -49,11 +50,12 @@ public class OperationCompilerTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
             .Create();
 
         var document = Utf8GraphQLParser.Parse("{ foo foo }");
@@ -79,11 +81,12 @@ public class OperationCompilerTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
             .Create();
 
         var document = Utf8GraphQLParser.Parse("{ }");
@@ -255,11 +258,12 @@ public class OperationCompilerTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
@@ -285,11 +289,12 @@ public class OperationCompilerTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
             .Create();
 
         var document = Utf8GraphQLParser.Parse("{ foo bar }");
@@ -682,11 +687,12 @@ public class OperationCompilerTests
             .Returns((string name) => name.EqualsOrdinal("v"));
 
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("root")
-                .Resolve(new Foo())
-                .UseOptimizer(new SimpleOptimizer()))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("root")
+                    .Resolve(new Foo())
+                    .UseOptimizer(new SimpleOptimizer()))
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
@@ -1043,34 +1049,31 @@ public class OperationCompilerTests
 
     public class NoopOptimizer : ISelectionSetOptimizer
     {
-        public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
-        {
-        }
+        public void OptimizeSelectionSet(SelectionSetOptimizerContext context) { }
     }
 
     public class SimpleOptimizer : ISelectionSetOptimizer
     {
         public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
         {
-            /*
-            if (!context.Path.IsEmpty && context.Path.Peek() is { Name.Value: "bar" })
+            if (context.Path is { Name: "bar" })
             {
                 var baz = context.Type.Fields["baz"];
                 var bazSelection = Utf8GraphQLParser.Syntax.ParseField("baz { text }");
                 var bazPipeline = context.CompileResolverPipeline(baz, bazSelection);
 
                 var compiledSelection = new Selection(
-                    context.GetNextId(),
+                    context.GetNextSelectionId(),
                     context.Type,
                     baz,
                     baz.Type,
                     bazSelection,
-                    bazPipeline,
+                    "someName",
+                    resolverPipeline: bazPipeline,
                     isInternal: true);
 
-                context.Fields[compiledSelection.ResponseName] = compiledSelection;
+                context.AddSelection(compiledSelection);
             }
-            */
         }
     }
 }
