@@ -1,9 +1,9 @@
 ﻿query Crypto {
   assetBySymbol(symbol: "BTC") {
-    price {
+    price @include(if: false) {
       lastPrice
     }
-    ... PriceInfo @include(if: false)
+    ... PriceInfo
   }
 }
 

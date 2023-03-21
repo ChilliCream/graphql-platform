@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 
 namespace HotChocolate.Data.Projections;
 

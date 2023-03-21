@@ -10,6 +10,7 @@
 fragment PriceInfo on Asset {
   price {
     lastPrice
+    currency
   }
 }
 
@@ -22,6 +23,7 @@ query Crypto @includeCondition(flag: 2, include: false) {
         price @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
           ... on AssetPrice {
             lastPrice @__execute(id: 2, kind: DEFAULT, type: LEAF)
+            currency @conditional @__execute(id: 3, kind: DEFAULT, type: LEAF)
           }
         }
       }

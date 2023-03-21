@@ -1031,6 +1031,95 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public async Task Crypto_Fragment_Removes_Conditional_State_For_Price()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query Crypto {
+                assetBySymbol(symbol: "BTC") {
+                    price @include(if: false) {
+                        lastPrice
+                    }
+                    ... PriceInfo
+                }
+            }
+
+            fragment PriceInfo on Asset {
+              price {
+                lastPrice
+              }
+            }
+            """);
+
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Crypto_Conditional_Fragment_Has_Additional_Field()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query Crypto {
+                assetBySymbol(symbol: "BTC") {
+                    price {
+                        lastPrice
+                    }
+                    ... PriceInfo @include(if: false)
+                }
+            }
+
+            fragment PriceInfo on Asset {
+              price {
+                lastPrice
+                currency # this field should be conditional
+              }
+            }
+            """);
+
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
     public async Task Crypto_List_Test()
     {
         // arrange
