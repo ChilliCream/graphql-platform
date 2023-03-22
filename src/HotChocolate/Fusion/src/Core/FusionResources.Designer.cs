@@ -104,5 +104,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("FusionRequestExecutorBuilderExtensions_AddFusionGatewayServer_NoSchema", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_Requirement_Is_Missing {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Requirement_Is_Missing", resourceCulture);
+            }
+        }
     }
 }

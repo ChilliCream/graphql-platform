@@ -6,10 +6,10 @@ public class UserRepository
 
     public UserRepository()
     {
-        _users = new User[]
+        _users = new[]
         {
             new User(1, "Ada Lovelace", new DateTime(1815, 12, 10), "@ada"),
-            new User(2, "Alan Turing", new DateTime(1912, 06, 23), "@complete")
+            new User(2, "Alan Turing", new DateTime(1912, 06, 23), "@alan"),
         }.ToDictionary(t => t.Id);
     }
 

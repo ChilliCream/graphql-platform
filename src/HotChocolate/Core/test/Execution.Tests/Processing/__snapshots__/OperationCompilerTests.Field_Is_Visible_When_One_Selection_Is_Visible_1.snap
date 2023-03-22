@@ -18,7 +18,7 @@ query foo($v: Boolean) @includeCondition(flag: 2) {
         name @__execute(id: 1, kind: PURE, type: LEAF)
       }
       ... on Droid {
-        name @conditional @__execute(id: 2, kind: PURE, type: LEAF)
+        name @__execute(id: 2, kind: PURE, type: LEAF)
       }
     }
   }

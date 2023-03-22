@@ -98,7 +98,6 @@ internal sealed class RequestPlanner
                         context.Steps.Add(introspectionStep);
                         context.HasIntrospectionSelections = true;
                     }
-
                     continue;
                 }
 

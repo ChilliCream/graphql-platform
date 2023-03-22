@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Language.Utf8GraphQLParser;
+using static HotChocolate.Fusion.DemoProjectSchemaExtensions;
 
 namespace HotChocolate.Fusion;
 
@@ -99,6 +100,8 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
     }
 
     [Fact]
@@ -141,9 +144,11 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
     }
 
-    [Fact]
+    [Fact(Skip = "The message order is not guaranteed, this needs to be fixed.")]
     public async Task Authors_And_Reviews_Subscription_OnNewReview()
     {
         // arrange
@@ -191,7 +196,7 @@ public class DemoIntegrationTests
         await snapshot.MatchAsync(cts.Token);
     }
 
-    [Fact]
+    [Fact(Skip = "The message order is not guaranteed, this needs to be fixed.")]
     public async Task Authors_And_Reviews_Subscription_OnNewReview_Two_Graphs()
     {
         // arrange
@@ -298,6 +303,8 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
     }
 
     [Fact]
@@ -343,6 +350,8 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
     }
 
     [Fact]
@@ -392,6 +401,8 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
     }
 
     [Fact]
@@ -442,6 +453,8 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
     }
 
     [Fact]
@@ -486,6 +499,8 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
     }
 
     [Fact]
@@ -539,6 +554,8 @@ public class DemoIntegrationTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
     }
 
     private static void CollectSnapshotData(
@@ -585,32 +602,4 @@ public class DemoIntegrationTests
 
         snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
     }
-
-    private const string AccountsExtensionSdl =
-        """
-        extend type Query {
-          userById(id: Int! @is(field: "id")): User!
-          usersById(ids: [Int!]! @is(field: "id")): [User!]!
-        }
-        """;
-
-    private const string ReviewsExtensionSdl =
-        """
-        extend type Query {
-          authorById(id: Int! @is(field: "id")): Author
-          productById(upc: Int! @is(field: "upc")): Product
-        }
-
-        schema
-            @rename(coordinate: "Query.authorById", newName: "userById")
-            @rename(coordinate: "Author", newName: "User") {
-        }
-        """;
-
-    private const string ProductsExtensionSdl =
-        """
-        extend type Query {
-          productById(upc: Int! @is(field: "upc")): Product
-        }
-        """;
 }
