@@ -199,7 +199,14 @@ public class Selection : ISelection
             throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
         }
 
-        if (includeCondition is not 0 &&
+        if (includeCondition == 0)
+        {
+            if (_includeConditions.Length > 0)
+            {
+                _includeConditions = Array.Empty<long>();
+            }
+        }
+        else if (_includeConditions.Length > 0 &&
             Array.IndexOf(_includeConditions, includeCondition) == -1)
         {
             var next = _includeConditions.Length;
