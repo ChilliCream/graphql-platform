@@ -165,6 +165,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
                 tasks[index++] = cachedTask;
             }
+
+            _batchScheduler.Schedule(
+                () => DispatchBatchAsync(_currentBatch, _disposeTokenSource.Token));
         }
 
         void Initialize()
@@ -184,7 +187,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Task<TValue> CreatePromise()
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(currentKey).Task;
+            return GetOrCreatePromiseUnsafe(currentKey, false).Task;
         }
     }
 
@@ -304,7 +307,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
     }
 
-    private TaskCompletionSource<TValue> GetOrCreatePromiseUnsafe(TKey key)
+    private TaskCompletionSource<TValue> GetOrCreatePromiseUnsafe(
+        TKey key,
+        bool scheduleOnNewBatch = true)
     {
         if (_currentBatch is not null && _currentBatch.Size < _maxBatchSize)
         {
@@ -316,7 +321,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+        if (scheduleOnNewBatch)
+        {
+            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+        }
 
         return newPromise;
     }

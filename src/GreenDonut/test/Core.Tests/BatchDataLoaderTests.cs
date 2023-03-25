@@ -59,6 +59,21 @@ public class BatchDataLoaderTests
     }
 
     [Fact]
+    public async Task LoadAsync_Should_BatchAllItemsOfList()
+    {
+        // arrange
+        var dataLoader = new CustomBatchDataLoader(
+            new DelayDispatcher(),
+            new DataLoaderOptions());
+
+        // act
+        await dataLoader.LoadAsync("1abc", "0abc");
+
+        // assert
+        Assert.Equal(1, dataLoader.ExecutionCount);
+    }
+
+    [Fact]
     public async Task Null_Result()
     {
         // arrange
@@ -87,6 +102,10 @@ public class BatchDataLoaderTests
 
     public class CustomBatchDataLoader : BatchDataLoader<string, string>
     {
+        private int _executionCount;
+
+        public int ExecutionCount => _executionCount;
+
         public CustomBatchDataLoader(
             IBatchScheduler batchScheduler,
             DataLoaderOptions options)
@@ -97,8 +116,11 @@ public class BatchDataLoaderTests
         protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
-            => Task.FromResult<IReadOnlyDictionary<string, string>>(
+        {
+            Interlocked.Increment(ref _executionCount);
+            return Task.FromResult<IReadOnlyDictionary<string, string>>(
                 keys.ToDictionary(t => t, t => "Value:" + t));
+        }
     }
 }
 
