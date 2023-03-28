@@ -59,6 +59,9 @@ internal sealed class FusionExecutionContext : IDisposable
         return _idSerializer.Serialize(_schemaName, typeName, id.Value);
     }
 
+    public IdValue ParseId(string formattedId)
+        => _idSerializer.Deserialize(formattedId);
+
     public async Task<GraphQLResponse> ExecuteAsync(
         string subgraphName,
         GraphQLRequest request,

@@ -3,7 +3,10 @@ UserRequest
 query FetchNode($id: ID!) {
   node(id: $id) {
     ... on User {
-      id
+      birthdate
+      reviews {
+        body
+      }
     }
   }
 }
@@ -12,7 +15,7 @@ query FetchNode($id: ID!) {
 QueryPlan
 ---------------
 {
-  "document": "query FetchNode($id: ID!) { node(id: $id) { ... on User { id } } }",
+  "document": "query FetchNode($id: ID!) { node(id: $id) { ... on User { birthdate reviews { body } } } }",
   "operation": "FetchNode",
   "rootNode": {
     "type": "Serial",
@@ -41,7 +44,7 @@ QueryPlan
             "node": {
               "type": "Resolver",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { id } } }",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {

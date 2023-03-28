@@ -18,6 +18,9 @@ QueryPlan
   "operation": "OnNewReview",
   "rootNode": {
     "type": "Subscription",
+    "subgraph": "Reviews",
+    "document": "subscription OnNewReview_1 { onNewReview { body author { name __fusion_exports__1: id } } }",
+    "selectionSetId": 0,
     "nodes": [
       {
         "type": "Composition",
@@ -45,10 +48,7 @@ QueryPlan
           2
         ]
       }
-    ],
-    "subgraph": "Reviews",
-    "document": "subscription OnNewReview_1 { onNewReview { body author { name __fusion_exports__1: id } } }",
-    "selectionSetId": 0
+    ]
   }
 }
 ---------------

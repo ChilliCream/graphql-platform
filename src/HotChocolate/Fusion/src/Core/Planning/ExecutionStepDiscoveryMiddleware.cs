@@ -113,70 +113,73 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 parentSelection);
             leftovers = null;
 
-            TryGetEntityResolver(
+            // we will first try to resolve and set an entity resolver.
+            // The entity resolver is like a patch fetch from a subgraph where
+            // the resulting data is merged into the current selection set.
+            TrySetEntityResolver(
                 selectionSetTypeInfo,
                 parentSelection,
                 preferBatching,
                 variablesInContext,
                 subgraph,
-                executionStep,
-                out var resolver);
+                executionStep);
 
             foreach (var selection in current)
             {
                 var field = selection.Field;
                 var fieldInfo = selectionSetTypeInfo.Fields[field.Name];
 
-                if (fieldInfo.Bindings.ContainsSubgraph(subgraph))
+                if (!fieldInfo.Bindings.ContainsSubgraph(subgraph))
                 {
-                    GatherVariablesInContext(
+                    (leftovers ??= new()).Add(selection);
+                    continue;
+                }
+
+                ResolverDefinition? resolver = null;
+
+                GatherVariablesInContext(
+                    selection,
+                    selectionSetTypeInfo,
+                    parentSelection,
+                    variablesInContext);
+
+                if (fieldInfo.Resolvers.ContainsResolvers(subgraph))
+                {
+                    var resolverPreference =
+                        ChoosePreferredResolverKind(
+                            operation,
+                            parentSelection,
+                            preferBatching);
+
+                    if (!TryGetResolver(
+                        fieldInfo,
+                        subgraph,
+                        variablesInContext,
+                        resolverPreference,
+                        out resolver))
+                    {
+                        throw ThrowHelper.NoResolverInContext();
+                    }
+
+                    DetermineRequiredVariables(
                         selection,
                         selectionSetTypeInfo,
                         parentSelection,
-                        variablesInContext);
-
-                    if (fieldInfo.Resolvers.ContainsResolvers(subgraph))
-                    {
-                        var resolverPreference =
-                            ChoosePreferredResolverKind(
-                                operation,
-                                parentSelection,
-                                preferBatching);
-
-                        if (!TryGetResolver(
-                            fieldInfo,
-                            subgraph,
-                            variablesInContext,
-                            resolverPreference,
-                            out resolver))
-                        {
-                            throw ThrowHelper.NoResolverInContext();
-                        }
-
-                        DetermineRequiredVariables(
-                            selection,
-                            selectionSetTypeInfo,
-                            parentSelection,
-                            resolver,
-                            executionStep.Requires);
-                    }
-
-                    executionStep.AllSelections.Add(selection);
-                    executionStep.RootSelections.Add(new RootSelection(selection, resolver));
-
-                    if (selection.SelectionSet is not null)
-                    {
-                        CollectNestedSelections(
-                            backlog,
-                            operation,
-                            selection,
-                            executionStep,
-                            preferBatching);
-                    }
+                        resolver,
+                        executionStep.Requires);
                 }
-                else
+
+                executionStep.AllSelections.Add(selection);
+                executionStep.RootSelections.Add(new RootSelection(selection, resolver));
+
+                if (selection.SelectionSet is not null)
                 {
-                    (leftovers ??= new()).Add(selection);
+                    CollectNestedSelections(
+                        backlog,
+                        operation,
+                        selection,
+                        executionStep,
+                        preferBatching);
                 }
             }
 
@@ -422,18 +425,16 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         return executionStep;
     }
 
-    private void TryGetEntityResolver(
+    private void TrySetEntityResolver(
         ObjectTypeInfo selectionSetTypeInfo,
         ISelection? parentSelection,
         bool preferBatching,
         HashSet<string> variablesInContext,
         string subgraph,
-        SelectionExecutionStep executionStep,
-        out ResolverDefinition? resolver)
+        SelectionExecutionStep executionStep)
     {
         if (parentSelection is null || !selectionSetTypeInfo.Resolvers.ContainsResolvers(subgraph))
         {
-            resolver = null;
             return;
         }
 
@@ -444,7 +445,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             subgraph,
             variablesInContext,
             preferBatching,
-            out resolver))
+            out var resolver))
         {
             executionStep.Resolver = resolver;
             DetermineRequiredVariables(parentSelection, resolver, executionStep.Requires);

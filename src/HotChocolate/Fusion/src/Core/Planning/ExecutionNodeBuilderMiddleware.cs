@@ -7,14 +7,17 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 {
-    private readonly FusionGraphConfiguration _config;
     private readonly ISchema _schema;
     private readonly DefaultRequestDocumentFormatter _requestFormatter;
     private readonly NodeRequestDocumentFormatter _nodeRequestFormatter;
 
     public ExecutionNodeBuilderMiddleware(FusionGraphConfiguration configuration, ISchema schema)
     {
-        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        if (configuration is null)
+        {
+            throw new ArgumentNullException(nameof(configuration));
+        }
+
         _schema = schema ?? throw new ArgumentNullException(nameof(schema));
         _requestFormatter = new DefaultRequestDocumentFormatter(configuration);
         _nodeRequestFormatter = new NodeRequestDocumentFormatter(configuration, schema);
@@ -26,7 +29,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
         HandledSpecialQueryFields(context, ref executionSteps);
 
-        foreach (var step in context.Steps)
+        foreach (var step in executionSteps)
         {
             context.ForwardedVariables.Clear();
 
@@ -72,7 +75,9 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             {
                 if (executionStep is NodeExecutionStep nodeStep)
                 {
-                    var nodeResolverNode = new NodeResolverNode(context.CreateNodeId());
+                    var nodeResolverNode = new NodeResolverNode(
+                        context.CreateNodeId(),
+                        nodeStep.NodeSelection);
                     context.Nodes.Add(nodeStep, nodeResolverNode);
                     context.HasNodes.Add(context.Operation.RootSelectionSet);
                     handled.Add(nodeStep);

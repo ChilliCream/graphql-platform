@@ -25,9 +25,7 @@ internal abstract class RequestDocumentFormatter
         SelectionExecutionStep executionStep,
         OperationType operationType = OperationType.Query)
     {
-        var rootSelectionSetNode = CreateRootSelectionSetNode(
-            context,
-            executionStep);
+        var rootSelectionSetNode = CreateRootSelectionSetNode(context, executionStep);
         IReadOnlyList<string> path = Array.Empty<string>();
 
         if (executionStep.Resolver is not null &&
@@ -39,10 +37,11 @@ internal abstract class RequestDocumentFormatter
                 executionStep.Resolver,
                 executionStep.Variables);
 
-            var (rootResolver, p) = executionStep.Resolver.CreateSelection(
-                context.VariableValues,
-                rootSelectionSetNode,
-                null);
+            var (rootResolver, p) =
+                executionStep.Resolver.CreateSelection(
+                    context.VariableValues,
+                    rootSelectionSetNode,
+                    null);
 
             rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
             path = p;
@@ -127,10 +126,10 @@ internal abstract class RequestDocumentFormatter
         }
 
         // append exports that were required by other execution steps.
-        foreach (var selection in context.Exports.GetExportSelections(executionStep, selectionSet))
-        {
-            selectionNodes.Add(selection);
-        }
+        selectionNodes.AddRange(
+            context.Exports.GetExportSelections(
+                executionStep,
+                selectionSet));
 
         return new SelectionSetNode(selectionNodes);
     }
@@ -251,11 +250,10 @@ internal abstract class RequestDocumentFormatter
         }
 
         // append exports that were required by other execution steps.
-        foreach (var exportSelection in
-            context.Exports.GetExportSelections(executionStep, selectionSet))
-        {
-            selectionNodes.Add(exportSelection);
-        }
+        selectionNodes.AddRange(
+            context.Exports.GetExportSelections(
+                executionStep,
+                selectionSet));
 
         if (selectionSet.Selections.Count > 0 && selectionNodes.Count == 0)
         {

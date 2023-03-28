@@ -78,8 +78,8 @@ internal abstract class QueryPlanNode
     {
         writer.WriteStartObject();
         writer.WriteString("type", Kind.ToString());
-        FormatNodesProperty(writer);
         FormatProperties(writer);
+        FormatNodesProperty(writer);
         writer.WriteEndObject();
     }
 

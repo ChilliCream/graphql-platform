@@ -17,6 +17,9 @@ QueryPlan
   "operation": "OnNewReview",
   "rootNode": {
     "type": "Subscription",
+    "subgraph": "Reviews",
+    "document": "subscription OnNewReview_1 { onNewReview { body author { name } } }",
+    "selectionSetId": 0,
     "nodes": [
       {
         "type": "Composition",
@@ -24,10 +27,7 @@ QueryPlan
           0
         ]
       }
-    ],
-    "subgraph": "Reviews",
-    "document": "subscription OnNewReview_1 { onNewReview { body author { name } } }",
-    "selectionSetId": 0
+    ]
   }
 }
 ---------------

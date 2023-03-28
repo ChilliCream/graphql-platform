@@ -10,7 +10,7 @@ using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class BatchByKeyResolverNode : QueryPlanNode
+internal sealed class BatchByKeyResolverNode : ResolverNodeBase
 {
     private readonly IReadOnlyList<string> _path;
 
@@ -23,48 +23,18 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
         IReadOnlyList<string> path,
         IReadOnlyDictionary<string, ITypeNode> argumentTypes,
         IReadOnlyList<string> forwardedVariables)
-        : base(id)
+        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables)
     {
-        SubgraphName = subgraphName;
-        Document = document;
-        SelectionSet = selectionSet;
-        Requires = requires;
         ArgumentTypes = argumentTypes;
-        ForwardedVariables = forwardedVariables;
         _path = path;
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.BatchResolver;
 
     /// <summary>
-    /// Gets the schema name on which this request handler executes.
-    /// </summary>
-    public string SubgraphName { get; }
-
-    /// <summary>
-    /// Gets the GraphQL request document.
-    /// </summary>
-    public DocumentNode Document { get; }
-
-    /// <summary>
-    /// Gets the selection set for which this request provides a patch.
-    /// </summary>
-    public ISelectionSet SelectionSet { get; }
-
-    /// <summary>
-    /// Gets the variables that this request handler requires to create a request.
-    /// </summary>
-    public IReadOnlyList<string> Requires { get; }
-
-    /// <summary>
     /// Gets the type lookup of resolver arguments.
     /// </summary>
     public IReadOnlyDictionary<string, ITypeNode> ArgumentTypes { get; }
-
-    /// <summary>
-    /// Gets the variables that this request handler forwards to the subgraph.
-    /// </summary>
-    public IReadOnlyList<string> ForwardedVariables { get; }
 
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
@@ -131,47 +101,6 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
         {
             await base.OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    private GraphQLRequest CreateRequest(
-        IVariableValueCollection variables,
-        IReadOnlyDictionary<string, IValueNode> variableValues)
-    {
-        ObjectValueNode? vars = null;
-
-        if (Requires.Count > 0 || ForwardedVariables.Count > 0)
-        {
-            var fields = new List<ObjectFieldNode>();
-
-            foreach (var forwardedVariable in ForwardedVariables)
-            {
-                if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
-                    value is not null)
-                {
-                    fields.Add(new ObjectFieldNode(forwardedVariable, value));
-                }
-            }
-
-            foreach (var requirement in Requires)
-            {
-                if (variableValues.TryGetValue(requirement, out var value))
-                {
-                    fields.Add(new ObjectFieldNode(requirement, value));
-                }
-                else
-                {
-                    // TODO : error helper
-                    throw new ArgumentException(
-                        $"The variable value `{requirement}` was not provided " +
-                        "but is required.",
-                        nameof(variableValues));
-                }
-            }
-
-            vars ??= new ObjectValueNode(fields);
-        }
-
-        return new GraphQLRequest(SubgraphName, Document, vars, null);
     }
 
     private Dictionary<string, IValueNode> BuildVariables(BatchWorkItem[] workItems)
@@ -323,6 +252,74 @@ internal sealed class BatchByKeyResolverNode : QueryPlanNode
         }
 
         return batchWorkItems;
+    }
+
+    /// <summary>
+    /// Formats the properties of this query plan node in order to create a JSON representation.
+    /// </summary>
+    /// <param name="writer">
+    /// The writer that is used to write the JSON representation.
+    /// </param>
+    protected override void FormatProperties(Utf8JsonWriter writer)
+    {
+        writer.WriteString("subgraph", SubgraphName);
+        writer.WriteString("document", Document.ToString(false));
+        writer.WriteNumber("selectionSetId", SelectionSet.Id);
+
+        if (ArgumentTypes.Count > 0)
+        {
+            writer.WritePropertyName("argumentTypes");
+            writer.WriteStartArray();
+
+            foreach (var (argument, type) in ArgumentTypes)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("argument", argument);
+                writer.WriteString("type", type.ToString(false));
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+        }
+
+        if (Path.Count > 0)
+        {
+            writer.WritePropertyName("path");
+            writer.WriteStartArray();
+
+            foreach (var path in Path)
+            {
+                writer.WriteStringValue(path);
+            }
+            writer.WriteEndArray();
+        }
+
+        if (Requires.Count > 0)
+        {
+            writer.WritePropertyName("requires");
+            writer.WriteStartArray();
+
+            foreach (var requirement in Requires)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("variable", requirement);
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+        }
+
+        if (ForwardedVariables.Count > 0)
+        {
+            writer.WritePropertyName("forwardedVariables");
+            writer.WriteStartArray();
+
+            foreach (var variable in ForwardedVariables)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("variable", variable);
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

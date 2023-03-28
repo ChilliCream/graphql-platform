@@ -111,8 +111,9 @@ internal sealed class ResolverNode : ResolverNodeBase
             for (var i = 0; i < requests.Length; i++)
             {
                 var response = responses[i];
-                var data = UnwrapResult(response);
                 var workItem = workItems[i];
+
+                var data = UnwrapResult(response);
                 var selectionResults = workItem.SelectionResults;
                 var exportKeys = workItem.ExportKeys;
                 var variableValues = workItem.VariableValues;
