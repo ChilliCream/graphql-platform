@@ -34,4 +34,9 @@ internal sealed class NodeExecutionStep : ExecutionStep
     /// Gets the nodes selection.
     /// </summary>
     public ISelection NodeSelection { get; }
+
+    /// <summary>
+    /// Gets the execution steps that handle the various entity types.
+    /// </summary>
+    public List<NodeEntityExecutionStep> EntitySteps { get; } = new();
 }

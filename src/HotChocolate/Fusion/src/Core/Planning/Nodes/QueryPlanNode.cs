@@ -50,7 +50,7 @@ internal abstract class QueryPlanNode
         }
     }
 
-    internal void AddNode(QueryPlanNode node)
+    internal virtual void AddNode(QueryPlanNode node)
     {
         if (_isReadOnly)
         {
@@ -87,7 +87,7 @@ internal abstract class QueryPlanNode
     {
     }
 
-    private protected virtual void FormatNodesProperty(Utf8JsonWriter writer)
+    protected virtual void FormatNodesProperty(Utf8JsonWriter writer)
     {
         if (_nodes.Count > 0)
         {

@@ -21,7 +21,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
     private static void Plan(QueryPlanContext context)
     {
         var selectionLookup = CreateSelectionLookup(context.Steps);
-        var schemas = new Dictionary<string, DefaultExecutionStep>(Ordinal);
+        var schemas = new Dictionary<string, SelectionExecutionStep>(Ordinal);
         var requires = new HashSet<string>(Ordinal);
 
         foreach (var step in context.Steps)
@@ -35,7 +35,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
             }
 
-            if (step is DefaultExecutionStep defaultExecutionStep &&
+            if (step is SelectionExecutionStep defaultExecutionStep &&
                 defaultExecutionStep.ParentSelection is { } parent &&
                 defaultExecutionStep.Resolver is not null)
             {
@@ -131,11 +131,11 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
         }
     }
 
-    private static HashSet<DefaultExecutionStep> GetSiblingExecutionSteps(
-        Dictionary<object, DefaultExecutionStep> selectionLookup,
+    private static HashSet<SelectionExecutionStep> GetSiblingExecutionSteps(
+        Dictionary<object, SelectionExecutionStep> selectionLookup,
         ISelectionSet selectionSet)
     {
-        var executionSteps = new HashSet<DefaultExecutionStep>();
+        var executionSteps = new HashSet<SelectionExecutionStep>();
 
         if (selectionLookup.TryGetValue(selectionSet, out var executionStep))
         {
@@ -153,14 +153,14 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
         return executionSteps;
     }
 
-    private static Dictionary<object, DefaultExecutionStep> CreateSelectionLookup(
+    private static Dictionary<object, SelectionExecutionStep> CreateSelectionLookup(
         IReadOnlyList<ExecutionStep> executionSteps)
     {
-        var dictionary = new Dictionary<object, DefaultExecutionStep>();
+        var dictionary = new Dictionary<object, SelectionExecutionStep>();
 
         foreach (var executionStep in executionSteps)
         {
-            if (executionStep is DefaultExecutionStep ses)
+            if (executionStep is SelectionExecutionStep ses)
             {
                 foreach (var selection in ses.AllSelections)
                 {

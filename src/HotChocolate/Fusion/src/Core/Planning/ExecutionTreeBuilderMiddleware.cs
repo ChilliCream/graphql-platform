@@ -33,7 +33,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         {
             context.ForwardedVariables.Clear();
 
-            if (step is DefaultExecutionStep selectionStep)
+            if (step is SelectionExecutionStep selectionStep)
             {
                 if (selectionStep.Resolver?.Kind == BatchByKey)
                 {
@@ -150,7 +150,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private ResolverNode CreateResolverNode(
         QueryPlanContext context,
-        DefaultExecutionStep executionStep)
+        SelectionExecutionStep executionStep)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
         var (requestDocument, path) = CreateRequestDocument(context, executionStep);
@@ -169,7 +169,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private BatchByKeyResolverNode CreateBatchResolverNode(
         QueryPlanContext context,
-        DefaultExecutionStep executionStep,
+        SelectionExecutionStep executionStep,
         ResolverDefinition resolver)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
@@ -214,7 +214,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private SubscriptionNode CreateSubscription(
         QueryPlanContext context,
-        DefaultExecutionStep executionStep)
+        SelectionExecutionStep executionStep)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
         var (requestDocument, path) =
@@ -246,7 +246,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
         QueryPlanContext context,
-        DefaultExecutionStep executionStep,
+        SelectionExecutionStep executionStep,
         OperationType operationType = OperationType.Query)
     {
         var rootSelectionSetNode = CreateRootSelectionSetNode(context, executionStep);
@@ -286,7 +286,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private SelectionSetNode CreateRootSelectionSetNode(
         QueryPlanContext context,
-        DefaultExecutionStep executionStep)
+        SelectionExecutionStep executionStep)
     {
         var selectionNodes = new List<ISelectionNode>();
         var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
@@ -355,7 +355,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private ISelectionNode CreateSelectionNode(
         QueryPlanContext context,
-        DefaultExecutionStep executionStep,
+        SelectionExecutionStep executionStep,
         ISelection selection,
         ObjectFieldInfo fieldInfo)
     {
@@ -384,7 +384,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private SelectionSetNode CreateSelectionSetNode(
         QueryPlanContext context,
-        DefaultExecutionStep executionStep,
+        SelectionExecutionStep executionStep,
         ISelection parentSelection)
     {
         // TODO : we need to spec inline fragments or a simple selectionsSet depending on pt

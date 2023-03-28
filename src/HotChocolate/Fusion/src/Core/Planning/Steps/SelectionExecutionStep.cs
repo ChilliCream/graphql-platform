@@ -1,3 +1,4 @@
+using System.Diagnostics.Contracts;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 
@@ -7,9 +8,9 @@ namespace HotChocolate.Fusion.Planning;
 /// Represents the default execution step within the execution plan while
 /// being in the planing phase.
 /// </summary>
-internal sealed class DefaultExecutionStep : ExecutionStep
+internal sealed class SelectionExecutionStep : ExecutionStep
 {
-    public DefaultExecutionStep(
+    public SelectionExecutionStep(
         string subgraphName,
         ObjectTypeInfo selectionSetTypeInfo,
         ISelection? parentSelection)
@@ -33,8 +34,14 @@ internal sealed class DefaultExecutionStep : ExecutionStep
     /// </summary>
     public List<RootSelection> RootSelections { get; } = new();
 
+    /// <summary>
+    /// Gets all selections that are part of this execution step.
+    /// </summary>
     public HashSet<ISelection> AllSelections { get; } = new();
 
+    /// <summary>
+    /// Gets all selection sets that are part of this execution step.
+    /// </summary>
     public HashSet<ISelectionSet> AllSelectionSets { get; } = new();
 
     /// <summary>

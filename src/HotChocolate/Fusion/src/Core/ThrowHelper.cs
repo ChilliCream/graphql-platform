@@ -52,4 +52,10 @@ internal static class ThrowHelper
 
     public static InvalidOperationException NoResolverInContext()
         => new(ThrowHelper_NoResolverInContext);
+
+    public static NotSupportedException RequestFormatter_ArgumentVariableExpected()
+        => new("The variable must be an argument variable.");
+
+    public static InvalidOperationException RequestFormatter_SelectionSetEmpty()
+        => new("A selection set must not be empty.");
 }

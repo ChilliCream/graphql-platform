@@ -84,7 +84,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         // if this is the root selection set of a query we will
         // look for some special selections.
-        if (!context.HasIntrospectionSelections && parentSelection is null)
+        if (!context.HasHandledSpecialQueryFields && parentSelection is null)
         {
             HandleSpecialQuerySelections(
                 context,
@@ -92,7 +92,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 ref selections,
                 selectionSetTypeInfo,
                 backlog);
-            context.HasIntrospectionSelections = true;
+            context.HasHandledSpecialQueryFields = true;
 
             if (selections.Count == 0)
             {
@@ -107,7 +107,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 operation,
                 current,
                 selectionSetTypeInfo);
-            var executionStep = new DefaultExecutionStep(
+            var executionStep = new SelectionExecutionStep(
                 subgraph,
                 selectionSetTypeInfo,
                 parentSelection);
@@ -134,8 +134,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                         selectionSetTypeInfo,
                         parentSelection,
                         variablesInContext);
-
-                    resolver = null;
 
                     if (fieldInfo.Resolvers.ContainsResolvers(subgraph))
                     {
@@ -241,7 +239,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
-        DefaultExecutionStep executionStep,
+        SelectionExecutionStep executionStep,
         bool preferBatching)
     {
         if (!preferBatching)
@@ -265,7 +263,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
-        DefaultExecutionStep executionStep,
+        SelectionExecutionStep executionStep,
         IObjectType possibleType,
         bool preferBatching)
     {
@@ -339,7 +337,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             var entityTypeInfo = _config.GetType<ObjectTypeInfo>(entityType.Name);
             var selectionSet = operation.GetSelectionSet(nodeSelection, entityType);
 
-            var entityResolverExecutionStep =
+            var selectionExecutionStep =
                 CreateNodeNestedExecutionSteps(
                     context,
                     backlog,
@@ -349,11 +347,20 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     entityTypeInfo,
                     selectionSet,
                     preferBatching: false);
-            entityResolverExecutionStep.DependsOn.Add(nodeExecutionStep);
+
+            var nodeEntityExecutionStep =
+                new NodeEntityExecutionStep(
+                    entityTypeInfo,
+                    selectionExecutionStep);
+
+            selectionExecutionStep.DependsOn.Add(nodeEntityExecutionStep);
+            nodeEntityExecutionStep.DependsOn.Add(nodeExecutionStep);
+            nodeExecutionStep.EntitySteps.Add(nodeEntityExecutionStep);
+            context.Steps.Add(nodeEntityExecutionStep);
         }
     }
 
-    private DefaultExecutionStep CreateNodeNestedExecutionSteps(
+    private SelectionExecutionStep CreateNodeNestedExecutionSteps(
         QueryPlanContext context,
         Queue<BacklogItem> backlog,
         ISelection nodeSelection,
@@ -383,7 +390,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         var field = nodeSelection.Field;
         var fieldInfo = queryTypeInfo.Fields[field.Name];
-        var executionStep = new DefaultExecutionStep(subgraph, queryTypeInfo, null);
+        var executionStep = new SelectionExecutionStep(subgraph, queryTypeInfo, null);
 
         var preference = ChoosePreferredResolverKind(operation, null, preferBatching);
         GatherVariablesInContext(nodeSelection, queryTypeInfo, null, variablesInContext);
@@ -421,7 +428,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         bool preferBatching,
         HashSet<string> variablesInContext,
         string subgraph,
-        DefaultExecutionStep executionStep,
+        SelectionExecutionStep executionStep,
         out ResolverDefinition? resolver)
     {
         if (parentSelection is null || !selectionSetTypeInfo.Resolvers.ContainsResolvers(subgraph))

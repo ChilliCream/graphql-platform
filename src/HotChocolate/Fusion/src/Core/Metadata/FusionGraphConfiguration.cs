@@ -11,6 +11,7 @@ internal sealed class FusionGraphConfiguration
 {
     private readonly Dictionary<string, IType> _types;
     private readonly Dictionary<(string Schema, string Type), string> _typeNameLookup = new();
+    private readonly Dictionary<(string Schema, string Type), string> _typeNameRevLookup = new();
 
     private readonly Dictionary<string, List<string>> _entitySubgraphMap =
         new(StringComparer.Ordinal);
@@ -23,9 +24,6 @@ internal sealed class FusionGraphConfiguration
     /// </param>
     /// <param name="subgraphs">
     /// The list of entities.
-    /// </param>
-    /// <param name="subgraphNames">
-    /// The list of subgraph names.
     /// </param>
     /// <param name="httpClients">
     /// The list of HTTP clients.
@@ -65,6 +63,7 @@ internal sealed class FusionGraphConfiguration
                 if (!binding.Name.EqualsOrdinal(type.Name))
                 {
                     _typeNameLookup.Add((binding.SubgraphName, binding.Name), type.Name);
+                    _typeNameRevLookup.Add((binding.SubgraphName, type.Name), binding.Name);
                 }
             }
         }
@@ -145,6 +144,16 @@ internal sealed class FusionGraphConfiguration
     public string GetTypeName(string subgraphName, string typeName)
     {
         if (!_typeNameLookup.TryGetValue((subgraphName, typeName), out var temp))
+        {
+            temp = typeName;
+        }
+
+        return temp;
+    }
+
+    public string GetSubgraphTypeName(string subgraphName, string typeName)
+    {
+        if (!_typeNameRevLookup.TryGetValue((subgraphName, typeName), out var temp))
         {
             temp = typeName;
         }
