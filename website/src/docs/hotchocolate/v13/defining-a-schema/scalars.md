@@ -30,7 +30,7 @@ type Product {
 }
 ```
 
-This scalar represent a Boolean value, which can be either `true` or `false`.
+This scalar represents a Boolean value, which can be either `true` or `false`.
 
 It is automatically inferred from the usage of the .NET [bool type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool).
 
