@@ -94,7 +94,7 @@ Visitor actions can be used to _skip_ further visitation and step back up, or to
 
 ## Continue
 
-Returing `Continue` from the `Enter` or `Leave` methods indicates that the visitation shall continue on the current branch.
+Returning `Continue` from the `Enter` or `Leave` methods indicates that the visitation shall continue on the current branch.
 
 In the following example `Continue` is returned from the onEnter method. The visitor calls `VisitChildren` and continues by _entering_ the selection set.
 
