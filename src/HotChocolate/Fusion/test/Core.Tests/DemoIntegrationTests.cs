@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
@@ -704,6 +705,215 @@ public class DemoIntegrationTests
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task Fetch_User_With_Node_Field()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        id
+                    }
+                }
+            }
+            """);
+
+        var idSerializer = new IdSerializer();
+        var id = idSerializer.Serialize("User", 1);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("id", id)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task Fetch_User_With_Node_Field_Pass_In_Review_Id()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        id
+                    }
+                }
+            }
+            """);
+
+        var idSerializer = new IdSerializer();
+        var id = idSerializer.Serialize("Review", 1);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("id", id)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task Fetch_User_With_Node_Field_Pass_In_Unknown_Id()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        id
+                    }
+                }
+            }
+            """);
+
+        var idSerializer = new IdSerializer();
+        var id = idSerializer.Serialize("Unknown", 1);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("id", id)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Fetch_User_With_Node_Field_From_Two_Subgraphs()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsString(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        birthdate
+                        reviews {
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        var idSerializer = new IdSerializer();
+        var id = idSerializer.Serialize("User", 1);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("id", id)
                 .Create());
 
         // assert

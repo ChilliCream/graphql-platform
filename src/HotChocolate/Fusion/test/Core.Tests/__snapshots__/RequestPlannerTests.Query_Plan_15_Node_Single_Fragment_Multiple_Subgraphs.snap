@@ -40,6 +40,12 @@ QueryPlan
                       "variable": "id"
                     }
                   ]
+                },
+                {
+                  "type": "Composition",
+                  "selectionSetIds": [
+                    0
+                  ]
                 }
               ]
             }
@@ -52,12 +58,18 @@ QueryPlan
                 {
                   "type": "Resolver",
                   "subgraph": "Reviews2",
-                  "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id } } }",
+                  "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
                   "selectionSetId": 0,
                   "forwardedVariables": [
                     {
                       "variable": "id"
                     }
+                  ]
+                },
+                {
+                  "type": "Composition",
+                  "selectionSetIds": [
+                    0
                   ]
                 },
                 {
@@ -83,12 +95,6 @@ QueryPlan
               ]
             }
           }
-        ]
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          0
         ]
       }
     ]

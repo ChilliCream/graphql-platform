@@ -86,14 +86,16 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                     {
                         context.ForwardedVariables.Clear();
 
-                        var fetchNode = CreateNodeResolverNode(context, entityStep);
+                        var fetch = CreateNodeResolverNode(context, entityStep);
+                        var compose = new CompositionNode(context.CreateNodeId(), fetch);
 
                         var serialNode = new SerialNode(context.CreateNodeId());
-                        serialNode.AddNode(fetchNode);
+                        serialNode.AddNode(fetch);
+                        serialNode.AddNode(compose);
 
                         nodeResolverNode.AddNode(entityStep.SelectionSetTypeInfo.Name, serialNode);
 
-                        context.Nodes.Add(entityStep.EntitySelectionExecutionStep, fetchNode);
+                        context.Nodes.Add(entityStep.EntitySelectionExecutionStep, fetch);
                         handled.Add(entityStep);
                         handled.Add(entityStep.EntitySelectionExecutionStep);
                     }

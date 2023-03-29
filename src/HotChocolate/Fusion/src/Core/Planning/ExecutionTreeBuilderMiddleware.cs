@@ -78,9 +78,12 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
                 var single = next.Batch[0];
                 next.Parent.AddNode(single.Node);
 
-                var selectionSet = ResolveSelectionSet(context, single.Step);
-                var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
-                next.Parent.AddNode(compose);
+                if (single.Node.Kind is not NodeResolver)
+                {
+                    var selectionSet = ResolveSelectionSet(context, single.Step);
+                    var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
+                    next.Parent.AddNode(compose);
+                }
 
                 context.Nodes.Remove(single.Step);
                 completed.Add(single.Step);
@@ -98,7 +101,11 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
                 foreach (var item in next.Batch)
                 {
-                    selectionSets.Add(ResolveSelectionSet(context, item.Step));
+                    if (item.Node.Kind is not NodeResolver)
+                    {
+                        selectionSets.Add(ResolveSelectionSet(context, item.Step));
+                    }
+
                     parallel.AddNode(item.Node);
                     context.Nodes.Remove(item.Step);
                     completed.Add(item.Step);
@@ -195,11 +202,11 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
                         "A node branch must be  serial node.");
                 }
 
-                if (serialNode.Nodes.Count != 1)
+                if (serialNode.Nodes.Count == 0)
                 {
                     // todo : error helper
                     throw new InvalidOperationException(
-                        "A node branch must contain exactly one node.");
+                        "A node branch must contain at least one node.");
                 }
 
                 var resolverNode = serialNode.Nodes[0];

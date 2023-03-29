@@ -9,6 +9,11 @@ internal sealed class CompositionNode : QueryPlanNode
 {
     private readonly IReadOnlyList<ISelectionSet> _selectionSets;
 
+    public CompositionNode(int id, ResolverNode resolverNode)
+        : this(id, new[] { resolverNode.SelectionSet })
+    {
+    }
+
     public CompositionNode(int id, ISelectionSet selectionSet)
         : this(id, new[] { selectionSet })
     {

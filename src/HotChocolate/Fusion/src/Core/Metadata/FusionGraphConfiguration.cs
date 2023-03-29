@@ -101,6 +101,18 @@ internal sealed class FusionGraphConfiguration
         throw new InvalidOperationException("Type not found.");
     }
 
+    public T GetType<T>(QualifiedTypeName qualifiedTypeName) where T : IType
+    {
+        var typeName = GetTypeName(qualifiedTypeName);
+
+        if (_types.TryGetValue(typeName, out var type) && type is T casted)
+        {
+            return casted;
+        }
+
+        throw new InvalidOperationException("Type not found.");
+    }
+
     public bool TryGetType<T>(string typeName, [NotNullWhen(true)] out T? type) where T : IType
     {
         if (_types.TryGetValue(typeName, out var value) && value is T casted)
@@ -113,34 +125,6 @@ internal sealed class FusionGraphConfiguration
         return false;
     }
 
-    /// <summary>
-    /// Gets the type of the specified name and schema name.
-    /// </summary>
-    /// <typeparam name="T">The type of the specified name.</typeparam>
-    /// <param name="schemaName">The name of the schema.</param>
-    /// <param name="typeName">The name of the type.</param>
-    /// <returns>The type of the specified name and schema name.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the type is not found.</exception>
-    public T GetType<T>(string schemaName, string typeName) where T : IType
-    {
-        if (!_typeNameLookup.TryGetValue((schemaName, typeName), out var temp))
-        {
-            temp = typeName;
-        }
-
-        if (_types.TryGetValue(temp, out var type) && type is T casted)
-        {
-            return casted;
-        }
-
-        throw new InvalidOperationException("Type not found.");
-    }
-
-    public T GetType<T>(TypeInfo typeInfo) where T : IType
-    {
-        throw new NotImplementedException();
-    }
-
     public string GetTypeName(string subgraphName, string typeName)
     {
         if (!_typeNameLookup.TryGetValue((subgraphName, typeName), out var temp))
@@ -151,6 +135,9 @@ internal sealed class FusionGraphConfiguration
         return temp;
     }
 
+    public string GetTypeName(QualifiedTypeName qualifiedTypeName)
+        => GetTypeName(qualifiedTypeName.SubgraphName, qualifiedTypeName.TypeName);
+
     public string GetSubgraphTypeName(string subgraphName, string typeName)
     {
         if (!_typeNameRevLookup.TryGetValue((subgraphName, typeName), out var temp))
@@ -159,11 +146,6 @@ internal sealed class FusionGraphConfiguration
         }
 
         return temp;
-    }
-
-    public string GetTypeName(TypeInfo typeInfo)
-    {
-        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -220,15 +202,4 @@ internal sealed class SubgraphInfo
     public List<string> Entities { get; } = new();
 }
 
-public readonly struct TypeInfo
-{
-    public TypeInfo(string schemaName, string typeName)
-    {
-        SchemaName = schemaName;
-        TypeName = typeName;
-    }
-
-    public string SchemaName { get; }
-
-    public string TypeName { get; }
-}
+public readonly record struct QualifiedTypeName(string SubgraphName, string TypeName);

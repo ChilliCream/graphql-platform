@@ -10,6 +10,15 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
 {
+    private static readonly FieldNode _typeNameField =
+        new FieldNode(
+            null,
+            new NameNode(null, IntrospectionFields.TypeName),
+            null,
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            null);
     private readonly ISchema _schema;
 
     public NodeRequestDocumentFormatter(FusionGraphConfiguration configuration, ISchema schema)
@@ -127,6 +136,25 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
 
         void AddInlineFragment(IObjectType possibleType)
         {
+            var needsTypeNameField = true;
+
+            for (var i = typeSelectionNodes.Count - 1; i >= 0; i--)
+            {
+                var selection = typeSelectionNodes[i];
+
+                if (selection is FieldNode field &&
+                    field.Name.Value.EqualsOrdinal(IntrospectionFields.TypeName))
+                {
+                    needsTypeNameField = false;
+                    break;
+                }
+            }
+
+            if (needsTypeNameField)
+            {
+                typeSelectionNodes.Add(_typeNameField);
+            }
+
             var inlineFragment = new InlineFragmentNode(
                 null,
                 new NamedTypeNode(
@@ -170,15 +198,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         {
             // Since each entity type has its unique subgraph query we need to substitute
             // subgraph queries where the consumer did not specify any fields explicitly.
-            selectionNodes.Add(
-                new FieldNode(
-                    null,
-                    new NameNode(null, IntrospectionFields.TypeName),
-                    null,
-                    null,
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
-                    null));
+            selectionNodes.Add(_typeNameField);
         }
 
         // append exports that were required by other execution steps.

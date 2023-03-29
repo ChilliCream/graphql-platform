@@ -22,7 +22,7 @@ internal sealed class FusionExecutionContext : IDisposable
         GraphQLClientFactory clientFactory,
         IIdSerializer idSerializer)
     {
-        ServiceConfig = serviceConfig ??
+        Configuration = serviceConfig ??
             throw new ArgumentNullException(nameof(serviceConfig));
         QueryPlan = queryPlan ??
             throw new ArgumentNullException(nameof(queryPlan));
@@ -35,7 +35,7 @@ internal sealed class FusionExecutionContext : IDisposable
         _schemaName = Schema.Name;
     }
 
-    public FusionGraphConfiguration ServiceConfig { get; }
+    public FusionGraphConfiguration Configuration { get; }
 
     public QueryPlan QueryPlan { get; }
 
@@ -55,7 +55,7 @@ internal sealed class FusionExecutionContext : IDisposable
     public string? ReformatId(string formattedId, string subgraphName)
     {
         var id = _idSerializer.Deserialize(formattedId);
-        var typeName = ServiceConfig.GetTypeName(subgraphName, id.TypeName);
+        var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
         return _idSerializer.Serialize(_schemaName, typeName, id.Value);
     }
 
@@ -110,7 +110,7 @@ internal sealed class FusionExecutionContext : IDisposable
         FusionExecutionContext context,
         OperationContextOwner operationContextOwner)
         => new FusionExecutionContext(
-            context.ServiceConfig,
+            context.Configuration,
             context.QueryPlan,
             operationContextOwner,
             context._clientFactory,

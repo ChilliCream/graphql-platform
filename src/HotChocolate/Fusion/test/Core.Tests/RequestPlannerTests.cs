@@ -9,8 +9,8 @@ using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
+using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Fusion;
 
@@ -590,6 +590,45 @@ public class RequestPlannerTests
                         reviews {
                             body
                         }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_16_Two_Node_Fields_Aliased()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query FetchNode($a: ID! $b: ID!) {
+                a: node(id: $a) {
+                    ... on User {
+                        id
+                    }
+                }
+                b: node(id: $b) {
+                    ... on User {
+                        id
                     }
                 }
             }
