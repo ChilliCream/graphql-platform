@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
@@ -964,6 +965,21 @@ public class AnnotationBasedMutations
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task List_Return_Type()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<ListReturnMutation>()
+                .AddType<ListReturnMutation.ResultItem>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -1274,4 +1290,25 @@ public class AnnotationBasedMutations
     }
 
     public record DoSomething2Payload(int? UserId);
+
+    public class ListReturnMutation
+    {
+        public MutationResult<List<ResultItem>> AddItem(AddItemInput input)
+            => new List<ResultItem>
+            {
+                new(),
+                new(),
+                new()
+            };
+
+        public class AddItemInput
+        {
+            public int Count { get; set; }
+        }
+
+        public class ResultItem
+        {
+            public string Name { get; set; } = "Test";
+        }
+    }
 }
