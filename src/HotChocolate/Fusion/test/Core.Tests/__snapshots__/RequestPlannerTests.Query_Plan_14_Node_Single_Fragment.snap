@@ -25,13 +25,18 @@ QueryPlan
           {
             "type": "Review",
             "node": {
-              "type": "Resolver",
-              "subgraph": "Reviews2",
-              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
-              "selectionSetId": 0,
-              "forwardedVariables": [
+              "type": "Serial",
+              "nodes": [
                 {
-                  "variable": "id"
+                  "type": "Resolver",
+                  "subgraph": "Reviews2",
+                  "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+                  "selectionSetId": 0,
+                  "forwardedVariables": [
+                    {
+                      "variable": "id"
+                    }
+                  ]
                 }
               ]
             }
@@ -39,13 +44,18 @@ QueryPlan
           {
             "type": "User",
             "node": {
-              "type": "Resolver",
-              "subgraph": "Reviews2",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { id } } }",
-              "selectionSetId": 0,
-              "forwardedVariables": [
+              "type": "Serial",
+              "nodes": [
                 {
-                  "variable": "id"
+                  "type": "Resolver",
+                  "subgraph": "Reviews2",
+                  "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { id } } }",
+                  "selectionSetId": 0,
+                  "forwardedVariables": [
+                    {
+                      "variable": "id"
+                    }
+                  ]
                 }
               ]
             }

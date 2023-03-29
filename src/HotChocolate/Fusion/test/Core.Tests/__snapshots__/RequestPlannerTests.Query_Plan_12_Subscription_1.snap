@@ -22,9 +22,14 @@ QueryPlan
     "selectionSetId": 0,
     "nodes": [
       {
-        "type": "Composition",
-        "selectionSetIds": [
-          0
+        "type": "Serial",
+        "nodes": [
+          {
+            "type": "Composition",
+            "selectionSetIds": [
+              0
+            ]
+          }
         ]
       }
     ]

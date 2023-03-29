@@ -31,7 +31,24 @@ QueryPlan
         ]
       },
       {
-        "type": "BatchResolver"
+        "type": "BatchResolver",
+        "subgraph": "Accounts",
+        "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { birthdate __fusion_exports__1: id } }",
+        "selectionSetId": 2,
+        "argumentTypes": [
+          {
+            "argument": "__fusion_exports__1",
+            "type": "[ID!]!"
+          }
+        ],
+        "path": [
+          "usersById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
       },
       {
         "type": "Composition",
@@ -80,7 +97,7 @@ Result
 
 Fusion Graph
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") @node(subgraph: "Reviews2", types: [ "User", "Review" ]) @node(subgraph: "Accounts", types: [ "User" ]) {
   query: Query
   mutation: Mutation
   subscription: Subscription
@@ -88,9 +105,9 @@ schema @fusion(version: 1) @httpClient(subgraph: "Reviews2", baseAddress: "http:
 
 type Query {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @node(subgraph: "Reviews2", types: [ "User", "Review" ]) @node(subgraph: "Accounts", types: [ "User" ])
+  node("ID of the object." id: ID!): Node @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]! @variable(subgraph: "Reviews2", name: "ids", argument: "ids") @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ]) @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ]) @node(subgraph: "Reviews2", types: [ "User", "Review" ]) @node(subgraph: "Accounts", types: [ "User" ])
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @variable(subgraph: "Reviews2", name: "ids", argument: "ids") @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ]) @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
   productById(id: ID!): Product @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewById(id: ID!): Review @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewOrAuthor: ReviewOrAuthor! @resolver(subgraph: "Reviews2", select: "{ reviewOrAuthor }")

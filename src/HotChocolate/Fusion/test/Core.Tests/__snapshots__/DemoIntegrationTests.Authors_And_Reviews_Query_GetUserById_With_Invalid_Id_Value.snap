@@ -17,8 +17,8 @@ QueryPlan
     "nodes": [
       {
         "type": "Resolver",
-        "subgraph": "Reviews2",
-        "document": "query GetUser_1 { userById: authorById(id: 1) { id } }",
+        "subgraph": "Accounts",
+        "document": "query GetUser_1 { userById(id: 1) { id } }",
         "selectionSetId": 0
       },
       {

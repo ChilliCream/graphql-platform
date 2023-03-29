@@ -356,9 +356,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     entityTypeInfo,
                     selectionExecutionStep);
 
-            selectionExecutionStep.DependsOn.Add(nodeEntityExecutionStep);
+            // the dependsOn relationship is used to build the execution tree.
+            // since the nodeEntityExecutionStep is removed later in the pipeline we need
+            // a direct dependency between selection and node.
+            selectionExecutionStep.DependsOn.Add(nodeExecutionStep);
             nodeEntityExecutionStep.DependsOn.Add(nodeExecutionStep);
             nodeExecutionStep.EntitySteps.Add(nodeEntityExecutionStep);
+
             context.Steps.Add(nodeEntityExecutionStep);
         }
     }

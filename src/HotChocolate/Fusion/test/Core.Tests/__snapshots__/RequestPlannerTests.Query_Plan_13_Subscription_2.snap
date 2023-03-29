@@ -23,29 +23,34 @@ QueryPlan
     "selectionSetId": 0,
     "nodes": [
       {
-        "type": "Composition",
-        "selectionSetIds": [
-          0
-        ]
-      },
-      {
-        "type": "Resolver",
-        "subgraph": "Accounts",
-        "document": "query OnNewReview_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
-        "selectionSetId": 2,
-        "path": [
-          "userById"
-        ],
-        "requires": [
+        "type": "Serial",
+        "nodes": [
           {
-            "variable": "__fusion_exports__1"
+            "type": "Composition",
+            "selectionSetIds": [
+              0
+            ]
+          },
+          {
+            "type": "Resolver",
+            "subgraph": "Accounts",
+            "document": "query OnNewReview_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
+            "selectionSetId": 2,
+            "path": [
+              "userById"
+            ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__1"
+              }
+            ]
+          },
+          {
+            "type": "Composition",
+            "selectionSetIds": [
+              2
+            ]
           }
-        ]
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          2
         ]
       }
     ]

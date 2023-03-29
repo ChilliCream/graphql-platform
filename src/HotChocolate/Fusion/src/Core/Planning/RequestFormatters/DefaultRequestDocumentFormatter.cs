@@ -7,6 +7,5 @@ internal sealed class DefaultRequestDocumentFormatter : RequestDocumentFormatter
     public DefaultRequestDocumentFormatter(FusionGraphConfiguration configuration)
         : base(configuration)
     {
-
     }
 }
