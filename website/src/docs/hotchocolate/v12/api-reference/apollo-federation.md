@@ -368,8 +368,6 @@ _Entities query result_
 
 # Referencing an entity type
 
-**TODO: structure section with "reference a type", "contibute new fields" followed by "extend with computed fields"**
-
 Now that we have an entity defined in one of our subgraphs, let's go ahead and create a second subgraph that will make use of our `Product` type. Remember, all of this work should be performed in a _**separate API project**_.
 
 In the second subgraph, we'll create a `Review` type that is focused on providing reviews of `Product` entities from the other subgraph. We'll do that by defining our `Review` type along with a [service type reference](https://www.apollographql.com/docs/federation/entities/#referencing-an-entity-without-contributing-fields) that represents the `Product`.
@@ -706,11 +704,3 @@ query {
   }
 }
 ```
-
-## Contributing computed entity fields
-
-TODO
-
-# Using the subgraphs
-
-TODO
