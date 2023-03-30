@@ -60,7 +60,7 @@ public class Product
 
 public class ProductType : ObjectType<Product>
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
         descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
     }
@@ -117,7 +117,7 @@ public class Product
 
 public class ProductType : ObjectType<Product>
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
         descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
 
@@ -222,7 +222,7 @@ public class Product
 
 public class ProductType : ObjectType<Product>
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
         descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
 
@@ -250,7 +250,7 @@ Some important details to highlight about entity reference resolvers.
 ```csharp
 public class ProductType : ObjectType<Product>
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
         descriptor.Key("id")
             .ResolveReferenceWith(_ => ResolveByIdAsync(default!));
@@ -374,7 +374,11 @@ Now that we have an entity defined in one of our subgraphs, let's go ahead and c
 
 In the second subgraph, we'll create a `Review` type that is focused on providing reviews of `Product` entities from the other subgraph. We'll do that by defining our `Review` type along with a [service type reference](https://www.apollographql.com/docs/federation/entities/#referencing-an-entity-without-contributing-fields) that represents the `Product`.
 
-In our new subgraph API we'll need to start by creating the `Product` and defining it with an entity key that matches at least one key from the original subgraph, in our case the `id: ID!` field.
+In our new subgraph API we'll need to start by creating the `Product`. When creating the extended service type, make sure to consider the following details
+
+- The _GraphQL type name_ **must match**. Often, this can be accomplished by using the same class name between the projects, but you can also use tools like the `[GraphQLName(string)]` attribute or `IObjectTypeDescriptor<T>.Name(string)` method to explicitly set a GraphQL name.
+- The extended type must include _at least one_ key that matches in both name and GraphQL type from the source graph.
+    - In our example, we'll be referencing the `id: ID!` field that was defined on our `Product`
 
 <ExampleTabs>
 
@@ -384,6 +388,7 @@ In our new subgraph API we'll need to start by creating the `Product` and defini
 [ExtendServiceType]
 public class Product
 {
+    [GraphQLType(typeof(NonNullType<IdType>))]
     [Key]
     public string Id { get; set; }
 }
@@ -406,11 +411,12 @@ public class Product
 
 public class ProductType : ObjectType<Product>
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
         descriptor.ExtendServiceType();
 
         descriptor.Key("id");
+        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
     }
 }
 
@@ -430,7 +436,7 @@ services.AddGraphQLServer()
 
 </ExampleTabs>
 
-Next, we'll create our `Review` type that has a reference to the `Product` entity. Similar to our first class, we'll need to denote the type's key(s) and the corresponding entity reference resovlers.
+Next, we'll create our `Review` type that has a reference to the `Product` entity. Similar to our first class, we'll need to denote the type's key(s) and the corresponding entity reference resovler(s).
 
 <ExampleTabs>
 
@@ -448,8 +454,7 @@ public class Review
     [GraphQLIgnore]
     public string ProductId { get; set; }
 
-    [GraphQLName("product")]
-    public Product GetReviewedProduct() => new Product { Id = ProductId };
+    public Product GetProduct() => new Product { Id = ProductId };
 
     [ReferenceResolver]
     public static Review? ResolveReference(string id)
@@ -457,13 +462,52 @@ public class Review
         // Omitted for brevity; some kind of service to retrieve the review.
     }
 }
+
+// In your Startup or Program
+services.AddGraphQLServer()
+    .AddApolloFederation()
+    .AddType<Product>()
+    .AddType<Review>();
 ```
 
 </Annotation>
 
 <Code>
 
+```csharp
+public class Review
+{
+    public string Id { get; set; }
 
+    public string Content { get; set; }
+
+    public string ProductId { get; set; }
+
+    public Product GetProduct() => new Product { Id = ProductId };
+}
+
+public class ReviewType : ObjectType<Review>
+{
+    protected override void Configure(IObjectTypeDescriptor<Review> descriptor)
+    {
+        descriptor.Key("id").ResolveReferenceWith(_ => ResolveReviewById(default!));
+        descriptor.Field(review => review.Id).Type<NonNullType<IdType>>();
+
+        descriptor.Ignore(review => review.ProductId);
+    }
+
+    private static Review? ResolveReviewById(string id)
+    {
+        // Omitted for brevity
+    }
+}
+
+// In your Startup or Program
+services.AddGraphQLServer()
+    .AddApolloFederation()
+    .AddType<ProductType>()
+    .AddType<ReviewType>();
+```
 
 </Code>
 
@@ -474,6 +518,29 @@ public class Review
 </Schema>
 
 </ExampleTabs>
+
+In the above snippet two things may pop out as strnage to you:
+1. Why did we explictly ignore the `ProductId` property?
+    - The `ProductId` is, in essence, a "foreign key" to the other graph. Instead of presenting that data as a field of the `Review` type, we're presenting it through the `product: Product!` GraphQL field that is produced by the `GetProduct()` method. This allows the Apollo supergraph to stitch the `Review` and `Product` types together and represent that a query can traverse from the `Review` to the `Product` it is reviewing and make the API more graph-like. With that said, it is not strictly necessary to ignore the `ProductId` or any other external entity Id property.
+2. Why does the `GetProduct()` method instantiate its own `new Product { Id = ProductId }` object?
+    - Since our goal with Apollo Federation is decomposition and [concern-based separation](https://www.apollographql.com/docs/federation/#concern-based-separation), a second subgraph is likely to have that "foreign key" reference to the type that is reference from the other subgraph. However, this graph does not "own" the actual data of the entity itself. This is why our sample simply performs a `new Product { Id = ProductId }` statement for the resolver: it's not opinionated about how the other data of a `Product` is resolved from its owning graph.
+
+With our above changes, we can successfully connect these two subgraphs into a single query within an Apollo supergraph, allowing our API users to send a query like the following.
+```graphql
+query {
+  # Example - not explicitly defined in our tutorial
+  review(id: "<review id>") {
+    id
+    content
+    product {
+      id
+      name
+    }
+  }
+}
+```
+
+As a reminder, you can create and configure a supergraph by following either the [Apollo Router documentation](https://www.apollographql.com/docs/router/quickstart/) or [`@apollo/gateway` documentation](https://www.npmjs.com/package/@apollo/gateway).
 
 The process will start off very similarly: add the necessary package; register the services in your `IServiceCollection`; create the entity type and its `[Key]`; create a `[ReferenceResolver]` for the type; and register the type in the API. In this case, we'll only start by adding the `[Key]` attribute the subgraph will use for resolving the additional data, and a bare-bones reference resolver.
 
@@ -500,23 +567,18 @@ services.AddGraphQLServer()
     .AddType<Product>();
 ```
 
-With the type defined, we'll add the `[ExtendedServiceType]`attribute to our class to denote it's a type extension. This will indicate to the supergraph that this subgraph's type is only [contributing new entity fields](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields) to the type.
+With the type defined, we'll add the `[ExtendServiceType]`attribute to our class to denote it's a type extension. This will indicate to the supergraph that this subgraph's type is only [contributing new entity fields](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields) to the type.
 
 ```csharp
-[ExtendedServiceType]
+[ExtendServiceType]
 public class Product
 {
     // Omitted for brevity
 }
 ```
 
-When creating the extended type, make sure to consider the following details
-
-- The GraphQL type of the `[Key]` **must match** between the subgraphs.
-- The _GraphQL type name_ **must match**. Often, this can be accomplished by using the same class name between the projects, but you can also use tools like the `[GraphQLName(string)]` attribute to override a type name to ensure the types match.
-
 ```csharp
-[ExtendedServiceType]
+[ExtendServiceType]
 [GraphQLName("Product")]
 public class ExtendedProductType
 {
@@ -525,7 +587,7 @@ public class ExtendedProductType
 ```
 
 - A `[ReferenceResolver]` method may not need to access a data store to resolve an object of the specified type.
-  - Since our goal with Apollo Federation is decomposition and [concern-based separation](https://www.apollographql.com/docs/federation/#concern-based-separation), a second subgraph may have a "foreign key" reference to the type being extended but it does not "own" the actual data of the entity itself. This is why our sample simply performs a `new Product { Id = id }` statement for the resolver.
+
 
 ## Contributing fields through method resolvers
 
