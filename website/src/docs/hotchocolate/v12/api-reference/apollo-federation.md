@@ -542,107 +542,168 @@ query {
 
 As a reminder, you can create and configure a supergraph by following either the [Apollo Router documentation](https://www.apollographql.com/docs/router/quickstart/) or [`@apollo/gateway` documentation](https://www.npmjs.com/package/@apollo/gateway).
 
-The process will start off very similarly: add the necessary package; register the services in your `IServiceCollection`; create the entity type and its `[Key]`; create a `[ReferenceResolver]` for the type; and register the type in the API. In this case, we'll only start by adding the `[Key]` attribute the subgraph will use for resolving the additional data, and a bare-bones reference resolver.
+## Contributing fields through resolvers
 
-```csharp
-public class Product
-{
-    [GraphQLType(typeof(NonNullType<IdType>))]
-    [Key]
-    public string Id { get; set; }
+Now that our new subgraph has the `Product` reference we can [contibute additional fields to the type](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields). Similar to other types in Hot Chocolate, you can create new fields by defining different method or property resolvers. For a full set of details and examples on creating resolvers, you can read our [documentation on resolvers](/docs/hotchocolate/v12/fetching-data/resolvers).
 
-    [ReferenceResolver]
-    public static async Task<Product> ResolveProductAsync(string id)
-    {
-        return new Product
-        {
-            Id = id
-        };
-    }
-}
+For now, we'll focus on giving our supergraph the ability to retrieve all reviews for a given product by adding a `reviews: [Review!]!` property to the type.
 
-// In your Startup or Program
-services.AddGraphQLServer()
-    .AddApolloFederation()
-    .AddType<Product>();
-```
+<ExampleTabs>
 
-With the type defined, we'll add the `[ExtendServiceType]`attribute to our class to denote it's a type extension. This will indicate to the supergraph that this subgraph's type is only [contributing new entity fields](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields) to the type.
+<Annotation>
 
 ```csharp
 [ExtendServiceType]
 public class Product
 {
-    // Omitted for brevity
+    [GraphQLType(typeof(NonNullType<IdType>))]
+    [Key]
+    public string Id { get; set; }
+
+    public async Task<IEnumerable<Review>> GetReviews(
+        [Service] ReviewRepository repo // example of how you might resolve this data
+    )
+    {
+        return await repo.GetReviewsByProductIdAsync(Id);
+    }
 }
 ```
+
+</Annotation>
+
+<Code>
+
+```csharp
+public class Product
+{
+    public string Id { get; set; }
+
+    public async Task<IEnumerable<Review>> GetReviews(
+        [Service] ReviewRepository repo // example of how you might resolve this data
+    )
+    {
+        return await repo.GetReviewsByProductIdAsync(Id);
+    }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
+    {
+        descriptor.ExtendServiceType();
+
+        descriptor.Key("id");
+        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+    }
+}
+```
+
+</Code>
+
+<Schema>
+
+**Coming soon**
+
+</Schema>
+
+</ExampleTabs>
+
+These changes will successfully add the new field within the subgraph! However, our current implementation cannot be resolved if we start at a product such as `query { product(id: "foo") { reviews { ... } } }`. To fix this, we'll need to implement an entity reference resolver in our second subgraph.
+
+As mentioned above, since this subgraph does not "own" the data for a `Product`, our resolver will be fairly naive, similar to the `Review::GetProduct()` method: it will simply instantiate a `new Product { Id = id }`. We do this because the reference resolver should only be directly invoked by the supergraph, so our new reference resolver will simply assume the data exists. However, if there is data that needs to be fetched from some kind of data store, the resolver can still do this just as any other data resolver in Hot Chocolate.
+
+<ExampleTabs>
+
+<Annotation>
 
 ```csharp
 [ExtendServiceType]
-[GraphQLName("Product")]
-public class ExtendedProductType
-{
-    // Omitted for brevity
-}
-```
-
-- A `[ReferenceResolver]` method may not need to access a data store to resolve an object of the specified type.
-
-
-## Contributing fields through method resolvers
-
-Similar to other types in Hot Chocolate, you can include new fields in a type using method resolvers within the type. For a full set of details and examples, you can read our [documentation on resolvers](/docs/hotchocolate/v12/fetching-data/resolvers).
-
-```csharp
 public class Product
 {
     [GraphQLType(typeof(NonNullType<IdType>))]
     [Key]
     public string Id { get; set; }
 
-    [ReferenceResolver]
-    public static async Task<Product> ResolveProductAsync(string id)
+    public async Task<IEnumerable<Review>> GetReviews(
+        [Service] ReviewRepository repo // example of how you might resolve this data
+    )
     {
-        return new Product
-        {
-            Id = id
-        };
+        return await repo.GetReviewsByProductIdAsync(Id);
     }
 
-    // Contributes the "isInStock: Boolean!" field to the type.
-    public async Task<bool> IsInStock([Service] IInventoryService inventoryService) => await inventoryService.CheckIfInStockAsync(Id);
+    [ReferenceResolver]
+    public static Product ResolveProductReference(string id) => new Product { Id = id };
 }
 ```
 
-## Contributing fields through property resolvers
+</Annotation>
 
-An extended service type can also contribute new fields using a property resolver. Generally, these properties will need to be populated as part of `[ReferenceResolver]` method, since that is when the object is instantiated.
+<Code>
 
 ```csharp
 public class Product
 {
-    [GraphQLType(typeof(NonNullType<IdType>))]
-    [Key]
     public string Id { get; set; }
 
-    // Contributes a "weight: Float!" field to the type.
-    public float Weight { get; set; }
-
-    // Contributes a "freeShipping: Boolean!" field to the type.
-    public bool FreeShipping => Weight <= 1.5;
-
-    [ReferenceResolver]
-    public static async Task<Product> ResolveProductAsync(string id, [Service] IInventoryService inventoryService)
+    public async Task<IEnumerable<Review>> GetReviews(
+        [Service] ReviewRepository repo // example of how you might resolve this data
+    )
     {
-        return new Product
-        {
-            Id = id,
-            Weight = await inventoryService.GetProductWeightAsync(id)
-        };
+        return await repo.GetReviewsByProductIdAsync(Id);
+    }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
+    {
+        descriptor.ExtendServiceType();
+
+        descriptor.Key("id").ResolveReferenceWith(_ => ResolveProductReference(default!));
+        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
     }
 
-    // Contributes the "isInStock: Boolean!" field to the type.
-    public async Task<bool> IsInStock([Service] IInventoryService inventoryService) => await inventoryService.CheckIfInStockAsync(Id);
+    private static Product ResolveProductReference(string id) => new Product { Id = id };
+}
+```
+
+</Code>
+
+<Schema>
+
+**Coming soon**
+
+</Schema>
+
+</ExampleTabs>
+
+With the above changes, our supergraph can now support traversing both "from a review to a product" as well as "from a product to a review"!
+
+```graphql
+# Example root query fields - not implemented in the tutorial
+query {
+  # From a review to a product (back to the reviews)
+  review(id: "foo") {
+    id
+    content
+    product {
+      id
+      name
+      price
+      reviews {
+        id content
+      }
+    }
+  }
+  # From a product to a review
+  product(id: "bar") {
+    id
+    name
+    price
+    reviews {
+      id content
+    }
+  }
 }
 ```
 
