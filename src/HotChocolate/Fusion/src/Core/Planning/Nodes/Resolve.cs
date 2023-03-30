@@ -9,10 +9,10 @@ namespace HotChocolate.Fusion.Planning;
 /// <summary>
 /// The resolver node is responsible for executing a GraphQL request on a subgraph.
 /// </summary>
-internal sealed class ResolverNode : ResolverNodeBase
+internal sealed class Resolve : ResolverNodeBase
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="ResolverNode"/>.
+    /// Initializes a new instance of <see cref="Resolve"/>.
     /// </summary>
     /// <param name="id">
     /// The unique id of this node.
@@ -35,7 +35,7 @@ internal sealed class ResolverNode : ResolverNodeBase
     /// <param name="forwardedVariables">
     /// The variables that this request handler forwards to the subgraph.
     /// </param>
-    public ResolverNode(
+    public Resolve(
         int id,
         string subgraphName,
         DocumentNode document,
@@ -50,7 +50,7 @@ internal sealed class ResolverNode : ResolverNodeBase
     /// <summary>
     /// Gets the kind of this node.
     /// </summary>
-    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Resolver;
+    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Resolve;
 
     /// <summary>
     /// Executes this resolver node.

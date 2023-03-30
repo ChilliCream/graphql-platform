@@ -18,34 +18,23 @@ QueryPlan
   "document": "query FetchNode($id: ID!) { node(id: $id) { ... on User { birthdate reviews { body } } } }",
   "operation": "FetchNode",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "NodeResolver",
+        "type": "ResolveNode",
         "selectionId": 0,
         "responseName": "node",
         "branches": [
           {
             "type": "Review",
             "node": {
-              "type": "Serial",
-              "nodes": [
+              "type": "Resolve",
+              "subgraph": "Reviews2",
+              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
                 {
-                  "type": "Resolver",
-                  "subgraph": "Reviews2",
-                  "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
-                  "selectionSetId": 0,
-                  "forwardedVariables": [
-                    {
-                      "variable": "id"
-                    }
-                  ]
-                },
-                {
-                  "type": "Composition",
-                  "selectionSetIds": [
-                    0
-                  ]
+                  "variable": "id"
                 }
               ]
             }
@@ -53,48 +42,76 @@ QueryPlan
           {
             "type": "User",
             "node": {
-              "type": "Serial",
-              "nodes": [
+              "type": "Resolve",
+              "subgraph": "Reviews2",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
                 {
-                  "type": "Resolver",
-                  "subgraph": "Reviews2",
-                  "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
-                  "selectionSetId": 0,
-                  "forwardedVariables": [
-                    {
-                      "variable": "id"
-                    }
-                  ]
-                },
-                {
-                  "type": "Composition",
-                  "selectionSetIds": [
-                    0
-                  ]
-                },
-                {
-                  "type": "Resolver",
-                  "subgraph": "Accounts",
-                  "document": "query FetchNode_3($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
-                  "selectionSetId": 2,
-                  "path": [
-                    "userById"
-                  ],
-                  "requires": [
-                    {
-                      "variable": "__fusion_exports__1"
-                    }
-                  ]
-                },
-                {
-                  "type": "Composition",
-                  "selectionSetIds": [
-                    2
-                  ]
+                  "variable": "id"
                 }
               ]
             }
           }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Parallel",
+        "nodes": [
+          {
+            "type": "Resolve",
+            "subgraph": "Reviews2",
+            "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "id"
+              }
+            ]
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "Reviews2",
+            "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "id"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Resolve",
+        "subgraph": "Accounts",
+        "document": "query FetchNode_3($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
+        "selectionSetId": 2,
+        "path": [
+          "userById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          2
         ]
       }
     ]

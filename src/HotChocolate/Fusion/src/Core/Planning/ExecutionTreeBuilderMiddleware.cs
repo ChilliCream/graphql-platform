@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using static HotChocolate.Fusion.Planning.QueryPlanNodeKind;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -30,7 +29,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             // If there are nodes that are dependant on the root node and are
             // not yet integrated into the execution tree we will start
             // processing the backlog to do so.
-            ProcessBacklog(context, backlog, completed);
+            ProcessBacklog(context, backlog);
         }
 
         // Last we will create the query plan.
@@ -45,17 +44,13 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         next(context);
     }
 
-    private readonly record struct BacklogItem(
-        NodeAndStep[] Batch,
-        SerialNode Parent,
-        ImmutableHashSet<ExecutionStep> Completed);
 
-    private readonly record struct NodeAndStep(QueryPlanNode Node, ExecutionStep Step);
+
+
 
     private void ProcessBacklog(
         QueryPlanContext context,
-        Queue<BacklogItem> backlog,
-        HashSet<ExecutionStep> completed)
+        Queue<BacklogItem> backlog)
     {
         while (backlog.TryDequeue(out var next))
         {
@@ -63,8 +58,6 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             {
                 continue;
             }
-
-            var pathCompleted = next.Completed;
 
             // If the batch contains only one node we can add it to the parent node which will be
             // a serial node. Same applies if the current batch steps deal with the
@@ -78,55 +71,48 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
                 var single = next.Batch[0];
                 next.Parent.AddNode(single.Node);
 
-                if (single.Node.Kind is not NodeResolver)
-                {
-                    var selectionSet = ResolveSelectionSet(context, single.Step);
-                    var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
-                    next.Parent.AddNode(compose);
-                }
+                var selectionSet = ResolveSelectionSet(context, single.Step);
+                var compose = new Compose(context.NextNodeId(), selectionSet);
+                next.Parent.AddNode(compose);
 
-                context.Nodes.Remove(single.Step);
-                completed.Add(single.Step);
-                pathCompleted = pathCompleted.Add(single.Step);
+                context.Complete(single.Step);
 
-                RegisterBranches(context, single.Node, next.Completed, backlog);
+                // RegisterBranches(context, single.Node, next.Completed, backlog);
             }
 
             // If there are multiple side-effect-free nodes we can
             // group them into a parallel execution node.
             else
             {
-                var parallel = new ParallelNode(context.CreateNodeId());
+                var parallel = new Parallel(context.NextNodeId());
                 var selectionSets = new List<ISelectionSet>();
 
                 foreach (var item in next.Batch)
                 {
-                    if (item.Node.Kind is not NodeResolver)
+                    if (item.Node.Kind is not QueryPlanNodeKind.ResolveNode)
                     {
                         selectionSets.Add(ResolveSelectionSet(context, item.Step));
                     }
 
                     parallel.AddNode(item.Node);
-                    context.Nodes.Remove(item.Step);
-                    completed.Add(item.Step);
-                    pathCompleted = pathCompleted.Add(item.Step);
+                    context.Complete(item.Step);
 
-                    RegisterBranches(context, item.Node, next.Completed, backlog);
+                    // RegisterBranches(context, item.Node, next.Completed, backlog);
                 }
 
                 // we will chain a single composition step at the end.
                 // The parent node always is serial.
-                var compose = new CompositionNode(context.CreateNodeId(), selectionSets);
+                var compose = new Compose(context.NextNodeId(), selectionSets);
 
                 next.Parent.AddNode(parallel);
                 next.Parent.AddNode(compose);
             }
 
-            var batch = CreateBatch(context, pathCompleted);
+            var batch = context.NextBatch();
 
             if (batch.Length > 0)
             {
-                backlog.Enqueue(new BacklogItem(batch, next.Parent, pathCompleted));
+                backlog.Enqueue(new BacklogItem(batch, next.Parent));
             }
         }
     }
@@ -136,7 +122,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         Queue<BacklogItem> backlog,
         HashSet<ExecutionStep> completed)
     {
-        var parent = new SerialNode(context.CreateNodeId());
+        var parent = new Sequence(context.NextNodeId());
 
         var batch = context.Nodes
             .Where(t => t.Key.DependsOn.Count == 0)
@@ -158,25 +144,19 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         Queue<BacklogItem> backlog,
         HashSet<ExecutionStep> completed)
     {
-        var (step, root) = context.Nodes.First(t => t.Value.Kind is Subscription);
+        var (step, root) = context.Nodes.First(t => t.Value.Kind is QueryPlanNodeKind.Subscribe);
 
-        var parent = new SerialNode(context.CreateNodeId());
+        var parent = new Sequence(context.NextNodeId());
         root.AddNode(parent);
 
+
         var selectionSet = ResolveSelectionSet(context, step);
-        var compose = new CompositionNode(context.CreateNodeId(), selectionSet);
+        var compose = new Compose(context.NextNodeId(), selectionSet);
         parent.AddNode(compose);
-
-        completed.Add(step);
-        context.Nodes.Remove(step);
-
-        var batch = context.Nodes
-            .Where(t => completed.IsSupersetOf(t.Key.DependsOn))
-            .Select(t => new NodeAndStep(t.Value, t.Key))
-            .ToArray();
+        context.Complete(step);
 
         var backlogItem = new BacklogItem(
-            batch,
+            context.NextBatch(),
             parent,
             completed.ToImmutableHashSet());
 
@@ -185,62 +165,27 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         return root;
     }
 
-    private static void RegisterBranches(
+    private static void RegisterChildren(
         QueryPlanContext context,
-        QueryPlanNode node,
-        ImmutableHashSet<ExecutionStep> completed,
-        Queue<BacklogItem> backlog)
+        Stack<QueryPlanNode> stack,
+        QueryPlanNode node)
     {
-        if (node.Kind == NodeResolver)
+        stack.Clear();
+        stack.Push(node);
+
+        while (stack.TryPop(out var current))
         {
-            foreach (var branch in node.Nodes)
+            foreach (var next in current.Nodes)
             {
-                if (branch is not SerialNode serialNode)
-                {
-                    // todo : error helper
-                    throw new InvalidOperationException(
-                        "A node branch must be  serial node.");
-                }
+                stack.Push(next);
+            }
 
-                if (serialNode.Nodes.Count == 0)
-                {
-                    // todo : error helper
-                    throw new InvalidOperationException(
-                        "A node branch must contain at least one node.");
-                }
-
-                var resolverNode = serialNode.Nodes[0];
-                var result = context.Nodes.FirstOrDefault(t => t.Value.Equals(resolverNode));
-
-                if (result.Value != resolverNode)
-                {
-                    continue;
-                }
-
-                context.Nodes.Remove(result.Key);
-
-                var branchCompleted = completed.Add(result.Key);
-                var branchBatch = CreateBatch(context, branchCompleted);
-
-                if (branchBatch.Length > 0)
-                {
-                    var branchBacklog = new BacklogItem(
-                        branchBatch,
-                        serialNode,
-                        branchCompleted);
-                    backlog.Enqueue(branchBacklog);
-                }
+            if (current is ResolverNodeBase resolver)
+            {
+                resolver.SelectionSet
             }
         }
     }
-
-    private static NodeAndStep[] CreateBatch(
-        QueryPlanContext context,
-        ImmutableHashSet<ExecutionStep> completed)
-        => context.Nodes
-            .Where(t => completed.IsSupersetOf(t.Key.DependsOn))
-            .Select(t => new NodeAndStep(t.Value, t.Key))
-            .ToArray();
 
     private ISelectionSet ResolveSelectionSet(
         QueryPlanContext context,
@@ -250,13 +195,15 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
                 _schema.GetType<Types.ObjectType>(executionStep.SelectionSetTypeInfo.Name));
+
+    private readonly record struct BacklogItem(NodeAndStep[] Batch, Sequence Parent);
 }
 
 static file class ExecutionTreeBuilderMiddlewareExtensions
 {
-    public static SerialNode ExpectSerial(this QueryPlanNode node)
+    public static Sequence ExpectSerial(this QueryPlanNode node)
     {
-        if (node is not SerialNode serialNode)
+        if (node is not Sequence serialNode)
         {
             throw new ArgumentException(
                 "The node is expected to be a serial node.");
@@ -265,3 +212,5 @@ static file class ExecutionTreeBuilderMiddlewareExtensions
         return serialNode;
     }
 }
+
+internal readonly record struct NodeAndStep(QueryPlanNode Node, ExecutionStep Step);

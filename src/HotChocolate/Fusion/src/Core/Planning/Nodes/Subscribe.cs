@@ -14,12 +14,12 @@ using static HotChocolate.WellKnownContextData;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// A subscription node represents a subscription operation that is executed on a subgraph.
+/// A subscribe represents a subscription operation that is executed on a subgraph.
 /// </summary>
-internal sealed class SubscriptionNode : ResolverNodeBase
+internal sealed class Subscribe : ResolverNodeBase
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="SubscriptionNode"/>.
+    /// Initializes a new instance of <see cref="Subscribe"/>.
     /// </summary>
     /// <param name="id">
     /// The unique id of this node.
@@ -42,7 +42,7 @@ internal sealed class SubscriptionNode : ResolverNodeBase
     /// <param name="forwardedVariables">
     /// The variables that this request handler forwards to the subgraph.
     /// </param>
-    public SubscriptionNode(
+    public Subscribe(
         int id,
         string subgraphName,
         DocumentNode document,
@@ -57,7 +57,7 @@ internal sealed class SubscriptionNode : ResolverNodeBase
     /// <summary>
     /// Gets the kind of this node.
     /// </summary>
-    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Subscription;
+    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Subscribe;
 
     /// <summary>
     /// Subscribes to a subgraph subscription and runs the query plan every

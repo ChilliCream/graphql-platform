@@ -40,23 +40,20 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
             if (selectionStep.Resolver?.Kind == BatchByKey)
             {
-                var fetchNode = CreateBatchResolverNode(
-                    context,
-                    selectionStep,
-                    selectionStep.Resolver);
-                context.Nodes.Add(selectionStep, fetchNode);
+                var resolve = CreateResolveByKeyBatchNode(context, selectionStep);
+                context.RegisterNode(resolve, selectionStep);
             }
             else if (selectionStep.Resolver is null &&
                 selectionStep.RootSelections.Count == 1 &&
                 selectionStep.RootSelections[0].Resolver?.Kind is Subscription)
             {
-                var fetchNode = CreateSubscription(context, selectionStep);
-                context.Nodes.Add(selectionStep, fetchNode);
+                var resolve = CreateSubscribeNode(context, selectionStep);
+                context.RegisterNode(resolve, selectionStep);
             }
             else
             {
-                var fetchNode = CreateResolverNode(context, selectionStep);
-                context.Nodes.Add(selectionStep, fetchNode);
+                var resolve = CreateResolveNode(context, selectionStep);
+                context.RegisterNode(resolve, selectionStep);
             }
         }
 
@@ -75,39 +72,33 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             {
                 if (executionStep is NodeExecutionStep nodeStep)
                 {
-                    var nodeResolverNode = new NodeResolverNode(
-                        context.CreateNodeId(),
+                    var nodeResolverNode = new ResolveNode(
+                        context.NextNodeId(),
                         nodeStep.NodeSelection);
-                    context.Nodes.Add(nodeStep, nodeResolverNode);
-                    context.HasNodes.Add(context.Operation.RootSelectionSet);
+                    context.RegisterNode(nodeResolverNode, nodeStep);
+                    context.RegisterSelectionSet(context.Operation.RootSelectionSet);
                     handled.Add(nodeStep);
 
                     foreach (var entityStep in nodeStep.EntitySteps)
                     {
                         context.ForwardedVariables.Clear();
 
-                        var fetch = CreateNodeResolverNode(context, entityStep);
-                        var compose = new CompositionNode(context.CreateNodeId(), fetch);
+                        var resolve = CreateResolveNodeNode(context, entityStep);
+                        nodeResolverNode.AddEntityResolver(entityStep.TypeName, resolve);
+                        context.RegisterNode(resolve, entityStep.SelectEntityStep);
 
-                        var serialNode = new SerialNode(context.CreateNodeId());
-                        serialNode.AddNode(fetch);
-                        serialNode.AddNode(compose);
-
-                        nodeResolverNode.AddNode(entityStep.SelectionSetTypeInfo.Name, serialNode);
-
-                        context.Nodes.Add(entityStep.EntitySelectionExecutionStep, fetch);
                         handled.Add(entityStep);
-                        handled.Add(entityStep.EntitySelectionExecutionStep);
+                        handled.Add(entityStep.SelectEntityStep);
                     }
                 }
 
                 if (executionStep is IntrospectionExecutionStep)
                 {
-                    var introspectionNode = new IntrospectionNode(
-                        context.CreateNodeId(),
+                    var introspectionNode = new Introspect(
+                        context.NextNodeId(),
                         context.Operation.RootSelectionSet);
-                    context.Nodes.Add(executionStep, introspectionNode);
-                    context.HasNodes.Add(context.Operation.RootSelectionSet);
+                    context.RegisterNode(introspectionNode, executionStep);
+                    context.RegisterSelectionSet(context.Operation.RootSelectionSet);
                     handled.Add(executionStep);
                 }
             }
@@ -123,17 +114,17 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         }
     }
 
-    private ResolverNode CreateResolverNode(
+    private Resolve CreateResolveNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
         var request = _requestFormatter.CreateRequestDocument(context, executionStep);
 
-        context.HasNodes.Add(selectionSet);
+        context.RegisterSelectionSet(selectionSet);
 
-        return new ResolverNode(
-            context.CreateNodeId(),
+        return new Resolve(
+            context.NextNodeId(),
             executionStep.SubgraphName,
             request.Document,
             selectionSet,
@@ -142,45 +133,44 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
     }
 
-    private ResolverNode CreateNodeResolverNode(
+    private Resolve CreateResolveNodeNode(
         QueryPlanContext context,
         NodeEntityExecutionStep executionStep)
     {
-        var selectionSet = ResolveSelectionSet(context, executionStep.EntitySelectionExecutionStep);
+        var selectionSet = ResolveSelectionSet(context, executionStep.SelectEntityStep);
         var (requestDocument, path) = _nodeRequestFormatter.CreateRequestDocument(
             context,
-            executionStep.EntitySelectionExecutionStep,
+            executionStep.SelectEntityStep,
             executionStep.SelectionSetTypeInfo.Name);
 
-        context.HasNodes.Add(selectionSet);
+        context.RegisterSelectionSet(selectionSet);
 
-        return new ResolverNode(
-            context.CreateNodeId(),
-            executionStep.EntitySelectionExecutionStep.SubgraphName,
+        return new Resolve(
+            context.NextNodeId(),
+            executionStep.SelectEntityStep.SubgraphName,
             requestDocument,
             selectionSet,
-            executionStep.EntitySelectionExecutionStep.Variables.Values.ToArray(),
+            executionStep.SelectEntityStep.Variables.Values.ToArray(),
             path,
             context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
     }
 
-    private BatchByKeyResolverNode CreateBatchResolverNode(
+    private ResolveByKeyBatch CreateResolveByKeyBatchNode(
         QueryPlanContext context,
-        SelectionExecutionStep executionStep,
-        ResolverDefinition resolver)
+        SelectionExecutionStep executionStep)
     {
         var selectionSet = ResolveSelectionSet(context, executionStep);
         var request = _requestFormatter.CreateRequestDocument(context, executionStep);
 
-        context.HasNodes.Add(selectionSet);
+        context.RegisterSelectionSet(selectionSet);
 
-        var argumentTypes = resolver.Arguments;
+        var argumentTypes = executionStep.Resolver!.Arguments;
 
         if (argumentTypes.Count > 0)
         {
             var temp = new Dictionary<string, ITypeNode>();
 
-            foreach (var argument in resolver.Arguments)
+            foreach (var argument in executionStep.Resolver!.Arguments)
             {
                 if (!context.Exports.TryGetStateKey(
                     executionStep.RootSelections[0].Selection.DeclaringSelectionSet,
@@ -198,8 +188,8 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             argumentTypes = temp;
         }
 
-        return new BatchByKeyResolverNode(
-            context.CreateNodeId(),
+        return new ResolveByKeyBatch(
+            context.NextNodeId(),
             executionStep.SubgraphName,
             request.Document,
             selectionSet,
@@ -209,7 +199,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
     }
 
-    private SubscriptionNode CreateSubscription(
+    private Subscribe CreateSubscribeNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
@@ -220,10 +210,10 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 executionStep,
                 OperationType.Subscription);
 
-        context.HasNodes.Add(selectionSet);
+        context.RegisterSelectionSet(selectionSet);
 
-        return new SubscriptionNode(
-            context.CreateNodeId(),
+        return new Subscribe(
+            context.NextNodeId(),
             executionStep.SubgraphName,
             request.Document,
             selectionSet,

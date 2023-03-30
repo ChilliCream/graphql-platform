@@ -38,7 +38,7 @@ internal sealed class QueryPlan
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
-        if (RootNode is SubscriptionNode)
+        if (RootNode is Subscribe)
         {
             // TODO : exception
             throw new InvalidOperationException(
@@ -81,7 +81,7 @@ internal sealed class QueryPlan
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
-        if (RootNode is not SubscriptionNode subscriptionNode)
+        if (RootNode is not Subscribe subscriptionNode)
         {
             // TODO : exception
             throw new InvalidOperationException(

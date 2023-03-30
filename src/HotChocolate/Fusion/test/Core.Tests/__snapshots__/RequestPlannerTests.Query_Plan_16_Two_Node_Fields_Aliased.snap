@@ -20,94 +20,26 @@ QueryPlan
   "document": "query FetchNode($a: ID!, $b: ID!) { a: node(id: $a) { ... on User { id } } b: node(id: $b) { ... on User { id } } }",
   "operation": "FetchNode",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
         "type": "Parallel",
         "nodes": [
           {
-            "type": "NodeResolver",
+            "type": "ResolveNode",
             "selectionId": 0,
             "responseName": "a",
             "branches": [
               {
                 "type": "Review",
                 "node": {
-                  "type": "Serial",
-                  "nodes": [
+                  "type": "Resolve",
+                  "subgraph": "Reviews2",
+                  "document": "query FetchNode_1($a: ID!) { a: node(id: $a) { ... on Review { __typename } } }",
+                  "selectionSetId": 0,
+                  "forwardedVariables": [
                     {
-                      "type": "Resolver",
-                      "subgraph": "Reviews2",
-                      "document": "query FetchNode_1($a: ID!) { a: node(id: $a) { ... on Review { __typename } } }",
-                      "selectionSetId": 0,
-                      "forwardedVariables": [
-                        {
-                          "variable": "a"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "Composition",
-                      "selectionSetIds": [
-                        0
-                      ]
-                    },
-                    {
-                      "type": "NodeResolver",
-                      "selectionId": 1,
-                      "responseName": "b",
-                      "branches": [
-                        {
-                          "type": "Review",
-                          "node": {
-                            "type": "Serial",
-                            "nodes": [
-                              {
-                                "type": "Resolver",
-                                "subgraph": "Reviews2",
-                                "document": "query FetchNode_3($b: ID!) { b: node(id: $b) { ... on Review { __typename } } }",
-                                "selectionSetId": 0,
-                                "forwardedVariables": [
-                                  {
-                                    "variable": "b"
-                                  }
-                                ]
-                              },
-                              {
-                                "type": "Composition",
-                                "selectionSetIds": [
-                                  0
-                                ]
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "type": "User",
-                          "node": {
-                            "type": "Serial",
-                            "nodes": [
-                              {
-                                "type": "Resolver",
-                                "subgraph": "Reviews2",
-                                "document": "query FetchNode_4($b: ID!) { b: node(id: $b) { ... on User { id __typename } } }",
-                                "selectionSetId": 0,
-                                "forwardedVariables": [
-                                  {
-                                    "variable": "b"
-                                  }
-                                ]
-                              },
-                              {
-                                "type": "Composition",
-                                "selectionSetIds": [
-                                  0
-                                ]
-                              }
-                            ]
-                          }
-                        }
-                      ]
+                      "variable": "a"
                     }
                   ]
                 }
@@ -115,81 +47,13 @@ QueryPlan
               {
                 "type": "User",
                 "node": {
-                  "type": "Serial",
-                  "nodes": [
+                  "type": "Resolve",
+                  "subgraph": "Reviews2",
+                  "document": "query FetchNode_2($a: ID!) { a: node(id: $a) { ... on User { id __typename } } }",
+                  "selectionSetId": 0,
+                  "forwardedVariables": [
                     {
-                      "type": "Resolver",
-                      "subgraph": "Reviews2",
-                      "document": "query FetchNode_2($a: ID!) { a: node(id: $a) { ... on User { id __typename } } }",
-                      "selectionSetId": 0,
-                      "forwardedVariables": [
-                        {
-                          "variable": "a"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "Composition",
-                      "selectionSetIds": [
-                        0
-                      ]
-                    },
-                    {
-                      "type": "NodeResolver",
-                      "selectionId": 1,
-                      "responseName": "b",
-                      "branches": [
-                        {
-                          "type": "Review",
-                          "node": {
-                            "type": "Serial",
-                            "nodes": [
-                              {
-                                "type": "Resolver",
-                                "subgraph": "Reviews2",
-                                "document": "query FetchNode_3($b: ID!) { b: node(id: $b) { ... on Review { __typename } } }",
-                                "selectionSetId": 0,
-                                "forwardedVariables": [
-                                  {
-                                    "variable": "b"
-                                  }
-                                ]
-                              },
-                              {
-                                "type": "Composition",
-                                "selectionSetIds": [
-                                  0
-                                ]
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "type": "User",
-                          "node": {
-                            "type": "Serial",
-                            "nodes": [
-                              {
-                                "type": "Resolver",
-                                "subgraph": "Reviews2",
-                                "document": "query FetchNode_4($b: ID!) { b: node(id: $b) { ... on User { id __typename } } }",
-                                "selectionSetId": 0,
-                                "forwardedVariables": [
-                                  {
-                                    "variable": "b"
-                                  }
-                                ]
-                              },
-                              {
-                                "type": "Composition",
-                                "selectionSetIds": [
-                                  0
-                                ]
-                              }
-                            ]
-                          }
-                        }
-                      ]
+                      "variable": "a"
                     }
                   ]
                 }
@@ -197,31 +61,20 @@ QueryPlan
             ]
           },
           {
-            "type": "NodeResolver",
+            "type": "ResolveNode",
             "selectionId": 1,
             "responseName": "b",
             "branches": [
               {
                 "type": "Review",
                 "node": {
-                  "type": "Serial",
-                  "nodes": [
+                  "type": "Resolve",
+                  "subgraph": "Reviews2",
+                  "document": "query FetchNode_3($b: ID!) { b: node(id: $b) { ... on Review { __typename } } }",
+                  "selectionSetId": 0,
+                  "forwardedVariables": [
                     {
-                      "type": "Resolver",
-                      "subgraph": "Reviews2",
-                      "document": "query FetchNode_3($b: ID!) { b: node(id: $b) { ... on Review { __typename } } }",
-                      "selectionSetId": 0,
-                      "forwardedVariables": [
-                        {
-                          "variable": "b"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "Composition",
-                      "selectionSetIds": [
-                        0
-                      ]
+                      "variable": "b"
                     }
                   ]
                 }
@@ -229,24 +82,13 @@ QueryPlan
               {
                 "type": "User",
                 "node": {
-                  "type": "Serial",
-                  "nodes": [
+                  "type": "Resolve",
+                  "subgraph": "Reviews2",
+                  "document": "query FetchNode_4($b: ID!) { b: node(id: $b) { ... on User { id __typename } } }",
+                  "selectionSetId": 0,
+                  "forwardedVariables": [
                     {
-                      "type": "Resolver",
-                      "subgraph": "Reviews2",
-                      "document": "query FetchNode_4($b: ID!) { b: node(id: $b) { ... on User { id __typename } } }",
-                      "selectionSetId": 0,
-                      "forwardedVariables": [
-                        {
-                          "variable": "b"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "Composition",
-                      "selectionSetIds": [
-                        0
-                      ]
+                      "variable": "b"
                     }
                   ]
                 }
@@ -256,8 +98,63 @@ QueryPlan
         ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": []
+      },
+      {
+        "type": "Parallel",
+        "nodes": [
+          {
+            "type": "Resolve",
+            "subgraph": "Reviews2",
+            "document": "query FetchNode_1($a: ID!) { a: node(id: $a) { ... on Review { __typename } } }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "a"
+              }
+            ]
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "Reviews2",
+            "document": "query FetchNode_2($a: ID!) { a: node(id: $a) { ... on User { id __typename } } }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "a"
+              }
+            ]
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "Reviews2",
+            "document": "query FetchNode_3($b: ID!) { b: node(id: $b) { ... on Review { __typename } } }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "b"
+              }
+            ]
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "Reviews2",
+            "document": "query FetchNode_4($b: ID!) { b: node(id: $b) { ... on User { id __typename } } }",
+            "selectionSetId": 0,
+            "forwardedVariables": [
+              {
+                "variable": "b"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
       }
     ]
   }

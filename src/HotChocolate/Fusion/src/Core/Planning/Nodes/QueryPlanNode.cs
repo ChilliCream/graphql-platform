@@ -19,6 +19,8 @@ internal abstract class QueryPlanNode
 
     public IReadOnlyList<QueryPlanNode> Nodes => _nodes;
 
+    private protected bool IsReadOnly => _isReadOnly;
+
     internal async Task ExecuteAsync(
         FusionExecutionContext context,
         CancellationToken cancellationToken)

@@ -5,21 +5,21 @@ using static HotChocolate.Fusion.Execution.ExecutorUtils;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class CompositionNode : QueryPlanNode
+internal sealed class Compose : QueryPlanNode
 {
     private readonly IReadOnlyList<ISelectionSet> _selectionSets;
 
-    public CompositionNode(int id, ResolverNode resolverNode)
-        : this(id, new[] { resolverNode.SelectionSet })
+    public Compose(int id, Resolve resolve)
+        : this(id, new[] { resolve.SelectionSet })
     {
     }
 
-    public CompositionNode(int id, ISelectionSet selectionSet)
+    public Compose(int id, ISelectionSet selectionSet)
         : this(id, new[] { selectionSet })
     {
     }
 
-    public CompositionNode(int id, IReadOnlyList<ISelectionSet> selectionSets) : base(id)
+    public Compose(int id, IReadOnlyList<ISelectionSet> selectionSets) : base(id)
     {
         if (selectionSets is null)
         {
@@ -29,7 +29,7 @@ internal sealed class CompositionNode : QueryPlanNode
         _selectionSets = selectionSets.Distinct().ToArray();
     }
 
-    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Composition;
+    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Compose;
 
     protected override Task OnExecuteAsync(
         FusionExecutionContext context,

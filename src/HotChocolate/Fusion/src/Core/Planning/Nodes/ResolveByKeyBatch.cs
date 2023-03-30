@@ -10,11 +10,11 @@ using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class BatchByKeyResolverNode : ResolverNodeBase
+internal sealed class ResolveByKeyBatch : ResolverNodeBase
 {
     private readonly IReadOnlyList<string> _path;
 
-    public BatchByKeyResolverNode(
+    public ResolveByKeyBatch(
         int id,
         string subgraphName,
         DocumentNode document,
@@ -29,7 +29,7 @@ internal sealed class BatchByKeyResolverNode : ResolverNodeBase
         _path = path;
     }
 
-    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.BatchResolver;
+    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.ResolveByKeyBatch;
 
     /// <summary>
     /// Gets the type lookup of resolver arguments.

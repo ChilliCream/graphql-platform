@@ -8,16 +8,16 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class NodeResolverNode : QueryPlanNode
+internal sealed class ResolveNode : QueryPlanNode
 {
     private readonly Dictionary<string, QueryPlanNode> _fetchNodes = new(StringComparer.Ordinal);
 
-    public NodeResolverNode(int id, ISelection selection) : base(id)
+    public ResolveNode(int id, ISelection selection) : base(id)
     {
         Selection = selection;
     }
 
-    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.NodeResolver;
+    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.ResolveNode;
 
     public ISelection Selection { get; }
 
@@ -79,18 +79,37 @@ internal sealed class NodeResolverNode : QueryPlanNode
         await fetchNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
     }
 
-    public void AddNode(string entityTypeName, QueryPlanNode fetchNode)
+    public void AddEntityResolver(string typeName, Resolve resolveEntity)
     {
-        if (_fetchNodes.ContainsKey(entityTypeName))
+        if(IsReadOnly)
         {
-            throw new ArgumentException(
-                "A fetch node for this entity type already exists.",
-                paramName: nameof(entityTypeName));
+            // TODO : ERROR HELPER
+            throw new InvalidOperationException("The execution node is read-only.");
         }
 
-        _fetchNodes.Add(entityTypeName, fetchNode);
-        base.AddNode(fetchNode);
+        if (typeName is null)
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        if(resolveEntity is null)
+        {
+            throw new ArgumentNullException(nameof(resolveEntity));
+        }
+
+        if (_fetchNodes.ContainsKey(typeName))
+        {
+            // TODO : ERROR HELPER
+            throw new ArgumentException(
+                "A fetch node for this entity type already exists.",
+                paramName: nameof(typeName));
+        }
+
+        _fetchNodes.Add(typeName, resolveEntity);
     }
+
+    internal override void AddNode(QueryPlanNode node)
+        => throw new NotSupportedException();
 
     protected override void FormatProperties(Utf8JsonWriter writer)
     {

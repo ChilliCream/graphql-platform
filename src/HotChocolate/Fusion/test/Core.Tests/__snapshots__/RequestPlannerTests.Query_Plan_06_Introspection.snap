@@ -23,13 +23,13 @@ QueryPlan
   "document": "query Introspect { __schema { types { name kind fields { name type { name kind } } } } }",
   "operation": "Introspect",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "Introspection"
+        "type": "Introspect"
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]

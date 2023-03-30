@@ -17,22 +17,22 @@ QueryPlan
   "document": "subscription OnNewReview { onNewReview { body author { name birthdate } } }",
   "operation": "OnNewReview",
   "rootNode": {
-    "type": "Subscription",
+    "type": "Subscribe",
     "subgraph": "Reviews",
     "document": "subscription OnNewReview_1 { onNewReview { body author { name __fusion_exports__1: id } } }",
     "selectionSetId": 0,
     "nodes": [
       {
-        "type": "Serial",
+        "type": "Sequence",
         "nodes": [
           {
-            "type": "Composition",
+            "type": "Compose",
             "selectionSetIds": [
               0
             ]
           },
           {
-            "type": "Resolver",
+            "type": "Resolve",
             "subgraph": "Accounts",
             "document": "query OnNewReview_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
             "selectionSetId": 2,
@@ -46,7 +46,7 @@ QueryPlan
             ]
           },
           {
-            "type": "Composition",
+            "type": "Compose",
             "selectionSetIds": [
               2
             ]

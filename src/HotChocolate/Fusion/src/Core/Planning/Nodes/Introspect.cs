@@ -4,16 +4,16 @@ using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class IntrospectionNode : QueryPlanNode
+internal sealed class Introspect : QueryPlanNode
 {
     private readonly ISelectionSet _selectionSet;
 
-    public IntrospectionNode(int id, ISelectionSet selectionSet) : base(id)
+    public Introspect(int id, ISelectionSet selectionSet) : base(id)
     {
         _selectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
     }
 
-    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Introspection;
+    public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Introspect;
 
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,

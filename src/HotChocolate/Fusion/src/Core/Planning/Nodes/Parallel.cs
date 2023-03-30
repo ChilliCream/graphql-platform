@@ -2,9 +2,9 @@ using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class ParallelNode : QueryPlanNode
+internal sealed class Parallel : QueryPlanNode
 {
-    public ParallelNode(int id) : base(id) { }
+    public Parallel(int id) : base(id) { }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Parallel;
 

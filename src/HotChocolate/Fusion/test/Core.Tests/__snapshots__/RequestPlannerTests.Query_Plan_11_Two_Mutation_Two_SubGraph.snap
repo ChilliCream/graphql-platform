@@ -27,28 +27,28 @@ QueryPlan
   "document": "mutation AddReviewAndUser { addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { id birthdate } } } addUser(input: { name: \u0022foo\u0022, username: \u0022foo\u0022, birthdate: \u0022abc\u0022 }) { user { name reviews { body } } } }",
   "operation": "AddReviewAndUser",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Reviews",
         "document": "query AddReviewAndUser_1 { addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { id __fusion_exports__1: id } } } }",
         "selectionSetId": 0
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]
       },
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query AddReviewAndUser_2 { addUser(input: { name: \u0022foo\u0022, username: \u0022foo\u0022, birthdate: \u0022abc\u0022 }) { user { name } } }",
         "selectionSetId": 0
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]
@@ -57,7 +57,7 @@ QueryPlan
         "type": "Parallel",
         "nodes": [
           {
-            "type": "Resolver",
+            "type": "Resolve",
             "subgraph": "Accounts",
             "document": "query AddReviewAndUser_3($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
             "selectionSetId": 6,
@@ -71,7 +71,7 @@ QueryPlan
             ]
           },
           {
-            "type": "Resolver",
+            "type": "Resolve",
             "subgraph": "Reviews",
             "document": "query AddReviewAndUser_4($__fusion_exports__2: ID!) { authorById(id: $__fusion_exports__2) { reviews { body } } }",
             "selectionSetId": 2,
@@ -87,7 +87,7 @@ QueryPlan
         ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           6,
           2

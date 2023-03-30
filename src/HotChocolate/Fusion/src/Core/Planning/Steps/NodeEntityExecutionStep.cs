@@ -6,11 +6,19 @@ internal sealed class NodeEntityExecutionStep : ExecutionStep
 {
     public NodeEntityExecutionStep(
         ObjectTypeInfo entityTypeInfo,
-        SelectionExecutionStep entitySelectionExecutionStep)
+        SelectionExecutionStep selectEntityStep)
         : base(entityTypeInfo, null)
     {
-        EntitySelectionExecutionStep = entitySelectionExecutionStep;
+        SelectEntityStep = selectEntityStep;
     }
 
-    public SelectionExecutionStep EntitySelectionExecutionStep { get; }
+    /// <summary>
+    /// Gets the name of the entity type.
+    /// </summary>
+    public string TypeName => SelectionSetTypeInfo.Name;
+
+    /// <summary>
+    /// Gets the data selection step.
+    /// </summary>
+    public SelectionExecutionStep SelectEntityStep { get; }
 }
