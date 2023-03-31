@@ -1,0 +1,88 @@
+UserRequest
+---------------
+query GetUser {
+  a: users {
+    name
+    reviews {
+      body
+      author {
+        name
+      }
+    }
+  }
+  b: users {
+    name
+    reviews {
+      body
+      author {
+        name
+      }
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query GetUser { a: users { name reviews { body author { name } } } b: users { name reviews { body author { name } } } }",
+  "operation": "GetUser",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "subgraph": "Accounts",
+        "document": "query GetUser_1 { a: users { name __fusion_exports__1: id } b: users { name __fusion_exports__2: id } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Parallel",
+        "nodes": [
+          {
+            "type": "Resolver",
+            "subgraph": "Reviews",
+            "document": "query GetUser_2($__fusion_exports__1: Int!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
+            "selectionSetId": 4,
+            "path": [
+              "authorById"
+            ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__1"
+              }
+            ]
+          },
+          {
+            "type": "Resolver",
+            "subgraph": "Reviews",
+            "document": "query GetUser_3($__fusion_exports__2: Int!) { authorById(id: $__fusion_exports__2) { reviews { body author { name } } } }",
+            "selectionSetId": 1,
+            "path": [
+              "authorById"
+            ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Composition",
+        "selectionSetIds": [
+          4,
+          1
+        ]
+      }
+    ]
+  }
+}
+---------------

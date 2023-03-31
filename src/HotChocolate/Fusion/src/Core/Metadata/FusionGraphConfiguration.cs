@@ -35,7 +35,7 @@ internal sealed class FusionGraphConfiguration
             {
                 if (!binding.Name.EqualsOrdinal(type.Name))
                 {
-                    _typeNameLookup.Add((binding.SchemaName, binding.Name), type.Name);
+                    _typeNameLookup.Add((binding.SubgraphName, binding.Name), type.Name);
                 }
             }
         }
