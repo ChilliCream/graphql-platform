@@ -19,22 +19,22 @@ QueryPlan
   "document": "query TopProducts { topProducts(first: 2) { name reviews { body author { name } } } }",
   "operation": "TopProducts",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Products",
         "document": "query TopProducts_1 { topProducts(first: 2) { name __fusion_exports__1: id } }",
         "selectionSetId": 0
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]
       },
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Reviews2",
         "document": "query TopProducts_2($__fusion_exports__1: ID!) { productById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
         "selectionSetId": 1,
@@ -48,7 +48,7 @@ QueryPlan
         ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           1
         ]

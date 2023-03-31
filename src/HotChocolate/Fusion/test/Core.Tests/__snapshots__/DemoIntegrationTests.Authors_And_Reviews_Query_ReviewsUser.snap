@@ -31,19 +31,19 @@ QueryPlan
   "document": "query GetUser { a: reviews { body author { name } } b: reviews { body author { name } } users { name reviews { body author { name } } } }",
   "operation": "GetUser",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
         "type": "Parallel",
         "nodes": [
           {
-            "type": "Resolver",
+            "type": "Resolve",
             "subgraph": "Reviews2",
             "document": "query GetUser_1 { a: reviews { body author { name } } b: reviews { body author { name } } }",
             "selectionSetId": 0
           },
           {
-            "type": "Resolver",
+            "type": "Resolve",
             "subgraph": "Accounts",
             "document": "query GetUser_2 { users { name __fusion_exports__1: id } }",
             "selectionSetId": 0
@@ -51,13 +51,13 @@ QueryPlan
         ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]
       },
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Reviews2",
         "document": "query GetUser_3($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
         "selectionSetId": 1,
@@ -71,7 +71,7 @@ QueryPlan
         ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           1
         ]

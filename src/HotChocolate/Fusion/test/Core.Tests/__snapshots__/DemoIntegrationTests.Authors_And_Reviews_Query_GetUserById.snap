@@ -13,16 +13,16 @@ QueryPlan
   "document": "query GetUser { userById(id: \u0022VXNlcgppMQ==\u0022) { id } }",
   "operation": "GetUser",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query GetUser_1 { userById(id: \u0022VXNlcgppMQ==\u0022) { id } }",
         "selectionSetId": 0
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]

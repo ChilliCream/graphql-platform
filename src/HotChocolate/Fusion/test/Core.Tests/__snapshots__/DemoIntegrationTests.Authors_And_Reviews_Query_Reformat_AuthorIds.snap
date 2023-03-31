@@ -15,16 +15,16 @@ QueryPlan
   "document": "query ReformatIds { reviews { author { id } } }",
   "operation": "ReformatIds",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Reviews",
         "document": "query ReformatIds_1 { reviews { author { id } } }",
         "selectionSetId": 0
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]
