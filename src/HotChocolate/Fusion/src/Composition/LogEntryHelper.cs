@@ -1,3 +1,4 @@
+using System.Security;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 
@@ -11,7 +12,7 @@ internal static class LogEntryHelper
         => new LogEntry(
             string.Format(LogEntryHelper_RemoveMemberNotFound, coordinate),
             LogEntryCodes.RemoveMemberNotFound,
-            LogEntryKind.Warning,
+            LogSeverity.Warning,
             coordinate,
             schema: schema);
 
@@ -21,7 +22,7 @@ internal static class LogEntryHelper
         => new LogEntry(
             string.Format(LogEntryHelper_RenameMemberNotFound, coordinate),
             LogEntryCodes.RemoveMemberNotFound,
-            LogEntryKind.Warning,
+            LogSeverity.Warning,
             coordinate,
             schema: schema);
 
@@ -35,7 +36,7 @@ internal static class LogEntryHelper
                 argumentName,
                 directive.Name),
             LogEntryCodes.DirectiveArgumentMissing,
-            LogEntryKind.Error,
+            LogSeverity.Error,
             member: directive,
             schema: schema);
 
@@ -80,7 +81,7 @@ internal static class LogEntryHelper
         => new LogEntry(
             LogEntryHelper_OutputFieldArgumentMismatch,
             code: LogEntryCodes.OutputFieldArgumentMismatch,
-            kind: LogEntryKind.Error,
+            severity: LogSeverity.Error,
             coordinate: coordinate,
             member: field);
 
@@ -88,9 +89,9 @@ internal static class LogEntryHelper
         SchemaCoordinate coordinate,
         OutputField field)
         => new LogEntry(
-            LogEntryHelper_OutputFieldArgumentSetMismatch,
+            string.Format(LogEntryHelper_OutputFieldArgumentSetMismatch, coordinate.ToString()),
             code: LogEntryCodes.OutputFieldArgumentSetMismatch,
-            kind: LogEntryKind.Error,
+            severity: LogSeverity.Error,
             coordinate: coordinate,
             member: field);
 }

@@ -25,12 +25,12 @@ internal readonly struct SelectionResult
 
     public IReadOnlyList<JsonResult>? Multiple { get; }
 
-    public TypeInfo GetTypeInfo()
+    public QualifiedTypeName GetTypeName()
     {
         var result = Multiple is null ? Single : Multiple[0];
 
-        return new TypeInfo(
-            result.SchemaName,
+        return new QualifiedTypeName(
+            result.SubgraphName,
             result.Element.GetProperty("__typename").GetString()!);
     }
 

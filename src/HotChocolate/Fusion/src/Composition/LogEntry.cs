@@ -14,7 +14,7 @@ public sealed record LogEntry
     public LogEntry(
         string message,
         string? code = null,
-        LogEntryKind kind = LogEntryKind.Error,
+        LogSeverity severity = LogSeverity.Error,
         SchemaCoordinate? coordinate = null,
         ITypeSystemMember? member = null,
         Schema? schema = null,
@@ -23,7 +23,7 @@ public sealed record LogEntry
     {
         Message = message;
         Code = code;
-        Kind = kind;
+        Severity = severity;
         Coordinate = coordinate;
         Member = member;
         Schema = schema;
@@ -42,9 +42,9 @@ public sealed record LogEntry
     public string? Code { get; }
 
     /// <summary>
-    /// Gets the kind of log entry.
+    /// Gets the severity of this log entry.
     /// </summary>
-    public LogEntryKind Kind { get; }
+    public LogSeverity Severity { get; }
 
     /// <summary>
     /// Gets the schema coordinate associated with this log entry.
@@ -77,7 +77,7 @@ public sealed record LogEntry
     public void Deconstruct(
         out string message,
         out string? code,
-        out LogEntryKind kind,
+        out LogSeverity kind,
         out SchemaCoordinate? coordinate,
         out ITypeSystemMember? member,
         out Schema? schema,
@@ -86,11 +86,13 @@ public sealed record LogEntry
     {
         message = Message;
         code = Code;
-        kind = Kind;
+        kind = Severity;
         coordinate = Coordinate;
         member = Member;
         schema = Schema;
         exception = Exception;
         extension = Extension;
     }
+
+    public override string ToString() => Message;
 }
