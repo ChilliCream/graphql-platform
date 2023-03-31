@@ -72,11 +72,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
                 foreach (var item in next.Batch)
                 {
-                    if (item.Node.Kind is not QueryPlanNodeKind.ResolveNode)
-                    {
-                        selectionSets.Add(ResolveSelectionSet(context, item.Step));
-                    }
-
+                    selectionSets.Add(ResolveSelectionSet(context, item.Step));
                     parallel.AddNode(item.Node);
                     Complete(context, stack, item.Node);
                 }

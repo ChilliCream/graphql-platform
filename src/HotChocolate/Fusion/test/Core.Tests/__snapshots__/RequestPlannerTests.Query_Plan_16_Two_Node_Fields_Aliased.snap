@@ -99,7 +99,9 @@ QueryPlan
       },
       {
         "type": "Compose",
-        "selectionSetIds": []
+        "selectionSetIds": [
+          0
+        ]
       }
     ]
   }
