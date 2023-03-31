@@ -69,25 +69,25 @@ Result
       {
         "body": "Love it!",
         "author": {
-          "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
+          "birthdate": "1815-12-10"
         }
       },
       {
         "body": "Too expensive.",
         "author": {
-          "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
+          "birthdate": "1912-06-23"
         }
       },
       {
         "body": "Could be better.",
         "author": {
-          "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
+          "birthdate": "1815-12-10"
         }
       },
       {
         "body": "Prefer something else.",
         "author": {
-          "birthdate": "1912-06-23T00:00:00.000\u002B01:00"
+          "birthdate": "1912-06-23"
         }
       }
     ]
@@ -147,7 +147,7 @@ type Review implements Node {
 }
 
 type User implements Node @variable(subgraph: "Reviews2", name: "User_id", select: "id") @variable(subgraph: "Accounts", name: "User_id", select: "id") @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
-  birthdate: DateTime! @source(subgraph: "Accounts")
+  birthdate: Date! @source(subgraph: "Accounts")
   id: ID! @source(subgraph: "Reviews2") @source(subgraph: "Accounts")
   name: String! @source(subgraph: "Reviews2") @source(subgraph: "Accounts")
   reviews: [Review!]! @source(subgraph: "Reviews2")
@@ -171,6 +171,9 @@ input AddUserInput {
   name: String!
   username: String!
 }
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
