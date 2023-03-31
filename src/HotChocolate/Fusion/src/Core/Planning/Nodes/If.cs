@@ -64,6 +64,7 @@ internal sealed class If : QueryPlanNode
         }
 
         _branches.Add(new Branch(key, value, node));
+        base.AddNode(node);
     }
 
     internal override void AddNode(QueryPlanNode node)

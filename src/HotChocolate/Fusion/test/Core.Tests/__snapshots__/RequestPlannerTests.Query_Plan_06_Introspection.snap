@@ -26,7 +26,8 @@ QueryPlan
     "type": "Sequence",
     "nodes": [
       {
-        "type": "Introspect"
+        "type": "Introspect",
+        "document": "{ __schema { types { name kind fields { name type { name kind } } } } }"
       },
       {
         "type": "Compose",

@@ -34,11 +34,6 @@ internal sealed class QueryPlanner
         var queryPlanContext = new QueryPlanContext(operation);
         _pipeline(queryPlanContext);
 
-        if (queryPlanContext.Plan is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return queryPlanContext.Plan;
+        return queryPlanContext.BuildQueryPlan();
     }
 }

@@ -17,12 +17,12 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
     public void Invoke(QueryPlanContext context, QueryPlanDelegate next)
     {
         var backlog = new Queue<BacklogItem>();
-        var completed = new HashSet<ExecutionStep>();
 
         // Depending on the operation type we will create the root nodes of the query plan.
         var rootNode = context.Operation.Type is OperationType.Subscription
-            ? CreateSubscriptionRoot(context, backlog, completed)
-            : CreateDefaultRoot(context, backlog, completed);
+            ? CreateSubscriptionRoot(context, backlog)
+            : CreateDefaultRoot(context, backlog);
+        context.SetRootNode(rootNode);
 
         if (backlog.Count > 0)
         {
@@ -32,41 +32,26 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             ProcessBacklog(context, backlog);
         }
 
-        // Last we will create the query plan.
-        context.Plan = new QueryPlan(
-            context.Operation,
-            rootNode,
-            context.Exports.All
-                .GroupBy(t => t.SelectionSet)
-                .ToDictionary(t => t.Key, t => t.Select(x => x.StateKey).ToArray()),
-            context.HasNodes);
-
         next(context);
     }
-
-
-
 
 
     private void ProcessBacklog(
         QueryPlanContext context,
         Queue<BacklogItem> backlog)
     {
+        var stack = new Stack<QueryPlanNode>();
+
         while (backlog.TryDequeue(out var next))
         {
-            if (next.Batch.Length == 0)
-            {
-                continue;
-            }
-
             // If the batch contains only one node we can add it to the parent node which will be
             // a serial node. Same applies if the current batch steps deal with the
             // mutation selection set as we need to adhere to the GraphQL spec and ensure
             // that mutation fields are executed serially.
             if (next.Batch.Length == 1 ||
                 (_schema.MutationType?.Name.EqualsOrdinal(
-                        next.Batch[0].Step.SelectionSetTypeInfo.Name) ==
-                    true))
+                        next.Batch[0].Step.SelectionSetTypeInfo.Name) ??
+                    false))
             {
                 var single = next.Batch[0];
                 next.Parent.AddNode(single.Node);
@@ -75,9 +60,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
                 var compose = new Compose(context.NextNodeId(), selectionSet);
                 next.Parent.AddNode(compose);
 
-                context.Complete(single.Step);
-
-                // RegisterBranches(context, single.Node, next.Completed, backlog);
+                Complete(context, stack, single.Node);
             }
 
             // If there are multiple side-effect-free nodes we can
@@ -95,9 +78,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
                     }
 
                     parallel.AddNode(item.Node);
-                    context.Complete(item.Step);
-
-                    // RegisterBranches(context, item.Node, next.Completed, backlog);
+                    Complete(context, stack, item.Node);
                 }
 
                 // we will chain a single composition step at the end.
@@ -119,58 +100,43 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private static QueryPlanNode CreateDefaultRoot(
         QueryPlanContext context,
-        Queue<BacklogItem> backlog,
-        HashSet<ExecutionStep> completed)
+        Queue<BacklogItem> backlog)
     {
         var parent = new Sequence(context.NextNodeId());
-
-        var batch = context.Nodes
-            .Where(t => t.Key.DependsOn.Count == 0)
-            .Select(t => new NodeAndStep(t.Value, t.Key))
-            .ToArray();
-
-        var backlogItem = new BacklogItem(
-            batch,
-            parent.ExpectSerial(),
-            completed.ToImmutableHashSet());
-
-        backlog.Enqueue(backlogItem);
-
+        TryEnqueueBatch(context, backlog, parent);
         return parent;
     }
 
     private QueryPlanNode CreateSubscriptionRoot(
         QueryPlanContext context,
-        Queue<BacklogItem> backlog,
-        HashSet<ExecutionStep> completed)
+        Queue<BacklogItem> backlog)
     {
-        var (step, root) = context.Nodes.First(t => t.Value.Kind is QueryPlanNodeKind.Subscribe);
+        var (root, step) = context.GetSubscribeRoot();
 
         var parent = new Sequence(context.NextNodeId());
         root.AddNode(parent);
-
 
         var selectionSet = ResolveSelectionSet(context, step);
         var compose = new Compose(context.NextNodeId(), selectionSet);
         parent.AddNode(compose);
         context.Complete(step);
 
-        var backlogItem = new BacklogItem(
-            context.NextBatch(),
-            parent,
-            completed.ToImmutableHashSet());
-
-        backlog.Enqueue(backlogItem);
+        TryEnqueueBatch(context, backlog, parent);
 
         return root;
     }
 
-    private static void RegisterChildren(
+    private static void Complete(
         QueryPlanContext context,
         Stack<QueryPlanNode> stack,
         QueryPlanNode node)
     {
-        stack.Clear();
+        if (node.Nodes.Count == 0)
+        {
+            context.Complete(node);
+            return;
+        }
+
         stack.Push(node);
 
         while (stack.TryPop(out var current))
@@ -182,9 +148,26 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
             if (current is ResolverNodeBase resolver)
             {
-                resolver.SelectionSet
+                context.RegisterSelectionSet(resolver.SelectionSet);
             }
+
+            context.Complete(current);
         }
+    }
+
+    private static void TryEnqueueBatch(
+        QueryPlanContext context,
+        Queue<BacklogItem> backlog,
+        Sequence parent)
+    {
+        var batch = context.NextBatch();
+
+        if (batch.Length == 0)
+        {
+            return;
+        }
+
+        backlog.Enqueue(new BacklogItem(batch, parent));
     }
 
     private ISelectionSet ResolveSelectionSet(

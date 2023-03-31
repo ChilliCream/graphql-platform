@@ -680,6 +680,49 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task Query_Plan_18_Node_Single_Fragment_Multiple_Subgraphs()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        birthdate
+                        reviews {
+                            body
+                        }
+                    }
+                    ... on Review {
+                        body
+                        author {
+                            birthdate
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)

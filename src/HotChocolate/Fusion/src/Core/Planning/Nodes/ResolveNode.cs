@@ -106,6 +106,7 @@ internal sealed class ResolveNode : QueryPlanNode
         }
 
         _fetchNodes.Add(typeName, resolveEntity);
+        base.AddNode(resolveEntity);
     }
 
     internal override void AddNode(QueryPlanNode node)

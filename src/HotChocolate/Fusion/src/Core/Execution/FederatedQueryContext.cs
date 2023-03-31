@@ -50,7 +50,7 @@ internal sealed class FusionExecutionContext : IDisposable
     public IOperation Operation => OperationContext.Operation;
 
     public bool NeedsMoreData(ISelectionSet selectionSet)
-        => QueryPlan.HasNodes(selectionSet);
+        => QueryPlan.HasNodesFor(selectionSet);
 
     public string? ReformatId(string formattedId, string subgraphName)
     {

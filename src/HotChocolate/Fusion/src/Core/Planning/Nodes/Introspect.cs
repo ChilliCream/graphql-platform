@@ -1,6 +1,10 @@
 using System.Collections.Immutable;
+using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Language;
+using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -45,5 +49,24 @@ internal sealed class Introspect : QueryPlanNode
                 }
             }
         }
+    }
+
+    protected override void FormatProperties(Utf8JsonWriter writer)
+    {
+        var rootSelectionNodes = new List<ISelectionNode>();
+        var rootSelections = _selectionSet.Selections;
+
+        for (var i = 0; i < rootSelections.Count; i++)
+        {
+            var selection = rootSelections[i];
+            if (selection.Field.IsIntrospectionField &&
+                !selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
+            {
+                rootSelectionNodes.Add(rootSelections[i].SyntaxNode);
+            }
+        }
+
+        var selectionSetNode = new SelectionSetNode(null, rootSelectionNodes);
+        writer.WriteString("document", selectionSetNode.ToString(false));
     }
 }

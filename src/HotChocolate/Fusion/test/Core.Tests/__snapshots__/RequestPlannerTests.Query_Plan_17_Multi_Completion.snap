@@ -27,7 +27,8 @@ QueryPlan
         "type": "Parallel",
         "nodes": [
           {
-            "type": "Introspect"
+            "type": "Introspect",
+            "document": "{ __schema { types { name } } }"
           },
           {
             "type": "Resolve",
