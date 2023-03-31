@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace HotChocolate.Fusion.Execution;
 
+/// <summary>
+/// The fusion execution context holds the state of executing a distributed request.
+/// </summary>
 internal sealed class FusionExecutionContext : IDisposable
 {
     private readonly string _schemaName;
@@ -16,14 +19,14 @@ internal sealed class FusionExecutionContext : IDisposable
     private readonly OperationContextOwner _operationContextOwner;
 
     public FusionExecutionContext(
-        FusionGraphConfiguration serviceConfig,
+        FusionGraphConfiguration configuration,
         QueryPlan queryPlan,
         OperationContextOwner operationContextOwner,
         GraphQLClientFactory clientFactory,
         IIdSerializer idSerializer)
     {
-        Configuration = serviceConfig ??
-            throw new ArgumentNullException(nameof(serviceConfig));
+        Configuration = configuration ??
+            throw new ArgumentNullException(nameof(configuration));
         QueryPlan = queryPlan ??
             throw new ArgumentNullException(nameof(queryPlan));
         _operationContextOwner = operationContextOwner ??
@@ -35,19 +38,40 @@ internal sealed class FusionExecutionContext : IDisposable
         _schemaName = Schema.Name;
     }
 
-    public FusionGraphConfiguration Configuration { get; }
-
-    public QueryPlan QueryPlan { get; }
-
-    public IExecutionState State { get; } = new ExecutionState();
-
-    public OperationContext OperationContext => _operationContextOwner.OperationContext;
-
+    /// <summary>
+    /// Gets the schema that is being executed on.
+    /// </summary>
     public ISchema Schema => OperationContext.Schema;
 
-    public ResultBuilder Result => OperationContext.Result;
+    /// <summary>
+    /// Gets the fusion graph configuration.
+    /// </summary>
+    public FusionGraphConfiguration Configuration { get; }
 
+    /// <summary>
+    /// Gets the query plan that is being executed.
+    /// </summary>
+    public QueryPlan QueryPlan { get; }
+
+    /// <summary>
+    /// Gets the execution state.
+    /// </summary>
+    public ExecutionState State { get; } = new();
+
+    /// <summary>
+    /// Gets access to the underlying operation context.
+    /// </summary>
+    public OperationContext OperationContext => _operationContextOwner.OperationContext;
+
+    /// <summary>
+    /// Gets the operation that is being executed.
+    /// </summary>
     public IOperation Operation => OperationContext.Operation;
+
+    /// <summary>
+    /// Gets the result builder that is used to build the final result.
+    /// </summary>
+    public ResultBuilder Result => OperationContext.Result;
 
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodesFor(selectionSet);

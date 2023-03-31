@@ -38,7 +38,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
-        IExecutionState state,
+        ExecutionState state,
         CancellationToken cancellationToken)
     {
         if (state.TryGetState(SelectionSet, out var originalWorkItems))
@@ -94,7 +94,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        IExecutionState state,
+        ExecutionState state,
         CancellationToken cancellationToken)
     {
         if (state.ContainsState(SelectionSet))

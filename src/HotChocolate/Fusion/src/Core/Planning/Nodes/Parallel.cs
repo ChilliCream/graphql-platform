@@ -10,7 +10,7 @@ internal sealed class Parallel : QueryPlanNode
 
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        IExecutionState state,
+        ExecutionState state,
         CancellationToken cancellationToken)
     {
         var tasks = new Task[Nodes.Count];

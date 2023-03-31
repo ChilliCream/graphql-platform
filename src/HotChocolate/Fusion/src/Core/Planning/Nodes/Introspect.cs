@@ -21,7 +21,7 @@ internal sealed class Introspect : QueryPlanNode
 
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
-        IExecutionState state,
+        ExecutionState state,
         CancellationToken cancellationToken)
     {
         if (state.TryGetState(_selectionSet, out var values))

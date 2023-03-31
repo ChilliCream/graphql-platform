@@ -33,7 +33,7 @@ internal sealed class Compose : QueryPlanNode
 
     protected override Task OnExecuteAsync(
         FusionExecutionContext context,
-        IExecutionState state,
+        ExecutionState state,
         CancellationToken cancellationToken)
     {
         if (_selectionSets.Count == 1)
@@ -65,7 +65,7 @@ internal sealed class Compose : QueryPlanNode
 
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        IExecutionState state,
+        ExecutionState state,
         CancellationToken cancellationToken)
     {
         if (_selectionSets.Count == 1)
