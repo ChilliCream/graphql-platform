@@ -45,7 +45,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
                 pageType,
                 selections);
 
-        context.AddSelection(CombinedEdgeField, combinedSelection);
+        context.AddSelection(combinedSelection);
 
         return selection;
     }

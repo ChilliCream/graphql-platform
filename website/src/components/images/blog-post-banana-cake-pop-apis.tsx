@@ -3,14 +3,14 @@ import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { GetBlogPostBananaCakePopCloudImageQuery } from "@/graphql-types";
+import { GetBlogPostBananaCakePopApisImageQuery } from "@/graphql-types";
 
-export const BlogPostBananaCakePopCloud: FC = () => {
-  const data = useStaticQuery<GetBlogPostBananaCakePopCloudImageQuery>(graphql`
-    query getBlogPostBananaCakePopCloudImage {
+export const BlogPostBananaCakePopApis: FC = () => {
+  const data = useStaticQuery<GetBlogPostBananaCakePopApisImageQuery>(graphql`
+    query getBlogPostBananaCakePopApisImage {
       file(
         relativePath: {
-          eq: "2021-11-22-banana-cake-pop-cloud/banana-cake-pop-cloud-banner.png"
+          eq: "2023-03-15-banana-cake-pop-graphql-apis/lets-boost-your-productivity-with-apis.png"
         }
         sourceInstanceName: { eq: "blog" }
       ) {

@@ -2,6 +2,7 @@ export interface CommonState {
   readonly searchQuery: string;
   readonly showAside: boolean;
   readonly showCookieConsent: boolean;
+  readonly showPromo: boolean;
   readonly showTOC: boolean;
   readonly showLegacyDocInfo: boolean;
   readonly yScrollPosition: number;
@@ -12,6 +13,7 @@ export const initialState: CommonState = {
   searchQuery: "",
   showAside: false,
   showCookieConsent: false,
+  showPromo: false,
   showTOC: false,
   showLegacyDocInfo: false,
   yScrollPosition: 0,
