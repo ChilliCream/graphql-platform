@@ -59,7 +59,7 @@ internal sealed class SubgraphConfigSetWebSocketCommand : Command
                 SubgraphName,
                 new[]
                 {
-                    new HttpClientConfiguration(uri, clientName)
+                    new WebSocketClientConfiguration(uri, clientName)
                 });
             var configJson = PackageHelper.FormatSubgraphConfig(config);
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);
@@ -69,7 +69,7 @@ internal sealed class SubgraphConfigSetWebSocketCommand : Command
             var config = await PackageHelper.LoadSubgraphConfigAsync(configFile.FullName, cancellationToken);
 
             var clients = config.Clients.ToList();
-            clients.Add(new HttpClientConfiguration(uri, clientName));
+            clients.Add(new WebSocketClientConfiguration(uri, clientName));
 
             var configJson = PackageHelper.FormatSubgraphConfig(config with { Clients = clients });
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);

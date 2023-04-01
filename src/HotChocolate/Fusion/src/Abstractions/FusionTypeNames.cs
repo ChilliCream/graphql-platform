@@ -1,3 +1,4 @@
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -310,4 +311,23 @@ public sealed class FusionTypeNames
         prefixSelf = false;
         prefix = null;
     }
+}
+
+public static class FusionGraphPackageConstants
+{
+    public const string FusionKind = "urn:hotchocolate:fusion:graph";
+    public const string FusionFileName = "fusion.graphql";
+    public const string FusionId = "fusion";
+    public const string SchemaKind = "urn:graphql:schema";
+    public const string SchemaFileName  = "schema.graphql";
+    public const string SchemaId = "schema";
+    public const string SchemaMediaType = "application/graphql-schema";
+    public const string SubgraphConfigFileName = "subgraph-config.json";
+    public const string SubgraphConfigKind = "urn:hotchocolate:fusion:subgraph-config";
+    public const string ExtensionKind = "urn:graphql:schema-extensions";
+}
+
+public class FusionGraphPackageException : Exception
+{
+    public FusionGraphPackageException(string message) : base(message) { }
 }
