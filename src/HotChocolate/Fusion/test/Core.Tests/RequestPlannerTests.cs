@@ -727,8 +727,7 @@ public class RequestPlannerTests
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)
     {
-        var serviceDefinition = SchemaFormatter.FormatAsString(fusionGraph);
-        var document = Parse(serviceDefinition);
+        var document = SchemaFormatter.FormatAsDocument(fusionGraph);
         var context = FusionTypeNames.From(document);
         var rewriter = new FusionGraphConfigurationToSchemaRewriter();
         var rewritten = rewriter.Rewrite(document, new(context))!;
@@ -739,7 +738,7 @@ public class RequestPlannerTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(document);
 
         var request = Parse(query);
 

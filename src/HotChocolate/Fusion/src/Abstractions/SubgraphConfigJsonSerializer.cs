@@ -5,11 +5,34 @@ using HotChocolate.Fusion.Composition;
 
 namespace HotChocolate.Fusion;
 
+/// <summary>
+/// Represents the formatter for the core subgraph configuration.
+/// </summary>
 internal static class SubgraphConfigJsonSerializer
 {
+    /// <summary>
+    /// Formats the subgraph configuration as JSON document.
+    /// </summary>
+    /// <param name="config">
+    /// The subgraph configuration.
+    /// </param>
+    /// <returns>
+    /// Returns the JSON document.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="config"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The client configuration is not supported.
+    /// </exception>
     public static string Format(
         SubgraphConfigJson config)
     {
+        if (config is null)
+        {
+            throw new ArgumentNullException(nameof(config));
+        }
+
         var buffer = new ArrayBufferWriter<byte>();
         using var writer = new Utf8JsonWriter(buffer);
 
@@ -53,11 +76,40 @@ internal static class SubgraphConfigJsonSerializer
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
+    /// <summary>
+    /// Formats the subgraph configuration as JSON document.
+    /// </summary>
+    /// <param name="config">
+    /// The subgraph configuration.
+    /// </param>
+    /// <param name="stream">
+    /// The stream to write the JSON document to.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="config"/> is <c>null</c> or
+    /// <paramref name="stream"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The client configuration is not supported.
+    /// </exception>
     public static async ValueTask FormatAsync(
         SubgraphConfigJson config,
         Stream stream,
         CancellationToken cancellationToken)
     {
+        if (config is null)
+        {
+            throw new ArgumentNullException(nameof(config));
+        }
+
+        if (stream is null)
+        {
+            throw new ArgumentNullException(nameof(stream));
+        }
+
         await using var writer = new Utf8JsonWriter(stream);
 
         writer.WriteStartObject();
@@ -98,11 +150,30 @@ internal static class SubgraphConfigJsonSerializer
         await writer.FlushAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Parses the subgraph configuration from a JSON document.
+    /// </summary>
+    /// <param name="stream">
+    /// The stream to read the JSON document from.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the subgraph configuration.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// The configuration property is not supported.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The subgraph name is missing.
+    /// </exception>
     public static async Task<SubgraphConfigJson> ParseAsync(
         Stream stream,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+        using var document = await JsonDocument.ParseAsync(
+            stream, cancellationToken: cancellationToken);
         var configs = new List<IClientConfiguration>();
         var subgraph = default(string?);
 

@@ -4,11 +4,22 @@ using System.Net.Mime;
 using System.Text;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
+using static HotChocolate.Fusion.FusionAbstractionResources;
 using static HotChocolate.Fusion.FusionGraphPackageConstants;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Fusion;
 
+/// <summary>
+/// <para>
+/// A package that contains the Fusion graph document which is used to configure
+/// a Fusion GraphQL gateway.
+/// </para>
+/// <para>
+/// Besides the Fusion graph document the package can also contain a schema file and
+/// all subgraph configurations it was composed of.
+/// </para>
+/// </summary>
 public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 {
     private readonly Package _package;
@@ -18,6 +29,23 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         _package = package;
     }
 
+    /// <summary>
+    /// Opens or creates a Fusion graph package.
+    /// </summary>
+    /// <param name="stream">
+    /// The stream that contains the Fusion graph package.
+    /// </param>
+    /// <param name="access">
+    /// The access mode for the Fusion graph package.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="stream"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="access"/> is not <see cref="FileAccess.Read"/> or
+    /// <see cref="FileAccess.ReadWrite"/>.
+    /// </exception>
     public static FusionGraphPackage Open(
         Stream stream,
         FileAccess access = FileAccess.ReadWrite)
@@ -32,10 +60,27 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(access));
         }
 
-        var package = Package.Open(stream, FileMode.Open, access);
+        var package = Package.Open(stream, FileMode.OpenOrCreate, access);
         return new FusionGraphPackage(package);
     }
 
+    /// <summary>
+    /// Opens or creates a Fusion graph package.
+    /// </summary>
+    /// <param name="path">
+    /// The path to the Fusion graph package.
+    /// </param>
+    /// <param name="access">
+    /// The access mode for the Fusion graph package.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="stream"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="access"/> is not <see cref="FileAccess.Read"/> or
+    /// <see cref="FileAccess.ReadWrite"/>.
+    /// </exception>
     public static FusionGraphPackage Open(
         string path,
         FileAccess access = FileAccess.ReadWrite)
@@ -50,47 +95,34 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(access));
         }
 
-        var package = Package.Open(path, FileMode.Open, access);
+        var mode = access == FileAccess.Read ? FileMode.Open : FileMode.OpenOrCreate;
+        var package = Package.Open(path, mode, access);
         return new FusionGraphPackage(package);
     }
 
-    public static FusionGraphPackage Create(
-        Stream stream)
-    {
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
-
-        var package = Package.Open(stream, FileMode.Create, FileAccess.ReadWrite);
-        return new FusionGraphPackage(package);
-    }
-
-    public static FusionGraphPackage Create(
-        string path)
-    {
-        if (path is null)
-        {
-            throw new ArgumentNullException(nameof(path));
-        }
-
-        var package = Package.Open(path, FileMode.Create, FileAccess.ReadWrite);
-        return new FusionGraphPackage(package);
-    }
-
+    /// <summary>
+    /// Gets the Fusion graph document to configure the a Fusion GraphQL Gateway.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// The Fusion graph document.
+    /// </returns>
+    /// <exception cref="FusionGraphPackageException">
+    /// The package is not readable or the package does not contain a Fusion graph document.
+    /// </exception>
     public Task<DocumentNode> GetFusionGraphAsync(
         CancellationToken cancellationToken = default)
     {
         if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
         {
-            throw new FusionGraphPackageException(
-                "The fusion graph package must be opened in read mode to read contents.");
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
         }
 
         if (!_package.RelationshipExists(FusionId))
         {
-            throw new FusionGraphPackageException(
-                "This package does not contain a fusion graph document.");
+            throw new FusionGraphPackageException(FusionGraphPackage_NoFusionGraphDoc);
         }
 
         var relationship = _package.GetRelationship(FusionId);
@@ -98,6 +130,25 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         return ReadSchemaPartAsync(part, cancellationToken);
     }
 
+    /// <summary>
+    /// Adds a Fusion graph document to the package or
+    /// replaces the Fusion graph document in the package.
+    /// </summary>
+    /// <param name="document">
+    /// The Fusion graph document.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task"/> representing the asynchronous operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="document"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="FusionGraphPackageException">
+    /// The Fusion graph package must be opened in read/write mode to update contents.
+    /// </exception>
     public Task SetFusionGraphAsync(
         DocumentNode document,
         CancellationToken cancellationToken = default)
@@ -109,8 +160,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 
         if (_package.FileOpenAccess != FileAccess.ReadWrite)
         {
-            throw new FusionGraphPackageException(
-                "The fusion graph package must be opened in read/write mode to update contents.");
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotWrite);
         }
 
         if (_package.RelationshipExists(FusionId))
@@ -128,13 +178,26 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             cancellationToken);
     }
 
+    /// <summary>
+    /// Gets the schema document that represents the public schema
+    /// the Fusion GraphQL Gateway will expose.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// The schema document.
+    /// </returns>
+    /// <exception cref="FusionGraphPackageException">
+    /// The package is not readable or the package does not contain a schema document.
+    /// </exception>
     public Task<DocumentNode> GetSchemaAsync(
         CancellationToken cancellationToken = default)
     {
         if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
         {
             throw new FusionGraphPackageException(
-                "The fusion graph package must be opened in read mode to read contents.");
+                FusionGraphPackage_CannotRead);
         }
 
         if (!_package.RelationshipExists(SchemaId))
@@ -148,6 +211,24 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         return ReadSchemaPartAsync(part, cancellationToken);
     }
 
+    /// <summary>
+    /// Adds a schema document to the package or replaces the schema document in the package.
+    /// </summary>
+    /// <param name="document">
+    /// The schema document.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task"/> representing the asynchronous operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="document"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="FusionGraphPackageException">
+    /// The Fusion graph package must be opened in read/write mode to update contents.
+    /// </exception>
     public Task SetSchemaAsync(
         DocumentNode document,
         CancellationToken cancellationToken = default)
@@ -159,8 +240,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 
         if (_package.FileOpenAccess != FileAccess.ReadWrite)
         {
-            throw new FusionGraphPackageException(
-                "The fusion graph package must be opened in read/write mode to update contents.");
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotWrite);
         }
 
         if (_package.RelationshipExists(SchemaId))
@@ -178,13 +258,24 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             cancellationToken);
     }
 
+    /// <summary>
+    /// Gets the subgraph configurations that Fusion GraphQL document is composed of.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// The subgraph configurations.
+    /// </returns>
+    /// <exception cref="FusionGraphPackageException">
+    /// The package is not readable or the package does not contain any subgraph configurations.
+    /// </exception>
     public async Task<IReadOnlyList<SubgraphConfiguration>> GetSubgraphConfigurationsAsync(
         CancellationToken cancellationToken = default)
     {
         if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
         {
-            throw new FusionGraphPackageException(
-                "The fusion graph package must be opened in read mode to read contents.");
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
         }
 
         var configurations = new List<SubgraphConfiguration>();
@@ -199,6 +290,24 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         return configurations;
     }
 
+    /// <summary>
+    /// Trues to get a subgraph configuration by name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the subgraph configuration.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// The subgraph configuration or <c>null</c> if the subgraph configuration does not exist.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="name"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="FusionGraphPackageException">
+    /// The package is not readable.
+    /// </exception>
     public Task<SubgraphConfiguration?> TryGetSubgraphConfigurationAsync(
         string name,
         CancellationToken cancellationToken = default)
@@ -210,8 +319,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 
         if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
         {
-            throw new FusionGraphPackageException(
-                "The fusion graph package must be opened in read mode to read contents.");
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
         }
 
         if (!_package.RelationshipExists(name))
@@ -224,6 +332,25 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         return ReadSubgraphConfigurationAsync(part, cancellationToken)!;
     }
 
+    /// <summary>
+    /// Adds a subgraph configuration to the package or
+    /// replaces the subgraph configuration in the package.
+    /// </summary>
+    /// <param name="configuration">
+    /// The subgraph configuration.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task"/> representing the asynchronous operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="configuration"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="FusionGraphPackageException">
+    /// The Fusion graph package must be opened in read/write mode to update contents.
+    /// </exception>
     public Task SetSubgraphConfigurationAsync(
         SubgraphConfiguration configuration,
         CancellationToken cancellationToken = default)
@@ -235,8 +362,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 
         if (_package.FileOpenAccess != FileAccess.ReadWrite)
         {
-            throw new FusionGraphPackageException(
-                "The fusion graph package must be opened in read/write mode to update contents.");
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotWrite);
         }
 
         if (_package.RelationshipExists(configuration.Name))
@@ -410,11 +536,17 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _package.Close();
-    }
+    /// <summary>
+    /// Disposes the package.
+    /// </summary>
+    public void Dispose() => _package.Close();
 
+    /// <summary>
+    /// Disposes the package.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="ValueTask"/> representing the asynchronous operation.
+    /// </returns>
     public ValueTask DisposeAsync()
     {
         _package.Close();

@@ -66,9 +66,7 @@ internal sealed class ComposeCommand : Command
             packageFile.Directory.Create();
         }
 
-        await using var package = packageFile.Exists
-            ? FusionGraphPackage.Open(packageFile.FullName)
-            : FusionGraphPackage.Create(packageFile.FullName);
+        await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
         if (subgraphPackageFiles is null || subgraphPackageFiles.Count == 0)
         {
