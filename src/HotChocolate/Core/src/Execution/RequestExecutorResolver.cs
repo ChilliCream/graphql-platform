@@ -331,7 +331,7 @@ internal sealed class RequestExecutorResolver
         return schemaServices;
     }
 
-    private async ValueTask<ISchema> CreateSchemaAsync(
+    private static async ValueTask<ISchema> CreateSchemaAsync(
         string schemaName,
         RequestExecutorSetup options,
         RequestExecutorOptions executorOptions,

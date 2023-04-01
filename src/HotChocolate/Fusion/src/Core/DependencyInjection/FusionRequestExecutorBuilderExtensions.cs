@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Clients;
@@ -64,6 +65,26 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDefaultGatewayPipeline()
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
+
+            .Configure(
+                c =>
+                {
+                    var schemaBuilder = SchemaBuilder.New();
+                    c.SchemaBuilder = schemaBuilder;
+
+                    c.SchemaServices.Add();
+
+
+
+
+
+
+
+
+                })
+
+
+
             .ConfigureSchemaServices(
                 sc =>
                 {
@@ -86,6 +107,7 @@ public static class FusionRequestExecutorBuilderExtensions
                             }
 
                             var subClientFactory = appSp.GetService<IWebSocketConnectionFactory>();
+
                             if (subClientFactory is not null)
                             {
                                 IGraphQLSubscriptionClient Create(

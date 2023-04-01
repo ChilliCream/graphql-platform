@@ -17,6 +17,9 @@ public sealed class RequestExecutorSetup
 
     public ISchema? Schema { get; set; }
 
+    /// <summary>
+    /// Gets or sets the schema builder that is used to create the schema.
+    /// </summary>
     public ISchemaBuilder? SchemaBuilder { get; set; }
 
     public RequestExecutorOptions? RequestExecutorOptions { get; set; }
