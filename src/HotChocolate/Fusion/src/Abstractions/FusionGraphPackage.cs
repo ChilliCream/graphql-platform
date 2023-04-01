@@ -81,13 +81,13 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     public Task<DocumentNode> GetFusionGraphAsync(
         CancellationToken cancellationToken = default)
     {
-        if ((_package.FileOpenAccess & FileAccess.Read) == FileAccess.Read)
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
         {
             throw new FusionGraphPackageException(
                 "The fusion graph package must be opened in read mode to read contents.");
         }
 
-        if (_package.RelationshipExists(FusionId))
+        if (!_package.RelationshipExists(FusionId))
         {
             throw new FusionGraphPackageException(
                 "This package does not contain a fusion graph document.");
@@ -131,13 +131,13 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     public Task<DocumentNode> GetSchemaAsync(
         CancellationToken cancellationToken = default)
     {
-        if ((_package.FileOpenAccess & FileAccess.Read) == FileAccess.Read)
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
         {
             throw new FusionGraphPackageException(
                 "The fusion graph package must be opened in read mode to read contents.");
         }
 
-        if (_package.RelationshipExists(SchemaId))
+        if (!_package.RelationshipExists(SchemaId))
         {
             throw new FusionGraphPackageException(
                 "This package does not contain a schema document.");
@@ -163,9 +163,9 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
                 "The fusion graph package must be opened in read/write mode to update contents.");
         }
 
-        if (_package.RelationshipExists(FusionId))
+        if (_package.RelationshipExists(SchemaId))
         {
-            var relationship = _package.GetRelationship(FusionId);
+            var relationship = _package.GetRelationship(SchemaId);
             _package.DeletePart(relationship.TargetUri);
             _package.DeleteRelationship(relationship.Id);
         }
@@ -181,6 +181,12 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     public async Task<IReadOnlyList<SubgraphConfiguration>> GetSubgraphConfigurationsAsync(
         CancellationToken cancellationToken = default)
     {
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
+        {
+            throw new FusionGraphPackageException(
+                "The fusion graph package must be opened in read mode to read contents.");
+        }
+
         var configurations = new List<SubgraphConfiguration>();
 
         foreach (var relationship in _package.GetRelationshipsByType(SubgraphConfigKind))
@@ -202,13 +208,13 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             throw new ArgumentNullException(nameof(name));
         }
 
-        if ((_package.FileOpenAccess & FileAccess.Read) == FileAccess.Read)
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
         {
             throw new FusionGraphPackageException(
                 "The fusion graph package must be opened in read mode to read contents.");
         }
 
-        if (_package.RelationshipExists(name))
+        if (!_package.RelationshipExists(name))
         {
             return Task.FromResult<SubgraphConfiguration?>(null);
         }
@@ -261,6 +267,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         do
         {
             read = await stream.ReadAsync(buffer.GetMemory(256), ct);
+            buffer.Advance(read);
         } while (read > 0);
 
         return Parse(buffer.WrittenSpan);
@@ -281,6 +288,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         await stream.WriteAsync(sourceText, ct);
 
         _package.CreateRelationship(part.Uri, TargetMode.Internal, relKind, relId);
+        _package.Flush();
     }
 
     private async Task<SubgraphConfiguration> ReadSubgraphConfigurationAsync(
@@ -341,6 +349,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         var root = await WriteSubgraphConfigurationJsonPartAsync(configuration, ct);
         await WriteSubgraphSchemaPartAsync(configuration.Name, root, schema, ct);
         await WriteSubgraphExtensionPartsAsync(configuration.Name, root, extensions, ct);
+        _package.Flush();
     }
 
     private async Task<PackagePart> WriteSubgraphConfigurationJsonPartAsync(
@@ -403,13 +412,11 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 
     public void Dispose()
     {
-        _package.Flush();
         _package.Close();
     }
 
     public ValueTask DisposeAsync()
     {
-        _package.Flush();
         _package.Close();
         return default;
     }
