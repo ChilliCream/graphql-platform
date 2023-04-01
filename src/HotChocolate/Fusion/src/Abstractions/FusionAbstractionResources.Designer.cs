@@ -50,5 +50,23 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("FusionTypeNames_NoSchemaDef", resourceCulture);
             }
         }
+        
+        internal static string FusionGraphPackage_CannotRead {
+            get {
+                return ResourceManager.GetString("FusionGraphPackage_CannotRead", resourceCulture);
+            }
+        }
+        
+        internal static string FusionGraphPackage_NoFusionGraphDoc {
+            get {
+                return ResourceManager.GetString("FusionGraphPackage_NoFusionGraphDoc", resourceCulture);
+            }
+        }
+        
+        internal static string FusionGraphPackage_CannotWrite {
+            get {
+                return ResourceManager.GetString("FusionGraphPackage_CannotWrite", resourceCulture);
+            }
+        }
     }
 }

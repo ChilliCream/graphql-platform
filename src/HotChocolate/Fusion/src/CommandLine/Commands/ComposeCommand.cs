@@ -34,6 +34,9 @@ internal sealed class ComposeCommand : Command
 
         AddOption(fusionPackageFile);
         AddOption(subgraphPackageFile);
+        AddOption(enableNodes);
+        AddOption(fusionPrefix);
+        AddOption(fusionPrefixSelf);
         AddOption(workingDirectory);
 
         this.SetHandler(
@@ -58,21 +61,12 @@ internal sealed class ComposeCommand : Command
         DirectoryInfo workingDirectory,
         CancellationToken cancellationToken)
     {
-        var configs = new Dictionary<string, SubgraphConfiguration>();
-
-        if (packageFile.Exists)
-        {
-            foreach (var config in await ReadSubgraphConfigsFromFusionPackageAsync(
-                packageFile.FullName,
-                cancellationToken))
-            {
-                configs[config.Name] = config;
-            }
-        }
-        else if(packageFile.Directory is not null && !packageFile.Directory.Exists)
+        if(packageFile.Directory is not null && !packageFile.Directory.Exists)
         {
             packageFile.Directory.Create();
         }
+
+        await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
         if (subgraphPackageFiles is null || subgraphPackageFiles.Count == 0)
         {
@@ -80,11 +74,43 @@ internal sealed class ComposeCommand : Command
                 workingDirectory.GetFiles($"*{Extensions.SubgraphPackage}").ToList();
         }
 
+        for (var i = 0; i < subgraphPackageFiles.Count; i++)
+        {
+            var file = subgraphPackageFiles[i];
+
+            if (!file.Exists && Directory.Exists(file.FullName))
+            {
+                var firstFile = Directory
+                    .EnumerateFiles(file.FullName, $"*{Extensions.SubgraphPackage}")
+                    .FirstOrDefault();
+
+                if (firstFile is not null)
+                {
+                    subgraphPackageFiles[i] = new FileInfo(firstFile);
+                }
+            }
+        }
+
         if (subgraphPackageFiles.Count == 0)
         {
             console.WriteLine("No subgraph packages found.");
             return;
         }
+
+        if(subgraphPackageFiles.Any(t => !t.Exists))
+        {
+            console.WriteLine("Some subgraph packages do not exist.");
+
+            foreach (var missingFile in subgraphPackageFiles.Where(t => !t.Exists))
+            {
+                console.WriteLine($"- {missingFile.FullName}");
+            }
+
+            return;
+        }
+
+        var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken))
+            .ToDictionary(t => t.Name);
 
         foreach (var subgraphPackageFile in subgraphPackageFiles)
         {
@@ -109,11 +135,15 @@ internal sealed class ComposeCommand : Command
         var rewriter = new Metadata.FusionGraphConfigurationToSchemaRewriter();
         var schemaDoc = (DocumentNode)rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
 
-        await CreateFusionPackageAsync(
-            packageFile.FullName,
-            schemaDoc,
-            fusionGraphDoc,
-            configs.Values);
+        await package.SetFusionGraphAsync(fusionGraphDoc, cancellationToken);
+        await package.SetSchemaAsync(schemaDoc, cancellationToken);
+
+        foreach (var config in configs.Values)
+        {
+            await package.SetSubgraphConfigurationAsync(config, cancellationToken);
+        }
+
+        console.WriteLine("Fusion graph composed.");
     }
 
     private sealed class ConsoleLog : ICompositionLog

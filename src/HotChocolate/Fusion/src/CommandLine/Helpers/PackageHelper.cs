@@ -60,7 +60,7 @@ internal static class PackageHelper
             extensions.Add(Utf8GraphQLParser.Parse(extension));
         }
 
-        using var package = Package.Open(stream, FileMode.Create);
+        using Package package = Package.Open(stream, FileMode.Create);
         await AddSchemaToPackageAsync(package, schema);
         await AddTransportConfigToPackage(package, transportConfig);
         await AddSchemaExtensionsToPackage(package, extensions);
@@ -96,7 +96,7 @@ internal static class PackageHelper
         string packageFile,
         CancellationToken cancellationToken = default)
     {
-        using var package = Package.Open(packageFile, FileMode.Open);
+        using var package = Package.Open(packageFile, FileMode.Open, FileAccess.Read);
         return await ReadSubgraphPackageAsync(package, cancellationToken);
     }
 
@@ -119,14 +119,14 @@ internal static class PackageHelper
         string packageFile,
         CancellationToken cancellationToken = default)
     {
-        using var package = Package.Open(packageFile, FileMode.Open);
+        using var package = Package.Open(packageFile, FileMode.Open, FileAccess.Read);
         var configs = new List<SubgraphConfiguration>();
 
         foreach (var extensionRel in package.GetRelationshipsByType(_subgraphPackageKind))
         {
             var schemaPart = package.GetPart(extensionRel.TargetUri);
-            await using var stream = schemaPart.GetStream(FileMode.Open);
-            using var subgraphPackage = Package.Open(packageFile, FileMode.Open);
+            await using var stream = schemaPart.GetStream(FileMode.Open, FileAccess.Read);
+            using var subgraphPackage = Package.Open(stream, FileMode.Open, FileAccess.Read);
             var config = await ReadSubgraphPackageAsync(subgraphPackage, cancellationToken);
             configs.Add(config);
         }
