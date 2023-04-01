@@ -18,6 +18,7 @@ public sealed class DemoProject : IDisposable
         IReadOnlyList<IDisposable> disposables,
         DemoSubgraph accounts,
         DemoSubgraph reviews,
+        DemoSubgraph reviews2,
         DemoSubgraph products,
         IHttpClientFactory clientFactory,
         IWebSocketConnectionFactory webSocketConnectionFactory)
@@ -25,6 +26,7 @@ public sealed class DemoProject : IDisposable
         _disposables = disposables;
         Accounts = accounts;
         Reviews = reviews;
+        Reviews2 = reviews2;
         Products = products;
         HttpClientFactory = clientFactory;
         WebSocketConnectionFactory = webSocketConnectionFactory;
@@ -35,6 +37,8 @@ public sealed class DemoProject : IDisposable
     public IWebSocketConnectionFactory WebSocketConnectionFactory { get; }
 
     public DemoSubgraph Reviews { get; }
+
+    public DemoSubgraph Reviews2 { get; }
 
     public DemoSubgraph Products { get; }
 
@@ -56,7 +60,8 @@ public sealed class DemoProject : IDisposable
                 .AddQueryType<ReviewsQuery>()
                 .AddMutationType<ReviewsMutation>()
                 .AddSubscriptionType<ReviewsSubscription>()
-                .AddMutationConventions(),
+                .AddMutationConventions()
+                .AddGlobalObjectIdentification(),
             c => c
                 .UseWebSockets()
                 .UseRouting()
@@ -69,6 +74,28 @@ public sealed class DemoProject : IDisposable
             .DownloadSchemaAsync(reviewsClient, ct)
             .ConfigureAwait(false);
 
+        var reviews2 = testServerFactory.Create(
+            s => s
+                .AddRouting()
+                .AddSingleton<Reviews2.ReviewRepository>()
+                .AddGraphQLServer()
+                .AddQueryType<Reviews2.ReviewsQuery>()
+                .AddMutationType<Reviews2.ReviewsMutation>()
+                .AddSubscriptionType<Reviews2.ReviewsSubscription>()
+                .AddMutationConventions()
+                .AddGlobalObjectIdentification(),
+            c => c
+                .UseWebSockets()
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        disposables.Add(reviews2);
+
+        var reviews2Client = reviews2.CreateClient();
+        reviews2Client.BaseAddress = new Uri("http://localhost:5000/graphql");
+        var reviews2Schema = await introspection
+            .DownloadSchemaAsync(reviews2Client, ct)
+            .ConfigureAwait(false);
+
         var accounts = testServerFactory.Create(
             s => s
                 .AddRouting()
@@ -76,7 +103,8 @@ public sealed class DemoProject : IDisposable
                 .AddGraphQLServer()
                 .AddQueryType<AccountQuery>()
                 .AddMutationType<AccountMutation>()
-                .AddMutationConventions(),
+                .AddMutationConventions()
+                .AddGlobalObjectIdentification(),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
@@ -93,7 +121,8 @@ public sealed class DemoProject : IDisposable
                 .AddRouting()
                 .AddSingleton<ProductRepository>()
                 .AddGraphQLServer()
-                .AddQueryType<ProductQuery>(),
+                .AddQueryType<ProductQuery>()
+                .AddGlobalObjectIdentification(),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
@@ -112,6 +141,15 @@ public sealed class DemoProject : IDisposable
                 {
                     // ReSharper disable once AccessToDisposedClosure
                     var httpClient = reviews.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    return httpClient;
+                }
+            },
+            {
+                "Reviews2", () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = reviews2.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
                     return httpClient;
                 }
@@ -163,6 +201,12 @@ public sealed class DemoProject : IDisposable
                 new Uri("ws://localhost:5000/graphql"),
                 reviewsSchema,
                 reviews),
+            new DemoSubgraph(
+                "Reviews2",
+                reviews2Client.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                reviews2Schema,
+                reviews2),
             new DemoSubgraph(
                 "Products",
                 productsClient.BaseAddress,

@@ -68,6 +68,11 @@ public sealed class FusionTypes
         Source = RegisterSourceDirectiveType(
             names.SourceDirective,
             TypeName);
+        Node = RegisterNodeDirectiveType(
+            names.NodeDirective,
+            TypeName);
+        ReEncodeId = RegisterReEncodeIdDirectiveType(
+            names.ReEncodeIdDirective);
         Fusion = RegisterFusionDirectiveType(
             names.FusionDirective,
             TypeName,
@@ -104,6 +109,10 @@ public sealed class FusionTypes
     public DirectiveType Variable { get; }
 
     public DirectiveType Source { get; }
+
+    public DirectiveType Node { get; }
+
+    public DirectiveType ReEncodeId { get; }
 
     public DirectiveType HttpClient { get; }
 
@@ -181,6 +190,18 @@ public sealed class FusionTypes
         return directiveType;
     }
 
+    public Directive CreateReEncodeIdDirective()
+        => new Directive(ReEncodeId);
+
+    private DirectiveType RegisterReEncodeIdDirectiveType(string name)
+    {
+        var directiveType = new DirectiveType(name);
+        directiveType.Locations |= DirectiveLocation.FieldDefinition;
+        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        _fusionGraph.DirectiveTypes.Add(directiveType);
+        return directiveType;
+    }
+
     public Directive CreateResolverDirective(
         string subgraphName,
         SelectionSetNode select,
@@ -189,8 +210,7 @@ public sealed class FusionTypes
     {
         var directiveArgs = new List<Argument>
         {
-            new(SubgraphArg, subgraphName),
-            new(SelectArg, select.ToString(false))
+            new(SubgraphArg, subgraphName), new(SelectArg, select.ToString(false))
         };
 
         if (arguments is { Count: > 0 })
@@ -212,7 +232,7 @@ public sealed class FusionTypes
             directiveArgs.Add(new Argument(ArgumentsArg, new ListValueNode(argumentDefs)));
         }
 
-        if(kind != EntityResolverKind.Single)
+        if (kind != EntityResolverKind.Single)
         {
             var kindValue = kind switch
             {
@@ -263,6 +283,28 @@ public sealed class FusionTypes
         directiveType.Locations = DirectiveLocation.FieldDefinition;
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(new InputField(NameArg, typeName));
+        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        _fusionGraph.DirectiveTypes.Add(directiveType);
+        return directiveType;
+    }
+
+    public Directive CreateNodeDirective(string subgraphName, IReadOnlyCollection<ObjectType> types)
+    {
+        var temp = types.Select(t => new StringValueNode(t.Name)).ToArray();
+
+        return new Directive(
+            Node,
+            new Argument(SubgraphArg, subgraphName),
+            new Argument(TypesArg, new ListValueNode(null, temp)));
+    }
+
+    private DirectiveType RegisterNodeDirectiveType(string name, ScalarType typeName)
+    {
+        var directiveType = new DirectiveType(name);
+        directiveType.Locations = DirectiveLocation.Schema;
+        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(
+            new InputField(TypesArg, new NonNullType(new ListType(new NonNullType(typeName)))));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
