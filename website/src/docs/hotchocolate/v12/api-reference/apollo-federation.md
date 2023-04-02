@@ -35,7 +35,7 @@ Now that the API is ready to support Apollo Federation, we'll need to define an 
   ```csharp
   public class Product
   {
-      [GraphQLType(typeof(NonNullType<IdType>))]
+      [ID]
       public string Id { get; set; }
 
       public string Name { get; set; }
@@ -62,7 +62,7 @@ public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
-        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(product => product.Id).ID();
     }
 }
 ```
@@ -89,7 +89,7 @@ In an annotation-based approach, we'll use the `[Key]` attribute on any property
 ```csharp
 public class Product
 {
-    [GraphQLType(typeof(NonNullType<IdType>))]
+    [ID]
     [Key]
     public string Id { get; set; }
 
@@ -119,7 +119,7 @@ public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
-        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(product => product.Id).ID();
 
         // Matches the Id property when it is converted to the GraphQL schema
         descriptor.Key("id");
@@ -153,7 +153,7 @@ In an annotation-based implementation, a reference resolver will work just like 
 ```csharp
 public class Product
 {
-    [GraphQLType(typeof(NonNullType<IdType>))]
+    [ID]
     [Key]
     public string Id { get; set; }
 
@@ -224,7 +224,7 @@ public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
-        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(product => product.Id).ID();
 
         descriptor.Key("id")
             .ResolveReferenceWith(_ => ResolveByIdAsync(default!, default!));
@@ -386,7 +386,7 @@ In our new subgraph API we'll need to start by creating the `Product`. When crea
 [ExtendServiceType]
 public class Product
 {
-    [GraphQLType(typeof(NonNullType<IdType>))]
+    [ID]
     [Key]
     public string Id { get; set; }
 }
@@ -414,7 +414,7 @@ public class ProductType : ObjectType<Product>
         descriptor.ExtendServiceType();
 
         descriptor.Key("id");
-        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(product => product.Id).ID();
     }
 }
 
@@ -443,7 +443,7 @@ Next, we'll create our `Review` type that has a reference to the `Product` entit
 ```csharp
 public class Review
 {
-    [GraphQLType(typeof(NonNullType<IdType>))]
+    [ID]
     [Key]
     public string Id { get; set; }
 
@@ -489,7 +489,7 @@ public class ReviewType : ObjectType<Review>
     protected override void Configure(IObjectTypeDescriptor<Review> descriptor)
     {
         descriptor.Key("id").ResolveReferenceWith(_ => ResolveReviewById(default!));
-        descriptor.Field(review => review.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(review => review.Id).ID();
 
         descriptor.Ignore(review => review.ProductId);
     }
@@ -554,7 +554,7 @@ For now, we'll focus on giving our supergraph the ability to retrieve all review
 [ExtendServiceType]
 public class Product
 {
-    [GraphQLType(typeof(NonNullType<IdType>))]
+    [ID]
     [Key]
     public string Id { get; set; }
 
@@ -591,7 +591,7 @@ public class ProductType : ObjectType<Product>
         descriptor.ExtendServiceType();
 
         descriptor.Key("id");
-        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(product => product.Id).ID();
     }
 }
 ```
@@ -618,7 +618,7 @@ As mentioned above, since this subgraph does not "own" the data for a `Product`,
 [ExtendServiceType]
 public class Product
 {
-    [GraphQLType(typeof(NonNullType<IdType>))]
+    [ID]
     [Key]
     public string Id { get; set; }
 
@@ -658,7 +658,7 @@ public class ProductType : ObjectType<Product>
         descriptor.ExtendServiceType();
 
         descriptor.Key("id").ResolveReferenceWith(_ => ResolveProductReference(default!));
-        descriptor.Field(product => product.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(product => product.Id).ID();
     }
 
     private static Product ResolveProductReference(string id) => new Product { Id = id };
