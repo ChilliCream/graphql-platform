@@ -48,7 +48,8 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             options => options.OnConfigureSchemaBuilderHooks.Add(
-                new OnConfigureSchemaBuilderAction((_, sb) => configureSchema(sb))));
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _) => configureSchema(ctx.SchemaBuilder))));
     }
 
     /// <summary>
@@ -81,7 +82,8 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             options => options.OnConfigureSchemaBuilderHooks.Add(
-                new OnConfigureSchemaBuilderAction((_, sb, ct) => configureSchema(sb, ct))));
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _, ct) => configureSchema(ctx.SchemaBuilder, ct))));
     }
 
     /// <summary>
@@ -118,7 +120,8 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             options => options.OnConfigureSchemaBuilderHooks.Add(
-                new OnConfigureSchemaBuilderAction(configureSchema)));
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, sp) => configureSchema(sp, ctx.SchemaBuilder))));
     }
 
     /// <summary>
@@ -155,7 +158,8 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             options => options.OnConfigureSchemaBuilderHooks.Add(
-                new OnConfigureSchemaBuilderAction(configureSchema)));
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, sp, ct) => configureSchema(sp, ctx.SchemaBuilder, ct))));
     }
 
     /// <summary>
@@ -186,7 +190,8 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             options => options.OnConfigureRequestExecutorOptionsHooks.Add(
-                new OnConfigureRequestExecutorOptionsAction(modify)));
+                new OnConfigureRequestExecutorOptionsAction(
+                    (_, opt) => modify(opt))));
     }
 
     /// <summary>
@@ -219,7 +224,8 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             options => options.OnConfigureRequestExecutorOptionsHooks.Add(
-                new OnConfigureRequestExecutorOptionsAction(modify)));
+                new OnConfigureRequestExecutorOptionsAction(
+                    (_, opt, ct) => modify(opt, ct))));
     }
 
     /// <summary>
