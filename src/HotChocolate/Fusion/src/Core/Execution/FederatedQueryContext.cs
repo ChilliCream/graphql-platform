@@ -3,47 +3,88 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace HotChocolate.Fusion.Execution;
 
+/// <summary>
+/// The fusion execution context holds the state of executing a distributed request.
+/// </summary>
 internal sealed class FusionExecutionContext : IDisposable
 {
+    private readonly string _schemaName;
     private readonly GraphQLClientFactory _clientFactory;
+    private readonly IIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
 
     public FusionExecutionContext(
-        FusionGraphConfiguration serviceConfig,
+        FusionGraphConfiguration configuration,
         QueryPlan queryPlan,
         OperationContextOwner operationContextOwner,
-        GraphQLClientFactory clientFactory)
+        GraphQLClientFactory clientFactory,
+        IIdSerializer idSerializer)
     {
-        ServiceConfig = serviceConfig ??
-            throw new ArgumentNullException(nameof(serviceConfig));
+        Configuration = configuration ??
+            throw new ArgumentNullException(nameof(configuration));
         QueryPlan = queryPlan ??
             throw new ArgumentNullException(nameof(queryPlan));
         _operationContextOwner = operationContextOwner ??
             throw new ArgumentNullException(nameof(operationContextOwner));
         _clientFactory = clientFactory ??
             throw new ArgumentNullException(nameof(clientFactory));
+        _idSerializer = idSerializer ??
+            throw new ArgumentNullException(nameof(idSerializer));
+        _schemaName = Schema.Name;
     }
 
-    public FusionGraphConfiguration ServiceConfig { get; }
-
-    public QueryPlan QueryPlan { get; }
-
-    public IExecutionState State { get; } = new ExecutionState();
-
-    public OperationContext OperationContext => _operationContextOwner.OperationContext;
-
+    /// <summary>
+    /// Gets the schema that is being executed on.
+    /// </summary>
     public ISchema Schema => OperationContext.Schema;
 
-    public ResultBuilder Result => OperationContext.Result;
+    /// <summary>
+    /// Gets the fusion graph configuration.
+    /// </summary>
+    public FusionGraphConfiguration Configuration { get; }
 
+    /// <summary>
+    /// Gets the query plan that is being executed.
+    /// </summary>
+    public QueryPlan QueryPlan { get; }
+
+    /// <summary>
+    /// Gets the execution state.
+    /// </summary>
+    public ExecutionState State { get; } = new();
+
+    /// <summary>
+    /// Gets access to the underlying operation context.
+    /// </summary>
+    public OperationContext OperationContext => _operationContextOwner.OperationContext;
+
+    /// <summary>
+    /// Gets the operation that is being executed.
+    /// </summary>
     public IOperation Operation => OperationContext.Operation;
 
+    /// <summary>
+    /// Gets the result builder that is used to build the final result.
+    /// </summary>
+    public ResultBuilder Result => OperationContext.Result;
+
     public bool NeedsMoreData(ISelectionSet selectionSet)
-        => QueryPlan.HasNodes(selectionSet);
+        => QueryPlan.HasNodesFor(selectionSet);
+
+    public string? ReformatId(string formattedId, string subgraphName)
+    {
+        var id = _idSerializer.Deserialize(formattedId);
+        var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
+        return _idSerializer.Serialize(_schemaName, typeName, id.Value);
+    }
+
+    public IdValue ParseId(string formattedId)
+        => _idSerializer.Deserialize(formattedId);
 
     public async Task<GraphQLResponse> ExecuteAsync(
         string subgraphName,
@@ -93,8 +134,9 @@ internal sealed class FusionExecutionContext : IDisposable
         FusionExecutionContext context,
         OperationContextOwner operationContextOwner)
         => new FusionExecutionContext(
-            context.ServiceConfig,
+            context.Configuration,
             context.QueryPlan,
             operationContextOwner,
-            context._clientFactory);
+            context._clientFactory,
+            context._idSerializer);
 }

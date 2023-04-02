@@ -3,7 +3,7 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class ExecutionState : IExecutionState
+internal sealed class ExecutionState
 {
     private readonly Dictionary<ISelectionSet, List<WorkItem>> _map = new();
     private readonly HashSet<ISelectionSet> _immutable = new();

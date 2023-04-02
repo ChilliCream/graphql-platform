@@ -13,12 +13,12 @@ QueryPlan
   "document": "query TopProducts($first: Int!) { topProducts(first: $first) { upc } }",
   "operation": "TopProducts",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Products",
-        "document": "query TopProducts_1($first: Int!) { topProducts(first: $first) { upc } }",
+        "document": "query TopProducts_1($first: Int!) { topProducts(first: $first) { __fusion_exports__1: id } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
@@ -27,9 +27,29 @@ QueryPlan
         ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
+        ]
+      },
+      {
+        "type": "Resolve",
+        "subgraph": "Reviews",
+        "document": "query TopProducts_2($__fusion_exports__1: ID!) { productById(id: $__fusion_exports__1) { upc } }",
+        "selectionSetId": 1,
+        "path": [
+          "productById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          1
         ]
       }
     ]

@@ -197,12 +197,10 @@ DISCOVER:
     {
         foreach (var type in _typeRegistry.Types)
         {
-            if (type.Errors.Count == 0)
+            if (type.HasErrors)
             {
-                continue;
+                _errors.AddRange(type.Errors);
             }
-
-            _errors.AddRange(type.Errors);
         }
 
         if (_errors.Count == 0 && _typeRegistrar.Unresolved.Count > 0)

@@ -93,7 +93,7 @@ internal sealed class RequestExecutorResolver
     {
         schemaName ??= Schema.DefaultName;
 
-        if (!_executors.TryGetValue(schemaName, out var re))
+        if (!_executors.TryGetValue(schemaName, out var registeredExecutor))
         {
             var options =
                 await _optionsMonitor.GetAsync(schemaName, cancellationToken)
@@ -103,7 +103,7 @@ internal sealed class RequestExecutorResolver
                 await CreateSchemaServicesAsync(schemaName, options, cancellationToken)
                     .ConfigureAwait(false);
 
-            re = new RegisteredExecutor(
+            registeredExecutor = new RegisteredExecutor(
                 schemaServices.GetRequiredService<IRequestExecutor>(),
                 schemaServices,
                 schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
@@ -112,20 +112,20 @@ internal sealed class RequestExecutorResolver
 
             foreach (var action in options.OnRequestExecutorCreated)
             {
-                action.Action?.Invoke(re.Executor);
+                action.Action?.Invoke(registeredExecutor.Executor);
 
                 if (action.AsyncAction is not null)
                 {
-                    await action.AsyncAction.Invoke(re.Executor, cancellationToken)
+                    await action.AsyncAction.Invoke(registeredExecutor.Executor, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
 
-            re.DiagnosticEvents.ExecutorCreated(schemaName, re.Executor);
-            _executors.TryAdd(schemaName, re);
+            registeredExecutor.DiagnosticEvents.ExecutorCreated(schemaName, registeredExecutor.Executor);
+            _executors.TryAdd(schemaName, registeredExecutor);
         }
 
-        return re.Executor;
+        return registeredExecutor.Executor;
     }
 
     public void EvictRequestExecutor(string? schemaName = default)
@@ -331,7 +331,7 @@ internal sealed class RequestExecutorResolver
         return schemaServices;
     }
 
-    private async ValueTask<ISchema> CreateSchemaAsync(
+    private static async ValueTask<ISchema> CreateSchemaAsync(
         string schemaName,
         RequestExecutorSetup options,
         RequestExecutorOptions executorOptions,

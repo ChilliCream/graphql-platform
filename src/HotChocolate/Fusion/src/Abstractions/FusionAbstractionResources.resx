@@ -21,4 +21,13 @@
   <data name="FusionTypeNames_NoSchemaDef" xml:space="preserve">
     <value>The provided document must at least contain a schema definition.</value>
   </data>
+  <data name="FusionGraphPackage_CannotRead" xml:space="preserve">
+    <value>The fusion graph package must be opened in read mode to read contents.</value>
+  </data>
+  <data name="FusionGraphPackage_NoFusionGraphDoc" xml:space="preserve">
+    <value>This package does not contain a fusion graph document.</value>
+  </data>
+  <data name="FusionGraphPackage_CannotWrite" xml:space="preserve">
+    <value>The fusion graph package must be opened in read/write mode to update contents.</value>
+  </data>
 </root>

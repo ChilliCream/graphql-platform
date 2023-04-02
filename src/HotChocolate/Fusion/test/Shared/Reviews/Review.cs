@@ -1,3 +1,6 @@
+using HotChocolate.Types.Relay;
+
 namespace HotChocolate.Fusion.Shared.Reviews;
 
-public record Review(int Id, Author Author, Product Product, string Body);
+[Node]
+public record Review(int Id, Author Author, Product Product, string Body) : IReviewOrAuthor;

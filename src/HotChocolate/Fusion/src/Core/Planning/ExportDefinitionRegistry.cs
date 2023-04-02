@@ -21,7 +21,7 @@ internal sealed class ExportDefinitionRegistry
     public string Register(
         ISelectionSet selectionSet,
         FieldVariableDefinition variableDefinition,
-        IExecutionStep providingExecutionStep)
+        ExecutionStep providingExecutionStep)
     {
         var exportDefinition = new ExportDefinition(
             $"_{_groupKey}_{++_stateId}",
@@ -36,7 +36,7 @@ internal sealed class ExportDefinitionRegistry
 
     public void RegisterAdditionExport(
         FieldVariableDefinition variableDefinition,
-        IExecutionStep providingExecutionStep,
+        ExecutionStep providingExecutionStep,
         string stateKey)
     {
         var originalExport = _exportLookup[stateKey];
@@ -52,7 +52,7 @@ internal sealed class ExportDefinitionRegistry
         ISelectionSet selectionSet,
         string variableName,
         [NotNullWhen(true)] out string? stateKey,
-        [NotNullWhen(true)] out IExecutionStep? executionStep)
+        [NotNullWhen(true)] out ExecutionStep? executionStep)
     {
         if (_stateKeyLookup.TryGetValue((selectionSet, variableName), out stateKey))
         {
@@ -104,7 +104,7 @@ internal sealed class ExportDefinitionRegistry
     }
 
     public IEnumerable<ISelectionNode> GetExportSelections(
-        IExecutionStep executionStep,
+        ExecutionStep executionStep,
         ISelectionSet selectionSet)
     {
         foreach (var exportDefinition in _exports)

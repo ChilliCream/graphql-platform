@@ -17,7 +17,7 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public abstract class TypeInterceptor
 {
-    private const int _position = 0;
+    private const uint _position = uint.MaxValue / 2;
 
     /// <summary>
     /// A weight to order interceptors.

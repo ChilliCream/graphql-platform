@@ -86,6 +86,7 @@ internal static class ComplexTypeMergeExtensions
                 LogEntryHelper.OutputFieldArgumentSetMismatch(
                     new SchemaCoordinate(typeName, source.Name),
                     source));
+            return;
         }
 
         // If the target field does not have a description, copy over the description
