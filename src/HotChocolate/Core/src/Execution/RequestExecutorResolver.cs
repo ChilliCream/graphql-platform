@@ -116,11 +116,11 @@ internal sealed class RequestExecutorResolver
 
             foreach (var action in options.OnRequestExecutorCreated)
             {
-                action.Action?.Invoke(registeredExecutor.Executor);
+                action.Created?.Invoke(registeredExecutor.Executor);
 
-                if (action.AsyncAction is not null)
+                if (action.CreatedAsync is not null)
                 {
-                    await action.AsyncAction.Invoke(registeredExecutor.Executor, cancellationToken)
+                    await action.CreatedAsync.Invoke(registeredExecutor.Executor, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
@@ -380,12 +380,12 @@ internal sealed class RequestExecutorResolver
 
         foreach (var action in options.OnConfigureSchemaBuilderHooks)
         {
-            if (action.Action is { } configure)
+            if (action.Configure is { } configure)
             {
                 configure(serviceProvider, schemaBuilder);
             }
 
-            if (action.AsyncAction is { } configureAsync)
+            if (action.ConfigureAsync is { } configureAsync)
             {
                 await configureAsync(serviceProvider, schemaBuilder, cancellationToken)
                     .ConfigureAwait(false);

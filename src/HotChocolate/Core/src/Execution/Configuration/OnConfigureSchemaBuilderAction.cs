@@ -21,8 +21,8 @@ public readonly struct OnConfigureSchemaBuilderAction
     /// </exception>
     public OnConfigureSchemaBuilderAction(OnConfigureSchemaBuilder action)
     {
-        Action = action ?? throw new ArgumentNullException(nameof(action));
-        AsyncAction = default;
+        Configure = action ?? throw new ArgumentNullException(nameof(action));
+        ConfigureAsync = default;
     }
 
     /// <summary>
@@ -36,19 +36,19 @@ public readonly struct OnConfigureSchemaBuilderAction
     /// </exception>
     public OnConfigureSchemaBuilderAction(OnConfigureSchemaBuilderAsync asyncAction)
     {
-        Action = default;
-        AsyncAction = asyncAction ?? throw new ArgumentNullException(nameof(asyncAction));
+        Configure = default;
+        ConfigureAsync = asyncAction ?? throw new ArgumentNullException(nameof(asyncAction));
     }
 
     /// <summary>
     /// Gets the synchronous action.
     /// </summary>
-    public OnConfigureSchemaBuilder? Action { get; }
+    public OnConfigureSchemaBuilder? Configure { get; }
 
     /// <summary>
     /// Gets the asynchronous action.
     /// </summary>
-    public OnConfigureSchemaBuilderAsync? AsyncAction { get; }
+    public OnConfigureSchemaBuilderAsync? ConfigureAsync { get; }
 }
 
 /// <summary>

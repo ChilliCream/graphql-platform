@@ -6,23 +6,28 @@ namespace HotChocolate.Execution.Configuration;
 
 public readonly struct OnRequestExecutorCreatedAction
 {
-    public OnRequestExecutorCreatedAction(
-        Action<IRequestExecutor> action)
+    public OnRequestExecutorCreatedAction(OnRequestExecutorCreated action)
     {
-        Action = action ?? throw new ArgumentNullException(nameof(action));
-        AsyncAction = default;
+        Created = action ?? throw new ArgumentNullException(nameof(action));
+        CreatedAsync = default;
     }
 
-    public OnRequestExecutorCreatedAction(
-        Func<IRequestExecutor, CancellationToken, ValueTask> asyncAction)
+    public OnRequestExecutorCreatedAction(OnRequestExecutorCreatedAsync asyncAction)
     {
-        Action = default;
-        AsyncAction = asyncAction ?? throw new ArgumentNullException(nameof(asyncAction));
+        Created = default;
+        CreatedAsync = asyncAction ?? throw new ArgumentNullException(nameof(asyncAction));
     }
 
-    public Action<IRequestExecutor>? Action { get; }
+    public OnRequestExecutorCreated? Created { get; }
 
-    public Func<IRequestExecutor, CancellationToken, ValueTask>? AsyncAction { get; }
+    public OnRequestExecutorCreatedAsync? CreatedAsync { get; }
 }
 
+public delegate void OnRequestExecutorCreated(
+    ConfigurationContext context,
+    IRequestExecutor executor);
 
+public delegate ValueTask OnRequestExecutorCreatedAsync(
+    ConfigurationContext context,
+    IRequestExecutor executor,
+    CancellationToken cancellationToken);
