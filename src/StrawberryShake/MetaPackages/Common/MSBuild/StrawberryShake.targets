@@ -30,9 +30,13 @@
     Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
     Condition="'@(GraphQL)' != ''">
 
-    <DotNetMajor>
-      <Output TaskParameter="Major" PropertyName="DotNetMajor" />
-    </DotNetMajor>
+    <Exec Command="dotnet --version" StandardOutputImportance="Low" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="DotNetVersion" />
+    </Exec>
+    <PropertyGroup>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 6))">6</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 7))">7</DotNetMajor>
+    </PropertyGroup>
 
     <Error
       Text="The Strawberry Shake code generation requires .NET SDK 6 or .NET SDK 7 to work."
@@ -65,41 +69,5 @@
     <MakeDir Directories="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry" Condition="!EXISTS('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info')" />
     <Touch Files="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info" AlwaysCreate="true" />
   </Target>
-
-  <UsingTask
-    TaskName="DotNetMajor"
-    TaskFactory="RoslynCodeTaskFactory"
-    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
-    <ParameterGroup>
-      <Major ParameterType="System.String" Output="true" />
-    </ParameterGroup>
-    <Task>
-      <Using Namespace="System"/>
-      <Using Namespace="System.Diagnostics"/>
-      <Code Type="Fragment" Language="cs">
-      <![CDATA[
-      var dotnetVersion = new ProcessStartInfo("dotnet", "--version")
-      {
-          UseShellExecute = false,
-          CreateNoWindow = true,
-          RedirectStandardOutput = true
-      };
-
-      var process = Process.Start(dotnetVersion);
-
-      if (process is not null)
-      {
-          var output = process.StandardOutput.ReadToEnd();
-          process.WaitForExit();
-
-          if (process.ExitCode == 0 && Version.TryParse(output.Trim(), out var version))
-          {
-              Major = version.Major.ToString();
-          }
-      }
-      ]]>
-      </Code>
-    </Task>
-  </UsingTask>
 
 </Project>
