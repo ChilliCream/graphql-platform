@@ -33,6 +33,7 @@
     <Exec Command="dotnet --version" StandardOutputImportance="Low" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="DotNetVersion" />
     </Exec>
+
     <PropertyGroup>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 6))">6</DotNetMajor>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 7))">7</DotNetMajor>
