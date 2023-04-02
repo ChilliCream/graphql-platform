@@ -17,7 +17,17 @@ internal sealed class FileWatcherTypeModule : ITypeModule, IDisposable
             throw new ArgumentNullException(nameof(fileName));
         }
 
-        _watcher = new FileSystemWatcher(fileName);
+        var directory = Path.GetDirectoryName(fileName);
+        if (directory is null)
+        {
+            throw new FileNotFoundException(
+                "The file name must contain a directory path.",
+                fileName);
+        }
+
+        _watcher = new FileSystemWatcher();
+        _watcher.Path = directory;
+        _watcher.Filter = fileName;
 
         _watcher.NotifyFilter =
             NotifyFilters.Attributes |

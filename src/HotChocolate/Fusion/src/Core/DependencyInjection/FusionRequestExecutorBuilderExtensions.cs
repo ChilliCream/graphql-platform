@@ -230,7 +230,7 @@ public static class FusionRequestExecutorBuilderExtensions
             // We first try to load the file name as a fusion graph package.
             // This might fails as a the file that was provided is a fusion
             // graph document.
-            await using var package = FusionGraphPackage.Open(fileName);
+            await using var package = FusionGraphPackage.Open(fileName, FileAccess.Read);
             return await package.GetFusionGraphAsync(cancellationToken);
         }
         catch
