@@ -34,8 +34,8 @@ namespace HotChocolate.Execution;
 
 internal sealed class RequestExecutorResolver
     : IRequestExecutorResolver
-    , IInternalRequestExecutorResolver
-    , IDisposable
+        , IInternalRequestExecutorResolver
+        , IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
@@ -99,6 +99,10 @@ internal sealed class RequestExecutorResolver
                 await _optionsMonitor.GetAsync(schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
+            var context = new ConfigurationContext(
+                schemaName,
+                options.SchemaBuilder ?? new SchemaBuilder());
+
             var schemaServices =
                 await CreateSchemaServicesAsync(schemaName, options, cancellationToken)
                     .ConfigureAwait(false);
@@ -121,7 +125,9 @@ internal sealed class RequestExecutorResolver
                 }
             }
 
-            registeredExecutor.DiagnosticEvents.ExecutorCreated(schemaName, registeredExecutor.Executor);
+            registeredExecutor.DiagnosticEvents.ExecutorCreated(
+                schemaName,
+                registeredExecutor.Executor);
             _executors.TryAdd(schemaName, registeredExecutor);
         }
 
@@ -208,7 +214,7 @@ internal sealed class RequestExecutorResolver
     }
 
     private async Task<IServiceProvider> CreateSchemaServicesAsync(
-        string schemaName,
+        ConfigurationContext context,
         RequestExecutorSetup options,
         CancellationToken cancellationToken)
     {
@@ -220,11 +226,11 @@ internal sealed class RequestExecutorResolver
         }
 
         var serviceCollection = new ServiceCollection();
-        var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, schemaName);
+        var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
         var lazy = new SchemaBuilder.LazySchema();
 
         var executorOptions =
-            await CreateExecutorOptionsAsync(options, cancellationToken)
+            await CreateExecutorOptionsAsync(context, options, cancellationToken)
                 .ConfigureAwait(false);
 
         // if there are any type modules we will register them with the
@@ -310,7 +316,7 @@ internal sealed class RequestExecutorResolver
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
                 version));
 
-        foreach (var configureServices in options.SchemaServices)
+        foreach (var configureServices in options.OnConfigureSchemaServicesHooks)
         {
             configureServices(serviceCollection);
         }
@@ -372,7 +378,7 @@ internal sealed class RequestExecutorResolver
             }
         }
 
-        foreach (var action in options.SchemaBuilderActions)
+        foreach (var action in options.OnConfigureSchemaBuilderHooks)
         {
             if (action.Action is { } configure)
             {
@@ -404,6 +410,7 @@ internal sealed class RequestExecutorResolver
     }
 
     private static async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
+        ConfigurationContext context,
         RequestExecutorSetup options,
         CancellationToken cancellationToken)
     {
@@ -411,16 +418,17 @@ internal sealed class RequestExecutorResolver
             options.RequestExecutorOptions ??
             new RequestExecutorOptions();
 
-        foreach (var action in options.RequestExecutorOptionsActions)
+        foreach (var action in options.OnConfigureRequestExecutorOptionsHooks)
         {
-            if (action.Action is { } configure)
+            if (action.Configure is { } configure)
             {
-                configure(executorOptions);
+                configure(context, executorOptions);
             }
 
-            if (action.AsyncAction is { } configureAsync)
+            if (action.ConfigureAsync is { } configureAsync)
             {
-                await configureAsync(executorOptions, cancellationToken).ConfigureAwait(false);
+                await configureAsync(context, executorOptions, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 

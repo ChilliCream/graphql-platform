@@ -10,10 +10,10 @@ namespace HotChocolate.Execution.Configuration;
 /// </summary>
 public sealed class RequestExecutorSetup
 {
-    private readonly List<SchemaBuilderAction> _schemaBuilderActions = new();
-    private readonly List<RequestExecutorOptionsAction> _requestExecutorOptionsActions = new();
+    private readonly List<OnConfigureSchemaBuilderAction> _onConfigureSchemaBuilderHooks = new();
+    private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = new();
     private readonly List<RequestCoreMiddleware> _pipeline = new();
-    private readonly List<Action<IServiceCollection>> _schemaServices = new();
+    private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = new();
     private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreated = new();
     private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvicted = new();
     private readonly List<ITypeModule> _typeModules = new();
@@ -37,22 +37,22 @@ public sealed class RequestExecutorSetup
     /// Gets the request executor options actions.
     /// This hook is invoke first in the schema creation process.
     /// </summary>
-    public IList<RequestExecutorOptionsAction> RequestExecutorOptionsActions
-        => _requestExecutorOptionsActions;
+    public IList<OnConfigureRequestExecutorOptionsAction> OnConfigureRequestExecutorOptionsHooks
+        => _onConfigureRequestExecutorOptionsHooks;
 
     /// <summary>
     /// Gets the schema service configuration actions.
     /// This hook is invoked second in the schema creation process.
     /// </summary>
-    public IList<Action<IServiceCollection>> SchemaServices
-        => _schemaServices;
+    public IList<OnConfigureSchemaServices> OnConfigureSchemaServicesHooks
+        => _onConfigureSchemaServicesHooks;
 
     /// <summary>
     /// Gets the schema builder configuration actions.
     /// This hook is invoked third in the schema creation process.
     /// </summary>
-    public IList<SchemaBuilderAction> SchemaBuilderActions
-        => _schemaBuilderActions;
+    public IList<OnConfigureSchemaBuilderAction> OnConfigureSchemaBuilderHooks
+        => _onConfigureSchemaBuilderHooks;
 
     /// <summary>
     /// Gets the request executor created actions.
@@ -91,12 +91,16 @@ public sealed class RequestExecutorSetup
         options.Schema = Schema;
         options.SchemaBuilder = SchemaBuilder;
         options.RequestExecutorOptions = RequestExecutorOptions;
-        options._schemaBuilderActions.AddRange(_schemaBuilderActions);
-        options._requestExecutorOptionsActions.AddRange(_requestExecutorOptionsActions);
+        options._onConfigureSchemaBuilderHooks.AddRange(_onConfigureSchemaBuilderHooks);
+        options._onConfigureRequestExecutorOptionsHooks.AddRange(_onConfigureRequestExecutorOptionsHooks);
         options._pipeline.AddRange(_pipeline);
-        options._schemaServices.AddRange(_schemaServices);
+        options._onConfigureSchemaServicesHooks.AddRange(_onConfigureSchemaServicesHooks);
         options._onRequestExecutorCreated.AddRange(_onRequestExecutorCreated);
         options._onRequestExecutorEvicted.AddRange(_onRequestExecutorEvicted);
         options._typeModules.AddRange(_typeModules);
     }
 }
+
+public delegate void OnConfigureSchemaServices(
+    ConfigurationContext context,
+    IServiceCollection services);
