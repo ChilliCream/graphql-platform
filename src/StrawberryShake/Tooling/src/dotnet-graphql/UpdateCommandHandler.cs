@@ -108,6 +108,10 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
             if (!await DownloadSchemaAsync(context, uri, tempFile, cancellationToken)
                 .ConfigureAwait(false))
             {
+                hasErrors = true;
+            }
+            else
+            {
                 // if the schema download succeeded we will replace the old schema with the
                 // new one.
                 if (File.Exists(schemaFilePath))
@@ -116,8 +120,6 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
                 }
 
                 File.Move(tempFile, schemaFilePath);
-
-                hasErrors = true;
             }
 
             // in any case we will make sure the temp file is removed at the end.
