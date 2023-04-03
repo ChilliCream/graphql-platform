@@ -32,7 +32,7 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution;
 
-internal sealed class RequestExecutorResolver
+internal sealed partial class RequestExecutorResolver
     : IRequestExecutorResolver
     , IInternalRequestExecutorResolver
     , IDisposable
@@ -95,33 +95,34 @@ internal sealed class RequestExecutorResolver
 
         if (!_executors.TryGetValue(schemaName, out var registeredExecutor))
         {
-            var options =
+            var setup =
                 await _optionsMonitor.GetAsync(schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
+            var context = new ConfigurationContext(
+                schemaName,
+                setup.SchemaBuilder ?? new SchemaBuilder(),
+                _applicationServices);
+
             var schemaServices =
-                await CreateSchemaServicesAsync(schemaName, options, cancellationToken)
+                await CreateSchemaServicesAsync(context, setup, cancellationToken)
                     .ConfigureAwait(false);
 
             registeredExecutor = new RegisteredExecutor(
                 schemaServices.GetRequiredService<IRequestExecutor>(),
                 schemaServices,
                 schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
-                options,
+                setup,
                 schemaServices.GetRequiredService<TypeModuleChangeMonitor>());
 
-            foreach (var action in options.OnRequestExecutorCreated)
-            {
-                action.Action?.Invoke(registeredExecutor.Executor);
+            var executor = registeredExecutor.Executor;
 
-                if (action.AsyncAction is not null)
-                {
-                    await action.AsyncAction.Invoke(registeredExecutor.Executor, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
+            await OnRequestExecutorCreatedAsync(context, executor, setup, cancellationToken)
+                .ConfigureAwait(false);
 
-            registeredExecutor.DiagnosticEvents.ExecutorCreated(schemaName, registeredExecutor.Executor);
+            registeredExecutor.DiagnosticEvents.ExecutorCreated(
+                schemaName,
+                registeredExecutor.Executor);
             _executors.TryAdd(schemaName, registeredExecutor);
         }
 
@@ -174,25 +175,12 @@ internal sealed class RequestExecutorResolver
 #endif
 
     private static void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
-    {
-        Task.Factory.StartNew(
+        => Task.Factory.StartNew(
             async () =>
             {
                 try
                 {
-                    foreach (var action in
-                        registeredExecutor.Setup.OnRequestExecutorEvicted)
-                    {
-                        action.Action?.Invoke(registeredExecutor.Executor);
-
-                        if (action.AsyncAction is { } task)
-                        {
-                            await task.Invoke(
-                                    registeredExecutor.Executor,
-                                    CancellationToken.None)
-                                .ConfigureAwait(false);
-                        }
-                    }
+                    await OnRequestExecutorEvictedAsync(registeredExecutor);
                 }
                 finally
                 {
@@ -205,11 +193,10 @@ internal sealed class RequestExecutorResolver
             default,
             TaskCreationOptions.DenyChildAttach,
             TaskScheduler.Default);
-    }
 
     private async Task<IServiceProvider> CreateSchemaServicesAsync(
-        string schemaName,
-        RequestExecutorSetup options,
+        ConfigurationContext context,
+        RequestExecutorSetup setup,
         CancellationToken cancellationToken)
     {
         ulong version;
@@ -220,18 +207,18 @@ internal sealed class RequestExecutorResolver
         }
 
         var serviceCollection = new ServiceCollection();
-        var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, schemaName);
+        var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
         var lazy = new SchemaBuilder.LazySchema();
 
         var executorOptions =
-            await CreateExecutorOptionsAsync(options, cancellationToken)
+            await OnConfigureRequestExecutorOptionsAsync(context, setup, cancellationToken)
                 .ConfigureAwait(false);
 
         // if there are any type modules we will register them with the
         // type module change monitor.
         // The module will track if type modules signal changes to the schema and
         // start a schema eviction.
-        foreach (var typeModule in options.TypeModules)
+        foreach (var typeModule in setup.TypeModules)
         {
             typeModuleChangeMonitor.Register(typeModule);
         }
@@ -274,8 +261,8 @@ internal sealed class RequestExecutorResolver
 
         serviceCollection.AddSingleton(
             sp => CreatePipeline(
-                schemaName,
-                options.Pipeline,
+                context.SchemaName,
+                setup.Pipeline,
                 sp,
                 sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
 
@@ -310,20 +297,17 @@ internal sealed class RequestExecutorResolver
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
                 version));
 
-        foreach (var configureServices in options.SchemaServices)
-        {
-            configureServices(serviceCollection);
-        }
+        OnConfigureSchemaServices(context, serviceCollection, setup);
 
         var schemaServices = serviceCollection.BuildServiceProvider();
-        var combinedServices = schemaServices.Include(_applicationServices);
+        // var combinedServices = schemaServices.Include(_applicationServices);
 
         lazy.Schema =
             await CreateSchemaAsync(
-                    schemaName,
-                    options,
+                    context,
+                    setup,
                     executorOptions,
-                    combinedServices,
+                    schemaServices,
                     typeModuleChangeMonitor,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -332,64 +316,53 @@ internal sealed class RequestExecutorResolver
     }
 
     private static async ValueTask<ISchema> CreateSchemaAsync(
-        string schemaName,
-        RequestExecutorSetup options,
+        ConfigurationContext context,
+        RequestExecutorSetup setup,
         RequestExecutorOptions executorOptions,
-        IServiceProvider serviceProvider,
+        IServiceProvider schemaServices,
         TypeModuleChangeMonitor typeModuleChangeMonitor,
         CancellationToken cancellationToken)
     {
-        if (options.Schema is not null)
+        if (setup.Schema is not null)
         {
-            AssertSchemaNameValid(options.Schema, schemaName);
-            return options.Schema;
+            AssertSchemaNameValid(setup.Schema, context.SchemaName);
+            return setup.Schema;
         }
 
-        var schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
         var complexitySettings = executorOptions.Complexity;
 
-        schemaBuilder
-            .AddServices(serviceProvider)
+        context
+            .SchemaBuilder
+            .AddServices(schemaServices)
             .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
             .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
 
-        var context = schemaBuilder.CreateContext();
+        var descriptorContext = context.SchemaBuilder.CreateContext();
 
         await foreach (var member in
-            typeModuleChangeMonitor.CreateTypesAsync(context)
+            typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
         {
             switch (member)
             {
                 case INamedType namedType:
-                    schemaBuilder.AddType(namedType);
+                    context.SchemaBuilder.AddType(namedType);
                     break;
 
                 case INamedTypeExtension typeExtension:
-                    schemaBuilder.AddType(typeExtension);
+                    context.SchemaBuilder.AddType(typeExtension);
                     break;
             }
         }
 
-        foreach (var action in options.SchemaBuilderActions)
-        {
-            if (action.Action is { } configure)
-            {
-                configure(serviceProvider, schemaBuilder);
-            }
+        await OnConfigureSchemaBuilderAsync(context, schemaServices, setup, cancellationToken);
 
-            if (action.AsyncAction is { } configureAsync)
-            {
-                await configureAsync(serviceProvider, schemaBuilder, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-        }
+        context.SchemaBuilder.TryAddTypeInterceptor(
+            new SetSchemaNameInterceptor(context.SchemaName));
 
-        schemaBuilder.TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
-
-        var schema = schemaBuilder.Create(context);
-        AssertSchemaNameValid(schema, schemaName);
+        var schema = context.SchemaBuilder.Create(descriptorContext);
+        AssertSchemaNameValid(schema, context.SchemaName);
         return schema;
     }
 
@@ -401,30 +374,6 @@ internal sealed class RequestExecutorResolver
                 expectedSchemaName,
                 schema.Name);
         }
-    }
-
-    private static async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
-        RequestExecutorSetup options,
-        CancellationToken cancellationToken)
-    {
-        var executorOptions =
-            options.RequestExecutorOptions ??
-            new RequestExecutorOptions();
-
-        foreach (var action in options.RequestExecutorOptionsActions)
-        {
-            if (action.Action is { } configure)
-            {
-                configure(executorOptions);
-            }
-
-            if (action.AsyncAction is { } configureAsync)
-            {
-                await configureAsync(executorOptions, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        return executorOptions;
     }
 
     private RequestDelegate CreatePipeline(

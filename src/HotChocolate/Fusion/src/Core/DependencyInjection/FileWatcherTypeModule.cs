@@ -17,7 +17,7 @@ internal sealed class FileWatcherTypeModule : ITypeModule, IDisposable
             throw new ArgumentNullException(nameof(fileName));
         }
 
-        var directory = Path.GetDirectoryName(fileName);
+        var directory = Path.GetDirectoryName(Path.GetFullPath(fileName));
         if (directory is null)
         {
             throw new FileNotFoundException(
@@ -30,21 +30,31 @@ internal sealed class FileWatcherTypeModule : ITypeModule, IDisposable
         _watcher.Filter = fileName;
 
         _watcher.NotifyFilter =
+            NotifyFilters.FileName |
+            NotifyFilters.DirectoryName |
             NotifyFilters.Attributes |
             NotifyFilters.CreationTime |
             NotifyFilters.FileName |
             NotifyFilters.LastWrite |
             NotifyFilters.Size;
 
+        // TODO : remove
+        TypesChanged += (_, _) => Console.WriteLine("Types changed ...");
+
         _watcher.Created += (s, e) => TypesChanged?.Invoke(s, e);
         _watcher.Changed += (s, e) => TypesChanged?.Invoke(s, e);
         _watcher.EnableRaisingEvents = true;
+
+        // TODO : remove
+        Console.WriteLine("Listening ...");
     }
 
     public ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
         IDescriptorContext context,
         CancellationToken cancellationToken)
     {
+        // TODO : remove
+        Console.WriteLine("Rebuild schema ...");
         return new ValueTask<IReadOnlyCollection<ITypeSystemMember>>(
             Array.Empty<ITypeSystemMember>());
     }
