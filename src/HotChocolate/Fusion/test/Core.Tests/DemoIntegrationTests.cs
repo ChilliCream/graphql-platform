@@ -1,5 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
@@ -922,6 +923,84 @@ public class DemoIntegrationTests
         await snapshot.MatchAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task Hot_Reload()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+        var reloadTypeModule = new ReloadTypeModule();
+
+
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    },
+                    FusionFeatureFlags.NodeField);
+
+        var services = new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(_ => new(SchemaFormatter.FormatAsDocument(fusionGraph)))
+            .AddTypeModule(_ => reloadTypeModule)
+            .Services
+            .BuildServiceProvider();
+
+        var request = Parse(
+            """
+            {
+              __type(name: "Query") {
+                fields {
+                  name
+                }
+              }
+            }
+            """);
+
+        var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
+        var executorProxy = new RequestExecutorProxy(executorResolver, Schema.DefaultName);
+
+        var result = await executorProxy.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result, "1. Version");
+
+        // act
+        fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews2.ToConfiguration(AccountsExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    },
+                    FusionFeatureFlags.NodeField);
+
+        reloadTypeModule.Evict();
+
+        result = await executorProxy.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        snapshot.Add(result, "2. Version");
+
+        // assert
+        await snapshot.MatchAsync();
+    }
+
+    private class ReloadTypeModule : TypeModule
+    {
+        public void Evict() => OnTypesChanged();
     }
 
     private static void CollectSnapshotData(
