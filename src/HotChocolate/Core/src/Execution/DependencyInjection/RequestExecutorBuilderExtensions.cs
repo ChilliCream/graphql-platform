@@ -1,13 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
-using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
@@ -258,7 +255,8 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             (services, options) => options.OnConfigureRequestExecutorOptionsHooks.Add(
-                new OnConfigureRequestExecutorOptionsAction(o => modify(services, o))));
+                new OnConfigureRequestExecutorOptionsAction(
+                    (_, o) => modify(services, o))));
 
     }
 
@@ -292,7 +290,8 @@ public static partial class RequestExecutorBuilderExtensions
         return Configure(
             builder,
             (services, options) => options.OnConfigureRequestExecutorOptionsHooks.Add(
-                new OnConfigureRequestExecutorOptionsAction((o, ct) => modify(services, o, ct))));
+                new OnConfigureRequestExecutorOptionsAction(
+                    (_, o, ct) => modify(services, o, ct))));
     }
 
     /// <summary>
@@ -405,7 +404,8 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.OnConfigureSchemaServicesHooks.Add(configureServices));
+            options => options.OnConfigureSchemaServicesHooks.Add(
+                (_, sp) => configureServices(sp)));
     }
 
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
@@ -422,8 +422,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
-        return builder.Configure(o => o.OnRequestExecutorCreated.Add(
-            new OnRequestExecutorCreatedAction(action)));
+        return builder.Configure(
+            o => o.OnRequestExecutorCreatedHooks.Add(
+                new OnRequestExecutorCreatedAction(
+                    (_, re) => action(re))));
     }
 
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
@@ -440,8 +442,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
-        return builder.Configure((s, o) => o.OnRequestExecutorCreated.Add(
-            new OnRequestExecutorCreatedAction(e => action(s, e))));
+        return builder.Configure(
+            (s, o) => o.OnRequestExecutorCreatedHooks.Add(
+                new OnRequestExecutorCreatedAction(
+                    (_, e) => action(s, e))));
     }
 
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreatedAsync(
@@ -458,8 +462,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(asyncAction));
         }
 
-        return builder.Configure(o => o.OnRequestExecutorCreated.Add(
-            new OnRequestExecutorCreatedAction(asyncAction)));
+        return builder.Configure(
+            o => o.OnRequestExecutorCreatedHooks.Add(
+                new OnRequestExecutorCreatedAction(
+                    (_, re, ct) => asyncAction(re, ct))));
     }
 
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreatedAsync(
@@ -476,8 +482,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(asyncAction));
         }
 
-        return builder.Configure((s, o) => o.OnRequestExecutorCreated.Add(
-            new OnRequestExecutorCreatedAction((e, ct) => asyncAction(s, e, ct))));
+        return builder.Configure(
+            (s, o) => o.OnRequestExecutorCreatedHooks.Add(
+                new OnRequestExecutorCreatedAction(
+                    (_, e, ct) => asyncAction(s, e, ct))));
     }
 
     internal static IRequestExecutorBuilder Configure(

@@ -313,6 +313,23 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     : entry => providerName.Equals(entry.Name, StringComparison.Ordinal);
             PagingProviderEntry? defaultEntry = null;
 
+            // if we find an application service provider we will prefer that one.
+            var applicationServices = services.GetService<IApplicationServiceProvider>();
+
+            if (applicationServices is not null)
+            {
+                foreach (var entry in applicationServices.GetServices<PagingProviderEntry>())
+                {
+                    // the first provider is expected to be the default provider.
+                    defaultEntry ??= entry;
+
+                    if (predicate(entry))
+                    {
+                        return entry.Provider;
+                    }
+                }
+            }
+
             foreach (var entry in services.GetServices<PagingProviderEntry>())
             {
                 // the first provider is expected to be the default provider.

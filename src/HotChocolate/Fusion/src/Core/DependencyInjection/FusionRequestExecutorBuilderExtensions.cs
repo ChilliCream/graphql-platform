@@ -133,27 +133,24 @@ public static class FusionRequestExecutorBuilderExtensions
             .Configure(
                 c =>
                 {
-                    var schemaBuilder = SchemaBuilder.New();
-                    c.SchemaBuilder = schemaBuilder;
-
                     c.OnConfigureRequestExecutorOptionsHooks.Add(
                         new OnConfigureRequestExecutorOptionsAction(
-                            async: async (_, ct) =>
+                            async: async (ctx, _, ct) =>
                             {
                                 var rewriter = new FusionGraphConfigurationToSchemaRewriter();
                                 var fusionGraphDoc = await fusionGraphResolver(ct);
                                 var fusionGraphConfig = Load(fusionGraphDoc);
                                 var schemaDoc = rewriter.Rewrite(fusionGraphDoc);
 
-                                schemaBuilder
+                                ctx.SchemaBuilder
                                     .AddDocument(schemaDoc)
                                     .SetFusionGraphConfig(fusionGraphConfig);
                             }));
 
                     c.OnConfigureSchemaServicesHooks.Add(
-                        sc =>
+                        (ctx, sc) =>
                         {
-                            var fusionGraphConfig = schemaBuilder.GetFusionGraphConfig();
+                            var fusionGraphConfig = ctx.SchemaBuilder.GetFusionGraphConfig();
                             sc.AddSingleton<GraphQLClientFactory>(
                                 sp => CreateGraphQLClientFactory(sp, fusionGraphConfig));
                             sc.TryAddSingleton(fusionGraphConfig);

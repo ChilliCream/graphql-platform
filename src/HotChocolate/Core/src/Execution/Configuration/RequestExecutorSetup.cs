@@ -14,8 +14,8 @@ public sealed class RequestExecutorSetup
     private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = new();
     private readonly List<RequestCoreMiddleware> _pipeline = new();
     private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = new();
-    private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreated = new();
-    private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvicted = new();
+    private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = new();
+    private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = new();
     private readonly List<ITypeModule> _typeModules = new();
 
     /// <summary>
@@ -58,15 +58,15 @@ public sealed class RequestExecutorSetup
     /// Gets the request executor created actions.
     /// This hook is invoked fourth in the schema creation process.
     /// </summary>
-    public IList<OnRequestExecutorCreatedAction> OnRequestExecutorCreated
-        => _onRequestExecutorCreated;
+    public IList<OnRequestExecutorCreatedAction> OnRequestExecutorCreatedHooks
+        => _onRequestExecutorCreatedHooks;
 
     /// <summary>
     /// Gets the request executor evicted actions.
     /// This hook is invoked when a request executor is phased out.
     /// </summary>
-    public IList<OnRequestExecutorEvictedAction> OnRequestExecutorEvicted
-        => _onRequestExecutorEvicted;
+    public IList<OnRequestExecutorEvictedAction> OnRequestExecutorEvictedHooks
+        => _onRequestExecutorEvictedHooks;
 
     /// <summary>
     /// Gets the type modules that are used to configure the schema.
@@ -95,8 +95,8 @@ public sealed class RequestExecutorSetup
         options._onConfigureRequestExecutorOptionsHooks.AddRange(_onConfigureRequestExecutorOptionsHooks);
         options._pipeline.AddRange(_pipeline);
         options._onConfigureSchemaServicesHooks.AddRange(_onConfigureSchemaServicesHooks);
-        options._onRequestExecutorCreated.AddRange(_onRequestExecutorCreated);
-        options._onRequestExecutorEvicted.AddRange(_onRequestExecutorEvicted);
+        options._onRequestExecutorCreatedHooks.AddRange(_onRequestExecutorCreatedHooks);
+        options._onRequestExecutorEvictedHooks.AddRange(_onRequestExecutorEvictedHooks);
         options._typeModules.AddRange(_typeModules);
     }
 }
