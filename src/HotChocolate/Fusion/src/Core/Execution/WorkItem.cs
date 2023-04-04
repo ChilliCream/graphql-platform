@@ -16,7 +16,7 @@ internal sealed class WorkItem
     {
         SelectionSet = selectionSet;
         Result = result;
-        SelectionResults = new SelectionResult[selectionSet.Selections.Count];
+        SelectionResults = new SelectionData[selectionSet.Selections.Count];
         ExportKeys = exportKeys;
     }
 
@@ -40,7 +40,7 @@ internal sealed class WorkItem
     /// <summary>
     /// The selection results that are being collected.
     /// </summary>
-    public SelectionResult[] SelectionResults { get; }
+    public SelectionData[] SelectionResults { get; }
 
     public ObjectResult Result { get; }
 }

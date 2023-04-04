@@ -368,7 +368,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         public ISelectionSet SelectionSet { get; }
 
-        public SelectionResult[] SelectionResults { get; }
+        public SelectionData[] SelectionResults { get; }
 
         public ObjectResult Result { get; }
     }

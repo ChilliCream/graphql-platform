@@ -33,85 +33,89 @@ internal static class ExecutorUtils
     private static void ComposeResult(
         FusionExecutionContext context,
         SelectionSet selectionSet,
-        IReadOnlyList<SelectionResult> selectionResults,
+        SelectionData[] selectionSetData,
         ObjectResult selectionSetResult)
     {
-        var selections = selectionSet.Selections;
         var count = selectionSet.Selections.Count;
+        ref var selection = ref selectionSet.GetSelectionsReference();
+        ref var result = ref selectionSetResult.GetReference();
+        ref var data = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
+        ref var endSelection = ref Unsafe.Add(ref selection, count);
 
-        for (var i = 0; i < count; i++)
+        while(Unsafe.IsAddressLessThan(ref selection, ref endSelection))
         {
-            var selection = (Selection)selections[i];
             var selectionType = selection.Type;
             var responseName = selection.ResponseName;
             var field = selection.Field;
 
             if (!field.IsIntrospectionField)
             {
-                var selectionResult = selectionResults[i];
                 var nullable = selection.TypeKind is not TypeKind.NonNull;
                 var namedType = selectionType.NamedType();
 
-                if (namedType.IsScalarType())
+                if (namedType.IsType(TypeKind.Scalar))
                 {
-                    var value = selectionResult.Single.Element;
-                    selectionSetResult.SetValueUnsafe(i, responseName, value, nullable);
+                    var value = data.Single.Element;
+                    result.Set(responseName, value, nullable);
 
                     if (value.ValueKind is JsonValueKind.String &&
                         (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
                     {
-                        var subgraphName = selectionResult.Single.SubgraphName;
+                        var subgraphName = data.Single.SubgraphName;
                         var reformattedId = context.ReformatId(value.GetString()!, subgraphName);
-                        selectionSetResult.SetValueUnsafe(i, responseName, reformattedId, nullable);
+                        result.Set(responseName, reformattedId, nullable);
                     }
                 }
-                else if (namedType.IsEnumType())
+                else if (namedType.IsType(TypeKind.Enum))
                 {
                     // we might need to map the enum value!
-                    var value = selectionResult.Single.Element;
-                    selectionSetResult.SetValueUnsafe(i, responseName, value, nullable);
+                    var value = data.Single.Element;
+                    result.Set(responseName, value, nullable);
                 }
                 else if (selectionType.IsCompositeType())
                 {
-                    var value = ComposeObject(context, selection, selectionResult);
-                    selectionSetResult.SetValueUnsafe(i, responseName, value);
+                    var value = ComposeObject(context, selection, data);
+                    result.Set(responseName, value, nullable);
                 }
                 else
                 {
-                    var value = ComposeList(context, selection, selectionResult, selectionType);
-                    selectionSetResult.SetValueUnsafe(i, responseName, value);
+                    var value = ComposeList(context, selection, data, selectionType);
+                    result.Set(responseName, value, nullable);
                 }
             }
             else if ((selection.CustomOptions & _typeNameFlag) == _typeNameFlag)
             {
                 var value = selection.DeclaringType.Name;
-                selectionSetResult.SetValueUnsafe(i, responseName, value, false);
+                result.Set(responseName, value, false);
             }
+
+            // move our pointers
+            selection = ref Unsafe.Add(ref selection, 1);
+            result = ref Unsafe.Add(ref result, 1);
+            data = ref Unsafe.Add(ref data, 1);
         }
     }
 
     private static ListResult? ComposeList(
         FusionExecutionContext context,
         ISelection selection,
-        SelectionResult selectionResult,
+        SelectionData selectionData,
         IType type)
     {
-        if (selectionResult.IsNull())
+        if (selectionData.IsNull())
         {
             return null;
         }
 
-        var json = selectionResult.Single.Element;
-        var schemaName = selectionResult.Single.SubgraphName;
-        Debug.Assert(selectionResult.Multiple is null, "selectionResult.Multiple is null");
-        Debug.Assert(
-            json.ValueKind is JsonValueKind.Array,
-            "json.ValueKind is JsonValueKind.Array");
+        var json = selectionData.Single.Element;
+        var schemaName = selectionData.Single.SubgraphName;
+        Debug.Assert(selectionData.Multiple is null, "selectionResult.Multiple is null");
+        Debug.Assert(json.ValueKind is JsonValueKind.Array, "json.ValueKind is JsonValueKind.Array");
 
         var elementType = type.ElementType();
         var result = context.Result.RentList(json.GetArrayLength());
 
-        if (!elementType.IsListType())
+        if (!elementType.IsType(TypeKind.List))
         {
             foreach (var item in json.EnumerateArray())
             {
@@ -119,7 +123,7 @@ internal static class ExecutorUtils
                     ComposeObject(
                         context,
                         selection,
-                        new SelectionResult(new JsonResult(schemaName, item))));
+                        new SelectionData(new JsonResult(schemaName, item))));
             }
         }
         else
@@ -130,7 +134,7 @@ internal static class ExecutorUtils
                     ComposeList(
                         context,
                         selection,
-                        new SelectionResult(new JsonResult(schemaName, item)),
+                        new SelectionData(new JsonResult(schemaName, item)),
                         elementType));
             }
         }
@@ -141,64 +145,101 @@ internal static class ExecutorUtils
     private static ObjectResult? ComposeObject(
         FusionExecutionContext context,
         ISelection selection,
-        SelectionResult selectionResult)
+        SelectionData selectionData)
     {
-        if (selectionResult.IsNull())
+        if (selectionData.IsNull())
         {
             return null;
         }
 
         ObjectType type;
-
         if (selection.Type.NamedType() is ObjectType ot)
         {
             type = ot;
         }
         else
         {
-            var typeInfo = selectionResult.GetTypeName();
+            var typeInfo = selectionData.GetTypeName();
             var typeMetadata = context.Configuration.GetType<ObjectTypeInfo>(typeInfo);
             type = context.Schema.GetType<ObjectType>(typeMetadata.Name);
         }
 
-        var selectionSet = context.Operation.GetSelectionSet(selection, type);
-        var result = context.Result.RentObject(selectionSet.Selections.Count);
+        var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(selection, type);
+        var selectionCount = selectionSet.Selections.Count;
+        var result = context.Result.RentObject(selectionCount);
 
         if (context.NeedsMoreData(selectionSet))
         {
-            context.RegisterState(selectionSet, result, selectionResult);
+            context.RegisterState(selectionSet, result, selectionData);
         }
         else
         {
-            var selections = selectionSet.Selections;
-            var childSelectionResults = new SelectionResult[selections.Count];
-            ExtractSelectionResults(selectionResult, selections, childSelectionResults);
-            ComposeResult(context, (SelectionSet)selectionSet, childSelectionResults, result);
+            var childSelectionResults = new SelectionData[selectionCount];
+            ExtractSelectionResults(selectionData, selectionSet, childSelectionResults);
+            ComposeResult(context, selectionSet, childSelectionResults, result);
         }
 
         return result;
     }
 
-    private static void ExtractSelectionResults(
-        SelectionResult parent,
-        IReadOnlyList<ISelection> selections,
-        SelectionResult[] selectionResults)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsType(this IType type, TypeKind kind)
     {
+        if (type.Kind == kind)
+        {
+            return true;
+        }
+
+        if (type.Kind == TypeKind.NonNull && ((NonNullType)type).Type.Kind == kind)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsCompositeType(this IType type)
+    {
+        if (type.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
+        {
+            return true;
+        }
+
+        if (type.Kind == TypeKind.NonNull)
+        {
+            var innerKind = ((NonNullType)type).Type.Kind;
+            return innerKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
+        }
+
+        return false;
+    }
+
+    private static void ExtractSelectionResults(
+        SelectionData parent,
+        SelectionSet selectionSet,
+        SelectionData[] selectionSetData)
+    {
+        var selectionCount = selectionSet.Selections.Count;
+
         if (parent.Multiple is null)
         {
             var schemaName = parent.Single.SubgraphName;
             var data = parent.Single.Element;
 
-            for (var i = 0; i < selections.Count; i++)
-            {
-                if (data.TryGetProperty(selections[i].ResponseName, out var property))
-                {
-                    var current = selectionResults[i];
+            ref var selection = ref selectionSet.GetSelectionsReference();
+            ref var selectionData = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
+            ref var endSelection = ref Unsafe.Add(ref selection, selectionCount);
 
-                    selectionResults[i] = current.HasValue
-                        ? current.AddResult(new JsonResult(schemaName, property))
-                        : new SelectionResult(new JsonResult(schemaName, property));
+            while(Unsafe.IsAddressLessThan(ref selection, ref endSelection))
+            {
+                if (data.TryGetProperty(selection.ResponseName, out var value))
+                {
+                    selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
+
+                selection = ref Unsafe.Add(ref selection, 1);
+                selectionData = ref Unsafe.Add(ref selectionData, 1);
             }
         }
         else
@@ -206,18 +247,21 @@ internal static class ExecutorUtils
             foreach (var result in parent.Multiple)
             {
                 var schemaName = result.SubgraphName;
-                var data = result.Element;
+                var element = result.Element;
 
-                for (var i = 0; i < selections.Count; i++)
+                ref var selection = ref selectionSet.GetSelectionsReference();
+                ref var selectionData = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
+                ref var endSelection = ref Unsafe.Add(ref selection, selectionCount);
+
+                while(Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
-                    if (data.TryGetProperty(selections[i].ResponseName, out var property))
+                    if (element.TryGetProperty(selection.ResponseName, out var value))
                     {
-                        var current = selectionResults[i];
-
-                        selectionResults[i] = current.HasValue
-                            ? current.AddResult(new JsonResult(schemaName, property))
-                            : new SelectionResult(new JsonResult(schemaName, property));
+                        selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }
+
+                    selection = ref Unsafe.Add(ref selection, 1);
+                    selectionData = ref Unsafe.Add(ref selectionData, 1);
                 }
             }
         }
@@ -227,7 +271,7 @@ internal static class ExecutorUtils
         SelectionSet selectionSet,
         string schemaName,
         JsonElement data,
-        SelectionResult[] selectionResults)
+        SelectionData[] selectionResults)
     {
         if (data.ValueKind is not JsonValueKind.Object)
         {
@@ -267,7 +311,7 @@ internal static class ExecutorUtils
             // next we will unwrap the results.
             ExtractSelectionResults(
                 partialResult,
-                workItem.SelectionSet.Selections,
+                (SelectionSet)workItem.SelectionSet,
                 workItem.SelectionResults);
 
             // last we will check if there are any exports for this selection-set.
@@ -356,7 +400,7 @@ internal static class ExecutorUtils
     }
 
     public static void ExtractVariables(
-        SelectionResult parent,
+        SelectionData parent,
         IReadOnlyList<string> exportKeys,
         Dictionary<string, IValueNode> variableValues)
     {

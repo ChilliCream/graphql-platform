@@ -8,13 +8,13 @@ internal static class FusionContextExtensions
         this FusionExecutionContext context,
         ISelectionSet selectionSet,
         ObjectResult result,
-        SelectionResult parentResult = default)
+        SelectionData parentData = default)
     {
         var exportKeys = context.QueryPlan.GetExportKeys(selectionSet);
 
         var workItem = new WorkItem(selectionSet, result, exportKeys)
         {
-            SelectionResults = { [0] = parentResult }
+            SelectionResults = { [0] = parentData }
         };
 
         context.State.RegisterState(workItem);
