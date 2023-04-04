@@ -127,7 +127,7 @@ internal sealed class Subscribe : ResolverNodeBase
             // In this case the result was pushed to us by the subgraph subscription.
             // So we skip execution and just unwrap the result and extract the selection data.
             var data = UnwrapResult(response);
-            var selectionResults = workItem.SelectionResults;
+            var selectionResults = workItem.SelectionSetData;
             var exportKeys = workItem.ExportKeys;
             variableValues = workItem.VariableValues;
 

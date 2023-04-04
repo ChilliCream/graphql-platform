@@ -113,7 +113,7 @@ internal sealed class Resolve : ResolverNodeBase
                 var workItem = workItems[i];
 
                 var data = UnwrapResult(response);
-                var selectionResults = workItem.SelectionResults;
+                var selectionResults = workItem.SelectionSetData;
                 var exportKeys = workItem.ExportKeys;
                 var variableValues = workItem.VariableValues;
 

@@ -356,8 +356,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             VariableValues = workItem.VariableValues;
             ExportKeys = workItem.ExportKeys;
             SelectionSet = workItem.SelectionSet;
-            SelectionResults = workItem.SelectionResults;
-            Result = workItem.Result;
+            SelectionResults = workItem.SelectionSetData;
+            Result = workItem.SelectionSetResult;
         }
 
         public string Key { get; }

@@ -39,7 +39,7 @@ internal sealed class Introspect : QueryPlanNode
                     var resolverTask = operationContext.CreateResolverTask(
                         selection,
                         operationContext.RootValue,
-                        value.Result,
+                        value.SelectionSetResult,
                         i,
                         operationContext.PathFactory.Append(Path.Root, selection.ResponseName),
                         ImmutableDictionary<string, object?>.Empty);
@@ -59,8 +59,7 @@ internal sealed class Introspect : QueryPlanNode
         for (var i = 0; i < rootSelections.Count; i++)
         {
             var selection = rootSelections[i];
-            if (selection.Field.IsIntrospectionField &&
-                !selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
+            if (selection.Field.IsIntrospectionField)
             {
                 rootSelectionNodes.Add(rootSelections[i].SyntaxNode);
             }

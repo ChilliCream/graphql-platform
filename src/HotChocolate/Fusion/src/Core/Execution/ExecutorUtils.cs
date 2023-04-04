@@ -27,8 +27,8 @@ internal static class ExecutorUtils
         => ComposeResult(
             context,
             (SelectionSet)workItem.SelectionSet,
-            workItem.SelectionResults,
-            workItem.Result);
+            workItem.SelectionSetData,
+            workItem.SelectionSetResult);
 
     private static void ComposeResult(
         FusionExecutionContext context,
@@ -299,20 +299,20 @@ internal static class ExecutorUtils
     public static void ExtractPartialResult(WorkItem workItem)
     {
         // capture the partial result available
-        var partialResult = workItem.SelectionResults[0];
+        var partialResult = workItem.SelectionSetData[0];
 
         // if we have a partial result available lets unwrap it.
         if (partialResult.HasValue)
         {
             // first we need to erase the partial result from the array so that its not
             // combined into the result creation.
-            workItem.SelectionResults[0] = default;
+            workItem.SelectionSetData[0] = default;
 
             // next we will unwrap the results.
             ExtractSelectionResults(
                 partialResult,
                 (SelectionSet)workItem.SelectionSet,
-                workItem.SelectionResults);
+                workItem.SelectionSetData);
 
             // last we will check if there are any exports for this selection-set.
             ExtractVariables(
