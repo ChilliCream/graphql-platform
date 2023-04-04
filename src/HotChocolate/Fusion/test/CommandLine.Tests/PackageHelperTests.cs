@@ -9,10 +9,8 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 
 namespace CommandLine.Tests;
 
-public class PackageHelperTests : IDisposable
+public class PackageHelperTests : CommandTestBase
 {
-    private readonly ConcurrentBag<string> _files = new();
-
     [Fact]
     public async Task Create_Subgraph_Package()
     {
@@ -36,31 +34,4 @@ public class PackageHelperTests : IDisposable
         accountConfig.MatchSnapshot();
         accountConfigRead.MatchSnapshot();
     }
-
-    private Files CreateFiles(SubgraphConfiguration configuration)
-    {
-        var files = new Files(CreateTempFile(), CreateTempFile(), new[] { CreateTempFile() });
-        var configJson = FormatSubgraphConfig(new(configuration.Name, configuration.Clients));
-        File.WriteAllText(files.SchemaFile, configuration.Schema);
-        File.WriteAllText(files.TransportConfigFile, configJson);
-        File.WriteAllText(files.ExtensionFiles[0], configuration.Extensions[0]);
-        return files;
-    }
-
-    private string CreateTempFile()
-    {
-        var file = Path.GetTempFileName();
-        _files.Add(file);
-        return file;
-    }
-
-    public void Dispose()
-    {
-        while (_files.TryTake(out var file))
-        {
-            File.Delete(file);
-        }
-    }
-
-    public record Files(string SchemaFile, string TransportConfigFile, string[] ExtensionFiles);
 }

@@ -10,10 +10,8 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 
 namespace CommandLine.Tests;
 
-public class ComposeCommandTests : IDisposable
+public class ComposeCommandTests : CommandTestBase
 {
-    private readonly ConcurrentBag<string> _files = new();
-
     [Fact]
     public async Task Compose_Fusion_Graph()
     {
@@ -30,18 +28,11 @@ public class ComposeCommandTests : IDisposable
                 account.TransportConfigFile,
                 account.ExtensionFiles));
 
-        var packageFile = CreateTempFile();
+        var packageFile = CreateTempFile(Extensions.FusionPackage);
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[]
-        {
-            "compose",
-            "-p",
-            packageFile,
-            "-s",
-            subgraphPackageFile
-        });
+        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", subgraphPackageFile });
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -92,28 +83,16 @@ public class ComposeCommandTests : IDisposable
                 review.TransportConfigFile,
                 review.ExtensionFiles));
 
-        var packageFile = CreateTempFile();
+        var packageFile = CreateTempFile(Extensions.FusionPackage);
 
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[]
-        {
-            "compose",
-            "-p",
-            packageFile,
-            "-s",
-            accountSubgraphPackageFile
-        });
+        await app.InvokeAsync(
+            new[] { "compose", "-p", packageFile, "-s", accountSubgraphPackageFile });
 
         // act
         app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[]
-        {
-            "compose",
-            "-p",
-            packageFile,
-            "-s",
-            reviewSubgraphPackageFile
-        });
+        await app.InvokeAsync(
+            new[] { "compose", "-p", packageFile, "-s", reviewSubgraphPackageFile });
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -136,32 +115,4 @@ public class ComposeCommandTests : IDisposable
 
         snapshot.MatchSnapshot();
     }
-
-    private Files CreateFiles(SubgraphConfiguration configuration)
-    {
-        var files = new Files(CreateTempFile(), CreateTempFile(), new[] { CreateTempFile() });
-        var configJson = PackageHelper.FormatSubgraphConfig(
-            new(configuration.Name, configuration.Clients));
-        File.WriteAllText(files.SchemaFile, configuration.Schema);
-        File.WriteAllText(files.TransportConfigFile, configJson);
-        File.WriteAllText(files.ExtensionFiles[0], configuration.Extensions[0]);
-        return files;
-    }
-
-    private string CreateTempFile()
-    {
-        var file = Path.GetTempFileName();
-        _files.Add(file);
-        return file;
-    }
-
-    public void Dispose()
-    {
-        while (_files.TryTake(out var file))
-        {
-            File.Delete(file);
-        }
-    }
-
-    public record Files(string SchemaFile, string TransportConfigFile, string[] ExtensionFiles);
 }
