@@ -19,7 +19,6 @@ internal sealed class SubgraphConfigSetHttpCommand : Command
             IsRequired = true
         };
 
-
         var clientName = new Option<string>("--client-name")
         {
             Description = "The name of the graphql-http configuration.",

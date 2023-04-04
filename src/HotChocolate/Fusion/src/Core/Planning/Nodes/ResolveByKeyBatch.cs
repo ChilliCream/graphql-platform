@@ -51,7 +51,6 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             var workItems = CreateBatchWorkItem(originalWorkItems);
             var subgraphName = SubgraphName;
             var firstWorkItem = workItems[0];
-            var selections = firstWorkItem.SelectionSet.Selections;
 
             // Create the batch subgraph request.
             var variableValues = BuildVariables(workItems);
@@ -84,7 +83,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 var workItem = workItems[i];
                 if (result.TryGetValue(workItem.Key, out var workItemData))
                 {
-                    ExtractSelectionResults(selections, subgraphName, workItemData, workItem.SelectionResults);
+                    ExtractSelectionResults(SelectionSet, subgraphName, workItemData, workItem.SelectionResults);
                     ExtractVariables(workItemData, firstWorkItem.ExportKeys, workItem.VariableValues);
                 }
             }

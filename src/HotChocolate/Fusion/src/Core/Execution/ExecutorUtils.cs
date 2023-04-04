@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
@@ -24,17 +26,20 @@ internal static class ExecutorUtils
         WorkItem workItem)
         => ComposeResult(
             context,
-            workItem.SelectionSet.Selections,
+            (SelectionSet)workItem.SelectionSet,
             workItem.SelectionResults,
             workItem.Result);
 
     private static void ComposeResult(
         FusionExecutionContext context,
-        IReadOnlyList<ISelection> selections,
+        SelectionSet selectionSet,
         IReadOnlyList<SelectionResult> selectionResults,
         ObjectResult selectionSetResult)
     {
-        for (var i = 0; i < selections.Count; i++)
+        var selections = selectionSet.Selections;
+        var count = selectionSet.Selections.Count;
+
+        for (var i = 0; i < count; i++)
         {
             var selection = (Selection)selections[i];
             var selectionType = selection.Type;
@@ -168,7 +173,7 @@ internal static class ExecutorUtils
             var selections = selectionSet.Selections;
             var childSelectionResults = new SelectionResult[selections.Count];
             ExtractSelectionResults(selectionResult, selections, childSelectionResults);
-            ComposeResult(context, selectionSet.Selections, childSelectionResults, result);
+            ComposeResult(context, (SelectionSet)selectionSet, childSelectionResults, result);
         }
 
         return result;
@@ -219,7 +224,7 @@ internal static class ExecutorUtils
     }
 
     public static void ExtractSelectionResults(
-        IReadOnlyList<ISelection> selections,
+        SelectionSet selectionSet,
         string schemaName,
         JsonElement data,
         SelectionResult[] selectionResults)
@@ -229,21 +234,21 @@ internal static class ExecutorUtils
             return;
         }
 
-        for (var i = 0; i < selections.Count; i++)
-        {
-            if (data.TryGetProperty(selections[i].ResponseName, out var property))
-            {
-                var selectionResult = selectionResults[i];
+        ref var currentSelection = ref selectionSet.GetSelectionsReference();
+        ref var currentResult = ref MemoryMarshal.GetArrayDataReference(selectionResults);
+        ref var endSelection = ref Unsafe.Add(ref currentSelection, selectionSet.Selections.Count);
 
-                if (selectionResult.HasValue)
-                {
-                    selectionResults[i] = selectionResult.AddResult(new(schemaName, property));
-                }
-                else
-                {
-                    selectionResults[i] = new(new JsonResult(schemaName, property));
-                }
+        while(Unsafe.IsAddressLessThan(ref currentSelection, ref endSelection))
+        {
+            if (data.TryGetProperty(currentSelection.ResponseName, out var property))
+            {
+                currentResult = currentResult.HasValue
+                    ? currentResult.AddResult(new(schemaName, property))
+                    : new(new JsonResult(schemaName, property));
             }
+
+            currentSelection = ref Unsafe.Add(ref currentSelection, 1);
+            currentResult = ref Unsafe.Add(ref currentResult, 1);
         }
     }
 
