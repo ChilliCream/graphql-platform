@@ -4,6 +4,7 @@ using HotChocolate.Fusion.CommandLine.Options;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Utilities;
 using static HotChocolate.Fusion.CommandLine.Helpers.PackageHelper;
 
 namespace HotChocolate.Fusion.CommandLine.Commands;
@@ -64,6 +65,12 @@ internal sealed class ComposeCommand : Command
         if(packageFile.Directory is not null && !packageFile.Directory.Exists)
         {
             packageFile.Directory.Create();
+        }
+
+        if (!packageFile.Extension.EqualsOrdinal(Extensions.FusionPackage) &&
+            !packageFile.Extension.EqualsOrdinal(Extensions.ZipPackage))
+        {
+            packageFile = new FileInfo(packageFile.FullName + Extensions.FusionPackage);
         }
 
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
