@@ -99,4 +99,25 @@ public sealed class DemoIntegrationTests
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
+
+    [Fact]
+    public async Task Accounts_And_Reviews_Products_AutoCompose_With_Node()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(),
+                demoProject.Reviews.ToConfiguration(),
+                demoProject.Products.ToConfiguration(),
+            });
+
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
 }

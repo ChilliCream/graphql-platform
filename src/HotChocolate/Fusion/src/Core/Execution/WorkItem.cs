@@ -11,12 +11,12 @@ internal sealed class WorkItem
 {
     public WorkItem(
         ISelectionSet selectionSet,
-        ObjectResult result,
+        ObjectResult selectionSetResult,
         IReadOnlyList<string> exportKeys)
     {
         SelectionSet = selectionSet;
-        Result = result;
-        SelectionResults = new SelectionResult[selectionSet.Selections.Count];
+        SelectionSetResult = selectionSetResult;
+        SelectionSetData = new SelectionData[selectionSet.Selections.Count];
         ExportKeys = exportKeys;
     }
 
@@ -33,14 +33,17 @@ internal sealed class WorkItem
     public IReadOnlyList<string> ExportKeys { get; }
 
     /// <summary>
-    /// The selection set that is being executed.
+    /// Gets the selection set that is being executed.
     /// </summary>
     public ISelectionSet SelectionSet { get; }
 
     /// <summary>
-    /// The selection results that are being collected.
+    /// Gets the selection set data that was collected during execution.
     /// </summary>
-    public SelectionResult[] SelectionResults { get; }
+    public SelectionData[] SelectionSetData { get; }
 
-    public ObjectResult Result { get; }
+    /// <summary>
+    /// Gets the completed selection set result.
+    /// </summary>
+    public ObjectResult SelectionSetResult { get; }
 }

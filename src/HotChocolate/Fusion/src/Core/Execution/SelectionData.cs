@@ -1,18 +1,19 @@
-using System.Text.Json;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using static System.Text.Json.JsonValueKind;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal readonly struct SelectionResult
+internal readonly struct SelectionData
 {
-    public SelectionResult(JsonResult single)
+    public SelectionData(JsonResult single)
     {
         Single = single;
         Multiple = null;
         HasValue = true;
     }
 
-    private SelectionResult(IReadOnlyList<JsonResult> multiple)
+    private SelectionData(JsonResult[] multiple)
     {
         Single = default;
         Multiple = multiple;
@@ -23,7 +24,7 @@ internal readonly struct SelectionResult
 
     public JsonResult Single { get; }
 
-    public IReadOnlyList<JsonResult>? Multiple { get; }
+    public JsonResult[]? Multiple { get; }
 
     public QualifiedTypeName GetTypeName()
     {
@@ -38,36 +39,40 @@ internal readonly struct SelectionResult
     {
         if (Multiple is null)
         {
-            return Single.Element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+            return Single.Element.ValueKind is Null or Undefined;
         }
 
-        for (var i = 0; i < Multiple.Count; i++)
+        for (var i = 0; i < Multiple.Length; i++)
         {
-            if (Multiple[i].Element.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
+            if (Multiple[i].Element.ValueKind is not Null and not Undefined)
             {
                 return false;
             }
         }
 
         return true;
-
     }
 
-    public SelectionResult AddResult(JsonResult result)
+    public SelectionData AddResult(JsonResult result)
     {
-        if (Multiple is null)
+        if (HasValue is false)
         {
-            return new SelectionResult(new[] { Single, result });
+            return new SelectionData(result);
         }
 
-        var array = new JsonResult[Multiple.Count + 1];
+        if (Multiple is null)
+        {
+            return new SelectionData(new[] { Single, result });
+        }
 
-        for (var i = 0; i < Multiple.Count; i++)
+        var array = new JsonResult[Multiple.Length + 1];
+
+        for (var i = 0; i < Multiple.Length; i++)
         {
             array[i] = Multiple[i];
         }
 
-        array[Multiple.Count] = result;
-        return new SelectionResult(array);
+        array[Multiple.Length] = result;
+        return new SelectionData(array);
     }
 }
