@@ -23,10 +23,19 @@ QueryPlan
     "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolve",
-        "subgraph": "Products",
-        "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: id } }",
-        "selectionSetId": 0
+        "type": "Parallel",
+        "nodes": [
+          {
+            "type": "Introspect",
+            "document": "{ __typename }"
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "Products",
+            "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: id } }",
+            "selectionSetId": 0
+          }
+        ]
       },
       {
         "type": "Compose",

@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
@@ -7,7 +9,7 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class Compose : QueryPlanNode
 {
-    private readonly IReadOnlyList<ISelectionSet> _selectionSets;
+    private readonly ISelectionSet[] _selectionSets;
 
     public Compose(int id, Resolve resolve)
         : this(id, new[] { resolve.SelectionSet })
@@ -36,7 +38,7 @@ internal sealed class Compose : QueryPlanNode
         ExecutionState state,
         CancellationToken cancellationToken)
     {
-        if (_selectionSets.Count == 1)
+        if (_selectionSets.Length == 1)
         {
             if (state.TryGetState(_selectionSets[0], out var values))
             {
@@ -48,15 +50,20 @@ internal sealed class Compose : QueryPlanNode
         }
         else
         {
-            foreach (var selectionSet in _selectionSets)
+            ref var start = ref MemoryMarshal.GetArrayDataReference(_selectionSets);
+            ref var end = ref Unsafe.Add(ref start, _selectionSets.Length);
+
+            while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (state.TryGetState(selectionSet, out var values))
+                if (state.TryGetState(start, out var values))
                 {
                     for (var i = 0; i < values.Count; i++)
                     {
                         ComposeResult(context, values[i]);
                     }
                 }
+
+                start = ref Unsafe.Add(ref start, 1);
             }
         }
 
@@ -68,7 +75,7 @@ internal sealed class Compose : QueryPlanNode
         ExecutionState state,
         CancellationToken cancellationToken)
     {
-        if (_selectionSets.Count == 1)
+        if (_selectionSets.Length == 1)
         {
             if (state.ContainsState(_selectionSets[0]))
             {
@@ -77,7 +84,7 @@ internal sealed class Compose : QueryPlanNode
         }
         else
         {
-            if (_selectionSets.Any(s => state.ContainsState(s)))
+            if (state.ContainsState(_selectionSets))
             {
                 await base.OnExecuteNodesAsync(context, state, cancellationToken);
             }

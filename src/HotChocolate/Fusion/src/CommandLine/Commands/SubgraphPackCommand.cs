@@ -12,7 +12,7 @@ internal sealed class SubgraphPackCommand : Command
 {
     public SubgraphPackCommand() : base("pack")
     {
-        Description = "Creates a subgraph package.";
+        Description = "Creates a Fusion subgraph package.";
 
         var packageFile = new SubgraphPackageFileOption();
         var schemaFile = new SubgraphSchemaFileOption();
@@ -89,6 +89,11 @@ internal sealed class SubgraphPackCommand : Command
             var config = await LoadSubgraphConfigAsync(configFile.FullName, cancellationToken);
             var fileName = $"{config.Name}{Extensions.SubgraphPackage}";
             packageFile = new FileInfo(Combine(workingDirectory.FullName, fileName));
+        }
+        else if (!packageFile.Extension.EqualsOrdinal(Extensions.SubgraphPackage) &&
+            !packageFile.Extension.EqualsOrdinal(Extensions.ZipPackage))
+        {
+            packageFile = new FileInfo($"{packageFile.FullName}{Extensions.SubgraphPackage}");
         }
 
         if (packageFile.Exists)

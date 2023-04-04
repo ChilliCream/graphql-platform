@@ -318,7 +318,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     {
         if (!context.HasIntrospectionSelections &&
             (field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
-                field.Name.EqualsOrdinal(IntrospectionFields.Type)))
+                field.Name.EqualsOrdinal(IntrospectionFields.Type) ||
+                field.Name.EqualsOrdinal(IntrospectionFields.TypeName)))
         {
             context.Steps.Add(new IntrospectionExecutionStep(queryTypeInfo));
             context.HasIntrospectionSelections = true;

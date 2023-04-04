@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;

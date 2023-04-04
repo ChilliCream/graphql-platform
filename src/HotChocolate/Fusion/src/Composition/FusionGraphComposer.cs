@@ -31,7 +31,11 @@ public sealed class FusionGraphComposer
         bool fusionTypeSelf = false,
         Func<ICompositionLog>? logFactory = null)
         : this(
-            new IEntityEnricher[] { new RefResolverEntityEnricher() },
+            new IEntityEnricher[]
+            {
+                new RefResolverEntityEnricher(),
+                new NodeEntityEnricher()
+            },
             new ITypeMergeHandler[]
             {
                 new InterfaceTypeMergeHandler(), new UnionTypeMergeHandler(),
