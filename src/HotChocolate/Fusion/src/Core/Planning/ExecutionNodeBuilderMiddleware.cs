@@ -118,8 +118,16 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
+        var type = OperationType.Query;
+
+        if (executionStep.ParentSelection is null &&
+            context.Operation.Type is OperationType.Mutation)
+        {
+            type = OperationType.Mutation;
+        }
+
         var selectionSet = ResolveSelectionSet(context, executionStep);
-        var request = _requestFormatter.CreateRequestDocument(context, executionStep);
+        var request = _requestFormatter.CreateRequestDocument(context, executionStep, type);
 
         context.RegisterSelectionSet(selectionSet);
 
