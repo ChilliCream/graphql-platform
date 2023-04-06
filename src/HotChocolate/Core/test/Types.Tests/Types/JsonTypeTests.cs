@@ -205,9 +205,9 @@ public class JsonTypeTests
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Input_Json_Bool_Literal(bool value)
+    [InlineData("true")]
+    [InlineData("false")]
+    public async Task Input_Json_Bool_Literal(string value)
     {
         var result =
             await new ServiceCollection()
