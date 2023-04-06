@@ -90,8 +90,9 @@ internal class ObjectToDictionaryConverter
             var dict = new Dictionary<string, object>();
             setValue(dict);
 
-            if (obj is IReadOnlyDictionary<string, object> d)
+            if (obj is IReadOnlyDictionary<string, object> || obj is IDictionary<string, object>)
             {
+                var d = obj as IEnumerable<KeyValuePair<string, object>>;
                 foreach (KeyValuePair<string, object> item in d)
                 {
                     Action<object> setField = v => dict[item.Key] = v;
