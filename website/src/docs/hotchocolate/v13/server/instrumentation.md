@@ -199,7 +199,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 
 ## DataLoader Events
 
-We can hook into DataLoader events by creating a class inheriting from `ExecutionDiagnosticEventListener`.
+We can hook into DataLoader events by creating a class inheriting from `DataLoaderDiagnosticEventListener`.
 
 ```csharp
 public class MyDataLoaderEventListener : DataLoaderDiagnosticEventListener

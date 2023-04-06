@@ -4,23 +4,66 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Configuration;
 
+/// <summary>
+/// This struct is used as a oneOf to allow for both a sync and an async hook
+/// into the request executor created event.
+///
+/// The event can be used to capture the request executor after it was created.
+/// </summary>
 public readonly struct OnRequestExecutorCreatedAction
 {
-    public OnRequestExecutorCreatedAction(
-        Action<IRequestExecutor> action)
+    /// <summary>
+    /// Initializes a new instance of <see cref="OnRequestExecutorCreatedAction"/>.
+    /// </summary>
+    /// <param name="created">
+    /// The synchronous action.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="created"/> is <c>null</c>.
+    /// </exception>
+    public OnRequestExecutorCreatedAction(OnRequestExecutorCreated created)
     {
-        Action = action ?? throw new ArgumentNullException(nameof(action));
-        AsyncAction = default;
+        Created = created ?? throw new ArgumentNullException(nameof(created));
+        CreatedAsync = default;
     }
 
-    public OnRequestExecutorCreatedAction(
-        Func<IRequestExecutor, CancellationToken, ValueTask> asyncAction)
+    /// <summary>
+    /// Initializes a new instance of <see cref="OnRequestExecutorCreatedAction"/>.
+    /// </summary>
+    /// <param name="createdAsync">
+    /// The asynchronous action.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="createdAsync"/> is <c>null</c>.
+    /// </exception>
+    public OnRequestExecutorCreatedAction(OnRequestExecutorCreatedAsync createdAsync)
     {
-        Action = default;
-        AsyncAction = asyncAction ?? throw new ArgumentNullException(nameof(asyncAction));
+        Created = default;
+        CreatedAsync = createdAsync ?? throw new ArgumentNullException(nameof(createdAsync));
     }
 
-    public Action<IRequestExecutor>? Action { get; }
+    /// <summary>
+    /// Gets the synchronous action.
+    /// </summary>
+    public OnRequestExecutorCreated? Created { get; }
 
-    public Func<IRequestExecutor, CancellationToken, ValueTask>? AsyncAction { get; }
+    /// <summary>
+    /// Gets the asynchronous action.
+    /// </summary>
+    public OnRequestExecutorCreatedAsync? CreatedAsync { get; }
 }
+
+/// <summary>
+/// This delegate is used to configure the request executor options.
+/// </summary>
+public delegate void OnRequestExecutorCreated(
+    ConfigurationContext context,
+    IRequestExecutor executor);
+
+/// <summary>
+/// This delegate is used to configure the request executor options.
+/// </summary>
+public delegate ValueTask OnRequestExecutorCreatedAsync(
+    ConfigurationContext context,
+    IRequestExecutor executor,
+    CancellationToken cancellationToken);

@@ -2,13 +2,11 @@ namespace HotChocolate.Fusion.Metadata;
 
 public class MemberBindingTests
 {
-    [Fact]
-    public void Constructor_WithValidArguments_CreatesInstance()
+    [Theory]
+    [InlineData("Subgraph1", "Member1")]
+    [InlineData("SubgraphA", "MemberB")]
+    public void Constructor_ValidInput_CreatesInstance(string subgraphName, string name)
     {
-        // arrange
-        const string subgraphName = "testSubgraph";
-        const string name = "testName";
-
         // act
         var memberBinding = new MemberBinding(subgraphName, name);
 
@@ -19,17 +17,26 @@ public class MemberBindingTests
     }
 
     [Theory]
-    [InlineData(null, "testName")]
-    [InlineData("", "testName")]
-    [InlineData(" ", "testName")]
-    [InlineData("testSubgraph", null)]
-    [InlineData("testSubgraph", "")]
-    [InlineData("testSubgraph", " ")]
-    public void Constructor_WithInvalidArguments_ThrowsArgumentException(
+    [InlineData(null, "Member1")]
+    [InlineData("", "Member1")]
+    [InlineData("  ", "Member1")]
+    public void Constructor_InvalidSubgraphName_ThrowsArgumentException(
         string subgraphName,
         string name)
     {
-        // arrange, act, assert
+        // act and assert
+        Assert.Throws<ArgumentException>(() => new MemberBinding(subgraphName, name));
+    }
+
+    [Theory]
+    [InlineData("Subgraph1", null)]
+    [InlineData("Subgraph1", "")]
+    [InlineData("Subgraph1", "  ")]
+    public void Constructor_InvalidName_ThrowsArgumentException(
+        string subgraphName,
+        string name)
+    {
+        // act and assert
         Assert.Throws<ArgumentException>(() => new MemberBinding(subgraphName, name));
     }
 }

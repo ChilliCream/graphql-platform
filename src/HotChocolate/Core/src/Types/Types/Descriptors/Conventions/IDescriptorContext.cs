@@ -4,6 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -46,6 +47,11 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     /// Gets the resolver compiler.
     /// </summary>
     IResolverCompiler ResolverCompiler { get; }
+
+    /// <summary>
+    /// Gets the type converter.
+    /// </summary>
+    ITypeConverter TypeConverter { get; }
 
     /// <summary>
     /// Gets the input parser.

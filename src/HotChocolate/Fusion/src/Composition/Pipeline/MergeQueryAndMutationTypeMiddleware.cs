@@ -7,32 +7,41 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
+        var skipOnQuery = new HashSet<string>(StringComparer.Ordinal);
+        var skipOnMutation = new HashSet<string>(StringComparer.Ordinal);
+
+        if ((context.Features & FusionFeatureFlags.NodeField) != FusionFeatureFlags.NodeField)
+        {
+            skipOnQuery.Add("node");
+            skipOnQuery.Add("nodes");
+        }
+
         foreach (var schema in context.Subgraphs)
         {
             if (schema.QueryType is not null)
             {
-                var queryType = context.FusionGraph.QueryType!;
+                var targetTa = context.FusionGraph.QueryType!;
 
                 if (context.FusionGraph.QueryType is null)
                 {
-                    queryType = context.FusionGraph.QueryType = new ObjectType("Query");
-                    context.FusionGraph.Types.Add(queryType);
+                    targetTa = context.FusionGraph.QueryType = new ObjectType("Query");
+                    context.FusionGraph.Types.Add(targetTa);
                 }
 
-                MergeRootFields(context, schema, schema.QueryType, queryType);
+                MergeRootFields(context, schema, schema.QueryType, targetTa, skipOnQuery);
             }
 
             if (schema.MutationType is not null)
             {
-                var queryType = context.FusionGraph.MutationType!;
+                var targetType = context.FusionGraph.MutationType!;
 
                 if (context.FusionGraph.MutationType is null)
                 {
-                    queryType = context.FusionGraph.MutationType = new ObjectType("Mutation");
-                    context.FusionGraph.Types.Add(queryType);
+                    targetType = context.FusionGraph.MutationType = new ObjectType("Mutation");
+                    context.FusionGraph.Types.Add(targetType);
                 }
 
-                MergeRootFields(context, schema, schema.MutationType, queryType);
+                MergeRootFields(context, schema, schema.MutationType, targetType, skipOnMutation);
             }
         }
 
@@ -46,10 +55,16 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
         CompositionContext context,
         Schema sourceSchema,
         ObjectType sourceRootType,
-        ObjectType targetRootType)
+        ObjectType targetRootType,
+        HashSet<string> skip)
     {
         foreach (var field in sourceRootType.Fields)
         {
+            if (skip.Contains(field.Name))
+            {
+                continue;
+            }
+
             if (targetRootType.Fields.TryGetField(field.Name, out var targetField))
             {
                 context.MergeField(field, targetField, targetRootType.Name);

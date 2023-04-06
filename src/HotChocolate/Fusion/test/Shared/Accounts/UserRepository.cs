@@ -14,14 +14,9 @@ public class UserRepository
     }
 
     public User? GetUser(int id)
-    {
-        if (_users.TryGetValue(id, out var value))
-        {
-            return value;
-        }
-
-        return null;
-    }
+        => _users.TryGetValue(id, out var value)
+            ? value
+            : null;
 
     public IEnumerable<User> GetUsers() => _users.Values;
 }

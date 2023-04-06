@@ -189,6 +189,9 @@
     <Compile Update="Processing\SubscriptionExecutor.Subscription.cs">
       <DependentUpon>SubscriptionExecutor.cs</DependentUpon>
     </Compile>
+    <Compile Update="RequestExecutorResolver.Hooks.cs">
+      <DependentUpon>RequestExecutorResolver.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

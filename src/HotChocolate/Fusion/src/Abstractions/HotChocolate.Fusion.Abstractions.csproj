@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="FusionAbstractionResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>FusionAbstractionResources.Designer.cs</LastGenOutput>

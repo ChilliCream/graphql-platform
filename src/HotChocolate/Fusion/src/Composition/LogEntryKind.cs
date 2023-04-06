@@ -1,9 +1,9 @@
 namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
-/// Defines the kind of a log entry.
+/// Defines the log entry severity.
 /// </summary>
-public enum LogEntryKind
+public enum LogSeverity
 {
     /// <summary>
     /// The entry contains informational message.

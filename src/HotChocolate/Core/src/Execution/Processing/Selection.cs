@@ -88,6 +88,8 @@ public class Selection : ISelection
     /// <inheritdoc />
     public int Id { get; }
 
+    internal CustomOptionsFlags CustomOptions { get; private set; }
+
     /// <inheritdoc />
     public SelectionExecutionStrategy Strategy { get; private set; }
 
@@ -318,6 +320,16 @@ public class Selection : ISelection
         _flags |= Flags.Stream;
     }
 
+    internal void SetOption(CustomOptionsFlags customOptions)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        CustomOptions |= customOptions;
+    }
+
     /// <summary>
     /// Completes the selection without sealing it.
     /// </summary>
@@ -375,5 +387,45 @@ public class Selection : ISelection
         List = 4,
         Stream = 8,
         StreamResult = 16
+    }
+
+    [Flags]
+    internal enum CustomOptionsFlags : byte
+    {
+        None = 0,
+        Option1 = 1,
+        Option2 = 2,
+        Option3 = 4,
+        Option4 = 8,
+        Option5 = 16
+    }
+
+    internal sealed class Sealed : Selection
+    {
+        public Sealed(
+            int id,
+            IObjectType declaringType,
+            IObjectField field,
+            IType type,
+            FieldNode syntaxNode,
+            string responseName,
+            ArgumentMap? arguments = null,
+            long[]? includeConditions = null,
+            bool isInternal = false,
+            bool isParallelExecutable = true,
+            FieldDelegate? resolverPipeline = null,
+            PureFieldDelegate? pureResolver = null) : base(
+            id,
+            declaringType,
+            field,
+            type,
+            syntaxNode,
+            responseName,
+            arguments,
+            includeConditions,
+            isInternal,
+            isParallelExecutable,
+            resolverPipeline,
+            pureResolver) { }
     }
 }

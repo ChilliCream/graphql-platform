@@ -51,4 +51,7 @@
   <data name="ThrowHelper_Requirement_Is_Missing" xml:space="preserve">
     <value>The variable value `{0}` was not provided but is required.</value>
   </data>
+  <data name="ThrowHelper_NoResolverInContext" xml:space="preserve">
+    <value>There must be a field resolver definition in this context!</value>
+  </data>
 </root>

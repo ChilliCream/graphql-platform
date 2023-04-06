@@ -16,8 +16,8 @@ internal static class SchemaExtensions
             ? CreateVariableName(type, directive.Coordinate.Value)
             : CreateVariableName(type, directive.Field);
 
-    private static string CreateVariableName(
-        ObjectType type,
+    public static string CreateVariableName(
+        this ObjectType type,
         SchemaCoordinate coordinate)
         => $"{type.Name}_{coordinate.MemberName}";
 

@@ -341,7 +341,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var includeConditions = new long[includeConditionsSource.Length];
         includeConditionsSource.CopyTo(includeConditions);
 
-        var proxy = new Selection(selection.Id,
+        var proxy = new Selection.Sealed(selection.Id,
             selection.DeclaringType,
             field,
             field.Type,
