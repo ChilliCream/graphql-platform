@@ -49,7 +49,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     {
         SubgraphName = subgraphName;
         Document = document;
-        SelectionSet = selectionSet;
+        SelectionSet = (SelectionSet)selectionSet;
         Requires = requires;
         Path = path;
         ForwardedVariables = forwardedVariables;
@@ -68,7 +68,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     /// <summary>
     /// Gets the selection set for which this request provides a patch.
     /// </summary>
-    public ISelectionSet SelectionSet { get; }
+    public SelectionSet SelectionSet { get; }
 
     /// <summary>
     /// Gets the variables that this request handler requires to create a request.

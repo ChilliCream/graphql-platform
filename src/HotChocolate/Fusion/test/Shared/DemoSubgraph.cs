@@ -41,4 +41,15 @@ public sealed class DemoSubgraph
                 new HttpClientConfiguration(HttpEndpointUri),
                 new WebSocketClientConfiguration(WebSocketEndpointUri)
             });
+
+     public SubgraphConfiguration ToConfiguration()
+        => new SubgraphConfiguration(
+            Name,
+            Schema.ToString(),
+            Array.Empty<string>(),
+            new IClientConfiguration[]
+            {
+                new HttpClientConfiguration(HttpEndpointUri),
+                new WebSocketClientConfiguration(WebSocketEndpointUri)
+            });
 }

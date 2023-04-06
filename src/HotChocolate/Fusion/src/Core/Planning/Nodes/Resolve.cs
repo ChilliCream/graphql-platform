@@ -73,7 +73,6 @@ internal sealed class Resolve : ResolverNodeBase
         {
             var schemaName = SubgraphName;
             var requests = new GraphQLRequest[workItems.Count];
-            var selections = workItems[0].SelectionSet.Selections;
 
             // first we will create a request for all of our work items.
             for (var i = 0; i < workItems.Count; i++)
@@ -114,13 +113,13 @@ internal sealed class Resolve : ResolverNodeBase
                 var workItem = workItems[i];
 
                 var data = UnwrapResult(response);
-                var selectionResults = workItem.SelectionResults;
+                var selectionResults = workItem.SelectionSetData;
                 var exportKeys = workItem.ExportKeys;
                 var variableValues = workItem.VariableValues;
 
                 // we extract the selection data from the request and add it to the
                 // workItem results.
-                ExtractSelectionResults(selections, schemaName, data, selectionResults);
+                ExtractSelectionResults(SelectionSet, schemaName, data, selectionResults);
 
                 // TODO : only show debug info if we pass it into the context.
                 ExtractErrors(context.Result, response.Errors, addDebugInfo: true);

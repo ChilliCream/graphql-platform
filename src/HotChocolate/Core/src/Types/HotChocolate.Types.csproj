@@ -121,6 +121,12 @@
     <Compile Update="Internal\ExtendedType.Tools.cs">
       <DependentUpon>ExtendedType.cs</DependentUpon>
     </Compile>
+    <Compile Update="Configuration\TypeRegistrar.CreateInstance.cs">
+      <DependentUpon>TypeRegistrar.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Descriptors\Conventions\DescriptorContext.Services.cs">
+      <DependentUpon>DescriptorContext.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

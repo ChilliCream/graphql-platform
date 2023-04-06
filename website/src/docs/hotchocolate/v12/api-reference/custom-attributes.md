@@ -129,7 +129,7 @@ It is super simple to create custom descriptor attributes and package complex fu
 public class SomeMiddlewareAttribute
     : ObjectFieldDescriptorAttribute
 {
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

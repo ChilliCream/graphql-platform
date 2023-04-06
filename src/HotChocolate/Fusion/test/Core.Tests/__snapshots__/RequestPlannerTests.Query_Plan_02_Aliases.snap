@@ -46,12 +46,18 @@ QueryPlan
         "type": "Parallel",
         "nodes": [
           {
-            "type": "Resolve",
+            "type": "ResolveByKeyBatch",
             "subgraph": "Reviews",
-            "document": "query GetUser_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
+            "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name } } __fusion_exports__1: id } } }",
             "selectionSetId": 4,
+            "argumentTypes": [
+              {
+                "argument": "__fusion_exports__1",
+                "type": "[ID!]!"
+              }
+            ],
             "path": [
-              "authorById"
+              "nodes"
             ],
             "requires": [
               {
@@ -60,12 +66,18 @@ QueryPlan
             ]
           },
           {
-            "type": "Resolve",
+            "type": "ResolveByKeyBatch",
             "subgraph": "Reviews",
-            "document": "query GetUser_3($__fusion_exports__2: ID!) { authorById(id: $__fusion_exports__2) { reviews { body author { name } } } }",
+            "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { nodes(ids: $__fusion_exports__2) { ... on User { reviews { body author { name } } __fusion_exports__2: id } } }",
             "selectionSetId": 1,
+            "argumentTypes": [
+              {
+                "argument": "__fusion_exports__2",
+                "type": "[ID!]!"
+              }
+            ],
             "path": [
-              "authorById"
+              "nodes"
             ],
             "requires": [
               {

@@ -73,6 +73,15 @@ internal sealed class FusionExecutionContext : IDisposable
     /// </summary>
     public ResultBuilder Result => OperationContext.Result;
 
+    /// <summary>
+    /// Determines if all data has been fetched for the specified selection set.
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The selection set that is being evaluated.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if more data is needed for the specified selection set; otherwise, <c>false</c>.
+    /// </returns>
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodesFor(selectionSet);
 

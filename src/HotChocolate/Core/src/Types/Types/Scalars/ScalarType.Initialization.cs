@@ -56,7 +56,7 @@ public abstract partial class ScalarType
         ITypeCompletionContext context,
         ScalarTypeDefinition definition)
     {
-        _converter = context.Services.GetTypeConverter();
+        _converter = context.DescriptorContext.TypeConverter;
         var directiveDefinitions = Array.Empty<DirectiveDefinition>();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
         SyntaxNode = definition.SyntaxNode;

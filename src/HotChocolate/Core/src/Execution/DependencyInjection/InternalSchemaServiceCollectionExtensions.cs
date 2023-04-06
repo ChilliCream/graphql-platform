@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using HotChocolate.Execution.Configuration;
+using HotChocolate;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
