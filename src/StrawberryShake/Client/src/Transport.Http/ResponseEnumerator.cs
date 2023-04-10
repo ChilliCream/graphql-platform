@@ -67,8 +67,11 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
             {
                 try
                 {
-                    response.EnsureSuccessStatusCode();
                     Current = await stream.TryParseResponse(_abort).ConfigureAwait(false);
+                    if (Current.Exception is not null)
+                    {
+                        response.EnsureSuccessStatusCode();
+                    }
                 }
                 catch (Exception ex)
                 {
