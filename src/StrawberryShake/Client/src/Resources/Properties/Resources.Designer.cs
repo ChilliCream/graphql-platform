@@ -272,5 +272,11 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("JsonResultPatcher_PathSegmentMustBeStringOrInt", resourceCulture);
             }
         }
+        
+        internal static string ResponseEnumerator_HttpNoSuccessStatusCode {
+            get {
+                return ResourceManager.GetString("ResponseEnumerator_HttpNoSuccessStatusCode", resourceCulture);
+            }
+        }
     }
 }

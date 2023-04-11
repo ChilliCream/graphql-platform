@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ internal static class ResponseHelper
 {
     public static async Task<Response<JsonDocument>> TryParseResponse(
         this Stream stream,
+        Exception? transportError,
         CancellationToken cancellationToken)
     {
         try
@@ -35,14 +37,15 @@ internal static class ResponseHelper
                     hasNext = true;
                 }
 
-                return new Response<JsonDocument>(document, null, isPatch, hasNext);
+                return new Response<JsonDocument>(document, transportError, isPatch, hasNext);
             }
 
-            return new Response<JsonDocument>(document, null);
+            return new Response<JsonDocument>(document, transportError);
         }
         catch (Exception ex)
         {
-            return new Response<JsonDocument>(CreateBodyFromException(ex), ex);
+            var error = transportError ?? ex;
+            return new Response<JsonDocument>(CreateBodyFromException(error), error);
         }
     }
 
