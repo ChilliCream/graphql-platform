@@ -161,15 +161,26 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
 
-            if (result.ContextData is not null &&
-                result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
-                value is string cacheControlHeaderValue)
+            if (result.ContextData is not null)
             {
+                if (result.ContextData.TryGetValue(CacheControlHeaderValue, out var cacheControlValue) &&
+                    cacheControlValue is string cacheControlHeaderValue)
+                {
 #if NET6_0_OR_GREATER
-                response.Headers.CacheControl = cacheControlHeaderValue;
+                    response.Headers.CacheControl = cacheControlHeaderValue;
 #else
-                response.Headers.Add(HeaderNames.CacheControl, cacheControlHeaderValue);
+                    response.Headers.Add(HeaderNames.CacheControl, cacheControlHeaderValue);
 #endif
+                }
+                if (result.ContextData.TryGetValue(VaryHeaderValue, out var varyValue) &&
+                    varyValue is string varyHeaderValue)
+                {
+#if NET6_0_OR_GREATER
+                    response.Headers.Vary = varyHeaderValue;
+#else
+                    response.Headers.Add(HeaderNames.Vary, varyHeaderValue);
+#endif
+                }
             }
 
             OnWriteResponseHeaders(queryResult, format, response.Headers);

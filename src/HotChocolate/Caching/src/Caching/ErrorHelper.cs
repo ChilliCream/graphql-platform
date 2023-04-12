@@ -47,12 +47,34 @@ internal static class ErrorHelper
             .AddSyntaxNode(field.SyntaxNode)
             .Build();
 
+    public static ISchemaError CacheControlNegativeSharedMaxAge(
+        ITypeSystemObject type,
+        IField field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_CacheControlNegativeSharedMaxAge,
+                field.Coordinate.ToString())
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(field.SyntaxNode)
+            .Build();
+
     public static ISchemaError CacheControlBothMaxAgeAndInheritMaxAge(
         ITypeSystemObject type,
         IField field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge,
+                field.Coordinate.ToString())
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(field.SyntaxNode)
+            .Build();
+
+    public static ISchemaError CacheControlBothSharedMaxAgeAndInheritMaxAge(
+        ITypeSystemObject type,
+        IField field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_CacheControlBothSharedMaxAgeAndInheritMaxAge,
                 field.Coordinate.ToString())
             .SetTypeSystemObject(type)
             .AddSyntaxNode(field.SyntaxNode)

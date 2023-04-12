@@ -1,9 +1,12 @@
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.Primitives;
 using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.Caching;
@@ -13,7 +16,9 @@ namespace HotChocolate.Caching;
 /// </summary>
 internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 {
-    private const string _cacheControlValueTemplate = "{0}, max-age={1}";
+    private const string _cacheControlDelimiter = ", ";
+    private const string _cacheControlMaxAge = "max-age";
+    private const string _cacheControlSharedMaxAge = "s-maxage";
     private const string _cacheControlPrivateScope = "private";
     private const string _cacheControlPublicScope = "public";
 
@@ -29,29 +34,45 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
         var constraints = ComputeCacheControlConstraints(context.CreateOperation());
 
-        if (constraints.MaxAge is not null)
+        if (constraints.MaxAge is not null || constraints.SharedMaxAge is not null)
         {
-            var cacheType = constraints.Scope switch
+            var headerValue = new StringBuilder(constraints.Scope switch
             {
                 CacheControlScope.Private => _cacheControlPrivateScope,
                 CacheControlScope.Public => _cacheControlPublicScope,
                 _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope)
-            };
+            });
+            if (constraints.MaxAge is not null)
+            {
+                headerValue.Append(_cacheControlDelimiter);
+                headerValue.Append(_cacheControlMaxAge);
+                headerValue.Append('=');
+                headerValue.Append(constraints.MaxAge.Value);
 
-            var headerValue = string.Format(
-                _cacheControlValueTemplate,
-                cacheType,
-                constraints.MaxAge);
-
-            context.ContextData.Add(
-                WellKnownContextData.CacheControlConstraints,
-                new ImmutableCacheConstraints(
-                    constraints.MaxAge.Value,
-                    constraints.Scope));
+                context.ContextData.Add(
+                    WellKnownContextData.CacheControlConstraints,
+                    new ImmutableCacheConstraints(
+                        constraints.MaxAge.Value,
+                        constraints.Scope));
+            }
+            if (constraints.SharedMaxAge is not null)
+            {
+                headerValue.Append(_cacheControlDelimiter);
+                headerValue.Append(_cacheControlSharedMaxAge);
+                headerValue.Append('=');
+                headerValue.Append(constraints.SharedMaxAge.Value);
+            }
 
             context.ContextData.Add(
                 WellKnownContextData.CacheControlHeaderValue,
-                headerValue);
+                headerValue.ToString());
+        }
+
+        if (constraints.Vary is {Length: > 0})
+        {
+            context.ContextData.Add(
+                WellKnownContextData.VaryHeaderValue,
+                string.Join(", ", constraints.Vary));
         }
     }
 
@@ -76,11 +97,25 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
     {
         var field = selection.Field;
         var maxAgeSet = false;
+        var sharedMaxAgeSet = false;
         var scopeSet = false;
+        var varySet = false;
 
         ExtractCacheControlDetailsFromDirectives(field.Directives);
 
-        if (!maxAgeSet || !scopeSet)
+        if (!maxAgeSet || !sharedMaxAgeSet || !scopeSet || !varySet)
+        {
+            // Either maxAge or scope have not been specified by the @cacheControl
+            // directive on the field, so we try to infer these details
+            // from the type of the field.
+
+            if (field.Type is IHasDirectives type)
+            {
+                // The type of the field is complex and can therefore be
+                // annotated with a @cacheControl directive.
+                ExtractCacheControlDetailsFromDirectives(type.Directives);
+            }
+        }
         {
             // Either maxAge or scope have not been specified by the @cacheControl
             // directive on the field, so we try to infer these details
@@ -136,6 +171,22 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     maxAgeSet = true;
                 }
 
+                if (!sharedMaxAgeSet &&
+                    directive.SharedMaxAge.HasValue &&
+                    (!constraints.SharedMaxAge.HasValue || directive.SharedMaxAge < constraints.SharedMaxAge.Value))
+                {
+                    // The maxAge of the @cacheControl directive is lower
+                    // than the previously lowest maxAge value.
+                    constraints.SharedMaxAge = directive.SharedMaxAge.Value;
+                    sharedMaxAgeSet = true;
+                }
+                else if (directive.InheritMaxAge == true)
+                {
+                    // If inheritMaxAge is set, we keep the
+                    // computed maxAge value as is.
+                    sharedMaxAgeSet = true;
+                }
+
                 if (directive.Scope.HasValue &&
                     directive.Scope < constraints.Scope)
                 {
@@ -143,6 +194,19 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     // restrictive than the computed scope.
                     constraints.Scope = directive.Scope.Value;
                     scopeSet = true;
+                }
+
+                if (directive.Vary is {Length: > 0})
+                {
+                    if (constraints.Vary != null)
+                    {
+                        constraints.Vary = constraints.Vary.Concat(directive.Vary.Select(x=>x.ToLowerInvariant())).ToArray();
+                    }
+                    else
+                    {
+                        constraints.Vary = directive.Vary.Select(x => x.ToLowerInvariant()).ToArray();
+                    }
+                    varySet = true;
                 }
             }
         }
@@ -172,6 +236,9 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         public CacheControlScope Scope { get; set; } = CacheControlScope.Public;
 
         internal int? MaxAge { get; set; }
-    }
 
+        internal int? SharedMaxAge { get; set; }
+
+        internal string[]? Vary { get; set; }
+    }
 }
