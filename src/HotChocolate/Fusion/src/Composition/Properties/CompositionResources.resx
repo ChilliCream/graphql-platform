@@ -43,7 +43,7 @@
     <value>The number of arguments in an output field does not match the number of arguments in the same field in of a subgraph schema.</value>
   </data>
   <data name="LogEntryHelper_OutputFieldArgumentSetMismatch" xml:space="preserve">
-    <value>An output field that is being merged into another has a different set of arguments.</value>
+    <value>An output field (`{0}`) that is being merged into another has a different set of arguments.</value>
   </data>
   <data name="DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate" xml:space="preserve">
     <value>The is argument must have a value for coordinate or field.</value>

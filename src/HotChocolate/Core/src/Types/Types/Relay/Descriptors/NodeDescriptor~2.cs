@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -63,7 +64,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
                     return await fieldResolver(ctx, c).ConfigureAwait(false);
                 }
 
-                typeConverter ??= ctx.GetTypeConverter();
+                typeConverter ??= ctx.Services.GetService<ITypeConverter>() ?? DefaultTypeConverter.Default;
                 c = typeConverter.Convert<object, TId>(id);
                 return await fieldResolver(ctx, c).ConfigureAwait(false);
             }

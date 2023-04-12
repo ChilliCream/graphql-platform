@@ -636,12 +636,10 @@ internal sealed class TypeInitializer
 
         foreach (var type in _typeRegistry.Types)
         {
-            if (type.Errors.Count == 0)
+            if (type.HasErrors)
             {
-                continue;
+                errors.AddRange(type.Errors);
             }
-
-            errors.AddRange(type.Errors);
         }
 
         if (errors.Count > 0)

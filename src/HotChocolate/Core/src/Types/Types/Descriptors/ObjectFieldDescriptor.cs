@@ -53,9 +53,7 @@ public class ObjectFieldDescriptor
         Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
-        Definition.ResolverType = resolverType == sourceType
-            ? null
-            : resolverType;
+        Definition.ResolverType = resolverType == sourceType ? null : resolverType;
         Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
