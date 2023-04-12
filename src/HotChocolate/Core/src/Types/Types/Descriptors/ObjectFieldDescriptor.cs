@@ -25,7 +25,7 @@ public class ObjectFieldDescriptor
     private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -38,7 +38,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -74,7 +74,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
