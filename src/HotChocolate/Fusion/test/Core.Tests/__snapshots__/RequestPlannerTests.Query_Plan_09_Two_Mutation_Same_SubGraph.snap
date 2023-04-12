@@ -31,7 +31,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Reviews",
-        "document": "query AddReviews_1 { a: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { name } } } b: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { name } } } }",
+        "document": "mutation AddReviews_1 { a: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { name } } } b: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { name } } } }",
         "selectionSetId": 0
       },
       {

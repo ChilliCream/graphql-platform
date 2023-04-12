@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -24,15 +25,32 @@ public abstract class TypeReference : IEquatable<TypeReference>
         Scope = scope;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the kind of the type reference.
+    /// </summary>
     public TypeReferenceKind Kind { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Specifies in which context the type reference is used
+    /// (input types, output types, neutral context).
+    /// </summary>
     public TypeContext Context { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the scope of the type reference.
+    /// The scope allows us to branch the type system.
+    /// </summary>
     public string? Scope { get; }
 
+    /// <summary>
+    /// A helper method to compare a type reference.
+    /// </summary>
+    /// <param name="other">
+    /// The other type reference.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the type references are equal; otherwise, <c>false</c>.
+    /// </returns>
     protected bool IsEqual(TypeReference other)
     {
         if (Context != other.Context

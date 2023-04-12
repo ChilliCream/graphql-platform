@@ -182,7 +182,7 @@ public sealed class JsonType : ScalarType<JsonElement>
             _visitor.Visit(node, new JsonFormatterContext(jsonWriter));
             jsonWriter.Flush();
 
-            var jsonReader = new Utf8JsonReader(bufferWriter.Body.Span);
+            var jsonReader = new Utf8JsonReader(bufferWriter.GetWrittenSpan());
             return JsonElement.ParseValue(ref jsonReader);
         }
 
