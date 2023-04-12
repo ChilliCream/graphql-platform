@@ -166,7 +166,7 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.Configure(
             (sp, e) =>
             {
-                e.OnRequestExecutorEvicted.Add(
+                e.OnRequestExecutorEvictedHooks.Add(
                     // when ever we evict this schema we will clear the caches.
                     new OnRequestExecutorEvictedAction(
                         _ => sp.GetRequiredService<IPreparedOperationCache>().Clear()));

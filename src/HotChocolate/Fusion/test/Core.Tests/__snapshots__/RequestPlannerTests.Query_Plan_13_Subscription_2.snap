@@ -17,38 +17,43 @@ QueryPlan
   "document": "subscription OnNewReview { onNewReview { body author { name birthdate } } }",
   "operation": "OnNewReview",
   "rootNode": {
-    "type": "Subscription",
-    "nodes": [
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          0
-        ]
-      },
-      {
-        "type": "Resolver",
-        "subgraph": "Accounts",
-        "document": "query OnNewReview_2($__fusion_exports__1: Int!) { userById(id: $__fusion_exports__1) { birthdate } }",
-        "selectionSetId": 2,
-        "path": [
-          "userById"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
-      },
-      {
-        "type": "Composition",
-        "selectionSetIds": [
-          2
-        ]
-      }
-    ],
+    "type": "Subscribe",
     "subgraph": "Reviews",
     "document": "subscription OnNewReview_1 { onNewReview { body author { name __fusion_exports__1: id } } }",
-    "selectionSetId": 0
+    "selectionSetId": 0,
+    "nodes": [
+      {
+        "type": "Sequence",
+        "nodes": [
+          {
+            "type": "Compose",
+            "selectionSetIds": [
+              0
+            ]
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "Accounts",
+            "document": "query OnNewReview_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
+            "selectionSetId": 2,
+            "path": [
+              "userById"
+            ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__1"
+              }
+            ]
+          },
+          {
+            "type": "Compose",
+            "selectionSetIds": [
+              2
+            ]
+          }
+        ]
+      }
+    ]
   }
 }
 ---------------

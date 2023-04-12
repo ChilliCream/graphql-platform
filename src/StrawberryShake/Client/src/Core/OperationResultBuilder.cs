@@ -66,6 +66,23 @@ public abstract class OperationResultBuilder<TResultData>
             errors = list;
         }
 
+        // If we have a transport error but the response does not contain any client errors
+        // we will create a client error from the provided transport error.
+        if (response.Exception is not null && errors is not { Count: > 0 })
+        {
+            errors = new IClientError[]
+            {
+                new ClientError(
+                    response.Exception.Message,
+                    ErrorCodes.InvalidResultDataStructure,
+                    exception: response.Exception,
+                    extensions: new Dictionary<string, object?>
+                    {
+                        { nameof(response.Exception.StackTrace), response.Exception.StackTrace }
+                    })
+            };
+        }
+
         return new OperationResult<TResultData>(
             data,
             dataInfo,

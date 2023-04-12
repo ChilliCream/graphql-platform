@@ -38,9 +38,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
         var options = new RequestExecutorSetup();
         _optionsMonitor.Get(schemaName).CopyTo(options);
 
-        if (_configs.TryGetValue(
-            schemaName,
-            out var configurations))
+        if (_configs.TryGetValue(schemaName, out var configurations))
         {
             foreach (var configuration in configurations)
             {

@@ -3,6 +3,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
+using static HotChocolate.Fusion.FusionResources;
 using static HotChocolate.Fusion.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
@@ -13,6 +14,7 @@ internal sealed class FusionGraphConfigurationReader
     private readonly Dictionary<string, ITypeNode> _emptyArgumentDefs = new();
     private readonly HashSet<string> _assert = new();
     private readonly HashSet<string> _subgraphNames = new();
+    private readonly Dictionary<string, SubgraphInfo> _subgraphInfos = new();
 
     public FusionGraphConfiguration Read(string sourceText)
         => Read(Utf8GraphQLParser.Parse(sourceText));
@@ -41,6 +43,7 @@ internal sealed class FusionGraphConfigurationReader
         var typeNameBindings = new Dictionary<string, MemberBinding>();
         var httpClientConfigs = ReadHttpClientConfigs(typeNames, schemaDef.Directives);
         var webSocketClientConfigs = ReadWebSocketClientConfigs(typeNames, schemaDef.Directives);
+        ReadEntityConfigs(typeNames, schemaDef.Directives);
         var typeNameField = CreateTypeNameField(typeNameBindings);
 
         foreach (var definition in document.Definitions)
@@ -56,6 +59,11 @@ internal sealed class FusionGraphConfigurationReader
         foreach (var subgraphName in _subgraphNames)
         {
             typeNameBindings.Add(subgraphName, new MemberBinding(subgraphName, typeNameField.Name));
+
+            if (!_subgraphInfos.ContainsKey(subgraphName))
+            {
+                _subgraphInfos.Add(subgraphName, new SubgraphInfo(subgraphName));
+            }
         }
 
         if (httpClientConfigs is not { Count: > 0 })
@@ -70,52 +78,55 @@ internal sealed class FusionGraphConfigurationReader
 
         return new FusionGraphConfiguration(
             types,
-            _subgraphNames.ToArray(),
+            _subgraphInfos.Values,
             httpClientConfigs,
             webSocketClientConfigs);
     }
 
-    private ObjectType ReadObjectType(
+    private ObjectTypeInfo ReadObjectType(
         FusionTypeNames typeNames,
         ObjectTypeDefinitionNode typeDef,
-        ObjectField typeNameField)
+        ObjectFieldInfo typeNameFieldInfo)
     {
         var bindings = ReadMemberBindings(typeNames, typeDef.Directives, typeDef);
         var variables = ReadObjectVariableDefinitions(typeNames, typeDef.Directives);
         var resolvers = ReadResolverDefinitions(typeNames, typeDef.Directives);
-        var fields = ReadObjectFields(typeNames, typeDef.Fields, typeNameField);
-        return new ObjectType(typeDef.Name.Value, bindings, variables, resolvers, fields);
+        var fields = ReadObjectFields(typeNames, typeDef.Fields, typeNameFieldInfo);
+        return new ObjectTypeInfo(typeDef.Name.Value, bindings, variables, resolvers, fields);
     }
 
-    private ObjectFieldCollection ReadObjectFields(
+    private ObjectFieldInfoCollection ReadObjectFields(
         FusionTypeNames typeNames,
         IReadOnlyList<FieldDefinitionNode> fieldDefinitionNodes,
-        ObjectField typeNameField)
+        ObjectFieldInfo typeNameFieldInfo)
     {
-        var collection = new List<ObjectField>();
+        var collection = new List<ObjectFieldInfo>();
 
         foreach (var fieldDef in fieldDefinitionNodes)
         {
+            var name = fieldDef.Name.Value;
             var resolvers = ReadResolverDefinitions(typeNames, fieldDef.Directives);
             var bindings = ReadMemberBindings(typeNames, fieldDef.Directives, fieldDef, resolvers);
             var variables = ReadFieldVariableDefinitions(typeNames, fieldDef.Directives);
-            var field = new ObjectField(fieldDef.Name.Value, bindings, variables, resolvers);
+            var flags = ReadFlags(typeNames, fieldDef.Directives);
+            var field = new ObjectFieldInfo(name, flags, bindings, variables, resolvers);
             collection.Add(field);
         }
 
-        collection.Add(typeNameField);
+        collection.Add(typeNameFieldInfo);
 
-        return new ObjectFieldCollection(collection);
+        return new ObjectFieldInfoCollection(collection);
     }
 
-    private static ObjectField CreateTypeNameField(
+    private static ObjectFieldInfo CreateTypeNameField(
         Dictionary<string, MemberBinding> bindings)
     {
-        return new ObjectField(
-                IntrospectionFields.TypeName,
-                new MemberBindingCollection(bindings),
-                FieldVariableDefinitionCollection.Empty,
-                ResolverDefinitionCollection.Empty);
+        return new ObjectFieldInfo(
+            IntrospectionFields.TypeName,
+            ObjectFieldFlags.TypeName,
+            new MemberBindingCollection(bindings),
+            FieldVariableDefinitionCollection.Empty,
+            ResolverDefinitionCollection.Empty);
     }
 
     private IReadOnlyList<HttpClientConfiguration> ReadHttpClientConfigs(
@@ -234,6 +245,55 @@ internal sealed class FusionGraphConfigurationReader
         {
             assert.Remove(ClientNameArg);
         }
+    }
+
+    private void ReadEntityConfigs(
+        FusionTypeNames typeNames,
+        IReadOnlyList<DirectiveNode> directiveNodes)
+    {
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.NodeDirective))
+            {
+                ReadEntityConfig(typeNames, directiveNode);
+            }
+        }
+    }
+
+    private void ReadEntityConfig(
+        FusionTypeNames typeNames,
+        DirectiveNode directiveNode)
+    {
+        AssertName(directiveNode, typeNames.NodeDirective);
+        AssertArguments(directiveNode, SubgraphArg, TypesArg);
+
+        string subgraph = default!;
+        string[] entities = default!;
+
+        foreach (var argument in directiveNode.Arguments)
+        {
+            switch (argument.Name.Value)
+            {
+                case SubgraphArg:
+                    subgraph = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case TypesArg:
+                    entities =
+                        Expect<ListValueNode>(argument.Value).Items
+                            .OfType<StringValueNode>()
+                            .Select(t => t.Value).ToArray();
+                    break;
+            }
+        }
+
+        if(!_subgraphInfos.TryGetValue(subgraph, out var subgraphInfo))
+        {
+            subgraphInfo = new SubgraphInfo(subgraph);
+            _subgraphInfos.Add(subgraph, subgraphInfo);
+        }
+
+        subgraphInfo.Entities.AddRange(entities);
     }
 
     private VariableDefinitionCollection ReadObjectVariableDefinitions(
@@ -397,8 +457,7 @@ internal sealed class FusionGraphConfigurationReader
                         FusionEnumValueNames.BatchByKey => ResolverKind.BatchByKey,
                         FusionEnumValueNames.Subscription => ResolverKind.Subscription,
                         _ => throw new InvalidOperationException(
-                            FusionResources
-                                .FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue)
+                            FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue)
                     };
                     break;
 
@@ -543,6 +602,24 @@ internal sealed class FusionGraphConfigurationReader
         }
 
         return new MemberBindingCollection(definitions);
+    }
+
+    private ObjectFieldFlags ReadFlags(
+        FusionTypeNames typeNames,
+        IReadOnlyList<DirectiveNode> directiveNodes)
+    {
+        var flags = ObjectFieldFlags.None;
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.ReEncodeIdDirective))
+            {
+                flags |= ObjectFieldFlags.ReEncodeId;
+                break;
+            }
+        }
+
+        return flags;
     }
 
     private MemberBinding ReadMemberBinding(
