@@ -60,6 +60,37 @@ public class HttpCachingTests : ServerTestBase
         result.MatchSnapshot();
     }
 
+    [Theory]
+    [InlineData(60, 30)]
+    [InlineData(30, 60)]
+    [InlineData(30, 30)]
+    [InlineData(30, 3000)]
+    public async Task MaxAge_Multiple_Should_Cache_Shortest_Time(int time1, int time2)
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                {
+                    var o = d.Name("Query");
+                    o.Field("field1")
+                        .Resolve("")
+                        .CacheControl(time1);
+                    o.Field("field2")
+                        .Resolve("")
+                        .CacheControl(time2);
+                });
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field1, field2 }");
+
+        result.MatchSnapshot();
+    }
+
     [Fact]
     public async Task JustScope_Should_Not_Cache()
     {
