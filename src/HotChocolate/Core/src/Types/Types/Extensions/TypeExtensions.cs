@@ -260,19 +260,19 @@ public static class TypeExtensions
         return type.NamedType() is IInputType;
     }
 
-    public static IInputType EnsureInputType(this IType type)
+    internal static IInputType EnsureInputType(this IType type)
     {
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
         }
 
-        if (type.NamedType() is not IInputType inputType)
+        if (type.NamedType() is not IInputType)
         {
             throw InputTypeExpected(type);
         }
 
-        return inputType;
+        return (IInputType)type;
     }
 
     public static bool IsOutputType(this IType type)
@@ -285,19 +285,19 @@ public static class TypeExtensions
         return type.NamedType() is IOutputType;
     }
 
-    public static IOutputType EnsureOutputType(this IType type)
+    internal static IOutputType EnsureOutputType(this IType type)
     {
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
         }
 
-        if (type.NamedType() is not IOutputType outputType)
+        if (type.NamedType() is not IOutputType)
         {
             throw OutputTypeExpected(type);
         }
 
-        return outputType;
+        return (IOutputType)type;
     }
 
     public static bool IsUnionType(this IType type)
