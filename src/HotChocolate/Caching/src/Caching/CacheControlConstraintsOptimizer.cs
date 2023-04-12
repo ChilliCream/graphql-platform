@@ -200,11 +200,11 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                 {
                     if (constraints.Vary != null)
                     {
-                        constraints.Vary = constraints.Vary.Concat(directive.Vary.Select(x=>x.ToLowerInvariant())).ToArray();
+                        constraints.Vary = constraints.Vary.Concat(directive.Vary.Select(x=>x.ToLowerInvariant())).Distinct().OrderBy(x => x).ToArray();
                     }
                     else
                     {
-                        constraints.Vary = directive.Vary.Select(x => x.ToLowerInvariant()).ToArray();
+                        constraints.Vary = directive.Vary.Select(x => x.ToLowerInvariant()).Distinct().OrderBy(x => x).ToArray();
                     }
                     varySet = true;
                 }
