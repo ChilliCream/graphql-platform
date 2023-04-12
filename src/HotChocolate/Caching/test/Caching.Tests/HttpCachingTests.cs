@@ -103,6 +103,50 @@ public class HttpCachingTests : ServerTestBase
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task SharedMaxAgeAndScope_Should_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve("")
+                        .CacheControl(sharedMaxAge: 2000, scope: CacheControlScope.Public));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SharedMaxAgeAndVary_Should_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve("")
+                        .CacheControl(sharedMaxAge: 2000, vary: new[] { "X-foo", "X-BaR" }));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
 }
 
 public class GraphQLResult

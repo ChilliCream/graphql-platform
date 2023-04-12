@@ -21,6 +21,9 @@ type NestedType {
   valueTaskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
   executableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
   queryableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithCacheControlSharedMaxAge: [String!]! @cacheControl(sharedMaxAge: 200)
+  queryableFieldWithCacheControlMaxAgeAndSharedMaxAge: [String!]! @cacheControl(maxAge: 500, sharedMaxAge: 200)
+  queryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary: [String!]! @cacheControl(maxAge: 500, sharedMaxAge: 200, vary: [ "accept-language", "x-timezoneoffset" ])
   queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
   queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
   pureField: String!
@@ -54,6 +57,9 @@ type Query {
   valueTaskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
   executableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
   queryableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithCacheControlSharedMaxAge: [String!]! @cacheControl(sharedMaxAge: 200)
+  queryableFieldWithCacheControlMaxAgeAndSharedMaxAge: [String!]! @cacheControl(maxAge: 500, sharedMaxAge: 200)
+  queryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary: [String!]! @cacheControl(maxAge: 500, sharedMaxAge: 200, vary: [ "accept-language", "x-timezoneoffset" ])
   queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
   queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
   nested: NestedType!
