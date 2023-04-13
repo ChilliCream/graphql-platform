@@ -6,6 +6,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Utilities.Introspection
 {
+    /// <summary>
+    /// The <see cref="IIntrospectionClient"/> for introspecting a GraphQL server and
+    /// downloading the introspection result as GraphQL SDL.
+    /// </summary>
     public interface IIntrospectionClient
     {
         /// <summary>
