@@ -169,7 +169,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     }
 
     /// <inheritdoc />
-    public IExtendedType GetArgumentType(
+    public virtual IExtendedType GetArgumentType(
         ParameterInfo parameter,
         bool ignoreAttributes = false)
     {
