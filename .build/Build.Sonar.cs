@@ -59,7 +59,7 @@ partial class Build
                 .SetProjectFile(SonarSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
 
-            Log.Information("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
+            Log.Information("Creating Sonar analysis for version: {0} ...", SemVersion);
 
             SonarScannerBegin(SonarBeginFullSettings);
 
@@ -90,7 +90,7 @@ partial class Build
 
     SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
         SonarBeginBaseSettings(settings)
-            .SetVersion(GitVersion.SemVer)
+            .SetVersion(SemVersion)
             .SetFramework(Net50);
 
     SonarScannerBeginSettings SonarBeginBaseSettings(SonarScannerBeginSettings settings) =>
