@@ -29,6 +29,7 @@ import GiaLogoSvg from "@/images/companies/gia.svg";
 import HiloLogoSvg from "@/images/companies/hilo.svg";
 import IncloudLogoSvg from "@/images/companies/incloud.svg";
 import InfoslipsLogoSvg from "@/images/companies/infoslips.svg";
+import MicrosoftLogoSvg from "@/images/companies/microsoft.svg";
 import MotiviewLogoSvg from "@/images/companies/motiview.svg";
 import OrderinLogoSvg from "@/images/companies/orderin.svg";
 import PoweredSoftLogoSvg from "@/images/companies/powered-soft.svg";
@@ -55,186 +56,193 @@ export const CompaniesSection: FC = () => (
       <ContentContainer noImage>
         <SectionTitle centerAlways>Companies Who Trust Us</SectionTitle>
         <Logos>
-          <Logo width={140}>
+          <MicrosoftLogo>
+            <Link to="https://www.microsoft.com">
+              <Company {...MicrosoftLogoSvg} />
+            </Link>
+          </MicrosoftLogo>
+        </Logos>
+        <Logos>
+          <GenericLogo width={140}>
             <Link to="https://additiv.com">
               <Company {...AdditivLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={160}>
+          </GenericLogo>
+          <GenericLogo width={160}>
             <Link to="https://aeieng.com">
               <Company {...AeiLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={100}>
+          </GenericLogo>
+          <GenericLogo width={100}>
             <Link to="https://atmina.de">
               <Company {...AtminaLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={180}>
+          </GenericLogo>
+          <GenericLogo width={180}>
             <Link to="https://www.autoguru.com.au">
               <Company {...AutoguruLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={150}>
+          </GenericLogo>
+          <GenericLogo width={150}>
             <Link to="https://bdna.com.au">
               <Company {...BdnaLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={150}>
+          </GenericLogo>
+          <GenericLogo width={150}>
             <Link to="https://www.beyable.com">
               <Company {...BeyableLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={100}>
+          </GenericLogo>
+          <GenericLogo width={100}>
             <Link to="https://www.biqh.com">
               <Company {...BiqhLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={180}>
+          </GenericLogo>
+          <GenericLogo width={180}>
             <Link to="https://carmmunity.io">
               <Company {...CarmmunityLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={180}>
+          </GenericLogo>
+          <GenericLogo width={180}>
             <Link to="https://www.compass.education">
               <Company {...CompassLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={90}>
+          </GenericLogo>
+          <GenericLogo width={90}>
             <Link to="https://www.e2m.energy">
               <Company {...E2mLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={130}>
+          </GenericLogo>
+          <GenericLogo width={130}>
             <Link to="https://www.exlrt.com">
               <Company {...ExlrtLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={100}>
+          </GenericLogo>
+          <GenericLogo width={100}>
             <Link to="https://www.ezeep.com">
               <Company {...EzeepLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={150}>
+          </GenericLogo>
+          <GenericLogo width={150}>
             <Link to="https://fulcrumpro.com/">
               <Company {...FulcrumLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={120}>
+          </GenericLogo>
+          <GenericLogo width={120}>
             <Link to="https://gia.ch">
               <Company {...GiaLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={70}>
+          </GenericLogo>
+          <GenericLogo width={70}>
             <Link to="https://www.hiloenergie.com">
               <Company {...HiloLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={200}>
+          </GenericLogo>
+          <GenericLogo width={200}>
             <Link to="https://www.incloud.de">
               <Company {...IncloudLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={130}>
+          </GenericLogo>
+          <GenericLogo width={130}>
             <Link to="https://www.infoslips.com">
               <Company {...InfoslipsLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={160}>
+          </GenericLogo>
+          <GenericLogo width={160}>
             <Link to="https://motitech.co.uk">
               <Company {...MotiviewLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={160}>
+          </GenericLogo>
+          <GenericLogo width={160}>
             <Link to="https://orderin.co.za">
               <Company {...OrderinLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={110}>
+          </GenericLogo>
+          <GenericLogo width={110}>
             <Link to="https://poweredsoft.com">
               <Company {...PoweredSoftLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={180}>
+          </GenericLogo>
+          <GenericLogo width={180}>
             <Link to="https://pushpay.com">
               <Company {...PushpayLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={260}>
+          </GenericLogo>
+          <GenericLogo width={260}>
             <Link to="http://www.railcargo.at">
               <Company {...RailCargoAustriaLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={120}>
+          </GenericLogo>
+          <GenericLogo width={120}>
             <Link to="https://www.seven2one.de">
               <Company {...Seven2OneLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={150}>
+          </GenericLogo>
+          <GenericLogo width={150}>
             <Link to="https://www.solytic.com">
               <Company {...SolyticLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={130}>
+          </GenericLogo>
+          <GenericLogo width={130}>
             <Link to="https://sonika.se">
               <Company {...SonikaLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={200}>
+          </GenericLogo>
+          <GenericLogo width={200}>
             <Link to="https://www.spectrummedical.com/">
               <Company {...SpectrumMedicalLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={120}>
+          </GenericLogo>
+          <GenericLogo width={120}>
             <Link to="https://www.speedwaymotors.com">
               <Company {...SpeedwayMotorsLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={180}>
+          </GenericLogo>
+          <GenericLogo width={180}>
             <Link to="https://splashback.io">
               <Company {...SplashbackLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={120}>
+          </GenericLogo>
+          <GenericLogo width={120}>
             <Link to="https://sweetgeeks.dk">
               <Company {...SweetGeeksLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={110}>
+          </GenericLogo>
+          <GenericLogo width={110}>
             <Link to="https://www.swisslife.ch">
               <Company {...SwissLifeLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={160}>
+          </GenericLogo>
+          <GenericLogo width={160}>
             <Link to="https://www.sytadelle.fr">
               <Company {...SytadelleLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={180}>
+          </GenericLogo>
+          <GenericLogo width={180}>
             <Link to="http://trackman.com/">
               <Company {...TrackmanLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={180}>
+          </GenericLogo>
+          <GenericLogo width={180}>
             <Link to="https://travel-soft.com">
               <Company {...TravelSoftLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={140}>
+          </GenericLogo>
+          <GenericLogo width={140}>
             <Link to="https://careers.veepee.com/vptech/">
               <Company {...VptechLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={120}>
+          </GenericLogo>
+          <GenericLogo width={120}>
             <Link to="https://xm.com">
               <Company {...XMLogoSvg} />
             </Link>
-          </Logo>
-          <Logo width={120}>
+          </GenericLogo>
+          <GenericLogo width={120}>
             <Link to="https://www.ziosk.com">
               <Company {...ZioskLogoSvg} />
             </Link>
-          </Logo>
+          </GenericLogo>
         </Logos>
       </ContentContainer>
     </SectionRow>
@@ -249,12 +257,21 @@ const Logos = styled.div`
   justify-content: center;
 `;
 
-const Logo = styled.div<{ width?: number }>`
+const MicrosoftLogo = styled.div`
+  & svg {
+    min-height: 16px;
+    min-width: 72px;
+    height: 48px;
+    margin: 48px;
+  }
+`;
+
+const GenericLogo = styled.div<{ width?: number }>`
   flex: 0 0 auto;
   margin: 30px;
   width: ${({ width = 160 }) => width}px;
 
-  > a > svg {
+  & svg {
     fill: ${THEME_COLORS.text};
     transition: fill 0.2s ease-in-out;
 
