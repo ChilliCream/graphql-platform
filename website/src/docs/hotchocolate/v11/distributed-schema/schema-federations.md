@@ -14,7 +14,7 @@ With a cache, the gateway schema is also more stable and faster in bootstrapping
 
 You will need to add a package reference to `HotChocolate.Stitching.Redis` to all your services:
 
-<PackageInstallation packageName="HotChocolate.Stitching.Redis" />
+`<PackageInstallation packageName="HotChocolate.Stitching.Redis" />`
 
 ## Configuration of a domain service
 
@@ -87,7 +87,7 @@ services
 
 ## Example
 
-You can find a full schema federation example here [Federated Schema with Redis](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/Stitching/federated-with-hot-reload)
+You can find a full schema federation example here [Federated Schema with Redis](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching/federated-with-hot-reload)
 
 # Federation with schema polling
 
@@ -97,7 +97,7 @@ Your schema will expose an additional field. This field is used by the Gateway t
 
 You will need to add a package reference to `HotChocolate.Stitching` to all your services:
 
-<PackageInstallation packageName="HotChocolate.Stitching" />
+`<PackageInstallation packageName="HotChocolate.Stitching" />`
 
 ## Configuration of a domain service
 
@@ -152,7 +152,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ## Example
 
-You can find a full schema federation with polling example here [Federated Schema with polling](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/Stitching/federated-with-pull)
+You can find a full schema federation with polling example here [Federated Schema with polling](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching/federated-with-pull)
 
 # Configuration
 

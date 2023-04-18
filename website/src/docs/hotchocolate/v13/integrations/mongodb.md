@@ -5,13 +5,13 @@ title: MongoDB
 Hot Chocolate has a data integration for MongoDB.
 With this integration, you can translate paging, filtering, sorting, and projections, directly into native MongoDB queries.
 
-You can find a example project in [Hot Chocolate Examples](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/MongoDB)
+You can find a example project in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MongoDB)
 
 # Get Started
 
 To use the MongoDB integration, you need to install the package `HotChocolate.Data.MongoDb`.
 
-<PackageInstallation packageName="HotChocolate.Data.MongoDb" />
+`<PackageInstallation packageName="HotChocolate.Data.MongoDb" />`
 
 # MongoExecutable
 
