@@ -32,7 +32,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Reviews",
-        "document": "query AddReviewAndUser_1 { addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { id __fusion_exports__1: id } } } }",
+        "document": "mutation AddReviewAndUser_1 { addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { id __fusion_exports__1: id } } } }",
         "selectionSetId": 0
       },
       {
@@ -44,7 +44,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Accounts",
-        "document": "query AddReviewAndUser_2 { addUser(input: { name: \u0022foo\u0022, username: \u0022foo\u0022, birthdate: \u0022abc\u0022 }) { user { name } } }",
+        "document": "mutation AddReviewAndUser_2 { addUser(input: { name: \u0022foo\u0022, username: \u0022foo\u0022, birthdate: \u0022abc\u0022 }) { user { name } } }",
         "selectionSetId": 0
       },
       {

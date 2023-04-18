@@ -30,6 +30,6 @@
   "runtimeTypeRefs": {
     "Foo (Output)": "HotChocolate.Configuration.TypeDiscovererTests+FooType (Output)",
     "Bar (Output)": "HotChocolate.Configuration.TypeDiscovererTests+BarType (Output)",
-    "String (Output)": "StringType"
+    "String": "StringType"
   }
 }

@@ -112,6 +112,7 @@ const Article = styled.li`
   margin: 20px 0 0;
   width: 100%;
   border-radius: var(--border-radius);
+  background-color: #ffffff;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
   > a {

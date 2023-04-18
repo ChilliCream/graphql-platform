@@ -9,10 +9,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class ExtendedTypeReferenceEqualityComparer
-    : IEqualityComparer<ExtendedTypeReference>
+internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<ExtendedTypeReference>
 {
-    public bool Equals([AllowNull] ExtendedTypeReference x, [AllowNull] ExtendedTypeReference y)
+    public bool Equals(ExtendedTypeReference? x, ExtendedTypeReference? y)
     {
         if (ReferenceEquals(x, y))
         {
@@ -39,7 +38,7 @@ internal sealed class ExtendedTypeReferenceEqualityComparer
         return Equals(x.Type, y.Type);
     }
 
-    private static bool Equals([AllowNull] IExtendedType x, [AllowNull] IExtendedType y)
+    private static bool Equals(IExtendedType? x, IExtendedType? y)
     {
         if (ReferenceEquals(x, y))
         {
@@ -54,7 +53,7 @@ internal sealed class ExtendedTypeReferenceEqualityComparer
         return ReferenceEquals(x.Type, y.Type) && x.Kind == y.Kind;
     }
 
-    public int GetHashCode([DisallowNull] ExtendedTypeReference obj)
+    public int GetHashCode(ExtendedTypeReference obj)
     {
         unchecked
         {
@@ -69,7 +68,7 @@ internal sealed class ExtendedTypeReferenceEqualityComparer
         }
     }
 
-    private static int GetHashCode([DisallowNull] IExtendedType obj)
+    private static int GetHashCode(IExtendedType obj)
     {
         unchecked
         {
@@ -78,11 +77,10 @@ internal sealed class ExtendedTypeReferenceEqualityComparer
 
             for (var i = 0; i < obj.TypeArguments.Count; i++)
             {
-                hashCode ^= (GetHashCode(obj.TypeArguments[i]) * 397 * i);
+                hashCode ^= GetHashCode(obj.TypeArguments[i]) * 397 * i;
             }
 
             return hashCode;
         }
     }
-
 }

@@ -15,7 +15,7 @@ internal sealed class TypeRegistry
 {
     private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = new();
     private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
-        new(new ExtendedTypeReferenceEqualityComparer());
+        new(new ExtendedTypeRefEqualityComparer());
     private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);
     private readonly List<RegisteredType> _types = new();
     private readonly TypeInterceptor _typeRegistryInterceptor;
@@ -47,9 +47,9 @@ internal sealed class TypeRegistry
             return true;
         }
 
-        if (typeReference is ExtendedTypeReference clrTypeReference)
+        if (typeReference is ExtendedTypeReference extendedTypeRef)
         {
-            return _runtimeTypeRefs.ContainsKey(clrTypeReference);
+            return _runtimeTypeRefs.ContainsKey(extendedTypeRef);
         }
 
         return false;

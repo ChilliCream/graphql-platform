@@ -1946,5 +1946,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_FetchedToManyNodesAtOnce", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_InputTypeExpected_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InputTypeExpected_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OutputTypeExpected_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OutputTypeExpected_Message", resourceCulture);
+            }
+        }
     }
 }

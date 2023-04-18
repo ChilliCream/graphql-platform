@@ -32,7 +32,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Reviews",
-        "document": "query AddReviews_1 { a: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { __fusion_exports__1: id } } } b: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { id __fusion_exports__2: id } } } }",
+        "document": "mutation AddReviews_1 { a: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { __fusion_exports__1: id } } } b: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { id __fusion_exports__2: id } } } }",
         "selectionSetId": 0
       },
       {
