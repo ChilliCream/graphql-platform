@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.FusionResources;
 
@@ -47,23 +46,16 @@ internal static class ThrowHelper
             string.Join(", ", expectedArguments),
             string.Join(", ", actualArguments),
             line));
-}
 
-[Serializable]
-public class ServiceConfigurationException : Exception
-{
-    public ServiceConfigurationException() { }
+    public static ArgumentException Requirement_Is_Missing(string requirement, string argumentName)
+        => new(string.Format(ThrowHelper_Requirement_Is_Missing, requirement), argumentName);
 
-    public ServiceConfigurationException(
-        string message)
-        : base(message) { }
-    public ServiceConfigurationException(
-        string message,
-        Exception inner)
-        : base(message, inner) { }
+    public static InvalidOperationException NoResolverInContext()
+        => new(ThrowHelper_NoResolverInContext);
 
-    protected ServiceConfigurationException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context) { }
+    public static NotSupportedException RequestFormatter_ArgumentVariableExpected()
+        => new("The variable must be an argument variable.");
+
+    public static InvalidOperationException RequestFormatter_SelectionSetEmpty()
+        => new("A selection set must not be empty.");
 }

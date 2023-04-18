@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class ExecutionState : IExecutionState
+internal sealed class ExecutionState
 {
     private readonly Dictionary<ISelectionSet, List<WorkItem>> _map = new();
     private readonly HashSet<ISelectionSet> _immutable = new();
@@ -24,6 +26,37 @@ internal sealed class ExecutionState : IExecutionState
                 Monitor.Exit(_map);
             }
         }
+    }
+
+    public bool ContainsState(ISelectionSet[] selectionSets)
+    {
+        var taken = false;
+        Monitor.Enter(_map, ref taken);
+
+        try
+        {
+            ref var start = ref MemoryMarshal.GetArrayDataReference(selectionSets);
+            ref var end = ref Unsafe.Add(ref start, selectionSets.Length);
+
+            while (Unsafe.IsAddressLessThan(ref start, ref end))
+            {
+                if (_map.ContainsKey(start))
+                {
+                    return true;
+                }
+
+                start = ref Unsafe.Add(ref start, 1);
+            }
+        }
+        finally
+        {
+            if (taken)
+            {
+                Monitor.Exit(_map);
+            }
+        }
+
+        return false;
     }
 
     public bool TryGetState(

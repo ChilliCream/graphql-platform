@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
@@ -142,9 +143,9 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             // assert
             await foreach (var result in socketResult.ReadResultsAsync().WithCancellation(ct))
             {
-                Assert.Null(result.Data);
-                Assert.NotNull(result.Errors);
-                Assert.Null(result.Extensions);
+                Assert.Equal(JsonValueKind.Undefined, result.Data.ValueKind);
+                Assert.Equal(JsonValueKind.Array, result.Errors.ValueKind);
+                Assert.Equal(JsonValueKind.Undefined, result.Extensions.ValueKind);
                 snapshot.Add(result.Errors);
             }
 
@@ -174,9 +175,9 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             // assert
             await foreach (var result in socketResult.ReadResultsAsync().WithCancellation(ct))
             {
-                Assert.Null(result.Data);
-                Assert.NotNull(result.Errors);
-                Assert.Null(result.Extensions);
+                Assert.Equal(JsonValueKind.Undefined, result.Data.ValueKind);
+                Assert.Equal(JsonValueKind.Array, result.Errors.ValueKind);
+                Assert.Equal(JsonValueKind.Undefined, result.Extensions.ValueKind);
                 snapshot.Add(result.Errors);
             }
 

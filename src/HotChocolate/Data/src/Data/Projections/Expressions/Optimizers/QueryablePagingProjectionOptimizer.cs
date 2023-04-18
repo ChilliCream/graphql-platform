@@ -45,7 +45,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
                 pageType,
                 selections);
 
-        context.AddSelection(CombinedEdgeField, combinedSelection);
+        context.AddSelection(combinedSelection);
 
         return selection;
     }
@@ -72,7 +72,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             selection.ResolverPipeline ??
             context.CompileResolverPipeline(nodesField, combinedField);
 
-        return new Selection(
+        return new Selection.Sealed(
             context.GetNextSelectionId(),
             declaringType,
             nodesField,

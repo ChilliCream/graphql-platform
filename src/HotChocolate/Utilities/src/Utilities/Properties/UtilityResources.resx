@@ -135,4 +135,7 @@
   <data name="MiddlewareCompiler_ReturnTypeNotSupported" xml:space="preserve">
     <value>The return type of the invoke method has to be ValueTask or Task.</value>
   </data>
+  <data name="ArrayWriter_Advance_BufferOverflow" xml:space="preserve">
+    <value>Cannot advance past the end of the buffer.</value>
+  </data>
 </root>

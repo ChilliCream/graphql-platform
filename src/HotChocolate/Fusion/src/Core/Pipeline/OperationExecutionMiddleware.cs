@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Pipeline;
 
@@ -19,11 +20,13 @@ internal sealed class OperationExecutionMiddleware
     private readonly RequestDelegate _next;
     private readonly FusionGraphConfiguration _serviceConfig;
     private readonly IFactory<OperationContextOwner> _contextFactory;
+    private readonly IIdSerializer _idSerializer;
     private readonly GraphQLClientFactory _clientFactory;
 
     public OperationExecutionMiddleware(
         RequestDelegate next,
         IFactory<OperationContextOwner> contextFactory,
+        IIdSerializer idSerializer,
         [SchemaService] FusionGraphConfiguration serviceConfig,
         [SchemaService] GraphQLClientFactory clientFactory)
     {
@@ -31,6 +34,8 @@ internal sealed class OperationExecutionMiddleware
             throw new ArgumentNullException(nameof(next));
         _contextFactory = contextFactory ??
             throw new ArgumentNullException(nameof(contextFactory));
+        _idSerializer = idSerializer ??
+            throw new ArgumentNullException(nameof(idSerializer));
         _serviceConfig = serviceConfig ??
             throw new ArgumentNullException(nameof(serviceConfig));
         _clientFactory = clientFactory ??
@@ -58,11 +63,13 @@ internal sealed class OperationExecutionMiddleware
                 GetRootObject(context.Operation),
                 () => _queryRoot);
 
-            var federatedQueryContext = new FusionExecutionContext(
-                _serviceConfig,
-                queryPlan,
-                operationContextOwner,
-                _clientFactory);
+            var federatedQueryContext =
+                new FusionExecutionContext(
+                    _serviceConfig,
+                    queryPlan,
+                    operationContextOwner,
+                    _clientFactory,
+                    _idSerializer);
 
             context.Result =
                 await FederatedQueryExecutor.ExecuteAsync(
@@ -79,7 +86,7 @@ internal sealed class OperationExecutionMiddleware
     }
 
     // We are faking root instances. Since we do not have proper resolvers and
-    // all we do not need them actially. But so we can reuse components we just
+    // all we do not need them actually. But so we can reuse components we just
     // have static instances simulating root instance.
     private static object GetRootObject(IOperation operation)
         => operation.Type switch

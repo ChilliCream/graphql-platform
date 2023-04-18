@@ -174,6 +174,9 @@ DISCOVER:
 
                     if (unresolvedTypeRef is ExtendedTypeReference typeRef)
                     {
+                        // we normalize the type context so that we can correctly lookup
+                        // if a type is already registered.
+                        typeRef = typeRef.WithContext(schemaTypeRef.Context);
                         _typeRegistry.TryRegister(typeRef, schemaTypeRef);
                     }
                 }
@@ -197,12 +200,10 @@ DISCOVER:
     {
         foreach (var type in _typeRegistry.Types)
         {
-            if (type.Errors.Count == 0)
+            if (type.HasErrors)
             {
-                continue;
+                _errors.AddRange(type.Errors);
             }
-
-            _errors.AddRange(type.Errors);
         }
 
         if (_errors.Count == 0 && _typeRegistrar.Unresolved.Count > 0)

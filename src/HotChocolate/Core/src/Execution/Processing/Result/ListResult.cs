@@ -15,9 +15,14 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     private int _capacity;
     private int _count;
 
+    /// <summary>
+    /// Gets the number of elements this list can hold.
+    /// </summary>
     public int Capacity => _capacity;
 
-    /// <inheritdoc cref="IReadOnlyCollection{T}.Count"/>
+    /// <summary>
+    /// Gets the number of elements in this list.
+    /// </summary>
     public int Count => _count;
 
     /// <inheritdoc cref="IReadOnlyList{T}.this"/>
@@ -64,22 +69,25 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     /// Ensures that the result object has enough capacity on the buffer
     /// to store the expected fields.
     /// </summary>
-    /// <param name="capacity">
+    /// <param name="requiredCapacity">
     /// The capacity needed.
     /// </param>
-    internal void EnsureCapacity(int capacity)
+    internal void EnsureCapacity(int requiredCapacity)
     {
+        // If this list has a capacity specified we will reset it.
+        // The capacity is only set when the list is rented out,
+        // Once the item is returned the capacity is reset to zero.
         if (_capacity > 0)
         {
             Reset();
         }
 
-        if (_buffer.Length < capacity)
+        if (_buffer.Length < requiredCapacity)
         {
-            Array.Resize(ref _buffer, capacity);
+            Array.Resize(ref _buffer, requiredCapacity);
         }
 
-        _capacity = capacity;
+        _capacity = requiredCapacity;
     }
 
     /// <summary>
@@ -117,7 +125,7 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
     public IEnumerator<object?> GetEnumerator()
     {
-        for (var i = 0; i < _capacity; i++)
+        for (var i = 0; i < _count; i++)
         {
             yield return _buffer[i];
         }

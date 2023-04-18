@@ -15,6 +15,11 @@
         bar @__execute(id: 1, kind: PURE, type: COMPOSITE) {
           ... on Bar {
             text @__execute(id: 2, kind: PURE, type: LEAF)
+            baz @conditional @__execute(id: 3, kind: DEFAULT, type: COMPOSITE, internal: true) {
+              ... on Baz {
+                text @__execute(id: 4, kind: PURE, type: LEAF)
+              }
+            }
           }
         }
       }

@@ -502,7 +502,7 @@ public sealed partial class OperationCompiler
             {
                 // if this is the first time we find a selection to this field we have to
                 // create a new prepared selection.
-                preparedSelection = new Selection(
+                preparedSelection = new Selection.Sealed(
                     GetNextSelectionId(),
                     context.Type,
                     field,
@@ -839,54 +839,6 @@ public sealed partial class OperationCompiler
         }
     }
 
-    internal sealed class SelectionPath : IEquatable<SelectionPath>
-    {
-        private SelectionPath(string name, SelectionPath? parent = null)
-        {
-            Name = name;
-            Parent = parent;
-        }
-
-        public string Name { get; }
-
-        public SelectionPath? Parent { get; }
-
-        public static SelectionPath Root { get; } = new("$root");
-
-        public SelectionPath Append(string name) => new(name, this);
-
-        public bool Equals(SelectionPath? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (Name.EqualsOrdinal(other.Name))
-            {
-                if (ReferenceEquals(Parent, other.Parent))
-                {
-                    return true;
-                }
-
-                return Equals(Parent, other.Parent);
-            }
-
-            return false;
-        }
-
-        public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj) || (obj is SelectionPath other && Equals(other));
-
-        public override int GetHashCode()
-            => HashCode.Combine(Name, Parent);
-    }
-
     private readonly struct SelectionSetRef : IEquatable<SelectionSetRef>
     {
         public SelectionSetRef(SelectionSetNode selectionSet, SelectionPath path)
@@ -909,4 +861,4 @@ public sealed partial class OperationCompiler
         public override int GetHashCode()
             => HashCode.Combine(SelectionSet, Path);
     }
-}
+} 

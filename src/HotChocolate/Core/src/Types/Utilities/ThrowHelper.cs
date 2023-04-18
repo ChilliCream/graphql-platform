@@ -566,4 +566,28 @@ internal static class ThrowHelper
                 type.FullName ?? type.Name,
                 valueName ?? "value is null")
             .Build());
+
+    public static SchemaException InputTypeExpected(IType type)
+    {
+        var namedType = type.NamedType();
+
+        return new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(ThrowHelper_InputTypeExpected_Message, namedType.Name)
+                .SetTypeSystemObject((ITypeSystemObject)namedType)
+                .SetExtension("type", type.Print())
+                .Build());
+    }
+
+    public static SchemaException OutputTypeExpected(IType type)
+    {
+        var namedType = type.NamedType();
+
+        return new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(ThrowHelper_OutputTypeExpected_Message, namedType.Name)
+                .SetTypeSystemObject((ITypeSystemObject)namedType)
+                .SetExtension("type", type.Print())
+                .Build());
+    }
 }
