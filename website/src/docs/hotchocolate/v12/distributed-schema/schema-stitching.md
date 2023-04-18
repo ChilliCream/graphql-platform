@@ -8,7 +8,7 @@ Hot Chocolate uses the schema name as an identifier for schemas. This schema nam
 
 You will need to add a package reference to `HotChocolate.Stitching` to your gateway:
 
-`<PackageInstallation packageName="HotChocolate.Stitching" />`
+<PackageInstallation packageName="HotChocolate.Stitching" />
 
 ```csharp
 public static class WellKnownSchemaNames

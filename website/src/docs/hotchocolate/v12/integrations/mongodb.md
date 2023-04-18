@@ -11,7 +11,7 @@ You can find a example project in [Hot Chocolate Examples](https://github.com/Ch
 
 To use the MongoDB integration, you need to install the package `HotChocolate.Data.MongoDb`.
 
-`<PackageInstallation packageName="HotChocolate.Data.MongoDb" />`
+<PackageInstallation packageName="HotChocolate.Data.MongoDb" />
 
 # MongoExecutable
 

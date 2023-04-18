@@ -97,7 +97,7 @@ Your schema will expose an additional field. This field is used by the Gateway t
 
 You will need to add a package reference to `HotChocolate.Stitching` to all your services:
 
-`<PackageInstallation packageName="HotChocolate.Stitching" />`
+<PackageInstallation packageName="HotChocolate.Stitching" />
 
 ## Configuration of a domain service
 
