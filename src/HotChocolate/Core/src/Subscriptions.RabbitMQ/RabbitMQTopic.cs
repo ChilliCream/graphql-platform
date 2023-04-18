@@ -27,7 +27,6 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
     }
 
     protected override async ValueTask<IDisposable> OnConnectAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
         CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
@@ -38,18 +37,20 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         var queueName = Guid.NewGuid().ToString();
         var consumer = CreateConsumer(channel, queueName);
 
-        async Task Received(object sender, BasicDeliverEventArgs args)
+        Task Received(object sender, BasicDeliverEventArgs args)
         {
             try
             {
                 var serializedMessage = Encoding.UTF8.GetString(args.Body.Span);
 
-                await DispatchAsync(incoming, serializedMessage).ConfigureAwait(false);
+                Dispatch(serializedMessage);
             }
             finally
             {
                 channel.BasicAck(args.DeliveryTag, false);
             }
+
+            return Task.CompletedTask;
         }
 
         consumer.Received += Received;
@@ -62,12 +63,11 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         {
             channel.BasicCancelNoWait(consumerTag);
             consumer.Received -= Received;
-            DiagnosticEvents.ProviderTopicInfo(Name, Subscription_Unsubscribe_UnsubscribedFromRabbitMQ);
+            DiagnosticEvents.ProviderTopicInfo(Name, Subscription_UnsubscribedFromRabbitMQ);
         });
     }
 
-    private async ValueTask DispatchAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
+    private void Dispatch(
         string serializedMessage)
     {
         // we ensure that if there is noise on the channel we filter it out.
@@ -75,9 +75,16 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         {
             DiagnosticEvents.Received(Name, serializedMessage);
 
-            var envelope = _serializer.Deserialize<MessageEnvelope<TMessage>>(serializedMessage);
+            var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
 
-            await incoming.WriteAsync(envelope).ConfigureAwait(false);
+            if (envelope.Kind is MessageKind.Completed)
+            {
+                TryComplete();
+            }
+            else if (envelope.Body is { } body)
+            {
+                TryPublish(body);
+            }
         }
     }
 

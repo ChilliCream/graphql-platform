@@ -71,7 +71,7 @@ internal sealed class AggregateSubscriptionDiagnosticEventsListener
         }
     }
 
-    public override void Dispatch<T>(string topicName, MessageEnvelope<T> message, int subscribers)
+    public override void Dispatch<T>(string topicName, T message, int subscribers)
     {
         var listenerSpan = _listeners.AsSpan();
 
@@ -84,7 +84,7 @@ internal sealed class AggregateSubscriptionDiagnosticEventsListener
     public override void DelayedDispatch<T>(
         string topicName,
         int shard,
-        MessageEnvelope<T> message,
+        T message,
         int subscribers)
     {
         var listenerSpan = _listeners.AsSpan();
@@ -145,7 +145,7 @@ internal sealed class AggregateSubscriptionDiagnosticEventsListener
         }
     }
 
-    public override void Send<T>(string topicName, MessageEnvelope<T> message)
+    public override void Send<T>(string topicName, T message)
     {
         var listenerSpan = _listeners.AsSpan();
 

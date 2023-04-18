@@ -25,7 +25,6 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
     }
 
     protected override async ValueTask<IDisposable> OnConnectAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
         CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
@@ -33,9 +32,7 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         Debug.Assert(_connection != null, "_serializer != null");
 
         var natsSession = await _connection
-            .SubscribeAsync(
-                Name,
-                async (string? m) => await DispatchAsync(incoming, m).ConfigureAwait(false))
+            .SubscribeAsync(Name, (string? m) => Dispatch(m))
             .ConfigureAwait(false);
 
         DiagnosticEvents.ProviderTopicInfo(Name, NatsTopic_ConnectAsync_SubscribedToNats);
@@ -43,16 +40,24 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         return new Session(Name, natsSession, DiagnosticEvents);
     }
 
-    private async ValueTask DispatchAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
-        string? serializedMessage)
+    private async ValueTask Dispatch(
+        string? serializedMessage,
+        CancellationToken cancellationToken)
     {
         // we ensure that if there is noise on the channel we filter it out.
         if (!string.IsNullOrEmpty(serializedMessage))
         {
             DiagnosticEvents.Received(Name, serializedMessage);
-            var envelope = _serializer.Deserialize<MessageEnvelope<TMessage>>(serializedMessage);
-            await incoming.WriteAsync(envelope).ConfigureAwait(false);
+            var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
+
+            if (envelope.Kind is MessageKind.Completed)
+            {
+                TryComplete();
+            }
+            else if(envelope.Body is { } body)
+            {
+                await PublishAsync(body, cancellationToken);
+            }
         }
     }
 

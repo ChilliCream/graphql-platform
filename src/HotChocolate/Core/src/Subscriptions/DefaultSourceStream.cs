@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
-using System.Threading.Channels;
+﻿using System.Threading.Channels;
 using HotChocolate.Execution;
-using static HotChocolate.Subscriptions.Properties.Resources;
 
 namespace HotChocolate.Subscriptions;
 
@@ -13,14 +11,12 @@ namespace HotChocolate.Subscriptions;
 /// </typeparam>
 internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
 {
-    private readonly ChannelWriter<MessageEnvelope<TMessage>> _incoming;
-    private readonly Channel<MessageEnvelope<TMessage>> _outgoing;
+    private readonly TopicShard<TMessage> _shard;
+    private readonly Channel<TMessage> _outgoing;
 
-    internal DefaultSourceStream(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
-        Channel<MessageEnvelope<TMessage>> outgoing)
+    internal DefaultSourceStream(TopicShard<TMessage> shard, Channel<TMessage> outgoing)
     {
-        _incoming = incoming ?? throw new ArgumentNullException(nameof(incoming));
+        _shard = shard ?? throw new ArgumentNullException(nameof(shard));
         _outgoing = outgoing ?? throw new ArgumentNullException(nameof(outgoing));
     }
 
@@ -38,88 +34,35 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
         // if the source stream is disposed, we are completing the channel which will trigger
         // an unsubscribe from the topic.
         _outgoing.Writer.TryComplete();
-        _incoming.TryWrite(new MessageEnvelope<TMessage>(kind: MessageKind.Unsubscribed));
+        _shard.Unsubscribe(_outgoing);
         return default;
     }
 
     private sealed class MessageEnumerable : IAsyncEnumerable<TMessage>
     {
-        private readonly ChannelReader<MessageEnvelope<TMessage>> _reader;
+        private readonly ChannelReader<TMessage> _reader;
 
-        public MessageEnumerable(ChannelReader<MessageEnvelope<TMessage>> reader)
+        public MessageEnumerable(ChannelReader<TMessage> reader)
             => _reader = reader;
 
-        public async IAsyncEnumerator<TMessage> GetAsyncEnumerator(
-            CancellationToken cancellationToken)
-        {
-            while (await _reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                while (_reader.TryRead(out var message))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    switch (message.Kind)
-                    {
-                        case MessageKind.Default:
-                            // a default message must have a body
-                            Debug.Assert(message.Body != null, "message.Body != null");
-                            yield return message.Body!;
-                            break;
-
-                        case MessageKind.Completed:
-                            // a complete message will cause the stream to complete.
-                            yield break;
-
-                        case MessageKind.Unsubscribed:
-                            // these kind of messages should not arrive at the source stream.
-                            throw new InvalidOperationException(
-                                MessageEnumerable_UnsubscribedNotAllowed);
-
-                        default:
-                            throw new NotSupportedException();
-                    }
-                }
-            }
-        }
+        public IAsyncEnumerator<TMessage> GetAsyncEnumerator(CancellationToken cancellationToken)
+            => _reader.ReadAllAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
     }
 
     private sealed class MessageEnumerableAsObject : IAsyncEnumerable<object>
     {
-        private readonly ChannelReader<MessageEnvelope<TMessage>> _reader;
+        private readonly ChannelReader<TMessage> _reader;
 
-        public MessageEnumerableAsObject(ChannelReader<MessageEnvelope<TMessage>> reader)
+        public MessageEnumerableAsObject(ChannelReader<TMessage> reader)
             => _reader = reader;
 
         public async IAsyncEnumerator<object> GetAsyncEnumerator(
             CancellationToken cancellationToken)
         {
-            while (await _reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            await foreach(var message in _reader.ReadAllAsync(cancellationToken)
+                .ConfigureAwait(false))
             {
-                while (_reader.TryRead(out var message))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    switch (message.Kind)
-                    {
-                        case MessageKind.Default:
-                            // a default message must have a body
-                            Debug.Assert(message.Body != null, "message.Body != null");
-                            yield return message.Body!;
-                            break;
-
-                        case MessageKind.Completed:
-                            // a complete message will cause the stream to complete.
-                            yield break;
-
-                        case MessageKind.Unsubscribed:
-                            // these kind of messages should not arrive at the source stream.
-                            throw new InvalidOperationException(
-                                MessageEnumerable_UnsubscribedNotAllowed);
-
-                        default:
-                            throw new NotSupportedException();
-                    }
-                }
+                yield return message!;
             }
         }
     }

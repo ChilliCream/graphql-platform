@@ -25,7 +25,6 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
     }
 
     protected override async ValueTask<IDisposable> OnConnectAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
         CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
@@ -47,15 +46,15 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
     }
 
     private async ValueTask DispatchAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
         string? serializedMessage)
     {
         // we ensure that if there is noise on the channel we filter it out.
         if (!string.IsNullOrEmpty(serializedMessage))
         {
             DiagnosticEvents.Received(Name, serializedMessage);
-            var envelope = _serializer.Deserialize<MessageEnvelope<TMessage>>(serializedMessage);
-            await incoming.WriteAsync(envelope).ConfigureAwait(false);
+            var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
+
+            
         }
     }
 

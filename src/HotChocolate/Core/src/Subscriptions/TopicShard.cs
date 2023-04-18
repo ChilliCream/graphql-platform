@@ -8,12 +8,14 @@ namespace HotChocolate.Subscriptions;
 internal sealed class TopicShard<TMessage>
 {
     private readonly object _sync = new();
-    private readonly Channel<MessageEnvelope<TMessage>> _incoming;
-    private readonly List<Channel<MessageEnvelope<TMessage>>> _outgoing = new();
+    private readonly Channel<TMessage> _incoming;
+    private readonly List<Channel<TMessage>> _outgoing = new();
+    private readonly List<Channel<TMessage>> _channelUnsubscribed = new();
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly string _topicName;
     private readonly int _topicShard;
+    private bool _hasUnsubscribed;
 
     public TopicShard(
         BoundedChannelOptions channelOptions,
@@ -26,7 +28,7 @@ internal sealed class TopicShard<TMessage>
         _topicShard = topicShard;
         _diagnosticEvents = diagnosticEvents;
 
-        _incoming = Channel.CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
+        _incoming = Channel.CreateBounded<TMessage>(_channelOptions);
 
         BeginProcessing();
     }
@@ -38,20 +40,28 @@ internal sealed class TopicShard<TMessage>
     /// </summary>
     public int Subscribers => _outgoing.Count;
 
-    public ChannelWriter<MessageEnvelope<TMessage>> Writer => _incoming.Writer;
+    public ChannelWriter<TMessage> Writer => _incoming.Writer;
 
     public ISourceStream<TMessage> Subscribe()
     {
-        var channel = Channel.CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
-        var stream = new DefaultSourceStream<TMessage>(_incoming.Writer, channel);
-        var outgoing = _outgoing;
+        var channel = Channel.CreateBounded<TMessage>(_channelOptions);
+        var stream = new DefaultSourceStream<TMessage>(this, channel);
 
         lock (_sync)
         {
-            outgoing.Add(channel);
+            _outgoing.Add(channel);
         }
 
         return stream;
+    }
+
+    public void Unsubscribe(Channel<TMessage> channel)
+    {
+        lock (_sync)
+        {
+            _channelUnsubscribed.Add(channel);
+            _hasUnsubscribed = true;
+        }
     }
 
     private void BeginProcessing()
@@ -60,7 +70,7 @@ internal sealed class TopicShard<TMessage>
 
     private async ValueTask ProcessMessagesAsync()
     {
-        var closedChannels = new List<Channel<MessageEnvelope<TMessage>>>();
+        var closedChannels = new List<Channel<TMessage>>();
         var postponedMessages = new List<PostponedMessage>();
         var reader = _incoming.Reader;
 
@@ -69,20 +79,29 @@ internal sealed class TopicShard<TMessage>
             if (await reader.WaitToReadAsync().ConfigureAwait(false))
             {
                 DispatchMessages(closedChannels, postponedMessages);
-
                 await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
-
                 UnsubscribeClosedChannels(closedChannels);
             }
         }
     }
 
     private void DispatchMessages(
-        List<Channel<MessageEnvelope<TMessage>>> closedChannels,
+        List<Channel<TMessage>> closedChannels,
         List<PostponedMessage> postponedMessages)
     {
         var batchSize = 4;
         var dispatched = 0;
+
+        if (_hasUnsubscribed)
+        {
+            lock (_sync)
+            {
+                closedChannels.AddRange(_channelUnsubscribed);
+                _channelUnsubscribed.Clear();
+                _hasUnsubscribed = false;
+                return;
+            }
+        }
 
         while (_incoming.Reader.TryRead(out var message))
         {
@@ -98,45 +117,29 @@ internal sealed class TopicShard<TMessage>
                 return;
             }
 
-            // if we get an unsubscribed message we will only collect closed channels.
-            if (message.Kind is MessageKind.Unsubscribed)
+            for (var i = 0; i < subscriberCount; i++)
             {
-                for (var i = 0; i < subscriberCount; i++)
-                {
-                    var channel = outgoingSpan[i];
+                var channel = outgoingSpan[i];
 
-                    if (channel.Reader.Completion.IsCompleted)
-                    {
-                        // if we detect channels that unsubscribed we will take a break and
-                        // reorganize the subscriber list.
-                        closedChannels.Add(channel);
-                        batchSize = 0;
-                    }
+                if (channel.Writer.TryWrite(message))
+                {
+                    continue;
                 }
-            }
-            else
-            {
-                for (var i = 0; i < subscriberCount; i++)
-                {
-                    var channel = outgoingSpan[i];
 
-                    if (!channel.Writer.TryWrite(message))
-                    {
-                        if (channel.Reader.Completion.IsCompleted)
-                        {
-                            // if we detect channels that unsubscribed we will take a break and
-                            // reorganize the subscriber list.
-                            closedChannels.Add(channel);
-                            batchSize = 0;
-                        }
-                        else
-                        {
-                            // if we cannot write because of back pressure we will postpone
-                            // the message and take a break from processing further.
-                            postponedMessages.Add(new PostponedMessage(message, channel));
-                            batchSize = 0;
-                        }
-                    }
+                // if we could not write to the channel we will check if the channel is closed.
+                if (channel.Reader.Completion.IsCompleted)
+                {
+                    // if we detect channels that unsubscribed we will take a break and
+                    // reorganize the subscriber list.
+                    closedChannels.Add(channel);
+                    batchSize = 0;
+                }
+                else
+                {
+                    // if we cannot write because of back pressure we will postpone
+                    // the message and take a break from processing further.
+                    postponedMessages.Add(new PostponedMessage(message, channel));
+                    batchSize = 0;
                 }
             }
 
@@ -182,7 +185,7 @@ internal sealed class TopicShard<TMessage>
     }
 
     private void UnsubscribeClosedChannels(
-        List<Channel<MessageEnvelope<TMessage>>> closedChannels)
+        List<Channel<TMessage>> closedChannels)
     {
         if (closedChannels.Count > 0)
         {
@@ -201,15 +204,15 @@ internal sealed class TopicShard<TMessage>
     private sealed class PostponedMessage
     {
         public PostponedMessage(
-            MessageEnvelope<TMessage> message,
-            Channel<MessageEnvelope<TMessage>> channel)
+            TMessage message,
+            Channel<TMessage> channel)
         {
             Message = message;
             Channel = channel;
         }
 
-        public MessageEnvelope<TMessage> Message { get; }
+        public TMessage Message { get; }
 
-        public Channel<MessageEnvelope<TMessage>> Channel { get; }
+        public Channel<TMessage> Channel { get; }
     }
 }
