@@ -1,0 +1,21 @@
+schema {
+  mutation: SimpleMutation_TypeNamed
+}
+
+"GetTypeDescription"
+type DoSomething_TypeNamedPayload {
+  "GetMemberDescription"
+  string_MemberNamed: String
+}
+
+"GetTypeDescription"
+type SimpleMutation_TypeNamed {
+  "GetMemberDescription"
+  doSomething_MemberNamed("GetArgumentDescription" input: DoSomething_TypeNamedInput!): DoSomething_TypeNamedPayload!
+}
+
+"GetTypeDescription"
+input DoSomething_TypeNamedInput {
+  "GetMemberDescription"
+  name_ArgumentNamed: String!
+}
