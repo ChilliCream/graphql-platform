@@ -56,7 +56,7 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
             {
                 // If the target enum type doesn't have a value with the same name as the
                 // source value, create a new target value with the source value's name
-                targetValue = new EnumValue(source.Name);
+                targetValue = new EnumValue(sourceValue.Name);
                 target.Values.Add(targetValue);
             }
 
