@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 import { Link } from "@/components/misc/link";
 import {
@@ -55,13 +55,18 @@ export const CompaniesSection: FC = () => (
     <SectionRow>
       <ContentContainer noImage>
         <SectionTitle centerAlways>Companies Who Trust Us</SectionTitle>
-        <Logos>
+        <Carousel>
           <MicrosoftLogo>
             <Link to="https://www.microsoft.com">
               <Company {...MicrosoftLogoSvg} />
             </Link>
           </MicrosoftLogo>
-        </Logos>
+          <SwissLifeLogo>
+            <Link to="https://www.swisslife.ch">
+              <Company {...SwissLifeLogoSvg} />
+            </Link>
+          </SwissLifeLogo>
+        </Carousel>
         <Logos>
           <GenericLogo width={140}>
             <Link to="https://additiv.com">
@@ -208,11 +213,6 @@ export const CompaniesSection: FC = () => (
               <Company {...SweetGeeksLogoSvg} />
             </Link>
           </GenericLogo>
-          <GenericLogo width={110}>
-            <Link to="https://www.swisslife.ch">
-              <Company {...SwissLifeLogoSvg} />
-            </Link>
-          </GenericLogo>
           <GenericLogo width={160}>
             <Link to="https://www.sytadelle.fr">
               <Company {...SytadelleLogoSvg} />
@@ -257,15 +257,6 @@ const Logos = styled.div`
   justify-content: center;
 `;
 
-const MicrosoftLogo = styled.div`
-  & svg {
-    min-height: 16px;
-    min-width: 72px;
-    height: 48px;
-    margin: 48px;
-  }
-`;
-
 const GenericLogo = styled.div<{ width?: number }>`
   flex: 0 0 auto;
   margin: 30px;
@@ -278,5 +269,54 @@ const GenericLogo = styled.div<{ width?: number }>`
     &:hover {
       fill: ${THEME_COLORS.heading};
     }
+  }
+`;
+
+const FADE = keyframes`
+  5% {
+    opacity: 1;
+    z-index: 1,
+  }
+  25% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0;
+    z-index: -1;
+  }
+`;
+
+const Carousel = styled(Logos)`
+  height: 140px;
+  position: relative;
+
+  & > * {
+    position: absolute;
+    animation: 12s ${FADE} linear infinite;
+    opacity: 0;
+  }
+
+  & > *:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  & > *:nth-child(2) {
+    animation-delay: 6s;
+  }
+`;
+
+const MicrosoftLogo = styled.div`
+  & svg {
+    min-height: 16px;
+    min-width: 72px;
+    height: 40px;
+    margin: 40px;
+  }
+`;
+
+const SwissLifeLogo = styled.div`
+  & svg {
+    height: 80px;
+    margin: 20px;
   }
 `;
