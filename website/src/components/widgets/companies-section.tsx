@@ -67,7 +67,7 @@ export const CompaniesSection: FC = () => (
             </Link>
           </SwissLifeLogo>
         </Carousel>
-        <Logos>
+        <Ticker>
           <GenericLogo width={140}>
             <Link to="https://additiv.com">
               <Company {...AdditivLogoSvg} />
@@ -243,34 +243,11 @@ export const CompaniesSection: FC = () => (
               <Company {...ZioskLogoSvg} />
             </Link>
           </GenericLogo>
-        </Logos>
+        </Ticker>
       </ContentContainer>
     </SectionRow>
   </Section>
 );
-
-const Logos = styled.div`
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-`;
-
-const GenericLogo = styled.div<{ width?: number }>`
-  flex: 0 0 auto;
-  margin: 30px;
-  width: ${({ width = 160 }) => width}px;
-
-  & svg {
-    fill: ${THEME_COLORS.text};
-    transition: fill 0.2s ease-in-out;
-
-    &:hover {
-      fill: ${THEME_COLORS.heading};
-    }
-  }
-`;
 
 const FADE = keyframes`
   5% {
@@ -286,9 +263,14 @@ const FADE = keyframes`
   }
 `;
 
-const Carousel = styled(Logos)`
+const Carousel = styled.div`
   height: 140px;
   position: relative;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
 
   & > * {
     position: absolute;
@@ -318,5 +300,39 @@ const SwissLifeLogo = styled.div`
   & svg {
     height: 80px;
     margin: 20px;
+  }
+`;
+
+const TICKER = keyframes`
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+`;
+
+const Ticker = styled.div`
+  width: max-content;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  animation: ${TICKER} 45s linear infinite;
+`;
+
+const GenericLogo = styled.div<{ width?: number }>`
+  flex: 0 0 auto;
+  margin: 30px;
+  width: ${({ width = 160 }) => width}px;
+
+  & svg {
+    fill: ${THEME_COLORS.text};
+    transition: fill 0.2s ease-in-out;
+
+    &:hover {
+      fill: ${THEME_COLORS.heading};
+    }
   }
 `;
