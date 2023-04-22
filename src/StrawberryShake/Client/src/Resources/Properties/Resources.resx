@@ -132,4 +132,7 @@
   <data name="JsonResultPatcher_PathSegmentMustBeStringOrInt" xml:space="preserve">
     <value>A path segment must be a string or an integer.</value>
   </data>
+  <data name="ResponseEnumerator_HttpNoSuccessStatusCode" xml:space="preserve">
+    <value>Response status code does not indicate success: {0} ({1}).</value>
+  </data>
 </root>

@@ -13,6 +13,13 @@ public static class SchemaFormatter
         return ((DocumentNode)context.Result!).ToString(indented);
     }
 
+    public static DocumentNode FormatAsDocument(Schema schema)
+    {
+        var context = new VisitorContext();
+        _visitor.VisitSchema(schema, context);
+        return (DocumentNode)context.Result!;
+    }
+
     private sealed class SchemaFormatterVisitor : SchemaVisitor<VisitorContext>
     {
         public override void VisitSchema(Schema schema, VisitorContext context)

@@ -89,7 +89,7 @@ public abstract class FilterProvider<TContext>
             (typeof(IConventionContext), context),
             (typeof(IDescriptorContext), context.DescriptorContext),
             (typeof(IFilterConvention), _filterConvention),
-            (typeof(ITypeConverter), context.Services.GetTypeConverter()),
+            (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
             (typeof(InputParser), context.DescriptorContext.InputParser),
             (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
             (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))

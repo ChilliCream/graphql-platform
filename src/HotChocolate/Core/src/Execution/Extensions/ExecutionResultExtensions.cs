@@ -37,6 +37,22 @@ public static class ExecutionResultExtensions
         }
     }
 
+    /// <summary>
+    /// Converts the <see cref="IExecutionResult"/> to a JSON string.
+    /// </summary>
+    /// <param name="result">
+    /// The execution result.
+    /// </param>
+    /// <param name="withIndentations">
+    /// Defines if the JSON should be formatted with indentations.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="result"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    /// The execution result is not a query result.
+    /// </exception>
     public static string ToJson(
         this IExecutionResult result,
         bool withIndentations = true)

@@ -27,7 +27,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// <param name="defaultFormat">
     /// The expected format of GUID strings by this scalar.
     /// <c>'N'</c>: nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
-    /// <c>'D'</c>(default):  nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
+    /// <c>'D'</c> (default): nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
     /// <c>'B'</c>: {nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn}
     /// <c>'P'</c>: (nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn)
     /// </param>
@@ -58,8 +58,8 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// </param>
     /// <param name="defaultFormat">
     /// The expected format of GUID strings by this scalar.
-    /// <c>'N'</c> (default): nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
-    /// <c>'D'</c>: nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
+    /// <c>'N'</c>: nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+    /// <c>'D'</c> (default): nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
     /// <c>'B'</c>: {nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn}
     /// <c>'P'</c>: (nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn)
     /// </param>

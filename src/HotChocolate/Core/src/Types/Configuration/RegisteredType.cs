@@ -79,6 +79,8 @@ internal sealed partial class RegisteredType : IHasRuntimeType
 
     public List<ISchemaError> Errors => _errors ??= new();
 
+    public bool HasErrors => _errors is { Count: > 0 };
+
     public void ClearConditionals()
     {
         if (_conditionals is { Count: > 0 })

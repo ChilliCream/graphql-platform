@@ -25,7 +25,7 @@ public class ObjectFieldDescriptor
     private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -38,7 +38,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -53,9 +53,7 @@ public class ObjectFieldDescriptor
         Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
-        Definition.ResolverType = resolverType == sourceType
-            ? null
-            : resolverType;
+        Definition.ResolverType = resolverType == sourceType ? null : resolverType;
         Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
@@ -76,7 +74,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,

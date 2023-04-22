@@ -287,13 +287,13 @@ public class NodeResolverTests
     public class EntityExtension3
     {
         [NodeResolver]
-        public Entity Foo(string id) => new() { Name = id };
+        public static Entity Foo(string id) => new() { Name = id };
     }
 
     [Node]
     [ExtendObjectType(typeof(Entity))]
     public class EntityExtension4
     {
-        public Entity GetEntity(string id) => new() { Name = id };
+        public static Entity GetEntity(string id) => new() { Name = id };
     }
 }

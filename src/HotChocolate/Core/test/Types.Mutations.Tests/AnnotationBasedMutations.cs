@@ -129,6 +129,27 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleJsonMutationExtension_Inferred_Execute()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType()
+                .AddTypeExtension<SimpleJsonMutationExtension>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: { something: 10 }) {
+                            string
+                        }
+                    }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Ensure_That_Directive_Middleware_Play_Nice()
     {
         var result =
@@ -997,6 +1018,13 @@ public class AnnotationBasedMutations
     {
         public string DoSomething(string something)
             => something;
+    }
+
+    [ExtendObjectType("Mutation")]
+    public class SimpleJsonMutationExtension
+    {
+        public string DoSomething(System.Text.Json.JsonElement something)
+            => "Done";
     }
 
     public class SimpleMutationAttribute

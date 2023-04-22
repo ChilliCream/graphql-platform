@@ -4,13 +4,13 @@ namespace HotChocolate.Fusion.Execution;
 
 internal readonly struct JsonResult
 {
-    public JsonResult(string schemaName, JsonElement element)
+    public JsonResult(string subgraphName, JsonElement element)
     {
-        SchemaName = schemaName;
+        SubgraphName = subgraphName;
         Element = element;
     }
 
-    public string SchemaName { get; }
+    public string SubgraphName { get; }
 
     public JsonElement Element { get; }
 }

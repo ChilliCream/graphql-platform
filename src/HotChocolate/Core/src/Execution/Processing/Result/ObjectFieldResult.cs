@@ -20,15 +20,7 @@ public sealed class ObjectFieldResult
     {
         _name = name;
         _value = value;
-
-        if (isNullable)
-        {
-            _flags = Flags.Nullable | Flags.Initialized;
-        }
-        else
-        {
-            _flags = Flags.Initialized;
-        }
+        _flags = isNullable ? Flags.InitializedAndNullable : Flags.Initialized;
     }
 
     internal void Reset()
@@ -42,6 +34,7 @@ public sealed class ObjectFieldResult
     private enum Flags : byte
     {
         Initialized = 1,
-        Nullable = 2
+        Nullable = 2,
+        InitializedAndNullable = Initialized | Nullable
     }
 }
