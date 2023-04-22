@@ -22,14 +22,14 @@ namespace HotChocolate.Utilities.Introspection
         public async Task GetSchemaFeatures()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
-            HttpClient client = server.CreateClient();
+            var server = CreateStarWarsServer();
+            var client = server.CreateClient();
             client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
             var introspectionClient = new IntrospectionClient();
 
             // act
-            ISchemaFeatures features = await introspectionClient.GetSchemaFeaturesAsync(client);
+            var features = await introspectionClient.GetSchemaFeaturesAsync(client);
 
             // assert
             Assert.True(features.HasDirectiveLocations);
@@ -54,14 +54,14 @@ namespace HotChocolate.Utilities.Introspection
         public async Task Download_Schema_AST()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
-            HttpClient client = server.CreateClient();
+            var server = CreateStarWarsServer();
+            var client = server.CreateClient();
             client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
             var introspectionClient = new IntrospectionClient();
 
             // act
-            DocumentNode schema = await introspectionClient.DownloadSchemaAsync(client);
+            var schema = await introspectionClient.DownloadSchemaAsync(client);
 
             // assert
             schema.ToString(true).MatchSnapshot();
@@ -74,7 +74,7 @@ namespace HotChocolate.Utilities.Introspection
             var introspectionClient = new IntrospectionClient();
 
             // act
-            Func<Task> action = () => introspectionClient.DownloadSchemaAsync(null);
+            Func<Task> action = () => introspectionClient.DownloadSchemaAsync(null!);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(action);
@@ -84,8 +84,8 @@ namespace HotChocolate.Utilities.Introspection
         public async Task Download_Schema_SDL()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
-            HttpClient client = server.CreateClient();
+            var server = CreateStarWarsServer();
+            var client = server.CreateClient();
             client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
             var introspectionClient = new IntrospectionClient();
@@ -106,7 +106,7 @@ namespace HotChocolate.Utilities.Introspection
             using var stream = new MemoryStream();
 
             // act
-            Func<Task> action = () => introspectionClient.DownloadSchemaAsync(null, stream);
+            var action = () => introspectionClient.DownloadSchemaAsync(null, stream);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(action);
@@ -116,11 +116,11 @@ namespace HotChocolate.Utilities.Introspection
         public async Task Download_Schema_SDL_Stream_Is_Null()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
+            var server = CreateStarWarsServer();
             var introspectionClient = new IntrospectionClient();
 
             // act
-            Func<Task> action = () =>
+            var action = () =>
                 introspectionClient.DownloadSchemaAsync(server.CreateClient(), null);
 
             // assert

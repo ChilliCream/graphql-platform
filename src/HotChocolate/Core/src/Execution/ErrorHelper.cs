@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using static HotChocolate.Execution.Properties.Resources;
@@ -126,7 +127,11 @@ internal static class ErrorHelper
         QueryResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_RootTypeNotFound_Message, operationType)
-                .Build());
+                .Build(),
+            new Dictionary<string, object?>
+            {
+                { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+            });
 
     public static IQueryResult StateInvalidForOperationResolver() =>
         QueryResultBuilder.CreateError(

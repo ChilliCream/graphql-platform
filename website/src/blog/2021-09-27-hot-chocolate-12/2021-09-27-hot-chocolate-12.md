@@ -323,7 +323,7 @@ public async ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
 }
 ```
 
-A complete example of a dynamic schema with hot-reload can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/TypeModules), and I will also follow up this post with a detailed blog post on dynamic schemas that goes more into the details.
+A complete example of a dynamic schema with hot-reload can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/TypeModules), and I will also follow up this post with a detailed blog post on dynamic schemas that goes more into the details.
 
 ## Type Interceptors
 
@@ -545,7 +545,7 @@ type Person {
 
 But for the time being, schema-first got a big update with this release, and we will continue to make it better with every new release.
 
-The schema-first demo can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/SchemaFirst).
+The schema-first demo can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/SchemaFirst).
 
 # DataLoader
 
