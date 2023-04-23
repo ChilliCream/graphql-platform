@@ -2,13 +2,13 @@ import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 
-import { GetWorkshopDotNetDaysLasiImageQuery } from "@/graphql-types";
+import { GetWorkshopNdcOsloImageQuery } from "@/graphql-types";
 
-export const WorkshopDotNetDaysLasi: FC = () => {
-  const data = useStaticQuery<GetWorkshopDotNetDaysLasiImageQuery>(graphql`
-    query getWorkshopDotNetDaysLasiImage {
+export const WorkshopNdcOslo: FC = () => {
+  const data = useStaticQuery<GetWorkshopNdcOsloImageQuery>(graphql`
+    query getWorkshopNdcOsloImage {
       file(
-        relativePath: { eq: "workshops/dotnetdays-lasi.png" }
+        relativePath: { eq: "workshops/ndc-oslo.jpg" }
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {
@@ -21,7 +21,7 @@ export const WorkshopDotNetDaysLasi: FC = () => {
   return (
     <GatsbyImage
       image={data.file?.childImageSharp?.gatsbyImageData}
-      alt="dotnetdays lasi"
+      alt="NDC Oslo"
     />
   );
 };
