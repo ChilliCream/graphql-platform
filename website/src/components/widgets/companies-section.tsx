@@ -250,14 +250,17 @@ export const CompaniesSection: FC = () => (
 );
 
 const FADE = keyframes`
-  5% {
+  0% {
     opacity: 1;
-    z-index: 999;
+    z-index: 1;
   }
   25% {
     opacity: 1;
   }
-  45% {
+  49% {
+    z-index: 1;
+  }
+  50% {
     opacity: 0;
     z-index: 0;
   }
