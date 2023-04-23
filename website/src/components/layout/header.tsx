@@ -942,8 +942,7 @@ const TeaserTitle = styled.h2`
   transition: color 0.2s ease-in-out;
 `;
 
-const TeaserMessage = styled.span`
-  display: inline-block;
+const TeaserMessage = styled.div`
   font-size: 0.778em;
   line-height: 1.2;
   color: ${THEME_COLORS.text};
