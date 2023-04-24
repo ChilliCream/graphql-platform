@@ -37,20 +37,17 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         var queueName = Guid.NewGuid().ToString();
         var consumer = CreateConsumer(channel, queueName);
 
-        Task Received(object sender, BasicDeliverEventArgs args)
+        async Task Received(object sender, BasicDeliverEventArgs args)
         {
             try
             {
                 var serializedMessage = Encoding.UTF8.GetString(args.Body.Span);
-
-                Dispatch(serializedMessage);
+                await DispatchAsync(serializedMessage, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 channel.BasicAck(args.DeliveryTag, false);
             }
-
-            return Task.CompletedTask;
         }
 
         consumer.Received += Received;
@@ -67,8 +64,9 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         });
     }
 
-    private void Dispatch(
-        string serializedMessage)
+    private async ValueTask DispatchAsync(
+        string serializedMessage,
+        CancellationToken cancellationToken)
     {
         // we ensure that if there is noise on the channel we filter it out.
         if (!string.IsNullOrEmpty(serializedMessage))
@@ -83,7 +81,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             }
             else if (envelope.Body is { } body)
             {
-                TryPublish(body);
+                await PublishAsync(body, cancellationToken).ConfigureAwait(false);
             }
         }
     }

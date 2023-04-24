@@ -23,14 +23,18 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
 
     /// <inheritdoc />
     public string Serialize<TMessage>(TMessage message)
-        => JsonSerializer.Serialize(message, _options);
-    
-    /// <inheritdoc />
-    public TMessage Deserialize<TMessage>(string serializedMessage)
     {
-        var result = JsonSerializer.Deserialize<TMessage>(serializedMessage, _options);
+        return JsonSerializer.Serialize(new MessageEnvelope<TMessage>(message), _options);
+    }
 
-        if (result is null)
+    /// <inheritdoc />
+    public MessageEnvelope<TMessage> Deserialize<TMessage>(string serializedMessage)
+    {
+        var result = JsonSerializer.Deserialize<MessageEnvelope<TMessage>>(
+            serializedMessage,
+            _options);
+
+        if (result.Kind is MessageKind.Default && result.Body is null)
         {
             throw new InvalidOperationException(JsonMessageSerializer_Deserialize_MessageIsNull);
         }

@@ -32,7 +32,9 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         Debug.Assert(_connection != null, "_serializer != null");
 
         var natsSession = await _connection
-            .SubscribeAsync(Name, (string? m) => Dispatch(m))
+            .SubscribeAsync(
+                Name,
+                async (string? m) => await Dispatch(m, cancellationToken).ConfigureAwait(false))
             .ConfigureAwait(false);
 
         DiagnosticEvents.ProviderTopicInfo(Name, NatsTopic_ConnectAsync_SubscribedToNats);

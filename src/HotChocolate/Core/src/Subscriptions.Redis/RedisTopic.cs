@@ -38,7 +38,7 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
         messageQueue.OnMessage(
             async redisMessage =>
             {
-                await DispatchAsync(incoming, redisMessage.Message.ToString())
+                await DispatchAsync(redisMessage.Message.ToString(), cancellationToken)
                     .ConfigureAwait(false);
             });
 
@@ -46,7 +46,8 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
     }
 
     private async ValueTask DispatchAsync(
-        string? serializedMessage)
+        string? serializedMessage,
+        CancellationToken cancellationToken)
     {
         // we ensure that if there is noise on the channel we filter it out.
         if (!string.IsNullOrEmpty(serializedMessage))
@@ -54,7 +55,14 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
             DiagnosticEvents.Received(Name, serializedMessage);
             var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
 
-            
+            if (envelope.Kind is MessageKind.Completed)
+            {
+                TryComplete();
+            }
+            else if (envelope.Body is { } body)
+            {
+                await PublishAsync(body, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 
