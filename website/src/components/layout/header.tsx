@@ -12,7 +12,7 @@ import React, {
 } from "react";
 import styled from "styled-components";
 
-import { WorkshopDotNetDaysLasi } from "@/components/images/workshop-dotnetdays-lasi";
+import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -488,14 +488,16 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
       </SubNavMain>
       <SubNavAdditionalInfo>
         <SubNavTitle>Upcoming Workshop</SubNavTitle>
-        <TeaserLink to="https://dotnetdays.ro/workshops/Building-Modern-Apps-with-GraphQL-and-net7">
+        <TeaserLink to="https://ndcoslo.com/workshops/building-modern-applications-with-graphql-using-asp-net-core-6-hot-chocolate-and-relay/cb7ce0173d8f">
           <TeaserImage>
-            <WorkshopDotNetDaysLasi />
+            <WorkshopNdcOslo />
           </TeaserImage>
-          <TeaserMetadata>20 - 21 Apr 2023 ・ dotnetdays (lasi)</TeaserMetadata>
-          <TeaserTitle>
-            Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18
-          </TeaserTitle>
+          <TeaserMetadata>{"22 - 23 May 2023 ・ NDC { Oslo }"}</TeaserMetadata>
+          <TeaserTitle>Fullstack GraphQL</TeaserTitle>
+          <TeaserMessage>
+            Learn to build modern APIs like Facebook and Netflix in our
+            Fullstack GraphQL workshop.
+          </TeaserMessage>
         </TeaserLink>
       </SubNavAdditionalInfo>
     </>
@@ -936,6 +938,13 @@ const TeaserTitle = styled.h2`
   margin: 0;
   font-size: 1em;
   line-height: 1.5em;
+  color: ${THEME_COLORS.text};
+  transition: color 0.2s ease-in-out;
+`;
+
+const TeaserMessage = styled.div`
+  font-size: 0.778em;
+  line-height: 1.2;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
 `;
