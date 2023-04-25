@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static HotChocolate.Subscriptions.Properties.Resources;
@@ -30,7 +31,7 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
     /// <inheritdoc />
     public MessageEnvelope<TMessage> Deserialize<TMessage>(string serializedMessage)
     {
-        var result = JsonSerializer.Deserialize<MessageEnvelope<TMessage>>(
+        var result = JsonSerializer.Deserialize<InternalMessageEnvelope<TMessage>>(
             serializedMessage,
             _options);
 
@@ -39,6 +40,19 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
             throw new InvalidOperationException(JsonMessageSerializer_Deserialize_MessageIsNull);
         }
 
-        return result;
+        return new MessageEnvelope<TMessage>(result.Body, result.Kind);
+    }
+
+    private struct InternalMessageEnvelope<TBody>
+    {
+        /// <summary>
+        /// Gets the message body.
+        /// </summary>
+        public TBody? Body { get; set; }
+
+        /// <summary>
+        /// Gets the message kind.
+        /// </summary>
+        public MessageKind Kind { get; set; }
     }
 }

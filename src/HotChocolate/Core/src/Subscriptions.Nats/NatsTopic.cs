@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Threading.Channels;
 using AlterNats;
 using HotChocolate.Subscriptions.Diagnostics;
 using static HotChocolate.Subscriptions.Nats.NatsResources;

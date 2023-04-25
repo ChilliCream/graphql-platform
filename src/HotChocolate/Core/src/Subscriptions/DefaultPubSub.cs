@@ -162,17 +162,10 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
         }
 
         var formattedTopic = FormatTopicName(topicName);
-
-        if (TryGetTopic<ITopic>(formattedTopic, out var topic))
-        {
-            topic.TryComplete();
-        }
-
         return OnCompleteAsync(formattedTopic);
     }
 
-    protected virtual ValueTask OnCompleteAsync(string formattedTopic)
-        => ValueTask.CompletedTask;
+    protected abstract ValueTask OnCompleteAsync(string formattedTopic);
 
     private async ValueTask<DefaultTopic<TMessage>> CreateTopicAsync<TMessage>(
         string formattedTopic,

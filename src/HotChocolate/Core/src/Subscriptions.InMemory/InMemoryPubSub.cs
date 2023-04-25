@@ -30,6 +30,16 @@ internal sealed class InMemoryPubSub : DefaultPubSub
         }
     }
 
+    protected override ValueTask OnCompleteAsync(string formattedTopic)
+    {
+        if (TryGetTopic<ITopic>(formattedTopic, out var topic))
+        {
+            topic.TryComplete();
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
     protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(
         string formattedTopic,
         int? bufferCapacity,

@@ -5,6 +5,36 @@ namespace HotChocolate.Subscriptions;
 public class DefaultJsonMessageSerializerTests
 {
     [Fact]
+    public void DeserializeDefaultMessage()
+    {
+        // arrange
+        var serializer = new DefaultJsonMessageSerializer();
+        var message = "{\"body\":\"abc\",\"kind\":0}";
+
+        // act
+        var messageEnvelope = serializer.Deserialize<string>(message);
+
+        // assert
+        Assert.Equal(MessageKind.Default, messageEnvelope.Kind);
+        Assert.Equal("abc", messageEnvelope.Body);
+    }
+
+    [Fact]
+    public void DeserializeCompleteMessage()
+    {
+        // arrange
+        var serializer = new DefaultJsonMessageSerializer();
+        var message = "{\"kind\":1}";
+
+        // act
+        var messageEnvelope = serializer.Deserialize<string>(message);
+
+        // assert
+        Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
+    }
+
+
+    [Fact]
     public void SerializeDefaultMessage()
     {
         // arrange
