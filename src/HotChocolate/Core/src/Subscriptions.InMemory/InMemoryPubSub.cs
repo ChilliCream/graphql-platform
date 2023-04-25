@@ -24,7 +24,7 @@ internal sealed class InMemoryPubSub : DefaultPubSub
         TMessage message,
         CancellationToken cancellationToken = default)
     {
-        if (TryGetTopic<InMemoryTopic<TMessage>>(formattedTopic, out var topic))
+        if (TryGetTopic<TMessage>(formattedTopic, out var topic))
         {
             await topic.PublishAsync(message, cancellationToken).ConfigureAwait(false);
         }
@@ -32,7 +32,7 @@ internal sealed class InMemoryPubSub : DefaultPubSub
 
     protected override ValueTask OnCompleteAsync(string formattedTopic)
     {
-        if (TryGetTopic<ITopic>(formattedTopic, out var topic))
+        if (TryGetTopic(formattedTopic, out var topic))
         {
             topic.TryComplete();
         }
