@@ -78,7 +78,7 @@ public interface ISubscriptionDiagnosticEvents
     /// <typeparam name="T">
     /// The message body type.
     /// </typeparam>
-    void Dispatch<T>(string topicName, MessageEnvelope<T> message, int subscribers);
+    void Dispatch<T>(string topicName, T message, int subscribers);
 
     /// <summary>
     /// Some messages were delayed since the <see cref="ISourceStream"/> backpressure was to high.
@@ -99,7 +99,7 @@ public interface ISubscriptionDiagnosticEvents
     /// <typeparam name="T">
     /// The message body type.
     /// </typeparam>
-    void DelayedDispatch<T>(string topicName, int shard, MessageEnvelope<T> message, int subscribers);
+    void DelayedDispatch<T>(string topicName, int shard, T message, int subscribers);
 
     /// <summary>
     /// The GraphQL execution engine is trying to subscribe to a topic.
@@ -162,7 +162,7 @@ public interface ISubscriptionDiagnosticEvents
     /// <typeparam name="T">
     /// The message body type.
     /// </typeparam>
-    void Send<T>(string topicName, MessageEnvelope<T> message);
+    void Send<T>(string topicName, T message);
 
     /// <summary>
     /// Provider specific information.

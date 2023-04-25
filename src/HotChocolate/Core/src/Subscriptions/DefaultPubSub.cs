@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
 using static System.StringComparer;
-using static HotChocolate.Subscriptions.MessageKind;
 using static HotChocolate.Subscriptions.Properties.Resources;
 
 namespace HotChocolate.Subscriptions;
@@ -16,7 +15,6 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
     private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
     private readonly TopicFormatter _topicFormatter;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
-    private readonly MessageEnvelope<object> _completed = new(kind: Completed);
     private bool _disposed;
 
     protected DefaultPubSub(
@@ -146,15 +144,14 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
         }
 
         var formattedTopic = FormatTopicName(topicName);
-        var envelopedMessage = new MessageEnvelope<TMessage>(message);
-        _diagnosticEvents.Send(formattedTopic, envelopedMessage);
+        _diagnosticEvents.Send(formattedTopic, message);
 
-        return OnSendAsync(formattedTopic, envelopedMessage, cancellationToken);
+        return OnSendAsync(formattedTopic, message, cancellationToken);
     }
 
     protected abstract ValueTask OnSendAsync<TMessage>(
         string formattedTopic,
-        MessageEnvelope<TMessage> message,
+        TMessage message,
         CancellationToken cancellationToken = default);
 
     public ValueTask CompleteAsync(string topicName)
@@ -165,13 +162,10 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
         }
 
         var formattedTopic = FormatTopicName(topicName);
-        _diagnosticEvents.Send(formattedTopic, _completed);
-
         return OnCompleteAsync(formattedTopic);
     }
 
-    protected abstract ValueTask OnCompleteAsync(
-        string formattedTopic);
+    protected abstract ValueTask OnCompleteAsync(string formattedTopic);
 
     private async ValueTask<DefaultTopic<TMessage>> CreateTopicAsync<TMessage>(
         string formattedTopic,
