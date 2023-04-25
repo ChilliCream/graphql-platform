@@ -20,7 +20,12 @@ namespace HotChocolate.ApolloFederation;
 /// </summary>
 public sealed class TagDirective
 {
-    public string Name { get; set; } = default!;
+    public TagDirective(string name)
+    {
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+    }
+
+    public string Name { get; }
 }
 
 /// <summary>
