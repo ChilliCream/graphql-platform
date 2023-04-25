@@ -12,7 +12,7 @@ namespace HotChocolate.Subscriptions;
 public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, IDisposable
 {
     private readonly SemaphoreSlim _subscribeSemaphore = new(1, 1);
-    private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
+    private readonly ConcurrentDictionary<string, ITopic> _topics = new(Ordinal);
     private readonly TopicFormatter _topicFormatter;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private bool _disposed;
@@ -119,7 +119,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
         return sourceStream;
 
         static async ValueTask<ISourceStream<TMessage>?> TryCreateSourceStream(
-            IDisposable topic,
+            ITopic topic,
             CancellationToken cancellationToken)
         {
             if (topic is DefaultTopic<TMessage> et)
@@ -129,7 +129,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
 
             // we found a topic with the same name but a different message type.
             // this is an invalid state and we will except.
-            throw new InvalidMessageTypeException();
+            throw new InvalidMessageTypeException(topic.MessageType, typeof(TMessage));
         }
     }
 
@@ -195,19 +195,33 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
     protected virtual string FormatTopicName(string topic)
         => _topicFormatter.Format(topic);
 
-    protected bool TryGetTopic<TTopic>(
+    protected bool TryGetTopic<TMessage>(
         string formattedTopic,
-        [NotNullWhen(true)] out TTopic? topic)
+        [NotNullWhen(true)] out DefaultTopic<TMessage>? topic)
     {
         if (_topics.TryGetValue(formattedTopic, out var value))
         {
-            if (value is TTopic casted)
+            if (value is DefaultTopic<TMessage> casted)
             {
                 topic = casted;
                 return true;
             }
 
-            throw new InvalidMessageTypeException();
+            throw new InvalidMessageTypeException(value.MessageType, typeof(TMessage));
+        }
+
+        topic = default;
+        return false;
+    }
+
+    protected bool TryGetTopic(
+        string formattedTopic,
+        [NotNullWhen(true)] out ITopic? topic)
+    {
+        if (_topics.TryGetValue(formattedTopic, out var value))
+        {
+            topic = value;
+            return true;
         }
 
         topic = default;

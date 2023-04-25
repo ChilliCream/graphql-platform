@@ -67,9 +67,14 @@ public abstract class DefaultTopic<TMessage> : ITopic, IDisposable
     }
 
     /// <summary>
-    /// The name of this topic.
+    /// Gets the name of this topic.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// Gets the message type of this topic.
+    /// </summary>
+    public Type MessageType => typeof(TMessage);
 
     /// <summary>
     /// Allows access to the diagnostic events.
@@ -460,9 +465,4 @@ public abstract class DefaultTopic<TMessage> : ITopic, IDisposable
 
         public static readonly DefaultSession Instance = new();
     }
-}
-
-public interface ITopic
-{
-    void TryComplete();
 }
