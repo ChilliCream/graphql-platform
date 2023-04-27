@@ -32,7 +32,7 @@ export const initialState: WorkshopsState = [
     host: "NDC",
     place: "{ Oslo }",
     url: "https://ndcoslo.com/workshops/building-modern-applications-with-graphql-using-asp-net-core-6-hot-chocolate-and-relay/cb7ce0173d8f",
-    promo: true,
+    promo: isActive("2023-05-22"),
   },
   {
     id: "NDC_COPENHAGEN",
@@ -43,6 +43,10 @@ export const initialState: WorkshopsState = [
     host: "NDC",
     place: "{ Copenhagen }",
     url: "https://cphdevfest.com/workshops/building-modern-applications-with-graphql-using-asp-net-core-6-hot-chocolate-and-relay/b7d68a9db642",
-    promo: true,
+    promo: isActive("2023-08-28"),
   },
 ];
+
+function isActive(until: string) {
+  return new Date() < new Date(until);
+}
