@@ -11,8 +11,11 @@ import React, {
   useState,
 } from "react";
 import styled from "styled-components";
+import { useSelector } from "react-redux";
 
+import { State, WorkshopsState } from "@/state";
 import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
+import { WorkshopNdcCopenhagen } from "@/components/images/workshop-ndc-copenhagen";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -427,6 +430,10 @@ interface DeveloperNavItemProps {
 }
 
 const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
+  const workshop = useSelector<State, WorkshopsState[number] | undefined>(
+    (state) => state.workshops.find(({ promo }) => promo)
+  );
+
   const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
     <>
       <SubNavMain>
@@ -487,18 +494,19 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
         </SubNavGroup>
       </SubNavMain>
       <SubNavAdditionalInfo>
-        <SubNavTitle>Upcoming Workshop</SubNavTitle>
-        <TeaserLink to="https://ndcoslo.com/workshops/building-modern-applications-with-graphql-using-asp-net-core-6-hot-chocolate-and-relay/cb7ce0173d8f">
-          <TeaserImage>
-            <WorkshopNdcOslo />
-          </TeaserImage>
-          <TeaserMetadata>{"22 - 23 May 2023 ・ NDC { Oslo }"}</TeaserMetadata>
-          <TeaserTitle>Fullstack GraphQL</TeaserTitle>
-          <TeaserMessage>
-            Learn to build modern APIs like Facebook and Netflix in our
-            Fullstack GraphQL workshop.
-          </TeaserMessage>
-        </TeaserLink>
+        {workshop && (
+          <>
+            <SubNavTitle>Upcoming Workshop</SubNavTitle>
+            <TeaserLink to={workshop.url}>
+              <TeaserImage>
+                <WorkshopHero id={workshop.id} />
+              </TeaserImage>
+              <TeaserMetadata>{`${workshop.date} ・ ${workshop.host} ${workshop.place}`}</TeaserMetadata>
+              <TeaserTitle>{workshop.title}</TeaserTitle>
+              <TeaserMessage>{workshop.teaser}</TeaserMessage>
+            </TeaserLink>
+          </>
+        )}
       </SubNavAdditionalInfo>
     </>
   ));
@@ -907,6 +915,23 @@ const TeaserLink = styled(Link)`
     margin: 5px 30px;
   }
 `;
+
+interface WorkshopHeroProps {
+  readonly id: string;
+}
+
+const WorkshopHero: FC<WorkshopHeroProps> = ({ id }) => {
+  switch (id) {
+    case "NDC_OSLO":
+      return <WorkshopNdcOslo />;
+
+    case "NDC_COPENHAGEN":
+      return <WorkshopNdcCopenhagen />;
+
+    default:
+      return null;
+  }
+};
 
 const TeaserImage = styled.div`
   overflow: visible;
