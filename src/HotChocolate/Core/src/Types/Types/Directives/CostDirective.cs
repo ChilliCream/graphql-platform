@@ -13,15 +13,27 @@ namespace HotChocolate.Types;
 /// </summary>
 public sealed class CostDirective
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostDirective"/>.
+    /// </summary>
     public CostDirective()
     {
         Complexity = 1;
         Multipliers = Array.Empty<MultiplierPathString>();
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostDirective"/>.
+    /// </summary>
+    /// <param name="complexity">
+    /// The complexity of the field.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="complexity"/> is less than 0.
+    /// </exception>
     public CostDirective(int complexity)
     {
-        if (complexity <= 0)
+        if (complexity < 0)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(complexity),
@@ -33,11 +45,26 @@ public sealed class CostDirective
         Multipliers = Array.Empty<MultiplierPathString>();
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostDirective"/>.
+    /// </summary>
+    /// <param name="complexity">
+    /// The complexity of the field.
+    /// </param>
+    /// <param name="multipliers">
+    /// The multiplier paths.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="complexity"/> is less than 0.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="multipliers"/> is <c>null</c>.
+    /// </exception>
     public CostDirective(
         int complexity,
         params MultiplierPathString[] multipliers)
     {
-        if (complexity <= 0)
+        if (complexity < 0)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(complexity),
@@ -54,12 +81,30 @@ public sealed class CostDirective
         Multipliers = multipliers.Where(t => t.HasValue).ToArray();
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostDirective"/>.
+    /// </summary>
+    /// <param name="complexity">
+    /// The complexity of the field.
+    /// </param>
+    /// <param name="defaultMultiplier">
+    /// The default multiplier.
+    /// </param>
+    /// <param name="multipliers">
+    /// The multiplier paths.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="complexity"/> is less than 0.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="multipliers"/> is <c>null</c>.
+    /// </exception>
     public CostDirective(
         int complexity,
         int defaultMultiplier,
         params MultiplierPathString[] multipliers)
     {
-        if (complexity <= 0)
+        if (complexity < 0)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(complexity),
@@ -85,19 +130,18 @@ public sealed class CostDirective
         Multipliers = multipliers.Where(t => t.HasValue).ToArray();
     }
 
-    private CostDirective(
-        int complexity,
-        IReadOnlyList<MultiplierPathString> multipliers,
-        int? defaultMultiplier)
-    {
-        Complexity = complexity;
-        Multipliers = multipliers;
-        DefaultMultiplier = defaultMultiplier;
-    }
-
+    /// <summary>
+    /// Gets the complexity of the field.
+    /// </summary>
     public int Complexity { get; }
 
+    /// <summary>
+    /// Gets the multiplier paths.
+    /// </summary>
     public IReadOnlyList<MultiplierPathString> Multipliers { get; }
 
+    /// <summary>
+    /// Gets the default multiplier.
+    /// </summary>
     public int? DefaultMultiplier { get; }
 }
