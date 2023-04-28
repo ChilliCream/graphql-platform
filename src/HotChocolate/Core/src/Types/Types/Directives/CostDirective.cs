@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.Serialization;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types;
@@ -11,6 +10,9 @@ namespace HotChocolate.Types;
 /// The cost directive can be used to express the expected
 /// cost that a resolver incurs on the system.
 /// </summary>
+#if NET6_0_OR_GREATER
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+#endif
 public sealed class CostDirective
 {
     /// <summary>
@@ -128,6 +130,17 @@ public sealed class CostDirective
         Complexity = complexity;
         DefaultMultiplier = defaultMultiplier;
         Multipliers = multipliers.Where(t => t.HasValue).ToArray();
+    }
+
+    // this constructor is used for serialization.
+    private CostDirective(
+        int complexity,
+        IReadOnlyList<MultiplierPathString> multipliers,
+        int? defaultMultiplier)
+    {
+        Complexity = complexity;
+        Multipliers = multipliers;
+        DefaultMultiplier = defaultMultiplier;
     }
 
     /// <summary>
