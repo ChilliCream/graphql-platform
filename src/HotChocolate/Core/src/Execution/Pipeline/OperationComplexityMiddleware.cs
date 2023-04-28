@@ -67,7 +67,7 @@ internal sealed class OperationComplexityMiddleware
 
                     if (!_cache.TryGetAnalyzer(cacheId, out var analyzer))
                     {
-                        analyzer = CompileAnalyzer(context, document, operationDefinition);
+                        analyzer = CompileAnalyzer(context, document, operationDefinition, cacheId);
                         diagnostic.OperationComplexityAnalyzerCompiled(context);
                     }
 
@@ -101,7 +101,8 @@ internal sealed class OperationComplexityMiddleware
     private ComplexityAnalyzerDelegate CompileAnalyzer(
         IRequestContext requestContext,
         DocumentNode document,
-        OperationDefinitionNode operationDefinition)
+        OperationDefinitionNode operationDefinition,
+        string cacheId)
     {
         var validatorContext = _contextPool.Get();
         ComplexityAnalyzerDelegate? operationAnalyzer = null;
@@ -115,17 +116,14 @@ internal sealed class OperationComplexityMiddleware
 
             foreach (var analyzer in analyzers)
             {
-                if (analyzer.OperationDefinitionNode == operationDefinition)
+                if (analyzer.OperationDefinitionNode.Equals(operationDefinition, SyntaxComparison.Syntax))
                 {
                     operationAnalyzer = analyzer.Analyzer;
-                }
 
-                _cache.TryAddAnalyzer(
-                    requestContext.CreateCacheId(
-                        CreateOperationId(
-                            requestContext.DocumentId!,
-                            analyzer.OperationDefinitionNode.Name?.Value)),
-                    analyzer.Analyzer);
+                    _cache.TryAddAnalyzer(
+                        cacheId,
+                        analyzer.Analyzer);
+                }
             }
 
             return operationAnalyzer!;
