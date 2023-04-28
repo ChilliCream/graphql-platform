@@ -1,9 +1,11 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using CookieCrumble;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
 
@@ -357,6 +359,21 @@ public class AnnotationBasedMutations
                 .AddGraphQL()
                 .AddMutationType<SimpleMutationPayloadOverride>()
                 .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_NamingConvention()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions(true)
+                .AddConvention<INamingConventions, CustomNamingConvention>()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
@@ -1302,4 +1319,46 @@ public class AnnotationBasedMutations
     }
 
     public record DoSomething2Payload(int? UserId);
+
+    private sealed class CustomNamingConvention : DefaultNamingConventions
+    {
+        public override string GetArgumentName(ParameterInfo parameter)
+        {
+            var name = base.GetArgumentName(parameter);
+            return name + "_ArgumentNamed";
+        }
+
+        public override string GetArgumentDescription(ParameterInfo parameter)
+        {
+            return "GetArgumentDescription";
+        }
+
+        public override string GetMemberDescription(MemberInfo member, MemberKind kind)
+        {
+            return "GetMemberDescription";
+        }
+
+        public override string GetTypeName(Type type, TypeKind kind)
+        {
+            var name = base.GetTypeName(type, kind);
+            return name + "_TypeNamed";
+        }
+
+        public override string GetEnumValueDescription(object value)
+        {
+            return "GetEnumValueDescription";
+        }
+
+        public override string GetMemberName(MemberInfo member, MemberKind kind)
+        {
+            var name = base.GetMemberName(member, kind);
+
+            return name + "_MemberNamed";
+        }
+
+        public override string GetTypeDescription(Type type, TypeKind kind)
+        {
+            return "GetTypeDescription";
+        }
+    }
 }
