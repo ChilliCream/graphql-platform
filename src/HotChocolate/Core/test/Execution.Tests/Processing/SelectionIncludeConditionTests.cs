@@ -598,6 +598,52 @@ public class SelectionIncludeConditionTests
             """);
     }
 
+    // https://github.com/ChilliCream/graphql-platform/issues/6050
+    [Fact]
+    public async Task Issue_6050()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            """
+                            query($permission: Boolean!) {
+                                person {
+                                    ...A
+                                    ...B @include(if: $permission)
+                                    __typename
+                                }
+                            }
+
+                            fragment A on Person {
+                                name
+                                __typename
+                            }
+
+                            fragment B on Person {
+                                address
+                                __typename
+                            }
+                            """)
+                        .SetVariableValue("permission", false)
+                        .Create());
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "person": {
+                  "name": "hello",
+                  "__typename": "Person"
+                }
+              }
+            }
+            """);
+    }
+
     public sealed class Query
     {
         public Person Person() => new Person();
@@ -609,5 +655,7 @@ public class SelectionIncludeConditionTests
     public sealed class Person
     {
         public string Name { get; } = "hello";
+
+        public string Address { get; } = "world";
     }
 }

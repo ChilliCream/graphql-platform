@@ -1,12 +1,9 @@
-using System;
-using System.Runtime.Serialization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge;
 
 [Serializable]
-public class SchemaMergeException
-    : Exception
+public sealed class SchemaMergeException : Exception
 {
     public SchemaMergeException(
         ITypeDefinitionNode typeDefinition,
@@ -19,12 +16,6 @@ public class SchemaMergeException
         TypeExtension = typeExtension
             ?? throw new ArgumentNullException(nameof(typeExtension));
     }
-
-
-    protected SchemaMergeException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context) { }
 
     public ITypeDefinitionNode TypeDefinition { get; }
 
