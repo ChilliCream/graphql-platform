@@ -13,8 +13,12 @@ public class ElasticSearchCursorPagingHandler<TEntity> : CursorPagingHandler
     }
 
     /// <inheritdoc />
-    protected override async ValueTask<Connection> SliceAsync(IResolverContext context, object source, CursorPagingArguments arguments)
-        => await _pagination.ApplyPaginationAsync(
+    protected override async ValueTask<Connection> SliceAsync(
+        IResolverContext context,
+        object source,
+        CursorPagingArguments arguments)
+        => await _pagination
+            .ApplyPaginationAsync(
                 CreatePagingContainer(source),
                 arguments,
                 context.RequestAborted)
@@ -24,7 +28,8 @@ public class ElasticSearchCursorPagingHandler<TEntity> : CursorPagingHandler
     {
         return source switch
         {
-            IElasticSearchExecutable<TEntity> e => new ElasticSearchExecutablePagingContainer<TEntity>(e),
+            IElasticSearchExecutable<TEntity> e =>
+                new ElasticSearchExecutablePagingContainer<TEntity>(e),
             _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
         };
     }

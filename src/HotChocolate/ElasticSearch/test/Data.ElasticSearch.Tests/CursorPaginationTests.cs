@@ -29,27 +29,28 @@ public class CursorPaginationTests : TestBase
 
         var executor = await CreateExecutorAsync();
 
-        const string query = @"
-query {
-    test {
-        edges {
-            node {
-                index
+        const string query = """
+        query {
+            test {
+                edges {
+                    node {
+                        index
+                    }
+                    cursor
+                }
+                nodes {
+                    index
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                    startCursor
+                    endCursor
+                }
+                totalCount
             }
-            cursor
         }
-        nodes {
-            index
-        }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-        totalCount
-    }
-}";
+        """;
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }
@@ -61,27 +62,28 @@ query {
 
         var executor = await CreateExecutorAsync();
 
-        const string query = @"
-query {
-    test(first: 2) {
-        edges {
-            node {
-                index
+        const string query = """
+        query {
+            test(first: 2) {
+                edges {
+                    node {
+                        index
+                    }
+                    cursor
+                }
+                nodes {
+                    index
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                    startCursor
+                    endCursor
+                }
+                totalCount
             }
-            cursor
         }
-        nodes {
-            index
-        }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-        totalCount
-    }
-}";
+        """;
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }
@@ -93,27 +95,28 @@ query {
 
         var executor = await CreateExecutorAsync();
 
-        const string query = @"
-query {
-    test(first: 2 after: ""MQ=="") {
-        edges {
-            node {
-                index
+        const string query = """
+        query {
+            test(first: 2 after: ""MQ=="") {
+                edges {
+                    node {
+                        index
+                    }
+                    cursor
+                }
+                nodes {
+                    index
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                    startCursor
+                    endCursor
+                }
+                totalCount
             }
-            cursor
         }
-        nodes {
-            index
-        }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-        totalCount
-    }
-}";
+        """;
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }
@@ -125,32 +128,31 @@ query {
 
         var executor = await CreateExecutorAsync();
 
-        const string query = @"
-query {
-    test(last: 1 after: ""MQ=="") {
-        edges {
-            node {
-                index
+        const string query = """
+        query {
+            test(last: 1 after: ""MQ=="") {
+                edges {
+                    node {
+                        index
+                    }
+                    cursor
+                }
+                nodes {
+                    index
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                    startCursor
+                    endCursor
+                }
+                totalCount
             }
-            cursor
         }
-        nodes {
-            index
-        }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-        totalCount
-    }
-}";
+        """;
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }
-
-
 
     private ValueTask<IRequestExecutor> CreateExecutorAsync()
     {

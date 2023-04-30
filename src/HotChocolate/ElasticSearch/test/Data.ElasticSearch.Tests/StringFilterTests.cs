@@ -6,15 +6,12 @@ using Xunit;
 namespace HotChocolate.Data.ElasticSearch;
 
 [Collection("Elastic Tests")]
-public class StringFilterTests : FilterTestBase<StringFilterTests.Term, StringFilterTests.TermFilterType>
+public class StringFilterTests
+    : FilterTestBase<StringFilterTests.Term, StringFilterTests.TermFilterType>
 {
     private readonly Term[] _data =
     {
-        new Term
-        {
-            Value = "Query",
-            Description = "The query type has fields to get data."
-        },
+        new Term { Value = "Query", Description = "The query type has fields to get data." },
         new Term
         {
             Value = "Mutation",
@@ -112,4 +109,3 @@ public class StringFilterTests : FilterTestBase<StringFilterTests.Term, StringFi
         }
     }
 }
-

@@ -18,19 +18,7 @@ public class RangeOperation<T> : ILeafSearchOperation
 
     public RangeOperationValue<T>? GreaterThanOrEquals { get; init; }
 
-    public RangeOperationValue<T>? LowerThanOrEquals { get; init;}
+    public RangeOperationValue<T>? LowerThanOrEquals { get; init; }
 
     public ElasticSearchOperationKind Kind { get; }
 }
-
-public class RangeOperationValue<T>
-{
-    public RangeOperationValue(T value)
-    {
-        Value = value;
-    }
-
-    public T Value { get; }
-}
-
-

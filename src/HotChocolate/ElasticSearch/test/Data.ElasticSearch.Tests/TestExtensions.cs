@@ -1,15 +1,6 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using Elasticsearch.Net;
 using HotChocolate.Data.ElasticSearch.Execution;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
@@ -44,7 +35,8 @@ public static class TestExtensions
                 {
                     await next(context);
 
-                    if (context.ContextData.TryGetValue(nameof(IElasticSearchExecutable), out var val) && val is IElasticSearchExecutable executable)
+                    if (context.ContextData.TryGetValue(nameof(IElasticSearchExecutable),
+                            out var val) && val is IElasticSearchExecutable executable)
                     {
                         context.Result =
                             QueryResultBuilder
@@ -59,8 +51,7 @@ public static class TestExtensions
             .GetRequiredService<IRequestExecutorResolver>()
             .GetRequestExecutorAsync();
 
-    public static IObjectFieldDescriptor UseTestReport(
-        this IObjectFieldDescriptor descriptor) =>
+    public static IObjectFieldDescriptor UseTestReport(this IObjectFieldDescriptor descriptor) =>
         descriptor.Use(next => async context =>
         {
             await next(context);

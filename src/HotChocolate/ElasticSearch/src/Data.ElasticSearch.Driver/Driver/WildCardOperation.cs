@@ -22,10 +22,3 @@ public class WildCardOperation : ILeafSearchOperation
 
     public WildCardOperationKind WildCardOperationKind { get; }
 }
-
-public enum WildCardOperationKind
-{
-    StartsWith,
-    EndsWith,
-    Contains
-}

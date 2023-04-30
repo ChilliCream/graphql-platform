@@ -8,7 +8,7 @@ namespace HotChocolate.Data.ElasticSearch;
 [Collection("Elastic Tests")]
 public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterType>
 {
-    private  readonly IReadOnlyList<Foo> _data = new[]
+    private readonly IReadOnlyList<Foo> _data = new[]
     {
         new Foo()
         {
@@ -42,8 +42,6 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
 
     protected override IReadOnlyList<Foo> Data => _data;
 
-
-
     public RangeTests(ElasticsearchResource resource) : base(resource)
     {
     }
@@ -57,7 +55,8 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
             descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Type<DecimalType>();
             descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals).Type<DecimalType>();
             descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Type<DecimalType>();
-            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals)
+                .Type<DecimalType>();
             descriptor.Operation(DefaultFilterOperations.NotLowerThan).Type<DecimalType>();
             descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals).Type<DecimalType>();
         }
@@ -87,7 +86,8 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
             descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Type<DateTimeType>();
             descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals).Type<DateTimeType>();
             descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Type<DateTimeType>();
-            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals).Type<DateTimeType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals)
+                .Type<DateTimeType>();
             descriptor.Operation(DefaultFilterOperations.NotLowerThan).Type<DateTimeType>();
             descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals).Type<DateTimeType>();
         }
@@ -105,6 +105,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     #region Double
+
     [Fact]
     public async Task ElasticSearch_Range_Double_GreaterThan()
     {
@@ -164,12 +165,15 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     [Fact]
     public async Task ElasticSearch_Range_Double_LowerThan_And_GreaterThan_Combined()
     {
-        var result = await ExecuteFilterTest(@"and: [{ value :{ lt: 1}} { value :{ gt: -1}}]", Selection);
+        var result =
+            await ExecuteFilterTest(@"and: [{ value :{ lt: 1}} { value :{ gt: -1}}]", Selection);
         result.MatchQuerySnapshot();
     }
+
     #endregion
 
     #region Float
+
     [Fact]
     public async Task ElasticSearch_Range_Float_GreaterThan()
     {
@@ -229,74 +233,90 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     [Fact]
     public async Task ElasticSearch_Range_Float_LowerThan_And_GreaterThan_Combined()
     {
-        var result = await ExecuteFilterTest(@"and: [{ fValue :{ lt: 1}} { fValue :{ gt: -1}}]", Selection);
+        var result = await ExecuteFilterTest(@"and: [{ fValue :{ lt: 1}} { fValue :{ gt: -1}}]",
+            Selection);
         result.MatchQuerySnapshot();
     }
+
     #endregion
 
     #region DateTime
+
     [Fact]
     public async Task ElasticSearch_Range_DateTime_GreaterThan()
     {
-        var result = await ExecuteFilterTest(@"dateTimeValue :{ gt: ""2022-12-23T15:05:22+0000""}", Selection);
+        var result = await ExecuteFilterTest(@"dateTimeValue :{ gt: ""2022-12-23T15:05:22+0000""}",
+            Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
     public async Task ElasticSearch_Range_DateTime_NotGreaterThan()
     {
-        var result = await ExecuteFilterTest(@"dateTimeValue :{ ngt: ""2022-12-23T15:05:22+0000""}", Selection);
+        var result = await ExecuteFilterTest(@"dateTimeValue :{ ngt: ""2022-12-23T15:05:22+0000""}",
+            Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
     public async Task ElasticSearch_Range_DateTime_GreaterThanOrEquals()
     {
-        var result = await ExecuteFilterTest(@"dateTimeValue :{ gte: ""2022-12-23T15:05:22+0000""}", Selection);
+        var result = await ExecuteFilterTest(@"dateTimeValue :{ gte: ""2022-12-23T15:05:22+0000""}",
+            Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
     public async Task ElasticSearch_Range_DateTime_NotGreaterThanOrEquals()
     {
-        var result = await ExecuteFilterTest(@"dateTimeValue :{ ngte: ""2022-12-23T15:05:22+0000""}", Selection);
+        var result =
+            await ExecuteFilterTest(@"dateTimeValue :{ ngte: ""2022-12-23T15:05:22+0000""}",
+                Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
     public async Task ElasticSearch_Range_DateTime_LowerThan()
     {
-        var result = await ExecuteFilterTest(@"dateTimeValue :{ lt: ""2022-12-23T15:05:22+0000""}", Selection);
+        var result = await ExecuteFilterTest(@"dateTimeValue :{ lt: ""2022-12-23T15:05:22+0000""}",
+            Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
     public async Task ElasticSearch_Range_DateTime_NotLowerThan()
     {
-        var result = await ExecuteFilterTest(@"dateTimeValue :{ nlt: ""2022-12-23T15:05:22+0000""}", Selection);
+        var result = await ExecuteFilterTest(@"dateTimeValue :{ nlt: ""2022-12-23T15:05:22+0000""}",
+            Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
     public async Task ElasticSearch_Range_DateTime_LowerThanOrEquals()
     {
-        var result = await ExecuteFilterTest(@"dateTimeValue :{ lte: ""2022-12-23T15:05:22+0000""}", Selection);
+        var result = await ExecuteFilterTest(@"dateTimeValue :{ lte: ""2022-12-23T15:05:22+0000""}",
+            Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
     public async Task ElasticSearch_Range_DateTime_NotLowerThanOrEquals()
     {
-        var result = await ExecuteFilterTest(@"dateTimeValue :{ nlte: ""2022-12-23T15:05:22+0000""}", Selection);
+        var result =
+            await ExecuteFilterTest(@"dateTimeValue :{ nlte: ""2022-12-23T15:05:22+0000""}",
+                Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
     public async Task ElasticSearch_Range_DateTime_LowerThan_And_GreaterThan_Combined()
     {
-        var result = await ExecuteFilterTest(@"and: [{ dateTimeValue :{ gt: ""2022-12-22T15:05:22+0000""}} { dateTimeValue :{ lt: ""2022-12-24T15:05:22+0000""}}]", Selection);
+        var result = await ExecuteFilterTest(
+            @"and: [{ dateTimeValue :{ gt: ""2022-12-22T15:05:22+0000""}} { dateTimeValue :{ lt: ""2022-12-24T15:05:22+0000""}}]",
+            Selection);
         result.MatchQuerySnapshot();
     }
+
     #endregion
 
     public class Foo
@@ -311,5 +331,4 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     /// <inheritdoc />
-
 }

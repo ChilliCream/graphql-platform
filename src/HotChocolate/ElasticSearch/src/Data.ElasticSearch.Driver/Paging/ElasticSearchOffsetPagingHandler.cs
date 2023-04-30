@@ -14,7 +14,10 @@ public class ElasticSearchOffsetPagingHandler<TEntity> : OffsetPagingHandler
     }
 
     /// <inheritdoc />
-    protected override async ValueTask<CollectionSegment> SliceAsync(IResolverContext context, object source, OffsetPagingArguments arguments)
+    protected override async ValueTask<CollectionSegment> SliceAsync(
+        IResolverContext context,
+        object source,
+        OffsetPagingArguments arguments)
         => await _pagination.ApplyPaginationAsync(
                 CreatePagingContainer(source),
                 arguments,
@@ -25,7 +28,8 @@ public class ElasticSearchOffsetPagingHandler<TEntity> : OffsetPagingHandler
     {
         return source switch
         {
-            IElasticSearchExecutable<TEntity> e => new ElasticSearchExecutablePagingContainer<TEntity>(e),
+            IElasticSearchExecutable<TEntity> e =>
+                new ElasticSearchExecutablePagingContainer<TEntity>(e),
             _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
         };
     }

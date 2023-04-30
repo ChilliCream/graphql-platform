@@ -11,5 +11,4 @@ public class ElasticSearchSortOperation
     public ElasticSearchSortDirection Direction { get;}
 
     public string Path { get; }
-
 }

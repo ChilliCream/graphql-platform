@@ -3,6 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
@@ -24,7 +25,7 @@ public class ElasticSearchListNoneOperationHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is IListFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.None };
+            fieldDefinition is FilterOperationFieldDefinition { Id: None };
 
     /// <inheritdoc />
     public override bool TryHandleEnter(

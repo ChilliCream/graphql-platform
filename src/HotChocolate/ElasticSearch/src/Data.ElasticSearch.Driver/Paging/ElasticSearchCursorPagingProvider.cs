@@ -21,13 +21,15 @@ public class ElasticSearchCursorPagingProvider : CursorPagingProvider
     public override bool CanHandle(IExtendedType source)
     {
         return typeof(IElasticSearchExecutable).IsAssignableFrom(source.Source) ||
-               source.Source.IsGenericType &&
-               source.Source.GetGenericTypeDefinition() is { } type && (
-                   type == typeof(IElasticSearchExecutable<>));
+            source.Source.IsGenericType &&
+            source.Source.GetGenericTypeDefinition() is { } type && (
+                type == typeof(IElasticSearchExecutable<>));
     }
 
     /// <inheritdoc />
-    protected override CursorPagingHandler CreateHandler(IExtendedType source, PagingOptions options)
+    protected override CursorPagingHandler CreateHandler(
+        IExtendedType source,
+        PagingOptions options)
     {
         if (source is null)
         {

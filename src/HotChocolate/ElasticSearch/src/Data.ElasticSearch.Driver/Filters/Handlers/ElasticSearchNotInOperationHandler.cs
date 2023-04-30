@@ -2,6 +2,7 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
@@ -25,10 +26,7 @@ public class ElasticSearchNotInOperationHandler : ElasticSearchInOperationHandle
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
-        => fieldDefinition is FilterOperationFieldDefinition
-           {
-               Id: DefaultFilterOperations.NotIn
-           };
+        => fieldDefinition is FilterOperationFieldDefinition { Id: NotIn };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -39,6 +37,7 @@ public class ElasticSearchNotInOperationHandler : ElasticSearchInOperationHandle
     {
         ISearchOperation operation =
             base.HandleOperation(context, field, value, parsedValue);
+
         return ElasticSearchOperationHelpers.Negate(operation);
     }
 }

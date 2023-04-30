@@ -3,7 +3,8 @@ using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.ElasticSearch.Paging;
 
-public class ElasticSearchExecutablePagingContainer<TEntity> : IElasticSearchPagingContainer<TEntity>
+public class ElasticSearchExecutablePagingContainer<TEntity>
+    : IElasticSearchPagingContainer<TEntity>
 {
     private readonly IElasticSearchExecutable<TEntity> _executable;
 
@@ -16,10 +17,13 @@ public class ElasticSearchExecutablePagingContainer<TEntity> : IElasticSearchPag
     }
 
     /// <inheritdoc />
-    public Task<int> CountAsync(CancellationToken cancellationToken) => _executable.CountAsync(cancellationToken);
+    public Task<int> CountAsync(CancellationToken cancellationToken)
+        => _executable.CountAsync(cancellationToken);
 
     /// <inheritdoc />
-    public async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(int offset, CancellationToken cancellationToken)
+    public async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
+        int offset,
+        CancellationToken cancellationToken)
     {
         _executable.WitPagination(_take, offset);
         var searchResults = await _executable.ExecuteAsync(cancellationToken);

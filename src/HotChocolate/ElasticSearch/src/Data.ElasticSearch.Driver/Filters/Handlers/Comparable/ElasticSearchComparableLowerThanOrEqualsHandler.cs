@@ -1,6 +1,8 @@
 ﻿using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Data.ElasticSearch.ElasticSearchOperationKind;
+using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters.Comparable;
 
@@ -12,7 +14,7 @@ public class ElasticSearchComparableLowerThanOrEqualsHandler : ElasticSearchComp
     }
 
     /// <inheritdoc />
-    protected override int Operation => DefaultFilterOperations.LowerThanOrEquals;
+    protected override int Operation => LowerThanOrEquals;
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(ElasticSearchFilterVisitorContext context, IFilterOperationField field,
@@ -20,15 +22,15 @@ public class ElasticSearchComparableLowerThanOrEqualsHandler : ElasticSearchComp
     {
         return parsedValue switch
         {
-            double doubleVal => new RangeOperation<double>(context.GetPath(), ElasticSearchOperationKind.Filter)
+            double doubleVal => new RangeOperation<double>(context.GetPath(), Filter)
             {
                 LowerThanOrEquals = new RangeOperationValue<double>(doubleVal)
             },
-            float floatValue => new RangeOperation<double>(context.GetPath(), ElasticSearchOperationKind.Filter)
+            float floatValue => new RangeOperation<double>(context.GetPath(), Filter)
             {
                 LowerThanOrEquals = new RangeOperationValue<double>(floatValue)
             },
-            DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), ElasticSearchOperationKind.Filter)
+            DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), Filter)
             {
                 LowerThanOrEquals = new RangeOperationValue<DateTime>(dateTimeVal)
             },

@@ -10,9 +10,10 @@ public class ElasticSearchDefaultSortFieldHandler
     : SortFieldHandler<ElasticSearchSortVisitorContext, ElasticSearchSortOperation>
 {
     /// <inheritdoc />
-    public override bool CanHandle(ITypeCompletionContext context, ISortInputTypeDefinition typeDefinition,
+    public override bool CanHandle(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
         ISortFieldDefinition fieldDefinition) => fieldDefinition.Member is not null;
-
 
     /// <inheritdoc />
     public override bool TryHandleEnter(

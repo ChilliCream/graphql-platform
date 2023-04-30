@@ -29,19 +29,20 @@ public class OffsetPaginationTests : TestBase
 
         var executor = await CreateExecutorAsync();
 
-        const string query = @"
-query {
-    test {
-        items {
-            index
+        const string query = """
+        query {
+            test {
+                items {
+                    index
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                }
+                totalCount
+            }
         }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-        }
-        totalCount
-    }
-}";
+        """;
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }
@@ -53,19 +54,20 @@ query {
 
         var executor = await CreateExecutorAsync();
 
-        const string query = @"
-query {
-    test(take: 2) {
-        items {
-            index
+        const string query = """
+        query {
+            test(take: 2) {
+                items {
+                    index
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                }
+                totalCount
+            }
         }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-        }
-        totalCount
-    }
-}";
+        """;
 
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
@@ -78,19 +80,20 @@ query {
 
         var executor = await CreateExecutorAsync();
 
-        const string query = @"
-query {
-    test(skip: 2) {
-        items {
-            index
+        const string query = """
+        query {
+            test(skip: 2) {
+                items {
+                    index
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                }
+                totalCount
+            }
         }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-        }
-        totalCount
-    }
-}";
+        """;
 
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
@@ -103,19 +106,20 @@ query {
 
         var executor = await CreateExecutorAsync();
 
-        const string query = @"
-query {
-    test(skip: 2 take: 2) {
-        items {
-            index
+        const string query = """
+        query {
+            test(skip: 2 take: 2) {
+                items {
+                    index
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                }
+                totalCount
+            }
         }
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-        }
-        totalCount
-    }
-}";
+        """;
 
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();

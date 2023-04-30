@@ -12,26 +12,8 @@ public class SortTests : TestBase
 {
     private readonly IReadOnlyList<Foo> _data = new[]
     {
-        new Foo
-        {
-            Name = "B"
-        },
-        new Foo
-        {
-            Name = "A"
-        },
-        new Foo
-        {
-            Name = "BA"
-        },
-        new Foo
-        {
-            Name = "C"
-        },
-        new Foo
-        {
-            Name = "ac"
-        }
+        new Foo { Name = "B" }, new Foo { Name = "A" }, new Foo { Name = "BA" },
+        new Foo { Name = "C" }, new Foo { Name = "ac" }
     };
 
     /// <inheritdoc />
@@ -45,11 +27,13 @@ public class SortTests : TestBase
         await IndexDocuments(_data);
         var executor = await CreateExecutorAsync();
 
-        const string query = @"query {
-    test(order: {name: ASC}) {
-        name
-    }
-}";
+        const string query = """
+        query {
+            test(order: {name: ASC}) {
+                name
+            }
+        }
+        """;
 
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
@@ -61,11 +45,13 @@ public class SortTests : TestBase
         await IndexDocuments(_data);
         var executor = await CreateExecutorAsync();
 
-        const string query = @"query {
-    test(order: {name: DESC}) {
-        name
-    }
-}";
+        const string query = """
+        query {
+            test(order: {name: DESC}) {
+                name
+            }
+        }
+        """;
 
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
@@ -90,4 +76,3 @@ public class SortTests : TestBase
         public string Name { get; set; } = string.Empty;
     }
 }
-

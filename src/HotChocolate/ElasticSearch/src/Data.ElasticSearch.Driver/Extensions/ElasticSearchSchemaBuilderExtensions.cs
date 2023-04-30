@@ -24,6 +24,16 @@ public static class ElasticSearchSchemaBuilderExtensions
         string? name = null) =>
         builder.AddFiltering(new ElasticSearchFilterConvention(), name);
 
+    /// <summary>
+    /// Adds sorting support.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="ISchemaBuilder"/>.
+    /// </param>
+    /// <param name="name"></param>
+    /// <returns>
+    /// Returns the <see cref="ISchemaBuilder"/>.
+    /// </returns>
     public static ISchemaBuilder AddElasticSearchSorting(
         this ISchemaBuilder builder,
         string? name = null) =>

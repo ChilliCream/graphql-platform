@@ -6,8 +6,6 @@ namespace HotChocolate.Data.ElasticSearch.Sorting;
 public class ElasticSearchSortVisitorContext
     : SortVisitorContext<ElasticSearchSortOperation>
 {
-
-
     /// <inheritdoc />
     public ElasticSearchSortVisitorContext(ISortInputType initialType) : base(initialType)
     {

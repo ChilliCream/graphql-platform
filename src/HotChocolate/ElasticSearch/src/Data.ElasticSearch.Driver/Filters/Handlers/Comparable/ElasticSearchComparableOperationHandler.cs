@@ -1,6 +1,5 @@
 ﻿using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.ElasticSearch.Filters.Comparable;
@@ -18,11 +17,13 @@ public abstract class ElasticSearchComparableOperationHandler : ElasticSearchOpe
     protected abstract int Operation { get; }
 
     /// <inheritdoc />
-    public override bool CanHandle(ITypeCompletionContext context, IFilterInputTypeDefinition typeDefinition,
+    public override bool CanHandle(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
     {
         return context.Type is IComparableOperationFilterInputType &&
-               fieldDefinition is FilterOperationFieldDefinition operationField &&
-               operationField.Id == Operation;
+            fieldDefinition is FilterOperationFieldDefinition operationField &&
+            operationField.Id == Operation;
     }
 }

@@ -7,12 +7,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.ElasticSearch.Sorting.Handlers;
 
-public abstract class ElasticSearchSortOperationHandlerBase : SortOperationHandler<ElasticSearchSortVisitorContext, ElasticSearchSortOperation>
+public abstract class ElasticSearchSortOperationHandlerBase
+    : SortOperationHandler<ElasticSearchSortVisitorContext, ElasticSearchSortOperation>
 {
     private readonly int _operation;
     private readonly ElasticSearchSortDirection _sortDirection;
 
-    public ElasticSearchSortOperationHandlerBase(int operation, ElasticSearchSortDirection sortDirection)
+    public ElasticSearchSortOperationHandlerBase(
+        int operation,
+        ElasticSearchSortDirection sortDirection)
     {
         _operation = operation;
         _sortDirection = sortDirection;

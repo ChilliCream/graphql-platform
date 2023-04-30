@@ -38,7 +38,7 @@ public abstract class FilterTestBase<TData, TFilterType> : TestBase
     {
         return await new ServiceCollection()
             .AddGraphQL()
-            .AddFiltering(x => x.BindRuntimeType<TData,TFilterType>().AddElasticSearchDefaults())
+            .AddFiltering(x => x.BindRuntimeType<TData, TFilterType>().AddElasticSearchDefaults())
             .AddQueryType(x => x
                 .Name("Query")
                 .Field("test")

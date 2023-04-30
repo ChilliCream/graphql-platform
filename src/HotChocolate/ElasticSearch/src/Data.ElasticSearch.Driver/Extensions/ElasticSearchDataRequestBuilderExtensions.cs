@@ -24,7 +24,18 @@ public static class ElasticSearchDataRequestBuilderExtensions
         string? name = null) =>
         builder.ConfigureSchema(s => s.AddElasticSearchFiltering(name));
 
-    public static IRequestExecutorBuilder AddElasticSearchSorting(this IRequestExecutorBuilder builder,
+    /// <summary>
+    /// Adds sorting support.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="name"></param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/>.
+    /// </returns>
+    public static IRequestExecutorBuilder AddElasticSearchSorting(
+        this IRequestExecutorBuilder builder,
         string? name = null) => builder.ConfigureSchema(s => s.AddElasticSearchSorting(name));
 
     /// <summary>
