@@ -9,10 +9,11 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Validation;
 using static System.Linq.Expressions.Expression;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Pipeline.Complexity;
 
-internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorVisitor
+internal sealed class ComplexityAnalyzerCompiler : TypeDocumentValidatorVisitor
 {
     private static readonly MethodInfo _getService =
         typeof(IServiceProvider).GetMethod("GetService")!;
@@ -23,7 +24,7 @@ internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorV
     private readonly ParameterExpression _services =
         Parameter(typeof(IServiceProvider), "services");
 
-    public ComplexityAnalyzerCompilerVisitor(ComplexityAnalyzerSettings settings)
+    public ComplexityAnalyzerCompiler(ComplexityAnalyzerSettings settings)
     {
         _settings = Constant(settings, typeof(ComplexityAnalyzerSettings));
     }
@@ -31,10 +32,7 @@ internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorV
     protected override ISyntaxVisitorAction Enter(
         DocumentNode node,
         IDocumentValidatorContext context)
-    {
-        context.List.Push(new List<OperationComplexityAnalyzer>());
-        return base.Enter(node, context);
-    }
+        => throw new InvalidOperationException(ComplexityAnalyzerCompiler_Enter_OnlyOperations);
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
@@ -49,14 +47,14 @@ internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorV
         IDocumentValidatorContext context)
     {
         var expressions = (List<Expression>)context.List.Pop()!;
-        var analyzers = (List<OperationComplexityAnalyzer>)context.List.Peek()!;
 
-        analyzers.Add(new OperationComplexityAnalyzer(
-            node,
-            Lambda<ComplexityAnalyzerDelegate>(
-                Combine(expressions),
-                _services,
-                _variables).Compile()));
+        context.List.Push(
+            new OperationComplexityAnalyzer(
+                node,
+                Lambda<ComplexityAnalyzerDelegate>(
+                    Combine(expressions),
+                    _services,
+                    _variables).Compile()));
 
         return base.Leave(node, context);
     }

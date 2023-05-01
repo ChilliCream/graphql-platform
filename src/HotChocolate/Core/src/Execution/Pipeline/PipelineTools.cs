@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
@@ -6,42 +7,51 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class PipelineTools
 {
-    private static readonly IReadOnlyDictionary<string, object?> _empty =
-        new Dictionary<string, object?>();
-    private static readonly VariableValueCollection _noVariables =
-        VariableValueCollection.Empty;
+    private static readonly Dictionary<string, object?> _empty = new();
+    private static readonly VariableValueCollection _noVariables = VariableValueCollection.Empty;
 
-    public static string CreateOperationId(string documentId, string? operationName) =>
-        operationName is null ? documentId : $"{documentId}+{operationName}";
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string CreateOperationId(string documentId, string? operationName)
+        => operationName is null ? documentId : $"{documentId}+{operationName}";
 
-    public static string CreateCacheId(this IRequestContext context, string operationId) =>
-        $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string CreateCacheId(this IRequestContext context, string operationId)
+        => $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string CreateCacheId(
+        this IRequestContext context,
+        string documentId,
+        string? operationName)
+        => CreateCacheId(context, CreateOperationId(documentId, operationName));
 
     public static void CoerceVariables(
         IRequestContext context,
         VariableCoercionHelper coercionHelper,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions)
     {
-        if (context.Variables is null)
+        if (context.Variables is not null)
         {
-            if (variableDefinitions.Count == 0)
-            {
-                context.Variables = _noVariables;
-            }
-            else
-            {
-                using (context.DiagnosticEvents.CoerceVariables(context))
-                {
-                    var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+            return;
+        }
 
-                    coercionHelper.CoerceVariableValues(
-                        context.Schema,
-                        variableDefinitions,
-                        context.Request.VariableValues ?? _empty,
-                        coercedValues);
+        if (variableDefinitions.Count == 0)
+        {
+            context.Variables = _noVariables;
+        }
+        else
+        {
+            using (context.DiagnosticEvents.CoerceVariables(context))
+            {
+                var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
-                    context.Variables = new VariableValueCollection(coercedValues);
-                }
+                coercionHelper.CoerceVariableValues(
+                    context.Schema,
+                    variableDefinitions,
+                    context.Request.VariableValues ?? _empty,
+                    coercedValues);
+
+                context.Variables = new VariableValueCollection(coercedValues);
             }
         }
     }
