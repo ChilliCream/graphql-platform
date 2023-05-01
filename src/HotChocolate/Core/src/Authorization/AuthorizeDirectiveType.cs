@@ -6,7 +6,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Authorization;
@@ -50,7 +49,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
                 "Defines when when the authorize directive shall be applied." +
                 "By default the authorize directives are applied during the validation phase.")
             .Type<NonNullType<ApplyPolicyType>>()
-            .DefaultValue(ApplyPolicy.Validation);
+            .DefaultValue(ApplyPolicy.BeforeResolver);
 
         var context = descriptor.Extend().Context;
         descriptor.Use(CreateMiddleware(context.Services));
