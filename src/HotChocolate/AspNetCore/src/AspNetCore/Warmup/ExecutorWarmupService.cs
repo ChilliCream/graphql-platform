@@ -6,6 +6,7 @@ internal class ExecutorWarmupService : BackgroundService
 {
     private readonly IRequestExecutorResolver _executorResolver;
     private readonly Dictionary<string, WarmupSchemaTask[]> _tasks;
+    private IDisposable? _eventSubscription;
     private CancellationToken _stopping;
 
     public ExecutorWarmupService(
@@ -25,7 +26,8 @@ internal class ExecutorWarmupService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _stopping = stoppingToken;
-        _executorResolver.RequestExecutorEvicted += (_, args) => BeginWarmup(args.Name);
+        _eventSubscription = _executorResolver.Events.Subscribe(
+            new WarmupObserver(name => BeginWarmup(name)));
 
         foreach (var task in _tasks)
         {
@@ -61,5 +63,33 @@ internal class ExecutorWarmupService : BackgroundService
         {
             await warmup.ExecuteAsync(executor, ct);
         }
+    }
+
+    public override void Dispose()
+    {
+        _eventSubscription?.Dispose();
+        base.Dispose();
+    }
+
+    private sealed class WarmupObserver : IObserver<RequestExecutorEvent>
+    {
+        public WarmupObserver(Action<string> onEvicted)
+        {
+            OnEvicted = onEvicted;
+        }
+
+        public Action<string> OnEvicted { get; }
+
+        public void OnNext(RequestExecutorEvent value)
+        {
+            if (value.Type is RequestExecutorEventType.Evicted)
+            {
+                OnEvicted(value.Name);
+            }
+        }
+
+        public void OnError(Exception error) { }
+
+        public void OnCompleted() { }
     }
 }
