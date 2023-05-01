@@ -193,10 +193,8 @@ public class UsePagingAttributeTests
         }
 
         [NodeResolver]
-        public Query1 GetQuery()
-        {
-            return new Query1();
-        }
+        public static Query1 GetQuery()
+            => new();
     }
 
     [ExtendObjectType("Query")]

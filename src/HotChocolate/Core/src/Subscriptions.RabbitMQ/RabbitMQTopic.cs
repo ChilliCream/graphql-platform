@@ -27,7 +27,6 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
     }
 
     protected override async ValueTask<IDisposable> OnConnectAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
         CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
@@ -43,8 +42,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             try
             {
                 var serializedMessage = Encoding.UTF8.GetString(args.Body.Span);
-
-                await DispatchAsync(incoming, serializedMessage).ConfigureAwait(false);
+                await DispatchAsync(serializedMessage, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -62,22 +60,29 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         {
             channel.BasicCancelNoWait(consumerTag);
             consumer.Received -= Received;
-            DiagnosticEvents.ProviderTopicInfo(Name, Subscription_Unsubscribe_UnsubscribedFromRabbitMQ);
+            DiagnosticEvents.ProviderTopicInfo(Name, Subscription_UnsubscribedFromRabbitMQ);
         });
     }
 
     private async ValueTask DispatchAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
-        string serializedMessage)
+        string serializedMessage,
+        CancellationToken cancellationToken)
     {
         // we ensure that if there is noise on the channel we filter it out.
         if (!string.IsNullOrEmpty(serializedMessage))
         {
             DiagnosticEvents.Received(Name, serializedMessage);
 
-            var envelope = _serializer.Deserialize<MessageEnvelope<TMessage>>(serializedMessage);
+            var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
 
-            await incoming.WriteAsync(envelope).ConfigureAwait(false);
+            if (envelope.Kind is MessageKind.Completed)
+            {
+                TryComplete();
+            }
+            else if (envelope.Body is { } body)
+            {
+                await PublishAsync(body, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 

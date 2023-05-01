@@ -1,12 +1,10 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
-using System.Transactions;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -14,24 +12,35 @@ internal sealed class QueryPlan
 {
     private readonly IOperation _operation;
     private readonly IReadOnlyDictionary<ISelectionSet, string[]> _exportKeysLookup;
-    private readonly IReadOnlySet<ISelectionSet> _hasNodes;
+    private readonly IReadOnlySet<ISelectionSet> _selectionSets;
 
     public QueryPlan(
         IOperation operation,
         QueryPlanNode rootNode,
         IReadOnlyDictionary<ISelectionSet, string[]> exportKeysLookup,
-        IReadOnlySet<ISelectionSet> hasNodes)
+        IReadOnlySet<ISelectionSet> selectionSets)
     {
         _operation = operation;
         _exportKeysLookup = exportKeysLookup;
-        _hasNodes = hasNodes;
+        _selectionSets = selectionSets;
         RootNode = rootNode;
     }
 
     public QueryPlanNode RootNode { get; }
 
-    public bool HasNodes(ISelectionSet selectionSet)
-        => _hasNodes.Contains(selectionSet);
+    /// <summary>
+    /// Specifies if the query plan has nodes to fetch data for the specified
+    /// selection set.
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The selection set in question.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if there query plan has nodes to fetch data for the
+    /// specified selection set; otherwise, <c>false</c>.
+    /// </returns>
+    public bool HasNodesFor(ISelectionSet selectionSet)
+        => _selectionSets.Contains(selectionSet);
 
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
         => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : Array.Empty<string>();
@@ -40,7 +49,7 @@ internal sealed class QueryPlan
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
-        if (RootNode is SubscriptionNode)
+        if (RootNode is Subscribe)
         {
             // TODO : exception
             throw new InvalidOperationException(
@@ -83,7 +92,7 @@ internal sealed class QueryPlan
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
-        if (RootNode is not SubscriptionNode subscriptionNode)
+        if (RootNode is not Subscribe subscriptionNode)
         {
             // TODO : exception
             throw new InvalidOperationException(

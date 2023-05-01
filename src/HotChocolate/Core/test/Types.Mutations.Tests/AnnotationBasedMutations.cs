@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using CookieCrumble;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace HotChocolate.Types;
 
@@ -120,6 +122,27 @@ public class AnnotationBasedMutations
                 .ExecuteRequestAsync(
                     @"mutation {
                         doSomething(input: { something: ""abc"" }) {
+                            string
+                        }
+                    }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SimpleJsonMutationExtension_Inferred_Execute()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType()
+                .AddTypeExtension<SimpleJsonMutationExtension>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: { something: 10 }) {
                             string
                         }
                     }");
@@ -685,7 +708,7 @@ public class AnnotationBasedMutations
     [Fact]
     public async Task Union_Result_4_Success()
     {
-        var result=
+        var result =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddMutationType<MutationWithUnionResult4_Success>()
@@ -964,6 +987,29 @@ public class AnnotationBasedMutations
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Mutation_Aggregate_Error_Not_Mapped()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationAggregateError>()
+                .AddMutationConventions()
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething2(input: { userId: 1 }) {
+                            userId
+                            errors {
+                                __typename
+                            }
+                        }
+                    }");
+
+        result.MatchSnapshot();
+    }
+
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -981,6 +1027,13 @@ public class AnnotationBasedMutations
     {
         public string DoSomething(string something)
             => something;
+    }
+
+    [ExtendObjectType("Mutation")]
+    public class SimpleJsonMutationExtension
+    {
+        public string DoSomething(System.Text.Json.JsonElement something)
+            => "Done";
     }
 
     public class SimpleMutationAttribute
@@ -1271,6 +1324,18 @@ public class AnnotationBasedMutations
             => userId.HasValue
                 ? new DoSomething2Payload(userId)
                 : throw new CustomException();
+    }
+
+    public class MutationAggregateError
+    {
+        [Error<CustomException>]
+        public DoSomething2Payload DoSomething2(int? userId)
+        {
+            var errors = new List<Exception>();
+            errors.Add(new CustomException());
+            errors.Add(new Custom2Exception());
+            throw new AggregateException(errors);
+        }
     }
 
     public record DoSomething2Payload(int? UserId);

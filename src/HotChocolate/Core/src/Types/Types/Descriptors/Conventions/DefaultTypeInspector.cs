@@ -27,6 +27,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 {
     private const string _toString = "ToString";
     private const string _getHashCode = "GetHashCode";
+    private const string _compareTo = "CompareTo";
     private const string _equals = "Equals";
     private const string _clone = "<Clone>$";
 
@@ -168,7 +169,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     }
 
     /// <inheritdoc />
-    public IExtendedType GetArgumentType(
+    public virtual IExtendedType GetArgumentType(
         ParameterInfo parameter,
         bool ignoreAttributes = false)
     {
@@ -890,6 +891,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             (m.Name.EqualsOrdinal(_toString) ||
                 m.Name.EqualsOrdinal(_getHashCode) ||
                 m.Name.EqualsOrdinal(_equals) ||
+                m.Name.EqualsOrdinal(_compareTo) ||
                 m.Name.EqualsOrdinal(_clone)))
         {
             return true;

@@ -12,6 +12,21 @@ public sealed class ExtendedTypeReference
     : TypeReference
     , IEquatable<ExtendedTypeReference>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ExtendedTypeReference"/>.
+    /// </summary>
+    /// <param name="type">
+    /// The extended type.
+    /// </param>
+    /// <param name="context">
+    /// The type context.
+    /// </param>
+    /// <param name="scope">
+    /// The type scope.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     internal ExtendedTypeReference(
         IExtendedType type,
         TypeContext context,
@@ -91,17 +106,25 @@ public sealed class ExtendedTypeReference
 
     /// <inheritdoc />
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            return base.GetHashCode() ^ Type.GetHashCode() * 397;
-        }
-    }
+        => HashCode.Combine(base.GetHashCode(), Type.GetHashCode());
 
     /// <inheritdoc />
     public override string ToString()
         => ToString(Type);
 
+    /// <summary>
+    /// Creates a new <see cref="ExtendedTypeReference"/> and
+    /// replaces the <see cref="Type"/> with the provided <paramref name="type"/>.
+    /// </summary>
+    /// <param name="type">
+    /// The extended type.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="ExtendedTypeReference"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public ExtendedTypeReference WithType(IExtendedType type)
     {
         if (type is null)
@@ -109,36 +132,87 @@ public sealed class ExtendedTypeReference
             throw new ArgumentNullException(nameof(type));
         }
 
-        return Create(
-            type,
-            Context,
-            Scope);
+        if (type.Equals(Type))
+        {
+            return this;
+        }
+
+        return Create(type, Context, Scope);
     }
 
+    /// <summary>
+    /// Creates a new <see cref="ExtendedTypeReference"/> and replaces the
+    /// <see cref="TypeReference.Context"/> with the provided <paramref name="context"/>.
+    /// </summary>
+    /// <param name="context">
+    /// The type context.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="ExtendedTypeReference"/>.
+    /// </returns>
     public ExtendedTypeReference WithContext(TypeContext context = TypeContext.None)
     {
+        if (context == Context)
+        {
+            return this;
+        }
+
         return Create(
             Type,
             context,
             Scope);
     }
 
+    /// <summary>
+    /// Creates a new <see cref="ExtendedTypeReference"/> and replaces the
+    /// <see cref="TypeReference.Scope"/> with the provided
+    /// <paramref name="scope"/>.
+    /// </summary>
+    /// <param name="scope">
+    /// The type scope.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="ExtendedTypeReference"/>.
+    /// </returns>
     public ExtendedTypeReference WithScope(string? scope = null)
     {
+        if (string.Equals(scope, Scope, StringComparison.Ordinal))
+        {
+            return this;
+        }
+
         return Create(
             Type,
             Context,
             scope);
     }
 
+    /// <summary>
+    /// Creates a new <see cref="ExtendedTypeReference"/> and allows to replace certain aspects
+    /// of the original instance.
+    /// </summary>
+    /// <param name="type">
+    /// The extended type.
+    /// </param>
+    /// <param name="context">
+    /// The type context.
+    /// </param>
+    /// <param name="scope">
+    /// The type scope.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="ExtendedTypeReference"/>.
+    /// </returns>
     public ExtendedTypeReference With(
         IExtendedType? type = default,
         Optional<TypeContext> context = default,
         Optional<string?> scope = default)
-    {
-        return Create(
+        => Create(
             type ?? Type,
-            context.HasValue ? context.Value : Context,
-            scope.HasValue ? scope.Value : Scope);
-    }
+            context.HasValue
+                ? context.Value
+                : Context,
+            scope.HasValue
+                ? scope.Value
+                : Scope);
 }

@@ -4,6 +4,6 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netcoreapp2.1'">
-    <Compile Include="$(MSBuildThisFileDirectory)/Nullable.cs" />
+    <Compile Condition="'$(MSBuildProjectExtension)' == '.csproj'" Include="$(MSBuildThisFileDirectory)/Nullable.cs" />
   </ItemGroup>
 </Project>

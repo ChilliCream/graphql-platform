@@ -2,6 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Stitching.ThrowHelper;
@@ -88,8 +89,8 @@ internal sealed class BufferedRequest
     {
         if (request.VariableValues is { Count: > 0 })
         {
-            var converter = schema.Services.GetTypeConverter();
-            var formatter = schema.Services.GetRequiredService<InputFormatter>();
+            var converter = GetTypeConverter(schema);
+            var formatter = GetInputFormatter(schema);
             var builder = QueryRequestBuilder.From(request);
 
             foreach (var variable in request.VariableValues)
@@ -114,6 +115,41 @@ internal sealed class BufferedRequest
         return request;
     }
 
+    private static InputFormatter GetInputFormatter(ISchema schema)
+    {
+        var converter = schema.Services.GetService<InputFormatter>();
+        if (converter is not null)
+        {
+            return converter;
+        }
+
+        var appServices = schema.Services.GetService<IApplicationServiceProvider>();
+        if (appServices is not null)
+        {
+            converter = appServices.GetService<InputFormatter>();
+        }
+
+        return converter ?? throw new ArgumentException(
+            "Could not resolver an input formatter.");
+    }
+
+    private static ITypeConverter GetTypeConverter(ISchema schema)
+    {
+        var converter = schema.Services.GetService<ITypeConverter>();
+        if (converter is not null)
+        {
+            return converter;
+        }
+
+        var appServices = schema.Services.GetService<IApplicationServiceProvider>();
+        if (appServices is not null)
+        {
+            converter = appServices.GetService<ITypeConverter>();
+        }
+
+        return converter ?? DefaultTypeConverter.Default;
+    }
+
     private static IValueNode RewriteVariable(
         OperationDefinitionNode operation,
         string name,
@@ -123,8 +159,9 @@ internal sealed class BufferedRequest
         InputFormatter inputFormatter)
     {
         var variableDefinition =
-            operation.VariableDefinitions.FirstOrDefault(t =>
-                string.Equals(t.Variable.Name.Value, name, StringComparison.Ordinal));
+            operation.VariableDefinitions.FirstOrDefault(
+                t =>
+                    string.Equals(t.Variable.Name.Value, name, StringComparison.Ordinal));
 
         if (variableDefinition is not null &&
             schema.TryGetType<INamedInputType>(

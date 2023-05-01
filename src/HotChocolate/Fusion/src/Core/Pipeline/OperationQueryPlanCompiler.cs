@@ -5,27 +5,18 @@ namespace HotChocolate.Fusion.Pipeline;
 
 internal sealed class OperationQueryPlanCompiler : IOperationOptimizer
 {
-    private readonly RequestPlanner _requestPlanner;
-    private readonly RequirementsPlanner _requirementsPlanner;
-    private readonly ExecutionPlanBuilder _executionPlanBuilder;
+    private readonly QueryPlanner _queryPlanner;
 
-    public OperationQueryPlanCompiler(
-        RequestPlanner requestPlanner,
-        RequirementsPlanner requirementsPlanner,
-        ExecutionPlanBuilder executionPlanBuilder)
+    public OperationQueryPlanCompiler(QueryPlanner queryPlanner)
     {
-        _requestPlanner = requestPlanner;
-        _requirementsPlanner = requirementsPlanner;
-        _executionPlanBuilder = executionPlanBuilder;
+        _queryPlanner = queryPlanner ??
+            throw new ArgumentNullException(nameof(queryPlanner));
     }
 
     public void OptimizeOperation(OperationOptimizerContext context)
     {
-        var temporaryOperation = context.CreateOperation();
-        var queryPlanContext = new QueryPlanContext(temporaryOperation);
-        _requestPlanner.Plan(queryPlanContext);
-        _requirementsPlanner.Plan(queryPlanContext);
-        var queryPlan = _executionPlanBuilder.Build(queryPlanContext);
+        var operation = context.CreateOperation();
+        var queryPlan = _queryPlanner.Plan(operation);
         context.ContextData[PipelineProps.QueryPlan] = queryPlan;
     }
 }

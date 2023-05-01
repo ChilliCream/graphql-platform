@@ -175,40 +175,53 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         // this schema and also to lookup types in order correctly convert between scalars.
         builder
             .AddGraphQL(schemaName)
-            .ConfigureSchemaServices(services =>
-            {
-                services.TryAddSingleton(
-                    sp => new HttpRequestClient(
-                        sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
-                        sp.GetRequiredService<IErrorHandler>(),
-                        sp.GetCombinedServices()
-                            .GetRequiredService<IHttpStitchingRequestInterceptor>()));
-
-                services.TryAddSingleton<
-                    IHttpStitchingRequestInterceptor,
-                    HttpStitchingRequestInterceptor>();
-            })
-            .ConfigureSchemaAsync(
-                async (services, schemaBuilder, cancellationToken) =>
+            .Configure(
+                setup =>
                 {
-                    // No we need to load the schema document.
-                    var schemaDef =
-                        await loadSchema(services, cancellationToken)
-                            .ConfigureAwait(false);
+                    setup.OnConfigureSchemaServicesHooks.Add(
+                        (_, services) =>
+                        {
+                            services.TryAddSingleton(
+                                sp => new HttpRequestClient(
+                                    sp.GetCombinedServices()
+                                        .GetRequiredService<IHttpClientFactory>(),
+                                    sp.GetRequiredService<IErrorHandler>(),
+                                    sp.GetCombinedServices()
+                                        .GetRequiredService<IHttpStitchingRequestInterceptor>()));
 
-                    var document = schemaDef.Document.RemoveBuiltInTypes();
+                            services.TryAddSingleton<
+                                IHttpStitchingRequestInterceptor,
+                                HttpStitchingRequestInterceptor>();
+                        });
 
-                    // We store the schema definition on the schema building context
-                    // and copy it to the schema once that is built.
-                    schemaBuilder
-                        .SetContextData(typeof(RemoteSchemaDefinition).FullName!, schemaDef)
-                        .TryAddTypeInterceptor<CopySchemaDefinitionTypeInterceptor>();
+                    setup.OnConfigureSchemaBuilderHooks.Add(
+                        new OnConfigureSchemaBuilderAction(
+                            async (context, _, ct) =>
+                            {
+                                var services = context.ApplicationServices;
+                                var schemaBuilder = context.SchemaBuilder;
 
-                    // The document is used to create a SDL-first schema ...
-                    schemaBuilder.AddDocument(document);
+                                // No we need to load the schema document.
+                                var schemaDef =
+                                    await loadSchema(services, ct)
+                                        .ConfigureAwait(false);
 
-                    // ... which will fail if any resolver is actually used ...
-                    schemaBuilder.Use(_ => _ => throw new NotSupportedException());
+                                var document = schemaDef.Document.RemoveBuiltInTypes();
+
+                                // We store the schema definition on the schema building context
+                                // and copy it to the schema once that is built.
+                                schemaBuilder
+                                    .SetContextData(
+                                        typeof(RemoteSchemaDefinition).FullName!,
+                                        schemaDef)
+                                    .TryAddTypeInterceptor<CopySchemaDefinitionTypeInterceptor>();
+
+                                // The document is used to create a SDL-first schema ...
+                                schemaBuilder.AddDocument(document);
+
+                                // ... which will fail if any resolver is actually used ...
+                                schemaBuilder.Use(_ => _ => throw new NotSupportedException());
+                            }));
                 })
             // ... instead we are using a special request pipeline that does everything like
             // the standard pipeline except the last middleware will not start the execution
@@ -219,112 +232,127 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         // that the stitching runtime will use to send requests to the schema representing
         // the downstream service.
         builder
-            .ConfigureSchemaAsync(async (services, schemaBuilder, cancellationToken) =>
-            {
-                var noLockExecutorResolver =
-                    services.GetRequiredService<IInternalRequestExecutorResolver>();
-
-                var executor = await noLockExecutorResolver
-                    .GetRequestExecutorNoLockAsync(schemaName, cancellationToken)
-                    .ConfigureAwait(false);
-
-                var autoProxy = AutoUpdateRequestExecutorProxy.Create(
-                    new RequestExecutorProxy(
-                        services.GetRequiredService<IRequestExecutorResolver>(),
-                        schemaName),
-                    executor);
-
-                schemaBuilder
-                    .AddRemoteExecutor(schemaName, autoProxy)
-                    .TryAddTypeInterceptor<StitchingSchemaInterceptor>()
-                    .TryAddTypeInterceptor<StitchingTypeInterceptor>();
-
-                var schemaDefinition =
-                    (RemoteSchemaDefinition)autoProxy.Schema
-                        .ContextData[typeof(RemoteSchemaDefinition).FullName!]!;
-
-                var extensionsRewriter = new SchemaExtensionsRewriter();
-
-                foreach (var extensionDocument in schemaDefinition.ExtensionDocuments)
+            .Configure(
+                setup =>
                 {
-                    var doc = (DocumentNode)extensionsRewriter.Rewrite(
-                        extensionDocument, new(schemaName))!;
+                    setup.OnConfigureSchemaBuilderHooks.Add(
+                        new OnConfigureSchemaBuilderAction(
+                            async (context, _, ct) =>
+                            {
+                                var schemaBuilder = context.SchemaBuilder;
+                                var services = context.ApplicationServices;
 
-                    var schemaExtension =
-                        doc.Definitions.OfType<SchemaExtensionNode>().FirstOrDefault();
+                                var noLockExecutorResolver =
+                                    services.GetRequiredService<IInternalRequestExecutorResolver>();
 
-                    if (schemaExtension is not null &&
-                        schemaExtension.Directives.Count == 0 &&
-                        schemaExtension.OperationTypes.Count == 0)
-                    {
-                        var definitions = doc.Definitions.ToList();
-                        definitions.Remove(schemaExtension);
-                        doc = doc.WithDefinitions(definitions);
-                    }
+                                var executor = await noLockExecutorResolver
+                                    .GetRequestExecutorNoLockAsync(schemaName, ct)
+                                    .ConfigureAwait(false);
 
-                    schemaBuilder.AddTypeExtensions(doc);
-                }
+                                var autoProxy = AutoUpdateRequestExecutorProxy.Create(
+                                    new RequestExecutorProxy(
+                                        services.GetRequiredService<IRequestExecutorResolver>(),
+                                        schemaName),
+                                    executor);
 
-                schemaBuilder.AddTypeRewriter(
-                    new RemoveFieldRewriter(
-                        new FieldReference(
-                            autoProxy.Schema.QueryType.Name,
-                            SchemaDefinitionFieldNames.SchemaDefinitionField),
-                        schemaName));
+                                schemaBuilder
+                                    .AddRemoteExecutor(schemaName, autoProxy)
+                                    .TryAddTypeInterceptor<StitchingSchemaInterceptor>()
+                                    .TryAddTypeInterceptor<StitchingTypeInterceptor>();
 
-                schemaBuilder.AddDocumentRewriter(
-                    new RemoveTypeRewriter(
-                        SchemaDefinitionType.Names.SchemaDefinition,
-                        schemaName));
+                                var schemaDefinition =
+                                    (RemoteSchemaDefinition)autoProxy.Schema
+                                        .ContextData[typeof(RemoteSchemaDefinition).FullName!]!;
 
-                foreach (var schemaAction in extensionsRewriter.SchemaActions)
-                {
-                    switch (schemaAction.Name.Value)
-                    {
-                        case DirectiveNames.RemoveRootTypes:
-                            schemaBuilder.AddDocumentRewriter(
-                                new RemoveRootTypeRewriter(schemaName));
-                            break;
+                                var extensionsRewriter = new SchemaExtensionsRewriter();
 
-                        case DirectiveNames.RemoveType:
-                            schemaBuilder.AddDocumentRewriter(
-                                new RemoveTypeRewriter(
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RemoveType_TypeName),
-                                    schemaName));
-                            break;
+                                foreach (var extensionDocument in schemaDefinition
+                                    .ExtensionDocuments)
+                                {
+                                    var doc = (DocumentNode)extensionsRewriter.Rewrite(
+                                        extensionDocument,
+                                        new(schemaName))!;
 
-                        case DirectiveNames.RenameType:
-                            schemaBuilder.AddTypeRewriter(
-                                new RenameTypeRewriter(
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameType_TypeName),
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameType_NewTypeName),
-                                    schemaName));
-                            break;
+                                    var schemaExtension =
+                                        doc.Definitions.OfType<SchemaExtensionNode>()
+                                            .FirstOrDefault();
 
-                        case DirectiveNames.RenameField:
-                            schemaBuilder.AddTypeRewriter(
-                                new RenameFieldRewriter(
-                                    new FieldReference(
-                                        GetArgumentValue(
-                                            schemaAction,
-                                            DirectiveFieldNames.RenameField_TypeName),
-                                        GetArgumentValue(
-                                            schemaAction,
-                                            DirectiveFieldNames.RenameField_FieldName)),
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameField_NewFieldName),
-                                    schemaName));
-                            break;
-                    }
-                }
-            });
+                                    if (schemaExtension is not null &&
+                                        schemaExtension.Directives.Count == 0 &&
+                                        schemaExtension.OperationTypes.Count == 0)
+                                    {
+                                        var definitions = doc.Definitions.ToList();
+                                        definitions.Remove(schemaExtension);
+                                        doc = doc.WithDefinitions(definitions);
+                                    }
+
+                                    schemaBuilder.AddTypeExtensions(doc);
+                                }
+
+                                schemaBuilder.AddTypeRewriter(
+                                    new RemoveFieldRewriter(
+                                        new FieldReference(
+                                            autoProxy.Schema.QueryType.Name,
+                                            SchemaDefinitionFieldNames.SchemaDefinitionField),
+                                        schemaName));
+
+                                schemaBuilder.AddDocumentRewriter(
+                                    new RemoveTypeRewriter(
+                                        SchemaDefinitionType.Names.SchemaDefinition,
+                                        schemaName));
+
+                                foreach (var schemaAction in extensionsRewriter.SchemaActions)
+                                {
+                                    switch (schemaAction.Name.Value)
+                                    {
+                                        case DirectiveNames.RemoveRootTypes:
+                                            schemaBuilder.AddDocumentRewriter(
+                                                new RemoveRootTypeRewriter(schemaName));
+                                            break;
+
+                                        case DirectiveNames.RemoveType:
+                                            schemaBuilder.AddDocumentRewriter(
+                                                new RemoveTypeRewriter(
+                                                    GetArgumentValue(
+                                                        schemaAction,
+                                                        DirectiveFieldNames.RemoveType_TypeName),
+                                                    schemaName));
+                                            break;
+
+                                        case DirectiveNames.RenameType:
+                                            schemaBuilder.AddTypeRewriter(
+                                                new RenameTypeRewriter(
+                                                    GetArgumentValue(
+                                                        schemaAction,
+                                                        DirectiveFieldNames.RenameType_TypeName),
+                                                    GetArgumentValue(
+                                                        schemaAction,
+                                                        DirectiveFieldNames.RenameType_NewTypeName),
+                                                    schemaName));
+                                            break;
+
+                                        case DirectiveNames.RenameField:
+                                            schemaBuilder.AddTypeRewriter(
+                                                new RenameFieldRewriter(
+                                                    new FieldReference(
+                                                        GetArgumentValue(
+                                                            schemaAction,
+                                                            DirectiveFieldNames
+                                                                .RenameField_TypeName),
+                                                        GetArgumentValue(
+                                                            schemaAction,
+                                                            DirectiveFieldNames
+                                                                .RenameField_FieldName)),
+                                                    GetArgumentValue(
+                                                        schemaAction,
+                                                        DirectiveFieldNames
+                                                            .RenameField_NewFieldName),
+                                                    schemaName));
+                                            break;
+                                    }
+                                }
+                            }));
+                });
 
         // Last but not least, we will setup the stitching context which will
         // provide access to the remote executors which in turn use the just configured
@@ -332,8 +360,9 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         builder.ConfigureSchemaServices(
             c => c.TryAddSingleton<IRequestContextEnricher, StitchingContextEnricher>());
 
-        if (builder.Services.All(t => t.ImplementationType !=
-            typeof(StitchingContextParameterExpressionBuilder)))
+        if (builder.Services.All(
+            t => t.ImplementationType !=
+                typeof(StitchingContextParameterExpressionBuilder)))
         {
             builder.Services.AddSingleton<IParameterExpressionBuilder,
                 StitchingContextParameterExpressionBuilder>();
@@ -363,38 +392,47 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         // that the stitching runtime will use to send requests to the schema representing
         // the downstream service.
         builder
-            .ConfigureSchemaAsync(async (services, schemaBuilder, cancellationToken) =>
-            {
-                var noLockExecutorResolver =
-                    services.GetRequiredService<IInternalRequestExecutorResolver>();
+            .Configure(
+                setup =>
+                {
+                    setup.OnConfigureSchemaBuilderHooks.Add(
+                        new OnConfigureSchemaBuilderAction(
+                            async (context, _, ct) =>
+                            {
+                                var schemaBuilder = context.SchemaBuilder;
+                                var services = context.ApplicationServices;
 
-                var executor = await noLockExecutorResolver
-                    .GetRequestExecutorNoLockAsync(schemaName, cancellationToken)
-                    .ConfigureAwait(false);
+                                var noLockExecutorResolver =
+                                    services.GetRequiredService<IInternalRequestExecutorResolver>();
 
-                var autoProxy = AutoUpdateRequestExecutorProxy.Create(
-                    new RequestExecutorProxy(
-                        services.GetRequiredService<IRequestExecutorResolver>(),
-                        schemaName),
-                    executor);
+                                var executor = await noLockExecutorResolver
+                                    .GetRequestExecutorNoLockAsync(schemaName, ct)
+                                    .ConfigureAwait(false);
 
-                schemaBuilder
-                    .AddRemoteExecutor(schemaName, autoProxy)
-                    .TryAddTypeInterceptor<StitchingSchemaInterceptor>()
-                    .TryAddTypeInterceptor<StitchingTypeInterceptor>();
+                                var autoProxy = AutoUpdateRequestExecutorProxy.Create(
+                                    new RequestExecutorProxy(
+                                        services.GetRequiredService<IRequestExecutorResolver>(),
+                                        schemaName),
+                                    executor);
 
-                schemaBuilder.AddTypeRewriter(
-                    new RemoveFieldRewriter(
-                        new FieldReference(
-                            autoProxy.Schema.QueryType.Name,
-                            SchemaDefinitionFieldNames.SchemaDefinitionField),
-                        schemaName));
+                                schemaBuilder
+                                    .AddRemoteExecutor(schemaName, autoProxy)
+                                    .TryAddTypeInterceptor<StitchingSchemaInterceptor>()
+                                    .TryAddTypeInterceptor<StitchingTypeInterceptor>();
 
-                schemaBuilder.AddDocumentRewriter(
-                    new RemoveTypeRewriter(
-                        SchemaDefinitionType.Names.SchemaDefinition,
-                        schemaName));
-            });
+                                schemaBuilder.AddTypeRewriter(
+                                    new RemoveFieldRewriter(
+                                        new FieldReference(
+                                            autoProxy.Schema.QueryType.Name,
+                                            SchemaDefinitionFieldNames.SchemaDefinitionField),
+                                        schemaName));
+
+                                schemaBuilder.AddDocumentRewriter(
+                                    new RemoveTypeRewriter(
+                                        SchemaDefinitionType.Names.SchemaDefinition,
+                                        schemaName));
+                            }));
+                });
 
         // Last but not least, we will setup the stitching context which will
         // provide access to the remote executors which in turn use the just configured
@@ -402,8 +440,9 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         builder.ConfigureSchemaServices(
             c => c.TryAddSingleton<IRequestContextEnricher, StitchingContextEnricher>());
 
-        if (builder.Services.All(t => t.ImplementationType !=
-            typeof(StitchingContextParameterExpressionBuilder)))
+        if (builder.Services.All(
+            t => t.ImplementationType !=
+                typeof(StitchingContextParameterExpressionBuilder)))
         {
             builder.Services.AddSingleton<IParameterExpressionBuilder,
                 StitchingContextParameterExpressionBuilder>();
@@ -945,7 +984,8 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         string argumentName,
         string newArgumentName,
         string? schemaName = null) =>
-        RenameField(builder,
+        RenameField(
+            builder,
             new FieldReference(typeName, fieldName),
             argumentName,
             newArgumentName,

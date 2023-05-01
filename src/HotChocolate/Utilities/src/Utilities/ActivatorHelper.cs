@@ -58,9 +58,9 @@ internal static class ActivatorHelper
         return Expression.New(constructor, arguments);
     }
 
-    private static ConstructorInfo ResolveConstructor(Type type)
+    internal static ConstructorInfo ResolveConstructor(Type type)
     {
-        if ((!type.IsClass && !type.IsValueType) || type.IsAbstract)
+        if (type is { IsClass: false, IsValueType: false } || type.IsAbstract)
         {
             throw new InvalidOperationException(
                 string.Format(

@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
@@ -14,6 +15,7 @@ internal partial class MiddlewareContext
     private sealed class PureResolverContext : IPureResolverContext
     {
         private readonly MiddlewareContext _parentContext;
+        private ITypeConverter? _typeConverter;
         private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = default!;
         private ISelection _selection = default!;
         private Path _path = default!;
@@ -184,10 +186,12 @@ internal partial class MiddlewareContext
                 return default!;
             }
 
-            var converter = _parentContext.GetTypeConverter();
+            _typeConverter ??=
+                _parentContext.Services.GetService<ITypeConverter>() ??
+                    DefaultTypeConverter.Default;
 
             if (value is T castedValue ||
-                converter.TryConvert(value, out castedValue))
+                _typeConverter.TryConvert(value, out castedValue))
             {
                 return castedValue;
             }
@@ -205,7 +209,7 @@ internal partial class MiddlewareContext
             // and creating from this the object.
             if (value is IReadOnlyDictionary<string, object> || value is IReadOnlyList<object>)
             {
-                var dictToObjConverter = new DictionaryToObjectConverter(converter);
+                var dictToObjConverter = new DictionaryToObjectConverter(_typeConverter);
 
                 if (typeof(T).IsInterface)
                 {

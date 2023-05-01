@@ -8,7 +8,7 @@ namespace HotChocolate.Subscriptions;
 /// <typeparam name="TBody">
 /// The type of the message body.
 /// </typeparam>
-public sealed class MessageEnvelope<TBody>
+public readonly struct MessageEnvelope<TBody>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="MessageEnvelope{TBody}"/>

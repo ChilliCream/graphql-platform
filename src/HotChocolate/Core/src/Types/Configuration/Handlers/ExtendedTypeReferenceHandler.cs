@@ -69,10 +69,7 @@ internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
 
         foreach (var component in typeInfo.Components)
         {
-            normalizedTypeRef = TypeReference.Create(
-                component.Type,
-                context,
-                scope);
+            normalizedTypeRef = TypeReference.Create(component.Type, context, scope);
 
             if (typeRegistrar.IsResolved(normalizedTypeRef))
             {

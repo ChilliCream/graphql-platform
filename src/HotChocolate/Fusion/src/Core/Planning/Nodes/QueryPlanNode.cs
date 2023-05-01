@@ -19,6 +19,8 @@ internal abstract class QueryPlanNode
 
     public IReadOnlyList<QueryPlanNode> Nodes => _nodes;
 
+    private protected bool IsReadOnly => _isReadOnly;
+
     internal async Task ExecuteAsync(
         FusionExecutionContext context,
         CancellationToken cancellationToken)
@@ -35,13 +37,13 @@ internal abstract class QueryPlanNode
 
     protected virtual Task OnExecuteAsync(
         FusionExecutionContext context,
-        IExecutionState state,
+        ExecutionState state,
         CancellationToken cancellationToken)
         => Task.CompletedTask;
 
     protected virtual async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        IExecutionState state,
+        ExecutionState state,
         CancellationToken cancellationToken)
     {
         for (var i = 0; i < _nodes.Count; i++)
@@ -50,7 +52,7 @@ internal abstract class QueryPlanNode
         }
     }
 
-    internal void AddNode(QueryPlanNode node)
+    internal virtual void AddNode(QueryPlanNode node)
     {
         if (_isReadOnly)
         {
@@ -78,8 +80,8 @@ internal abstract class QueryPlanNode
     {
         writer.WriteStartObject();
         writer.WriteString("type", Kind.ToString());
-        FormatNodesProperty(writer);
         FormatProperties(writer);
+        FormatNodesProperty(writer);
         writer.WriteEndObject();
     }
 
@@ -87,7 +89,7 @@ internal abstract class QueryPlanNode
     {
     }
 
-    private void FormatNodesProperty(Utf8JsonWriter writer)
+    protected virtual void FormatNodesProperty(Utf8JsonWriter writer)
     {
         if (_nodes.Count > 0)
         {
