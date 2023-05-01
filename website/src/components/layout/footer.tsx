@@ -7,6 +7,7 @@ import { Link } from "@/components/misc/link";
 import { Brand, Logo } from "@/components/sprites";
 import { GetFooterDataQuery } from "@/graphql-types";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
+import { SrOnly } from "@/components/misc/sr-only";
 
 // Brands
 import GithubIconSvg from "@/images/brands/github.svg";
@@ -55,51 +56,53 @@ export const Footer: FC = () => {
   return (
     <Container>
       <Section>
-        <About>
+        <Company>
           <LogoContainer>
             <LogoIcon />
             <LogoText />
           </LogoContainer>
-          <Description>
-            We at ChilliCream build the ultimate GraphQL platform.
-            <br />
-            Most of our code is open-source and will forever remain open-source.
-            <br />
-            You can be a valued member of our team. Start helping us today.
-          </Description>
+          <About>
+            <Address>
+              16192 Coastal Highway
+              <br />
+              Lewes, DE 19958
+              <br />
+              United States
+            </Address>
+          </About>
           <Connect>
             <ConnectLink to={tools!.github!}>
               <IconContainer>
                 <GithubIcon />
               </IconContainer>
-              {" to work with us on the platform"}
+              <SrOnly>to work with us on the platform</SrOnly>
             </ConnectLink>
             <ConnectLink to={tools!.slack!}>
               <IconContainer>
                 <SlackIcon />
               </IconContainer>
-              {" to get in touch with us"}
+              <SrOnly>to get in touch with us</SrOnly>
             </ConnectLink>
             <ConnectLink to={tools!.youtube!}>
               <IconContainer>
                 <YouTubeIcon />
               </IconContainer>
-              {" to learn new stuff"}
+              <SrOnly>to learn new stuff</SrOnly>
             </ConnectLink>
             <ConnectLink to={tools!.twitter!}>
               <IconContainer>
                 <TwitterIcon />
               </IconContainer>
-              {" to stay up-to-date"}
+              <SrOnly>to stay up-to-date</SrOnly>
             </ConnectLink>
             <ConnectLink to={tools!.linkedIn!}>
               <IconContainer>
                 <LinkedInIcon />
               </IconContainer>
-              {" to connect"}
+              <SrOnly>to connect</SrOnly>
             </ConnectLink>
           </Connect>
-        </About>
+        </Company>
         <Links>
           <Title>Products</Title>
           <Navigation>
@@ -132,7 +135,10 @@ export const Footer: FC = () => {
         </Links>
       </Section>
       <Section>
-        <Copyright>© {new Date().getFullYear()} ChilliCream</Copyright>
+        <Copyright>
+          <span>© {new Date().getFullYear()} ChilliCream Solutions LLC</span>
+          <span>All Rights Reserved</span>
+        </Copyright>
       </Section>
     </Container>
   );
@@ -156,19 +162,28 @@ const Section = styled.div`
   max-width: 1400px;
 `;
 
-const About = styled.div`
-  display: flex;
+const Company = styled.div`
   flex: 6 1 auto;
-  flex-direction: column;
+  display: grid;
+  grid-template: 1fr 1fr auto;
+  gap: 25px;
   padding: 0 20px;
+
+  @media only screen and (min-width: 768px) {
+    flex-wrap: nowrap;
+  }
 `;
 
 const LogoContainer = styled.div`
   display: flex;
-  flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 10px;
+`;
+
+const About = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
 `;
 
 const LogoIcon = styled(Logo).attrs(LogoIconSvg)`
@@ -182,21 +197,20 @@ const LogoText = styled(Logo).attrs(LogoTextSvg)`
   fill: ${THEME_COLORS.footerText};
 `;
 
-const Description = styled.p`
+const Address = styled.p`
   font-size: 0.833em;
-  line-height: 1.5em;
-  margin-bottom: 10px;
+  line-height: 1.75em;
+  margin: 0;
 `;
 
 const Connect = styled.div`
   display: flex;
   flex: 0 0 auto;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 0 10px;
 `;
 
 const ConnectLink = styled(Link)`
-  flex: 0 0 auto;
-  margin: 5px 0;
   font-size: 0.833em;
   text-decoration: none;
   color: ${THEME_COLORS.footerText};
@@ -286,6 +300,9 @@ const Title = styled.h3`
 `;
 
 const Copyright = styled.div`
-  margin-top: 20px;
-  padding: 0 20px;
+  margin: 30px 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em 1em;
+  font-size: 0.833em;
 `;
