@@ -28,12 +28,16 @@ internal sealed class OperationComplexityMiddleware
         IComplexityAnalyzerCache cache,
         VariableCoercionHelper coercionHelper)
     {
+        if (options == null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
+
         _next = next ??
             throw new ArgumentNullException(nameof(next));
         _contextPool = contextPool ??
             throw new ArgumentNullException(nameof(contextPool));
-        _settings = options?.Complexity ??
-            throw new ArgumentNullException(nameof(options));
+        _settings = options.Complexity;
         _cache = cache ??
             throw new ArgumentNullException(nameof(cache));
         _coercionHelper = coercionHelper ??
