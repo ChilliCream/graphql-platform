@@ -14,6 +14,7 @@ internal sealed class UnionTypeMergeHandler : ITypeMergeHandler
         TypeGroup typeGroup,
         CancellationToken cancellationToken)
     {
+        // If any type in the group is not a union type, skip merging
         if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.Union))
         {
             return new(MergeStatus.Skipped);

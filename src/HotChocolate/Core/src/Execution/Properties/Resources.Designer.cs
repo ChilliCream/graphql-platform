@@ -470,5 +470,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame", resourceCulture);
             }
         }
+        
+        internal static string ComplexityAnalyzerCompiler_Enter_OnlyOperations {
+            get {
+                return ResourceManager.GetString("ComplexityAnalyzerCompiler_Enter_OnlyOperations", resourceCulture);
+            }
+        }
     }
 }

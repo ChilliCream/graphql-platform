@@ -650,7 +650,7 @@ public class AnnotationBasedAuthorizationTests
                           }
                         }
                         """)
-                    .SetGlobalState(nameof(ClaimsPrincipal), new ClaimsPrincipal()));
+                    .SetUser(new ClaimsPrincipal()));
 
         // assert
         Snapshot

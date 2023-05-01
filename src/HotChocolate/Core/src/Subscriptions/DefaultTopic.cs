@@ -13,15 +13,17 @@ namespace HotChocolate.Subscriptions;
 /// <typeparam name="TMessage">
 /// The message.
 /// </typeparam>
-public abstract class DefaultTopic<TMessage> : IDisposable
+public abstract class DefaultTopic<TMessage> : ITopic, IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly Channel<MessageEnvelope<TMessage>> _incoming;
+    private readonly TaskCompletionSource<bool> _completion = new();
+    private readonly Channel<TMessage> _incoming;
     private readonly List<TopicShard<TMessage>> _shards = new();
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private int _subscribers;
+    private bool _completed;
     private bool _closed;
     private bool _disposed;
 
@@ -38,7 +40,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         {
             FullMode = (BoundedChannelFullMode)(int)fullMode
         };
-        _incoming = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
+        _incoming = CreateBounded<TMessage>(_channelOptions);
         _diagnosticEvents = diagnosticEvents;
 
         // initially we will run with one shard.
@@ -50,7 +52,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         int capacity,
         TopicBufferFullMode fullMode,
         ISubscriptionDiagnosticEvents diagnosticEvents,
-        Channel<MessageEnvelope<TMessage>> incomingMessages)
+        Channel<TMessage> incomingMessages)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
@@ -65,19 +67,35 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     }
 
     /// <summary>
-    /// The name of this topic.
+    /// Gets the name of this topic.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// Allows to write to the incoming message channel.
+    /// Gets the message type of this topic.
     /// </summary>
-    protected ChannelWriter<MessageEnvelope<TMessage>> Incoming => _incoming;
+    public Type MessageType => typeof(TMessage);
 
     /// <summary>
     /// Allows access to the diagnostic events.
     /// </summary>
     protected ISubscriptionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
+
+    public ValueTask PublishAsync(TMessage message, CancellationToken cancellationToken = default)
+    {
+        if(_completed || _closed || _disposed)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        return _incoming.Writer.WriteAsync(message, cancellationToken);
+    }
+
+    public void TryComplete()
+    {
+        _completed = true;
+        _completion.TrySetResult(_completed);
+    }
 
     internal async ValueTask<ISourceStream<TMessage>?> TrySubscribeAsync(
         CancellationToken cancellationToken)
@@ -170,7 +188,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     {
         try
         {
-            var session = await OnConnectAsync(_incoming.Writer, ct).ConfigureAwait(false);
+            var session = await OnConnectAsync(ct).ConfigureAwait(false);
             DiagnosticEvents.Connected(Name);
 
             BeginProcessing(session);
@@ -213,18 +231,25 @@ public abstract class DefaultTopic<TMessage> : IDisposable
 
             while (!_closed && !_incoming.Reader.Completion.IsCompleted)
             {
-                _diagnosticEvents.WaitForMessages(Name);
-
-                if (await _incoming.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
+                if (_incoming.Reader.TryPeek(out _))
                 {
-                    DispatchMessagesToShards(postponedMessages, out var completed);
-
-                    if (completed)
+                    DispatchMessagesToShards(postponedMessages);
+                    await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
+                }
+                else
+                {
+                    if (_completed)
                     {
-                        TryClose();
+                        break;
                     }
 
-                    await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
+                    _diagnosticEvents.WaitForMessages(Name);
+                    await Task.WhenAny(_completion.Task, WaitForMessages(ct)).ConfigureAwait(false);
+
+                    if (_completed && !_incoming.Reader.TryPeek(out _))
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -234,6 +259,9 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             Dispose();
         }
     }
+
+    private async Task WaitForMessages(CancellationToken ct)
+        => await _incoming.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
 
     /// <summary>
     /// Override this method to connect to an external pub/sub provider.
@@ -248,23 +276,17 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     /// Returns a session to dispose the subscription session.
     /// </returns>
     protected virtual ValueTask<IDisposable> OnConnectAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
         CancellationToken cancellationToken)
         => new(DefaultSession.Instance);
 
-    private void DispatchMessagesToShards(
-        List<PostponedMessage> postponedMessages,
-        out bool completed)
+    private void DispatchMessagesToShards(List<PostponedMessage> postponedMessages)
     {
         var batchSize = 4;
         var dispatched = 0;
         var subscribers = _subscribers;
-        completed = false;
 
-        while (!completed && _incoming.Reader.TryRead(out var message))
+        while (_incoming.Reader.TryRead(out var message))
         {
-            completed = message.Kind is MessageKind.Completed;
-
             // we are not locking at this point since the only thing happening to this list
             // is that new shards are being added. Shards are never being removed from a topic.
             var shards = AsSpan(_shards);
@@ -293,7 +315,8 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         }
     }
 
-    private async ValueTask DispatchDelayedMessagesAsync(List<PostponedMessage> postponedMessages)
+    private static async ValueTask DispatchDelayedMessagesAsync(
+        List<PostponedMessage> postponedMessages)
     {
         if (postponedMessages.Count > 0)
         {
@@ -423,14 +446,14 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     private sealed class PostponedMessage
     {
         public PostponedMessage(
-            MessageEnvelope<TMessage> message,
+            TMessage message,
             TopicShard<TMessage> shard)
         {
             Message = message;
             Shard = shard;
         }
 
-        public MessageEnvelope<TMessage> Message { get; }
+        public TMessage Message { get; }
 
         public TopicShard<TMessage> Shard { get; }
     }

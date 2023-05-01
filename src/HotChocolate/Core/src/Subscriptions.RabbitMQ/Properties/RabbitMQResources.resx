@@ -27,7 +27,7 @@
   <data name="RabbitMQPubSub_RabbitMQPubSub_PrefixCannotBeNull" xml:space="preserve">
     <value>Value cannot be null or whitespace.</value>
   </data>
-  <data name="Subscription_Unsubscribe_UnsubscribedFromRabbitMQ" xml:space="preserve">
+  <data name="Subscription_UnsubscribedFromRabbitMQ" xml:space="preserve">
     <value>Unsubscribed from RabbitMQ.</value>
   </data>
   <data name="RabbitMQTopic_ConnectAsync_SubscribedToRabbitMQ" xml:space="preserve">

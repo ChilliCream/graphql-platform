@@ -1,0 +1,11 @@
+﻿schema {
+  query: QueryTypeWithInputStruct
+}
+
+type QueryTypeWithInputStruct {
+  foo(arg: InputStructWithCtorInput!): Int!
+}
+
+input InputStructWithCtorInput {
+  values: [Int!]!
+}

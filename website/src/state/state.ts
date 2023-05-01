@@ -1,13 +1,18 @@
 import { combineReducers, createStore as createReduxStore } from "redux";
 
 import { commonReducer as common, CommonState } from "./common";
+import { workshopsReducer as workshops, WorkshopsState } from "./workshops";
+
+export type { CommonState, WorkshopsState };
 
 export interface State {
   common: CommonState;
+  workshops: WorkshopsState;
 }
 
 const rootReducer = combineReducers<State>({
   common,
+  workshops,
 });
 
 export default function createStore(preloadedState: State) {
