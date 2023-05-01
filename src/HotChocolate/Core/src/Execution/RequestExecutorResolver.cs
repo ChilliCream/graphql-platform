@@ -41,9 +41,11 @@ internal sealed partial class RequestExecutorResolver
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
     private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
+    private readonly EventObservable _events = new();
     private ulong _version;
     private bool _disposed;
 
+    [Obsolete("Use the events property instead.")]
     public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
 
     public RequestExecutorResolver(
@@ -62,6 +64,8 @@ internal sealed partial class RequestExecutorResolver
         ApplicationUpdateHandler.RegisterForApplicationUpdate(() => EvictAllRequestExecutors());
 #endif
     }
+
+    public IObservable<RequestExecutorEvent> Events => _events;
 
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
         string? schemaName = default,
@@ -124,6 +128,12 @@ internal sealed partial class RequestExecutorResolver
                 schemaName,
                 registeredExecutor.Executor);
             _executors.TryAdd(schemaName, registeredExecutor);
+
+            _events.RaiseEvent(
+                new RequestExecutorEvent(
+                    RequestExecutorEventType.Created,
+                    schemaName,
+                    registeredExecutor.Executor));
         }
 
         return registeredExecutor.Executor;
@@ -142,6 +152,11 @@ internal sealed partial class RequestExecutorResolver
                 RequestExecutorEvicted?.Invoke(
                     this,
                     new RequestExecutorEvictedEventArgs(schemaName, re.Executor));
+                _events.RaiseEvent(
+                    new RequestExecutorEvent(
+                        RequestExecutorEventType.Evicted,
+                        schemaName,
+                        re.Executor));
             }
             finally
             {
@@ -164,6 +179,11 @@ internal sealed partial class RequestExecutorResolver
                     RequestExecutorEvicted?.Invoke(
                         this,
                         new RequestExecutorEvictedEventArgs(key, re.Executor));
+                    _events.RaiseEvent(
+                        new RequestExecutorEvent(
+                            RequestExecutorEventType.Evicted,
+                            key,
+                            re.Executor));
                 }
                 finally
                 {
@@ -407,6 +427,7 @@ internal sealed partial class RequestExecutorResolver
     {
         if (!_disposed)
         {
+            _events.Dispose();
             _executors.Clear();
             _semaphore.Dispose();
             _disposed = true;
@@ -581,6 +602,100 @@ internal sealed partial class RequestExecutorResolver
         {
             obj.Reset();
             return true;
+        }
+    }
+
+    private sealed class EventObservable : IObservable<RequestExecutorEvent>, IDisposable
+    {
+        private readonly object _sync = new();
+        private readonly List<Subscription> _subscriptions = new();
+        private bool _disposed;
+
+        public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(EventObservable));
+            }
+
+            if (observer is null)
+            {
+                throw new ArgumentNullException(nameof(observer));
+            }
+
+            var subscription = new Subscription(this, observer);
+
+            lock (_sync)
+            {
+                _subscriptions.Add(subscription);
+            }
+
+            return subscription;
+        }
+
+        public void RaiseEvent(RequestExecutorEvent eventMessage)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(EventObservable));
+            }
+
+            lock (_sync)
+            {
+                foreach (var subscription in _subscriptions)
+                {
+                    subscription.Observer.OnNext(eventMessage);
+                }
+            }
+        }
+
+        private void Unsubscribe(Subscription subscription)
+        {
+            lock (_sync)
+            {
+                _subscriptions.Remove(subscription);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                lock (_sync)
+                {
+                    foreach (var subscription in _subscriptions)
+                    {
+                        subscription.Observer.OnCompleted();
+                    }
+
+                    _subscriptions.Clear();
+                }
+
+                _disposed = true;
+            }
+        }
+
+        private sealed class Subscription : IDisposable
+        {
+            private readonly EventObservable _parent;
+            private bool _disposed;
+
+            public Subscription(EventObservable parent, IObserver<RequestExecutorEvent> observer)
+            {
+                _parent = parent;
+                Observer = observer;
+            }
+
+            public IObserver<RequestExecutorEvent> Observer { get; }
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    _parent.Unsubscribe(this);
+                    _disposed = true;
+                }
+            }
         }
     }
 

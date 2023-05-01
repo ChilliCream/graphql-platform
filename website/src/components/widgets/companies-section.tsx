@@ -250,16 +250,19 @@ export const CompaniesSection: FC = () => (
 );
 
 const FADE = keyframes`
-  5% {
+  0% {
     opacity: 1;
-    z-index: 1,
+    z-index: 1;
   }
   25% {
     opacity: 1;
   }
-  45% {
+  49% {
+    z-index: 1;
+  }
+  50% {
     opacity: 0;
-    z-index: -1;
+    z-index: 0;
   }
 `;
 
@@ -272,10 +275,17 @@ const Carousel = styled.div`
   align-items: center;
   justify-content: center;
 
+  &:hover {
+    & > * {
+      animation-play-state: paused;
+    }
+  }
+
   & > * {
     position: absolute;
     animation: 12s ${FADE} linear infinite;
     opacity: 0;
+    z-index: 0;
   }
 
   & > *:nth-child(1) {
@@ -320,6 +330,10 @@ const Ticker = styled.div`
   align-items: center;
   justify-content: flex-start;
   animation: ${TICKER} 45s linear infinite;
+
+  &:hover {
+    animation-play-state: paused;
+  }
 `;
 
 const GenericLogo = styled.div<{ width?: number }>`
