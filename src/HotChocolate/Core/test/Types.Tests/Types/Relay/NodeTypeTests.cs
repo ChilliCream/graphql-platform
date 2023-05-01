@@ -243,6 +243,28 @@ public class NodeTypeTests : TypeTestBase
         error.Message.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Infer_Node_From_Query_As_Interface_From_Interface()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query10>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Infer_Node_From_Query_As_Interface_From_Abstract()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query11>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
     public class Query
     {
         [NodeResolver]
@@ -370,5 +392,30 @@ public class NodeTypeTests : TypeTestBase
     {
         public Qux GetBarById(string id)
             => new Qux(id);
+    }
+
+    public class Query10
+    {
+        [NodeResolver]
+        public IDocument GetDocumentById(string id)
+            => new DrivingLicense(id);
+
+        public interface IDocument
+        {
+            public string Id { get; }
+        }
+
+        private record DrivingLicense(string Id) : IDocument;
+    }
+
+    public class Query11
+    {
+        [NodeResolver]
+        public Document GetDocumentById(string id)
+            => new DrivingLicense(id);
+
+        public abstract record Document(string Id);
+
+        private record DrivingLicense(string Id) : Document(Id);
     }
 }
