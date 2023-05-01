@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Options;
@@ -19,7 +18,7 @@ internal sealed class OperationComplexityMiddleware
     private readonly DocumentValidatorContextPool _contextPool;
     private readonly ComplexityAnalyzerSettings _settings;
     private readonly IComplexityAnalyzerCache _cache;
-    private readonly ComplexityAnalyzerCompilerVisitor _compiler;
+    private readonly ComplexityAnalyzerCompiler _compiler;
     private readonly VariableCoercionHelper _coercionHelper;
 
     public OperationComplexityMiddleware(
@@ -40,7 +39,7 @@ internal sealed class OperationComplexityMiddleware
         _coercionHelper = coercionHelper ??
             throw new ArgumentNullException(nameof(coercionHelper));
 
-        _compiler = new ComplexityAnalyzerCompilerVisitor(_settings);
+        _compiler = new ComplexityAnalyzerCompiler(_settings);
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -59,15 +58,18 @@ internal sealed class OperationComplexityMiddleware
 
                 using (diagnostic.AnalyzeOperationComplexity(context))
                 {
-                    var cacheId = context.CreateCacheId(context.OperationId);
                     var document = context.Document;
                     var operationDefinition =
                         context.Operation?.Definition ??
                         document.GetOperation(context.Request.OperationName);
 
-                    if (!_cache.TryGetAnalyzer(cacheId, out var analyzer))
+                    if (!_cache.TryGetAnalyzer(context.OperationId, out var analyzer))
                     {
-                        analyzer = CompileAnalyzer(context, document, operationDefinition, cacheId);
+                        analyzer = CompileAnalyzer(
+                            context,
+                            document,
+                            operationDefinition,
+                            context.OperationId);
                         diagnostic.OperationComplexityAnalyzerCompiled(context);
                     }
 
@@ -102,31 +104,17 @@ internal sealed class OperationComplexityMiddleware
         IRequestContext requestContext,
         DocumentNode document,
         OperationDefinitionNode operationDefinition,
-        string cacheId)
+        string operationId)
     {
         var validatorContext = _contextPool.Get();
-        ComplexityAnalyzerDelegate? operationAnalyzer = null;
 
         try
         {
             PrepareContext(requestContext, document, validatorContext);
-
-            _compiler.Visit(document, validatorContext);
-            var analyzers = (List<OperationComplexityAnalyzer>)validatorContext.List.Peek()!;
-
-            foreach (var analyzer in analyzers)
-            {
-                if (analyzer.OperationDefinitionNode.Equals(operationDefinition, SyntaxComparison.Syntax))
-                {
-                    operationAnalyzer = analyzer.Analyzer;
-
-                    _cache.TryAddAnalyzer(
-                        cacheId,
-                        analyzer.Analyzer);
-                }
-            }
-
-            return operationAnalyzer!;
+            _compiler.Visit(operationDefinition, validatorContext);
+            var analyzer = (OperationComplexityAnalyzer)validatorContext.List.Pop()!;
+            _cache.TryAddAnalyzer(operationId, analyzer.Analyzer);
+            return analyzer.Analyzer;
         }
         finally
         {
