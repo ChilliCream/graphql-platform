@@ -946,6 +946,7 @@ public class DemoIntegrationTests
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer(_ => new(SchemaFormatter.FormatAsDocument(fusionGraph)))
+            .CoreBuilder
             .AddTypeModule(_ => reloadTypeModule)
             .Services
             .BuildServiceProvider();
