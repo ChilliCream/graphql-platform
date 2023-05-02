@@ -19,7 +19,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         IEnumerable<QueryContainer> mustNot = Array.Empty<QueryContainer>();
         IEnumerable<QueryContainer> filter = Array.Empty<QueryContainer>();
 
-        if (operation.Should.Count > 0)
+        if (operation.Should.Any())
         {
             should = operation.Should
                 .Select(Rewrite)
@@ -27,7 +27,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
                 .Select(x => new QueryContainer(x));
         }
 
-        if (operation.Must.Count > 0)
+        if (operation.Must.Any())
         {
             must = operation.Must
                 .Select(Rewrite)
@@ -35,7 +35,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
                 .Select(x => new QueryContainer(x));
         }
 
-        if (operation.MustNot.Count > 0)
+        if (operation.MustNot.Any())
         {
             mustNot = operation.MustNot
                 .Select(Rewrite)
@@ -43,7 +43,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
                 .Select(x => new QueryContainer(x));
         }
 
-        if (operation.Filter.Count > 0)
+        if (operation.Filter.Any())
         {
             filter = operation.Filter
                 .Select(Rewrite)
