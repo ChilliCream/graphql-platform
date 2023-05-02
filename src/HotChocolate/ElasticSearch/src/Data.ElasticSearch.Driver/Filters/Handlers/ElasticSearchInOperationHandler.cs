@@ -44,13 +44,12 @@ public class ElasticSearchInOperationHandler
 
         var enumerable = ((IEnumerable)parsedValue).Cast<object>().ToList();
         var shouldOperations = enumerable
-            .Select(val => new MatchOperation(context.GetPath(), Filter, val.ToString()))
-            .ToList();
+            .Select(val => new MatchOperation(context.GetPath(), Filter, val.ToString()));
 
         return new BoolOperation(
-            Array.Empty<ISearchOperation>(),
+            Enumerable.Empty<ISearchOperation>(),
             shouldOperations,
-            Array.Empty<ISearchOperation>(),
-            Array.Empty<ISearchOperation>());
+            Enumerable.Empty<ISearchOperation>(),
+            Enumerable.Empty<ISearchOperation>());
     }
 }

@@ -6,10 +6,10 @@ namespace HotChocolate.Data.ElasticSearch;
 public class BoolOperation : ISearchOperation
 {
     public BoolOperation(
-        IReadOnlyList<ISearchOperation> must,
-        IReadOnlyList<ISearchOperation> should,
-        IReadOnlyList<ISearchOperation> mustNot,
-        IReadOnlyList<ISearchOperation> filter)
+        IEnumerable<ISearchOperation> must,
+        IEnumerable<ISearchOperation> should,
+        IEnumerable<ISearchOperation> mustNot,
+        IEnumerable<ISearchOperation> filter)
     {
         Must = must;
         Should = should;
@@ -17,13 +17,13 @@ public class BoolOperation : ISearchOperation
         Filter = filter;
     }
 
-    public IReadOnlyList<ISearchOperation> Must { get; }
+    public IEnumerable<ISearchOperation> Must { get; }
 
-    public IReadOnlyList<ISearchOperation> Should { get; }
+    public IEnumerable<ISearchOperation> Should { get; }
 
-    public IReadOnlyList<ISearchOperation> MustNot { get; }
+    public IEnumerable<ISearchOperation> MustNot { get; }
 
-    public IReadOnlyList<ISearchOperation> Filter { get; }
+    public IEnumerable<ISearchOperation> Filter { get; }
 
     public static BoolOperation Create(
         IReadOnlyList<ISearchOperation>? must = null,
@@ -31,8 +31,8 @@ public class BoolOperation : ISearchOperation
         IReadOnlyList<ISearchOperation>? mustNot = null,
         IReadOnlyList<ISearchOperation>? filter = null)
         => new(
-            must ?? Array.Empty<ISearchOperation>(),
-            should ?? Array.Empty<ISearchOperation>(),
-            mustNot ?? Array.Empty<ISearchOperation>(),
-            filter ?? Array.Empty<ISearchOperation>());
+            must ?? Enumerable.Empty<ISearchOperation>(),
+            should ?? Enumerable.Empty<ISearchOperation>(),
+            mustNot ?? Enumerable.Empty<ISearchOperation>(),
+            filter ?? Enumerable.Empty<ISearchOperation>());
 }
