@@ -417,6 +417,7 @@ public class NodeTypeTests : TypeTestBase
         public Document GetDocumentById(string id)
             => new DrivingLicense(id);
 
+        // TODO: Will be nice to have it as interface in schema
         [Node]
         public abstract record Document(string Id);
 
