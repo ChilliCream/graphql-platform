@@ -56,7 +56,7 @@ internal sealed class ErrorMiddleware
 
             // if we have some errors that we could not handle
             // we will report them as GraphQL errors.
-            if(unhandledErrors.Count > 0)
+            if(unhandledErrors?.Count > 0)
             {
                 foreach (var unhandledError in unhandledErrors)
                 {

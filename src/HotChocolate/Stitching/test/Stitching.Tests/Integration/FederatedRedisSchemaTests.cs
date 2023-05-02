@@ -102,13 +102,15 @@ public class FederatedRedisSchemaTests
         await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
         var raised = false;
 
-        executorResolver.RequestExecutorEvicted += (_, args) =>
-        {
-            if (args.Name.Equals(Schema.DefaultName))
-            {
-                raised = true;
-            }
-        };
+        using var session = executorResolver.Events.Subscribe(
+            new RequestExecutorEventObserver(
+                args =>
+                {
+                    if (args.Name.Equals(Schema.DefaultName))
+                    {
+                        raised = true;
+                    }
+                }));
 
         // act
         Assert.False(raised, "eviction was raised before act.");
@@ -174,13 +176,15 @@ public class FederatedRedisSchemaTests
         await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
         var raised = false;
 
-        executorResolver.RequestExecutorEvicted += (_, args) =>
-        {
-            if (args.Name.Equals(Schema.DefaultName))
-            {
-                raised = true;
-            }
-        };
+        using var session = executorResolver.Events.Subscribe(
+            new RequestExecutorEventObserver(
+                args =>
+                {
+                    if (args.Name.Equals(Schema.DefaultName))
+                    {
+                        raised = true;
+                    }
+                }));
 
         Assert.False(documentCache.TryGetDocument(queryHash, out _));
         Assert.False(preparedOperationCache.TryGetOperation(queryHash, out _));
