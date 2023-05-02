@@ -1,11 +1,7 @@
 ﻿using System.Collections;
-using System.Reflection;
 using System.Text.Json;
 using Elasticsearch.Net;
 using HotChocolate.Data.ElasticSearch.Execution;
-using HotChocolate.Data.ElasticSearch.Filters;
-using HotChocolate.Data.Filters;
-using HotChocolate.Data.Sorting;
 using Nest;
 
 namespace HotChocolate.Data.ElasticSearch;
@@ -32,7 +28,7 @@ public sealed class NestExecutable<T> : ElasticSearchExecutable<T> where T : cla
     }
 
     /// <inheritdoc />
-    public override async Task<IList<T>> ExecuteAsync(CancellationToken cancellationToken)
+    public override async Task<IReadOnlyList<T>> ExecuteAsync(CancellationToken cancellationToken)
     {
         var searchDescriptor = CreateQuery();
         var result = await _elasticClient.SearchAsync<T>(searchDescriptor, cancellationToken);

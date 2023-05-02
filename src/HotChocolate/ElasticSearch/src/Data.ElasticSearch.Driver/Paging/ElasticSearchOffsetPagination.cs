@@ -4,32 +4,32 @@ using HotChocolate.Types.Pagination;
 namespace HotChocolate.Data.ElasticSearch.Paging;
 
 public class ElasticSearchOffsetPagination<TEntity>
-    : OffsetPaginationAlgorithm<IElasticSearchPagingContainer<TEntity>, TEntity>
+    : OffsetPaginationAlgorithm<IElasticSearchExecutable<TEntity>, TEntity>
 {
     /// <inheritdoc />
-    protected override IElasticSearchPagingContainer<TEntity> ApplySkip(
-        IElasticSearchPagingContainer<TEntity> query,
+    protected override IElasticSearchExecutable<TEntity> ApplySkip(
+        IElasticSearchExecutable<TEntity> query,
         int skip)
-        => query.Skip(skip);
+        => query.WithSkip(skip);
 
     /// <inheritdoc />
-    protected override IElasticSearchPagingContainer<TEntity> ApplyTake(
-        IElasticSearchPagingContainer<TEntity> query,
+    protected override IElasticSearchExecutable<TEntity> ApplyTake(
+        IElasticSearchExecutable<TEntity> query,
         int take)
-        => query.Take(take);
+        => query.WithTake(take);
 
     /// <inheritdoc />
     protected override async ValueTask<int> CountAsync(
-        IElasticSearchPagingContainer<TEntity> query,
+        IElasticSearchExecutable<TEntity> query,
         CancellationToken cancellationToken)
         => await query.CountAsync(cancellationToken).ConfigureAwait(false);
 
     /// <inheritdoc />
     protected override async ValueTask<IReadOnlyList<TEntity>> ExecuteAsync(
-        IElasticSearchPagingContainer<TEntity> query,
+        IElasticSearchExecutable<TEntity> query,
         CancellationToken cancellationToken)
     {
-        var result = await query.ToListAsync(cancellationToken);
-        return result;
+        var results = await query.ExecuteAsync(cancellationToken);
+        return results;
     }
 }

@@ -1,5 +1,4 @@
 ﻿{
-  "from": 0,
   "query": {
     "match_all": {}
   },

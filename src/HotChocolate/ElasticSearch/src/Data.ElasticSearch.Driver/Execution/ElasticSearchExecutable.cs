@@ -44,16 +44,22 @@ public abstract class ElasticSearchExecutable<T> :
     }
 
     /// <inheritdoc />
-    public IElasticSearchExecutable WitPagination(int take, int skip)
+    public abstract Task<IReadOnlyList<T>> ExecuteAsync(CancellationToken cancellationToken);
+
+    /// <inheritdoc />
+    public abstract Task<int> CountAsync(CancellationToken cancellationToken);
+
+    /// <inheritdoc />
+    public IElasticSearchExecutable<T> WithTake(int take)
     {
         Take = take;
-        Skip = skip;
         return this;
     }
 
     /// <inheritdoc />
-    public abstract Task<IList<T>> ExecuteAsync(CancellationToken cancellationToken);
-
-    /// <inheritdoc />
-    public abstract Task<int> CountAsync(CancellationToken cancellationToken);
+    public IElasticSearchExecutable<T> WithSkip(int skip)
+    {
+        Skip = skip;
+        return this;
+    }
 }

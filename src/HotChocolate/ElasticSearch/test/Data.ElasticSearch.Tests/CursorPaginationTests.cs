@@ -95,7 +95,7 @@ public class CursorPaginationTests : TestBase
 
         var executor = await CreateExecutorAsync();
 
-        const string query = """
+        const string query = @"
         query {
             test(first: 2 after: ""MQ=="") {
                 edges {
@@ -116,7 +116,7 @@ public class CursorPaginationTests : TestBase
                 totalCount
             }
         }
-        """;
+        ";
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }
@@ -128,7 +128,7 @@ public class CursorPaginationTests : TestBase
 
         var executor = await CreateExecutorAsync();
 
-        const string query = """
+        const string query = @"
         query {
             test(last: 1 after: ""MQ=="") {
                 edges {
@@ -149,7 +149,7 @@ public class CursorPaginationTests : TestBase
                 totalCount
             }
         }
-        """;
+        ";
         var result = await executor.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }

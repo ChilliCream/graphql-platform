@@ -1,32 +1,40 @@
-﻿using HotChocolate.Types.Pagination;
+﻿using HotChocolate.Data.ElasticSearch.Execution;
+using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.ElasticSearch.Paging;
 
 public class ElasticSearchCursorPagination<TEntity>
-    : CursorPaginationAlgorithm<IElasticSearchPagingContainer<TEntity>, TEntity>
+    : CursorPaginationAlgorithm<IElasticSearchExecutable<TEntity>, TEntity>
 {
     /// <inheritdoc />
-    protected override IElasticSearchPagingContainer<TEntity> ApplySkip(
-        IElasticSearchPagingContainer<TEntity> query,
+    protected override IElasticSearchExecutable<TEntity> ApplySkip(
+        IElasticSearchExecutable<TEntity> query,
         int skip)
-        => query.Skip(skip);
+        => query.WithSkip(skip);
 
     /// <inheritdoc />
-    protected override IElasticSearchPagingContainer<TEntity> ApplyTake(
-        IElasticSearchPagingContainer<TEntity> query,
+    protected override IElasticSearchExecutable<TEntity> ApplyTake(
+        IElasticSearchExecutable<TEntity> query,
         int take)
-        => query.Take(take);
+        => query.WithTake(take);
 
     /// <inheritdoc />
     protected override async ValueTask<int> CountAsync(
-        IElasticSearchPagingContainer<TEntity> query,
+        IElasticSearchExecutable<TEntity> query,
         CancellationToken cancellationToken)
         => await query.CountAsync(cancellationToken).ConfigureAwait(false);
 
     /// <inheritdoc />
-    protected override ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
-        IElasticSearchPagingContainer<TEntity> query,
+    protected override async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
+        IElasticSearchExecutable<TEntity> query,
         int offset,
         CancellationToken cancellationToken)
-        => query.ExecuteQueryAsync(offset, cancellationToken);
+    {
+        query.WithSkip(offset);
+        var results = await query.ExecuteAsync(cancellationToken);
+        return results
+            .Select((searchResult, i) => IndexEdge<TEntity>.Create(searchResult, offset + i))
+            .ToList();
+    }
+
 }

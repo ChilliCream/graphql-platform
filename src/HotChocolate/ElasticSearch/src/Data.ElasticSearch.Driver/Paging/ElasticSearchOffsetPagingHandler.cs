@@ -19,18 +19,8 @@ public class ElasticSearchOffsetPagingHandler<TEntity> : OffsetPagingHandler
         object source,
         OffsetPagingArguments arguments)
         => await _pagination.ApplyPaginationAsync(
-                CreatePagingContainer(source),
+                source as IElasticSearchExecutable<TEntity> ?? throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
                 arguments,
                 context.RequestAborted)
             .ConfigureAwait(false);
-
-    private IElasticSearchPagingContainer<TEntity> CreatePagingContainer(object source)
-    {
-        return source switch
-        {
-            IElasticSearchExecutable<TEntity> e =>
-                new ElasticSearchExecutablePagingContainer<TEntity>(e),
-            _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
-        };
-    }
 }
