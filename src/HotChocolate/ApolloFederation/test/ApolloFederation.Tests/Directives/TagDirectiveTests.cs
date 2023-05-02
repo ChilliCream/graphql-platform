@@ -98,7 +98,7 @@ public class TagDirectiveTests : FederationTypesTestBase
                 {
                     o.Name("Review").Key("id");
                     o.Field("id").Type<IntType>();
-                    o.Field("product").Tag("public").Type("Product");
+                    o.Field("product").Type("Product").Tag("public");
                 }))
             .AddQueryType(
                 new ObjectType(o =>

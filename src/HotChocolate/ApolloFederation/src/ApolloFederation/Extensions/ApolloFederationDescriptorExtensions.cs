@@ -180,8 +180,8 @@ public static partial class ApolloFederationDescriptorExtensions
     /// <exception cref="ArgumentException">
     /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
     /// </exception>
-    public static IObjectFieldDescriptor Tag(
-        this IObjectFieldDescriptor descriptor,
+    public static IDescriptor Tag(
+        this IDescriptor descriptor,
         string name)
     {
         if (descriptor is null)
@@ -196,11 +196,26 @@ public static partial class ApolloFederationDescriptorExtensions
                 nameof(name));
         }
 
-        return descriptor.Directive(
-            WellKnownTypeNames.Tag,
-            new ArgumentNode(
-                WellKnownArgumentNames.Name,
-                new StringValueNode(name)));
+        var nameArgument = new ArgumentNode(
+            WellKnownArgumentNames.Name,
+            new StringValueNode(name));
+
+        return descriptor switch
+        {
+            IObjectFieldDescriptor objectField
+                => objectField.Directive(WellKnownTypeNames.Tag, nameArgument),
+            IObjectTypeDescriptor objectType
+                => objectType.Directive(WellKnownTypeNames.Tag, nameArgument),
+            IInterfaceTypeDescriptor interfaceType
+                => interfaceType.Directive(WellKnownTypeNames.Tag, nameArgument),
+            IUnionTypeDescriptor unionType
+                => unionType.Directive(WellKnownTypeNames.Tag, nameArgument),
+            IEnumTypeDescriptor enumType
+                => enumType.Directive(WellKnownTypeNames.Tag, nameArgument),
+            IInputObjectTypeDescriptor inputObjectType
+                => inputObjectType.Directive(WellKnownTypeNames.Tag, nameArgument),
+            _ => throw new Exception()
+        };
     }
 
     /// <summary>

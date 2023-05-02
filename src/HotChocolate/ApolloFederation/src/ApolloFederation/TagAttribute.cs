@@ -27,7 +27,7 @@ namespace HotChocolate.ApolloFederation;
     AttributeTargets.Method |
     AttributeTargets.Enum,
     AllowMultiple = true)]
-public sealed class TagAttribute : ObjectFieldDescriptorAttribute
+public sealed class TagAttribute : DescriptorAttribute
 {
     /// <summary>
     /// Initializes a new instance of <see cref="TagAttribute"/>.
@@ -46,16 +46,11 @@ public sealed class TagAttribute : ObjectFieldDescriptorAttribute
     /// </summary>
     public string Name { get; }
 
-    protected override void OnConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
-        IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
     {
-        if (Name is null)
-        {
-            throw Tag_Name_CannotBeEmpty(member);
-        }
-
         descriptor.Tag(Name);
     }
 }

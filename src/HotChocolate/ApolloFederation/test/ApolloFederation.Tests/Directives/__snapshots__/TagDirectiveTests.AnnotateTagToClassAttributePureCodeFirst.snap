@@ -15,6 +15,7 @@ type Query {
 type Review @key(fields: "id") {
   id: Int!
   product: Product! @tag(name: "public")
+  reviewSentiment: ReviewSentiment! @tag(name: "public")
 }
 
 "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
@@ -24,6 +25,11 @@ type _Service {
 
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
 union _Entity = Review
+
+enum ReviewSentiment @tag(name: "public") {
+  NEGATIVE
+  POSITIVE
+}
 
 "Directive to indicate that a field is owned by another service, for example via Apollo federation."
 directive @external on FIELD_DEFINITION
