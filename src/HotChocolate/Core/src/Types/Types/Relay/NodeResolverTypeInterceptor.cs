@@ -114,12 +114,12 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                static IComplexOutputTypeDefinition ResolveFieldTypeDef(IType fieldType) =>
+                static IComplexOutputTypeDefinition? ResolveFieldTypeDef(IType fieldType) =>
                     fieldType.NamedType() switch
                     {
                         ObjectType objectType => objectType.Definition,
                         InterfaceType interfaceType => interfaceType.Definition,
-                        _ => throw NodeResolver_ObjNoDefinition()
+                        _ => default
                     };
 
                 // Once we have the type instance we need to grab it type definition to
