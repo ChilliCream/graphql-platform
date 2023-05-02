@@ -267,6 +267,19 @@ public class NodeTypeTests : TypeTestBase
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Infer_Node_From_Query_As_Interface_From_Abstract_With_Explicit_Types()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query12>()
+            .AddType<Query12.DocumentType>()
+            .AddType<Query12.DrivingLicenseType>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
     public class Query
     {
         [NodeResolver]
@@ -402,12 +415,12 @@ public class NodeTypeTests : TypeTestBase
         public IDocument GetDocumentById(string id)
             => new DrivingLicense(id);
 
-        // [Node] TODO: Not supported yet.
         public interface IDocument
         {
             public string Id { get; }
         }
 
+        [Node]
         public record DrivingLicense(string Id) : IDocument;
     }
 
@@ -422,5 +435,32 @@ public class NodeTypeTests : TypeTestBase
         public abstract record Document(string Id);
 
         public record DrivingLicense(string Id) : Document(Id);
+    }
+
+    public class Query12
+    {
+        [NodeResolver]
+        public Document GetDocumentById(string id)
+            => new DrivingLicense(id);
+
+        public abstract record Document(string Id);
+
+        public class DocumentType : InterfaceType<Document>
+        {
+            protected override void Configure(
+                IInterfaceTypeDescriptor<Document> descriptor) { }
+        }
+
+        public record DrivingLicense(string Id) : Document(Id);
+
+        public class DrivingLicenseType : ObjectType<DrivingLicense>
+        {
+            protected override void Configure(
+                IObjectTypeDescriptor<DrivingLicense> descriptor)
+            {
+                descriptor.ImplementsNode();
+                descriptor.Implements<DocumentType>();
+            }
+        }
     }
 }

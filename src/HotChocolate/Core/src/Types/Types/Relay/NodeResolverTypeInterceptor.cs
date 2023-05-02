@@ -4,13 +4,10 @@ using System.Collections.Generic;
 #if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
-using static HotChocolate.Types.Relay.NodeConstants;
 using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Utilities.ErrorHelper;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -108,7 +105,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 // then an object type.
                 var fieldType = CompletionContext.GetType<IType>(fieldDef.Type);
 
-                if (!fieldType.IsObjectType())
+                if (!fieldType.IsObjectType() && !fieldType.IsInterfaceType())
                 {
                     CompletionContext.ReportError(
                         NodeResolver_MustReturnObject(
@@ -117,10 +114,18 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
+                static IComplexOutputTypeDefinition ResolveFieldTypeDef(IType fieldType) =>
+                    fieldType.NamedType() switch
+                    {
+                        ObjectType objectType => objectType.Definition,
+                        InterfaceType interfaceType => interfaceType.Definition,
+                        _ => throw NodeResolver_ObjNoDefinition()
+                    };
+
                 // Once we have the type instance we need to grab it type definition to
                 // inject a placeholder for the node resolver pipeline into the types
                 // context data.
-                var fieldTypeDef = ((ObjectType)fieldType.NamedType()).Definition;
+                var fieldTypeDef = ResolveFieldTypeDef(fieldType);
 
                 if (fieldTypeDef is null)
                 {
@@ -135,22 +140,35 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                     fieldTypeDef.Interfaces.Add(typeInspector.GetTypeRef(typeof(NodeType)));
                 }
 
-                var idDef = fieldTypeDef.Fields.FirstOrDefault(t => t.Name.EqualsOrdinal(Id));
+                static OutputFieldDefinitionBase? ResolveIdFieldDefinition(
+                    IComplexOutputTypeDefinition fieldTypeDef) =>
+                    fieldTypeDef switch
+                    {
+                        ObjectTypeDefinition objectFieldTypeDef =>
+                            objectFieldTypeDef.Fields.TryGetIdField(),
+                        InterfaceTypeDefinition interfaceTypeDefinition =>
+                            interfaceTypeDefinition.Fields.TryGetIdField(),
+                        _ => default
+                    };
+
+                var idDef = ResolveIdFieldDefinition(fieldTypeDef);
 
                 if (idDef is null)
                 {
                     CompletionContext.ReportError(
                         NodeResolver_NodeTypeHasNoId(
-                            (ObjectType)fieldType.NamedType()));
+                            (ITypeSystemObject)fieldType.NamedType()));
                     continue;
                 }
+
+                var contextData = ((IDefinition)fieldTypeDef).ContextData;
 
                 // Now that we know we can infer a node resolver form the annotated query field
                 // we will start mutating the type and field.
                 // First we are adding a marker to the node type`s context data.
                 // We will replace this later with a NodeResolverInfo instance that
                 // allows the node field to resolve a node instance by its ID.
-                fieldTypeDef.ContextData[NodeResolver] = fieldDef.Name;
+                contextData[NodeResolver] = fieldDef.Name;
 
                 // We also want to ensure that the node id argument is always a non-null
                 // ID type. So, if the user has not specified that we are making sure of this
@@ -170,12 +188,16 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
                 // For the id field we need to make sure that a result formatter is registered
                 // that encodes the IDs returned from the id field.
-                RelayIdFieldHelpers.ApplyIdToField(idDef);
+                if (idDef is ObjectFieldDefinition objectIdDef)
+                {
+                    // TODO: For interface types ?!
+                    RelayIdFieldHelpers.ApplyIdToField(objectIdDef);
+                }
 
                 // Last we register the context data of our node with the type
                 // interceptors state.
                 // We do that to replace our marker with the actual NodeResolverInfo instance.
-                _nodes.Add(fieldTypeDef.ContextData);
+                _nodes.Add(contextData);
             }
         }
     }
