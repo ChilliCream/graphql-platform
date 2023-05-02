@@ -249,6 +249,7 @@ public class NodeTypeTests : TypeTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query10>()
+            .AddType<Query10.DrivingLicense>() // TODO: Should this be discovered?
             .AddGlobalObjectIdentification()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -260,6 +261,7 @@ public class NodeTypeTests : TypeTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query11>()
+            .AddType<Query11.DrivingLicense>() // TODO: Should this be discovered?
             .AddGlobalObjectIdentification()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -400,12 +402,13 @@ public class NodeTypeTests : TypeTestBase
         public IDocument GetDocumentById(string id)
             => new DrivingLicense(id);
 
+        // [Node] TODO: Not supported yet.
         public interface IDocument
         {
             public string Id { get; }
         }
 
-        private record DrivingLicense(string Id) : IDocument;
+        public record DrivingLicense(string Id) : IDocument;
     }
 
     public class Query11
@@ -414,8 +417,9 @@ public class NodeTypeTests : TypeTestBase
         public Document GetDocumentById(string id)
             => new DrivingLicense(id);
 
+        [Node]
         public abstract record Document(string Id);
 
-        private record DrivingLicense(string Id) : Document(Id);
+        public record DrivingLicense(string Id) : Document(Id);
     }
 }
