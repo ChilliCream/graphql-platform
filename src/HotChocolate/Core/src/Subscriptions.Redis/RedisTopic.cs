@@ -29,7 +29,7 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
     {
         // We ensure that the processing is not started before the context is fully initialized.
         Debug.Assert(_connection != null, "_connection != null");
-        Debug.Assert(_connection != null, "_serializer != null");
+        Debug.Assert(_serializer != null, "_serializer != null");
 
         var subscriber = _connection.GetSubscriber();
         var messageQueue = await subscriber.SubscribeAsync(Name).ConfigureAwait(false);
