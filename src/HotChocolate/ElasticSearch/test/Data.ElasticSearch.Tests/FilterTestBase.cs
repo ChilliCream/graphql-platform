@@ -44,7 +44,7 @@ public abstract class FilterTestBase<TData, TFilterType> : TestBase
                 .Field("test")
                 .UseFiltering<TFilterType>()
                 .UseTestReport()
-                .ResolveTestData(Client, Data))
+                .ResolveTestData<TData>(Client))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
     }

@@ -21,8 +21,7 @@ public static class TestExtensions
 
     public static IObjectFieldDescriptor ResolveTestData<T>(
         this IObjectFieldDescriptor field,
-        IElasticClient client,
-        IEnumerable<T> data)
+        IElasticClient client)
         where T : class
         => field
             .Resolve(_ => client.AsExecutable<T>());

@@ -134,7 +134,7 @@ public class OffsetPaginationTests : TestBase
                 .Field("test")
                 .UseOffsetPaging<ObjectType<Foo>>(options: new PagingOptions { IncludeTotalCount = true })
                 .UseTestReport()
-                .ResolveTestData(Client, _data))
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchPagingProvider()
             .BuildTestExecutorAsync();
     }

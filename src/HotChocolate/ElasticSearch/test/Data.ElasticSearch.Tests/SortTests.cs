@@ -66,7 +66,7 @@ public class SortTests : TestBase
                 .Field("test")
                 .UseSorting<SortInputType<Foo>>()
                 .UseTestReport()
-                .ResolveTestData(Client, _data))
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchSorting()
             .BuildTestExecutorAsync();
     }

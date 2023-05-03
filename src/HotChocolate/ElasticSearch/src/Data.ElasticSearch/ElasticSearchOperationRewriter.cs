@@ -138,7 +138,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
 
     /// <inheritdoc />
     protected override IQuery Rewrite(ExistsOperation operation)
-        => new ExistsQuery { Field = operation.Field };
+        => new ExistsQuery { Field = operation.Path };
 
     /// <summary>
     /// The instance of the rewriter

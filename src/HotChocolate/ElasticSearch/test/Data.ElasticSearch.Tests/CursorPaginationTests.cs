@@ -163,7 +163,7 @@ public class CursorPaginationTests : TestBase
                 .Field("test")
                 .UsePaging<ObjectType<Foo>>(options: new PagingOptions { IncludeTotalCount = true })
                 .UseTestReport()
-                .ResolveTestData(Client, _data))
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchPagingProvider()
             .BuildTestExecutorAsync();
     }
