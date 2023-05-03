@@ -30,6 +30,34 @@ public class ElasticSearchComparableGreaterThanHandler : ElasticSearchComparable
             {
                 GreaterThan = new RangeOperationValue<double>(floatValue)
             },
+            sbyte sbyteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThan = new RangeOperationValue<long>(sbyteValue)
+            },
+            byte byteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThan = new RangeOperationValue<long>(byteValue)
+            },
+            short shortValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThan = new RangeOperationValue<long>(shortValue)
+            },
+            ushort uShortValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThan = new RangeOperationValue<long>(uShortValue)
+            },
+            uint uIntValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThan = new RangeOperationValue<long>(uIntValue)
+            },
+            int intValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThan = new RangeOperationValue<long>(intValue)
+            },
+            long longValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThan = new RangeOperationValue<long>(longValue)
+            },
             DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), Filter)
             {
                 GreaterThan = new RangeOperationValue<DateTime>(dateTimeVal)

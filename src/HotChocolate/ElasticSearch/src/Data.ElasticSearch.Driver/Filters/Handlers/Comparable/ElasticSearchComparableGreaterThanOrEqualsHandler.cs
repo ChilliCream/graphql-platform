@@ -30,6 +30,34 @@ public class ElasticSearchComparableGreaterThanOrEqualsHandler : ElasticSearchCo
             {
                 GreaterThanOrEquals = new RangeOperationValue<double>(floatValue)
             },
+            sbyte sbyteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThanOrEquals = new RangeOperationValue<long>(sbyteValue)
+            },
+            byte byteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThanOrEquals = new RangeOperationValue<long>(byteValue)
+            },
+            short shortValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThanOrEquals = new RangeOperationValue<long>(shortValue)
+            },
+            ushort uShortValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThanOrEquals = new RangeOperationValue<long>(uShortValue)
+            },
+            uint uIntValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThanOrEquals = new RangeOperationValue<long>(uIntValue)
+            },
+            int intValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThanOrEquals = new RangeOperationValue<long>(intValue)
+            },
+            long longValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                GreaterThanOrEquals = new RangeOperationValue<long>(longValue)
+            },
             DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), Filter)
             {
                 GreaterThanOrEquals = new RangeOperationValue<DateTime>(dateTimeVal)

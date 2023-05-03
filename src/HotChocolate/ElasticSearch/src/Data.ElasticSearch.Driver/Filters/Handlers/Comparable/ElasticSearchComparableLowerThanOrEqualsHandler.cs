@@ -24,15 +24,43 @@ public class ElasticSearchComparableLowerThanOrEqualsHandler : ElasticSearchComp
         {
             double doubleVal => new RangeOperation<double>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals = new RangeOperationValue<double>(doubleVal)
+                LowerThanOrEquals= new RangeOperationValue<double>(doubleVal)
             },
             float floatValue => new RangeOperation<double>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals = new RangeOperationValue<double>(floatValue)
+                LowerThanOrEquals= new RangeOperationValue<double>(floatValue)
+            },
+            sbyte sbyteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThanOrEquals= new RangeOperationValue<long>(sbyteValue)
+            },
+            byte byteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThanOrEquals= new RangeOperationValue<long>(byteValue)
+            },
+            short shortValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThanOrEquals= new RangeOperationValue<long>(shortValue)
+            },
+            ushort uShortValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThanOrEquals= new RangeOperationValue<long>(uShortValue)
+            },
+            uint uIntValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThanOrEquals= new RangeOperationValue<long>(uIntValue)
+            },
+            int intValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThanOrEquals= new RangeOperationValue<long>(intValue)
+            },
+            long longValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThanOrEquals= new RangeOperationValue<long>(longValue)
             },
             DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals = new RangeOperationValue<DateTime>(dateTimeVal)
+                LowerThanOrEquals= new RangeOperationValue<DateTime>(dateTimeVal)
             },
             _ => throw new InvalidOperationException()
         };

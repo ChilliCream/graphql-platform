@@ -30,6 +30,34 @@ public class ElasticSearchComparableLowerThanHandler : ElasticSearchComparableOp
             {
                 LowerThan = new RangeOperationValue<double>(floatValue)
             },
+            sbyte sbyteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThan = new RangeOperationValue<long>(sbyteValue)
+            },
+            byte byteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThan = new RangeOperationValue<long>(byteValue)
+            },
+            short shortValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThan = new RangeOperationValue<long>(shortValue)
+            },
+            ushort uShortValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThan = new RangeOperationValue<long>(uShortValue)
+            },
+            uint uIntValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThan = new RangeOperationValue<long>(uIntValue)
+            },
+            int intValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThan = new RangeOperationValue<long>(intValue)
+            },
+            long longValue => new RangeOperation<long>(context.GetPath(), Filter)
+            {
+                LowerThan = new RangeOperationValue<long>(longValue)
+            },
             DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), Filter)
             {
                 LowerThan = new RangeOperationValue<DateTime>(dateTimeVal)
