@@ -6,10 +6,8 @@
           "bool": {
             "must_not": [
               {
-                "wildcard": {
-                  "description": {
-                    "wildcard": "*ields*"
-                  }
+                "query_string": {
+                  "query": "description.keyword:*ields*"
                 }
               }
             ]

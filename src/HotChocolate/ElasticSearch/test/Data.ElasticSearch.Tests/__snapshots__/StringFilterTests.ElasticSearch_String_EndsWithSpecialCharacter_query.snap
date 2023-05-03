@@ -4,7 +4,7 @@
       "filter": [
         {
           "query_string": {
-            "query": "value.keyword:Mutat*"
+            "query": "special.keyword:*\\-"
           }
         }
       ]

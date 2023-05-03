@@ -3,10 +3,8 @@
     "bool": {
       "filter": [
         {
-          "wildcard": {
-            "description": {
-              "wildcard": "*nges"
-            }
+          "query_string": {
+            "query": "description.keyword:*nges"
           }
         }
       ]

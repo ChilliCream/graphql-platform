@@ -72,8 +72,6 @@ public sealed class NestExecutable<T> : ElasticSearchExecutable<T> where T : cla
         return result.ToList();
     }
 
-    private string AddKeywordSuffix(string val) => $"{val}.keyword";
-
     private SearchRequest<T> CreateQuery()
     {
         var searchRequest = new SearchRequest<T>
@@ -92,7 +90,7 @@ public sealed class NestExecutable<T> : ElasticSearchExecutable<T> where T : cla
             searchRequest.Sort = sortOperations
                 .Select(sortOperation => new FieldSort
                 {
-                    Field = new Field(AddKeywordSuffix(sortOperation.Path)),
+                    Field = new Field(sortOperation.Path.GetKeywordPath()),
                     Order = sortOperation.Direction == ElasticSearchSortDirection.Ascending
                         ? SortOrder.Ascending
                         : SortOrder.Descending

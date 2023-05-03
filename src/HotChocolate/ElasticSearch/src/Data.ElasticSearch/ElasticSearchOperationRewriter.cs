@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using HotChocolate.Data.ElasticSearch.Filters;
 using Nest;
 
@@ -8,6 +9,14 @@ namespace HotChocolate.Data.ElasticSearch;
 /// </summary>
 public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
 {
+    private static Regex _escapeRegex = new(
+        @"[+\-=!(){}\[\]^""~*?:\\/]", RegexOptions.Compiled);
+
+    private static string EscapeForElasticSearch(string? value) =>
+        string.IsNullOrEmpty(value)
+            ? string.Empty
+            : _escapeRegex.Replace(value,  @"\$&");
+
     /// <inheritdoc />
     protected override IQuery Rewrite(BoolOperation operation)
     {
@@ -111,20 +120,17 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     {
         return operation.WildCardOperationKind switch
         {
-            WildCardOperationKind.StartsWith => new WildcardQuery
+            WildCardOperationKind.StartsWith => new QueryStringQuery
             {
-                Field = operation.Path,
-                Wildcard = $"{operation.Value}*"
+                Query = $"{operation.Path.GetKeywordPath()}:{EscapeForElasticSearch(operation.Value.ToString())}*"
             },
-            WildCardOperationKind.EndsWith => new WildcardQuery
+            WildCardOperationKind.EndsWith => new QueryStringQuery
             {
-                Field = operation.Path,
-                Wildcard = $"*{operation.Value}"
+                Query = $"{operation.Path.GetKeywordPath()}:*{EscapeForElasticSearch(operation.Value.ToString())}"
             },
-            WildCardOperationKind.Contains => new WildcardQuery
+            WildCardOperationKind.Contains => new QueryStringQuery
             {
-                Field = operation.Path,
-                Wildcard = $"*{operation.Value}*"
+                Query = $"{operation.Path.GetKeywordPath()}:*{EscapeForElasticSearch(operation.Value.ToString())}*"
             },
             _ => throw new InvalidOperationException()
         };

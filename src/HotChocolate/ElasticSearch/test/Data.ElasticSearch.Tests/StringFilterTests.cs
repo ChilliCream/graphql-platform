@@ -15,12 +15,14 @@ public class StringFilterTests
         new Term
         {
             Value = "Mutation",
-            Description = "The mutation type has several operations to manipulate data."
+            Description = "The mutation type has several operations to manipulate data.",
+            Special = "Here is no special character"
         },
         new Term
         {
             Value = "Subscription",
-            Description = "The subscription type can be used to directly notify on changes"
+            Description = "The subscription type can be used to directly notify on changes",
+            Special = "- is the start and the end is -"
         }
     };
 
@@ -37,7 +39,7 @@ public class StringFilterTests
     [Fact]
     public async Task ElasticSearch_String_StartsWith()
     {
-        var result = await ExecuteFilterTest(@"description: { startsWith: ""mutat""}", Selection);
+        var result = await ExecuteFilterTest(@"value: { startsWith: ""Mutat""}", Selection);
         result.MatchQuerySnapshot();
     }
 
@@ -58,7 +60,7 @@ public class StringFilterTests
     [Fact]
     public async Task ElasticSearch_String_NotStartsWith()
     {
-        var result = await ExecuteFilterTest(@"description: { nstartsWith: ""mutat""}", Selection);
+        var result = await ExecuteFilterTest(@"value: { nstartsWith: ""Mutat""}", Selection);
         result.MatchQuerySnapshot();
     }
 
@@ -76,11 +78,27 @@ public class StringFilterTests
         result.MatchQuerySnapshot();
     }
 
+    [Fact]
+    public async Task ElasticSearch_String_StartsWithSpecialCharacter()
+    {
+        var result = await ExecuteFilterTest(@"special: { startsWith: ""-""}", "value special");
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_String_EndsWithSpecialCharacter()
+    {
+        var result = await ExecuteFilterTest(@"special: { endsWith: ""-""}", "value special");
+        result.MatchQuerySnapshot();
+    }
+
     public class Term
     {
         public string Value { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;
+
+        public string Special { get; set; } = string.Empty;
     }
 
     public class TermFilterType : FilterInputType<Term>
@@ -91,6 +109,7 @@ public class StringFilterTests
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Value).Type<StringFilterType>();
             descriptor.Field(x => x.Description).Type<StringFilterType>();
+            descriptor.Field(x => x.Special).Type<StringFilterType>();
         }
     }
 
