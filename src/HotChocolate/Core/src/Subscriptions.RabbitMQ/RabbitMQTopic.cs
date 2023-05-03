@@ -31,7 +31,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
     {
         // We ensure that the processing is not started before the context is fully initialized.
         Debug.Assert(_connection != null, "_connection != null");
-        Debug.Assert(_connection != null, "_serializer != null");
+        Debug.Assert(_serializer != null, "_serializer != null");
 
         var channel = await _connection.GetChannelAsync().ConfigureAwait(false);
         var queueName = Guid.NewGuid().ToString();
