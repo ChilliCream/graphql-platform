@@ -373,7 +373,7 @@ public class ObjectFieldDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        return ResolveWith(propertyOrMethod.ExtractMember());
+        return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
     }
 
     /// <inheritdoc />
@@ -384,13 +384,24 @@ public class ObjectFieldDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
+        return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IObjectFieldDescriptor ResolveWithInternal(MemberInfo propertyOrMethod, Type? resolverType)
+    {
+        if (resolverType is { IsAbstract: true })
+        {
+            throw new ArgumentException(
+                string.Format(TypeResources.ObjectTypeDescriptor_ResolveWith_NonAbstract, resolverType?.FullName));
+        }
+
         if (propertyOrMethod is PropertyInfo or MethodInfo)
         {
             Definition.SetMoreSpecificType(
                 Context.TypeInspector.GetReturnType(propertyOrMethod),
                 TypeContext.Output);
 
-            Definition.ResolverType = propertyOrMethod.DeclaringType;
+            Definition.ResolverType = resolverType;
             Definition.ResolverMember = propertyOrMethod;
             Definition.Resolver = null;
             Definition.ResultType = propertyOrMethod.GetReturnType();
