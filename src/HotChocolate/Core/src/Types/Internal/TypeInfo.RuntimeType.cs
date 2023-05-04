@@ -91,7 +91,7 @@ internal sealed partial class TypeInfo
             short i = 0;
             var current = type;
 
-            while (IsWrapperType(current) || IsTaskType(current) || IsOptional(current))
+            while (IsWrapperType(current) || IsTaskType(current) || IsOptional(current) || IsOption(current))
             {
                 current = type.TypeArguments[0];
 
@@ -117,5 +117,8 @@ internal sealed partial class TypeInfo
         private static bool IsOptional(IExtendedType type) =>
             type.IsGeneric &&
             typeof(Optional<>) == type.Definition;
+
+        private static bool IsOption(IExtendedType type) =>
+            type.IsGeneric && type.Definition?.Name == "FSharpOption`1";
     }
 }

@@ -8,6 +8,9 @@
 //------------------------------------------------------------------------------
 
 namespace HotChocolate.Transport.Sockets.Client.Properties {
+    using System;
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -25,7 +28,7 @@ namespace HotChocolate.Transport.Sockets.Client.Properties {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Utilities.Transport.Sockets.Properties.SocketClientResources", typeof(SocketClientResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Transport.Sockets.Client.Properties.SocketClientResources", typeof(SocketClientResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

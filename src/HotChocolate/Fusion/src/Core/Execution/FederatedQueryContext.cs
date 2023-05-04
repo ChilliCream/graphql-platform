@@ -1,54 +1,115 @@
-using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Types.Relay;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class FederatedQueryContext : IFederationContext
+/// <summary>
+/// The fusion execution context holds the state of executing a distributed request.
+/// </summary>
+internal sealed class FusionExecutionContext : IDisposable
 {
+    private readonly string _schemaName;
     private readonly GraphQLClientFactory _clientFactory;
+    private readonly IIdSerializer _idSerializer;
+    private readonly OperationContextOwner _operationContextOwner;
 
-    public FederatedQueryContext(
-        FusionGraphConfiguration serviceConfig,
+    public FusionExecutionContext(
+        FusionGraphConfiguration configuration,
         QueryPlan queryPlan,
-        OperationContext operationContext,
-        GraphQLClientFactory clientFactory)
+        OperationContextOwner operationContextOwner,
+        GraphQLClientFactory clientFactory,
+        IIdSerializer idSerializer)
     {
-        ServiceConfig = serviceConfig ??
-            throw new ArgumentNullException(nameof(serviceConfig));
+        Configuration = configuration ??
+            throw new ArgumentNullException(nameof(configuration));
         QueryPlan = queryPlan ??
             throw new ArgumentNullException(nameof(queryPlan));
-        OperationContext = operationContext ??
-            throw new ArgumentNullException(nameof(operationContext));
-        _clientFactory = clientFactory;
+        _operationContextOwner = operationContextOwner ??
+            throw new ArgumentNullException(nameof(operationContextOwner));
+        _clientFactory = clientFactory ??
+            throw new ArgumentNullException(nameof(clientFactory));
+        _idSerializer = idSerializer ??
+            throw new ArgumentNullException(nameof(idSerializer));
+        _schemaName = Schema.Name;
     }
 
-    public FusionGraphConfiguration ServiceConfig { get; }
+    /// <summary>
+    /// Gets the schema that is being executed on.
+    /// </summary>
+    public ISchema Schema => OperationContext.Schema;
 
+    /// <summary>
+    /// Gets the fusion graph configuration.
+    /// </summary>
+    public FusionGraphConfiguration Configuration { get; }
+
+    /// <summary>
+    /// Gets the query plan that is being executed.
+    /// </summary>
     public QueryPlan QueryPlan { get; }
 
-    public IExecutionState State { get; } = new ExecutionState();
+    /// <summary>
+    /// Gets the execution state.
+    /// </summary>
+    public ExecutionState State { get; } = new();
 
-    public OperationContext OperationContext { get; }
+    /// <summary>
+    /// Gets access to the underlying operation context.
+    /// </summary>
+    public OperationContext OperationContext => _operationContextOwner.OperationContext;
 
-    public ConcurrentQueue<WorkItem> Work { get; } = new();
+    /// <summary>
+    /// Gets the operation that is being executed.
+    /// </summary>
+    public IOperation Operation => OperationContext.Operation;
 
-    public Dictionary<QueryPlanNode, List<WorkItem>> WorkByNode { get; } = new();
+    /// <summary>
+    /// Gets the result builder that is used to build the final result.
+    /// </summary>
+    public ResultBuilder Result => OperationContext.Result;
 
-    public HashSet<QueryPlanNode> Completed { get; } = new();
-
+    /// <summary>
+    /// Determines if all data has been fetched for the specified selection set.
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The selection set that is being evaluated.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if more data is needed for the specified selection set; otherwise, <c>false</c>.
+    /// </returns>
     public bool NeedsMoreData(ISelectionSet selectionSet)
-        => QueryPlan.HasNodes(selectionSet);
+        => QueryPlan.HasNodesFor(selectionSet);
 
-    // TODO : implement batching here
+    public string? ReformatId(string formattedId, string subgraphName)
+    {
+        var id = _idSerializer.Deserialize(formattedId);
+        var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
+        return _idSerializer.Serialize(_schemaName, typeName, id.Value);
+    }
+
+    public IdValue ParseId(string formattedId)
+        => _idSerializer.Deserialize(formattedId);
+
+    public async Task<GraphQLResponse> ExecuteAsync(
+        string subgraphName,
+        GraphQLRequest request,
+        CancellationToken cancellationToken)
+    {
+        await using var client = _clientFactory.CreateClient(subgraphName);
+        return await client.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
-        string schemaName,
+        string subgraphName,
         IReadOnlyList<GraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
-        var client = _clientFactory.Create(schemaName);
+        await using var client = _clientFactory.CreateClient(subgraphName);
         var responses = new GraphQLResponse[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
@@ -60,4 +121,31 @@ internal sealed class FederatedQueryContext : IFederationContext
 
         return responses;
     }
+
+    public async IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
+        string subgraphName,
+        GraphQLRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await using var client = _clientFactory.CreateSubscriptionClient(subgraphName);
+
+        await foreach (var response in client.SubscribeAsync(request, cancellationToken)
+            .ConfigureAwait(false))
+        {
+            yield return response;
+        }
+    }
+
+    public void Dispose()
+        => _operationContextOwner.Dispose();
+
+    public static FusionExecutionContext CreateFrom(
+        FusionExecutionContext context,
+        OperationContextOwner operationContextOwner)
+        => new FusionExecutionContext(
+            context.Configuration,
+            context.QueryPlan,
+            operationContextOwner,
+            context._clientFactory,
+            context._idSerializer);
 }

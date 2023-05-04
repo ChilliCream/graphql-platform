@@ -7,6 +7,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\Shared\HotChocolate.Fusion.Tests.Shared.csproj" />
   </ItemGroup>
   
   <ItemGroup>

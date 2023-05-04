@@ -208,12 +208,28 @@ public sealed partial class OperationCompiler
                 variants[item.Key] = item.Value;
             }
 
-#if NET5_0_OR_GREATER
-            ref var optSpace = ref GetReference(AsSpan(_operationOptimizers));
+            // we will complete the selection variants, sets and selections
+            // without sealing them so that analyzers in this step can fully
+            // inspect them.
+            var variantsSpan = variants.AsSpan();
+            ref var variantsStart = ref GetReference(variantsSpan);
+            ref var variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length);
 
-            for (var i = 0; i < _operationOptimizers.Count; i++)
+            while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                Unsafe.Add(ref optSpace, i).OptimizeOperation(context);
+                variantsStart.Complete();
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1);
+            }
+
+#if NET5_0_OR_GREATER
+            var optSpan = AsSpan(_operationOptimizers);
+            ref var optStart = ref GetReference(optSpan);
+            ref var optEnd = ref Unsafe.Add(ref optStart, optSpan.Length);
+
+            while (Unsafe.IsAddressLessThan(ref optStart, ref optEnd))
+            {
+                optStart.OptimizeOperation(context);
+                optStart = ref Unsafe.Add(ref optStart, 1);
             }
 #else
             for (var i = 0; i < _operationOptimizers.Count; i++)
@@ -224,11 +240,14 @@ public sealed partial class OperationCompiler
 
             CompleteResolvers(schema);
 
-            ref var varSpace = ref GetReference(variants.AsSpan());
+            variantsSpan = variants.AsSpan();
+            variantsStart = ref GetReference(variantsSpan);
+            variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length);
 
-            for (var i = 0; i < _operationOptimizers.Count; i++)
+            while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                Unsafe.Add(ref varSpace, i).Seal();
+                variantsStart.Seal();
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1);
             }
         }
 
@@ -483,7 +502,7 @@ public sealed partial class OperationCompiler
             {
                 // if this is the first time we find a selection to this field we have to
                 // create a new prepared selection.
-                preparedSelection = new Selection(
+                preparedSelection = new Selection.Sealed(
                     GetNextSelectionId(),
                     context.Type,
                     field,
@@ -820,54 +839,6 @@ public sealed partial class OperationCompiler
         }
     }
 
-    internal sealed class SelectionPath : IEquatable<SelectionPath>
-    {
-        private SelectionPath(string name, SelectionPath? parent = null)
-        {
-            Name = name;
-            Parent = parent;
-        }
-
-        public string Name { get; }
-
-        public SelectionPath? Parent { get; }
-
-        public static SelectionPath Root { get; } = new("$root");
-
-        public SelectionPath Append(string name) => new(name, this);
-
-        public bool Equals(SelectionPath? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (Name.EqualsOrdinal(other.Name))
-            {
-                if (ReferenceEquals(Parent, other.Parent))
-                {
-                    return true;
-                }
-
-                return Equals(Parent, other.Parent);
-            }
-
-            return false;
-        }
-
-        public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj) || (obj is SelectionPath other && Equals(other));
-
-        public override int GetHashCode()
-            => HashCode.Combine(Name, Parent);
-    }
-
     private readonly struct SelectionSetRef : IEquatable<SelectionSetRef>
     {
         public SelectionSetRef(SelectionSetNode selectionSet, SelectionPath path)
@@ -890,4 +861,4 @@ public sealed partial class OperationCompiler
         public override int GetHashCode()
             => HashCode.Combine(SelectionSet, Path);
     }
-}
+} 

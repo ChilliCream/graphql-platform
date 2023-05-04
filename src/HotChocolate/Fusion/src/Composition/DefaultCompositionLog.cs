@@ -4,6 +4,13 @@ namespace HotChocolate.Fusion.Composition;
 
 internal sealed class DefaultCompositionLog : ICompositionLog, IEnumerable<LogEntry>
 {
+    private readonly ICompositionLog? _innerLog;
+
+    public DefaultCompositionLog(ICompositionLog? innerLog = null)
+    {
+        _innerLog = innerLog;
+    }
+
     private readonly List<LogEntry> _entries = new();
 
     public bool HasErrors { get; private set; }
@@ -15,12 +22,14 @@ internal sealed class DefaultCompositionLog : ICompositionLog, IEnumerable<LogEn
             throw new ArgumentNullException(nameof(entry));
         }
 
-        if (entry.Kind is LogEntryKind.Error)
+        if (entry.Severity is LogSeverity.Error)
         {
             HasErrors = true;
         }
 
         _entries.Add(entry);
+
+        _innerLog?.Write(entry);
     }
 
     public IEnumerator<LogEntry> GetEnumerator()

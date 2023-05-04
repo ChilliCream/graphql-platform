@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CookieCrumble;
@@ -118,6 +119,139 @@ public class JsonTypeTests
               "data": {
                 "inputJson": {
                   "a": "abc"
+                }
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-15)]
+    [InlineData(-10.5)]
+    [InlineData(1.5)]
+    [InlineData(1e15)]
+    public async Task Input_Json_Number_Literal(decimal value)
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    $$"""
+                    {
+                        inputJson(input: {{value}})
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "data": {
+                "inputJson": {{value}}
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Input_Json_BigInt_Literal()
+    {
+        var value = BigInteger.Parse("100000000000000000000000050");
+
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    $$"""
+                    {
+                        inputJson(input: {{value}})
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "data": {
+                "inputJson": {{value}}
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Input_Json_Exponent_Literal()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        inputJson(input: 1e1345)
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "inputJson": 1e1345
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("true")]
+    [InlineData("false")]
+    public async Task Input_Json_Bool_Literal(string value)
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    $$"""
+                    {
+                        inputJson(input: {{value}})
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "data": {
+                "inputJson": {{value}}
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Input_Json_Object_List()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        inputJson(input: { a: ["abc"] })
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "inputJson": {
+                  "a": [
+                    "abc"
+                  ]
                 }
               }
             }

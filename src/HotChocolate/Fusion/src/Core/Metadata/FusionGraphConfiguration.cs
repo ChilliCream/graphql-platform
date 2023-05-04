@@ -1,20 +1,60 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Metadata;
 
+/// <summary>
+/// Represent the fusion graph configuration.
+/// </summary>
 internal sealed class FusionGraphConfiguration
 {
     private readonly Dictionary<string, IType> _types;
     private readonly Dictionary<(string Schema, string Type), string> _typeNameLookup = new();
+    private readonly Dictionary<(string Schema, string Type), string> _typeNameRevLookup = new();
 
+    private readonly Dictionary<string, List<string>> _entitySubgraphMap =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FusionGraphConfiguration"/> class.
+    /// </summary>
+    /// <param name="types">
+    /// The list of types.
+    /// </param>
+    /// <param name="subgraphs">
+    /// The list of entities.
+    /// </param>
+    /// <param name="httpClients">
+    /// The list of HTTP clients.
+    /// </param>
+    /// <param name="webSocketClients">
+    /// The list of WebSocket clients.
+    /// </param>
     public FusionGraphConfiguration(
-        IReadOnlyList<IType> types,
-        IReadOnlyList<HttpClientConfig> httpClientConfigs)
+        IReadOnlyCollection<IType> types,
+        IReadOnlyCollection<SubgraphInfo> subgraphs,
+        IReadOnlyList<HttpClientConfiguration> httpClients,
+        IReadOnlyList<WebSocketClientConfiguration> webSocketClients)
     {
         _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
-        HttpClientConfigs = httpClientConfigs;
-        SubgraphNames = httpClientConfigs.Select(t => t.Subgraph).ToArray();
+
+        foreach (var subgraph in subgraphs)
+        {
+            foreach (var entityName in subgraph.Entities)
+            {
+                if (!_entitySubgraphMap.TryGetValue(entityName, out var availableOnSubgraphs))
+                {
+                    availableOnSubgraphs = new List<string>();
+                    _entitySubgraphMap.Add(entityName, availableOnSubgraphs);
+                }
+                availableOnSubgraphs.Add(subgraph.Name);
+            }
+        }
+
+        SubgraphNames = subgraphs.OrderBy(t => t.Name).Select(t => t.Name).ToList();
+        HttpClients = httpClients;
+        WebSocketClients = webSocketClients;
 
         foreach (var type in types)
         {
@@ -22,16 +62,35 @@ internal sealed class FusionGraphConfiguration
             {
                 if (!binding.Name.EqualsOrdinal(type.Name))
                 {
-                    _typeNameLookup.Add((binding.SchemaName, binding.Name), type.Name);
+                    _typeNameLookup.Add((binding.SubgraphName, binding.Name), type.Name);
+                    _typeNameRevLookup.Add((binding.SubgraphName, type.Name), binding.Name);
                 }
             }
         }
     }
 
+    /// <summary>
+    /// Gets the list of subgraph names.
+    /// </summary>
     public IReadOnlyList<string> SubgraphNames { get; }
 
-    public IReadOnlyList<HttpClientConfig> HttpClientConfigs { get; }
+    /// <summary>
+    /// Gets the list of HTTP clients.
+    /// </summary>
+    public IReadOnlyList<HttpClientConfiguration> HttpClients { get; }
 
+    /// <summary>
+    /// Gets the list of WebSocket clients.
+    /// </summary>
+    public IReadOnlyList<WebSocketClientConfiguration> WebSocketClients { get; }
+
+    /// <summary>
+    /// Gets the type of the specified name.
+    /// </summary>
+    /// <typeparam name="T">The type of the specified name.</typeparam>
+    /// <param name="typeName">The name of the type.</param>
+    /// <returns>The type of the specified name.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the type is not found.</exception>
     public T GetType<T>(string typeName) where T : IType
     {
         if (_types.TryGetValue(typeName, out var type) && type is T casted)
@@ -42,14 +101,11 @@ internal sealed class FusionGraphConfiguration
         throw new InvalidOperationException("Type not found.");
     }
 
-    public T GetType<T>(string schemaName, string typeName) where T : IType
+    public T GetType<T>(QualifiedTypeName qualifiedTypeName) where T : IType
     {
-        if (!_typeNameLookup.TryGetValue((schemaName, typeName), out var temp))
-        {
-            temp = typeName;
-        }
+        var typeName = GetTypeName(qualifiedTypeName);
 
-        if (_types.TryGetValue(temp, out var type) && type is T casted)
+        if (_types.TryGetValue(typeName, out var type) && type is T casted)
         {
             return casted;
         }
@@ -57,14 +113,21 @@ internal sealed class FusionGraphConfiguration
         throw new InvalidOperationException("Type not found.");
     }
 
-    public T GetType<T>(TypeInfo typeInfo) where T : IType
+    public bool TryGetType<T>(string typeName, [NotNullWhen(true)] out T? type) where T : IType
     {
-        throw new NotImplementedException();
+        if (_types.TryGetValue(typeName, out var value) && value is T casted)
+        {
+            type = casted;
+            return true;
+        }
+
+        type = default!;
+        return false;
     }
 
-    public string GetTypeName(string schemaName, string typeName)
+    public string GetTypeName(string subgraphName, string typeName)
     {
-        if (!_typeNameLookup.TryGetValue((schemaName, typeName), out var temp))
+        if (!_typeNameLookup.TryGetValue((subgraphName, typeName), out var temp))
         {
             temp = typeName;
         }
@@ -72,27 +135,71 @@ internal sealed class FusionGraphConfiguration
         return temp;
     }
 
-    public string GetTypeName(TypeInfo typeInfo)
+    public string GetTypeName(QualifiedTypeName qualifiedTypeName)
+        => GetTypeName(qualifiedTypeName.SubgraphName, qualifiedTypeName.TypeName);
+
+    public string GetSubgraphTypeName(string subgraphName, string typeName)
     {
-        throw new NotImplementedException();
+        if (!_typeNameRevLookup.TryGetValue((subgraphName, typeName), out var temp))
+        {
+            temp = typeName;
+        }
+
+        return temp;
     }
 
+    /// <summary>
+    /// Gets the subgraphs that are able to resolve the specified entity.
+    /// </summary>
+    /// <param name="entityName">The entity name.</param>
+    /// <returns>
+    /// Returns a list of subgraph names that are able to resolve the specified entity.
+    /// </returns>
+    public IReadOnlyList<string> GetAvailableSubgraphs(string entityName)
+    {
+        if (_entitySubgraphMap.TryGetValue(entityName, out var subgraphs))
+        {
+            return subgraphs;
+        }
+
+        return Array.Empty<string>();
+    }
+
+    /// <summary>
+    /// Loads the configuration from the specified source text.
+    /// </summary>
+    /// <param name="sourceText">
+    /// The source text that contains the configuration.
+    /// </param>
+    /// <returns>
+    /// Returns a fusion graph configuration object.
+    /// </returns>
     public static FusionGraphConfiguration Load(string sourceText)
         => new FusionGraphConfigurationReader().Read(sourceText);
 
+    /// <summary>
+    /// Loads the configuration from the specified source text.
+    /// </summary>
+    /// <param name="document">
+    /// The document that contains the configuration.
+    /// </param>
+    /// <returns>
+    /// Returns a fusion graph configuration object.
+    /// </returns>
     public static FusionGraphConfiguration Load(DocumentNode document)
         => new FusionGraphConfigurationReader().Read(document);
 }
 
-public readonly struct TypeInfo
+internal sealed class SubgraphInfo
 {
-    public TypeInfo(string schemaName, string typeName)
+    public SubgraphInfo(string name)
     {
-        SchemaName = schemaName;
-        TypeName = typeName;
+        Name = name;
     }
 
-    public string SchemaName { get; }
+    public string Name { get; }
 
-    public string TypeName { get; }
+    public List<string> Entities { get; } = new();
 }
+
+public readonly record struct QualifiedTypeName(string SubgraphName, string TypeName);

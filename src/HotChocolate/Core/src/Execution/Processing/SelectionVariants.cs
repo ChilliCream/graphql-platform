@@ -9,9 +9,9 @@ namespace HotChocolate.Execution.Processing;
 internal sealed class SelectionVariants : ISelectionVariants
 {
     private IObjectType? _firstType;
-    private SelectionSet? _firstSelections;
+    private SelectionSet? _firstSelectionSet;
     private IObjectType? _secondType;
-    private SelectionSet? _secondSelections;
+    private SelectionSet? _secondSelectionSet;
     private Dictionary<IObjectType, SelectionSet>? _map;
     private bool _readOnly;
 
@@ -46,12 +46,12 @@ internal sealed class SelectionVariants : ISelectionVariants
 
         if (ReferenceEquals(_firstType, typeContext))
         {
-            return _firstSelections!;
+            return _firstSelectionSet!;
         }
 
         if (ReferenceEquals(_secondType, typeContext))
         {
-            return _secondSelections!;
+            return _secondSelectionSet!;
         }
 
         throw SelectionSet_TypeContextInvalid(typeContext);
@@ -100,7 +100,7 @@ internal sealed class SelectionVariants : ISelectionVariants
             if (_firstType is null)
             {
                 _firstType = typeContext;
-                _firstSelections = selectionSet;
+                _firstSelectionSet = selectionSet;
             }
             else if (_secondType is null)
             {
@@ -110,21 +110,41 @@ internal sealed class SelectionVariants : ISelectionVariants
                 }
 
                 _secondType = typeContext;
-                _secondSelections = selectionSet;
+                _secondSelectionSet = selectionSet;
             }
             else
             {
                 _map = new Dictionary<IObjectType, SelectionSet>
                 {
-                    { _firstType, _firstSelections! },
-                    { _secondType, _secondSelections! },
+                    { _firstType, _firstSelectionSet! },
+                    { _secondType, _secondSelectionSet! },
                     { typeContext, selectionSet }
                 };
 
                 _firstType = null;
-                _firstSelections = null;
+                _firstSelectionSet = null;
                 _secondType = null;
-                _secondSelections = null;
+                _secondSelectionSet = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Completes the selection variant without sealing it.
+    /// </summary>
+    internal void Complete()
+    {
+        if (!_readOnly)
+        {
+            _firstSelectionSet?.Complete();
+            _secondSelectionSet?.Complete();
+
+            if (_map is not null)
+            {
+                foreach (var selectionSet in _map.Values)
+                {
+                    selectionSet.Complete();
+                }
             }
         }
     }
@@ -133,8 +153,8 @@ internal sealed class SelectionVariants : ISelectionVariants
     {
         if (!_readOnly)
         {
-            _firstSelections?.Seal();
-            _secondSelections?.Seal();
+            _firstSelectionSet?.Seal();
+            _secondSelectionSet?.Seal();
 
             if (_map is not null)
             {

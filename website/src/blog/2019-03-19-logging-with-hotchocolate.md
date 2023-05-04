@@ -203,7 +203,7 @@ The query and the result should now be printed to your console.
 
 This is just a simple example of how to subscribe to our diagnostic events. Checkout our documentation for a list of all of the events available [here](https://hotchocolate.io/docs/next/instrumentation).
 
-We have added this example project to our example repo [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/Instrumentation).
+We have added this example project to our example repo [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Instrumentation).
 
 Also, we have a more complex implementation of a Hot Chocolate ETW event source [here](https://github.com/ChilliCream/thor-client/tree/master/src/Clients/HotChocolate).
 

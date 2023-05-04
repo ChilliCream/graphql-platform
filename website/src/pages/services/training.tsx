@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
 
+import { State, WorkshopsState } from "@/state";
 import { Layout } from "@/components/layout";
 import { Link } from "@/components/misc/link";
 import {
@@ -16,6 +17,7 @@ import { SEO } from "@/components/misc/seo";
 import { SupportCard } from "@/components/misc/support-card";
 import { Artwork } from "@/components/sprites";
 import { IsPhablet } from "@/shared-style";
+import { useSelector } from "react-redux";
 
 // Artwork
 import ContactUsSvg from "@/images/artwork/contact-us.svg";
@@ -24,14 +26,6 @@ interface Service {
   readonly kind: "Corporate Training" | "Corporate Workshop";
   readonly description: string;
   readonly perks: string[];
-}
-
-interface Workshop {
-  readonly title: string;
-  readonly date: string;
-  readonly host: string;
-  readonly place: string;
-  readonly url: string;
 }
 
 const TrainingPage: FC = () => {
@@ -64,22 +58,9 @@ const TrainingPage: FC = () => {
     },
   ];
 
-  const workshops: Workshop[] = [
-    {
-      title: "Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18",
-      date: "20 - 21 Apr 2023",
-      host: "dotnetdays",
-      place: "lasi, Romania",
-      url: "https://dotnetdays.ro/workshops/Building-Modern-Apps-with-GraphQL-and-net7",
-    },
-    {
-      title: "Fullstack GraphQL",
-      date: "22 - 23 May 2023",
-      host: "NDC",
-      place: "{ Oslo }",
-      url: "https://ndcoslo.com/workshops/building-modern-applications-with-graphql-using-asp-net-core-6-hot-chocolate-and-relay/cb7ce0173d8f",
-    },
-  ];
+  const workshops = useSelector<State, WorkshopsState>(
+    (state) => state.workshops
+  );
 
   return (
     <Layout>
@@ -97,8 +78,8 @@ const TrainingPage: FC = () => {
         <WorkshopsContainer>
           <WorkshopsHeader>Upcoming Public Workshops</WorkshopsHeader>
           <WorkshopsMatrix>
-            {workshops.map(({ title, date, host, place, url }) => (
-              <Link key={url} to={url}>
+            {workshops.map(({ id, title, date, host, place, url }) => (
+              <Link key={id} to={url}>
                 <dl>
                   <dt>
                     <p>{title}</p>
@@ -135,12 +116,13 @@ const TrainingPage: FC = () => {
           <ContentContainer>
             <SectionTitle>Get in Touch</SectionTitle>
             <p>
-              Want to learn more? Get the right help for your team and reach out
-              to us today. Write us an{" "}
+              {
+                "Want to learn more? Get the right help for your team and reach out to us today. Write us an "
+              }
               <a href="mailto:contact@chillicream.com?subject=Training">
                 <EnvelopeIcon />
-              </a>{" "}
-              and we will come back to you shortly!
+              </a>
+              {" and we will come back to you shortly!"}
             </p>
           </ContentContainer>
         </SectionRow>

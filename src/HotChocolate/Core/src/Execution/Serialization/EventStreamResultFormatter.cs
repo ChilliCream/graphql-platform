@@ -125,7 +125,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         var read = 0;
         while (read < bufferWriter.Length)
         {
-            var buffer = bufferWriter.Body.Slice(read);
+            var buffer = bufferWriter.GetWrittenMemory().Slice(read);
             if (buffer.Span.IndexOf(_newLine) is var newLineIndex && newLineIndex != -1)
             {
                 buffer = buffer.Slice(0, newLineIndex);

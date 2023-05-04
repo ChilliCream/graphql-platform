@@ -162,13 +162,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
                     definition.Configurations.Add(
                         new CompleteConfiguration<ObjectFieldDefinition>(
-                            (c, d) =>
-                                CompileMiddleware(
-                                    selectionType,
-                                    d,
-                                    placeholder,
-                                    c,
-                                    scope),
+                            (c, d) => CompileMiddleware(selectionType, d, placeholder, c, scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion));
                 });
@@ -341,7 +335,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var includeConditions = new long[includeConditionsSource.Length];
         includeConditionsSource.CopyTo(includeConditions);
 
-        var proxy = new Selection(selection.Id,
+        var proxy = new Selection.Sealed(selection.Id,
             selection.DeclaringType,
             field,
             field.Type,

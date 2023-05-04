@@ -46,7 +46,7 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+    <PackageReference Include="System.Text.Json" Version="6.0.7" />
   </ItemGroup>
 
   <ItemGroup>
@@ -120,6 +120,12 @@
     </Compile>
     <Compile Update="Internal\ExtendedType.Tools.cs">
       <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\TypeRegistrar.CreateInstance.cs">
+      <DependentUpon>TypeRegistrar.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Descriptors\Conventions\DescriptorContext.Services.cs">
+      <DependentUpon>DescriptorContext.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

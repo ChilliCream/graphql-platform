@@ -1083,4 +1083,10 @@ Type: `{0}`</value>
   <data name="ErrorHelper_FetchedToManyNodesAtOnce" xml:space="preserve">
     <value>The maximum number of nodes that can be fetched at once is {0}. This selection tried to fetch {1} nodes that exceeded the maximum allowed amount.</value>
   </data>
+  <data name="ThrowHelper_InputTypeExpected_Message" xml:space="preserve">
+    <value>The specified type `{0}` is expected to be an input type.</value>
+  </data>
+  <data name="ThrowHelper_OutputTypeExpected_Message" xml:space="preserve">
+    <value>The specified type `{0}` is expected to be an output type.</value>
+  </data>
 </root>

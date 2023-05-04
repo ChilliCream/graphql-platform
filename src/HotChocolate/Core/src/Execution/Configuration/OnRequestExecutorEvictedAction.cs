@@ -6,21 +6,26 @@ namespace HotChocolate.Execution.Configuration;
 
 public readonly struct OnRequestExecutorEvictedAction
 {
-    public OnRequestExecutorEvictedAction(
-        Action<IRequestExecutor> action)
+    public OnRequestExecutorEvictedAction(OnRequestExecutorEvicted evicted)
     {
-        Action = action ?? throw new ArgumentNullException(nameof(action));
-        AsyncAction = default;
+        Evicted = evicted ?? throw new ArgumentNullException(nameof(evicted));
+        EvictedAsync = default;
     }
 
-    public OnRequestExecutorEvictedAction(
-        Func<IRequestExecutor, CancellationToken, ValueTask> asyncAction)
+    public OnRequestExecutorEvictedAction(OnRequestExecutorEvictedAsync evictedAsync)
     {
-        Action = default;
-        AsyncAction = asyncAction ?? throw new ArgumentNullException(nameof(asyncAction));
+        Evicted = default;
+        EvictedAsync = evictedAsync ?? throw new ArgumentNullException(nameof(evictedAsync));
     }
 
-    public Action<IRequestExecutor>? Action { get; }
+    public OnRequestExecutorEvicted? Evicted { get; }
 
-    public Func<IRequestExecutor, CancellationToken, ValueTask>? AsyncAction { get; }
+    public OnRequestExecutorEvictedAsync? EvictedAsync { get; }
 }
+
+public delegate void OnRequestExecutorEvicted(
+    IRequestExecutor executor);
+
+public delegate ValueTask OnRequestExecutorEvictedAsync(
+    IRequestExecutor executor,
+    CancellationToken cancellationToken);

@@ -3,8 +3,12 @@ namespace HotChocolate.Fusion.Planning;
 internal enum QueryPlanNodeKind
 {
     Parallel,
-    Serial,
-    Resolver,
-    Introspection,
-    Composition,
+    Sequence,
+    Resolve,
+    ResolveByKeyBatch,
+    ResolveNode,
+    Subscribe,
+    Introspect,
+    Compose,
+    If
 }

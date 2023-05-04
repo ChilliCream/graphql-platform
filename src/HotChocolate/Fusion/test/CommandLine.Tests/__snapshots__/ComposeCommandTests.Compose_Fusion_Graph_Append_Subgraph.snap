@@ -1,0 +1,201 @@
+Schema Document
+---------------
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  productById(id: ID!): Product
+  reviewById(id: ID!): Review
+  reviewOrAuthor: ReviewOrAuthor!
+  reviews: [Review!]!
+  userById(id: ID!): User
+  users: [User!]!
+  usersById(ids: [ID!]!): [User!]!
+}
+
+type Mutation {
+  addReview(input: AddReviewInput!): AddReviewPayload!
+  addUser(input: AddUserInput!): AddUserPayload!
+}
+
+type Subscription {
+  onNewReview: Review!
+}
+
+type AddReviewPayload {
+  review: Review
+}
+
+type AddUserPayload {
+  user: User
+}
+
+type Product {
+  reviews: [Review!]!
+  upc: Int!
+}
+
+type Review implements Node {
+  author: User!
+  body: String!
+  id: ID!
+  product: Product!
+}
+
+type User implements Node {
+  birthdate: Date!
+  id: ID!
+  name: String!
+  reviews: [Review!]!
+  username: String!
+}
+
+interface Node {
+  id: ID!
+}
+
+union ReviewOrAuthor = User | Review
+
+input AddReviewInput {
+  authorId: Int!
+  body: String!
+  upc: Int!
+}
+
+input AddUserInput {
+  birthdate: DateTime!
+  name: String!
+  username: String!
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+---------------
+
+Fusion Graph Document
+---------------
+schema @fusion(version: 1) @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  productById(id: ID!): Product @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  reviewById(id: ID!): Review @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  reviewOrAuthor: ReviewOrAuthor! @resolver(subgraph: "Reviews2", select: "{ reviewOrAuthor }")
+  reviews: [Review!]! @resolver(subgraph: "Reviews2", select: "{ reviews }")
+  userById(id: ID!): User @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  users: [User!]! @resolver(subgraph: "Accounts", select: "{ users }")
+  usersById(ids: [ID!]!): [User!]! @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+}
+
+type Mutation {
+  addReview(input: AddReviewInput!): AddReviewPayload! @variable(subgraph: "Reviews2", name: "input", argument: "input") @resolver(subgraph: "Reviews2", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
+  addUser(input: AddUserInput!): AddUserPayload! @variable(subgraph: "Accounts", name: "input", argument: "input") @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+}
+
+type Subscription {
+  onNewReview: Review! @resolver(subgraph: "Reviews2", select: "{ onNewReview }", kind: "SUBSCRIPTION")
+}
+
+type AddReviewPayload {
+  review: Review @source(subgraph: "Reviews2")
+}
+
+type AddUserPayload {
+  user: User @source(subgraph: "Accounts")
+}
+
+type Product @variable(subgraph: "Reviews2", name: "Product_id", select: "id") @resolver(subgraph: "Reviews2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) {
+  reviews: [Review!]! @source(subgraph: "Reviews2")
+  upc: Int! @source(subgraph: "Reviews2")
+}
+
+type Review implements Node @variable(subgraph: "Reviews2", name: "Review_id", select: "id") @resolver(subgraph: "Reviews2", select: "{ node(id: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "ID!" } ]) @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  author: User! @source(subgraph: "Reviews2")
+  body: String! @source(subgraph: "Reviews2")
+  id: ID! @source(subgraph: "Reviews2")
+  product: Product! @source(subgraph: "Reviews2")
+}
+
+type User implements Node @variable(subgraph: "Accounts", name: "User_id", select: "id") @variable(subgraph: "Reviews2", name: "User_id", select: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") @resolver(subgraph: "Reviews2", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  birthdate: Date! @source(subgraph: "Accounts")
+  id: ID! @source(subgraph: "Accounts") @source(subgraph: "Reviews2")
+  name: String! @source(subgraph: "Accounts") @source(subgraph: "Reviews2")
+  reviews: [Review!]! @source(subgraph: "Reviews2")
+  username: String! @source(subgraph: "Accounts")
+}
+
+interface Node {
+  id: ID!
+}
+
+union ReviewOrAuthor = User | Review
+
+input AddReviewInput {
+  authorId: Int!
+  body: String!
+  upc: Int!
+}
+
+input AddUserInput {
+  birthdate: DateTime!
+  name: String!
+  username: String!
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+---------------
+
+Accounts Subgraph Configuration
+---------------
+{
+  "Name": "Accounts",
+  "Schema": "schema {\n  query: Query\n  mutation: Mutation\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  users: [User!]!\n  userById(id: ID!): User\n  usersById(ids: [ID!]!): [User!]!\n}\n\ntype Mutation {\n  addUser(input: AddUserInput!): AddUserPayload!\n}\n\ntype User implements Node {\n  id: ID!\n  name: String!\n  birthdate: Date!\n  username: String!\n}\n\n\"The `DateTime` scalar represents an ISO-8601 compliant date time type.\"\nscalar DateTime\n\n\"The `Date` scalar represents an ISO-8601 compliant date type.\"\nscalar Date\n\ninput AddUserInput {\n  name: String!\n  username: String!\n  birthdate: DateTime!\n}\n\ntype AddUserPayload {\n  user: User\n}",
+  "Extensions": [
+    "extend type Query {\n  userById(id: ID! @is(field: \"id\")): User!\n  usersById(ids: [ID!]! @is(field: \"id\")): [User!]!\n}"
+  ],
+  "Clients": [
+    {
+      "ClientName": null,
+      "BaseAddress": "http://localhost:5000/graphql"
+    },
+    {
+      "ClientName": null,
+      "BaseAddress": "ws://localhost:5000/graphql"
+    }
+  ]
+}
+---------------
+
+Reviews2 Subgraph Configuration
+---------------
+{
+  "Name": "Reviews2",
+  "Schema": "schema {\n  query: Query\n  mutation: ReviewsMutation\n  subscription: ReviewsSubscription\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  reviews: [Review!]!\n  reviewById(id: ID!): Review\n  authorById(id: ID!): User\n  productById(id: ID!): Product\n  reviewOrAuthor: ReviewOrAuthor!\n}\n\ntype ReviewsMutation {\n  addReview(input: AddReviewInput!): AddReviewPayload!\n}\n\ntype ReviewsSubscription {\n  onNewReview: Review!\n}\n\ntype User implements Node {\n  reviews: [Review!]!\n  id: ID!\n  name: String!\n}\n\ntype Review implements Node {\n  id: ID!\n  author: User!\n  product: Product!\n  body: String!\n}\n\ntype Product {\n  reviews: [Review!]!\n  upc: Int!\n}\n\nunion ReviewOrAuthor = User | Review\n\ninput AddReviewInput {\n  body: String!\n  authorId: Int!\n  upc: Int!\n}\n\ntype AddReviewPayload {\n  review: Review\n}",
+  "Extensions": [
+    "extend type Query {\n  authorById(id: ID! @is(field: \"id\")): Author\n  productById(id: ID! @is(field: \"id\")): Product\n}\n\nschema @rename(coordinate: \"Query.authorById\", newName: \"userById\") @rename(coordinate: \"Author\", newName: \"User\") {\n\n}"
+  ],
+  "Clients": [
+    {
+      "ClientName": null,
+      "BaseAddress": "http://localhost:5000/graphql"
+    },
+    {
+      "ClientName": null,
+      "BaseAddress": "ws://localhost:5000/graphql"
+    }
+  ]
+}
+---------------

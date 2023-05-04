@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using CookieCrumble;
+using Xunit;
 
 namespace HotChocolate.Types;
 

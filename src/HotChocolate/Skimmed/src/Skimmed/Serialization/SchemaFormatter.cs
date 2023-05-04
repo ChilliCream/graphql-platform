@@ -13,6 +13,13 @@ public static class SchemaFormatter
         return ((DocumentNode)context.Result!).ToString(indented);
     }
 
+    public static DocumentNode FormatAsDocument(Schema schema)
+    {
+        var context = new VisitorContext();
+        _visitor.VisitSchema(schema, context);
+        return (DocumentNode)context.Result!;
+    }
+
     private sealed class SchemaFormatterVisitor : SchemaVisitor<VisitorContext>
     {
         public override void VisitSchema(Schema schema, VisitorContext context)
@@ -261,6 +268,58 @@ public static class SchemaFormatter
                             ? new StringValueNode(type.Description)
                             : null,
                         directives);
+        }
+
+        public override void VisitEnumType(EnumType type, VisitorContext context)
+        {
+            VisitDirectives(type.Directives, context);
+            var directives = (List<DirectiveNode>)context.Result!;
+
+            VisitEnumValues(type.Values, context);
+            var values = (List<EnumValueDefinitionNode>)context.Result!;
+
+            context.Result =
+                type.ContextData.ContainsKey(WellKnownContextData.TypeExtension)
+                    ? new EnumTypeExtensionNode(
+                        null,
+                        new NameNode(type.Name),
+                        directives,
+                        values)
+                    : new EnumTypeDefinitionNode(
+                        null,
+                        new NameNode(type.Name),
+                        type.Description is not null
+                            ? new StringValueNode(type.Description)
+                            : null,
+                        directives,
+                        values);
+        }
+
+        public override void VisitEnumValues(EnumValueCollection values, VisitorContext context)
+        {
+            var definitionNodes = new List<EnumValueDefinitionNode>();
+
+            foreach (var value in values.OrderBy(t => t.Name))
+            {
+                VisitEnumValue(value, context);
+                definitionNodes.Add((EnumValueDefinitionNode)context.Result!);
+            }
+
+            context.Result = definitionNodes;
+        }
+
+        public override void VisitEnumValue(EnumValue value, VisitorContext context)
+        {
+            VisitDirectives(value.Directives, context);
+            var directives = (List<DirectiveNode>)context.Result!;
+
+            context.Result = new EnumValueDefinitionNode(
+                null,
+                new NameNode(value.Name),
+                value.Description is not null
+                    ? new StringValueNode(value.Description)
+                    : null,
+                directives);
         }
 
         public override void VisitUnionType(UnionType type, VisitorContext context)

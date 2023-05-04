@@ -20,10 +20,10 @@ internal sealed class NextMessage : IDataMessage
 
     public static NextMessage From(JsonDocument document)
     {
-        JsonElement root = document.RootElement;
+        var root = document.RootElement;
         var id = root.GetProperty(IdProp).GetString()!;
 
-        JsonElement payload = root.GetProperty(PayloadProp);
+        var payload = root.GetProperty(PayloadProp);
         var result = new OperationResult(
             document,
             TryGetProperty(payload, DataProp),
@@ -33,8 +33,8 @@ internal sealed class NextMessage : IDataMessage
         return new NextMessage(id, result);
     }
 
-    private static JsonElement? TryGetProperty(JsonElement element, ReadOnlySpan<byte> name)
-        => element.TryGetProperty(name, out JsonElement property)
+    private static JsonElement TryGetProperty(JsonElement element, ReadOnlySpan<byte> name)
+        => element.TryGetProperty(name, out var property)
             ? property
-            : null;
+            : default;
 }

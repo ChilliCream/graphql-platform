@@ -15,10 +15,5 @@ internal interface IVariableDefinition
     /// <summary>
     /// Gets the name of the subgraph the variable is defined for.
     /// </summary>
-    string Subgraph { get; }
-
-    /// <summary>
-    /// Gets the type the variable must have for the subgraph.
-    /// </summary>
-    ITypeNode Type { get; }
+    string SubgraphName { get; }
 }
