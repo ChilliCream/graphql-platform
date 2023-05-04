@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace StrawberryShake.Json;
 
-public static class JsonExtensionParser
+internal static class JsonExtensionParser
 {
     public static IReadOnlyDictionary<string, object?>? ParseExtensions(JsonElement result)
     {
