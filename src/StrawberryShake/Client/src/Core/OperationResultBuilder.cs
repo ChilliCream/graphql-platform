@@ -44,7 +44,9 @@ public abstract class OperationResultBuilder<TResultData>
                     errors = JsonErrorParser.ParseErrors(errorsProp);
                 }
 
-                if (body.RootElement.TryGetProperty(ResultFields.Extensions, out var extensionsProp) &&
+                if (body.RootElement.TryGetProperty(
+                        ResultFields.Extensions,
+                        out var extensionsProp) &&
                     extensionsProp.ValueKind is JsonValueKind.Object)
                 {
                     extensions = JsonExtensionParser.ParseExtensions(extensionsProp);
