@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Clients;
@@ -23,6 +24,9 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="fusionGraphDocument">
     /// The fusion graph document.
     /// </param>
+    /// <param name="graphName">
+    /// The name of the fusion graph.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
     /// </returns>
@@ -30,9 +34,10 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <paramref name="services"/> is <c>null</c> or
     /// <paramref name="fusionGraphDocument"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder AddFusionGatewayServer(
+    public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
-        DocumentNode fusionGraphDocument)
+        DocumentNode fusionGraphDocument,
+        string? graphName = default)
     {
         if (services is null)
         {
@@ -45,7 +50,8 @@ public static class FusionRequestExecutorBuilderExtensions
         }
 
         return services.AddFusionGatewayServer(
-            _ => new ValueTask<DocumentNode>(fusionGraphDocument));
+            _ => new ValueTask<DocumentNode>(fusionGraphDocument),
+            graphName: graphName);
     }
 
     /// <summary>
@@ -56,6 +62,9 @@ public static class FusionRequestExecutorBuilderExtensions
     /// </param>
     /// <param name="fusionGraphFile">
     /// The path to the fusion graph package file or fusion graph file.
+    /// </param>
+    /// <param name="graphName">
+    /// The name of the fusion graph.
     /// </param>
     /// <param name="watchFileForUpdates">
     /// If set to <c>true</c> the fusion graph file will be watched for updates and
@@ -69,9 +78,10 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <paramref name="fusionGraphFile"/> is <c>null</c> or
     /// <paramref name="fusionGraphFile"/> is equals to <see cref="string.Empty"/>.
     /// </exception>
-    public static IRequestExecutorBuilder AddFusionGatewayServer(
+    public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
         string fusionGraphFile,
+        string? graphName = default,
         bool watchFileForUpdates = false)
     {
         if (services is null)
@@ -84,11 +94,13 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(fusionGraphFile));
         }
 
-        var builder = services.AddFusionGatewayServer(ct => LoadDocumentAsync(fusionGraphFile, ct));
+        var builder = services.AddFusionGatewayServer(
+            ct => LoadDocumentAsync(fusionGraphFile, ct),
+            graphName: graphName);
 
         if (watchFileForUpdates)
         {
-            builder.AddTypeModule(_ => new FileWatcherTypeModule(fusionGraphFile));
+            builder.CoreBuilder.AddTypeModule(_ => new FileWatcherTypeModule(fusionGraphFile));
         }
 
         return builder;
@@ -103,6 +115,9 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="fusionGraphResolver">
     /// A delegate that is used to resolve a fusion graph document.
     /// </param>
+    /// <param name="graphName">
+    /// The name of the fusion graph.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
     /// </returns>
@@ -110,9 +125,10 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <paramref name="services"/> is <c>null</c> or
     /// <paramref name="fusionGraphResolver"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder AddFusionGatewayServer(
+    public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
-        ResolveFusionGraphDocAsync fusionGraphResolver)
+        ResolveFusionGraphDocAsync fusionGraphResolver,
+        string? graphName = default)
     {
         if (services is null)
         {
@@ -124,8 +140,8 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(fusionGraphResolver));
         }
 
-        return services
-            .AddGraphQLServer()
+        var builder = services
+            .AddGraphQLServer(graphName)
             .UseField(next => next)
             .UseDefaultGatewayPipeline()
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
@@ -157,6 +173,8 @@ public static class FusionRequestExecutorBuilderExtensions
                             sc.TryAddSingleton<QueryPlanner>();
                         });
                 });
+
+        return new FusionGatewayBuilder(builder);
     }
 
     private static IRequestExecutorBuilder UseDefaultGatewayPipeline(
@@ -238,6 +256,45 @@ public static class FusionRequestExecutorBuilderExtensions
             return Utf8GraphQLParser.Parse(sourceText);
         }
     }
+
+    /// <summary>
+    /// Builds a <see cref="IRequestExecutor"/> from the specified
+    /// <see cref="FusionGatewayBuilder"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="FusionGatewayBuilder"/>.
+    /// </param>
+    /// <param name="graphName">
+    /// The name of the graph that shall be built.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns></returns>
+    internal static ValueTask<IRequestExecutor> BuildRequestExecutorAsync(
+        this FusionGatewayBuilder builder,
+        string? graphName = default,
+        CancellationToken cancellationToken = default)
+        => builder.CoreBuilder.BuildRequestExecutorAsync(graphName, cancellationToken);
+
+    /// <summary>
+    /// Builds a <see cref="ISchema"/> from the specified <see cref="FusionGatewayBuilder"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="FusionGatewayBuilder"/>.
+    /// </param>
+    /// <param name="graphName">
+    /// The name of the graph that shall be built.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns></returns>
+    internal static ValueTask<ISchema> BuildSchemaAsync(
+        this FusionGatewayBuilder builder,
+        string? graphName = default,
+        CancellationToken cancellationToken = default)
+        => builder.CoreBuilder.BuildSchemaAsync(graphName, cancellationToken);
 }
 
 static file class FileExtensions

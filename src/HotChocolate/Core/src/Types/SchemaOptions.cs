@@ -171,7 +171,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
     /// </summary>
-    public int MaxAllowedNodeBatchSize { get; set; } = 10;
+    public int MaxAllowedNodeBatchSize { get; set; } = 50;
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.

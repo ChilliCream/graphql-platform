@@ -56,7 +56,7 @@ internal static class NodeFieldResolvers
     /// <summary>
     /// This is the resolver of the nodes field.
     /// </summary>
-    public static async ValueTask<bool> ResolveManyNodeAsync(
+    public static async ValueTask ResolveManyNodeAsync(
         IMiddlewareContext context,
         IIdSerializer serializer,
         int maxAllowedNodes)
@@ -75,7 +75,7 @@ internal static class NodeFieldResolvers
                         context.Path,
                         maxAllowedNodes,
                         list.Items.Count));
-                return false;
+                return;
             }
 
             var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
@@ -181,8 +181,6 @@ internal static class NodeFieldResolvers
 
             context.Result = result;
         }
-
-        return true;
 
         static async Task<object?> ExecutePipelineAsync(
             IMiddlewareContext nodeResolverContext,
