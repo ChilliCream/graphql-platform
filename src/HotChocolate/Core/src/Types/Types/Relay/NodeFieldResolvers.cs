@@ -75,6 +75,7 @@ internal static class NodeFieldResolvers
                         context.Path,
                         maxAllowedNodes,
                         list.Items.Count));
+                return;
             }
 
             var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
