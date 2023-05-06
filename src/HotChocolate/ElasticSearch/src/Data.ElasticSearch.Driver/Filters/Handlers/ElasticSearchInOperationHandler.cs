@@ -42,14 +42,15 @@ public class ElasticSearchInOperationHandler
             throw new InvalidOperationException();
         }
 
-        var enumerable = ((IEnumerable)parsedValue).Cast<object>().ToList();
-        var shouldOperations = enumerable
-            .Select(val => new MatchOperation(context.GetPath(), Filter, val.ToString()));
+        var shouldOperations = ((IEnumerable)parsedValue)
+            .Cast<object>()
+            .Select(val => new MatchOperation(context.GetPath(), Filter, val.ToString()))
+            .ToList();
 
         return new BoolOperation(
-            Enumerable.Empty<ISearchOperation>(),
+            new List<ISearchOperation>(),
             shouldOperations,
-            Enumerable.Empty<ISearchOperation>(),
-            Enumerable.Empty<ISearchOperation>());
+            new List<ISearchOperation>(),
+            new List<ISearchOperation>());
     }
 }
