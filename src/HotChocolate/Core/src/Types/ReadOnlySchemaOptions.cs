@@ -52,6 +52,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         EnableDefer = options.EnableDefer;
         EnableStream = options.EnableStream;
         MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize;
+        StripLeadingIFromInterface = options.StripLeadingIFromInterface;
     }
 
     /// <inheritdoc />
@@ -124,4 +125,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public int MaxAllowedNodeBatchSize { get; }
+
+    /// <inheritdoc />
+    public bool StripLeadingIFromInterface { get; }
 }
