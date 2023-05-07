@@ -37,8 +37,8 @@ public class ElasticSearchStringNotStartsWithHandler
         IValueNode value,
         object? parsedValue)
     {
-        ISearchOperation operation =
-            base.HandleOperation(context, field, value, parsedValue);
+        var operation = base.HandleOperation(context, field, value, parsedValue);
+
         return ElasticSearchOperationHelpers.Negate(operation);
     }
 }

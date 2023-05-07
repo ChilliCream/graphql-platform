@@ -1,6 +1,8 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Data.ElasticSearch.Attributes;
 using HotChocolate.Data.ElasticSearch.Execution;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
@@ -32,7 +34,9 @@ public class ElasticSearchFilterProvider
     /// </summary>
     protected virtual FilterVisitor<ElasticSearchFilterVisitorContext, ISearchOperation>
         Visitor
-    { get; } = new(new ElasticSearchFilterCombinator());
+    {
+        get;
+    } = new(new ElasticSearchFilterCombinator());
 
     /// <inheritdoc />
     public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
@@ -63,16 +67,16 @@ public class ElasticSearchFilterProvider
                 }
                 else
                 {
-                    if (!visitorContext.TryCreateQuery(out BoolOperation? whereQuery) ||
+                    if (!visitorContext.TryCreateQuery(out var whereQuery) ||
                         visitorContext.Errors.Count > 0)
                     {
-                        foreach (IError error in visitorContext.Errors)
+                        foreach (var error in visitorContext.Errors)
                         {
                             context.ReportError(error.WithPath(context.Path));
                         }
                     }
-                    await next(context).ConfigureAwait(false);
 
+                    await next(context).ConfigureAwait(false);
 
                     if (context.Result is IElasticSearchExecutable executable)
                     {
@@ -85,5 +89,25 @@ public class ElasticSearchFilterProvider
                 await next(context).ConfigureAwait(false);
             }
         }
+    }
+
+    /// <inheritdoc />
+    public override IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+    {
+        fieldDefinition.ContextData.TryGetValue(nameof(ElasticFilterMetadata), out var metadataObj);
+
+        var metadata = metadataObj as ElasticFilterMetadata;
+
+        if (fieldDefinition.Member?.GetCustomAttribute<ElasticSearchFieldNameAttribute>() is
+            { Path: var path })
+        {
+            metadata ??= new ElasticFilterMetadata();
+            metadata.Path = path;
+        }
+
+        return metadata;
     }
 }

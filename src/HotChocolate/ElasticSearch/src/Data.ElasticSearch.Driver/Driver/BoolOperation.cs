@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.ElasticSearch;
 
 public class BoolOperation : ISearchOperation
@@ -31,8 +28,8 @@ public class BoolOperation : ISearchOperation
         IReadOnlyList<ISearchOperation>? mustNot = null,
         IReadOnlyList<ISearchOperation>? filter = null)
         => new(
-            must ?? new List<ISearchOperation>(),
-            should ?? new List<ISearchOperation>(),
-            mustNot ?? new List<ISearchOperation>(),
-            filter ?? new List<ISearchOperation>());
+            must ?? Array.Empty<ISearchOperation>(),
+            should ?? Array.Empty<ISearchOperation>(),
+            mustNot ?? Array.Empty<ISearchOperation>(),
+            filter ?? Array.Empty<ISearchOperation>());
 }

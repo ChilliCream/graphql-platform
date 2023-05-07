@@ -5,7 +5,8 @@ using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters.Comparable;
 
-public class ElasticSearchComparableNotGreaterThanHandler : ElasticSearchComparableGreaterThanHandler
+public class ElasticSearchComparableNotGreaterThanHandler
+    : ElasticSearchComparableGreaterThanHandler
 {
     /// <inheritdoc />
     public ElasticSearchComparableNotGreaterThanHandler(InputParser inputParser) : base(inputParser)
@@ -16,10 +17,13 @@ public class ElasticSearchComparableNotGreaterThanHandler : ElasticSearchCompara
     protected override int Operation => NotGreaterThan;
 
     /// <inheritdoc />
-    public override ISearchOperation HandleOperation(ElasticSearchFilterVisitorContext context, IFilterOperationField field,
-        IValueNode value, object? parsedValue)
+    public override ISearchOperation HandleOperation(
+        ElasticSearchFilterVisitorContext context,
+        IFilterOperationField field,
+        IValueNode value,
+        object? parsedValue)
     {
-        ISearchOperation operation = base.HandleOperation(context, field, value, parsedValue);
+        var operation = base.HandleOperation(context, field, value, parsedValue);
         return ElasticSearchOperationHelpers.Negate(operation);
     }
 }

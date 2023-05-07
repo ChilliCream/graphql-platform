@@ -31,10 +31,11 @@ public class ElasticSearchCursorPagination<TEntity>
         CancellationToken cancellationToken)
     {
         query.WithSkip(offset);
+
         var results = await query.ExecuteAsync(cancellationToken);
+
         return results
             .Select((searchResult, i) => IndexEdge<TEntity>.Create(searchResult, offset + i))
-            .ToList();
+            .ToArray();
     }
-
 }

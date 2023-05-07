@@ -39,11 +39,9 @@ public class ElasticSearchListAnyOperationHandler
             throw ThrowHelper.Filtering_WrongValueProvided(field);
         }
 
-        IElasticFilterMetadata metadata = field.GetElasticMetadata();
+        var metadata = field.GetElasticMetadata();
 
-
-        ExistsOperation operation =
-            new(context.GetPath(), metadata.Kind);
+        ExistsOperation operation = new(context.GetPath(), metadata.Kind);
 
         if (val)
         {

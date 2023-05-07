@@ -12,7 +12,8 @@ public static class ElasticSearchSortConventionDescriptorExtension
             .BindDefaultElasticSearchTypes()
             .UseElasticSearchProvider();
 
-    public static ISortConventionDescriptor AddDefaultElasticSearchOperations(this ISortConventionDescriptor descriptor)
+    public static ISortConventionDescriptor AddDefaultElasticSearchOperations(
+        this ISortConventionDescriptor descriptor)
     {
         if (descriptor is null)
         {
@@ -39,7 +40,8 @@ public static class ElasticSearchSortConventionDescriptorExtension
         return descriptor;
     }
 
-    public static ISortConventionDescriptor UseElasticSearchProvider(this ISortConventionDescriptor descriptor)
+    public static ISortConventionDescriptor UseElasticSearchProvider(
+        this ISortConventionDescriptor descriptor)
         => descriptor.Provider(new ElasticSearchSortProvider(x => x
             .AddDefaultFieldHandlers()));
 

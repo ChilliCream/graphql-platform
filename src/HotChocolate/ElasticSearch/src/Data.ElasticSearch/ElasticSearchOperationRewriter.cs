@@ -10,12 +10,13 @@ namespace HotChocolate.Data.ElasticSearch;
 public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
 {
     private static Regex _escapeRegex = new(
-        @"[+\-=!(){}\[\]^""~*?:\\/]", RegexOptions.Compiled);
+        @"[+\-=!(){}\[\]^""~*?:\\/]",
+        RegexOptions.Compiled);
 
     private static string EscapeForElasticSearch(string? value) =>
         string.IsNullOrEmpty(value)
             ? string.Empty
-            : _escapeRegex.Replace(value,  @"\$&");
+            : _escapeRegex.Replace(value, @"\$&");
 
     /// <inheritdoc />
     protected override IQuery Rewrite(BoolOperation operation)
@@ -25,7 +26,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         IEnumerable<QueryContainer> mustNot = Array.Empty<QueryContainer>();
         IEnumerable<QueryContainer> filter = Array.Empty<QueryContainer>();
 
-        if (operation.Should.Any())
+        if (operation.Should.Count > 0)
         {
             should = operation.Should
                 .Select(Rewrite)
@@ -33,7 +34,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
                 .Select(x => new QueryContainer(x));
         }
 
-        if (operation.Must.Any())
+        if (operation.Must.Count > 0)
         {
             must = operation.Must
                 .Select(Rewrite)
@@ -41,7 +42,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
                 .Select(x => new QueryContainer(x));
         }
 
-        if (operation.MustNot.Any())
+        if (operation.MustNot.Count > 0)
         {
             mustNot = operation.MustNot
                 .Select(Rewrite)
@@ -49,7 +50,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
                 .Select(x => new QueryContainer(x));
         }
 
-        if (operation.Filter.Any())
+        if (operation.Filter.Count > 0)
         {
             filter = operation.Filter
                 .Select(Rewrite)
@@ -72,10 +73,10 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         return new NumericRangeQuery
         {
             Field = operation.Path,
-            GreaterThan = operation.GreaterThan?.Value,
-            LessThan = operation.LowerThan?.Value,
-            GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
-            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
         };
     }
 
@@ -85,10 +86,10 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         return new LongRangeQuery
         {
             Field = operation.Path,
-            GreaterThan = operation.GreaterThan?.Value,
-            LessThan = operation.LowerThan?.Value,
-            GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
-            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
         };
     }
 
@@ -98,40 +99,29 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         return new DateRangeQuery
         {
             Field = operation.Path,
-            GreaterThan = operation.GreaterThan?.Value,
-            LessThan = operation.LowerThan?.Value,
-            GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
-            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
         };
     }
 
     /// <inheritdoc />
     protected override IQuery Rewrite(TermOperation operation)
     {
-        return new TermQuery
-        {
-            Field = operation.Path,
-            Value = operation.Value
-        };
+        return new TermQuery { Field = operation.Path, Value = operation.Value };
     }
 
     /// <inheritdoc />
     protected override IQuery Rewrite(WildCardOperation operation)
     {
+        var path = operation.Path.GetKeywordPath();
+        var value = EscapeForElasticSearch(operation.Value);
         return operation.WildCardOperationKind switch
         {
-            WildCardOperationKind.StartsWith => new QueryStringQuery
-            {
-                Query = $"{operation.Path.GetKeywordPath()}:{EscapeForElasticSearch(operation.Value.ToString())}*"
-            },
-            WildCardOperationKind.EndsWith => new QueryStringQuery
-            {
-                Query = $"{operation.Path.GetKeywordPath()}:*{EscapeForElasticSearch(operation.Value.ToString())}"
-            },
-            WildCardOperationKind.Contains => new QueryStringQuery
-            {
-                Query = $"{operation.Path.GetKeywordPath()}:*{EscapeForElasticSearch(operation.Value.ToString())}*"
-            },
+            WildCardOperationKind.StartsWith => new QueryStringQuery { Query = $"{path}:{value}*" },
+            WildCardOperationKind.EndsWith => new QueryStringQuery { Query = $"{path}:*{value}" },
+            WildCardOperationKind.Contains => new QueryStringQuery { Query = $"{path}:*{value}*" },
             _ => throw new InvalidOperationException()
         };
     }

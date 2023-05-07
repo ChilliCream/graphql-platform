@@ -17,50 +17,53 @@ public class ElasticSearchComparableGreaterThanHandler : ElasticSearchComparable
     protected override int Operation => GreaterThan;
 
     /// <inheritdoc />
-    public override ISearchOperation HandleOperation(ElasticSearchFilterVisitorContext context, IFilterOperationField field,
-        IValueNode value, object? parsedValue)
+    public override ISearchOperation HandleOperation(
+        ElasticSearchFilterVisitorContext context,
+        IFilterOperationField field,
+        IValueNode value,
+        object? parsedValue)
     {
         return parsedValue switch
         {
             double doubleVal => new RangeOperation<double>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<double>(doubleVal)
+                GreaterThan = doubleVal
             },
             float floatValue => new RangeOperation<double>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<double>(floatValue)
+                GreaterThan = floatValue
             },
             sbyte sbyteValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<long>(sbyteValue)
+                GreaterThan = sbyteValue
             },
             byte byteValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<long>(byteValue)
+                GreaterThan = byteValue
             },
             short shortValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<long>(shortValue)
+                GreaterThan = shortValue
             },
             ushort uShortValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<long>(uShortValue)
+                GreaterThan = uShortValue
             },
             uint uIntValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<long>(uIntValue)
+                GreaterThan = uIntValue
             },
             int intValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<long>(intValue)
+                GreaterThan = intValue
             },
             long longValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<long>(longValue)
+                GreaterThan = longValue
             },
             DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), Filter)
             {
-                GreaterThan = new RangeOperationValue<DateTime>(dateTimeVal)
+                GreaterThan = dateTimeVal
             },
             _ => throw new InvalidOperationException()
         };

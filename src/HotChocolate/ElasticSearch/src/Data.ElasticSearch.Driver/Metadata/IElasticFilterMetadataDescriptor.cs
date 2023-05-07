@@ -11,7 +11,7 @@ public interface IElasticFilterMetadataDescriptor
     /// <code lang="csharp">
     /// descriptor
     ///      .Field(x => x.Name)
-    ///      .ConfigureElastic(x => x.Name("thisIsTheOverride"))
+    ///      .ConfigureElastic(x => x.Path("thisIsTheOverride"))
     /// </code>
     /// <code lang="json">
     /// {
@@ -24,7 +24,7 @@ public interface IElasticFilterMetadataDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    IElasticFilterMetadataDescriptor Name(string name);
+    IElasticFilterMetadataDescriptor Path(string name);
 
     /// <summary>
     /// Sets the <see cref="ElasticSearchOperationKind"/>. Decides if the field

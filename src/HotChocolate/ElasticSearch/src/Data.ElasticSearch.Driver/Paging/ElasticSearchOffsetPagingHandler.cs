@@ -19,7 +19,8 @@ public class ElasticSearchOffsetPagingHandler<TEntity> : OffsetPagingHandler
         object source,
         OffsetPagingArguments arguments)
         => await _pagination.ApplyPaginationAsync(
-                source as IElasticSearchExecutable<TEntity> ?? throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
+                source as IElasticSearchExecutable<TEntity> ??
+                throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
                 arguments,
                 context.RequestAborted)
             .ConfigureAwait(false);

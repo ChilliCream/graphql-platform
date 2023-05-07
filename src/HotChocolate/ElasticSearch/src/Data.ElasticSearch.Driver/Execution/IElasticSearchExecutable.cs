@@ -7,7 +7,7 @@ public interface IElasticSearchExecutable : IExecutable
     /// </summary>
     /// <param name="filter"></param>
     /// <returns></returns>
-    IElasticSearchExecutable WithFiltering(BoolOperation filter);
+    IElasticSearchExecutable WithFiltering(ISearchOperation filter);
 
     /// <summary>
     /// Setups a sort operation on query

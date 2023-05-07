@@ -14,9 +14,9 @@ public class ElasticFilterMetadataDescriptor : IElasticFilterMetadataDescriptor
     }
 
     /// <inheritdoc />
-    public IElasticFilterMetadataDescriptor Name(string name)
+    public IElasticFilterMetadataDescriptor Path(string path)
     {
-        _metadata.Name = name;
+        _metadata.Path = path;
         return this;
     }
 

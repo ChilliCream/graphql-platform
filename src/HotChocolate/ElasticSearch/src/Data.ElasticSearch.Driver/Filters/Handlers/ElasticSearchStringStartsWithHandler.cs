@@ -42,7 +42,7 @@ public class ElasticSearchStringStartsWithHandler
             throw ThrowHelper.Filtering_WrongValueProvided(field);
         }
 
-        IElasticFilterMetadata metadata = field.GetElasticMetadata();
+        var metadata = field.GetElasticMetadata();
 
         return new WildCardOperation(
             context.GetPath(),

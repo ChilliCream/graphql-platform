@@ -21,15 +21,15 @@ public abstract class FilterTestBase<TData, TFilterType> : TestBase
     protected async Task<IExecutionResult> ExecuteFilterTest(string filter, string selection)
     {
         await IndexDocuments(Data);
-        IRequestExecutor executorAsync = await CreateExecutorAsync();
+        var executorAsync = await CreateExecutorAsync();
 
-        string query = @$"
-        {{
-            test(where: {{ {filter} }}) {{
-                {selection}
-            }}
-        }}
-        ";
+        string query = $$"""
+        {
+            test(where: { {{filter}} }) {
+                {{selection}}
+            }
+        }
+        """;
 
         return await executorAsync.ExecuteAsync(query);
     }

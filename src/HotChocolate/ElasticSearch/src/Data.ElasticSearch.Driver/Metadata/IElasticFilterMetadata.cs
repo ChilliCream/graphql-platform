@@ -14,7 +14,7 @@ public interface IElasticFilterMetadata : IFilterMetadata
     ElasticSearchOperationKind Kind { get; }
 
     /// <summary>
-    /// The name override for this field
+    /// The path override for this field
     /// </summary>
-    string? Name { get; }
+    string? Path { get; }
 }

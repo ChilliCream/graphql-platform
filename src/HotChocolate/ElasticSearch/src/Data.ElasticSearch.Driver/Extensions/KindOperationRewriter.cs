@@ -27,20 +27,22 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         List<ISearchOperation>? mustNot = null;
         List<ISearchOperation>? filter = null;
 
-        foreach (ISearchOperation mustOperation in operation.Must)
+        foreach (var mustOperation in operation.Must)
         {
-            if (Rewrite(mustOperation) is not { } rewritten) continue;
-            if (rewritten is BoolOperation boolOperation &&
-                !boolOperation.Should.Any() &&
-                !boolOperation.Filter.Any())
+            if (Rewrite(mustOperation) is not { } rewritten)
             {
-                if (boolOperation.Must.Any())
+                continue;
+            }
+
+            if (rewritten is BoolOperation { Should.Count: 0, Filter.Count: 0 } boolOperation)
+            {
+                if (boolOperation.Must.Count > 0)
                 {
                     must ??= new List<ISearchOperation>();
                     must.AddRange(boolOperation.Must);
                 }
 
-                if (boolOperation.MustNot.Any())
+                if (boolOperation.MustNot.Count > 0)
                 {
                     mustNot ??= new List<ISearchOperation>();
                     mustNot.AddRange(boolOperation.MustNot);
@@ -53,14 +55,20 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             }
         }
 
-        foreach (ISearchOperation mustOperation in operation.Should)
+        foreach (var mustOperation in operation.Should)
         {
-            if (Rewrite(mustOperation) is not { } rewritten) continue;
-            if (rewritten is BoolOperation boolOperation &&
-                !boolOperation.Must.Any() &&
-                !boolOperation.MustNot.Any() &&
-                !boolOperation.Filter.Any() &&
-                boolOperation.Should.Any())
+            if (Rewrite(mustOperation) is not { } rewritten)
+            {
+                continue;
+            }
+
+            if (rewritten is BoolOperation
+                {
+                    Must.Count: 0,
+                    MustNot.Count: 0,
+                    Filter.Count: 0,
+                    Should.Count: > 0
+                } boolOperation)
             {
                 should ??= new List<ISearchOperation>();
                 should.AddRange(boolOperation.Should);
@@ -72,20 +80,22 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             }
         }
 
-        foreach (ISearchOperation mustOperation in operation.MustNot)
+        foreach (var mustOperation in operation.MustNot)
         {
-            if (Rewrite(mustOperation) is not { } rewritten) continue;
-            if (rewritten is BoolOperation boolOperation &&
-                !boolOperation.Should.Any() &&
-                !boolOperation.Filter.Any())
+            if (Rewrite(mustOperation) is not { } rewritten)
             {
-                if (boolOperation.MustNot.Any())
+                continue;
+            }
+
+            if (rewritten is BoolOperation { Should.Count: 0, Filter.Count: 0 } boolOperation)
+            {
+                if (boolOperation.MustNot.Count > 0)
                 {
                     must ??= new List<ISearchOperation>();
                     must.AddRange(boolOperation.MustNot);
                 }
 
-                if (boolOperation.Must.Any())
+                if (boolOperation.Must.Count > 0)
                 {
                     mustNot ??= new List<ISearchOperation>();
                     mustNot.AddRange(boolOperation.Must);
@@ -98,14 +108,20 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             }
         }
 
-        foreach (ISearchOperation mustOperation in operation.Filter)
+        foreach (var mustOperation in operation.Filter)
         {
-            if (Rewrite(mustOperation) is not { } rewritten) continue;
-            if (rewritten is BoolOperation op &&
-                !op.Must.Any() &&
-                !op.MustNot.Any() &&
-                !op.Filter.Any() &&
-                !op.Should.Any())
+            if (Rewrite(mustOperation) is not { } rewritten)
+            {
+                continue;
+            }
+
+            if (rewritten is BoolOperation
+                {
+                    Must.Count: 0,
+                    MustNot.Count: 0,
+                    Filter.Count: 0,
+                    Should.Count: 0
+                } op)
             {
                 filter ??= new List<ISearchOperation>();
                 filter.AddRange(op.Filter);

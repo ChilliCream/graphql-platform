@@ -2,10 +2,10 @@
 
 public sealed class ElasticSearchFieldNameAttribute : Attribute
 {
-    public string FieldName { get; }
+    public string Path { get; }
 
-    public ElasticSearchFieldNameAttribute(string fieldName)
+    public ElasticSearchFieldNameAttribute(string path)
     {
-        FieldName = fieldName;
+        Path = path;
     }
 }

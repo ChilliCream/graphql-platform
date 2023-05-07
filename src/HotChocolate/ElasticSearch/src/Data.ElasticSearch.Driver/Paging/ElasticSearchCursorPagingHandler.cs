@@ -19,7 +19,8 @@ public class ElasticSearchCursorPagingHandler<TEntity> : CursorPagingHandler
         CursorPagingArguments arguments)
         => await _pagination
             .ApplyPaginationAsync(
-                source as IElasticSearchExecutable<TEntity> ?? throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
+                source as IElasticSearchExecutable<TEntity> ??
+                    throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
                 arguments,
                 context.RequestAborted)
             .ConfigureAwait(false);

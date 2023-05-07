@@ -6,10 +6,12 @@ using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters.Comparable;
 
-public class ElasticSearchComparableLowerThanOrEqualsHandler : ElasticSearchComparableOperationHandler
+public class ElasticSearchComparableLowerThanOrEqualsHandler
+    : ElasticSearchComparableOperationHandler
 {
     /// <inheritdoc />
-    public ElasticSearchComparableLowerThanOrEqualsHandler(InputParser inputParser) : base(inputParser)
+    public ElasticSearchComparableLowerThanOrEqualsHandler(InputParser inputParser)
+        : base(inputParser)
     {
     }
 
@@ -17,50 +19,53 @@ public class ElasticSearchComparableLowerThanOrEqualsHandler : ElasticSearchComp
     protected override int Operation => LowerThanOrEquals;
 
     /// <inheritdoc />
-    public override ISearchOperation HandleOperation(ElasticSearchFilterVisitorContext context, IFilterOperationField field,
-        IValueNode value, object? parsedValue)
+    public override ISearchOperation HandleOperation(
+        ElasticSearchFilterVisitorContext context,
+        IFilterOperationField field,
+        IValueNode value,
+        object? parsedValue)
     {
         return parsedValue switch
         {
             double doubleVal => new RangeOperation<double>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<double>(doubleVal)
+                LowerThanOrEquals = doubleVal
             },
             float floatValue => new RangeOperation<double>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<double>(floatValue)
+                LowerThanOrEquals = floatValue
             },
             sbyte sbyteValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<long>(sbyteValue)
+                LowerThanOrEquals = sbyteValue
             },
             byte byteValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<long>(byteValue)
+                LowerThanOrEquals = byteValue
             },
             short shortValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<long>(shortValue)
+                LowerThanOrEquals = shortValue
             },
             ushort uShortValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<long>(uShortValue)
+                LowerThanOrEquals = uShortValue
             },
             uint uIntValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<long>(uIntValue)
+                LowerThanOrEquals = uIntValue
             },
             int intValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<long>(intValue)
+                LowerThanOrEquals = intValue
             },
             long longValue => new RangeOperation<long>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<long>(longValue)
+                LowerThanOrEquals = longValue
             },
             DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), Filter)
             {
-                LowerThanOrEquals= new RangeOperationValue<DateTime>(dateTimeVal)
+                LowerThanOrEquals = dateTimeVal
             },
             _ => throw new InvalidOperationException()
         };

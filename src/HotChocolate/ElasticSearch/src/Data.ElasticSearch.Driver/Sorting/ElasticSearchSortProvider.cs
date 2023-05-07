@@ -19,8 +19,7 @@ public class ElasticSearchSortProvider : SortProvider<ElasticSearchSortVisitorCo
     /// The visitor thar will traverse a incoming query and execute the sorting handlers
     /// </summary>
     protected virtual SortVisitor<ElasticSearchSortVisitorContext, ElasticSearchSortOperation>
-        Visitor
-    { get; } = new();
+        Visitor { get; } = new();
 
     /// <inheritdoc />
     public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
@@ -33,7 +32,7 @@ public class ElasticSearchSortProvider : SortProvider<ElasticSearchSortVisitorCo
         {
             ElasticSearchSortVisitorContext? visitorContext = null;
             var argument = context.Selection.Field.Arguments[argumentName];
-            IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
+            var sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (argument.Type.ElementType().NamedType() is ISortInputType sortInputType)
             {

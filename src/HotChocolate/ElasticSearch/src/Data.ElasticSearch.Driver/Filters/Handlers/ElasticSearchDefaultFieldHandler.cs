@@ -49,7 +49,7 @@ public class ElasticSearchDefaultFieldHandler
             return false;
         }
 
-        var fieldName = field.Member?.GetCustomAttribute<ElasticSearchFieldNameAttribute>()?.FieldName ?? field.Name;
+        var fieldName = field.GetElasticMetadata().Path ?? field.Name;
 
         context.Path.Push(fieldName);
         context.RuntimeTypes.Push(field.RuntimeType);

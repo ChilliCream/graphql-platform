@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
@@ -12,6 +11,20 @@ public static class ElasticFilterMetadataFilterFieldExtensions
     /// <summary>
     /// Configures the metadata for this field
     /// </summary>
+    /// <code lang="csharp">
+    /// descriptor
+    ///      .Field(x => x.Name)
+    ///      .ConfigureElastic(x => x.Path("thisIsTheOverride"))
+    /// </code>
+    /// <code lang="json">
+    /// {
+    ///    "match": {
+    ///       "deep.thisIsTheOverride": {
+    ///             "query": "The value of the field"
+    ///       }
+    ///    }
+    /// }
+    /// </code>
     public static IFilterFieldDescriptor ConfigureElastic(
         this IFilterFieldDescriptor field,
         Action<IElasticFilterMetadataDescriptor> configure)

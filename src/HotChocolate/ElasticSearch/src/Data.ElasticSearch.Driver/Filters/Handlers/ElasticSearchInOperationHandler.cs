@@ -45,12 +45,8 @@ public class ElasticSearchInOperationHandler
         var shouldOperations = ((IEnumerable)parsedValue)
             .Cast<object>()
             .Select(val => new MatchOperation(context.GetPath(), Filter, val.ToString()))
-            .ToList();
+            .ToArray();
 
-        return new BoolOperation(
-            new List<ISearchOperation>(),
-            shouldOperations,
-            new List<ISearchOperation>(),
-            new List<ISearchOperation>());
+        return BoolOperation.Create(should: shouldOperations);
     }
 }
