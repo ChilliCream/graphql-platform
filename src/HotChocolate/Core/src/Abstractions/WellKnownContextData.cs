@@ -264,4 +264,9 @@ public static class WellKnownContextData
     /// The key to access the authorization handler on the global context.
     /// </summary>
     public const string AuthorizationHandler = "HotChocolate.Authorization.AuthorizationHandler";
+
+    /// <summary>
+    /// The key to access the authorization allowed flag on the member context.
+    /// </summary>
+    public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
 }
