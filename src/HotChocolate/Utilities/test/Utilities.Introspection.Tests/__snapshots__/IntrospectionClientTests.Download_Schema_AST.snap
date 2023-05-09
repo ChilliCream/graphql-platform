@@ -24,6 +24,7 @@ type Subscription {
   onReview(episode: Episode!): Review!
   onNext: String!
   onException: String!
+  delay(delay: Int! count: Int!): String!
 }
 
 type Human implements Character {
