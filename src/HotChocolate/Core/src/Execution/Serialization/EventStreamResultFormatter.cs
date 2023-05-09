@@ -15,18 +15,19 @@ namespace HotChocolate.Execution.Serialization;
 /// </summary>
 public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
+    private readonly TimeSpan _keepAliveTimeSpan = TimeSpan.FromSeconds(12);
+
     private static readonly byte[] _eventField
         = { (byte)'e', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)':', (byte)' ' };
     private static readonly byte[] _dataField
         = { (byte)'d', (byte)'a', (byte)'t', (byte)'a', (byte)':', (byte)' ' };
     private static readonly byte[] _nextEvent
         = { (byte)'n', (byte)'e', (byte)'x', (byte)'t' };
-    private static readonly byte[] _completeEvent
-        =
-        {
-            (byte)'c', (byte)'o', (byte)'m', (byte)'p',
-            (byte)'l', (byte)'e', (byte)'t', (byte)'e'
-        };
+    private static readonly byte[] _keepAlive = { (byte)':', (byte)'\n', (byte)'\n' };
+    private static readonly byte[] _completeEvent =
+    {
+        (byte)'c', (byte)'o', (byte)'m', (byte)'p', (byte)'l', (byte)'e', (byte)'t', (byte)'e'
+    };
     private static readonly byte[] _newLine = { (byte)'\n' };
 
     private readonly JsonResultFormatter _payloadFormatter;
@@ -79,24 +80,55 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         {
             var responseStream = (IResponseStream)result;
 
-            await foreach (var queryResult in responseStream.ReadResultsAsync()
-                .WithCancellation(ct).ConfigureAwait(false))
+            // we first open a async enumerator over the response stream.
+            var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
+
+            // we then move to the first result.
+            var moveNextTask = enumerator.MoveNextAsync().AsTask();
+
+            while (true)
             {
-                try
-                {
-                    await WriteNextMessageAsync(queryResult, outputStream)
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    await queryResult.DisposeAsync().ConfigureAwait(false);
-                }
+                // we wait for the next result or the keep alive timeout.
+                await moveNextTask.WaitAsync(_keepAliveTimeSpan, ct).ConfigureAwait(false);
 
-                await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
+                // if the moveNextTask is completed then we received a result. If it is not
+                // completed then we arrived at the keep alive timeout.
+                if (moveNextTask.IsCompleted)
+                {
+                    // in case we received a result we await the task check if the stream is
+                    // completed
+                    if (await moveNextTask)
+                    {
+                        var queryResult = enumerator.Current;
+                        try
+                        {
+                            await WriteNextMessageAsync(queryResult, outputStream)
+                                .ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await queryResult.DisposeAsync().ConfigureAwait(false);
+                        }
+
+                        await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
+
+                        // we then move to the next result.
+                        moveNextTask = enumerator.MoveNextAsync().AsTask();
+                    }
+                    else
+                    {
+                        await WriteCompleteMessage(outputStream).ConfigureAwait(false);
+                        await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
+
+                        return;
+                    }
+                }
+                else
+                {
+                    // if we arrived at the keep alive timeout we write a keep alive message.
+                    await WriteKeepAliveAndFlush(outputStream, ct).ConfigureAwait(false);
+                }
             }
-
-            await WriteCompleteMessage(outputStream).ConfigureAwait(false);
-            await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
         }
         else
         {
@@ -167,6 +199,18 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
 #else
         await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
+#endif
+        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+    }
+
+    private static async ValueTask WriteKeepAliveAndFlush(
+        Stream outputStream,
+        CancellationToken ct)
+    {
+#if NETCOREAPP3_1_OR_GREATER
+        await outputStream.WriteAsync(_keepAlive, ct).ConfigureAwait(false);
+#else
+        await outputStream.WriteAsync(_keepAlive, 0, _keepAlive.Length, ct).ConfigureAwait(false);
 #endif
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
