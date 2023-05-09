@@ -162,13 +162,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
                     definition.Configurations.Add(
                         new CompleteConfiguration<ObjectFieldDefinition>(
-                            (c, d) =>
-                                CompileMiddleware(
-                                    selectionType,
-                                    d,
-                                    placeholder,
-                                    c,
-                                    scope),
+                            (c, d) => CompileMiddleware(selectionType, d, placeholder, c, scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion));
                 });
