@@ -17,17 +17,11 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
     private static readonly TimeSpan _keepAliveTimeSpan = TimeSpan.FromSeconds(12);
 
-    private static readonly byte[] _eventField
-        = { (byte)'e', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)':', (byte)' ' };
-    private static readonly byte[] _dataField
-        = { (byte)'d', (byte)'a', (byte)'t', (byte)'a', (byte)':', (byte)' ' };
-    private static readonly byte[] _nextEvent
-        = { (byte)'n', (byte)'e', (byte)'x', (byte)'t' };
-    private static readonly byte[] _keepAlive = { (byte)':', (byte)'\n', (byte)'\n' };
-    private static readonly byte[] _completeEvent =
-    {
-        (byte)'c', (byte)'o', (byte)'m', (byte)'p', (byte)'l', (byte)'e', (byte)'t', (byte)'e'
-    };
+    private static readonly byte[] _eventField = "event: "u8.ToArray();
+    private static readonly byte[] _dataField = "data: "u8.ToArray();
+    private static readonly byte[] _nextEvent = "next"u8.ToArray();
+    private static readonly byte[] _keepAlive = ":\n\n"u8.ToArray();
+    private static readonly byte[] _completeEvent = "complete"u8.ToArray();
     private static readonly byte[] _newLine = { (byte)'\n' };
 
     private readonly JsonResultFormatter _payloadFormatter;
