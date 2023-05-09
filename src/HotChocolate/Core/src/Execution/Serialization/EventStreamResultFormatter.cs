@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Serialization;
 /// </summary>
 public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
-    private readonly TimeSpan _keepAliveTimeSpan = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan _keepAliveTimeSpan = TimeSpan.FromSeconds(12);
 
     private static readonly byte[] _eventField
         = { (byte)'e', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)':', (byte)' ' };
