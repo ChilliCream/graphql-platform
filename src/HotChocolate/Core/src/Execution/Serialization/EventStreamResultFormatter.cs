@@ -86,7 +86,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             // we then move to the first result.
             var moveNextTask = enumerator.MoveNextAsync().AsTask();
 
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 // we wait for the next result or the keep alive timeout.
                 await moveNextTask.WaitAsync(_keepAliveTimeSpan, ct).ConfigureAwait(false);
