@@ -84,4 +84,7 @@ public interface IReadOnlySchemaOptions
 
     /// <inheritdoc cref="SchemaOptions.MaxAllowedNodeBatchSize"/>
     int MaxAllowedNodeBatchSize { get; }
+
+    /// <inheritdoc cref="SchemaOptions.StripLeadingIFromInterface"/>
+    bool StripLeadingIFromInterface { get; }
 }

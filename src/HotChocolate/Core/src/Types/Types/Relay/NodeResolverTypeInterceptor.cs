@@ -21,6 +21,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
     private readonly List<IDictionary<string, object?>> _nodes = new();
 
+    internal override uint Position => uint.MaxValue - 101;
+
     private ITypeCompletionContext? CompletionContext { get; set; }
 
     private ObjectType? QueryType { get; set; }

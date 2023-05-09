@@ -91,6 +91,16 @@ public sealed class DirectiveCollection : IDirectiveCollection
         object source,
         IReadOnlyList<DirectiveDefinition> definitions)
     {
+        var location = DirectiveHelper.InferDirectiveLocation(source);
+        return CreateAndComplete(context, location, source, definitions);
+    }
+
+    internal static DirectiveCollection CreateAndComplete(
+        ITypeCompletionContext context,
+        DirectiveLocation location,
+        object source,
+        IReadOnlyList<DirectiveDefinition> definitions)
+    {
         if (context is null)
         {
             throw new ArgumentNullException(nameof(context));
@@ -106,7 +116,6 @@ public sealed class DirectiveCollection : IDirectiveCollection
             throw new ArgumentNullException(nameof(definitions));
         }
 
-        var location = DirectiveHelper.InferDirectiveLocation(source);
         var directives = new Directive[definitions.Count];
         var directiveNames = TypeMemHelper.RentNameSet();
         var hasErrors = false;
