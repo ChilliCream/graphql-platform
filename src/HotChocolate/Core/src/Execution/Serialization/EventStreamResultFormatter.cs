@@ -89,7 +89,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             while (!ct.IsCancellationRequested)
             {
                 // we wait for the next result or the keep alive timeout.
-                await moveNextTask.WaitAsync(_keepAliveTimeSpan, ct).ConfigureAwait(false);
+                await Task.WhenAny(moveNextTask, Task.Delay(_keepAliveTimeSpan, ct))
+                    .ConfigureAwait(false);
 
                 // if the moveNextTask is completed then we received a result. If it is not
                 // completed then we arrived at the keep alive timeout.
