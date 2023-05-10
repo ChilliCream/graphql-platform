@@ -383,7 +383,7 @@ internal static class ExecutorUtils
             if (error.TryGetProperty("locations", out var locations) &&
                 locations.ValueKind is JsonValueKind.Array)
             {
-                foreach (var location in extensions.EnumerateArray())
+                foreach (var location in locations.EnumerateArray())
                 {
                     if (location.TryGetProperty("line", out var lineValue) &&
                         location.TryGetProperty("column", out var columnValue) &&
