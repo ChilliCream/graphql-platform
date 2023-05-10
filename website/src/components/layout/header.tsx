@@ -501,7 +501,10 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
               <TeaserImage>
                 <WorkshopHero id={workshop.id} />
               </TeaserImage>
-              <TeaserMetadata>{`${workshop.date} ・ ${workshop.host} ${workshop.place}`}</TeaserMetadata>
+              <TeaserMetadata>
+                {`${workshop.date} ・ ${workshop.host} `}
+                <NoWrap>{workshop.place}</NoWrap>
+              </TeaserMetadata>
               <TeaserTitle>{workshop.title}</TeaserTitle>
               <TeaserMessage>{workshop.teaser}</TeaserMessage>
             </TeaserLink>
@@ -952,11 +955,17 @@ const TeaserImage = styled.div`
 const TeaserMetadata = styled.div`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   margin: 15px 0 7px;
   font-size: 0.778em;
+  line-height: 1.25;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
+`;
+
+const NoWrap = styled.span`
+  white-space: nowrap;
 `;
 
 const TeaserTitle = styled.h2`
