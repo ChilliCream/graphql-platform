@@ -45,6 +45,17 @@ export const initialState: WorkshopsState = [
     url: "https://cphdevfest.com/workshops/building-modern-applications-with-graphql-using-asp-net-core-6-hot-chocolate-and-relay/b7d68a9db642",
     promo: isActive("2023-08-28"),
   },
+  {
+    id: "ONLINE",
+    title: "Fullstack GraphQL",
+    teaser:
+      "Learn to build modern APIs like Facebook and Netflix in our Fullstack GraphQL workshop.",
+    date: "7 - 8 September 2023",
+    host: "ONLINE",
+    place: "9AM-5PM CEST",
+    url: "https://www.eventbrite.com/e/fullstack-graphql-europe-cest-tickets-633258783067",
+    promo: false,
+  },
 ];
 
 function isActive(until: string) {
