@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     private static readonly byte[] _nextEvent = "next"u8.ToArray();
     private static readonly byte[] _keepAlive = ":\n\n"u8.ToArray();
     private static readonly byte[] _completeEvent = "complete"u8.ToArray();
-    private static readonly byte[] _newLine = { (byte)'\n' };
+    private static readonly byte[] _newLine = "\n"u8.ToArray();
 
     private readonly JsonResultFormatter _payloadFormatter;
     private readonly JsonWriterOptions _options;
@@ -65,82 +64,121 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     {
         if (result.Kind is SingleResult)
         {
-            await WriteNextMessageAsync((IQueryResult)result, outputStream).ConfigureAwait(false);
+            await WriteNextMessageAsync((IQueryResult)result, outputStream, ct)
+                .ConfigureAwait(false);
             await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
-            await WriteCompleteMessage(outputStream).ConfigureAwait(false);
+            await WriteCompleteMessage(outputStream, ct).ConfigureAwait(false);
             await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
         }
         else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
         {
             var responseStream = (IResponseStream)result;
 
-            // we first open a async enumerator over the response stream.
-            var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
+            // synchronization of the output stream is required to ensure that the messages are not
+            // interleaved.
+            using var synchronization = new SemaphoreSlim(1, 1);
 
-            // we then move to the first result.
-            var moveNextTask = enumerator.MoveNextAsync().AsTask();
+            // we need to keep track if the stream is completed so that we can stop sending keep
+            // alive messages.
+            var completion = new TaskCompletionSource<bool>();
 
-            while (!ct.IsCancellationRequested)
-            {
-                // we wait for the next result or the keep alive timeout.
-                await Task.WhenAny(moveNextTask, Task.Delay(_keepAliveTimeSpan, ct))
-                    .ConfigureAwait(false);
-
-                // if the moveNextTask is completed then we received a result. If it is not
-                // completed then we arrived at the keep alive timeout.
-                if (moveNextTask.IsCompleted)
-                {
-                    // in case we received a result we await the task check if the stream is
-                    // completed
-                    if (await moveNextTask)
-                    {
-                        var queryResult = enumerator.Current;
-                        try
-                        {
-                            await WriteNextMessageAsync(queryResult, outputStream)
-                                .ConfigureAwait(false);
-                        }
-                        finally
-                        {
-                            await queryResult.DisposeAsync().ConfigureAwait(false);
-                        }
-
-                        await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
-
-                        // we then move to the next result.
-                        moveNextTask = enumerator.MoveNextAsync().AsTask();
-                    }
-                    else
-                    {
-                        await WriteCompleteMessage(outputStream).ConfigureAwait(false);
-                        await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
-
-                        return;
-                    }
-                }
-                else
-                {
-                    // if we arrived at the keep alive timeout we write a keep alive message.
-                    await WriteKeepAliveAndFlush(outputStream, ct).ConfigureAwait(false);
-                }
-            }
+            // we await all tasks so that we can catch all exceptions.
+            await Task.WhenAll(
+                ProcessResponseStreamAsync(
+                    synchronization,
+                    completion,
+                    responseStream,
+                    outputStream,
+                    ct),
+                SendKeepAliveMessagesAsync(synchronization, completion, outputStream, ct));
         }
+
         else
         {
             throw new NotSupportedException();
         }
     }
 
-    private async ValueTask WriteNextMessageAsync(IQueryResult result, Stream outputStream)
+    private static async Task SendKeepAliveMessagesAsync(
+        SemaphoreSlim synchronization,
+        TaskCompletionSource<bool> completion,
+        Stream outputStream,
+        CancellationToken ct)
+    {
+        while (true)
+        {
+            await Task.WhenAny(Task.Delay(_keepAliveTimeSpan, ct), completion.Task);
+
+            if (!ct.IsCancellationRequested && !completion.Task.IsCompleted)
+            {
+                // we do not need try-finally here because we dispose the semaphore in the parent
+                // method.
+                await synchronization.WaitAsync(ct);
+
+                await WriteKeepAliveAndFlush(outputStream, ct);
+
+                synchronization.Release();
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    private async Task ProcessResponseStreamAsync(
+        SemaphoreSlim synchronization,
+        TaskCompletionSource<bool> completion,
+        IResponseStream responseStream,
+        Stream outputStream,
+        CancellationToken ct)
+    {
+        await foreach (var queryResult in responseStream.ReadResultsAsync()
+                           .WithCancellation(ct)
+                           .ConfigureAwait(false))
+        {
+            // we do not need try-finally here because we dispose the semaphore in the parent
+            // method.
+
+            await synchronization.WaitAsync(ct);
+
+            try
+            {
+                await WriteNextMessageAsync(queryResult, outputStream, ct)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                await queryResult.DisposeAsync().ConfigureAwait(false);
+            }
+
+            await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
+
+            synchronization.Release();
+        }
+
+        await synchronization.WaitAsync(ct);
+
+        await WriteCompleteMessage(outputStream, ct).ConfigureAwait(false);
+        await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
+
+        synchronization.Release();
+        completion.SetResult(true);
+    }
+
+    private async ValueTask WriteNextMessageAsync(
+        IQueryResult result,
+        Stream outputStream,
+        CancellationToken ct)
     {
 #if NETCOREAPP3_1_OR_GREATER
-        await outputStream.WriteAsync(_eventField).ConfigureAwait(false);
-        await outputStream.WriteAsync(_nextEvent).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
+        await outputStream.WriteAsync(_eventField, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_nextEvent, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
 #else
-        await outputStream.WriteAsync(_eventField, 0, _eventField.Length).ConfigureAwait(false);
-        await outputStream.WriteAsync(_nextEvent, 0, _nextEvent.Length).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(_eventField, 0, _eventField.Length, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_nextEvent, 0, _nextEvent.Length, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
 #endif
 
         using var bufferWriter = new ArrayWriter();
@@ -159,30 +197,31 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             }
 
 #if NETCOREAPP3_1_OR_GREATER
-            await outputStream.WriteAsync(_dataField).ConfigureAwait(false);
-            await outputStream.WriteAsync(buffer).ConfigureAwait(false);
-            await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
+            await outputStream.WriteAsync(_dataField, ct).ConfigureAwait(false);
+            await outputStream.WriteAsync(buffer, ct).ConfigureAwait(false);
+            await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
 #else
-            await outputStream.WriteAsync(_dataField, 0, _dataField.Length).ConfigureAwait(false);
-            await outputStream.WriteAsync(bufferWriter.GetInternalBuffer(), read, buffer.Length)
+            await outputStream.WriteAsync(_dataField, 0, _dataField.Length, ct)
                 .ConfigureAwait(false);
-            await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
+            await outputStream.WriteAsync(bufferWriter.GetInternalBuffer(), read, buffer.Length, ct)
+                .ConfigureAwait(false);
+            await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
 #endif
 
             read += buffer.Length + 1;
         }
     }
 
-    private static async ValueTask WriteCompleteMessage(Stream outputStream)
+    private static async ValueTask WriteCompleteMessage(Stream outputStream, CancellationToken ct)
     {
 #if NETCOREAPP3_1_OR_GREATER
-        await outputStream.WriteAsync(_eventField).ConfigureAwait(false);
-        await outputStream.WriteAsync(_completeEvent).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
+        await outputStream.WriteAsync(_eventField, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_completeEvent, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
 #else
-        await outputStream.WriteAsync(_eventField, 0, _eventField.Length).ConfigureAwait(false);
-        await outputStream.WriteAsync(_completeEvent, 0, _completeEvent.Length).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(_eventField, 0, _eventField.Length, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_completeEvent, 0, _completeEvent.Length, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
 #endif
     }
 
