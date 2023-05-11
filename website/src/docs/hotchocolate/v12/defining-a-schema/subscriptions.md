@@ -252,6 +252,8 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 
 If more complex topics are required, we can use the `ITopicEventReceiver`.
 
+> ⚠️ Note: We recommend not use `SubscribeAndResolve` as it very easily can lead to unexpected behavior with the state that is aggregated and not released until the end of the subscription. As can be seen in the code-first example above, all subscription fields are in fact made of two methods (resolver and subscriber). When using `Subscribe`, the attributed method represents the resolver method (with the subscriber method generated at runtime) whereas `SubscribeAndResolve` denotes subscriber method (with resolver method generated at runtime and executed in the stream context).
+
 ```csharp
 public class Subscription
 {
@@ -273,9 +275,10 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 }
 ```
 
-If we do not want to mix the subscription logic with our resolver, we can also use the `With` argument on the `Subscribe` attribute to specify a separate method that handles the event subscription.
+If we do not want to mix the subscription logic with our resolver, we can define both resolver and subscriber methods separately. The resolver method can point to the subscriber method using the `With` argument on the `SubscribeAttribute`.
 
 ```csharp
+
 public class Subscription
 {
     public ValueTask<ISourceStream<Book>> SubscribeToBooks(
@@ -286,4 +289,50 @@ public class Subscription
     public Book BookAdded([EventMessage] Book book)
         => book;
 }
+
+```
+
+The subscriber method can access all parameters passed into the resolver method.
+
+```csharp
+public class Subscription
+{
+    public ValueTask<ISourceStream<Book>> SubscribeToBooks(string author,
+        [Service] ITopicEventReceiver receiver)
+    {
+        var topic = $"{author}_PublishedBook";
+
+        return receiver.SubscribeAsync<string, Book>(topic);
+    }
+
+    [Subscribe(With = nameof(SubscribeToBooks))]
+    public Book BookAdded(string author, [EventMessage] Book book)
+        => book;
+}
+```
+
+> ⚠️ Note: Arguments and return type of nodes in the schema is inferred from the resolver method. As in example with attribute `Topic`, all arguments must be be defined on resolver method even if accessed only by subscriber method. If accessed by subscriber method, **name and type of the parameter must match otherwise** subscriber method won't be called and **subscription will fail silently**. Some types like `int` and `long` may work with each other, but if and only if the value is in range.
+
+# Without provider
+
+Especially when including HotChocolate in existing project, there might already be a mechanism in place which serves the same purpose as `ITopicEventSender` and `ITopicEventReceiver`. One solution might be to register custom implementations of these interfaces. However, this can get quite cumbersome when the mechanism in place does not support topic names. Under `ISourceStream` there is an `IAsyncEnumerable` and as such subscriber method can generally work with `IAsyncEnumerable` directly. Subscriber method can filter out streamed events based on it's parameters to achieve topic-like behavior.
+
+```csharp
+{
+    public async IAsyncEnumerable<Book> SubscribeToBooks(string author,
+        [Service] EventHub hub)
+    {
+        IAsyncEnumerable<BookCreated> messageStream = hub.ListenAsync<BookCreated>();
+        await foreach(BookCreated message in stream) {
+            Book book = message.Book;
+            if (@book.Author == author)
+                yield return book;
+        }
+    }
+
+    [Subscribe(With = nameof(SubscribeToBooks))]
+    public Book BookAdded(string author, [EventMessage] Book book)
+        => book;
+}
+
 ```
