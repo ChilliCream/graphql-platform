@@ -5,13 +5,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Execution.ExecutionStrategy;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public class ObjectFieldDescriptor
     : OutputFieldDescriptorBase<ObjectFieldDefinition>
-    , IObjectFieldDescriptor
+        , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
     private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
@@ -53,7 +53,9 @@ public class ObjectFieldDescriptor
         Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
-        Definition.ResolverType = resolverType == sourceType ? null : resolverType;
+        Definition.ResolverType = resolverType == sourceType
+            ? null
+            : resolverType;
         Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
@@ -387,12 +389,17 @@ public class ObjectFieldDescriptor
         return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
     }
 
-    private IObjectFieldDescriptor ResolveWithInternal(MemberInfo propertyOrMethod, Type? resolverType)
+    private IObjectFieldDescriptor ResolveWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
     {
-        if (resolverType is { IsAbstract: true })
+        if (resolverType?.IsAbstract is true)
         {
             throw new ArgumentException(
-                string.Format(TypeResources.ObjectTypeDescriptor_ResolveWith_NonAbstract, resolverType?.FullName));
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
         }
 
         if (propertyOrMethod is PropertyInfo or MethodInfo)
@@ -416,7 +423,7 @@ public class ObjectFieldDescriptor
         }
 
         throw new ArgumentException(
-            TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
+            ObjectTypeDescriptor_MustBePropertyOrMethod,
             nameof(propertyOrMethod));
     }
 
