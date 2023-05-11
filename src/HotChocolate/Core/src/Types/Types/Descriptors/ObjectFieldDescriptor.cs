@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public class ObjectFieldDescriptor
     : OutputFieldDescriptorBase<ObjectFieldDefinition>
-        , IObjectFieldDescriptor
+    , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
     private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
