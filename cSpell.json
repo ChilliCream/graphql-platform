@@ -39,9 +39,12 @@
     "NATS",
     "cypher",
     "sublicensable",
-    "meros"
+    "meros",
+    "Structs"
   ],
   "ignoreWords": [
+    "Badurina",
+    "enisdenjo",
     "Specwise",
     "strawberryshake",
     "refactorings",
