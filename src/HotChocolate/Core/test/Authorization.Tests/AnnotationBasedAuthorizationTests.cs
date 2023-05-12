@@ -902,6 +902,48 @@ public class AnnotationBasedAuthorizationTests
                 """);
     }
 
+    [Fact]
+    public async Task Skip_After_Validation_For_Null()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, p)
+                => p.Policy.EnsureGraphQLName().EqualsOrdinal("NULL")
+                    ? AuthorizeResult.NotAllowed
+                    : AuthorizeResult.Allowed,
+            validation: (_, _)
+                => AuthorizeResult.Allowed);
+
+        var services = CreateServices(handler);
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetQuery(
+                        """
+                        {
+                          null
+                        }
+                        """)
+                    .SetUser(new ClaimsPrincipal()));
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "data": {
+                    "null": null
+                  }
+                }
+                """);
+    }
+
     private static IServiceProvider CreateServices(
         IAuthorizationHandler handler,
         Action<AuthorizationOptions>? configure = null)
@@ -923,6 +965,9 @@ public class AnnotationBasedAuthorizationTests
     [Authorize("QUERY2", ApplyPolicy.BeforeResolver)]
     public sealed class Query
     {
+        [Authorize("NULL", ApplyPolicy.AfterResolver)]
+        public string? Null() => null;
+
         [NodeResolver]
         public Person? GetPerson(string id)
             => new(id, "Joe");
