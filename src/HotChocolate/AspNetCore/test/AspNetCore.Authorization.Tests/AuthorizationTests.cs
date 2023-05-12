@@ -63,6 +63,27 @@ public class AuthorizationTests : ServerTestBase
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task DefaultPolicy_NotFound_But_Allowed_2()
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                builder
+                    .AddQueryType<AuthorizationAttributeTestData.Query>()
+                    .AddAuthorization(options => options.DefaultPolicy = null!);
+            },
+            context => context.User = new ClaimsPrincipal(new ClaimsIdentity("abc")));
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
@@ -118,7 +139,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task NoAuthServices(Action<IRequestExecutorBuilder> configure)
+    public async Task AuthServiceIsAlwaysAdded(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
         var server = CreateTestServer(
@@ -137,8 +158,34 @@ public class AuthorizationTests : ServerTestBase
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
-        Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
-        result.MatchSnapshot();
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "age": null
+              },
+              "Errors": [
+                {
+                  "message": "The `HasAgeDefined` authorization policy does not exist.",
+                  "locations": [
+                    {
+                      "line": 1,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "age"
+                  ],
+                  "extensions": {
+                    "code": "AUTH_POLICY_NOT_FOUND"
+                  }
+                }
+              ],
+              "Extensions": null
+            }
+            """);
     }
 
     [Theory]
@@ -627,12 +674,12 @@ public class AuthorizationTests : ServerTestBase
     {
         // arrange
         // act
-        static void action() =>
+        static void Action() =>
             AuthorizeSchemaBuilderExtensions
                 .AddAuthorizeDirectiveType(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     private TestServer CreateTestServer(
