@@ -58,8 +58,8 @@ const TrainingPage: FC = () => {
     },
   ];
 
-  const workshops = useSelector<State, WorkshopsState>(
-    (state) => state.workshops
+  const workshops = useSelector<State, WorkshopsState>((state) =>
+    state.workshops.filter(({ active }) => active)
   );
 
   return (
@@ -74,40 +74,42 @@ const TrainingPage: FC = () => {
           We’ll tell you how it is, and what you need to get there.
         </Teaser>
       </Intro>
-      <Section>
-        <WorkshopsContainer>
-          <WorkshopsHeader>Upcoming Public Workshops</WorkshopsHeader>
-          <WorkshopsMatrix>
-            {workshops.map(({ id, title, date, host, place, url }) => (
-              <Link key={id} to={url}>
-                <dl>
-                  <dt>
-                    <p>{title}</p>
-                  </dt>
-                  <dd>
-                    <small>{date}</small>
-                  </dd>
-                  <dd>
-                    <p>{host}</p>
-                    <small>{place}</small>
-                  </dd>
-                </dl>
-              </Link>
+      {!!workshops.length && (
+        <Section>
+          <WorkshopsContainer>
+            <WorkshopsHeader>Upcoming Public Workshops</WorkshopsHeader>
+            <WorkshopsMatrix>
+              {workshops.map(({ id, title, date, host, place, url }) => (
+                <Link key={id} to={url}>
+                  <dl>
+                    <dt>
+                      <p>{title}</p>
+                    </dt>
+                    <dd>
+                      <small>{date}</small>
+                    </dd>
+                    <dd>
+                      <p>{host}</p>
+                      <small>{place}</small>
+                    </dd>
+                  </dl>
+                </Link>
+              ))}
+            </WorkshopsMatrix>
+            <WorkshopsFooter />
+          </WorkshopsContainer>
+          <CardsContainer>
+            {services.map(({ kind, description, perks }) => (
+              <SupportCard
+                key={kind}
+                name={kind}
+                description={description}
+                perks={perks}
+              />
             ))}
-          </WorkshopsMatrix>
-          <WorkshopsFooter />
-        </WorkshopsContainer>
-        <CardsContainer>
-          {services.map(({ kind, description, perks }) => (
-            <SupportCard
-              key={kind}
-              name={kind}
-              description={description}
-              perks={perks}
-            />
-          ))}
-        </CardsContainer>
-      </Section>
+          </CardsContainer>
+        </Section>
+      )}
       <Section>
         <SectionRow>
           <ImageContainer>
