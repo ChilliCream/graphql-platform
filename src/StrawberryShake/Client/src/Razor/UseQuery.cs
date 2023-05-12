@@ -35,7 +35,7 @@ public abstract class UseQuery<TResult> : ComponentBase, IDisposable where TResu
                 _isErrorResult = operationResult.IsErrorResult();
                 _isSuccessResult = operationResult.IsSuccessResult();
                 _isInitializing = false;
-                StateHasChanged();
+                InvokeAsync(StateHasChanged);
             });
     }
 
