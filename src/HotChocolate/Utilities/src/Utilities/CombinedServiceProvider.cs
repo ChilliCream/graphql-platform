@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using System.Threading;
 
 #nullable enable
 
@@ -10,13 +9,10 @@ namespace HotChocolate.Utilities;
 
 internal sealed class CombinedServiceProvider : IServiceProvider
 {
-    private const string _methodNameAny = nameof(Enumerable.Any);
-    private const string _methodNameConcat = nameof(Enumerable.Concat);
-    private static readonly TypeInfo _enumerableTypeInfo = typeof(Enumerable).GetTypeInfo();
-    private static readonly Type _genericIEnumerableType = typeof(IEnumerable<>);
-    private static readonly TypeInfo _iEnumerableTypeInfo = typeof(IEnumerable).GetTypeInfo();
+    private static readonly Type _enumerable = typeof(IEnumerable<>);
     private readonly IServiceProvider _first;
     private readonly IServiceProvider _second;
+    private List<object>? _buffer = new();
 
     public CombinedServiceProvider(IServiceProvider first, IServiceProvider second)
     {
@@ -31,58 +27,78 @@ internal sealed class CombinedServiceProvider : IServiceProvider
             throw new ArgumentNullException(nameof(serviceType));
         }
 
-        var serviceTypeInfo = serviceType.GetTypeInfo();
-
-        if (serviceTypeInfo.IsGenericType &&
-            _iEnumerableTypeInfo.IsAssignableFrom(serviceTypeInfo) &&
-            _genericIEnumerableType == serviceTypeInfo.GetGenericTypeDefinition())
+        if (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == _enumerable)
         {
-            var firstResult = _first.GetService(serviceType);
-            var secondResult = _second.GetService(serviceType);
-            return Concat(serviceType, firstResult, secondResult);
+            var elementType = serviceType.GetGenericArguments()[0];
+            var firstResult = (IEnumerable?)_first.GetService(serviceType);
+            var secondResult = (IEnumerable?)_second.GetService(serviceType);
+            return Concat(elementType, firstResult, secondResult);
         }
 
         return _first.GetService(serviceType) ?? _second.GetService(serviceType);
     }
 
-    private static bool Any(Type enumerableType, object enumerable)
+    private object? Concat(
+        Type elementType,
+        IEnumerable? servicesFromA,
+        IEnumerable? servicesFromB)
     {
-        var genericArgumentType = enumerableType
-            .GetTypeInfo()
-            .GenericTypeArguments[0];
-
-        var info = _enumerableTypeInfo
-            .DeclaredMethods
-            .First(m => m.Name == _methodNameAny && m.IsStatic && m.GetParameters().Length == 1)
-            .MakeGenericMethod(genericArgumentType);
-
-        return (bool)info.Invoke(null, new[] { enumerable })!;
-    }
-
-    private static object? Concat(
-        Type enumerableType,
-        object? enumerableA,
-        object? enumerableB)
-    {
-        if (enumerableA != null && Any(enumerableType, enumerableA))
+        if (servicesFromA is null)
         {
-            if (enumerableB != null && Any(enumerableType, enumerableB))
-            {
-                var genericArgumentType = enumerableType
-                    .GetTypeInfo()
-                    .GenericTypeArguments[0];
-
-                var info = _enumerableTypeInfo
-                    .DeclaredMethods
-                    .First(m => m.Name == _methodNameConcat && m.IsStatic)
-                    .MakeGenericMethod(genericArgumentType);
-
-                return info.Invoke(null, new[] { enumerableA, enumerableB })!;
-            }
-
-            return enumerableA;
+            return servicesFromB;
         }
 
-        return enumerableB;
+        if (servicesFromB is null)
+        {
+            return servicesFromA;
+        }
+
+        var enumeratorA = servicesFromA.GetEnumerator();
+        var enumeratorB = servicesFromB.GetEnumerator();
+
+        try
+        {
+            var buffer = Interlocked.Exchange(ref _buffer, null) ?? new List<object>();
+
+            while (enumeratorA.MoveNext())
+            {
+                if (enumeratorA.Current is not null)
+                {
+                    buffer.Add(enumeratorA.Current);
+                }
+            }
+
+            while (enumeratorB.MoveNext())
+            {
+                if (enumeratorB.Current is not null)
+                {
+                    buffer.Add(enumeratorB.Current);
+                }
+            }
+
+            var array = Array.CreateInstance(elementType, buffer.Count);
+
+            for (var i = 0; i < buffer.Count; i++)
+            {
+                array.SetValue(buffer[i], i);
+            }
+
+            buffer.Clear();
+            Interlocked.CompareExchange(ref buffer, buffer, null);
+
+            return array;
+        }
+        finally
+        {
+            if (enumeratorA is IDisposable disposableA)
+            {
+                disposableA.Dispose();
+            }
+
+            if (enumeratorB is IDisposable disposableB)
+            {
+                disposableB.Dispose();
+            }
+        }
     }
 }
