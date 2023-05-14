@@ -9,10 +9,10 @@ namespace HotChocolate.Utilities;
 
 internal sealed class CombinedServiceProvider : IServiceProvider
 {
+    private static List<object>? _buffer = new();
     private static readonly Type _enumerable = typeof(IEnumerable<>);
     private readonly IServiceProvider _first;
     private readonly IServiceProvider _second;
-    private List<object>? _buffer = new();
 
     public CombinedServiceProvider(IServiceProvider first, IServiceProvider second)
     {
