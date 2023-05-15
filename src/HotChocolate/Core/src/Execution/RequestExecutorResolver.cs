@@ -320,14 +320,13 @@ internal sealed partial class RequestExecutorResolver
         OnConfigureSchemaServices(context, serviceCollection, setup);
 
         var schemaServices = serviceCollection.BuildServiceProvider();
-        // var combinedServices = schemaServices.Include(_applicationServices);
 
         lazy.Schema =
             await CreateSchemaAsync(
                     context,
                     setup,
                     executorOptions,
-                    schemaServices,
+                    schemaServices.Include(_applicationServices),
                     typeModuleChangeMonitor,
                     cancellationToken)
                 .ConfigureAwait(false);
