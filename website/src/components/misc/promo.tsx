@@ -3,27 +3,39 @@ import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { Close } from "@/components/misc/close";
-import { State } from "@/state";
+import { State, WorkshopsState } from "@/state";
 import { hidePromo, showPromo } from "@/state/common";
 import { Link } from "./link";
 
 export const Promo: FC = () => {
   const show = useSelector<State, boolean>((state) => state.common.showPromo);
+  const workshop = useSelector<State, WorkshopsState[number] | undefined>(
+    (state) => state.workshops.find(({ banner, active }) => banner && active)
+  );
   const dispatch = useDispatch();
-  const promoName = "chillicream-promo-workshop-230510";
 
-  const clickDismiss = () => {
-    localStorage.setItem(promoName, "true");
-    dispatch(hidePromo());
+  const storageKey = workshop && `banner:workshop-${workshop.id}`;
+
+  const handleDismiss = () => {
+    if (storageKey) {
+      localStorage.setItem(storageKey, "true");
+      dispatch(hidePromo());
+    }
   };
 
   useEffect(() => {
-    const dismissed = localStorage.getItem(promoName);
+    if (storageKey) {
+      const dismissed = localStorage.getItem(storageKey);
 
-    if (dismissed !== "true") {
-      dispatch(showPromo());
+      if (dismissed !== "true") {
+        dispatch(showPromo());
+      }
     }
   }, []);
+
+  if (!workshop) {
+    return null;
+  }
 
   return (
     <Dialog
@@ -36,19 +48,14 @@ export const Promo: FC = () => {
       <Boundary>
         <Container>
           <Message id="promo:desc">
-            <Title>Fullstack GraphQL</Title>
-            <Description>
-              Learn to build modern APIs like Facebook and Netflix in our
-              Fullstack GraphQL workshop.
-            </Description>
+            <Title>{workshop.title}</Title>
+            <Description>{workshop.teaser}</Description>
           </Message>
           <Actions>
-            <Tickets to="https://www.eventbrite.com/e/fullstack-graphql-tickets-583856048157">
-              Get tickets!
-            </Tickets>
+            <Tickets to={workshop.url}>Get tickets!</Tickets>
             <Dismiss
               aria-label="dismiss promo message"
-              onClick={clickDismiss}
+              onClick={handleDismiss}
             />
           </Actions>
         </Container>
@@ -61,11 +68,10 @@ const Dialog = styled.div<{ show: boolean }>`
   position: fixed;
   bottom: 0;
   z-index: 40;
-  display: ${({ show }) => (show ? "initial" : "none")};
   width: 100vw;
   background-color: #ffb806;
   opacity: ${({ show }) => (show ? 1 : 0)};
-  transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.5s ease-in-out;
 `;
 
 const Boundary = styled.div`
