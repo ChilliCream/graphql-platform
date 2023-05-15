@@ -2160,6 +2160,63 @@ public class ObjectTypeTests : TypeTestBase
         SnapshotExtensions.MatchSnapshot(schema);
     }
 
+    [Fact]
+    public void ResolverWithAbstractBase_ShouldResolve()
+    {
+        var result = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Field("value")
+                    .ResolveWith<ResolverWithAbstractBase>(x => x.GetValue())
+                )
+            .Create()
+            .MakeExecutable()
+            .Execute("{ value }")
+            .ToJson();
+
+        SnapshotExtensions.MatchInlineSnapshot(result,
+        """
+        {
+            "data": {
+                "value": 1024
+            }
+        }
+        """);
+    }
+
+    [Fact]
+    public void AbstractResolver_ShouldThrow()
+    {
+        var ex = Record.Exception(() => SchemaBuilder.New()
+            .AddQueryType(d => d.Field("value").ResolveWith<ResolverBase>(x => x.GetValue()))
+            .Create());
+
+        Assert.IsType<SchemaException>(ex);
+        Assert.Contains("non-abstract type is required", ex.Message);
+    }
+
+    [Fact]
+    public void AbstractResolver_UsingMethodInfo_ShouldThrow()
+    {
+        var method = typeof(ResolverBase).GetMethod(nameof(ResolverBase.GetValue))!;
+
+        var ex = Record.Exception(() => SchemaBuilder.New()
+            .AddQueryType(d => d.Field("value").ResolveWith(method))
+            .Create());
+
+        Assert.IsType<SchemaException>(ex);
+        Assert.Contains("non-abstract type is required", ex.Message);
+    }
+
+    public abstract class ResolverBase
+    {
+        public int GetValue() => 1024;
+    }
+
+    public class ResolverWithAbstractBase : ResolverBase
+    {
+    }
+
     public class GenericFoo<T>
     {
         public T Value { get; }

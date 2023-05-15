@@ -159,13 +159,71 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Person_AllowAnonymous()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: AuthorizeResult.NotAllowed,
+            validation: AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              person(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+              person2(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "locations": [
+                        {
+                          "line": 2,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "person"
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "person": null,
+                    "person2": {
+                      "name": "Joe"
+                    }
+                  }
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Authorize_CityOrStreet_Skip_Auth_When_Street()
     {
         // arrange
         var handler = new AuthHandler(
-            resolver: (context, _) => context.Result is Street
-                ? AuthorizeResult.Allowed
-                : AuthorizeResult.NotAllowed,
+            resolver: (context, _) =>
+                context.Result is Street or null
+                    ? AuthorizeResult.Allowed
+                    : AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
@@ -504,6 +562,178 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Node_Field_Inferred()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, d) => d.Policy.EqualsOrdinal("READ_PERSON")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "UGVyc29uCmRhYmM=") {
+                __typename
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "locations": [
+                        {
+                          "line": 2,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "node"
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "node": null
+                  }
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task Authorize_Node_Field_Inferred_Explicit_NodeResolver()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, d) => d.Policy.EqualsOrdinal("READ_STREET")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+        var idSerializer = new IdSerializer();
+        var id = idSerializer.Serialize("Street", 1);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    """
+                    query($id: ID!) {
+                      node(id: $id) {
+                        __typename
+                      }
+                    }
+                    """)
+                .SetVariableValue("id", id)
+                .Create());
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "locations": [
+                        {
+                          "line": 2,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "node"
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "node": null
+                  }
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task Authorize_Node_Field_Inferred_Explicit_NodeResolver_TypePolicy()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, d) =>
+                d.Policy.EqualsOrdinal("READ_STREET_ON_TYPE")
+                    ? AuthorizeResult.NotAllowed
+                    : AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+        var idSerializer = new IdSerializer();
+        var id = idSerializer.Serialize("Street", 1);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    """
+                    query($id: ID!) {
+                      node(id: $id) {
+                        __typename
+                      }
+                    }
+                    """)
+                .SetVariableValue("id", id)
+                .Create());
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "locations": [
+                        {
+                          "line": 2,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "node"
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "node": null
+                  }
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Authorize_Nodes_Field()
     {
         // arrange
@@ -672,6 +902,48 @@ public class AnnotationBasedAuthorizationTests
                 """);
     }
 
+    [Fact]
+    public async Task Skip_After_Validation_For_Null()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, p)
+                => p.Policy.EnsureGraphQLName().EqualsOrdinal("NULL")
+                    ? AuthorizeResult.NotAllowed
+                    : AuthorizeResult.Allowed,
+            validation: (_, _)
+                => AuthorizeResult.Allowed);
+
+        var services = CreateServices(handler);
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetQuery(
+                        """
+                        {
+                          null
+                        }
+                        """)
+                    .SetUser(new ClaimsPrincipal()));
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "data": {
+                    "null": null
+                  }
+                }
+                """);
+    }
+
     private static IServiceProvider CreateServices(
         IAuthorizationHandler handler,
         Action<AuthorizationOptions>? configure = null)
@@ -680,6 +952,7 @@ public class AnnotationBasedAuthorizationTests
             .AddQueryType<Query>()
             .AddUnionType<ICityOrStreet>()
             .AddType<Street>()
+            .AddTypeExtension(typeof(StreetExtensions))
             .AddType<City>()
             .AddGlobalObjectIdentification()
             .AddAuthorizationHandler(_ => handler)
@@ -689,10 +962,18 @@ public class AnnotationBasedAuthorizationTests
 
     [FooDirective]
     [Authorize("QUERY", ApplyPolicy.Validation)]
+    [Authorize("QUERY2", ApplyPolicy.BeforeResolver)]
     public sealed class Query
     {
+        [Authorize("NULL", ApplyPolicy.AfterResolver)]
+        public string? Null() => null;
+
         [NodeResolver]
         public Person? GetPerson(string id)
+            => new(id, "Joe");
+
+        [AllowAnonymous]
+        public Person? GetPerson2(string id)
             => new(id, "Joe");
 
         public ICityOrStreet? GetCityOrStreet(bool street)
@@ -713,6 +994,7 @@ public class AnnotationBasedAuthorizationTests
     [Authorize("READ_PERSON", ApplyPolicy.AfterResolver)]
     public sealed record Person(string Id, string? Name);
 
+    [Authorize("READ_STREET_ON_TYPE", ApplyPolicy.BeforeResolver)]
     public sealed record Street(string? Value) : ICityOrStreet;
 
     [Authorize("READ_CITY", Apply = ApplyPolicy.AfterResolver)]
@@ -720,6 +1002,18 @@ public class AnnotationBasedAuthorizationTests
 
     [UnionType]
     public interface ICityOrStreet { }
+
+    [Node]
+    [ExtendObjectType<Street>]
+    public static class StreetExtensions
+    {
+        public static int Id => 1;
+
+        [NodeResolver]
+        [Authorize("READ_STREET", ApplyPolicy.BeforeResolver)]
+        public static ValueTask<Street> GetStreetById(int id)
+            => new(new Street($"abc_{id}"));
+    }
 
     private sealed class AuthHandler : IAuthorizationHandler
     {
@@ -776,6 +1070,7 @@ public class AnnotationBasedAuthorizationTests
     private sealed class AuthHandler2 : IAuthorizationHandler
     {
         private readonly Stack<AuthorizeResult> _results;
+
         public AuthHandler2(Stack<AuthorizeResult> results)
         {
             _results = results;

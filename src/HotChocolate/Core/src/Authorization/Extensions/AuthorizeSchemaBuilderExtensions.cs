@@ -12,11 +12,14 @@ internal static class AuthorizeSchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        var type = new AuthorizeDirectiveType();
+        var authorize = new AuthorizeDirectiveType();
+        var allowAnonymous = new AllowAnonymousDirectiveType();
 
         return builder
-            .AddDirectiveType(type)
-            .TryAddSchemaDirective(type)
+            .AddDirectiveType(authorize)
+            .AddDirectiveType(allowAnonymous)
+            .TryAddSchemaDirective(authorize)
+            .TryAddSchemaDirective(allowAnonymous)
             .TryAddTypeInterceptor<AuthorizationTypeInterceptor>();
     }
 }

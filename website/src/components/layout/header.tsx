@@ -431,7 +431,7 @@ interface DeveloperNavItemProps {
 
 const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
   const workshop = useSelector<State, WorkshopsState[number] | undefined>(
-    (state) => state.workshops.find(({ promo }) => promo)
+    (state) => state.workshops.find(({ hero, active }) => hero && active)
   );
 
   const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
@@ -499,9 +499,12 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
             <SubNavTitle>Upcoming Workshop</SubNavTitle>
             <TeaserLink to={workshop.url}>
               <TeaserImage>
-                <WorkshopHero id={workshop.id} />
+                <WorkshopHero image={workshop.image} />
               </TeaserImage>
-              <TeaserMetadata>{`${workshop.date} ・ ${workshop.host} ${workshop.place}`}</TeaserMetadata>
+              <TeaserMetadata>
+                {`${workshop.date} ・ ${workshop.host} `}
+                <NoWrap>{workshop.place}</NoWrap>
+              </TeaserMetadata>
               <TeaserTitle>{workshop.title}</TeaserTitle>
               <TeaserMessage>{workshop.teaser}</TeaserMessage>
             </TeaserLink>
@@ -917,15 +920,15 @@ const TeaserLink = styled(Link)`
 `;
 
 interface WorkshopHeroProps {
-  readonly id: string;
+  readonly image: string;
 }
 
-const WorkshopHero: FC<WorkshopHeroProps> = ({ id }) => {
-  switch (id) {
-    case "NDC_OSLO":
+const WorkshopHero: FC<WorkshopHeroProps> = ({ image }) => {
+  switch (image) {
+    case "ndc-oslo":
       return <WorkshopNdcOslo />;
 
-    case "NDC_COPENHAGEN":
+    case "ndc-copenhagen":
       return <WorkshopNdcCopenhagen />;
 
     default:
@@ -952,11 +955,17 @@ const TeaserImage = styled.div`
 const TeaserMetadata = styled.div`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   margin: 15px 0 7px;
   font-size: 0.778em;
+  line-height: 1.25;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
+`;
+
+const NoWrap = styled.span`
+  white-space: nowrap;
 `;
 
 const TeaserTitle = styled.h2`
