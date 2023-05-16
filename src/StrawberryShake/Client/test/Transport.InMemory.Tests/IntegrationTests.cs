@@ -13,6 +13,8 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets.Protocols;
 
+#pragma warning disable CS0618
+
 namespace StrawberryShake.Transport.InMemory;
 
 public class IntegrationTests : ServerTestBase

@@ -14,15 +14,20 @@ public class TypeModuleGenerator : IIncrementalGenerator
         new TypeAttributeInspector(),
         new ClassBaseClassInspector(),
         new ModuleInspector(),
+        new DataLoaderInspector(),
+        new DataLoaderDefaultsInspector()
     };
 
     private static readonly ISyntaxGenerator[] _generators =
     {
         new ModuleGenerator(),
+        new DataLoaderGenerator()
     };
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        context.RegisterPostInitializationOutput(c => PostInitialization(c));
+
         IncrementalValuesProvider<ISyntaxInfo> modulesAndTypes =
             context.SyntaxProvider
                 .CreateSyntaxProvider(
@@ -37,16 +42,28 @@ public class TypeModuleGenerator : IIncrementalGenerator
             static (context, source) => Execute(context, source.Left, source.Right));
     }
 
+    private static void PostInitialization(IncrementalGeneratorPostInitializationContext context)
+    {
+        foreach (var syntaxGenerator in _generators)
+        {
+            syntaxGenerator.Initialize(context);
+        }
+    }
+
     private static bool IsRelevant(SyntaxNode node)
         => IsTypeWithAttribute(node) ||
             IsClassWithBaseClass(node) ||
-            IsAssemblyAttributeList(node);
+            IsAssemblyAttributeList(node) ||
+            IsMethodWithAttribute(node);
 
     private static bool IsClassWithBaseClass(SyntaxNode node)
         => node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 };
 
     private static bool IsTypeWithAttribute(SyntaxNode node)
         => node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0 };
+
+    private static bool IsMethodWithAttribute(SyntaxNode node)
+        => node is MethodDeclarationSyntax { AttributeLists.Count: > 0 };
 
     private static bool IsAssemblyAttributeList(SyntaxNode node)
         => node is AttributeListSyntax;
@@ -72,13 +89,12 @@ public class TypeModuleGenerator : IIncrementalGenerator
         ImmutableArray<ISyntaxInfo> syntaxInfos)
     {
         var all = syntaxInfos;
-        var current = all;
         var batch = new HashSet<ISyntaxInfo>();
 
         // unpack aggregates
-        for (var i = 0; i < current.Length; i++)
+        for (var i = 0; i < all.Length; i++)
         {
-            var syntaxInfo = current[i];
+            var syntaxInfo = all[i];
 
             if (syntaxInfo is AggregateInfo aggregate)
             {
@@ -89,17 +105,13 @@ public class TypeModuleGenerator : IIncrementalGenerator
 
         foreach (var syntaxGenerator in _generators)
         {
-            // capture the current list of infos
-            current = all;
-
             // gather infos for current generator
-            for (var i = 0; i < current.Length; i++)
+            for (var i = all.Length - 1; i >= 0; i--)
             {
-                var syntaxInfo = current[i];
+                var syntaxInfo = all[i];
 
                 if (syntaxGenerator.Consume(syntaxInfo))
                 {
-                    all = all.Remove(syntaxInfo);
                     batch.Add(syntaxInfo);
                 }
             }

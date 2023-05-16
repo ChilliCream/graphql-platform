@@ -140,7 +140,7 @@ public static class FilterObjectFieldDescriptorExtensions
                 (c, definition) =>
                 {
                     var convention = c.GetFilterConvention(scope);
-                    ITypeReference argumentTypeReference;
+                    TypeReference argumentTypeReference;
 
                     if (filterTypeInstance is not null)
                     {
@@ -189,7 +189,7 @@ public static class FilterObjectFieldDescriptorExtensions
                             definition,
                             ApplyConfigurationOn.BeforeCompletion,
                             argumentTypeReference,
-                            TypeDependencyKind.Completed));
+                            TypeDependencyFulfilled.Completed));
 
                     argumentDefinition.Configurations.Add(
                         new CompleteConfiguration<ArgumentDefinition>(
@@ -206,7 +206,7 @@ public static class FilterObjectFieldDescriptorExtensions
     private static void CompileMiddleware(
         ITypeCompletionContext context,
         ObjectFieldDefinition definition,
-        ITypeReference argumentTypeReference,
+        TypeReference argumentTypeReference,
         FieldMiddlewareDefinition placeholder,
         string? scope)
     {

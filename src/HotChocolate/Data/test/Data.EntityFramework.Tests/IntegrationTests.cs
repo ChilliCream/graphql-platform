@@ -238,16 +238,16 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         // assert
         var result = await executor.ExecuteAsync(
             @"query Test {
-                    authorOffsetPagingExecutable {
-                        items {
-                            name
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+                authorOffsetPagingExecutable {
+                    items {
+                        name
                     }
-                }");
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
 
         // assert
         result.MatchSnapshot();

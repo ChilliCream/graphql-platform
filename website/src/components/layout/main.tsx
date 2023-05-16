@@ -42,12 +42,7 @@ export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
     if (hash) {
       const headlineElement = document.getElementById(hash.substring(1));
 
-      if (headlineElement) {
-        window.setTimeout(
-          () => window.scrollTo(0, headlineElement.offsetTop - 80),
-          100
-        );
-      }
+      headlineElement?.scrollIntoView();
     }
   });
 
@@ -72,6 +67,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   margin-top: 60px;
+  height: calc(100vh - 60px);
   overflow-y: auto;
 `;
 
@@ -81,4 +77,5 @@ const Content = styled.main`
   align-items: center;
   width: 100%;
   overflow: visible;
+  flex: 1 0 auto;
 `;

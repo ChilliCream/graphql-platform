@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
             // arrange
             using var cts = new CancellationTokenSource(20_000);
 
-            using IWebHost host = TestServerHelper.CreateServer(
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -36,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
                 c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
             serviceCollection.AddStarWarsTypeNameOnInterfacesClient();
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsTypeNameOnInterfacesClient client =
+            var client =
                 services.GetRequiredService<StarWarsTypeNameOnInterfacesClient>();
 
             // act

@@ -23,7 +23,7 @@ type Query {
 
 # Usage
 
-GIven is the schema from above.
+Given is the schema from above.
 
 When querying a field returning an interface, we can query the fields defined in the interface like we would query a regular object type.
 

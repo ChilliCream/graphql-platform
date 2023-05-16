@@ -20,7 +20,7 @@ public static class SchemaExtensions
             return defaultValue;
         }
 
-        return directive.ToObject<T>();
+        return directive.AsValue<T>();
     }
 
     public static string GetPropertyName(this IObjectField field)

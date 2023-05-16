@@ -1,10 +1,10 @@
+#pragma warning disable CS0618
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
-using HotChocolate.Types.Pagination.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
@@ -13,6 +13,7 @@ public class Query
 {
     [UseDbContext(typeof(BookContext))]
     public IQueryable<Author> GetAuthors(
+
         [ScopedService] BookContext context) =>
         context.Authors;
 
@@ -190,3 +191,4 @@ public class QueryType : ObjectType
             });
     }
 }
+#pragma warning restore CS0618

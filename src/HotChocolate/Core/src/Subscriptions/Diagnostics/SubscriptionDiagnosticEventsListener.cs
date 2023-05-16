@@ -37,19 +37,12 @@ public class SubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEvent
     }
 
     /// <inheritdoc cref="ISubscriptionDiagnosticEvents.Dispatch{T}"/>
-    public virtual void Dispatch<T>(
-        string topicName,
-        MessageEnvelope<T> message,
-        int subscribers)
+    public virtual void Dispatch<T>(string topicName, T message, int subscribers)
     {
     }
 
     /// <inheritdoc cref="ISubscriptionDiagnosticEvents.DelayedDispatch{T}"/>
-    public virtual void DelayedDispatch<T>(
-        string topicName,
-        int shard,
-        MessageEnvelope<T> message,
-        int subscribers)
+    public virtual void DelayedDispatch<T>(string topicName, int shard, T message, int subscribers)
     {
     }
 
@@ -79,7 +72,7 @@ public class SubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEvent
     }
 
     /// <inheritdoc cref="ISubscriptionDiagnosticEvents.Send{T}"/>
-    public virtual void Send<T>(string topicName, MessageEnvelope<T> message)
+    public virtual void Send<T>(string topicName, T message)
     {
     }
 

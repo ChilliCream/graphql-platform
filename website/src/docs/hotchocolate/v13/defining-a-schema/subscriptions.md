@@ -2,11 +2,51 @@
 title: "Subscriptions"
 ---
 
-The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
+<Video videoId="wHC9gOk__y0" />
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/wHC9gOk__y0"frameborder="0"
-allowfullscreen></iframe>
+GraphQL subscriptions provide real-time functionality to applications by allowing clients to subscribe to specific events. When these events trigger, the server immediately sends updates to the subscribed clients. 
+
+# Transport Mechanisms for GraphQL Subscriptions
+
+The method of how these updates are delivered is determined by the transport mechanism. In this section, we will discuss two popular transport mechanisms: GraphQL over WebSockets and GraphQL over Server-Sent Events (SSE).
+
+## GraphQL over WebSockets
+
+WebSockets provide a full-duplex communication channel over a single TCP connection. This means data can be sent and received simultaneously. With GraphQL, this means both queries/mutations and subscription operations can be sent over the same connection.
+
+WebSockets are widely supported in browsers and have been the de facto standard for real-time data transport in GraphQL.  There are two popular protocols for GraphQL over WebSockets: [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [subscription-transport-ws](https://github.com/apollographql/subscriptions-transport-ws).
+Hot Chocolate, supports both protocols.
+
+In terms of specific protocols, the recommendation is to use graphql-ws or graphql-sse over the legacy subscription-transport-ws.
+
+**Key Features:**
+- Full-duplex: Both the client and server can initiate communication, allowing real-time bidirectional communication.
+- Persistent connection: The connection between client and server remains open, allowing for real-time data transfer.
+- Well-supported: There are several libraries available for managing WebSocket connections and GraphQL subscriptions.
+
+## GraphQL over Server-Sent Events (SSE)
+
+Server-Sent Events (SSE) is a standard that allows a server to push real-time updates to clients over HTTP. Unlike WebSockets, SSE is a half-duplex communication channel, which means the server can send messages to the client, but not the other way around. This makes it a good fit for one-way real-time data like updates or notifications.
+
+With GraphQL, you can send regular queries and mutations over HTTP/2 and subscription updates over SSE. This combination leverages the strengths of both HTTP/2 (efficient for request-response communication) and SSE (efficient for server-to-client streaming).
+
+Another advantage of SSE is its better compatibility with firewalls compared to WebSockets. However, if you're using HTTP/1, keep in mind that SSE inherits its limitations, such as supporting no more than 7 parallel requests in the browser.
+
+[graphql-sse](https://github.com/enisdenjo/graphql-sse) is a popular library for GraphQL over SSE.
+
+**Key Features:**
+- Efficient for one-way real-time data: The server can push updates to the client as soon as they occur.
+- Built on HTTP: SSE is built on HTTP, simplifying handling and compatibility. It benefits from HTTP features such as automatic reconnection, HTTP/2 multiplexing, and headers/cookies support.
+- Less Complex: SSE is less complex than WebSockets as it only allows for one-way communication.
+- Better Firewall Compatibility: SSE generally encounters fewer issues with firewalls.
+
+Choosing between GraphQL over WebSockets and GraphQL over SSE depends on the specific needs of your application. If you need full-duplex, real-time communication, WebSockets may be the best choice. If you only need server-to-client real-time communication and want to take advantage of existing HTTP infrastructure, SSE could be a better option. 
+
+Special thanks to Denis Badurina, @enisdenjo on [Twitter](https://twitter.com/enisdenjo) and [GitHub](https://github.com/enisdenjo). He is the creator of [graphql-http](https://github.com/enisdenjo/graphql-http), [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [graphql-sse](https://github.com/enisdenjo/graphql-sse). 
+
+# Usage
+
+Subscribing to an event is like writing a standard query. The only difference is the operation keyword and that we are only allowed to have one root field.
 
 ```sdl
 type Subscription {
@@ -15,8 +55,6 @@ type Subscription {
 }
 ```
 
-Subscribing to an event is like writing a standard query. The only difference is the operation keyword and that we are only allowed to have one root field.
-
 ```graphql
 subscription {
   bookAdded {
@@ -24,11 +62,6 @@ subscription {
   }
 }
 ```
-
-Hot Chocolate implements subscriptions via WebSockets and uses the pub/sub approach of [Apollo](https://www.apollographql.com/docs/apollo-server/data/subscriptions/#the-pubsub-class) for triggering subscriptions.
-
-# Usage
-
 A subscription type can be defined like the following.
 
 <ExampleTabs>
@@ -166,7 +199,9 @@ To make pub/sub work, we also have to register a subscription provider. A subscr
 The In-Memory subscription provider does not need any configuration and is easily setup.
 
 ```csharp
-services.AddInMemorySubscriptions();
+services
+    .AddGraphQLServer()
+    .AddInMemorySubscriptions();
 ```
 
 ## Redis Provider
@@ -180,8 +215,9 @@ In order to use the Redis provider we have to add the `HotChocolate.Subscription
 After we have added the package we can setup the Redis subscription provider.
 
 ```csharp
-services.AddRedisSubscriptions((sp) =>
-    ConnectionMultiplexer.Connect("host:port"));
+services
+    .AddGraphQLServer()
+    .AddRedisSubscriptions((sp) => ConnectionMultiplexer.Connect("host:port"));
 ```
 
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
@@ -253,29 +289,6 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 ## ITopicEventReceiver
 
 If more complex topics are required, we can use the `ITopicEventReceiver`.
-
-```csharp
-public class Subscription
-{
-    [SubscribeAndResolve]
-    public ValueTask<ISourceStream<Book>> BookPublished(string author,
-        [Service] ITopicEventReceiver receiver)
-    {
-        var topic = $"{author}_PublishedBook";
-
-        return receiver.SubscribeAsync<string, Book>(topic);
-    }
-}
-
-public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
-{
-    await sender.SendAsync($"{book.Author}_PublishedBook", book);
-
-    // Omitted code for brevity
-}
-```
-
-If we do not want to mix the subscription logic with our resolver, we can also use the `With` argument on the `Subscribe` attribute to specify a separate method that handles the event subscription.
 
 ```csharp
 public class Subscription

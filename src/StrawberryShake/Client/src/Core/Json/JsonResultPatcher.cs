@@ -66,6 +66,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
             if (path.Length > 1)
             {
                 var max = path.Length - 1;
+
                 for (var i = 0; i < max; i++)
                 {
                     current = path[i].ValueKind switch
@@ -80,7 +81,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
 #if NET5_0_OR_GREATER
             var last = path[^1];
-#else 
+#else
             var last = path[path.Length - 1];
 #endif
 
@@ -148,7 +149,13 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
         var json = JsonDocument.Parse(buffer.Body);
 
-        return new(json, response.Exception, false, response.HasNext, _extensions, _contextData);
+        return new Response<JsonDocument>(
+            json,
+            response.Exception,
+            false,
+            response.HasNext,
+            _extensions,
+            _contextData);
     }
 
     private static Dictionary<string, object?>? MergeExtensions(

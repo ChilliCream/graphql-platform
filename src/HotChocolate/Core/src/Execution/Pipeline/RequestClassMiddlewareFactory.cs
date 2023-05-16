@@ -92,13 +92,11 @@ internal static class RequestClassMiddlewareFactory
                 _requestOptions);
 
         var list = new List<IParameterHandler>
-            {
-                new TypeParameterHandler(typeof(IDocumentValidator), getValidator),
-                new TypeParameterHandler(typeof(IRequestContextAccessor), requestOptions)
-            };
+        {
+            new TypeParameterHandler(typeof(IDocumentValidator), getValidator)
+        };
 
-        var constructor =
-            middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
+        var constructor = middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
 
         if (constructor is not null)
         {

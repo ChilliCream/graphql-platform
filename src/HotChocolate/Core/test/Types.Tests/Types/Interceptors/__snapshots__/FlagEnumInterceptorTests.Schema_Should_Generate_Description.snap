@@ -1,0 +1,27 @@
+﻿schema {
+  query: Query
+}
+
+"This is the type desc"
+type FlagsWithDescriptionFlags {
+  "Foo has a desc"
+  isFoo: Boolean!
+  "Bar has a desc"
+  isBar: Boolean!
+  "Baz has a desc"
+  isBaz: Boolean!
+}
+
+type Query {
+  asd(input: FlagsWithDescriptionFlagsInput!): FlagsWithDescriptionFlags!
+}
+
+"This is the type desc"
+input FlagsWithDescriptionFlagsInput {
+  "Foo has a desc"
+  isFoo: Boolean
+  "Bar has a desc"
+  isBar: Boolean
+  "Baz has a desc"
+  isBaz: Boolean
+}

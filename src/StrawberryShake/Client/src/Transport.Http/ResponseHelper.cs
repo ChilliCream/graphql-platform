@@ -1,8 +1,11 @@
 using System;
+using System.Buffers;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Internal;
 using static StrawberryShake.ResultFields;
 
 namespace StrawberryShake.Transport.Http;
@@ -11,6 +14,7 @@ internal static class ResponseHelper
 {
     public static async Task<Response<JsonDocument>> TryParseResponse(
         this Stream stream,
+        Exception? transportError,
         CancellationToken cancellationToken)
     {
         try
@@ -33,14 +37,33 @@ internal static class ResponseHelper
                     hasNext = true;
                 }
 
-                return new Response<JsonDocument>(document, null, isPatch, hasNext);
+                return new Response<JsonDocument>(document, transportError, isPatch, hasNext);
             }
 
-            return new Response<JsonDocument>(document, null);
+            return new Response<JsonDocument>(document, transportError);
         }
         catch (Exception ex)
         {
-            return new Response<JsonDocument>(null, ex);
+            var error = transportError ?? ex;
+            return new Response<JsonDocument>(CreateBodyFromException(error), error);
         }
+    }
+
+    internal static JsonDocument CreateBodyFromException(Exception exception)
+    {
+        using var bufferWriter = new ArrayWriter();
+
+        using var jsonWriter = new Utf8JsonWriter(bufferWriter);
+        jsonWriter.WriteStartObject();
+        jsonWriter.WritePropertyName("errors");
+        jsonWriter.WriteStartArray();
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString("message", exception.Message);
+        jsonWriter.WriteEndObject();
+        jsonWriter.WriteEndArray();
+        jsonWriter.WriteEndObject();
+        jsonWriter.Flush();
+
+        return JsonDocument.Parse(bufferWriter.Body);
     }
 }

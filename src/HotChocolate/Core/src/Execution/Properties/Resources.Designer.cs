@@ -464,5 +464,17 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("MiddlewareContext_ReplaceArguments_NullNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame {
+            get {
+                return ResourceManager.GetString("SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame", resourceCulture);
+            }
+        }
+        
+        internal static string ComplexityAnalyzerCompiler_Enter_OnlyOperations {
+            get {
+                return ResourceManager.GetString("ComplexityAnalyzerCompiler_Enter_OnlyOperations", resourceCulture);
+            }
+        }
     }
 }

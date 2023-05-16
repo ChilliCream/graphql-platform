@@ -116,7 +116,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             : null;
                 }
 
-                ITypeReference? typeRef = itemType is not null
+                TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
@@ -205,7 +205,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             : null;
                 }
 
-                ITypeReference? typeRef = itemType is not null
+                TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
@@ -255,11 +255,11 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());
     }
 
-    private static ITypeReference CreateTypeRef(
+    private static TypeReference CreateTypeRef(
         IDescriptorContext context,
         MemberInfo? resolverMember,
         string? collectionSegmentName,
-        ITypeReference? itemsType,
+        TypeReference? itemsType,
         PagingOptions options)
     {
         var typeInspector = context.TypeInspector;
@@ -312,6 +312,23 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     ? entry => entry.Provider.CanHandle(source)
                     : entry => providerName.Equals(entry.Name, StringComparison.Ordinal);
             PagingProviderEntry? defaultEntry = null;
+
+            // if we find an application service provider we will prefer that one.
+            var applicationServices = services.GetService<IApplicationServiceProvider>();
+
+            if (applicationServices is not null)
+            {
+                foreach (var entry in applicationServices.GetServices<PagingProviderEntry>())
+                {
+                    // the first provider is expected to be the default provider.
+                    defaultEntry ??= entry;
+
+                    if (predicate(entry))
+                    {
+                        return entry.Provider;
+                    }
+                }
+            }
 
             foreach (var entry in services.GetServices<PagingProviderEntry>())
             {

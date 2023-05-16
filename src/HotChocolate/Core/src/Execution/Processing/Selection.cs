@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -89,6 +87,8 @@ public class Selection : ISelection
 
     /// <inheritdoc />
     public int Id { get; }
+
+    internal CustomOptionsFlags CustomOptions { get; private set; }
 
     /// <inheritdoc />
     public SelectionExecutionStrategy Strategy { get; private set; }
@@ -201,7 +201,14 @@ public class Selection : ISelection
             throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
         }
 
-        if (includeCondition is not 0 &&
+        if (includeCondition == 0)
+        {
+            if (_includeConditions.Length > 0)
+            {
+                _includeConditions = Array.Empty<long>();
+            }
+        }
+        else if (_includeConditions.Length > 0 &&
             Array.IndexOf(_includeConditions, includeCondition) == -1)
         {
             var next = _includeConditions.Length;
@@ -313,6 +320,33 @@ public class Selection : ISelection
         _flags |= Flags.Stream;
     }
 
+    internal void SetOption(CustomOptionsFlags customOptions)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        CustomOptions |= customOptions;
+    }
+
+    /// <summary>
+    /// Completes the selection without sealing it.
+    /// </summary>
+    internal void Complete(ISelectionSet declaringSelectionSet)
+    {
+        Debug.Assert(declaringSelectionSet is not null);
+
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            DeclaringSelectionSet = declaringSelectionSet;
+        }
+
+        Debug.Assert(
+            ReferenceEquals(declaringSelectionSet, DeclaringSelectionSet),
+            "Selections can only belong to a single selectionSet.");
+    }
+
     internal void Seal(ISelectionSet declaringSelectionSet)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
@@ -353,5 +387,45 @@ public class Selection : ISelection
         List = 4,
         Stream = 8,
         StreamResult = 16
+    }
+
+    [Flags]
+    internal enum CustomOptionsFlags : byte
+    {
+        None = 0,
+        Option1 = 1,
+        Option2 = 2,
+        Option3 = 4,
+        Option4 = 8,
+        Option5 = 16
+    }
+
+    internal sealed class Sealed : Selection
+    {
+        public Sealed(
+            int id,
+            IObjectType declaringType,
+            IObjectField field,
+            IType type,
+            FieldNode syntaxNode,
+            string responseName,
+            ArgumentMap? arguments = null,
+            long[]? includeConditions = null,
+            bool isInternal = false,
+            bool isParallelExecutable = true,
+            FieldDelegate? resolverPipeline = null,
+            PureFieldDelegate? pureResolver = null) : base(
+            id,
+            declaringType,
+            field,
+            type,
+            syntaxNode,
+            responseName,
+            arguments,
+            includeConditions,
+            isInternal,
+            isParallelExecutable,
+            resolverPipeline,
+            pureResolver) { }
     }
 }

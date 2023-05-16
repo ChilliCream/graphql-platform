@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Authorization.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Authorization</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Authorization\HotChocolate.Authorization.csproj" />
+  </ItemGroup>
+
+</Project>

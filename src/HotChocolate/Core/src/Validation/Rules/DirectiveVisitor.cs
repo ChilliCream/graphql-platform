@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.SyntaxKind;
 using DirectiveLoc = HotChocolate.Types.DirectiveLocation;
@@ -134,7 +133,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         {
             if (context.Path.TryPeek(out var parent) &&
                 TryLookupLocation(parent, out var location) &&
-                !dt.Locations.Contains(location))
+                (dt.Locations & location) != location)
             {
                 context.ReportError(context.DirectiveNotValidInLocation(node));
             }

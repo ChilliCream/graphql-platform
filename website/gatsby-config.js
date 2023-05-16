@@ -9,10 +9,10 @@ module.exports = {
     author: `Chilli_Cream`,
     company: "ChilliCream",
     siteUrl: SITE_URL,
-    repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
+    repositoryUrl: `https://github.com/ChilliCream/graphql-platform`,
     tools: {
       bcp: `https://eat.bananacakepop.com`,
-      github: `https://github.com/ChilliCream/hotchocolate`,
+      github: `https://github.com/ChilliCream/graphql-platform`,
       linkedIn: `https://www.linkedin.com/company/chillicream`,
       shop: `https://store.chillicream.com`,
       slack: `https://slack.chillicream.com/`,
@@ -72,6 +72,13 @@ module.exports = {
       resolve: `gatsby-plugin-react-redux`,
       options: {
         pathToCreateStoreModule: `./src/state`,
+      },
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `basic`,
+        path: `${__dirname}/src/basic`,
       },
     },
     {
@@ -186,6 +193,10 @@ module.exports = {
             userAgent: `*`,
             allow: `/`,
             disallow: [`/docs/hotchocolate/v10/`, `/docs/hotchocolate/v11/`],
+          },
+          {
+            userAgent: `Algolia Crawler`,
+            allow: `/`,
           },
         ],
       },

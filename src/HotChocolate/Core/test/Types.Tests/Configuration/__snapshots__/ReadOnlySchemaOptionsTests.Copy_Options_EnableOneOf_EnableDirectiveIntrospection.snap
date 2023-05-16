@@ -18,5 +18,10 @@
   "StrictRuntimeTypeValidation": false,
   "DefaultIsOfTypeCheck": null,
   "EnableOneOf": true,
-  "EnsureAllNodesCanBeResolved": false
+  "EnsureAllNodesCanBeResolved": false,
+  "EnableFlagEnums": false,
+  "EnableDefer": false,
+  "EnableStream": false,
+  "MaxAllowedNodeBatchSize": 50,
+  "StripLeadingIFromInterface": false
 }

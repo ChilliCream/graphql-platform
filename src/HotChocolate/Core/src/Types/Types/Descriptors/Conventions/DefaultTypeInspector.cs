@@ -27,6 +27,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 {
     private const string _toString = "ToString";
     private const string _getHashCode = "GetHashCode";
+    private const string _compareTo = "CompareTo";
     private const string _equals = "Equals";
     private const string _clone = "<Clone>$";
 
@@ -48,7 +49,8 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     public ReadOnlySpan<MemberInfo> GetMembers(
         Type type,
         bool includeIgnored = false,
-        bool includeStatic = false)
+        bool includeStatic = false,
+        bool allowObject = false)
     {
         if (type is null)
         {
@@ -70,7 +72,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
         foreach (var member in members)
         {
-            if (CanBeHandled(member, includeIgnored))
+            if (CanBeHandled(member, includeIgnored, allowObject))
             {
                 temp[next++] = member;
             }
@@ -98,7 +100,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     }
 
     /// <inheritdoc />
-    public virtual ITypeReference GetReturnTypeRef(
+    public virtual TypeReference GetReturnTypeRef(
         MemberInfo member,
         TypeContext context = TypeContext.None,
         string? scope = null,
@@ -109,7 +111,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(member));
         }
 
-        ITypeReference typeRef = TypeReference.Create(GetReturnType(member), context, scope);
+        TypeReference typeRef = TypeReference.Create(GetReturnType(member), context, scope);
 
         if (!ignoreAttributes &&
             TryGetAttribute(member, out GraphQLTypeAttribute? attribute) &&
@@ -139,7 +141,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     }
 
     /// <inheritdoc />
-    public ITypeReference GetArgumentTypeRef(
+    public TypeReference GetArgumentTypeRef(
         ParameterInfo parameter,
         string? scope = null,
         bool ignoreAttributes = false)
@@ -149,7 +151,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(parameter));
         }
 
-        ITypeReference typeRef = TypeReference.Create(
+        TypeReference typeRef = TypeReference.Create(
             GetArgumentType(
                 parameter,
                 ignoreAttributes),
@@ -167,7 +169,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     }
 
     /// <inheritdoc />
-    public IExtendedType GetArgumentType(
+    public virtual IExtendedType GetArgumentType(
         ParameterInfo parameter,
         bool ignoreAttributes = false)
     {
@@ -683,9 +685,17 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         return false;
     }
 
-    private bool CanBeHandled(MemberInfo member, bool includeIgnored)
+    private bool CanBeHandled(
+        MemberInfo member,
+        bool includeIgnored,
+        bool allowObjectType)
     {
         if (IsSystemMember(member))
+        {
+            return false;
+        }
+
+        if (member.IsDefined(typeof(DataLoaderAttribute)))
         {
             return false;
         }
@@ -709,16 +719,18 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
         if (member is PropertyInfo property)
         {
-            return CanHandleReturnType(member, property.PropertyType) &&
+            return CanHandleReturnType(member, property.PropertyType, allowObjectType) &&
                 property.GetIndexParameters().Length == 0;
         }
 
-        if (member is MethodInfo method && CanHandleReturnType(member, method.ReturnType))
+        if (member is MethodInfo method &&
+            CanHandleReturnType(member, method.ReturnType, allowObjectType))
         {
             foreach (var parameter in method.GetParameters())
             {
-                if (!CanHandleParameter(parameter))
+                if (!CanHandleParameter(parameter, allowObjectType))
                 {
+
                     return false;
                 }
             }
@@ -729,7 +741,10 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         return false;
     }
 
-    private static bool CanHandleReturnType(MemberInfo member, Type returnType)
+    private static bool CanHandleReturnType(
+        MemberInfo member,
+        Type returnType,
+        bool allowObjectType)
     {
         if (returnType == typeof(void) ||
             returnType == typeof(Task) ||
@@ -742,7 +757,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             returnType == typeof(Task<object>) ||
             returnType == typeof(ValueTask<object>))
         {
-            return HasConfiguration(member);
+            return allowObjectType || HasConfiguration(member);
         }
 
         if (typeof(IAsyncResult).IsAssignableFrom(returnType))
@@ -791,7 +806,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         return true;
     }
 
-    private static bool CanHandleParameter(ParameterInfo parameter)
+    private static bool CanHandleParameter(ParameterInfo parameter, bool allowObjectType)
     {
         // schema, object type and object field can be injected into a resolver, so
         // we allow these as parameter type.
@@ -805,8 +820,12 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         }
 
         // All other types may cause errors and need to have an explicit configuration.
-        if (parameterType == typeof(object) ||
-            typeof(ITypeSystemMember).IsAssignableFrom(parameterType))
+        if (parameterType == typeof(object))
+        {
+            return allowObjectType || HasConfiguration(parameter);
+        }
+
+        if (typeof(ITypeSystemMember).IsAssignableFrom(parameterType))
         {
             return HasConfiguration(parameter);
         }
@@ -859,7 +878,9 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             element.IsDefined(typeof(ParentAttribute), true) ||
             element.IsDefined(typeof(ServiceAttribute), true) ||
             element.IsDefined(typeof(GlobalStateAttribute), true) ||
+#pragma warning disable CS0618
             element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+#pragma warning restore CS0618
             element.IsDefined(typeof(ScopedStateAttribute), true) ||
             element.IsDefined(typeof(LocalStateAttribute), true) ||
             element.IsDefined(typeof(DescriptorAttribute), true);
@@ -870,6 +891,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             (m.Name.EqualsOrdinal(_toString) ||
                 m.Name.EqualsOrdinal(_getHashCode) ||
                 m.Name.EqualsOrdinal(_equals) ||
+                m.Name.EqualsOrdinal(_compareTo) ||
                 m.Name.EqualsOrdinal(_clone)))
         {
             return true;

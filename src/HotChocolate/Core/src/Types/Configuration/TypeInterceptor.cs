@@ -17,6 +17,13 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public abstract class TypeInterceptor
 {
+    private const uint _position = uint.MaxValue / 2;
+
+    /// <summary>
+    /// A weight to order interceptors.
+    /// </summary>
+    internal virtual uint Position => _position;
+
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
     /// with the schema builder.
@@ -85,9 +92,9 @@ public abstract class TypeInterceptor
     /// <returns>
     /// Returns types that shall be included into the schema.
     /// </returns>
-    public virtual IEnumerable<ITypeReference> RegisterMoreTypes(
+    public virtual IEnumerable<TypeReference> RegisterMoreTypes(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-        => Enumerable.Empty<ITypeReference>();
+        => Enumerable.Empty<TypeReference>();
 
     public virtual void OnTypeRegistered(
         ITypeDiscoveryContext discoveryContext) { }

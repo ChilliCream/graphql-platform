@@ -433,6 +433,8 @@ public class QueryableCursorPagingProviderTests
             set => throw new NotImplementedException();
         }
 
+        public IServiceProvider RequestServices => throw new NotImplementedException();
+
         public string ResponseName => throw new NotImplementedException();
 
         public bool HasErrors => throw new NotImplementedException();

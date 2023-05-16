@@ -18,7 +18,9 @@ public partial class OperationCompiler
             this,
             context,
             _selectionLookup,
-            _contextData);
+            _contextData,
+            _createFieldPipeline,
+            context.Path);
 
         if (context.Optimizers.Count == 1)
         {

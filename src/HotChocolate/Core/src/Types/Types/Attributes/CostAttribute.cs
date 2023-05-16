@@ -90,7 +90,7 @@ public sealed class CostAttribute : ObjectFieldDescriptorAttribute
         _multipliers = multipliers.Where(t => t.HasValue).ToArray();
     }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

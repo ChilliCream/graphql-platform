@@ -36,15 +36,54 @@ Pagination is another topic we often forget when thinking about securing our Gra
 
 [Learn more about pagination](/docs/hotchocolate/v13/fetching-data/pagination)
 
-<!-- # Execution Timeout
+# Execution depth
 
-By default, Hot Chocolate has an internal execution timeout of 30 seconds. This is to ensure that requests do not occupy server resources for an extended amount of time. Make sure that the execution options are correctly covering your use case.-->
+You can limit the depth a user is able to query in a single request.
 
-<!-- # Query Depth
+```csharp
+builder.Services.AddGraphQLServer()
+    .AddMaxExecutionDepthRule(5);
+```
 
-With GraphQL, we give the consumer of our API the ability to drill into our data graph arbitrarily. The user can pick and choose what data he or she needs. This is one of the powerful concepts with GraphQL. It also is one of its vulnerabilities. We need to control how deep a user can drill into our data graph to ensure that requests perform consistently.
+<Video videoId="PYZSSlVCuJc" />
 
-[Learn more about query depth validation rules](/docs/hotchocolate/v13/security/query-depth). -->
+# Execution timeout
+
+The execution of a GraphQL request is automatically aborted after 30 seconds to prevent long-running queries affecting the performance of your GraphQL server.
+
+This default can be overridden as shown below:
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .ModifyRequestOptions(o =>
+    {
+        o.ExecutionTimeout = TimeSpan.FromSeconds(60);
+    });
+```
+
+The `ExecutionTimeout` is not honored, if a debugger is attached.
+
+# Validation error limit
+
+To protect against malicious queries that intentionally craft payloads, which would generate a large number of validation errors, Hot Chocolate limits the number of validation errors to 5 per default. As soon as the execution engine tries to produce a 6th validation error, the validation process is aborted and the previous 5 errors are returned.
+
+The maximum number of validation errors can be overridden as shown below:
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .SetMaxAllowedValidationErrors(10);
+```
+
+# Nodes batch size
+
+When building a [Relay.js compliant schema](/docs/hotchocolate/v13/defining-a-schema/relay#global-object-identification), our server also exposes a `nodes(ids: [ID])` field besides the `node(id: ID)` field, required by the Relay specification. This `nodes` field allows users to fetch multiple nodes at once. An attacker could exploit this and attempt to fetch a large quantity of nodes to degrade the performance of your GraphQL server. To prevent this, we limit the number of nodes that can be requested to 10.
+
+You can change this default to suite the needs of your application as shown below:
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1);
+```
 
 # Operation complexity
 
@@ -59,10 +98,7 @@ Per default Hot Chocolate uses MD5 to create a unique document hash. Since MD5 i
 Fortunately, we offer the option to use the FIPS compliant SHA256 hashing algorithm to create document hashes.
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddSha256DocumentHashProvider();
-}
+builder.Services.AddSha256DocumentHashProvider();
 ```
 
 [Learn more about document hashing providers](/docs/hotchocolate/v13/performance/persisted-queries#hashing-algorithms)

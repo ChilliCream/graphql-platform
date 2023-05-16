@@ -11,14 +11,6 @@ public class MessageEnvelopeTests
     }
 
     [Fact]
-    public void CreateUnsubscribeMessage()
-    {
-        var message = new MessageEnvelope<string>(kind: MessageKind.Unsubscribed);
-        Assert.Null(message.Body);
-        Assert.Equal(MessageKind.Unsubscribed, message.Kind);
-    }
-
-    [Fact]
     public void CreateCompletedMessage()
     {
         var message = new MessageEnvelope<string>(kind: MessageKind.Completed);
@@ -31,13 +23,6 @@ public class MessageEnvelopeTests
     {
         Assert.Throws<ArgumentException>(
             () => new MessageEnvelope<string>(null));
-    }
-
-    [Fact]
-    public void CreateUnsubscribeMessage_Body_Not_Null()
-    {
-        Assert.Throws<ArgumentException>(
-            () => new MessageEnvelope<string>("abc", MessageKind.Unsubscribed));
     }
 
     [Fact]

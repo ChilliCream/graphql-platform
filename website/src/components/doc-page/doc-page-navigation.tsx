@@ -22,11 +22,12 @@ import ArrowDownIconSvg from "@/images/arrow-down.svg";
 import ArrowUpIconSvg from "@/images/arrow-up.svg";
 import ProductSwitcherIconSvg from "@/images/th-large.svg";
 
+import { ScrollContainer } from "@/components/articles/article-elements";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
 import {
   DocPageStickySideBarStyle,
   MostProminentSection,
-} from "./doc-page-elements";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
+} from "./doc-page-styles";
 
 interface NavigationContainerProps {
   readonly basePath: string;
@@ -239,7 +240,7 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
             <ProductLink
               active={product === activeProduct}
               key={product.path!}
-              to={`/docs/${product.path!}`}
+              to={`/docs/${product.path!}/${product.latestStableVersion}`}
             >
               <ProductTitle>{product.title!}</ProductTitle>
               <ProductDescription>{product.description!}</ProductDescription>
@@ -299,6 +300,7 @@ export const DocPageNavigationGraphQLFragment = graphql`
         path
         title
         description
+        latestStableVersion
         versions {
           path
           title
@@ -333,6 +335,7 @@ export interface NavigationProps {
 
 export const Navigation = styled.nav<NavigationProps>`
   ${DocPageStickySideBarStyle}
+
   padding: 25px 0 0;
   transition: margin-left 250ms;
   background-color: white;
@@ -345,11 +348,12 @@ export const Navigation = styled.nav<NavigationProps>`
 
   ${({ height }) =>
     IsTablet(`
-      margin-left: -350px;
+      margin-left: -100%;
       height: ${height};
       position: fixed;
       top: 60px;
       left: 0;
+
       ${BoxShadow}
   `)}
 `;
@@ -574,9 +578,4 @@ const NavigationItem = styled.li<{ active: boolean }>`
         font-weight: 600;
       }
     `}
-`;
-
-export const ScrollContainer = styled.div`
-  overflow-y: auto;
-  padding-bottom: 10px;
 `;

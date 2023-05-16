@@ -337,7 +337,7 @@ public static class SyntaxExtensions
         string name)
     {
         var attribute =
-            Attribute(IdentifierName(Global(typeof(GraphQLNameAttribute).FullName)))
+            Attribute(IdentifierName(Global(typeof(GraphQLNameAttribute).FullName!)))
                 .AddArgumentListArguments(
                     AttributeArgument(
                         LiteralExpression(
@@ -347,12 +347,14 @@ public static class SyntaxExtensions
         return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
     }
 
+#pragma warning disable CS0618
     public static ParameterSyntax AddScopedServiceAttribute(
         this ParameterSyntax methodSyntax)
     {
         var attribute =
-            Attribute(IdentifierName(Global(typeof(ScopedServiceAttribute).FullName)));
+            Attribute(IdentifierName(Global(typeof(ScopedServiceAttribute).FullName!)));
 
         return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
     }
+#pragma warning restore CS0618
 }

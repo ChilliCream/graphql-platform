@@ -11,9 +11,4 @@
         <DataSource Persistence="ProjectFile" ItemType="GraphQL" />
     </Rule.DataSource>
     <StringProperty Name="Namespace" DisplayName="Namespace" />
-    <!--<EnumProperty Name="AccessModifier" DisplayName="Access Modifier">
-        <EnumValue Name="Public" DisplayName="Public"/>
-        <EnumValue Name="Internal" DisplayName="Internal"/>
-        <EnumValue Name="NoCodeGen" DisplayName="No Code Generation"/>
-    </EnumProperty>-->
 </Rule>

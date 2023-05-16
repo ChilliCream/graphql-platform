@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ImplicitUsings)' == 'enable'">
@@ -12,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="HotChocolate.AspNetCore" Version="11.1.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="11.1.0" />
     <PackageReference Include="HotChocolate.Types.Analyzers" Version="11.1.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

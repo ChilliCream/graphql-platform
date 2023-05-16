@@ -54,7 +54,7 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     /// <returns>
     /// <c>true</c> if the type has been resolved; otherwise, <c>false</c>.
     /// </returns>
-    bool TryGetType<T>(ITypeReference typeRef, [NotNullWhen(true)] out T? type) where T : IType;
+    bool TryGetType<T>(TypeReference typeRef, [NotNullWhen(true)] out T? type) where T : IType;
 
     /// <summary>
     /// Gets a type by it's type reference.
@@ -71,7 +71,7 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     /// <exception cref="SchemaException">
     /// The type could not be resolved for the given <paramref name="typeRef" />.
     /// </exception>
-    T GetType<T>(ITypeReference typeRef) where T : IType;
+    T GetType<T>(TypeReference typeRef) where T : IType;
 
     /// <summary>
     /// Rewrites a type reference to a named type reference.
@@ -82,7 +82,7 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     /// <returns>
     /// Returns a direct reference to a named type.
     /// </returns>
-    ITypeReference GetNamedTypeReference(ITypeReference typeRef);
+    TypeReference GetNamedTypeReference(TypeReference typeRef);
 
     /// <summary>
     /// Gets all registered types of <typeparamref name="T"/>.
@@ -90,6 +90,6 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     IEnumerable<T> GetTypes<T>() where T : IType;
 
     bool TryGetDirectiveType(
-        IDirectiveReference directiveRef,
+        TypeReference directiveRef,
         [NotNullWhen(true)] out DirectiveType? directiveType);
 }

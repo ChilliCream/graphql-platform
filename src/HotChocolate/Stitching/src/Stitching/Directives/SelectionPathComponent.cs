@@ -6,7 +6,7 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Stitching;
 
-public class SelectionPathComponent
+public sealed class SelectionPathComponent
 {
     public SelectionPathComponent(
         NameNode name,

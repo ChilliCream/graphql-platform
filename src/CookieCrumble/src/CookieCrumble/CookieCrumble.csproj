@@ -5,22 +5,24 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsPackable>false</IsPackable>
     <AssemblyName>CookieCrumble</AssemblyName>
     <RootNamespace>CookieCrumble</RootNamespace>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.7.1" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="Xunit" Version="2.4.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net6.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
     <ProjectReference Include="..\..\..\HotChocolate\Fusion\src\Core\HotChocolate.Fusion.csproj" />
   </ItemGroup>
 

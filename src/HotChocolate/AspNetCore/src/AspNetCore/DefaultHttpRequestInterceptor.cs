@@ -16,10 +16,13 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
         IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
+        var userState = new UserState(context.User);
+
         requestBuilder.TrySetServices(context.RequestServices);
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
-        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), context.User);
         requestBuilder.TryAddGlobalState(nameof(CancellationToken), context.RequestAborted);
+        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
+        requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
 
         if (context.IsTracingEnabled())
         {

@@ -15,9 +15,11 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
+    <InternalsVisibleTo Include="HotChocolate.Caching" />
   </ItemGroup>
 
   <ItemGroup>
@@ -186,6 +188,9 @@
     </Compile>
     <Compile Update="Processing\SubscriptionExecutor.Subscription.cs">
       <DependentUpon>SubscriptionExecutor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RequestExecutorResolver.Hooks.cs">
+      <DependentUpon>RequestExecutorResolver.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

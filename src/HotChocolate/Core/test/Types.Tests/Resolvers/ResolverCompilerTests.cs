@@ -16,7 +16,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -1546,7 +1545,7 @@ public class ResolverCompilerTests
 
     public class UseSomeStateAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

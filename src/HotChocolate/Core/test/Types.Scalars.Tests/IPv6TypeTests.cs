@@ -5,8 +5,6 @@ using Xunit;
 
 namespace HotChocolate.Types;
 
-// The current preview have bugs with regex.
-#if !NET7_0
 public class IPv6TypeTests : ScalarTypeTestBase
 {
     [Fact]
@@ -599,4 +597,3 @@ public class IPv6TypeTests : ScalarTypeTestBase
         ExpectParseResultToThrowSerializationException<IPv6Type>(value);
     }
 }
-#endif

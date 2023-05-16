@@ -32,9 +32,19 @@
     "Swashbuckle",
     "traversion",
     "Websockets",
-    "Newtonsoft"
+    "Newtonsoft",
+    "cachable",
+    "fricking",
+    "runtimes",
+    "NATS",
+    "cypher",
+    "sublicensable",
+    "meros",
+    "Structs"
   ],
   "ignoreWords": [
+    "Badurina",
+    "enisdenjo",
     "Specwise",
     "strawberryshake",
     "refactorings",
@@ -53,11 +63,26 @@
     "Staib",
     "shoooe",
     "Senn",
+    "Rafi",
     "Snapshooter",
     "relayjs",
     "Rgba",
     "Postgraphile",
-    "Normen"
+    "Normen",
+    // youtube
+    "Ufjn",
+    "Wguo",
+    "Ymgw",
+    "Yqhk",
+    "Mihsg",
+    "Ufjn",
+    "Wguo",
+    "Ymgw",
+    "Yqhk",
+    "Mihsg",
+    "Eciou",
+    "cfnm",
+    "UHVQ"
   ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links
@@ -66,6 +91,8 @@
     "\\<a(.*)\\>", // link contents
     "-- snippet:(.*)", // snippet references
     "\\<\\[sample:(.*)", // another kind of snippet reference
-    "/^\\s*```[\\s\\S]*?^\\s*```/gm" // ignoring multi-line code blocks
+    "/^\\s*```[\\s\\S]*?^\\s*```/gm", // ignoring multi-line code blocks
+    "featuredVideoId:(.*)", // video hash
+    "videoId=\"(.*)\"" // video hash
   ]
 }

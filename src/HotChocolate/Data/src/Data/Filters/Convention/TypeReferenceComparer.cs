@@ -6,9 +6,9 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Data.Filters;
 
 internal sealed class TypeReferenceComparer
-    : IEqualityComparer<ITypeReference>
+    : IEqualityComparer<TypeReference>
 {
-    public bool Equals(ITypeReference? x, ITypeReference? y)
+    public bool Equals(TypeReference? x, TypeReference? y)
     {
         if (ReferenceEquals(x, y))
         {
@@ -47,7 +47,7 @@ internal sealed class TypeReferenceComparer
         return x.Equals(y);
     }
 
-    public int GetHashCode(ITypeReference obj)
+    public int GetHashCode(TypeReference obj)
     {
         unchecked
         {
@@ -77,6 +77,6 @@ internal sealed class TypeReferenceComparer
         ExtendedTypeReference extendedTypeReference) =>
         schemaTypeReference.Type.GetType() == extendedTypeReference.Type.Source;
 
-    public static readonly IEqualityComparer<ITypeReference> Default =
+    public static readonly IEqualityComparer<TypeReference> Default =
         new TypeReferenceComparer();
 }

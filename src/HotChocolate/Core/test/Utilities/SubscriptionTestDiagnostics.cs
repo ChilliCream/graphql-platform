@@ -43,14 +43,14 @@ public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsLi
 
     public override void Dispatch<T>(
         string topicName,
-        MessageEnvelope<T> message,
+        T message,
         int subscribers)
         => _output.WriteLine($"Dispatched: {topicName} {Serialize(message)} {subscribers}");
 
     public override void DelayedDispatch<T>(
         string topicName,
         int shard,
-        MessageEnvelope<T> message,
+        T message,
         int subscribers)
         => _output.WriteLine($"Delayed: {topicName}/{shard} {Serialize(message)} {subscribers}");
 
@@ -69,7 +69,7 @@ public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsLi
     public override void Close(string topicName)
         => _output.WriteLine($"Close: {topicName}");
 
-    public override void Send<T>(string topicName, MessageEnvelope<T> message)
+    public override void Send<T>(string topicName, T message)
         => _output.WriteLine($"Send: {topicName} {Serialize(message)}");
 
     public override void ProviderInfo(string infoText)

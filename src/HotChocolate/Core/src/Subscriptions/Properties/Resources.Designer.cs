@@ -74,5 +74,11 @@ namespace HotChocolate.Subscriptions.Properties {
                 return ResourceManager.GetString("MessageEnvelope_UnsubscribeAndComplete_DoNotHaveBody", resourceCulture);
             }
         }
+        
+        internal static string InvalidMessageTypeException_Message {
+            get {
+                return ResourceManager.GetString("InvalidMessageTypeException_Message", resourceCulture);
+            }
+        }
     }
 }

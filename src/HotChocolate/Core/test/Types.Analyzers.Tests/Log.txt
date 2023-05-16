@@ -1,0 +1,6 @@
+scoped: global::HotChocolate.Types.GenericService<global::HotChocolate.Types.GenericService<string>>
+non scoped: global::HotChocolate.Types.SomeService
+scoped: global::HotChocolate.Types.SomeService
+scoped: global::HotChocolate.Types.SomeService
+scoped: global::HotChocolate.Types.SomeService
+scoped: global::HotChocolate.Types.SomeService

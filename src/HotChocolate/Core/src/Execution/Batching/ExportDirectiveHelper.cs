@@ -18,14 +18,14 @@ internal static class ExportDirectiveHelper
     }
 
     public static void ExportValueAsVariable(
-        this IDirectiveContext context)
+        this IMiddlewareContext context,
+        ExportDirective directive)
     {
         if (context.ContextData.TryGetValue(ExportedVariables, out var o)
             && o is ConcurrentBag<ExportedVariable> exp)
         {
             exp.Add(new ExportedVariable(
-                context.Directive.ToObject<ExportDirective>().As
-                    ?? context.Selection.Field.Name,
+                directive.As ?? context.Selection.Field.Name,
                 context.Selection.Type,
                 context.Result));
         }

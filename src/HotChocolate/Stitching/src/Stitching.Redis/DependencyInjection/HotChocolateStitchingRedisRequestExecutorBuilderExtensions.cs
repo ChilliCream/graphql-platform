@@ -1,5 +1,7 @@
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Stitching.Redis;
 using HotChocolate.Stitching.Requests;
 using HotChocolate.Utilities;
@@ -33,7 +35,15 @@ namespace Microsoft.Extensions.DependencyInjection
             // Last but not least, we will setup the stitching context which will
             // provide access to the remote executors which in turn use the just configured
             // request executor proxies to send requests to the downstream services.
-            builder.Services.TryAddScoped<IStitchingContext, StitchingContext>();
+            builder.ConfigureSchemaServices(
+                c => c.TryAddSingleton<IRequestContextEnricher, StitchingContextEnricher>());
+
+            if (builder.Services.All(t => t.ImplementationType !=
+                typeof(StitchingContextParameterExpressionBuilder)))
+            {
+                builder.Services.AddSingleton<IParameterExpressionBuilder,
+                    StitchingContextParameterExpressionBuilder>();
+            }
 
             return builder;
         }

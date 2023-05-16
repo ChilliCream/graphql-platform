@@ -1,0 +1,15 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  asd: String
+}
+
+input FlagsEnumFlagsInput {
+  isFoo: Boolean
+  isBar: Boolean
+  isBaz: Boolean
+}
+
+directive @Test(a: FlagsEnumFlagsInput!) on FRAGMENT_SPREAD

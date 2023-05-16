@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LogEntryHelper_RemoveMemberNotFound" xml:space="preserve">
+    <value>Could not remove the type system member `{0}` as it was not found.</value>
+  </data>
+  <data name="LogEntryHelper_DirectiveArgumentMissing" xml:space="preserve">
+    <value>The argument `{0}` is required for directive `@{1}`.</value>
+  </data>
+  <data name="LogEntryHelper_DirectiveArgumentValueInvalid" xml:space="preserve">
+    <value>The value of the argument `{0}` of the `@{1}` directive is invalid.</value>
+  </data>
+  <data name="LogEntryHelper_RenameMemberNotFound" xml:space="preserve">
+    <value>Could not rename the type system member `{0}` as it was not found.</value>
+  </data>
+  <data name="LogEntryHelper_UnableToMergeType" xml:space="preserve">
+    <value>Unable to merge the distributed type `{0}`.</value>
+  </data>
+  <data name="FusionTypes_EnsureInitialized_Failed" xml:space="preserve">
+    <value>Fusion types where initialized with different type prefixes.</value>
+  </data>
+  <data name="LogEntryHelper_MergeTypeKindDoesNotMatch" xml:space="preserve">
+    <value>The type extension `{0}` cannot be merged with the target type as the are of a different type kind (`{1}` and `{2}`).</value>
+  </data>
+  <data name="LogEntryHelper_OutputFieldArgumentMismatch" xml:space="preserve">
+    <value>The number of arguments in an output field does not match the number of arguments in the same field in of a subgraph schema.</value>
+  </data>
+  <data name="LogEntryHelper_OutputFieldArgumentSetMismatch" xml:space="preserve">
+    <value>An output field (`{0}`) that is being merged into another has a different set of arguments.</value>
+  </data>
+  <data name="DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate" xml:space="preserve">
+    <value>The is argument must have a value for coordinate or field.</value>
+  </data>
+</root>

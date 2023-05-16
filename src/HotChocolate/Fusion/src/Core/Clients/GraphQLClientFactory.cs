@@ -2,13 +2,20 @@ namespace HotChocolate.Fusion.Clients;
 
 internal sealed class GraphQLClientFactory
 {
-    private readonly Dictionary<string, IGraphQLClient> _executors;
+    private readonly Dictionary<string, Func<IGraphQLClient>> _clients;
+    private readonly Dictionary<string, Func<IGraphQLSubscriptionClient>> _subscriptionClients;
 
-    public GraphQLClientFactory(IEnumerable<IGraphQLClient> executors)
+    public GraphQLClientFactory(
+        Dictionary<string, Func<IGraphQLClient>> clients,
+        Dictionary<string, Func<IGraphQLSubscriptionClient>> subscriptionClients)
     {
-        _executors = executors.ToDictionary(t => t.SchemaName);
+        _clients = clients;
+        _subscriptionClients = subscriptionClients;
     }
 
-    public IGraphQLClient Create(string schemaName)
-        => _executors[schemaName];
+    public IGraphQLClient CreateClient(string subgraphName)
+        => _clients[subgraphName]();
+
+    public IGraphQLSubscriptionClient CreateSubscriptionClient(string subgraphName)
+        => _subscriptionClients[subgraphName]();
 }

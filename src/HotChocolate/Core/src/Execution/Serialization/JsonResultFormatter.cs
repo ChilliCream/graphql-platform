@@ -644,6 +644,10 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
                 break;
 
 #if NET6_0_OR_GREATER
+            case JsonDocument doc:
+                WriteJsonElement(writer, doc.RootElement);
+                break;
+
             case JsonElement element:
                 WriteJsonElement(writer, element);
                 break;

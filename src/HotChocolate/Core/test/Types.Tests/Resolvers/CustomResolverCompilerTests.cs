@@ -132,12 +132,39 @@ public class CustomResolverCompilerTests
     }
 
     [Fact]
+    public async Task AddWellKnownState_New()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWellKnownState>()
+            .AddParameterExpressionBuilder(ctx => (SayHelloState)ctx.ContextData["someState"]!)
+            .ExecuteRequestAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ sayHello }")
+                    .AddGlobalState("someState", new SayHelloState("Hello"))
+                    .Create())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     [Obsolete]
     public void AddParameterEnsureBuilderIsNotNull()
     {
         void Configure()
             => default(IResolverCompilerBuilder)!
                 .AddParameter(ctx => ctx.Operation.Document);
+
+        Assert.Throws<ArgumentNullException>(Configure);
+    }
+
+    [Fact]
+    public void AddParameterEnsureBuilderIsNotNull_New()
+    {
+        void Configure()
+            => default(IRequestExecutorBuilder)!
+                .AddParameterExpressionBuilder(ctx => ctx.Operation.Document);
 
         Assert.Throws<ArgumentNullException>(Configure);
     }

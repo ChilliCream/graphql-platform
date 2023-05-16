@@ -23,10 +23,10 @@ public static class IntrospectionTypes
             __DirectiveArgument.Names.__DirectiveArgument
         };
 
-    internal static IReadOnlyList<ITypeReference> CreateReferences(
+    internal static IReadOnlyList<TypeReference> CreateReferences(
         IDescriptorContext context)
     {
-        var types = new List<ITypeReference>
+        var types = new List<TypeReference>
             {
                 context.TypeInspector.GetTypeRef(typeof(__Directive)),
                 context.TypeInspector.GetTypeRef(typeof(__DirectiveLocation)),

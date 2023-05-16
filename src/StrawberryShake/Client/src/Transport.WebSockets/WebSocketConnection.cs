@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
 using static StrawberryShake.ResultFields;
+using static StrawberryShake.Transport.WebSockets.ResponseHelper;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -60,7 +61,7 @@ public class WebSocketConnection : IWebSocketConnection
                 await session.StartOperationAsync(_request, cancellationToken)
                     .ConfigureAwait(false);
 
-            await foreach (OperationMessage message in
+            await foreach (var message in
                 operation.ReadAsync().WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 switch (message.Type)
@@ -68,12 +69,12 @@ public class WebSocketConnection : IWebSocketConnection
                     case OperationMessageType.Data
                         when message is DataDocumentOperationMessage<JsonDocument> msg:
 
-                        JsonElement payload = msg.Payload.RootElement;
+                        var payload = msg.Payload.RootElement;
 
                         var hasNext = false;
                         var isPatch = payload.TryGetProperty(ResultFields.Path, out _);
 
-                        if (payload.TryGetProperty(HasNext, out JsonElement hasNextProp) &&
+                        if (payload.TryGetProperty(HasNext, out var hasNextProp) &&
                             hasNextProp.GetBoolean())
                         {
                             hasNext = true;
@@ -84,12 +85,12 @@ public class WebSocketConnection : IWebSocketConnection
 
                     case OperationMessageType.Error when message is ErrorOperationMessage msg:
                         var operationEx = new GraphQLClientException(msg.Payload);
-                        yield return new(null, operationEx);
+                        yield return new(CreateBodyFromException(operationEx), operationEx);
                         yield break;
 
                     case OperationMessageType.Cancelled:
-                        var canceledException = new OperationCanceledException();
-                        yield return new(null, canceledException);
+                        var canceledEx = new OperationCanceledException();
+                        yield return new(CreateBodyFromException(canceledEx), canceledEx);
                         yield break;
 
                     case OperationMessageType.Complete:

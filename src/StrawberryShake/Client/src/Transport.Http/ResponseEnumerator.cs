@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 using static System.Net.Http.HttpCompletionOption;
 using static System.StringComparison;
+using static StrawberryShake.Properties.Resources;
+using static StrawberryShake.Transport.Http.ResponseHelper;
 
 namespace StrawberryShake.Transport.Http;
 
@@ -64,13 +66,51 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
             }
             else
             {
-                Current = await stream.TryParseResponse(_abort).ConfigureAwait(false);
+                try
+                {
+                    Exception? transportError = null;
+
+                    // If we detect that the response has a non-success status code we will
+                    // create a transport error that will be added to the response.
+                    if (!response.IsSuccessStatusCode)
+                    {
+#if NET5_0_OR_GREATER
+                        transportError =
+                            new HttpRequestException(
+                                string.Format(
+                                    ResponseEnumerator_HttpNoSuccessStatusCode,
+                                    (int)response.StatusCode,
+                                    response.ReasonPhrase),
+                                null,
+                                response.StatusCode);
+#else
+                        transportError =
+                            new HttpRequestException(
+                                string.Format(
+                                    ResponseEnumerator_HttpNoSuccessStatusCode,
+                                    (int)response.StatusCode,
+                                    response.ReasonPhrase),
+                                null);
+#endif
+                    }
+
+                    // We now try to parse the possible GraphQL response, this step could fail
+                    // as the response might not be a GraphQL response. It could in some cases
+                    // be a HTML error page.
+                    Current = await stream.TryParseResponse(transportError, _abort)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Current = new Response<JsonDocument>(CreateBodyFromException(ex), ex);
+                }
                 _completed = true;
                 return true;
             }
         }
 
         var multipartSection = await _reader.ReadNextSectionAsync(_abort).ConfigureAwait(false);
+
         if (multipartSection is null)
         {
             Current = default!;
@@ -83,7 +123,7 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
         using var body = multipartSection.Body;
 #endif
 
-        Current = await body.TryParseResponse(_abort).ConfigureAwait(false);
+        Current = await body.TryParseResponse(null, _abort).ConfigureAwait(false);
 
         if (Current.Exception is not null)
         {

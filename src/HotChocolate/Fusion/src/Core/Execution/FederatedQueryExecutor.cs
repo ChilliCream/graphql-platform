@@ -1,23 +1,33 @@
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using ErrorHelper = HotChocolate.Fusion.Utilities.ErrorHelper;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed partial class FederatedQueryExecutor
+internal static class FederatedQueryExecutor
 {
-    public async Task<IQueryResult> ExecuteAsync(
-        IFederationContext context,
+    public static async Task<IExecutionResult> ExecuteAsync(
+        FusionExecutionContext context,
         CancellationToken cancellationToken = default)
     {
-        // Enqueue root node to initiate the execution process.
-        var rootSelectionSet = context.Operation.RootSelectionSet;
-        var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
+        var operation = context.OperationContext.Operation;
 
-        context.Result.SetData(rootResult);
-        context.RegisterState(rootSelectionSet, rootResult);
-
-        await context.QueryPlan.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
-
-        // build the result
-        return context.Result.BuildResult();
+        if (operation.Type is OperationType.Query or OperationType.Mutation &&
+            !operation.HasIncrementalParts)
+        {
+            return await context.QueryPlan
+                .ExecuteAsync(context, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else if (operation.Type is OperationType.Subscription)
+        {
+            return await context.QueryPlan
+                .SubscribeAsync(context, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            return ErrorHelper.IncrementalDelivery_NotSupported();
+        }
     }
 }

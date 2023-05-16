@@ -1,7 +1,6 @@
 #nullable enable
 
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -11,6 +10,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
 #nullable enable
 
@@ -143,7 +143,7 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
                         Definition.ResolverField.Member,
                         typeof(object),
                         Definition.ResolverField.ResolverType,
-                        NodeResolverCompilerHelper.ParameterExpressionBuilders);
+                        parameterExpressionBuilders: ParameterExpressionBuilders);
             }
 
             if (Definition.ResolverField.Resolver is not null)
@@ -154,6 +154,26 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
                     Definition.ResolverField.GetResultConverters(),
                     Definition.ResolverField.Resolver,
                     false);
+
+                var directiveDefs = Definition.ResolverField.GetDirectives();
+
+                if (directiveDefs.Count > 0)
+                {
+                    var directives =
+                        DirectiveCollection.CreateAndComplete(
+                            context,
+                            DirectiveLocation.FieldDefinition,
+                            Definition.ResolverField,
+                            directiveDefs);
+
+                    foreach (var directive in directives)
+                    {
+                        if (directive.Type.Middleware is not null)
+                        {
+                            pipeline = directive.Type.Middleware.Invoke(pipeline, directive);
+                        }
+                    }
+                }
 
                 definition.ContextData[WellKnownContextData.NodeResolver] =
                     new NodeResolverInfo(null, pipeline!);

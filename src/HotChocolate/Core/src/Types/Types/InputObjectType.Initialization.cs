@@ -123,7 +123,7 @@ public partial class InputObjectType
     {
         var dictionary = new Dictionary<string, object?>();
 
-        foreach (var field in Fields)
+        foreach (var field in Fields.AsSpan())
         {
             dictionary.Add(field.Name, fieldValues[field.Index]);
         }
@@ -135,7 +135,7 @@ public partial class InputObjectType
     {
         var map = (Dictionary<string, object?>)obj;
 
-        foreach (var field in Fields)
+        foreach (var field in Fields.AsSpan())
         {
             if (map.TryGetValue(field.Name, out var val))
             {

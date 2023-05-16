@@ -1,46 +1,45 @@
-using System.Buffers;
-using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Serialization;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
-using Microsoft.Extensions.ObjectPool;
+using HotChocolate.Language;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Pipeline;
 
 internal sealed class OperationExecutionMiddleware
 {
+    private static readonly object _queryRoot = new();
+    private static readonly object _mutationRoot = new();
+    private static readonly object _subscriptionRoot = new();
+
     private readonly RequestDelegate _next;
-    private readonly FederatedQueryExecutor _executor;
-    private readonly ServiceConfiguration _serviceConfig;
-    private readonly ISchema _schema;
-    private readonly ObjectPool<OperationContext> _operationContextPool;
+    private readonly FusionGraphConfiguration _serviceConfig;
+    private readonly IFactory<OperationContextOwner> _contextFactory;
+    private readonly IIdSerializer _idSerializer;
     private readonly GraphQLClientFactory _clientFactory;
 
     public OperationExecutionMiddleware(
         RequestDelegate next,
-        ObjectPool<OperationContext> operationContextPool,
-        [SchemaService] FederatedQueryExecutor executor,
-        [SchemaService] ServiceConfiguration serviceConfig,
-        [SchemaService] GraphQLClientFactory clientFactory,
-        [SchemaService] ISchema schema)
+        IFactory<OperationContextOwner> contextFactory,
+        IIdSerializer idSerializer,
+        [SchemaService] FusionGraphConfiguration serviceConfig,
+        [SchemaService] GraphQLClientFactory clientFactory)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
-        _operationContextPool = operationContextPool ??
-            throw new ArgumentNullException(nameof(operationContextPool));
-        _executor = executor ??
-            throw new ArgumentNullException(nameof(executor));
+        _contextFactory = contextFactory ??
+            throw new ArgumentNullException(nameof(contextFactory));
+        _idSerializer = idSerializer ??
+            throw new ArgumentNullException(nameof(idSerializer));
         _serviceConfig = serviceConfig ??
             throw new ArgumentNullException(nameof(serviceConfig));
-        _schema = schema ??
-            throw new ArgumentNullException(nameof(schema));
         _clientFactory = clientFactory ??
-            throw new ArgumentNullException(nameof(schema));
+            throw new ArgumentNullException(nameof(clientFactory));
     }
 
     public async ValueTask InvokeAsync(
@@ -52,7 +51,8 @@ internal sealed class OperationExecutionMiddleware
             context.Operation.ContextData.TryGetValue(PipelineProps.QueryPlan, out var value) &&
             value is QueryPlan queryPlan)
         {
-            var operationContext = _operationContextPool.Get();
+            var operationContextOwner = _contextFactory.Create();
+            var operationContext = operationContextOwner.OperationContext;
 
             operationContext.Initialize(
                 context,
@@ -60,35 +60,22 @@ internal sealed class OperationExecutionMiddleware
                 batchDispatcher,
                 context.Operation,
                 context.Variables,
-                new object(), // todo: we can use static representations for these
-                () => new object());  // todo: we can use static representations for these
+                GetRootObject(context.Operation),
+                () => _queryRoot);
 
-            var federatedQueryContext = new FederatedQueryContext(
-                _serviceConfig,
-                queryPlan,
-                operationContext,
-                _clientFactory);
+            var federatedQueryContext =
+                new FusionExecutionContext(
+                    _serviceConfig,
+                    queryPlan,
+                    operationContextOwner,
+                    _clientFactory,
+                    _idSerializer);
 
-            if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
-            {
-                var bufferWriter = new ArrayBufferWriter<byte>();
-                
-                queryPlan.Format(bufferWriter);
-
-                operationContext.Result.SetExtension(
-                    "queryPlan",
-                    new RawJsonValue(bufferWriter.WrittenMemory));
-            }
-
-            // we store the context on the result for unit tests.
-            operationContext.Result.SetContextData("queryPlan", queryPlan);
-
-            context.Result = await _executor.ExecuteAsync(
-                federatedQueryContext,
-                context.RequestAborted)
-                .ConfigureAwait(false);
-
-            _operationContextPool.Return(operationContext);
+            context.Result =
+                await FederatedQueryExecutor.ExecuteAsync(
+                    federatedQueryContext,
+                    context.RequestAborted)
+                    .ConfigureAwait(false);
 
             await _next(context).ConfigureAwait(false);
         }
@@ -97,4 +84,16 @@ internal sealed class OperationExecutionMiddleware
             context.Result = ErrorHelper.StateInvalidForOperationExecution();
         }
     }
+
+    // We are faking root instances. Since we do not have proper resolvers and
+    // all we do not need them actually. But so we can reuse components we just
+    // have static instances simulating root instance.
+    private static object GetRootObject(IOperation operation)
+        => operation.Type switch
+        {
+            OperationType.Query => _queryRoot,
+            OperationType.Mutation => _mutationRoot,
+            OperationType.Subscription => _subscriptionRoot,
+            _ => throw new NotSupportedException(),
+        };
 }

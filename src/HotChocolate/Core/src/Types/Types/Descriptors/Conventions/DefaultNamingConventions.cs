@@ -2,7 +2,7 @@ using System;
 using System.Buffers;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Properties;
+using HotChocolate.Internal;
 
 #nullable enable
 
@@ -14,7 +14,11 @@ public class DefaultNamingConventions
 {
     private const string _inputPostfix = "Input";
     private const string _inputTypePostfix = "InputType";
+    private const string _directivePostfix = "Directive";
+    private const string _directiveTypePostfix = "DirectiveType";
+
     private readonly IDocumentationProvider _documentation;
+    private bool _formatInterfaceName;
 
     public DefaultNamingConventions()
     {
@@ -28,6 +32,12 @@ public class DefaultNamingConventions
     }
 
     protected IDocumentationProvider DocumentationProvider => _documentation;
+
+    protected internal override void Initialize(IConventionContext context)
+    {
+        base.Initialize(context);
+        _formatInterfaceName = context.DescriptorContext.Options.StripLeadingIFromInterface;
+    }
 
     /// <inheritdoc />
     public virtual string GetTypeName(Type type)
@@ -55,6 +65,17 @@ public class DefaultNamingConventions
 
         var name = type.GetGraphQLName();
 
+        if (_formatInterfaceName &&
+            kind == TypeKind.Interface &&
+            type.IsInterface &&
+            name.Length > 1 &&
+            char.IsUpper(name[0]) &&
+            char.IsUpper(name[1]) &&
+            name[0] == 'I')
+        {
+            return name.Substring(1);
+        }
+
         if (kind == TypeKind.InputObject)
         {
             var isInputObjectType = typeof(InputObjectType).IsAssignableFrom(type);
@@ -77,6 +98,22 @@ public class DefaultNamingConventions
             }
         }
 
+        if (kind is TypeKind.Directive)
+        {
+            if (name.Length > _directivePostfix.Length &&
+                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            {
+                name = name.Substring(0, name.Length - _directivePostfix.Length);
+            }
+            else if (name.Length > _directiveTypePostfix.Length &&
+                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            {
+                name = name.Substring(0, name.Length - _directiveTypePostfix.Length);
+            }
+
+            name = NameFormattingHelpers.FormatFieldName(name);
+        }
+
         return name;
     }
 
@@ -86,6 +123,13 @@ public class DefaultNamingConventions
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
+        }
+
+        // we do not want the description of our internal schema types.
+        if (ExtendedType.Tools.IsNonGenericBaseType(type) ||
+            ExtendedType.Tools.IsGenericBaseType(type))
+        {
+            return null;
         }
 
         var description = type.GetGraphQLDescription();
@@ -138,6 +182,7 @@ public class DefaultNamingConventions
         {
             throw new ArgumentNullException(nameof(parameter));
         }
+
         return parameter.GetGraphQLName();
     }
 
@@ -197,7 +242,8 @@ public class DefaultNamingConventions
         {
             var c = name[i];
 
-            if (i > 0 && char.IsUpper(c) &&
+            if (i > 0 &&
+                char.IsUpper(c) &&
                 (!char.IsUpper(name[i - 1]) ||
                     (i < lengthMinusOne && char.IsLower(name[i + 1]))))
             {
@@ -235,6 +281,7 @@ public class DefaultNamingConventions
             buffer[p++] = char.ToUpper(name[0]);
 
             var lastWasUnderline = false;
+
             for (var i = 1; i < name.Length; i++)
             {
                 if (!lastWasUnderline &&
@@ -244,6 +291,7 @@ public class DefaultNamingConventions
                 {
                     buffer[p++] = '_';
                 }
+
                 buffer[p++] = char.ToUpper(name[i]);
                 lastWasUnderline = name[i] == '_';
             }
@@ -271,6 +319,7 @@ public class DefaultNamingConventions
         }
 
         var enumType = value.GetType();
+
         if (enumType.IsEnum)
         {
             var enumMember = enumType
@@ -333,16 +382,5 @@ public class DefaultNamingConventions
 
     /// <inheritdoc />
     public string FormatFieldName(string fieldName)
-    {
-        if (string.IsNullOrEmpty(fieldName))
-        {
-            throw new ArgumentException(
-                TypeResources.DefaultNamingConventions_FormatFieldName_EmptyOrNull,
-                nameof(fieldName));
-        }
-
-        return fieldName.Length > 1
-            ? fieldName.Substring(0, 1).ToLowerInvariant() + fieldName.Substring(1)
-            : fieldName.ToLowerInvariant();
-    }
+        => NameFormattingHelpers.FormatFieldName(fieldName);
 }

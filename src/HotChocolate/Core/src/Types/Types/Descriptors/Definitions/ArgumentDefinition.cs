@@ -24,7 +24,7 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
     public ArgumentDefinition(
         string name,
         string? description = null,
-        ITypeReference? type = null,
+        TypeReference? type = null,
         IValueNode? defaultValue = null,
         object? runtimeDefaultValue = null)
     {

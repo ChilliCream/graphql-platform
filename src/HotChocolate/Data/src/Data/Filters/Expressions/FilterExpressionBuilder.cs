@@ -63,10 +63,7 @@ public static class FilterExpressionBuilder
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Contains),
-            new Type[]
-            {
-                genericType
-            },
+            new Type[] { genericType },
             Expression.Constant(parsedValue),
             property);
     }
@@ -124,8 +121,17 @@ public static class FilterExpressionBuilder
     public static Expression NotNull(Expression expression)
         => Expression.NotEqual(expression, _null);
 
+    public static Expression HasValue(Expression expression)
+        => Expression.IsTrue(
+            Expression.Property(
+                expression,
+                expression.Type.GetProperty(nameof(Nullable<int>.HasValue))!));
+
     public static Expression NotNullAndAlso(Expression property, Expression condition)
         => Expression.AndAlso(NotNull(property), condition);
+
+    public static Expression HasValueAndAlso(Expression property, Expression condition)
+        => Expression.AndAlso(HasValue(property), condition);
 
     public static Expression Any(
         Type type,
@@ -134,6 +140,7 @@ public static class FilterExpressionBuilder
         params ParameterExpression[] parameterExpression)
     {
         var lambda = Expression.Lambda(body, parameterExpression);
+
         return Any(type, property, lambda);
     }
 
@@ -143,11 +150,7 @@ public static class FilterExpressionBuilder
         LambdaExpression lambda)
         => Expression.Call(
             _anyWithParameter.MakeGenericMethod(type),
-            new Expression[]
-            {
-                property,
-                lambda
-            });
+            new Expression[] { property, lambda });
 
     public static Expression Any(
         Type type,
@@ -155,10 +158,7 @@ public static class FilterExpressionBuilder
     {
         return Expression.Call(
             _anyMethod.MakeGenericMethod(type),
-            new Expression[]
-            {
-                property
-            });
+            new Expression[] { property });
     }
 
     public static Expression All(
@@ -167,11 +167,7 @@ public static class FilterExpressionBuilder
         LambdaExpression lambda)
         => Expression.Call(
             _allMethod.MakeGenericMethod(type),
-            new Expression[]
-            {
-                property,
-                lambda
-            });
+            new Expression[] { property, lambda });
 
     public static Expression NotContains(
         Expression property,
@@ -188,6 +184,7 @@ public static class FilterExpressionBuilder
     private static Expression CreateAndConvertParameter<T>(object value)
     {
         Expression<Func<T>> lambda = () => (T)value;
+
         return lambda.Body;
     }
 
@@ -195,8 +192,5 @@ public static class FilterExpressionBuilder
         => (Expression)_createAndConvert
             .MakeGenericMethod(type)
             .Invoke(null,
-                new[]
-                {
-                    value
-                })!;
+                new[] { value })!;
 }

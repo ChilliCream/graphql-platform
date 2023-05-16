@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
@@ -19,29 +20,54 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
-    public override void OnBeforeCompleteType(
+    private ITypeCompletionContext? _queryContext;
+    private ObjectTypeDefinition? _queryTypeDefinition;
+
+    internal override uint Position => uint.MaxValue - 100;
+
+    internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        DefinitionBase definition,
+        OperationType operationType)
     {
-        if ((completionContext.IsQueryType ?? false) &&
-            definition is ObjectTypeDefinition objectTypeDefinition)
+        if (operationType is OperationType.Query && definition is ObjectTypeDefinition typeDef)
         {
-            var typeInspector = completionContext.TypeInspector;
+            _queryContext = completionContext;
+            _queryTypeDefinition = typeDef;
+        }
+    }
+
+    public override void OnBeforeCompleteTypes()
+    {
+        if (_queryContext is not null && _queryTypeDefinition is not null)
+        {
+            var typeInspector = _queryContext.TypeInspector;
 
             var serializer =
-                completionContext.Services.GetService<IIdSerializer>() ??
+                _queryContext.Services.GetService<IIdSerializer>() ??
                 new IdSerializer();
 
             // the nodes fields shall be chained in after the introspection fields,
             // so we first get the index of the last introspection field,
             // which is __typename
-            var typeNameField = objectTypeDefinition.Fields.First(
+            var typeNameField = _queryTypeDefinition.Fields.First(
                 t => t.Name.EqualsOrdinal(IntrospectionFields.TypeName) &&
                     t.IsIntrospectionField);
-            var index = objectTypeDefinition.Fields.IndexOf(typeNameField);
+            var index = _queryTypeDefinition.Fields.IndexOf(typeNameField);
+            var maxAllowedNodes = _queryContext.DescriptorContext.Options.MaxAllowedNodeBatchSize;
 
-            CreateNodeField(typeInspector, serializer, objectTypeDefinition.Fields, index + 1);
-            CreateNodesField(typeInspector, serializer, objectTypeDefinition.Fields, index + 2);
+            CreateNodeField(
+                typeInspector,
+                serializer,
+                _queryTypeDefinition.Fields,
+                index + 1);
+
+            CreateNodesField(
+                typeInspector,
+                serializer,
+                _queryTypeDefinition.Fields,
+                index + 2,
+                maxAllowedNodes);
         }
     }
 
@@ -59,17 +85,13 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodeField_Description,
             node)
         {
-            Arguments =
-            {
-                new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id)
-            },
+            Arguments = { new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id) },
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
-                    next => async context =>
+                    _ => async context =>
                     {
                         await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
-                        await next(context).ConfigureAwait(false);
                     })
             }
         };
@@ -86,7 +108,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         ITypeInspector typeInspector,
         IIdSerializer serializer,
         IList<ObjectFieldDefinition> fields,
-        int index)
+        int index,
+        int maxAllowedNodes)
     {
         var nodes = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NodeType>>));
         var ids = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NonNullType<IdType>>>));
@@ -96,17 +119,14 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodesField_Description,
             nodes)
         {
-            Arguments =
-            {
-                new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids)
-            },
+            Arguments = { new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids) },
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
-                    next => async context =>
+                    _ => async context =>
                     {
-                        await ResolveManyNodeAsync(context, serializer).ConfigureAwait(false);
-                        await next(context).ConfigureAwait(false);
+                        await ResolveManyNodeAsync(context, serializer, maxAllowedNodes)
+                            .ConfigureAwait(false);
                     })
             }
         };

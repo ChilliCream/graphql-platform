@@ -6,9 +6,7 @@ description: "In this tutorial, we will walk you through the basics of creating 
 import { ApiChoiceTabs } from "../../../components/mdx/api-choice-tabs"
 import { InputChoiceTabs } from "../../../components/mdx/input-choice-tabs"
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/qrh97hToWpM"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="qrh97hToWpM" />
 
 # Setup
 
@@ -207,7 +205,7 @@ The Project can be started by either pressing `Ctrl + F5` or clicking the green 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-If you have setup everything correctly, you should be able to open <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> (the port might be different for you) in your browser and be greeted by our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop).
+If you have setup everything correctly, you should be able to open <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> (the port might be different for you) in your browser and be greeted by our GraphQL IDE [Banana Cake Pop](/products/bananacakepop).
 
 ![GraphQL IDE](../../../images/get-started-bcp.png)
 

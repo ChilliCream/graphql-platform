@@ -27,10 +27,10 @@ public static class FilterExpressionBuilder
             && m.GetParameters().Single().ParameterType == typeof(string));
 
     private static Expression NullableSafeConstantExpression(
-        object value, Type type)
+        object? value, Type type)
     {
         return Nullable.GetUnderlyingType(type) is null
-            ? (Expression)Expression.Constant(value)
+            ? Expression.Constant(value)
             : Expression.Convert(Expression.Constant(value), type);
     }
 
@@ -54,125 +54,99 @@ public static class FilterExpressionBuilder
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression Not(Expression expression)
-    {
-        return Expression.Not(expression);
-    }
+        => Expression.Not(expression);
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression Equals(
         Expression property,
-        object value)
-    {
-        return Expression.Equal(
+        object? value)
+        => Expression.Equal(
             property,
             NullableSafeConstantExpression(value, property.Type));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression NotEquals(
         Expression property,
-        object value)
-    {
-        return Expression.NotEqual(
+        object? value)
+        => Expression.NotEqual(
             property,
             NullableSafeConstantExpression(value, property.Type));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression In(
         Expression property,
         Type genericType,
-        object parsedValue)
-    {
-        return Expression.Call(
+        object? parsedValue)
+        => Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Contains),
             new[] { genericType },
             Expression.Constant(parsedValue),
             property);
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression GreaterThan(
         Expression property,
-        object value)
-    {
-        return Expression.GreaterThan(
+        object? value)
+        => Expression.GreaterThan(
             property,
             NullableSafeConstantExpression(value, property.Type));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression GreaterThanOrEqual(
         Expression property,
-        object value)
-    {
-        return Expression.GreaterThanOrEqual(
+        object? value)
+        => Expression.GreaterThanOrEqual(
             property,
             NullableSafeConstantExpression(value, property.Type));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression LowerThan(
         Expression property,
-        object value)
-    {
-        return Expression.LessThan(
+        object? value)
+        => Expression.LessThan(
             property,
             NullableSafeConstantExpression(value, property.Type));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression LowerThanOrEqual(
         Expression property,
-        object value)
-    {
-        return Expression.LessThanOrEqual(
+        object? value)
+        => Expression.LessThanOrEqual(
             property,
             NullableSafeConstantExpression(value, property.Type));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression StartsWith(
         Expression property,
-        object value)
-    {
-        return Expression.AndAlso(
+        object? value)
+        => Expression.AndAlso(
             Expression.NotEqual(property, Expression.Constant(null)),
             Expression.Call(property, _startsWith, Expression.Constant(value)));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression EndsWith(
         Expression property,
-        object value)
-    {
-        return Expression.AndAlso(
+        object? value)
+        => Expression.AndAlso(
             Expression.NotEqual(property, Expression.Constant(null)),
             Expression.Call(property, _endsWith, Expression.Constant(value)));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression Contains(
         Expression property,
-        object value)
-    {
-        return Expression.AndAlso(
+        object? value)
+        => Expression.AndAlso(
             Expression.NotEqual(property, Expression.Constant(null)),
             Expression.Call(property, _contains, Expression.Constant(value)));
-    }
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression NotNull(Expression expression)
-    {
-        return Expression.NotEqual(expression, _null);
-    }
+        => Expression.NotEqual(expression, _null);
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression NotNullAndAlso(Expression property, Expression condition)
-    {
-        return Expression.AndAlso(NotNull(property), condition);
-    }
+        => Expression.AndAlso(NotNull(property), condition);
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression Any(
@@ -190,39 +164,32 @@ public static class FilterExpressionBuilder
         Type type,
         Expression property,
         LambdaExpression lambda)
-    {
-        return Expression.Call(
+        => Expression.Call(
             _anyWithParameter.MakeGenericMethod(type),
-            new Expression[] { property, lambda });
-    }
+            new[] { property, lambda });
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression Any(
         Type type,
         Expression property)
-    {
-        return Expression.Call(
+        => Expression.Call(
             _anyMethod.MakeGenericMethod(type),
-            new Expression[] { property });
-    }
+            new[] { property });
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression All(
         Type type,
         Expression property,
         LambdaExpression lambda)
-    {
-        return Expression.Call(
+        => Expression.Call(
             _allMethod.MakeGenericMethod(type),
-            new Expression[] { property, lambda });
-    }
+            new[] { property, lambda });
 
     [Obsolete("Use HotChocolate.Data.")]
     public static Expression NotContains(
         Expression property,
-        object value)
-    {
-        return Expression.OrElse(
+        object? value)
+        => Expression.OrElse(
             Expression.Equal(
                 property,
                 Expression.Constant(null)),
@@ -230,5 +197,4 @@ public static class FilterExpressionBuilder
                 property,
                 _contains,
                 Expression.Constant(value))));
-    }
 }

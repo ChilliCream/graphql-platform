@@ -10,9 +10,7 @@ As part of a specification Relay proposes some schema design principles for Grap
 
 [Learn more about the Relay GraphQL Server Specification](https://relay.dev/docs/guides/graphql-server-specification)
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/qWguoAMzn9E"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="qWguoAMzn9E" />
 
 # Global identifiers
 
@@ -189,6 +187,80 @@ public class Query
 The `Serialize()` method takes the schema name as a first argument, followed by the type name and lastly the actual Id.
 
 [Learn more about accessing services](/docs/hotchocolate/v13/fetching-data/resolvers#injecting-services)
+
+# Complex Ids
+
+In certain situations, you may need to use complex identifiers for your data models, rather than simple integers or strings. HotChocolate provides support for complex IDs by allowing you to define custom ID types, which can be used in your GraphQL schema. 
+
+## Defining Complex ID
+
+To define a complex ID, you need to create a new class or struct that will represent the complex ID, and use the `[ID]` attribute in the corresponding data model class. In this example, we will create a complex ID for a `Product` class.
+
+```csharp
+public class Product
+{
+    [ID] // Define the ID on the type
+    public ProductId Id { get; set; }
+}
+```
+
+### Using Type Extensions for Complex ID
+
+If your `Product` model does not have an ID field, but you still want to use a complex ID for GraphQL queries, you can use a type extension.
+
+A type extension allows you to add fields to a type that are only available within the GraphQL schema, without modifying the actual data model. 
+Here's how you can define the type extension:
+
+```csharp
+[ExtendObjectType(typeof(Product))]
+public class ProductExtensions
+{
+    // Define a method that will be used to compute the complex ID
+    [ID<Product>]
+    public ProductId GetId([Parent] Product product)
+        => new ProductId(product.SKU, product.BatchNumber);
+}
+```
+
+This approach allows you to use complex IDs in your GraphQL schema without needing to modify your data models. It's particularly useful when working with databases that use **compound primary keys**, as it allows you to represent these keys as complex IDs in your GraphQL schema.
+
+## Creating Complex ID Structs
+
+Here's how you can define the `ProductId` struct:
+
+```csharp
+public readonly record struct ProductId(string SKU, int BatchNumber)
+{
+    // Override ToString to provide a string representation for the complex ID
+    public override string ToString() => $"{SKU}:{BatchNumber}";
+
+    // Create a Parse method that converts a string representation back to the complex ID
+    public static ProductId Parse(string value)
+    {
+        var parts = value.Split(':');
+        return new ProductId(parts[0], int.Parse(parts[1]));
+    }
+}
+```
+
+This struct has a string `SKU` and an integer `BatchNumber` property, and can be converted to and from a string for easy usage in GraphQL queries.
+
+## Configuring Type Converters
+
+To integrate the `ProductId` struct into HotChocolate's type system, you need to define type converters. These converters enable HotChocolate to automatically transform between the `ProductId` struct and a string representation.
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .AddQueryType<Query>() 
+    // Add a type converter from string to your complex ID type
+    .AddTypeConverter<string, ProductId>(ProductId.Parse) 
+    // Add a type converter back to string
+    .AddTypeConverter<ProductId, string>(x => x.ToString()) 
+    // Enable global object identification
+    .AddGlobalObjectIdentification(); 
+```
+
+With these converters, you can now use `ProductId` as an ID in your GraphQL schema. When you receive a `ProductId` ID in a request, HotChocolate will automatically use the `ProductId.Parse` method to convert it into a `ProductId` object. Likewise, when returning a `ProductId` object in a response, HotChocolate will use the `ToString` method to convert it back into a string.
 
 # Global Object Identification
 
@@ -543,4 +615,4 @@ services
 
 This would add a field of type `Query` with the name of `rootQuery` to each top-level mutation field type, whose name ends in `Result`.
 
-> Warning: This feature currently doesn't work on a stitching gateway, however this will be addressed in a future release focused on stitching. It's tracked as [#3158](https://github.com/ChilliCream/hotchocolate/issues/3158).
+> Warning: This feature currently doesn't work on a stitching gateway, however this will be addressed in a future release focused on stitching. It's tracked as [#3158](https://github.com/ChilliCream/graphql-platform/issues/3158).

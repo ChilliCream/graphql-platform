@@ -16,9 +16,7 @@ Hot Chocolate GraphQL server.
 
 # Just Show Me the Code
 
-You can find all the code from this article in this Github repository.
-
-https://github.com/ChilliCream/hotchocolate-examples/tree/master/blog/2021/2021-01-20-logging
+All the code from this article can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/blog/2021/2021-01-20-logging).
 
 To start logging your GraphQL server requests this is all you need to do. First, you need to create a new class in your project that implements the listener `DiagnosticEventListener`.
 

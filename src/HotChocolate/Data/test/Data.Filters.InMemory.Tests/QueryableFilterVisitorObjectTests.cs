@@ -136,6 +136,10 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarString = "testdtest",
                 ObjectArray = null
             }
+        },
+        new()
+        {
+            Foo = null
         }
     };
 
@@ -655,6 +659,37 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .Add(res1, "false")
             .Add(res2, "true")
             .Add(res3, "null")
+            .MatchAsync();
+    }
+
+    [Fact]
+    public async Task Create_ObjectNull()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { foo: { barEnum: { neq: BAR}}}) " +
+                    "{ foo{ barEnum}}}")
+                .Create());
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { foo: null}) { foo{ barEnum}}}")
+                .Create());
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery( "{ root { foo{ barEnum}}}")
+                .Create());
+
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "selected")
+            .Add(res2, "null")
+            .Add(res3, "all")
             .MatchAsync();
     }
 

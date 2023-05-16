@@ -14,11 +14,16 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.Authorization" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
+    <InternalsVisibleTo Include="HotChocolate.Caching" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
 
     <!--Legacy Support-->
@@ -34,13 +39,14 @@
     <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Projections.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+    <PackageReference Include="System.Text.Json" Version="6.0.7" />
   </ItemGroup>
 
   <ItemGroup>
@@ -78,6 +84,48 @@
     </Compile>
     <Compile Update="Types\Scalars\ScalarType.Initialization.cs">
       <DependentUpon>ScalarType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Schema.Initialization.cs">
+      <DependentUpon>Schema.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\InputObjectType.Initialization.cs">
+      <DependentUpon>InputObjectType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\DirectiveType.Initialization.cs">
+      <DependentUpon>DirectiveType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\RegisteredType.CompletionContext.cs">
+      <DependentUpon>RegisteredType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\RegisteredType.DiscoveryContext.cs">
+      <DependentUpon>RegisteredType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\StaticObjectTypeExtension.cs">
+      <DependentUpon>ObjectTypeExtension.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.BaseTypes.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Helper.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Members.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.SchemaType.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.SystemType.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Internal\ExtendedType.Tools.cs">
+      <DependentUpon>ExtendedType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\TypeRegistrar.CreateInstance.cs">
+      <DependentUpon>TypeRegistrar.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Descriptors\Conventions\DescriptorContext.Services.cs">
+      <DependentUpon>DescriptorContext.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

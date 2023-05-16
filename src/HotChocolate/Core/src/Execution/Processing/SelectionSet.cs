@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -55,6 +56,20 @@ internal sealed class SelectionSet : ISelectionSet
 
     /// <inheritdoc />
     public IReadOnlyList<IFragment> Fragments => _fragments;
+
+    /// <summary>
+    /// Completes the selection set without sealing it.
+    /// </summary>
+    internal void Complete()
+    {
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            for (var i = 0; i < _selections.Length; i++)
+            {
+                _selections[i].Complete(this);
+            }
+        }
+    }
 
     internal void Seal()
     {

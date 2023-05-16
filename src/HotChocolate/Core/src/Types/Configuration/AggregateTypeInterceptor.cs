@@ -14,7 +14,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class AggregateTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ITypeReference> _typeReferences = new();
+    private readonly List<TypeReference> _typeReferences = new();
     private TypeInterceptor[] _typeInterceptors;
 
     public AggregateTypeInterceptor()
@@ -22,9 +22,15 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         _typeInterceptors = Array.Empty<TypeInterceptor>();
     }
 
-    public void SetInterceptors(IReadOnlyCollection<object> interceptors)
+    public void SetInterceptors(IReadOnlyCollection<TypeInterceptor> typeInterceptors)
     {
-        _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToArray();
+        _typeInterceptors = new TypeInterceptor[typeInterceptors.Count];
+        var i = 0;
+
+        foreach (var typeInterceptor in typeInterceptors.OrderBy(t => t.Position))
+        {
+            _typeInterceptors[i++] = typeInterceptor;
+        }
     }
 
     public override void OnBeforeCreateSchema(
@@ -119,7 +125,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override IEnumerable<ITypeReference> RegisterMoreTypes(
+    public override IEnumerable<TypeReference> RegisterMoreTypes(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
     {
         _typeReferences.Clear();

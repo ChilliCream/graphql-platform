@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -47,6 +46,7 @@ public abstract class QueryableListOperationHandlerBase
                 ErrorHelper.CreateNonNullError(field, node.Value, context));
 
             action = SyntaxVisitor.Skip;
+
             return true;
         }
 
@@ -61,10 +61,12 @@ public abstract class QueryableListOperationHandlerBase
             context.AddScope();
 
             action = SyntaxVisitor.Continue;
+
             return true;
         }
 
         action = null;
+
         return false;
     }
 
@@ -90,15 +92,14 @@ public abstract class QueryableListOperationHandlerBase
 
             if (context.InMemory)
             {
-                expression = FilterExpressionBuilder.NotNullAndAlso(
-                    instance,
-                    expression);
+                expression = FilterExpressionBuilder.NotNullAndAlso(instance, expression);
             }
 
             context.GetLevel().Enqueue(expression);
         }
 
         action = SyntaxVisitor.Continue;
+
         return true;
     }
 

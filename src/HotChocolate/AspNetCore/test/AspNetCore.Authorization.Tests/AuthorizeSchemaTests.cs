@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using CookieCrumble;
+using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,8 @@ public class AuthorizeSchemaTests
     public async Task AuthorizeOnExtension()
     {
         var result = await new ServiceCollection()
+            .AddLogging()
+            .AddAuthorizationCore()
             .AddGraphQLServer()
             .AddQueryType()
             .AddTypeExtension<QueryExtensions>()
@@ -20,13 +23,13 @@ public class AuthorizeSchemaTests
                 QueryRequestBuilder
                     .New()
                     .SetQuery("{ bar }")
-                    .AddGlobalState(nameof(ClaimsPrincipal), new ClaimsPrincipal())
+                    .SetUser(new ClaimsPrincipal())
                     .Create());
 
         result.MatchSnapshot();
     }
 
-    [Authorize]
+    [Authorize(ApplyPolicy.BeforeResolver)]
     [ExtendObjectType(OperationTypeNames.Query)]
     public class QueryExtensions
     {

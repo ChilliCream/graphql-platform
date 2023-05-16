@@ -44,7 +44,7 @@ public class UnionTypeAttributeTests
 
     public class SetNameAttribute : UnionTypeDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IUnionTypeDescriptor descriptor,
             Type type)

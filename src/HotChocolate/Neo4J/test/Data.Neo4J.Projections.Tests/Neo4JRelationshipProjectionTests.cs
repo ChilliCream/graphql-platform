@@ -99,7 +99,7 @@ public class Neo4JRelationshipProjectionTests : IClassFixture<Neo4JFixture>
         public double BarDouble { get; set; }
 
         [Neo4JRelationship("RELATED_TO")]
-        public List<Bar> Bars { get; set; }
+        public List<Bar> Bars { get; set; } = default!;
     }
 
     public class Bar
@@ -109,13 +109,13 @@ public class Neo4JRelationshipProjectionTests : IClassFixture<Neo4JFixture>
         public int Number { get; set; }
 
         [Neo4JRelationship("RELATED_FROM", RelationshipDirection.Incoming)]
-        public List<Baz> Bazs { get; set; }
+        public List<Baz> Bazs { get; set; } = default!;
     }
 
     public class Baz
     {
         public string Name { get; set; } = null!;
 
-        public int Number { get; set; }
+        public int Number { get; set; } = default!;
     }
 }

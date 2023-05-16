@@ -33,7 +33,7 @@ public sealed class DelegateToRemoteSchemaMiddleware
         var delegateDirective = context.Selection
             .Field
             .Directives[DirectiveNames.Delegate]
-            .FirstOrDefault()?.ToObject<DelegateDirective>();
+            .FirstOrDefault()?.AsValue<DelegateDirective>();
 
         if (delegateDirective != null)
         {
@@ -152,7 +152,16 @@ public sealed class DelegateToRemoteSchemaMiddleware
         IQueryRequest request,
         string schemaName)
     {
-        var stitchingContext = context.Service<IStitchingContext>();
+        var stitchingContext = context.GetGlobalState<IStitchingContext>(nameof(IStitchingContext));
+
+        if (stitchingContext is null)
+        {
+            throw new MissingStateException(
+                "Stitching",
+                nameof(IStitchingContext),
+                StateKind.Global);
+        }
+
         var executor = stitchingContext.GetRemoteRequestExecutor(schemaName);
         var result = await executor.ExecuteAsync(request).ConfigureAwait(false);
 
@@ -357,7 +366,16 @@ public sealed class DelegateToRemoteSchemaMiddleware
     {
         var variables = new List<ScopedVariableValue>();
 
-        var stitchingContext = context.Service<IStitchingContext>();
+        var stitchingContext = context.GetGlobalState<IStitchingContext>(nameof(IStitchingContext));
+
+        if (stitchingContext is null)
+        {
+            throw new MissingStateException(
+                "Stitching",
+                nameof(IStitchingContext),
+                StateKind.Global);
+        }
+
         var remoteSchema = stitchingContext.GetRemoteSchema(schemaName);
         IComplexOutputType type = remoteSchema.GetOperationType(operationType)!;
         var path = reversePath;
@@ -458,7 +476,7 @@ public sealed class DelegateToRemoteSchemaMiddleware
             value = rewriter.RewriteValueNode(
                 schemaName,
                 (IInputType)variable.Type.ToType(namedType),
-                value);
+                value!);
 
             yield return new ScopedVariableValue
             (

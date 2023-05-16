@@ -162,13 +162,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
                     definition.Configurations.Add(
                         new CompleteConfiguration<ObjectFieldDefinition>(
-                            (c, d) =>
-                                CompileMiddleware(
-                                    selectionType,
-                                    d,
-                                    placeholder,
-                                    c,
-                                    scope),
+                            (c, d) => CompileMiddleware(selectionType, d, placeholder, c, scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion));
                 });
@@ -247,6 +241,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
             => ScopedContextData;
+
+        public IServiceProvider RequestServices => _context.RequestServices;
 
         public string ResponseName => _context.ResponseName;
 
@@ -339,7 +335,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var includeConditions = new long[includeConditionsSource.Length];
         includeConditionsSource.CopyTo(includeConditions);
 
-        var proxy = new Selection(selection.Id,
+        var proxy = new Selection.Sealed(selection.Id,
             selection.DeclaringType,
             field,
             field.Type,
@@ -382,8 +378,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public PureFieldDelegate? PureResolver => _nodeField.PureResolver;
 
         public SubscribeResolverDelegate? SubscribeResolver => _nodeField.SubscribeResolver;
-
-        public IReadOnlyList<IDirective> ExecutableDirectives => _nodeField.ExecutableDirectives;
 
         public MemberInfo? Member => _nodeField.Member;
 

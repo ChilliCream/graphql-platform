@@ -12,7 +12,7 @@ internal static class CompleteInterfacesHelper
 {
     public static InterfaceType[] CompleteInterfaces<TInterfaceOrObject>(
         ITypeCompletionContext context,
-        IReadOnlyList<ITypeReference> interfaceReferences,
+        IReadOnlyList<TypeReference> interfaceReferences,
         TInterfaceOrObject interfaceOrObject)
         where TInterfaceOrObject : ITypeSystemObject, IHasSyntaxNode
 

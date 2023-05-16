@@ -1,0 +1,15 @@
+schema {
+  query: QueryStructEquals
+}
+
+type Example {
+  some: String!
+}
+
+type QueryStructEquals {
+  foo(example: ExampleInput!): Example!
+}
+
+input ExampleInput {
+  some: String!
+}

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using Xunit.Abstractions;
@@ -35,6 +37,32 @@ public class InMemoryIntegrationTests : SubscriptionIntegrationTestBase
     [Fact]
     public override Task Subscribe_Topic_With_2_Arguments()
         => base.Subscribe_Topic_With_2_Arguments();
+
+    [Fact]
+    public virtual async Task Invalid_Message_Type()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(5000);
+        await using var services = CreateServer<Subscription3>();
+        var sender = services.GetRequiredService<ITopicEventSender>();
+
+        var result = await services.ExecuteRequestAsync(
+                "subscription { onMessage2(arg1: \"a\", arg2: \"b\") }",
+                cancellationToken: cts.Token)
+            .ConfigureAwait(false);
+
+        // we need to execute the read for the subscription to start receiving.
+        await using var responseStream = result.ExpectResponseStream();
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+
+        // act
+        async Task Send() => await sender.SendAsync("OnMessage2_a_b", 1, cts.Token).ConfigureAwait(false);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidMessageTypeException>(Send);
+        Assert.Equal(typeof(string), exception.TopicMessageType);
+        Assert.Equal(typeof(int), exception.RequestedMessageType);
+    }
 
     protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)
         => graphqlBuilder.AddInMemorySubscriptions();

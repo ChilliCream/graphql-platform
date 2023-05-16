@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 // ReSharper disable once CheckNamespace
-namespace HotChocolate.Types.Pagination.Extensions;
+namespace HotChocolate.Types.Pagination;
 
 /// <summary>
 /// Provides cursor paging extensions to <see cref="IQueryable{T}"/>.

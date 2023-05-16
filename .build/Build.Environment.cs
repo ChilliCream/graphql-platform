@@ -6,13 +6,12 @@ partial class Build
     const string Release = "Release";
     const string Net50 = "net5.0";
     const string Net60 = "net6.0";
+    const string Net70 = "net7.0";
 
     readonly int DegreeOfParallelism = 2;
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
-    AbsolutePath PublicApiSolutionFile => SourceDirectory / "Build.CheckApi.sln";
-    AbsolutePath SonarSolutionFile => SourceDirectory / "Build.Sonar.sln";
     AbsolutePath TestSolutionFile => TemporaryDirectory / "Build.Test.sln";
     AbsolutePath PackSolutionFile => SourceDirectory / "Build.Pack.sln";
 
@@ -30,4 +29,5 @@ partial class Build
     AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "v12" / "server" / "HotChocolate.Template.Server.csproj";
     AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "v12" / "function" / "HotChocolate.Template.AzureFunctions.csproj";
     AbsolutePath EmptyAzfUp12Proj => RootDirectory / "templates" / "v12" / "function-isolated" / "HotChocolate.Template.AzureFunctions.Isolated.csproj";
+    AbsolutePath Gateway13Proj => RootDirectory / "templates" / "v12" / "gateway" / "HotChocolate.Template.Gateway.csproj";
 }

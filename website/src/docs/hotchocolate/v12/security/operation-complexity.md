@@ -142,7 +142,7 @@ services
     {
         o.Complexity.ApplyDefaults = true;
         o.Complexity.DefaultComplexity = 1;
-        o.Complexity.DefaultDataResolverComplexity = 5;
+        o.Complexity.DefaultResolverComplexity = 5;
     });
 ```
 

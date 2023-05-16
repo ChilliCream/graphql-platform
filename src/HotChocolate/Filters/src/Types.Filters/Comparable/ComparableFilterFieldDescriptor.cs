@@ -70,7 +70,7 @@ public class ComparableFilterFieldDescriptor
     public new IComparableFilterFieldDescriptor Type<TLeafType>(TLeafType leafType)
         where TLeafType : class, ILeafType
     {
-        base.Type<TLeafType>(leafType);
+        base.Type(leafType);
         return this;
     }
 
@@ -234,7 +234,7 @@ public class ComparableFilterFieldDescriptor
         var operation = new FilterOperation(
             typeof(IComparable),
             operationKind,
-            Definition.Property);
+            Definition.Property!);
 
         return ComparableFilterOperationDescriptor.New(
             Context,

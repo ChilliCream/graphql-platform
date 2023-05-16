@@ -12,6 +12,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Annotate classes which represent extensions to other object types.
 /// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class ExtendObjectTypeAttribute
     : ObjectTypeDescriptorAttribute
     , ITypeAttribute
@@ -86,7 +87,7 @@ public sealed class ExtendObjectTypeAttribute
     /// <param name="type">
     /// The type to which this instance is annotated to.
     /// </param>
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
@@ -101,9 +102,12 @@ public sealed class ExtendObjectTypeAttribute
             descriptor.Name(Name);
         }
 
+        var definition = descriptor.Extend().Definition;
+        definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+
         if (IncludeStaticMembers)
         {
-            descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
+            definition.FieldBindingFlags = Instance | Static;
         }
 
         if (IgnoreFields is not null)
@@ -190,7 +194,7 @@ public sealed class ExtendObjectTypeAttribute<T>
     /// <param name="type">
     /// The type to which this instance is annotated to.
     /// </param>
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)

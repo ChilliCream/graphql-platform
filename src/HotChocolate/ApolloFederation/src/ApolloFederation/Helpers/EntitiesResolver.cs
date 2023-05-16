@@ -19,69 +19,63 @@ internal static class EntitiesResolver
         var tasks = ArrayPool<Task<object?>>.Shared.Rent(representations.Count);
         var result = new object?[representations.Count];
 
-        try
+        for (var i = 0; i < representations.Count; i++)
         {
-            for (var i = 0; i < representations.Count; i++)
+            context.RequestAborted.ThrowIfCancellationRequested();
+
+            var current = representations[i];
+
+            if (schema.TryGetType<ObjectType>(current.TypeName, out var objectType) &&
+                objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
+                value is FieldResolverDelegate resolver)
             {
-                context.RequestAborted.ThrowIfCancellationRequested();
+                // We clone the resolver context here so that we can split the work
+                // into sub tasks that can be awaited in parallel and produce separate results.
+                var entityContext = context.Clone();
 
-                var current = representations[i];
+                entityContext.SetLocalState(TypeField, objectType);
+                entityContext.SetLocalState(DataField, current.Data);
 
-                if (schema.TryGetType<ObjectType>(current.TypeName, out var objectType) &&
-                    objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
-                    value is FieldResolverDelegate resolver)
+                tasks[i] = resolver.Invoke(entityContext).AsTask();
+            }
+            else
+            {
+                throw ThrowHelper.EntityResolver_NoResolverFound();
+            }
+        }
+
+        for (var i = 0; i < representations.Count; i++)
+        {
+            context.RequestAborted.ThrowIfCancellationRequested();
+
+            var task = tasks[i];
+            if (task.IsCompleted)
+            {
+                if (task.Exception is null)
                 {
-                    // We clone the resolver context here so that we can split the work
-                    // into sub tasks that can be awaited in parallel and produce separate results.
-                    var entityContext = context.Clone();
-
-                    entityContext.SetLocalState(TypeField, objectType);
-                    entityContext.SetLocalState(DataField, current.Data);
-
-                    tasks[i] = resolver.Invoke(entityContext).AsTask();
+                    result[i] = task.Result;
                 }
                 else
                 {
-                    throw ThrowHelper.EntityResolver_NoResolverFound();
+                    result[i] = null;
+                    ReportError(context, i, task.Exception);
                 }
             }
-
-            for (var i = 0; i < representations.Count; i++)
+            else
             {
-                context.RequestAborted.ThrowIfCancellationRequested();
-
-                var task = tasks[i];
-                if (task.IsCompleted)
+                try
                 {
-                    if (task.Exception is null)
-                    {
-                        result[i] = task.Result;
-                    }
-                    else
-                    {
-                        result[i] = null;
-                        ReportError(context, i, task.Exception);
-                    }
+                    result[i] = await task;
                 }
-                else
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        result[i] = await task;
-                    }
-                    catch (Exception ex)
-                    {
-                        result[i] = null;
-                        ReportError(context, i, ex);
-                    }
+                    result[i] = null;
+                    ReportError(context, i, ex);
                 }
             }
         }
-        finally
-        {
-            ArrayPool<Task<object?>>.Shared.Return(tasks, true);
-        }
 
+        ArrayPool<Task<object?>>.Shared.Return(tasks, true);
         return result;
     }
 

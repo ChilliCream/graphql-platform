@@ -15,6 +15,12 @@ internal static class DeferAndStreamTestSchema
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddGlobalObjectIdentification()
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
             .BuildRequestExecutorAsync();
     }
 

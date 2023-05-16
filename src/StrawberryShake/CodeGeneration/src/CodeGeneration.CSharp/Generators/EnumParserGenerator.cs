@@ -57,7 +57,8 @@ public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
             .New()
             .SetReturn()
             .SetExpression(serializedValue)
-            .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.GraphQLClientException));
+            .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.GraphQLClientException)
+                .AddArgument($"$\"String value '{{serializedValue}}' can't be converted to enum {descriptor.Name}\""));
 
         foreach (var enumValue in descriptor.Values)
         {
@@ -77,7 +78,8 @@ public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
             SwitchExpressionBuilder.New()
                 .SetReturn()
                 .SetExpression(runtimeValue)
-                .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.GraphQLClientException));
+                .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.GraphQLClientException)
+                    .AddArgument($"$\"Enum {descriptor.Name} value '{{runtimeValue}}' can't be converted to string\""));
 
         foreach (var enumValue in descriptor.Values)
         {

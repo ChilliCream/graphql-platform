@@ -761,6 +761,31 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task
+    Schema_Should_Generate_WhenStaticTypeExtensionWithOffsetPagingOnStaticResolver()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType()
+            .AddTypeExtension(typeof(StaticQuery))
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = executor.Schema.Print();
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [QueryType]
+    public static class StaticQuery
+    {
+        [UseOffsetPaging]
+        public static IEnumerable<Bar> GetBars() => new[] { Bar.Create("tox") };
+    }
+
     public class FooType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)

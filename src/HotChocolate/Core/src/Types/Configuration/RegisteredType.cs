@@ -55,7 +55,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
             ? hasClrType.RuntimeType
             : typeof(object);
 
-    public List<ITypeReference> References { get; } = new();
+    public List<TypeReference> References { get; } = new();
 
     public List<TypeDependency> Dependencies { get; } = new();
 
@@ -78,6 +78,8 @@ internal sealed partial class RegisteredType : IHasRuntimeType
     public bool IsDirective => IsDirectiveType;
 
     public List<ISchemaError> Errors => _errors ??= new();
+
+    public bool HasErrors => _errors is { Count: > 0 };
 
     public void ClearConditionals()
     {

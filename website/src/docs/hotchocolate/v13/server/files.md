@@ -23,9 +23,7 @@ This however has a couple of downsides:
 
 Hot Chocolate implements the [GraphQL multipart request specification](https://github.com/jaydenseric/graphql-multipart-request-spec) which adds a new `Upload` scalar and allows our GraphQL server to handle file upload streams.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/XeF3IuGDq4A"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="XeF3IuGDq4A" />
 
 > Warning: Files can not yet be uploaded through a gateway to stitched services using the `Upload` scalar.
 
@@ -179,7 +177,7 @@ Both Relay and Apollo support this specification through community packages:
 - [react-relay-network-modern](https://github.com/relay-tools/react-relay-network-modern) using the `uploadMiddleware`
 - [apollo-upload-client](https://github.com/jaydenseric/apollo-upload-client)
 
-> Warning: [Strawberry Shake](/docs/strawberryshake) does not yet support the `Upload` scalar.
+> Warning: [Strawberry Shake](/products/strawberryshake) does not yet support the `Upload` scalar.
 
 ### Options
 

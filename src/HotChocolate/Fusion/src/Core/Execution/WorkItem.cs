@@ -3,26 +3,47 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal struct WorkItem
+/// <summary>
+/// Represents the working state for a single selection set.
+/// This working state can be shared between query plan nodes.
+/// </summary>
+internal sealed class WorkItem
 {
     public WorkItem(
         ISelectionSet selectionSet,
-        ObjectResult result, 
+        ObjectResult selectionSetResult,
         IReadOnlyList<string> exportKeys)
     {
         SelectionSet = selectionSet;
-        Result = result;
-        SelectionResults = new SelectionResult[selectionSet.Selections.Count];
+        SelectionSetResult = selectionSetResult;
+        SelectionSetData = new SelectionData[selectionSet.Selections.Count];
         ExportKeys = exportKeys;
     }
 
+    /// <summary>
+    /// Gets a collection of exported variable values that
+    /// are passed on to the next query plan node.
+    /// </summary>
     public Dictionary<string, IValueNode> VariableValues { get; } = new();
 
+    /// <summary>
+    /// Gets a list of keys representing the state that is being
+    /// exported while processing this work item.
+    /// </summary>
     public IReadOnlyList<string> ExportKeys { get; }
 
+    /// <summary>
+    /// Gets the selection set that is being executed.
+    /// </summary>
     public ISelectionSet SelectionSet { get; }
 
-    public SelectionResult[] SelectionResults { get; }
+    /// <summary>
+    /// Gets the selection set data that was collected during execution.
+    /// </summary>
+    public SelectionData[] SelectionSetData { get; }
 
-    public ObjectResult Result { get; }
+    /// <summary>
+    /// Gets the completed selection set result.
+    /// </summary>
+    public ObjectResult SelectionSetResult { get; }
 }

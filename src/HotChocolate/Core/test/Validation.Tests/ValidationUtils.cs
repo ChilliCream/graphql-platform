@@ -49,6 +49,12 @@ public static class ValidationUtils
 
     public static ISchema CreateSchema()
         => SchemaBuilder.New()
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
             .AddQueryType<QueryType>()
             .AddMutationType<MutationType>()
             .AddType<AlienType>()

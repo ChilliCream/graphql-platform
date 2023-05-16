@@ -57,7 +57,7 @@ internal sealed class DbContextParameterExpressionBuilder<TDbContext>
                     _ => _ => throw new NotSupportedException(),
                     key: ToList);
                 var serviceMiddleware =
-                    definition.MiddlewareDefinitions.Last(t => t.Key == PooledService);
+                    definition.MiddlewareDefinitions.Last(t => t.Key == ResolverService);
                 var index = definition.MiddlewareDefinitions.IndexOf(serviceMiddleware) + 1;
                 definition.MiddlewareDefinitions.Insert(index, placeholderMiddleware);
                 AddCompletionMiddleware(definition, placeholderMiddleware);
@@ -65,6 +65,6 @@ internal sealed class DbContextParameterExpressionBuilder<TDbContext>
         }
     }
 
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => ServiceExpressionHelper.Build(parameter, context, _kind);
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, _kind);
 }

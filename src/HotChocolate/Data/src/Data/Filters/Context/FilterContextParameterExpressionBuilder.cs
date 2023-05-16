@@ -34,6 +34,6 @@ internal sealed class FilterContextParameterExpressionBuilder
         => parameter.ParameterType == typeof(IFilterContext);
 
     /// <inheritdoc />
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => Expression.Call(_getFilterContextMethod, context);
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Call(_getFilterContextMethod, context.ResolverContext);
 }

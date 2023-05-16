@@ -28,7 +28,7 @@ public class SpecedDirectiveTypeTests : TypeTestBase
                 Assert.IsType<NonNullType>(t.Type);
                 Assert.IsType<BooleanType>(((NonNullType)t.Type).Type);
             });
-        Assert.Collection(directive.Locations,
+        Assert.Collection(directive.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Field, t),
             t => Assert.Equal(DirectiveLocation.FragmentSpread, t),
             t => Assert.Equal(DirectiveLocation.InlineFragment, t));
@@ -56,7 +56,7 @@ public class SpecedDirectiveTypeTests : TypeTestBase
                 Assert.IsType<NonNullType>(t.Type);
                 Assert.IsType<BooleanType>(((NonNullType)t.Type).Type);
             });
-        Assert.Collection(directive.Locations,
+        Assert.Collection(directive.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Field, t),
             t => Assert.Equal(DirectiveLocation.FragmentSpread, t),
             t => Assert.Equal(DirectiveLocation.InlineFragment, t));
