@@ -2,13 +2,13 @@ namespace HotChocolate.Data.ElasticSearch;
 
 public class ExistsOperation : ILeafSearchOperation
 {
-    public ExistsOperation(string field, ElasticSearchOperationKind kind)
+    public ExistsOperation(string path, ElasticSearchOperationKind kind)
     {
-        Field = field;
+        Path = path;
         Kind = kind;
     }
 
-    public string Field { get; }
+    public string Path { get; }
 
     public ElasticSearchOperationKind Kind { get; }
 }

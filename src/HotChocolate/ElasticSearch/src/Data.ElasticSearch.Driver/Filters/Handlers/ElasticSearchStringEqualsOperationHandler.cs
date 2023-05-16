@@ -25,7 +25,10 @@ public class ElasticSearchStringEqualsOperationHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.Equals };
+            fieldDefinition is FilterOperationFieldDefinition
+            {
+                Id: DefaultFilterOperations.Equals
+            };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -39,11 +42,8 @@ public class ElasticSearchStringEqualsOperationHandler
             throw ThrowHelper.Filtering_WrongValueProvided(field);
         }
 
-        IElasticFilterMetadata metadata = field.GetElasticMetadata();
+        var metadata = field.GetElasticMetadata();
 
-        return new MatchOperation(
-            context.GetPath(),
-            metadata.Kind,
-            val);
+        return new MatchOperation(context.GetPath(), metadata.Kind, val);
     }
 }

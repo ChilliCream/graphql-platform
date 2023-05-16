@@ -52,8 +52,8 @@ public class ElasticSearchStringTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
+                .UseTestReport()
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 

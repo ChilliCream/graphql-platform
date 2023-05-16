@@ -1,0 +1,19 @@
+﻿{
+  "data": {
+    "test": {
+      "items": [
+        {
+          "index": 2
+        },
+        {
+          "index": 3
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true
+      },
+      "totalCount": 20
+    }
+  }
+}

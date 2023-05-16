@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
     <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
     <ProjectReference Include="..\Data.ElasticSearch.Driver\HotChocolate.Data.ElasticSearch.Driver.csproj" />
   </ItemGroup>

@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data.ElasticSearch.Attributes;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -47,7 +49,9 @@ public class ElasticSearchDefaultFieldHandler
             return false;
         }
 
-        context.Path.Push(context.ElasticClient.GetName(field));
+        var fieldName = field.GetElasticMetadata().Path ?? field.Name;
+
+        context.Path.Push(fieldName);
         context.RuntimeTypes.Push(field.RuntimeType);
         action = SyntaxVisitor.Continue;
         return true;

@@ -13,6 +13,7 @@ public class ArrayFilterInputType<T>
         descriptor.Operation(DefaultFilterOperations.None).Type(typeof(T));
         descriptor.Operation(DefaultFilterOperations.Some).Type(typeof(T));
         descriptor.Operation(DefaultFilterOperations.Any).Type<BooleanType>();
+
         descriptor.AllowAnd(false).AllowOr(false);
     }
 }

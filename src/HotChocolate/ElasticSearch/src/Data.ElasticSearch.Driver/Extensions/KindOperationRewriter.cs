@@ -27,101 +27,109 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         List<ISearchOperation>? mustNot = null;
         List<ISearchOperation>? filter = null;
 
-        foreach (ISearchOperation mustOperation in operation.Must)
+        foreach (var mustOperation in operation.Must)
         {
-            if (Rewrite(mustOperation) is { } rewritten)
+            if (Rewrite(mustOperation) is not { } rewritten)
             {
-                if (rewritten is BoolOperation { Should.Count: 0, Filter.Count: 0 } boolOperation)
-                {
-                    if (boolOperation.Must.Count > 0)
-                    {
-                        must ??= new List<ISearchOperation>();
-                        must.AddRange(boolOperation.Must);
-                    }
+                continue;
+            }
 
-                    if (boolOperation.MustNot.Count > 0)
-                    {
-                        mustNot ??= new List<ISearchOperation>();
-                        mustNot.AddRange(boolOperation.MustNot);
-                    }
-                }
-                else
+            if (rewritten is BoolOperation { Should.Count: 0, Filter.Count: 0 } boolOperation)
+            {
+                if (boolOperation.Must.Count > 0)
                 {
                     must ??= new List<ISearchOperation>();
-                    must.Add(rewritten);
+                    must.AddRange(boolOperation.Must);
                 }
-            }
-        }
 
-        foreach (ISearchOperation mustOperation in operation.Should)
-        {
-            if (Rewrite(mustOperation) is { } rewritten)
-            {
-                if (rewritten is BoolOperation
-                    {
-                        Must.Count: 0,
-                        MustNot.Count: 0,
-                        Filter.Count: 0,
-                        Should.Count: > 0
-                    } boolOperation)
-                {
-                    should ??= new List<ISearchOperation>();
-                    should.AddRange(boolOperation.Should);
-                }
-                else
-                {
-                    should ??= new List<ISearchOperation>();
-                    should.Add(rewritten);
-                }
-            }
-        }
-
-        foreach (ISearchOperation mustOperation in operation.MustNot)
-        {
-            if (Rewrite(mustOperation) is { } rewritten)
-            {
-                if (rewritten is BoolOperation { Should.Count: 0, Filter.Count: 0 } boolOperation)
-                {
-                    if (boolOperation.MustNot.Count > 0)
-                    {
-                        must ??= new List<ISearchOperation>();
-                        must.AddRange(boolOperation.MustNot);
-                    }
-
-                    if (boolOperation.Must.Count > 0)
-                    {
-                        mustNot ??= new List<ISearchOperation>();
-                        mustNot.AddRange(boolOperation.Must);
-                    }
-                }
-                else
+                if (boolOperation.MustNot.Count > 0)
                 {
                     mustNot ??= new List<ISearchOperation>();
-                    mustNot.Add(rewritten);
+                    mustNot.AddRange(boolOperation.MustNot);
                 }
+            }
+            else
+            {
+                must ??= new List<ISearchOperation>();
+                must.Add(rewritten);
             }
         }
 
-        foreach (ISearchOperation mustOperation in operation.Filter)
+        foreach (var mustOperation in operation.Should)
         {
-            if (Rewrite(mustOperation) is { } rewritten)
+            if (Rewrite(mustOperation) is not { } rewritten)
             {
-                if (rewritten is BoolOperation
-                    {
-                        Must.Count: 0,
-                        MustNot.Count: 0,
-                        Filter.Count: > 0,
-                        Should.Count: 0
-                    } op)
+                continue;
+            }
+
+            if (rewritten is BoolOperation
                 {
-                    filter ??= new List<ISearchOperation>();
-                    filter.AddRange(op.Filter);
-                }
-                else
+                    Must.Count: 0,
+                    MustNot.Count: 0,
+                    Filter.Count: 0,
+                    Should.Count: > 0
+                } boolOperation)
+            {
+                should ??= new List<ISearchOperation>();
+                should.AddRange(boolOperation.Should);
+            }
+            else
+            {
+                should ??= new List<ISearchOperation>();
+                should.Add(rewritten);
+            }
+        }
+
+        foreach (var mustOperation in operation.MustNot)
+        {
+            if (Rewrite(mustOperation) is not { } rewritten)
+            {
+                continue;
+            }
+
+            if (rewritten is BoolOperation { Should.Count: 0, Filter.Count: 0 } boolOperation)
+            {
+                if (boolOperation.MustNot.Count > 0)
                 {
-                    filter ??= new List<ISearchOperation>();
-                    filter.Add(rewritten);
+                    must ??= new List<ISearchOperation>();
+                    must.AddRange(boolOperation.MustNot);
                 }
+
+                if (boolOperation.Must.Count > 0)
+                {
+                    mustNot ??= new List<ISearchOperation>();
+                    mustNot.AddRange(boolOperation.Must);
+                }
+            }
+            else
+            {
+                mustNot ??= new List<ISearchOperation>();
+                mustNot.Add(rewritten);
+            }
+        }
+
+        foreach (var mustOperation in operation.Filter)
+        {
+            if (Rewrite(mustOperation) is not { } rewritten)
+            {
+                continue;
+            }
+
+            if (rewritten is BoolOperation
+                {
+                    Must.Count: 0,
+                    MustNot.Count: 0,
+                    Filter.Count: 0,
+                    Should.Count: 0
+                } op)
+            {
+                filter ??= new List<ISearchOperation>();
+                filter.AddRange(op.Filter);
+            }
+            else
+            {
+                filter ??= new List<ISearchOperation>();
+                filter.Add(rewritten);
             }
         }
 
@@ -151,11 +159,23 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         => RewriteLeaf(operation);
 
     /// <inheritdoc />
-    protected override ISearchOperation? Rewrite(RangeOperation operation)
+    protected override ISearchOperation? Rewrite(RangeOperation<double> operation)
+        => RewriteLeaf(operation);
+
+    /// <inheritdoc />
+    protected override ISearchOperation? Rewrite(RangeOperation<long> operation)
+        => RewriteLeaf(operation);
+
+    /// <inheritdoc />
+    protected override ISearchOperation? Rewrite(RangeOperation<DateTime> operation)
         => RewriteLeaf(operation);
 
     /// <inheritdoc />
     protected override ISearchOperation? Rewrite(TermOperation operation)
+        => RewriteLeaf(operation);
+
+    /// <inheritdoc />
+    protected override ISearchOperation? Rewrite(WildCardOperation operation)
         => RewriteLeaf(operation);
 
     /// <inheritdoc />

@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Data.ElasticSearch.Filters.Comparable;
 using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
@@ -141,14 +142,17 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
     {
         descriptor.AddFieldHandler<ElasticSearchStringEqualsOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchStringNotEqualsOperationHandler>();
-        
-        descriptor.AddFieldHandler<ElasticSearchStringStartsWithOperationHandler>();
-        descriptor.AddFieldHandler<ElasticSearchStringNotStartsWithOperationHandler>();
 
-        /*
+        descriptor.AddFieldHandler<ElasticSearchStringStartsWithHandler>();
+        descriptor.AddFieldHandler<ElasticSearchStringNotStartsWithHandler>();
 
         descriptor.AddFieldHandler<ElasticSearchInOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchNotInOperationHandler>();
+
+        descriptor.AddFieldHandler<ElasticSearchStringEndsWithHandler>();
+        descriptor.AddFieldHandler<ElasticSearchStringNotEndsWithHandler>();
+        descriptor.AddFieldHandler<ElasticSearchStringContainsHandler>();
+        descriptor.AddFieldHandler<ElasticSearchStringNotContainsHandler>();
 
         descriptor.AddFieldHandler<ElasticSearchComparableGreaterThanHandler>();
         descriptor.AddFieldHandler<ElasticSearchComparableNotGreaterThanHandler>();
@@ -158,13 +162,7 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
         descriptor.AddFieldHandler<ElasticSearchComparableNotLowerThanHandler>();
         descriptor.AddFieldHandler<ElasticSearchComparableLowerThanOrEqualsHandler>();
         descriptor.AddFieldHandler<ElasticSearchComparableNotLowerThanOrEqualsHandler>();
-        
-        descriptor.AddFieldHandler<ElasticSearchStringEndsWithHandler>();
-        descriptor.AddFieldHandler<ElasticSearchStringNotEndsWithHandler>();
-        descriptor.AddFieldHandler<ElasticSearchStringContainsHandler>();
-        descriptor.AddFieldHandler<ElasticSearchStringNotContainsHandler>();
 
-        */
         descriptor.AddFieldHandler<ElasticSearchListAnyOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchListNoneOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchListSomeOperationHandler>();

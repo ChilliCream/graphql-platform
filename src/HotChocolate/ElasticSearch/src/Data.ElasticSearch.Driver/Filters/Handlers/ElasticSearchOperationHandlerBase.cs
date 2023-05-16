@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
@@ -29,12 +28,12 @@ public abstract class ElasticSearchOperationHandlerBase
         ObjectFieldNode node,
         [NotNullWhen(true)] out ISearchOperation result)
     {
-        IValueNode value = node.Value;
-        IExtendedType runtimeType = context.RuntimeTypes.Peek();
-        Type type = field.Type.IsListType()
+        var value = node.Value;
+        var runtimeType = context.RuntimeTypes.Peek();
+        var type = field.Type.IsListType()
             ? runtimeType.Source.MakeArrayType()
             : runtimeType.Source;
-        object? parsedValue = InputParser.ParseLiteral(value, field, type);
+        var parsedValue = InputParser.ParseLiteral(value, field, type);
 
         if ((!runtimeType.IsNullable || !CanBeNull) &&
             parsedValue is null)

@@ -1,4 +1,4 @@
-using HotChocolate.Configuration;
+﻿using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -7,17 +7,16 @@ using static HotChocolate.Data.Filters.DefaultFilterOperations;
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
 /// <summary>
-/// This filter operation handler maps a NotStartsWith operation field to a
+/// This filter operation handler maps a NotIn operation field to a
 /// <see cref="ISearchOperation"/>
 /// </summary>
-public class ElasticSearchStringNotStartsWithOperationHandler
-    : ElasticSearchStringStartsWithOperationHandler
+public class ElasticSearchNotInOperationHandler : ElasticSearchInOperationHandler
 {
     /// <summary>
     /// Initializes a new instance of
-    /// <see cref="ElasticSearchStringNotStartsWithOperationHandler"/>
+    /// <see cref="ElasticSearchNotInOperationHandler"/>
     /// </summary>
-    public ElasticSearchStringNotStartsWithOperationHandler(InputParser inputParser)
+    public ElasticSearchNotInOperationHandler(InputParser inputParser)
         : base(inputParser)
     {
     }
@@ -27,8 +26,7 @@ public class ElasticSearchStringNotStartsWithOperationHandler
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
-        => context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition { Id: NotStartsWith };
+        => fieldDefinition is FilterOperationFieldDefinition { Id: NotIn };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -37,8 +35,8 @@ public class ElasticSearchStringNotStartsWithOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        ISearchOperation operation =
-            base.HandleOperation(context, field, value, parsedValue);
+        var operation = base.HandleOperation(context, field, value, parsedValue);
+
         return ElasticSearchOperationHelpers.Negate(operation);
     }
 }

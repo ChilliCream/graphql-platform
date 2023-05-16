@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text.RegularExpressions;
 using HotChocolate.Data.ElasticSearch.Filters;
 using Nest;
 
@@ -11,6 +9,15 @@ namespace HotChocolate.Data.ElasticSearch;
 /// </summary>
 public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
 {
+    private static Regex _escapeRegex = new(
+        @"[+\-=!(){}\[\]^""~*?:\\/]",
+        RegexOptions.Compiled);
+
+    private static string EscapeForElasticSearch(string? value) =>
+        string.IsNullOrEmpty(value)
+            ? string.Empty
+            : _escapeRegex.Replace(value, @"\$&");
+
     /// <inheritdoc />
     protected override IQuery Rewrite(BoolOperation operation)
     {
@@ -61,20 +68,67 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     }
 
     /// <inheritdoc />
-    protected override IQuery Rewrite(RangeOperation operation)
+    protected override IQuery Rewrite(RangeOperation<double> operation)
     {
-        throw new System.NotImplementedException();
+        return new NumericRangeQuery
+        {
+            Field = operation.Path,
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
+        };
+    }
+
+    /// <inheritdoc />
+    protected override IQuery Rewrite(RangeOperation<long> operation)
+    {
+        return new LongRangeQuery
+        {
+            Field = operation.Path,
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
+        };
+    }
+
+    /// <inheritdoc />
+    protected override IQuery Rewrite(RangeOperation<DateTime> operation)
+    {
+        return new DateRangeQuery
+        {
+            Field = operation.Path,
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
+        };
     }
 
     /// <inheritdoc />
     protected override IQuery Rewrite(TermOperation operation)
     {
-        return new PrefixQuery {Field = operation.Path, Value = operation.Value};
+        return new TermQuery { Field = operation.Path, Value = operation.Value };
+    }
+
+    /// <inheritdoc />
+    protected override IQuery Rewrite(WildCardOperation operation)
+    {
+        var path = operation.Path.GetKeywordPath();
+        var value = EscapeForElasticSearch(operation.Value);
+        return operation.WildCardOperationKind switch
+        {
+            WildCardOperationKind.StartsWith => new QueryStringQuery { Query = $"{path}:{value}*" },
+            WildCardOperationKind.EndsWith => new QueryStringQuery { Query = $"{path}:*{value}" },
+            WildCardOperationKind.Contains => new QueryStringQuery { Query = $"{path}:*{value}*" },
+            _ => throw new InvalidOperationException()
+        };
     }
 
     /// <inheritdoc />
     protected override IQuery Rewrite(ExistsOperation operation)
-        => new ExistsQuery { Field = operation.Field };
+        => new ExistsQuery { Field = operation.Path };
 
     /// <summary>
     /// The instance of the rewriter

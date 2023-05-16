@@ -1,6 +1,9 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Data.ElasticSearch.Attributes;
+using HotChocolate.Data.ElasticSearch.Execution;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -31,10 +34,12 @@ public class ElasticSearchFilterProvider
     /// </summary>
     protected virtual FilterVisitor<ElasticSearchFilterVisitorContext, ISearchOperation>
         Visitor
-    { get; } = new(new ElasticSearchFilterCombinator());
+    {
+        get;
+    } = new(new ElasticSearchFilterCombinator());
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
         return next => context => ExecuteAsync(next, context);
 
@@ -42,69 +47,67 @@ public class ElasticSearchFilterProvider
             FieldDelegate next,
             IMiddlewareContext context)
         {
-            context.LocalContextData =
-                context.LocalContextData.SetItem(nameof(IElasticQueryFactory),
-                    new ElasticQueryFactory(this, argumentName));
-            await next(context).ConfigureAwait(false);
+            ElasticSearchFilterVisitorContext? visitorContext = null;
+            var argument = context.Selection.Field.Arguments[argumentName];
+            var filter = context.ArgumentLiteral<IValueNode>(argumentName);
+
+            if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
+            {
+                visitorContext = new ElasticSearchFilterVisitorContext(filterInput);
+
+                Visitor.Visit(filter, visitorContext);
+
+                if (visitorContext.Errors.Count > 0)
+                {
+                    context.Result = Array.Empty<TEntityType>();
+                    foreach (var error in visitorContext.Errors)
+                    {
+                        context.ReportError(error.WithPath(context.Path));
+                    }
+                }
+                else
+                {
+                    if (!visitorContext.TryCreateQuery(out var whereQuery) ||
+                        visitorContext.Errors.Count > 0)
+                    {
+                        foreach (var error in visitorContext.Errors)
+                        {
+                            context.ReportError(error.WithPath(context.Path));
+                        }
+                    }
+
+                    await next(context).ConfigureAwait(false);
+
+                    if (context.Result is IElasticSearchExecutable executable)
+                    {
+                        context.Result = executable.WithFiltering(whereQuery!);
+                    }
+                }
+            }
+            else
+            {
+                await next(context).ConfigureAwait(false);
+            }
         }
     }
 
+    /// <inheritdoc />
     public override IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
     {
-        if (!fieldDefinition.ContextData
-                .TryGetValue(nameof(ElasticFilterMetadata), out object? metadata))
+        fieldDefinition.ContextData.TryGetValue(nameof(ElasticFilterMetadata), out var metadataObj);
+
+        var metadata = metadataObj as ElasticFilterMetadata;
+
+        if (fieldDefinition.Member?.GetCustomAttribute<ElasticSearchFieldNameAttribute>() is
+            { Path: var path })
         {
-            return null;
+            metadata ??= new ElasticFilterMetadata();
+            metadata.Path = path;
         }
 
-        fieldDefinition.ContextData.Remove(nameof(ElasticFilterMetadata));
-
-        return metadata as ElasticFilterMetadata;
-    }
-
-    private class ElasticQueryFactory : IElasticQueryFactory
-    {
-        private readonly ElasticSearchFilterProvider _provider;
-        private readonly string _argumentName;
-
-        public ElasticQueryFactory(
-            ElasticSearchFilterProvider provider,
-            string argumentName)
-        {
-            _provider = provider;
-            _argumentName = argumentName;
-        }
-
-        public BoolOperation? Create(
-            IResolverContext context,
-            IAbstractElasticClient client)
-        {
-            ElasticSearchFilterVisitorContext? visitorContext = null;
-            IInputField argument = context.Selection.Field.Arguments[_argumentName];
-            IValueNode filter = context.ArgumentLiteral<IValueNode>(_argumentName);
-
-            if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
-            {
-                visitorContext = new ElasticSearchFilterVisitorContext(filterInput, client);
-
-                _provider.Visitor.Visit(filter, visitorContext);
-
-                if (!visitorContext.TryCreateQuery(out BoolOperation? whereQuery) ||
-                    visitorContext.Errors.Count > 0)
-                {
-                    foreach (IError error in visitorContext.Errors)
-                    {
-                        context.ReportError(error.WithPath(context.Path));
-                    }
-                }
-
-                return whereQuery;
-            }
-
-            return null;
-        }
+        return metadata;
     }
 }

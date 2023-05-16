@@ -85,8 +85,8 @@ public class ListIntegrationTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
+                .UseTestReport()
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 
@@ -117,8 +117,8 @@ public class ListIntegrationTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
+                .UseTestReport()
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 
@@ -149,8 +149,8 @@ public class ListIntegrationTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
+                .UseTestReport()
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 
@@ -181,8 +181,8 @@ public class ListIntegrationTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
+                .UseTestReport()
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 
@@ -213,8 +213,8 @@ public class ListIntegrationTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
+                .UseTestReport()
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 
@@ -245,8 +245,8 @@ public class ListIntegrationTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
+                .UseTestReport()
+                .ResolveTestData<Foo>(Client))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 
