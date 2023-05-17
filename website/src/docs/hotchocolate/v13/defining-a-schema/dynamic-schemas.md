@@ -83,9 +83,6 @@ When working with dynamic schemas and the `ITypeModule` interface, one of the pr
 The unsafe way to create types, as the name implies, bypasses some of the standard validation logic. This method is useful for advanced scenarios where you need more flexibility, such as when dynamically creating types based on runtime data.
 
 The `CreateUnsafe` method allows you to create types directly from a `TypeDefinition`. 
-You operate directly on the type definition, which means that you have to ensure that the type definition is valid and consistent. 
-
-For example, you can create an object type from a type definition as follows:
 
 ```csharp
 ```csharp
@@ -99,7 +96,8 @@ Using `CreateUnsafe` method for type creation can be a complex task as it involv
 This allows for a lot of flexibility, but it also requires a deeper understanding of the Hot Chocolate type system.
 
 Here are some examples of how you might use the `CreateUnsafe` method to create various types. 
-This is by no means an exhaustive list, but it should give you an idea of how to use this feature.
+
+> This is by no means an exhaustive list, but it should give you an idea of how to use this feature.
 
 ## Creating an Object Type
 
