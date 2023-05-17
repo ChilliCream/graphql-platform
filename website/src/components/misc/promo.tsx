@@ -45,21 +45,23 @@ export const Promo: FC = () => {
       aria-describedby="promo:desc"
       show={show}
     >
-      <Boundary>
-        <Container>
-          <Message id="promo:desc">
-            <Title>{workshop.title}</Title>
-            <Description>{workshop.teaser}</Description>
-          </Message>
-          <Actions>
-            <Tickets to={workshop.url}>Get tickets!</Tickets>
-            <Dismiss
-              aria-label="dismiss promo message"
-              onClick={handleDismiss}
-            />
-          </Actions>
-        </Container>
-      </Boundary>
+      {show && (
+        <Boundary>
+          <Container>
+            <Message id="promo:desc">
+              <Title>{workshop.title}</Title>
+              <Description>{workshop.teaser}</Description>
+            </Message>
+            <Actions>
+              <Tickets to={workshop.url}>Get tickets!</Tickets>
+              <Dismiss
+                aria-label="dismiss promo message"
+                onClick={handleDismiss}
+              />
+            </Actions>
+          </Container>
+        </Boundary>
+      )}
     </Dialog>
   );
 };
@@ -70,8 +72,7 @@ const Dialog = styled.div<{ show: boolean }>`
   z-index: 40;
   width: 100vw;
   background-color: #ffb806;
-  opacity: ${({ show }) => (show ? 1 : 0)};
-  transition: opacity 0.5s ease-in-out;
+  display: ${({ show }) => (show ? "visible" : "none")};
 `;
 
 const Boundary = styled.div`
