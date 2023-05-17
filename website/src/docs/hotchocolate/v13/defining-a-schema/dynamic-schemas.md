@@ -2,7 +2,7 @@
 title: Dynamic Schemas
 ---
 
-In the world of SaaS, one size rarely fits all. With the ever-changing requirements and the need for high flexibility, schemas in a web application often need to be dynamic. In the context of GraphQL, a dynamic schema allows you to adapt the data structure exposed by your API according to varying conditions, be it different tenant, changing data sources, or configruation.
+In the world of SaaS, one size rarely fits all. With the ever-changing requirements and the need for high flexibility, schemas in a web application often need to be dynamic. In the context of GraphQL, a dynamic schema allows you to adapt the data structure exposed by your API according to varying conditions, be it different tenant, changing data sources, or configuration.
 
 For instance, consider a Content Management System (CMS) where each tenant might require custom fields that are specific to their use case. Having a static GraphQL schema in such a scenario would mean that you need to anticipate all possible custom fields beforehand, which is not practical. A dynamic schema, on the other hand, allows you to add, remove, or modify the types and fields in your schema at runtime based on the specific needs of each tenant. Each tenant can have a different schema, and you can adapt the schema to the tenant's needs without having to redeploy your application. 
 
