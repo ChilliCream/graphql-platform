@@ -176,6 +176,22 @@ public class InputFieldDescriptorTests
     }
 
     [Fact]
+    public void SetDefaultValueViaSyntax()
+    {
+        // arrange
+        var descriptor = InputFieldDescriptor.New(
+            Context,
+            typeof(ObjectField).GetProperty("Arguments"));
+
+        // act
+        descriptor.DefaultValueSyntax("[]");
+
+        // assert
+        var description = descriptor.CreateDefinition();
+        Assert.IsType<ListValueNode>(description.DefaultValue);
+    }
+
+    [Fact]
     public void OverwriteDefaultValueLiteralWithNativeDefaultValue()
     {
         // arrange
