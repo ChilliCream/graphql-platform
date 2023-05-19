@@ -129,11 +129,11 @@ public class UserFilterType : FilterInputType<User>
         IFilterInputTypeDescriptor<User> descriptor)
     {
         descriptor.BindFieldsExplicitly();
-        descriptor.Field(f => f.Name).Type<CustomStringFilterType>();
+        descriptor.Field(f => f.Name).Type<CustomStringOperationFilterInputType>();
     }
 }
 
-public class CustomerOperationFilterInput : StringOperationFilterInput
+public class CustomStringOperationFilterInputType : StringOperationFilterInputType
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
@@ -147,12 +147,12 @@ public class CustomerOperationFilterInput : StringOperationFilterInput
 input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
-  name: CustomerOperationFilterInput
+  name: CustomStringOperationFilterInput
 }
 
-input CustomerOperationFilterInput {
-  and: [CustomerOperationFilterInput!]
-  or: [CustomerOperationFilterInput!]
+input CustomStringOperationFilterInput {
+  and: [CustomStringOperationFilterInput!]
+  or: [CustomStringOperationFilterInput!]
   eq: String
   neq: String
 }
