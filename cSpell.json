@@ -87,7 +87,7 @@
     "PKCE",
     "URQL",
     "unpublish",
-    "elte"
+    "elete"
   ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links
