@@ -1,54 +1,56 @@
 ---
-title: "Installation"
+title: Installation Guide
 ---
 
-# macOS
+## macOS
 
-Banana Cake Pop App can be installed on macOS using a package manager (recommended) or by downloading the DMG installer.
+To install Banana Cake Pop App on macOS, you have two options: using Homebrew or downloading the DMG installer.
 
-## Homebrew
+### Option 1: Homebrew
 
-Banana Cake Pop can be installed using [Homebrew](https://brew.sh). Use the command below to install the Cask.
+If you have [Homebrew](https://brew.sh) installed, you can use the following command to install Banana Cake Pop:
 
 ```bash
 brew install --cask banana-cake-pop
 ```
 
-## Installer
+### Option 2: DMG Installer
 
-Make sure to download the correct installer if you're using an Apple Silicon Mac (M1) or an Intel Mac.
+Download the appropriate installer based on your Mac's architecture:
 
-- [Intel Mac (x64)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-mac-x64.dmg)
-- [Apple Silicon Mac (ARM 64)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-mac-arm64.dmg)
+- [Visit the donwload page](/products/bananacakepop)
 
-# Windows
+## Windows
 
-Banana Cake Pop App can be installed in Windows using a package manager (recommended) or by downloading the installer.
+Installing Banana Cake Pop App on Windows can be done either through a package manager or by downloading the installer.
 
-## Windows Package Manager
+### Option 1: Windows Package Manager
 
-Banana Cake Pop can be installed using the [Windows Package Manager](https://docs.microsoft.com/en-us/windows/package-manager/). The Windows Package Manager requires Windows 11 or a supported version of Windows 10.
+If you have the [Windows Package Manager](https://docs.microsoft.com/en-us/windows/package-manager/) installed (requires Windows 11 or a supported version of Windows 10), use the following command:
 
 ```powershell
 winget install banana-cake-pop
 ```
 
-## Scoop
+### Option 2: Scoop
 
-Banana Cake Pop can also be installed using the [Scoop](https://scoop.sh/) package manager. Scoop supports Windows 7, 10, and 11.
+Alternatively, you can use the [Scoop](https://scoop.sh/) package manager to install Banana Cake Pop on Windows 7, 10, or 11:
 
 ```powershell
 scoop bucket add extras
 scoop install banana-cake-pop
 ```
 
-## Installer
+### Option 3: Installer
 
-- [Windows Installer (x64)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-win-x64.exe)
+Download the Windows installer (x64) from the following link:
 
-# Linux
+- [Visit the donwload page](/products/bananacakepop)
 
-We offer an AppImage and Snap installer for Ubuntu. At the moment, we do not support other distributions or installer formats.
+## Linux
 
-- [Ubuntu Installer (AppImage)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-linux-x86_64.AppImage)
-- [Ubuntu Installer (Snap)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-linux-amd64.snap)
+For Linux users, we provide AppImage and Snap installers specifically for Ubuntu. Currently, we do not support other distributions or installer formats.
+
+- [Visit the donwload page](/products/bananacakepop)
+
+Please note that the provided Ubuntu installers are suitable for Ubuntu-based distributions.
