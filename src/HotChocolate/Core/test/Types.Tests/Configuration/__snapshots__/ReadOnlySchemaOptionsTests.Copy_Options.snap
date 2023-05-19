@@ -22,5 +22,6 @@
   "EnableFlagEnums": true,
   "EnableDefer": true,
   "EnableStream": true,
-  "MaxAllowedNodeBatchSize": 20
+  "MaxAllowedNodeBatchSize": 20,
+  "StripLeadingIFromInterface": false
 }

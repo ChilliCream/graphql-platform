@@ -9,8 +9,8 @@ using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
-using static HotChocolate.Fusion.DemoProjectSchemaExtensions;
 
 namespace HotChocolate.Fusion;
 
@@ -531,12 +531,203 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task Query_Plan_14_Node_Single_Fragment()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_15_Node_Single_Fragment_Multiple_Subgraphs()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        birthdate
+                        reviews {
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_16_Two_Node_Fields_Aliased()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query FetchNode($a: ID! $b: ID!) {
+                a: node(id: $a) {
+                    ... on User {
+                        id
+                    }
+                }
+                b: node(id: $b) {
+                    ... on User {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_17_Multi_Completion()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query GetUser {
+              users {
+                birthdate
+              }
+              reviews {
+                body
+              }
+              __schema {
+                types {
+                  name
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_18_Node_Single_Fragment_Multiple_Subgraphs()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            },
+            FusionFeatureFlags.NodeField);
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        birthdate
+                        reviews {
+                            body
+                        }
+                    }
+                    ... on Review {
+                        body
+                        author {
+                            birthdate
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)
     {
-        var serviceDefinition = SchemaFormatter.FormatAsString(fusionGraph);
-        var document = Parse(serviceDefinition);
+        var document = SchemaFormatter.FormatAsDocument(fusionGraph);
         var context = FusionTypeNames.From(document);
         var rewriter = new FusionGraphConfigurationToSchemaRewriter();
         var rewritten = rewriter.Rewrite(document, new(context))!;
@@ -547,7 +738,7 @@ public class RequestPlannerTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = FusionGraphConfiguration.Load(serviceDefinition);
+        var serviceConfig = FusionGraphConfiguration.Load(document);
 
         var request = Parse(query);
 
@@ -560,14 +751,8 @@ public class RequestPlannerTests
             request,
             schema);
 
-        var queryPlanContext = new QueryPlanContext(operation);
-        var requestPlaner = new RequestPlanner(serviceConfig);
-        var requirementsPlaner = new RequirementsPlanner();
-        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
-
-        requestPlaner.Plan(queryPlanContext);
-        requirementsPlaner.Plan(queryPlanContext);
-        var queryPlan = executionPlanBuilder.Build(queryPlanContext);
+        var queryPlanner = new QueryPlanner(serviceConfig, schema);
+        var queryPlan = queryPlanner.Plan(operation);
 
         return (request, queryPlan);
     }

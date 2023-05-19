@@ -147,7 +147,6 @@ const IndexPage: FC = () => {
           </ContentContainer>
         </SectionRow>
       </Section>
-      <MostRecentBlogPostsSection />
       <CompaniesSection />
       <Section>
         <SectionRow>
@@ -172,6 +171,7 @@ const IndexPage: FC = () => {
           </ContentContainer>
         </SectionRow>
       </Section>
+      <MostRecentBlogPostsSection />
     </Layout>
   );
 };

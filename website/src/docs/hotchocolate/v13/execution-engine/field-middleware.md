@@ -225,7 +225,7 @@ public class UseMyMiddlewareAttribute : ObjectFieldDescriptorAttribute
         Order = order;
     }
 
-    public override void OnConfigure(IDescriptorContext context,
+    protected override void OnConfigure(IDescriptorContext context,
         IObjectFieldDescriptor descriptor, MemberInfo member)
     {
         descriptor.UseMyMiddleware();

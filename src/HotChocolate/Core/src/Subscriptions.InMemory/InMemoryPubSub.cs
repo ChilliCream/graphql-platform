@@ -19,27 +19,25 @@ internal sealed class InMemoryPubSub : DefaultPubSub
         _diagnosticEvents = diagnosticEvents;
     }
 
-    protected override ValueTask OnSendAsync<TMessage>(
+    protected override async ValueTask OnSendAsync<TMessage>(
         string formattedTopic,
-        MessageEnvelope<TMessage> message,
+        TMessage message,
         CancellationToken cancellationToken = default)
     {
-        if (TryGetTopic<InMemoryTopic<TMessage>>(formattedTopic, out var topic))
+        if (TryGetTopic<TMessage>(formattedTopic, out var topic))
         {
-            topic.TryWrite(message);
+            await topic.PublishAsync(message, cancellationToken).ConfigureAwait(false);
         }
-
-        return default;
     }
 
     protected override ValueTask OnCompleteAsync(string formattedTopic)
     {
-        if (TryGetTopic<IInMemoryTopic>(formattedTopic, out var topic))
+        if (TryGetTopic(formattedTopic, out var topic))
         {
             topic.TryComplete();
         }
 
-        return default;
+        return ValueTask.CompletedTask;
     }
 
     protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(

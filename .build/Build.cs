@@ -6,7 +6,6 @@ using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 
-[CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild
 {
@@ -43,17 +42,16 @@ partial class Build : NukeBuild
                 .SetProjectFile(AllSolutionFile)
                 .SetNoRestore(InvokedTargets.Contains(Restore))
                 .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion));
         });
 
     Target Reset => _ => _
         .Executes(() =>
         {
             TryDelete(AllSolutionFile);
-            TryDelete(SonarSolutionFile);
             TryDelete(TestSolutionFile);
             TryDelete(PackSolutionFile);
 

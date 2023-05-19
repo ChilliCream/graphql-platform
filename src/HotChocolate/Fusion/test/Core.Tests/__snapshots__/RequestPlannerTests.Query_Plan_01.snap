@@ -19,27 +19,33 @@ QueryPlan
   "document": "query GetUser { users { name reviews { body author { name } } } }",
   "operation": "GetUser",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query GetUser_1 { users { name __fusion_exports__1: id } }",
         "selectionSetId": 0
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]
       },
       {
-        "type": "Resolver",
+        "type": "ResolveByKeyBatch",
         "subgraph": "Reviews",
-        "document": "query GetUser_2($__fusion_exports__1: Int!) { authorById(id: $__fusion_exports__1) { reviews { body author { name } } } }",
+        "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name } } __fusion_exports__1: id } } }",
         "selectionSetId": 1,
+        "argumentTypes": [
+          {
+            "argument": "__fusion_exports__1",
+            "type": "[ID!]!"
+          }
+        ],
         "path": [
-          "authorById"
+          "nodes"
         ],
         "requires": [
           {
@@ -48,7 +54,7 @@ QueryPlan
         ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           1
         ]

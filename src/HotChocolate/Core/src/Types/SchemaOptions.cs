@@ -171,7 +171,12 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
     /// </summary>
-    public int MaxAllowedNodeBatchSize { get; set; } = 10;
+    public int MaxAllowedNodeBatchSize { get; set; } = 50;
+
+    /// <summary>
+    /// Specified if the leading I shall be stripped from the interface name.
+    /// </summary>
+    public bool StripLeadingIFromInterface { get; set; } = false;
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
@@ -205,7 +210,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
-            MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize
+            MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
+            StripLeadingIFromInterface = options.StripLeadingIFromInterface
         };
     }
 }

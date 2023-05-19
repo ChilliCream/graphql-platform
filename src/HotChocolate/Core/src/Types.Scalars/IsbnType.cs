@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -7,7 +8,11 @@ namespace HotChocolate.Types;
 /// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number:
 /// <a>https://en.wikipedia.org/wiki/International_Standard_Book_Number</a>.
 /// </summary>
+#if NET7_0_OR_GREATER
+public partial class IsbnType : RegexType
+#else
 public class IsbnType : RegexType
+#endif
 {
     private const string _validationPattern =
         "^(?:ISBN(-1(?:(0)|3))?:?\\ )?(?(1)(?(2)(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0" +
@@ -16,6 +21,17 @@ public class IsbnType : RegexType
         "?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[" +
         "- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X" +
         "])$";
+
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegex();
+#else
+    private static Regex CreateRegex()
+        => new Regex(
+            _validationPattern,
+            RegexOptions.Compiled | RegexOptions.IgnoreCase,
+            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
+#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IsbnType"/> class.
@@ -36,9 +52,8 @@ public class IsbnType : RegexType
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(
             name,
-            _validationPattern,
+            CreateRegex(),
             description,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
             bind)
     {
     }

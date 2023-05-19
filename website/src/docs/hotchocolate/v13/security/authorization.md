@@ -339,6 +339,36 @@ public class MinimumAgeHandler
     }
 }
 ```
+# Allow Anonymous Access
+
+In some scenarios, you may want to allow anonymous access to certain fields or actions in your GraphQL schema, bypassing any authentication or authorization that may be in place. This is achieved using the `AllowAnonymous` attribute. This attribute effectively ignores any other authorization attributes present on the field, allowing unauthenticated or anonymous access.
+
+The `AllowAnonymous` attribute, if present, erases all other authorization attributes on the field. **Be careful where you use it to ensure you're not unintentionally allowing access to sensitive information.**
+
+## Usage
+
+Here's an example of how you can use the `AllowAnonymous` attribute in conjunction with the `Authorize` attribute:
+
+```csharp
+public class AccountMutations
+{
+    [Authorize]
+    public Task<User> AddAddressAsync(CancellationToken cancellationToken)
+    {
+        // Implementation
+    }
+
+    [AllowAnonymous]
+    public Task<User> RegisterAsync(CancellationToken cancellationToken)
+    {
+        // Implementation
+    }
+}
+```
+
+In this example, only authenticated users can access the `AddAddressAsync` method, as it has the `Authorize` attribute applied. However, the `Register` method is accessible by everyone, regardless of their authentication status, due to the `AllowAnonymous` attribute. This is typical for registration endpoints, where new users who don't yet have an account need to be able to access the endpoint.
+
+> Note: Make sure to use `HotChocolate.AspNetCore.Authorization.AllowAnonymousAttribute` instead of the `Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute`.
 
 # Global authorization
 

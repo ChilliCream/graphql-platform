@@ -36,6 +36,11 @@ internal static class FusionDirectiveArgumentNames
     public const string TypeArg = "type";
 
     /// <summary>
+    /// Gets the name of the types argument.
+    /// </summary>
+    public const string TypesArg = "types";
+
+    /// <summary>
     /// Gets the name of the subgraph argument.
     /// </summary>
     public const string SubgraphArg = "subgraph";

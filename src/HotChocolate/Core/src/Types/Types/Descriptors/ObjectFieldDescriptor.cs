@@ -5,13 +5,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Execution.ExecutionStrategy;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -25,7 +25,7 @@ public class ObjectFieldDescriptor
     private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -38,7 +38,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -76,7 +76,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -375,7 +375,7 @@ public class ObjectFieldDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        return ResolveWith(propertyOrMethod.ExtractMember());
+        return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
     }
 
     /// <inheritdoc />
@@ -386,13 +386,29 @@ public class ObjectFieldDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
+        return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IObjectFieldDescriptor ResolveWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
+    {
+        if (resolverType?.IsAbstract is true)
+        {
+            throw new ArgumentException(
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
+        }
+
         if (propertyOrMethod is PropertyInfo or MethodInfo)
         {
             Definition.SetMoreSpecificType(
                 Context.TypeInspector.GetReturnType(propertyOrMethod),
                 TypeContext.Output);
 
-            Definition.ResolverType = propertyOrMethod.DeclaringType;
+            Definition.ResolverType = resolverType;
             Definition.ResolverMember = propertyOrMethod;
             Definition.Resolver = null;
             Definition.ResultType = propertyOrMethod.GetReturnType();
@@ -407,7 +423,7 @@ public class ObjectFieldDescriptor
         }
 
         throw new ArgumentException(
-            TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
+            ObjectTypeDescriptor_MustBePropertyOrMethod,
             nameof(propertyOrMethod));
     }
 

@@ -168,14 +168,14 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddInputFormatter(
         this IServiceCollection services)
     {
-        services.TryAddSingleton(sp => new InputFormatter(sp.GetTypeConverter()));
+        services.TryAddSingleton(sp => new InputFormatter(sp.GetRequiredService<ITypeConverter>()));
         return services;
     }
 
     internal static IServiceCollection TryAddInputParser(
         this IServiceCollection services)
     {
-        services.TryAddSingleton(sp => new InputParser(sp.GetTypeConverter()));
+        services.TryAddSingleton(sp => new InputParser(sp.GetRequiredService<ITypeConverter>()));
         return services;
     }
 

@@ -20,24 +20,33 @@ QueryPlan
   "document": "query TopProducts { __typename topProducts(first: 2) { __typename reviews { __typename author { __typename } } } }",
   "operation": "TopProducts",
   "rootNode": {
-    "type": "Serial",
+    "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolver",
-        "subgraph": "Products",
-        "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: upc } }",
-        "selectionSetId": 0
+        "type": "Parallel",
+        "nodes": [
+          {
+            "type": "Introspect",
+            "document": "{ __typename }"
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "Products",
+            "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: id } }",
+            "selectionSetId": 0
+          }
+        ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           0
         ]
       },
       {
-        "type": "Resolver",
+        "type": "Resolve",
         "subgraph": "Reviews",
-        "document": "query TopProducts_2($__fusion_exports__1: Int!) { productById(upc: $__fusion_exports__1) { reviews { __typename author { __typename } } } }",
+        "document": "query TopProducts_2($__fusion_exports__1: ID!) { productById(id: $__fusion_exports__1) { reviews { __typename author { __typename } } } }",
         "selectionSetId": 1,
         "path": [
           "productById"
@@ -49,7 +58,7 @@ QueryPlan
         ]
       },
       {
-        "type": "Composition",
+        "type": "Compose",
         "selectionSetIds": [
           1
         ]

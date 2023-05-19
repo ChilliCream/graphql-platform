@@ -3,25 +3,10 @@ using HotChocolate.Fusion.Metadata;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class IntrospectionExecutionStep : IExecutionStep
+internal sealed class IntrospectionExecutionStep : ExecutionStep
 {
-    public IntrospectionExecutionStep(
-        string schemaNameName,
-        ObjectType selectionSetType,
-        ISelection? parentSelection)
+    public IntrospectionExecutionStep(ObjectTypeInfo queryTypeInfo)
+        : base(queryTypeInfo, null)
     {
-        SelectionSetType = selectionSetType;
-        ParentSelection = parentSelection;
-        SubgraphName = schemaNameName;
     }
-
-    public string SubgraphName { get; }
-
-    public ObjectType SelectionSetType { get; }
-
-    public ISelection? ParentSelection { get; }
-
-    public ResolverDefinition? Resolver => null;
-
-    public HashSet<IExecutionStep> DependsOn { get; } = new();
 }
