@@ -30,7 +30,7 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
         => new MessageEnumerable(_outgoing.Reader, _completed);
 
     /// <inheritdoc />
-    IAsyncEnumerable<object> ISourceStream.ReadEventsAsync()
+    IAsyncEnumerable<object?> ISourceStream.ReadEventsAsync()
         => new MessageEnumerableAsObject(_outgoing.Reader, _completed);
 
     /// <inheritdoc />
@@ -56,17 +56,41 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
             _completed = completed;
         }
 
-        public async IAsyncEnumerator<TMessage> GetAsyncEnumerator(
+        public IAsyncEnumerator<TMessage> GetAsyncEnumerator(
+            CancellationToken cancellationToken)
+            => new MessageEnumerator(_reader, _completed, cancellationToken);
+    }
+
+    private sealed class MessageEnumerator : IAsyncEnumerator<TMessage>
+    {
+        private readonly ChannelReader<TMessage> _reader;
+        private readonly TaskCompletionSource<bool> _completed;
+        private readonly CancellationToken _cancellationToken;
+
+        public MessageEnumerator(
+            ChannelReader<TMessage> reader,
+            TaskCompletionSource<bool> completed,
             CancellationToken cancellationToken)
         {
-            while (!_reader.Completion.IsCompleted)
+            _reader = reader;
+            _completed = completed;
+            _cancellationToken = cancellationToken;
+        }
+
+        public TMessage Current { get; private set; } = default!;
+
+        public async ValueTask<bool> MoveNextAsync()
+        {
+            try
             {
-                if (_reader.TryRead(out var message))
+                while (!_reader.Completion.IsCompleted)
                 {
-                    yield return message;
-                }
-                else
-                {
+                    if (_reader.TryRead(out var message))
+                    {
+                        Current = message;
+                        return true;
+                    }
+
                     if (_completed.Task.IsCompleted)
                     {
                         break;
@@ -81,13 +105,25 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
                     }
                 }
             }
+            catch
+            {
+                // ignore errors
+            }
+
+            return false;
 
             async Task WaitForMessages()
-                => await _reader.WaitToReadAsync(cancellationToken);
+                => await _reader.WaitToReadAsync(_cancellationToken);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            _completed.TrySetCanceled();
+            return default;
         }
     }
 
-    private sealed class MessageEnumerableAsObject : IAsyncEnumerable<object>
+    private sealed class MessageEnumerableAsObject : IAsyncEnumerable<object?>
     {
         private readonly ChannelReader<TMessage> _reader;
         private readonly TaskCompletionSource<bool> _completed;
@@ -100,17 +136,41 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
             _completed = completed;
         }
 
-        public async IAsyncEnumerator<object> GetAsyncEnumerator(
+        public IAsyncEnumerator<object?> GetAsyncEnumerator(
+            CancellationToken cancellationToken)
+            => new MessageEnumeratorAsObject(_reader, _completed, cancellationToken);
+    }
+
+    private sealed class MessageEnumeratorAsObject : IAsyncEnumerator<object?>
+    {
+        private readonly ChannelReader<TMessage> _reader;
+        private readonly TaskCompletionSource<bool> _completed;
+        private readonly CancellationToken _cancellationToken;
+
+        public MessageEnumeratorAsObject(
+            ChannelReader<TMessage> reader,
+            TaskCompletionSource<bool> completed,
             CancellationToken cancellationToken)
         {
-            while (!_reader.Completion.IsCompleted)
+            _reader = reader;
+            _completed = completed;
+            _cancellationToken = cancellationToken;
+        }
+
+        public object? Current { get; private set; }
+
+        public async ValueTask<bool> MoveNextAsync()
+        {
+            try
             {
-                if (_reader.TryRead(out var message))
+                while (!_reader.Completion.IsCompleted)
                 {
-                    yield return message!;
-                }
-                else
-                {
+                    if (_reader.TryRead(out var message))
+                    {
+                        Current = message;
+                        return true;
+                    }
+
                     if (_completed.Task.IsCompleted)
                     {
                         break;
@@ -125,9 +185,21 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
                     }
                 }
             }
+            catch
+            {
+                // ignore errors
+            }
+
+            return false;
 
             async Task WaitForMessages()
-                => await _reader.WaitToReadAsync(cancellationToken);
+                => await _reader.WaitToReadAsync(_cancellationToken);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            _completed.TrySetCanceled();
+            return default;
         }
     }
 }
