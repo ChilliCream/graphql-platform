@@ -272,6 +272,10 @@
               {
                 "path": "batching",
                 "title": "Batching"
+              },
+              {
+                "path": "command-line",
+                "title": "Command Line"
               }
             ]
           },
