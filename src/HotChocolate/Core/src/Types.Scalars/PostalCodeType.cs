@@ -8,7 +8,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// The PostalCode scalar type represents a valid postal code.
 /// </summary>
-#if NET7_0_OR_GREATER
+#if DISABLED_DUE_TO_COMPILER_ISSUE
 public partial class PostalCodeType : StringType
 #else
 public class PostalCodeType : StringType
@@ -38,7 +38,7 @@ public class PostalCodeType : StringType
         CreateRegexLu(),
     };
 
-#if NET7_0_OR_GREATER
+#if DISABLED_DUE_TO_COMPILER_ISSUE
     [GeneratedRegex(PostalCodePatterns.US, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexUs();
 
