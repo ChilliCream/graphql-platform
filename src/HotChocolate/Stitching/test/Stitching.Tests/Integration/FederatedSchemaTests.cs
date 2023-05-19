@@ -106,18 +106,55 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
         // act
         var result = await executor.ExecuteAsync(
             @"{
-                    me {
-                        id
-                        name
-                        reviews {
-                            body
-                            product {
-                                upc
-                            }
+                me {
+                    id
+                    name
+                    reviews {
+                        body
+                        product {
+                            upc
                         }
                     }
-                    local
-                }");
+                }
+                local
+            }");
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Skip_Field_With_Variable()
+    {
+        // arrange
+        var httpClientFactory = CreateDefaultRemoteSchemas();
+
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
+                .AddRemoteSchema(_accounts)
+                .AddRemoteSchema(_inventory)
+                .AddRemoteSchema(_products)
+                .AddRemoteSchema(_reviews)
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"query ($if: Boolean! = true) {
+                me {
+                    id
+                    name @skip(if: $if)
+                    reviews @skip(if: $if) {
+                        body
+                        product {
+                            upc
+                        }
+                    }
+                }
+                local
+            }");
 
         // assert
         result.ToJson().MatchSnapshot();

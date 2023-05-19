@@ -171,6 +171,10 @@
               {
                 "path": "relay",
                 "title": "Relay"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic Schemas"
               }
             ]
           },
@@ -303,6 +307,10 @@
               {
                 "path": "batching",
                 "title": "Batching"
+              },
+              {
+                "path": "command-line",
+                "title": "Command Line"
               }
             ]
           },
