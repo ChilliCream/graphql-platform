@@ -83,7 +83,11 @@
     "Mihsg",
     "Eciou",
     "cfnm",
-    "UHVQ"
+    "UHVQ",
+    "PKCE",
+    "URQL",
+    "unpublish",
+    "elete"
   ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links

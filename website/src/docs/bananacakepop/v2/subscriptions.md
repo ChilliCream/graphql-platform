@@ -21,7 +21,7 @@ You can cancel your subscription at any time. The subscription will remain activ
 
 To change your subscription plan, follow these steps:
 
-1. **Access the Management Portal:** Open the management portal by clicking ['Manage Organizations' -> 'Manage'](#managing-organisations) option in the context menu of the bcp or by navigating to [here](https://identity.chillicream.com/Organizations). 
+1. **Access the Management Portal:** Open the management portal by clicking ['Manage Organizations' -> 'Manage'](/docs/bananacakepop/v2/organizations#managing-organizations) option in the context menu of the bcp or by navigating to [here](https://identity.chillicream.com/Organizations). 
 
 2. **Navigate to Subscriptions:** Within the management portal, click on 'Manage' in the subscription section.
 ![Screenshot showing the subscription](images/subscription-3.png)
@@ -31,7 +31,7 @@ To change your subscription plan, follow these steps:
 
 # Expiry and Seats
 
-BCP's subscription model allows a certain number of users (seats) to join an organization based on your chosen subscription plan. 
+Banana Cake Pops subscription model allows a certain number of users (seats) to join an organization based on your chosen subscription plan. 
 
 If your subscription expires, all users except the organization owner will be deactivated a few days after the expiration. The deactivated users will regain access once the subscription is renewed.
 

@@ -19,10 +19,10 @@ The Schema Definition section displays the schema definition in SDL (Schema Defi
 The Document Status Indicator visually represents whether the current document is saved or not. A white dot indicates that the document is not saved, while a different icon may indicate a saved or modified state.
 
 # 5. Query Editor
-The Query Editor provides a dedicated space for writing your queries, mutations, and subscriptions. It offers features such as syntax highlighting, auto-completion, and error checking to assist in query composition. Learn more about using the query editor in the [Query Editor](/docs/bananacakepop/v2/documents/query-editor) guide.
+The Query Editor provides a dedicated space for writing your queries, mutations, and subscriptions. It offers features such as syntax highlighting, auto-completion, and error checking to assist in query composition. Learn more about using the query editor in the [Operations](/docs/bananacakepop/v2/documents/operations) guide.
 
 # 6. Response Pane
-The Response Pane displays the response of your queries, mutations, and subscriptions. It shows the data returned by the API and provides a structured view for easier analysis. Refer to the [Response Pane](/docs/bananacakepop/v2/documents/response-pane) guide for additional information.
+The Response Pane displays the response of your queries, mutations, and subscriptions. It shows the data returned by the API and provides a structured view for easier analysis. Refer to the [Response Pane](/docs/bananacakepop/v2/documents/response) guide for additional information.
 
 # 7. Schema Indicator
 The Schema Indicator is a visual cue that indicates the connection status with the GraphQL server and the successful retrieval of the schema. A green circle represents a connected state.
