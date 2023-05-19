@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 /// <a href="https://tools.ietf.org/html/rfc7042#page-19">RFC7042</a> and
 /// <a href="https://tools.ietf.org/html/rfc7043">RFC 7043</a> respectively.
 /// </summary>
-#if NET7_0_OR_GREATER
+#if BACKREFERENCE_NOT_SUPPORTED
 public partial class MacAddressType : RegexType
 #else
 public class MacAddressType : RegexType
@@ -21,7 +21,7 @@ public class MacAddressType : RegexType
         @"^(?:[0-9A-Fa-f]{2}([:-]?)[0-9A-Fa-f]{2})(?:(?:\1|\.)(?:[0-9A-Fa-f]{2}([:-]?)" +
         "[0-9A-Fa-f]{2})){2,3}$";
 
-#if NET7_0_OR_GREATER
+#if BACKREFERENCE_NOT_SUPPORTED
     [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 #else
