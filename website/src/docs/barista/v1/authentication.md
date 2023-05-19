@@ -22,5 +22,5 @@ After you have selected your workspace, your setup is complete and you're ready 
 
 The second method for authentication is via API keys. API keys are unique identifiers that grant access to your workspace without the need for interactive login. They are useful for automating tasks or for use in a Continuous Integration/Continuous Deployment (CI/CD) pipeline. 
 
-You can use the `api-key` subcommand in Barista to manage your API keys. How you can manage the api keys, you can read in the [API Key Management](#api-key-management) section. 
+You can use the `api-key` subcommand in Barista to manage your API keys. How you can manage the api keys, you can read in the [API Key Management](/docs/barista/v1/commands/api-key) section. 
 Remember to keep your API keys secure, as they provide full access to your workspace. If an API key is compromised, make sure to delete it and create a new one.

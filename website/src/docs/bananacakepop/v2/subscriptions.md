@@ -21,7 +21,7 @@ You can cancel your subscription at any time. The subscription will remain activ
 
 To change your subscription plan, follow these steps:
 
-1. **Access the Management Portal:** Open the management portal by clicking ['Manage Organizations' -> 'Manage'](#managing-organisations) option in the context menu of the bcp or by navigating to [here](https://identity.chillicream.com/Organizations). 
+1. **Access the Management Portal:** Open the management portal by clicking ['Manage Organizations' -> 'Manage'](/docs/bananacakepop/v2/organizations#managing-organisations) option in the context menu of the bcp or by navigating to [here](https://identity.chillicream.com/Organizations). 
 
 2. **Navigate to Subscriptions:** Within the management portal, click on 'Manage' in the subscription section.
 ![Screenshot showing the subscription](images/subscription-3.png)

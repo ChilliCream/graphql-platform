@@ -13,4 +13,4 @@ In Banana Cake Pop, you can switch between workspaces using the status bar.
 ![Screenshot showing the workspace and organisation switcher in the status bar](images/workspace-0.png)
 
 At the moment, workspaces can only be created with barista. To create a new workspace, use the `barista workspace create` command. 
-You can find out more about barista [here](/docs/bananacakepop/v2/barista).
+You can find out more about barista [here](/docs/barista/v1).

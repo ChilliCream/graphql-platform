@@ -37,6 +37,6 @@ app.MapGraphQL();
 app.Run();
 ```
 
-4. Retrieve the API id and API key from Barista using the `barista api list` and `barista api-key create` commands respectively. Instructions for these commands can be found [here](/docs/bananacakepop/v2/barista).
+4. Retrieve the API id and API key from Barista using the `barista api list` and `barista api-key create` commands respectively. Instructions for these commands can be found [here](/docs/barista/v1).
 
 Congratulations! You have successfully integrated BananaCake Pop into your HotChocolate server. You can now publish new versions of your clients and your server will automatically retrieve the latest persisted queries.
