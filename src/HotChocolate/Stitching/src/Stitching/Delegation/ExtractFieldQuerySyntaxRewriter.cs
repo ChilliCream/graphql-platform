@@ -111,8 +111,30 @@ public partial class ExtractFieldQuerySyntaxRewriter
                 name = new NameNode(sourceDirective.Name);
             }
 
+            var directives = node.Directives;
+
+            if (directives.Count > 0)
+            {
+                List<DirectiveNode>? temp = null;
+
+                foreach (var directive in directives)
+                {
+                    if (BuiltInTypes.IsBuiltInType(directive.Name.Value))
+                    {
+                        temp ??= new List<DirectiveNode>(directives);
+                        temp.Remove(directive);
+                    }
+                }
+
+                if (temp is not null)
+                {
+                    directives = temp;
+                }
+
+                directives = RewriteList(directives, cloned);
+            }
+
             var required = RewriteNodeOrDefault(node.Required, cloned);
-            var directives = RewriteList(node.Directives, cloned);
             var arguments = RewriteList(node.Arguments, cloned);
             var selectionSet = node.SelectionSet;
 
