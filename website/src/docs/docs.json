@@ -136,6 +136,10 @@
               {
                 "path": "relay",
                 "title": "Relay"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic Schemas"
               }
             ]
           },
