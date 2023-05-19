@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 /// <summary>
 /// Middleware that adds client configurations for subgraphs with the distributed fusion graph.
 /// </summary>
-internal sealed class RegisterClientMiddleware : IMergeMiddleware
+internal sealed class RegisterClientsMiddleware : IMergeMiddleware
 {
     /// <inheritdoc />
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
