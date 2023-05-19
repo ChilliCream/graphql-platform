@@ -9,7 +9,9 @@ You can find a example project in [Hot Chocolate Examples](https://github.com/Ch
 
 # Get Started
 
-To use the MongoDB integration, you need to install the package `HotChocolate.Data.MongoDb`.
+To use the MongoDB integration, you need to install these packages 
+1. `HotChocolate.Data.MongoDb`
+1. `HotChocolate.AspNetCore`
 
 <PackageInstallation packageName="HotChocolate.Data.MongoDb" />
 
