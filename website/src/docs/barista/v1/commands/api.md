@@ -1,5 +1,5 @@
 ---
-title: API Managemenet
+title: API Management
 ---
 
 The `barista api` command provides a set of subcommands that allow you to manage APIs.

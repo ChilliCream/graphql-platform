@@ -8,7 +8,7 @@ The status bar is a visual component located at the bottom of the application in
 
 1. **Connection Status:** This section indicates whether you are currently connected to the internet or not. When online, it means that any changes you make are being synchronized with the cloud.
 
-2. **User Info:** The section displays the emailidentifier of the user who is currently signed in to the application. It helps you identify the user account associated with the active session.
+2. **User Info:** The section displays the email of the user who is currently signed in to the application. It helps you identify the user account associated with the active session.
 
 3. **Selected Organization:** In this section, you can see the name of the organization that is currently selected. Clicking on this section allows you to change the organization or add a new one.
 ![Status Bar](./images/status-4.png)

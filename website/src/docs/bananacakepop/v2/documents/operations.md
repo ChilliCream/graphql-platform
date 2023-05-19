@@ -13,7 +13,7 @@ The Operations Editor is a text editor within the Operations Pane where you can 
 The Inline Run Button allows you to execute your query directly from the Operations Editor. By clicking this button, your query will be sent to the GraphQL server, and the response will be displayed in the Response Pane.
 
 # **3. Format Button**
-The Format Button helps you maintain proper query formatting according to common fromatting rules. When clicked, it automatically formats your query and updates the content in the Operations Editor.
+The Format Button helps you maintain proper query formatting according to common formatting rules. When clicked, it automatically formats your query and updates the content in the Operations Editor.
 
 # **4. Run Button**
 The Run Button enables you to execute your query with a single click. Similar to the Inline Run Button, clicking this button will send your query to the GraphQL server, and the response will be shown in the Response Pane.
