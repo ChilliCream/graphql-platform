@@ -5,10 +5,11 @@ using System.Text.Json;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Utilities;
+using static HotChocolate.Fusion.FusionResources;
 
 namespace HotChocolate.Fusion.Clients;
 
-internal sealed class HttpGraphQLClient : IGraphQLClient
+internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
 {
     private const string _jsonMediaType = "application/json";
     private const string _graphqlMediaType = "application/graphql-response+json";
@@ -17,7 +18,7 @@ internal sealed class HttpGraphQLClient : IGraphQLClient
     private HttpClientConfiguration _config;
     private readonly HttpClient _client;
 
-    public HttpGraphQLClient(
+    public DefaultHttpGraphQLClient(
         HttpClientConfiguration configuration,
         HttpClient httpClient)
     {
@@ -73,8 +74,7 @@ internal sealed class HttpGraphQLClient : IGraphQLClient
             return new GraphQLResponse(document);
         }
 
-        throw new InvalidContentTypeException(
-            FusionResources.GraphQLHttpClient_InvalidContentType);
+        throw new InvalidContentTypeException(GraphQLHttpClient_InvalidContentType);
     }
 
     private HttpRequestMessage CreateRequestMessage(ArrayWriter writer, GraphQLRequest request)
@@ -120,12 +120,10 @@ internal sealed class HttpGraphQLClient : IGraphQLClient
     }
 
     private static Stream GetTranscodingStream(Stream contentStream, Encoding sourceEncoding)
-    {
-        return Encoding.CreateTranscodingStream(
+        => Encoding.CreateTranscodingStream(
             contentStream,
             innerStreamEncoding: sourceEncoding,
-            outerStreamEncoding: Encoding.UTF8);
-    }
+            outerStreamEncoding: _utf8);
 
     public ValueTask DisposeAsync()
     {

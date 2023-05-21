@@ -6,12 +6,12 @@ using HotChocolate.Transport.Sockets.Client;
 
 namespace HotChocolate.Fusion.Clients;
 
-internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionClient
+public abstract class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionClient
 {
     private readonly WebSocketClientConfiguration _configuration;
     private readonly IWebSocketConnection _connection;
 
-    public WebSocketGraphQLSubscriptionClient(
+    protected WebSocketGraphQLSubscriptionClient(
         WebSocketClientConfiguration configuration,
         IWebSocketConnection connection)
     {
@@ -52,7 +52,7 @@ internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
                 variables: request.VariableValues,
                 extensions: request.Extensions);
 
-            await using var client = await SocketClient.ConnectAsync(socket, ct)
+            await using var client = await ConnectAsync(request, socket, ct)
                 .ConfigureAwait(false);
             using var socketResult = await client.ExecuteAsync(operationRequest, ct)
                 .ConfigureAwait(false);
@@ -80,6 +80,12 @@ internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
             }
         }
     }
+
+    protected virtual ValueTask<SocketClient> ConnectAsync(
+        GraphQLRequest request,
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
+        => SocketClient.ConnectAsync(webSocket, cancellationToken);
 
     private static async Task CloseWebSocketAsync(
         WebSocket webSocket,
