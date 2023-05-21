@@ -15,7 +15,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
     private const string _graphqlMediaType = "application/graphql-response+json";
     private static readonly Encoding _utf8 = Encoding.UTF8;
     private readonly JsonRequestFormatter _formatter = new();
-    private HttpClientConfiguration _config;
+    private readonly HttpClientConfiguration _config;
     private readonly HttpClient _client;
 
     public DefaultHttpGraphQLClient(
