@@ -1456,46 +1456,16 @@
             "path": "commands",
             "title": "Commands",
             "items": [
-              {
-                "path": "api-key",
-                "title": "api-key"
-              },
-              {
-                "path": "schema",
-                "title": "schema"
-              },
-              {
-                "path": "client",
-                "title": "client"
-              },
-              {
-                "path": "environment",
-                "title": "environment"
-              },
-              {
-                "path": "launch",
-                "title": "launch"
-              },
-              {
-                "path": "login",
-                "title": "login"
-              },
-              {
-                "path": "logout",
-                "title": "logout"
-              },
-              {
-                "path": "schema",
-                "title": "schema"
-              },
-              {
-                "path": "stage",
-                "title": "stage"
-              },
-              {
-                "path": "workspace",
-                "title": "workspace"
-              }
+              { "path": "api-key", "title": "api-key" },
+              { "path": "api", "title": "api" },
+              { "path": "client", "title": "client" },
+              { "path": "environment", "title": "environment" },
+              { "path": "launch", "title": "launch" },
+              { "path": "login", "title": "login" },
+              { "path": "logout", "title": "logout" },
+              { "path": "schema", "title": "schema" },
+              { "path": "stage", "title": "stage" },
+              { "path": "workspace", "title": "workspace" }
             ]
           }
         ]
