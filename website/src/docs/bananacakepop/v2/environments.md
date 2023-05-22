@@ -4,7 +4,7 @@ title: Environments
 
 Environment variable provide a mechanism for reusing specific values across multiple documents. These variables are defined as key-value pairs.
 
-Frequently used data, like URLs, tokens, and credentials, are commonly centerally managed as environment variable. 
+Frequently used data, like URLs, tokens, and credentials, are commonly centrally managed as environment variable. 
 By doing so, these values can be referenced in your documents and changed in a single location for all you documents. You can also quickly switch between different values for different environments. 
 
 For instance, you might store your API key as an environment variable, allowing it to be used universally in all your documents. 
@@ -14,7 +14,7 @@ You can define multiple environments for a single workspace corresponding to var
 
 When you have different project stages such as such as development (`https://serivce1.dev.company.com`), testing (`https://serivce1.test.company.com`), and production (`https://serivce1.prod.company.com`), you can for example set up the dynamic part of the url as a variable URL and incorporate it in all your urls (`https://serivce1.{{subdomain}}.company.com`). 
 By switching the active environment in Banana Cake Pop, the base URL will update automatically, streamlining your workflow. 
-Similarly, identifiers such as client ID and client secret can be defined as environment variable, which make it convnient to work with.
+Similarly, identifiers such as client ID and client secret can be defined as environment variable, which make it convenient to work with.
 
 # Creating Environments
 ![Screenshot showing the environment](images/env-0.png)
@@ -27,7 +27,7 @@ To create a new environment, follow these steps:
 ![Screenshot showing the environment](images/env-1.png)
 You can rename by right-clicking on the environment and selecting the 'Rename' option. 
 
-# Specifiying Variables
+# Specifying Variables
 ![Screenshot showing the environment](images/env-2.png)
 
 To open the environment variable editor, click on the environment you would like to edit.
