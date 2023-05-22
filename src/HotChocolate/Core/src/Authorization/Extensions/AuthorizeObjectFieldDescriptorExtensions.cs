@@ -86,7 +86,39 @@ public static class AuthorizeObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        return descriptor.Directive(new AuthorizeDirective(roles));
+        descriptor.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+
+        return descriptor.Directive(new AuthorizeDirective(roles, apply: ApplyPolicy.Validation));
+    }
+
+    /// <summary>
+    /// Adds authorization to a field.
+    /// </summary>
+    /// <param name="descriptor">The field descriptor.</param>
+    /// <param name="roles">The roles for which this field shall be accessible.</param>
+    /// <param name="apply">Defines when the authorization policy is invoked.</param>
+    /// <returns>
+    /// Returns the <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectFieldDescriptor Authorize(
+        this IObjectFieldDescriptor descriptor,
+        string[] roles,
+        ApplyPolicy apply = ApplyPolicy.Validation)
+    {
+        if (descriptor == null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        if (apply is ApplyPolicy.Validation)
+        {
+            descriptor.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+        }
+
+        return descriptor.Directive(new AuthorizeDirective(roles, apply: apply));
     }
 
     /// <summary>
