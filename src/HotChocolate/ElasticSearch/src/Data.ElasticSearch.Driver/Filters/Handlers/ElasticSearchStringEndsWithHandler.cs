@@ -48,6 +48,7 @@ public class ElasticSearchStringEndsWithHandler
 
         return new WildCardOperation(
             context.GetPath(),
+            context.Boost,
             metadata.Kind,
             WildCardOperationKind.EndsWith,
             val);

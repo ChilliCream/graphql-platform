@@ -40,6 +40,6 @@ public class ElasticSearchInOperationHandler
             throw new InvalidOperationException();
         }
 
-        return new TermOperation(context.GetPath(), ElasticSearchOperationKind.Filter, parsedValue);
+        return new TermOperation(context.GetPath(), context.Boost, ElasticSearchOperationKind.Filter, parsedValue);
     }
 }

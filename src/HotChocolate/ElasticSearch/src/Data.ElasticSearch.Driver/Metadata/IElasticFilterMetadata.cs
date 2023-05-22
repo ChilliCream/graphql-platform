@@ -16,5 +16,7 @@ public interface IElasticFilterMetadata : IFilterMetadata
     /// <summary>
     /// The path override for this field
     /// </summary>
-    string? Path { get; }
+    string? Field { get; }
+
+    int Boost { get; set; }
 }

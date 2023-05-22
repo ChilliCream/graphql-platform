@@ -46,6 +46,7 @@ public class ElasticSearchStringStartsWithHandler
 
         return new WildCardOperation(
             context.GetPath(),
+            context.Boost,
             metadata.Kind,
             WildCardOperationKind.StartsWith,
             val);

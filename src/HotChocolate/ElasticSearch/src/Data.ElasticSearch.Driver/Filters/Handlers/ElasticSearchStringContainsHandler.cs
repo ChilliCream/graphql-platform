@@ -48,6 +48,7 @@ public class ElasticSearchStringContainsHandler
 
         return new WildCardOperation(
             context.GetPath(),
+            context.Boost,
             metadata.Kind,
             WildCardOperationKind.Contains,
             val);

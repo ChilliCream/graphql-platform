@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.ElasticSearch.Filters;
 using Nest;
 
@@ -57,7 +54,12 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     /// <inheritdoc />
     protected override IQuery Rewrite(MatchOperation operation)
     {
-        return new MatchQuery { Field = operation.Path, Query = operation.Value };
+        return new MatchQuery
+        {
+            Field = operation.Field,
+            Query = operation.Value,
+            Boost = operation.Boost
+        };
     }
 
     /// <inheritdoc />
@@ -65,11 +67,12 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     {
         return new NumericRangeQuery
         {
-            Field = operation.Path,
+            Field = operation.Field,
             GreaterThan = operation.GreaterThan?.Value,
             LessThan = operation.LowerThan?.Value,
             GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
-            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
+            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value,
+            Boost = operation.Boost
         };
     }
 
@@ -78,11 +81,12 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     {
         return new LongRangeQuery
         {
-            Field = operation.Path,
+            Field = operation.Field,
             GreaterThan = operation.GreaterThan?.Value,
             LessThan = operation.LowerThan?.Value,
             GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
-            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
+            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value,
+            Boost = operation.Boost
         };
     }
 
@@ -91,11 +95,12 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     {
         return new TermRangeQuery
         {
-            Field = operation.Path,
+            Field = operation.Field,
             GreaterThan = operation.GreaterThan?.Value,
             LessThan = operation.LowerThan?.Value,
             GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
-            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
+            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value,
+            Boost = operation.Boost
         };
     }
 
@@ -104,11 +109,12 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     {
         return new DateRangeQuery
         {
-            Field = operation.Path,
+            Field = operation.Field,
             GreaterThan = operation.GreaterThan?.Value,
             LessThan = operation.LowerThan?.Value,
             GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
-            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
+            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value,
+            Boost = operation.Boost
         };
     }
 
@@ -117,38 +123,45 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     {
         return new TermQuery
         {
-            Field = operation.Path,
-            Value = operation.Value
+            Field = operation.Field,
+            Value = operation.Value,
+            Boost = operation.Boost
         };
     }
 
     /// <inheritdoc />
     protected override IQuery Rewrite(WildCardOperation operation)
     {
-        return operation.WildCardOperationKind switch
+        var query = operation.WildCardOperationKind switch
         {
             WildCardOperationKind.StartsWith => new WildcardQuery
             {
-                Field = operation.Path,
+                Field = operation.Field,
                 Wildcard = $"{operation.Value}*"
             },
             WildCardOperationKind.EndsWith => new WildcardQuery
             {
-                Field = operation.Path,
+                Field = operation.Field,
                 Wildcard = $"*{operation.Value}"
             },
             WildCardOperationKind.Contains => new WildcardQuery
             {
-                Field = operation.Path,
+                Field = operation.Field,
                 Wildcard = $"*{operation.Value}*"
             },
             _ => throw new InvalidOperationException()
         };
+        query.Boost = operation.Boost;
+        return query;
     }
 
     /// <inheritdoc />
     protected override IQuery Rewrite(ExistsOperation operation)
-        => new ExistsQuery { Field = operation.Field };
+        => new ExistsQuery
+        {
+            Field = operation.Field,
+            Boost = operation.Boost
+        };
 
     /// <summary>
     /// The instance of the rewriter

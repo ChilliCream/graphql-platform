@@ -4,5 +4,7 @@ public interface ILeafSearchOperation : ISearchOperation
 {
     ElasticSearchOperationKind Kind { get; }
 
-    string Path { get; }
+    string Field { get; }
+
+    int Boost { get; }
 }

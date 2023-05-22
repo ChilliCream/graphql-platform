@@ -4,15 +4,19 @@ public class TermOperation : ILeafSearchOperation
 {
     public TermOperation(
         string path,
+        int boost,
         ElasticSearchOperationKind kind,
         object value)
     {
-        Path = path;
+        Field = path;
+        Boost = boost;
         Value = value;
         Kind = kind;
     }
 
-    public string Path { get; }
+    public string Field { get; }
+
+    public int Boost { get; }
 
     public object Value { get; }
 

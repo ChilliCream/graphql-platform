@@ -7,7 +7,10 @@ public class ElasticFilterMetadata : IElasticFilterMetadata
     public ElasticSearchOperationKind Kind { get; set; } = ElasticSearchOperationKind.Filter;
 
     /// <inheritdoc />
-    public string? Path { get; set; }
+    public string? Field { get; set; }
+
+    /// <inheritdoc />
+    public int Boost { get; set; }
 
     /// <summary>
     /// The default of the <see cref="ElasticFilterMetadata"/>

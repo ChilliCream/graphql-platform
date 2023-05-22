@@ -4,13 +4,17 @@ public class RangeOperation<T> : ILeafSearchOperation
 {
     public RangeOperation(
         string path,
+        int boost,
         ElasticSearchOperationKind kind)
     {
-        Path = path;
+        Field = path;
+        Boost = boost;
         Kind = kind;
     }
 
-    public string Path { get; }
+    public string Field { get; }
+
+    public int Boost { get; }
 
     public RangeOperationValue<T>? GreaterThan { get; init; }
 

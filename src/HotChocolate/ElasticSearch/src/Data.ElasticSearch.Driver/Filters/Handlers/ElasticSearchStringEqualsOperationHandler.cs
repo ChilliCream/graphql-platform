@@ -44,6 +44,6 @@ public class ElasticSearchStringEqualsOperationHandler
 
         var metadata = field.GetElasticMetadata();
 
-        return new MatchOperation(context.GetPath(), metadata.Kind, val);
+        return new MatchOperation(context.GetPath(), context.Boost, metadata.Kind, val);
     }
 }

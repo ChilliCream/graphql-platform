@@ -20,19 +20,19 @@ public class ElasticSearchComparableGreaterThanOrEqualsHandler : ElasticSearchCo
     {
         return parsedValue switch
         {
-            double doubleVal => new RangeOperation<double>(context.GetPath(), ElasticSearchOperationKind.Filter)
+            double doubleVal => new RangeOperation<double>(context.GetPath(), context.Boost, ElasticSearchOperationKind.Filter)
             {
                 GreaterThanOrEquals = new RangeOperationValue<double>(doubleVal)
             },
-            float floatValue => new RangeOperation<double>(context.GetPath(), ElasticSearchOperationKind.Filter)
+            float floatValue => new RangeOperation<double>(context.GetPath(), context.Boost, ElasticSearchOperationKind.Filter)
             {
                 GreaterThanOrEquals = new RangeOperationValue<double>(floatValue)
             },
-            string stringValue => new RangeOperation<string>(context.GetPath(), ElasticSearchOperationKind.Filter)
+            string stringValue => new RangeOperation<string>(context.GetPath(), context.Boost, ElasticSearchOperationKind.Filter)
             {
                 GreaterThanOrEquals = new RangeOperationValue<string>(stringValue)
             },
-            DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), ElasticSearchOperationKind.Filter)
+            DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), context.Boost, ElasticSearchOperationKind.Filter)
             {
                 GreaterThanOrEquals = new RangeOperationValue<DateTime>(dateTimeVal)
             },
