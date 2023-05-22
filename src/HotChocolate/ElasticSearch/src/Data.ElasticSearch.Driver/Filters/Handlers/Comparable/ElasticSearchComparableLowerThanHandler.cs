@@ -1,8 +1,6 @@
 ﻿using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Data.ElasticSearch.ElasticSearchOperationKind;
-using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters.Comparable;
 
@@ -14,56 +12,29 @@ public class ElasticSearchComparableLowerThanHandler : ElasticSearchComparableOp
     }
 
     /// <inheritdoc />
-    protected override int Operation => LowerThan;
+    protected override int Operation => DefaultFilterOperations.LowerThan;
 
     /// <inheritdoc />
-    public override ISearchOperation HandleOperation(
-        ElasticSearchFilterVisitorContext context,
-        IFilterOperationField field,
-        IValueNode value,
-        object? parsedValue)
+    public override ISearchOperation HandleOperation(ElasticSearchFilterVisitorContext context, IFilterOperationField field,
+        IValueNode value, object? parsedValue)
     {
         return parsedValue switch
         {
-            double doubleVal => new RangeOperation<double>(context.GetPath(), Filter)
+            double doubleVal => new RangeOperation<double>(context.GetPath(), ElasticSearchOperationKind.Filter)
             {
-                LowerThan = doubleVal
+                LowerThan = new RangeOperationValue<double>(doubleVal)
             },
-            float floatValue => new RangeOperation<double>(context.GetPath(), Filter)
+            float floatValue => new RangeOperation<double>(context.GetPath(), ElasticSearchOperationKind.Filter)
             {
-                LowerThan = floatValue
+                LowerThan = new RangeOperationValue<double>(floatValue)
             },
-            sbyte sbyteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            string stringValue => new RangeOperation<string>(context.GetPath(), ElasticSearchOperationKind.Filter)
             {
-                LowerThan = sbyteValue
+                LowerThan = new RangeOperationValue<string>(stringValue)
             },
-            byte byteValue => new RangeOperation<long>(context.GetPath(), Filter)
+            DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), ElasticSearchOperationKind.Filter)
             {
-                LowerThan = byteValue
-            },
-            short shortValue => new RangeOperation<long>(context.GetPath(), Filter)
-            {
-                LowerThan = shortValue
-            },
-            ushort uShortValue => new RangeOperation<long>(context.GetPath(), Filter)
-            {
-                LowerThan = uShortValue
-            },
-            uint uIntValue => new RangeOperation<long>(context.GetPath(), Filter)
-            {
-                LowerThan = uIntValue
-            },
-            int intValue => new RangeOperation<long>(context.GetPath(), Filter)
-            {
-                LowerThan = intValue
-            },
-            long longValue => new RangeOperation<long>(context.GetPath(), Filter)
-            {
-                LowerThan = longValue
-            },
-            DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), Filter)
-            {
-                LowerThan = dateTimeVal
+                LowerThan = new RangeOperationValue<DateTime>(dateTimeVal)
             },
             _ => throw new InvalidOperationException()
         };

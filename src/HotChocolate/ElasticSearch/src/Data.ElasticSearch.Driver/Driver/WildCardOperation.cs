@@ -6,7 +6,7 @@ public class WildCardOperation : ILeafSearchOperation
         string path,
         ElasticSearchOperationKind kind,
         WildCardOperationKind wildCardOperationKind,
-        string value)
+        object value)
     {
         Path = path;
         Value = value;
@@ -16,9 +16,16 @@ public class WildCardOperation : ILeafSearchOperation
 
     public string Path { get; }
 
-    public string Value { get; }
+    public object Value { get; }
 
     public ElasticSearchOperationKind Kind { get; }
 
     public WildCardOperationKind WildCardOperationKind { get; }
+}
+
+public enum WildCardOperationKind
+{
+    StartsWith,
+    EndsWith,
+    Contains
 }

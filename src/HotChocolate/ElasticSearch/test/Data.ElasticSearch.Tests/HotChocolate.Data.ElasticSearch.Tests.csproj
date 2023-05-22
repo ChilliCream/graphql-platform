@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\ElasticSearch\src\Data.ElasticSearch\HotChocolate.Data.ElasticSearch.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="__snapshots__" />
+    <Folder Include="__snapshots__\__mismatch__" />
   </ItemGroup>
 
 </Project>
