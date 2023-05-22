@@ -60,11 +60,10 @@ public class ProjectionConventionExtensionsTests
     public void Merge_Should_Merge_ProviderExtensionsTypes()
     {
         // arrange
-        var convention =
-            new MockProjectionConvention(x => x.AddProviderExtension<MockProviderExtensions>());
-        var extension =
-            new ProjectionConventionExtension(
-                x => x.AddProviderExtension<MockProviderExtensions>());
+        var convention = new MockProjectionConvention(
+            x => x.AddProviderExtension<MockProviderExtensions>());
+        var extension = new ProjectionConventionExtension(
+            x => x.AddProviderExtension<MockProviderExtensions>());
         var context = new ConventionContext(
             "Scope",
             new ServiceCollection().BuildServiceProvider(),
@@ -86,10 +85,11 @@ public class ProjectionConventionExtensionsTests
     {
         // arrange
         var provider1 = new MockProviderExtensions();
-        var convention = new MockProjectionConvention(x => x.AddProviderExtension(provider1));
+        var convention = new MockProjectionConvention(
+            x => x.AddProviderExtension(provider1));
         var provider2 = new MockProviderExtensions();
-        var extension =
-            new ProjectionConventionExtension(x => x.AddProviderExtension(provider2));
+        var extension = new ProjectionConventionExtension(
+            x => x.AddProviderExtension(provider2));
         var context = new ConventionContext(
             "Scope",
             new ServiceCollection().BuildServiceProvider(),
