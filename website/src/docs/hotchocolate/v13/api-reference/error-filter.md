@@ -6,7 +6,7 @@ GraphQL errors in Hot Chocolate are passed to the query result by returning an i
 
 Moreover, you can throw a `QueryException` that will be be caught by the query engine and translated to a field error.
 
-One further way to raise an error are non-terminating field errors. This can be raised by using `IResolverContext.RaiseError`. So, with this you can provide a result and raise an error for your current field.
+One further way to raise an error are non-terminating field errors. This can be raised by using `IResolverContext.ReportError`. So, with this you can provide a result and raise an error for your current field.
 
 > If you do want to log errors head over to our diagnostic source [documentation](/docs/hotchocolate/v13/server/instrumentation) and see how you can hook up your logging framework of choice to it.
 
