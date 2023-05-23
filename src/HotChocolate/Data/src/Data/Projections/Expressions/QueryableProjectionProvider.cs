@@ -116,15 +116,14 @@ public class QueryableProjectionProvider : ProjectionProvider
             var skipProjection =
                 context.LocalContextData.TryGetValue(SkipProjectionKey, out var skip) &&
                 skip is true;
-
-            // ensure sorting is only applied once
-            context.LocalContextData =
-                context.LocalContextData.SetItem(SkipProjectionKey, true);
-
             if (skipProjection)
             {
                 return input;
             }
+
+            // ensure projection is only applied once
+            context.LocalContextData =
+                context.LocalContextData.SetItem(SkipProjectionKey, true);
 
             var inMemory = IsInMemoryQuery<TEntityType>(input);
 
