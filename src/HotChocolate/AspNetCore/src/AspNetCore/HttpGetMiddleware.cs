@@ -35,9 +35,8 @@ public sealed class HttpGetMiddleware : MiddlewareBase
     public async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsGet(context.Request.Method) &&
-            (!_matchUrl.HasValue ||
-                (context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
-                !subPath.HasValue)) &&
+            (ParseContentType(context) is RequestContentType.Json ||
+                context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight)) &&
             GetOptions(context).EnableGetRequests)
         {
             if (!IsDefaultSchema)
