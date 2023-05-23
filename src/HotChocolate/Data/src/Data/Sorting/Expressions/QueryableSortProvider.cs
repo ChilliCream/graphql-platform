@@ -200,11 +200,16 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
                 context.LocalContextData.TryGetValue(SkipSortingKey, out var skip) &&
                 skip is true;
 
+            if (skipSorting)
+            {
+                return input;
+            }
+
             // ensure sorting is only applied once
             context.LocalContextData =
                 context.LocalContextData.SetItem(SkipSortingKey, true);
 
-            if (sort.IsNull() || skipSorting)
+            if (sort.IsNull())
             {
                 return input;
             }
