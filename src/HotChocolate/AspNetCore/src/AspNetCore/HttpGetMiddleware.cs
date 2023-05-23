@@ -38,7 +38,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             (!_matchUrl.HasValue ||
                 (context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
                 !subPath.HasValue)) &&
-            (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
+            GetOptions(context).EnableGetRequests)
         {
             if (!IsDefaultSchema)
             {
@@ -141,7 +141,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         // after successfully parsing the request we now will attempt to execute the request.
         try
         {
-            var options = context.GetGraphQLServerOptions();
+            var options = GetOptions(context);
 
             if (options is null or { AllowedGetOperations: AllowedGetOperations.Query })
             {
