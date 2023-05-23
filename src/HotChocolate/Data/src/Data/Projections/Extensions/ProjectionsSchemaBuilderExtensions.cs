@@ -45,21 +45,17 @@ public static class ProjectionsSchemaBuilderExtensions
         builder
             .ModifyOptions(x => x.DefaultIsOfTypeCheck = (type, context, result) =>
             {
-                if (Temp.OfType.TryGetValue(((Selection)context.Selection).Id, out var ofType))
+                var selection = (Selection)context.Selection;
+                if (Temp.OfType.TryGetValue(selection.Id, out var ofType))
                 {
                     return ofType(result, type);
                 }
                 else if (type.RuntimeType != typeof(object))
                 {
-                    return result is null || type.RuntimeType == result.GetType();
+                    return type.RuntimeType == result.GetType();
                 }
                 else
                 {
-                    if (result is null)
-                    {
-                        return true;
-                    }
-
                     Type resultType = result.GetType();
                     return type.Name.Equals(resultType.Name, StringComparison.Ordinal);
                 }

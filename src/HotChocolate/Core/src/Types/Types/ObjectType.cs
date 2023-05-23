@@ -165,10 +165,6 @@ public partial class ObjectType
 
 public class Temp
 {
-    public static Dictionary<IImmutableStack<IObjectField>, Func<object[], object>> Factories
-    {
-        get;
-    } = new();
 
     public static Dictionary<int, Func<object[], object>> ValueConverter { get; } = new();
 

@@ -117,7 +117,7 @@ public class Selection : ISelection
     public int SelectionSetId { get; private set; }
 
     /// <inheritdoc />
-    public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
+    public SelectionSetNode? SelectionSet => SyntaxNode?.SelectionSet;
 
     /// <inheritdoc />
     public string ResponseName { get; }

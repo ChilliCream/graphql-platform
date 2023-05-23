@@ -81,13 +81,21 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
 
 public class RewriteToIndexerOptimizer : IProjectionOptimizer
 {
+    private static class Temp1
+    {
+        public static Dictionary<SelectionPath, Func<object[], object>> Factories
+        {
+            get;
+        } = new();
+    }
+
     public bool CanHandle(ISelection field) => field.DeclaringType is ObjectType;
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
-        if (!Temp.Factories.TryGetValue(context.Path, out var converter))
+        if (!Temp1.Factories.TryGetValue(context.Path, out var converter))
         {
             var runtimeType = context.Type.RuntimeType;
             if (runtimeType == typeof(object))
@@ -100,8 +108,8 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
             }
             else
             {
-                MemberInfo?[] memberInfos =
-                    context.Fields.Select(x => x.Value.Field.Member).ToArray();
+                var memberInfos =
+                    context.Selections.Select(x => x.Value.Field.Member).ToArray();
 
                 converter = o =>
                 {
@@ -118,11 +126,14 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
                 };
             }
 
-            Temp.Factories.Add(context.Path, converter);
+            Temp1.Factories.Add(context.Path, converter);
         }
-        for (var i = 0; i < context.SelectionSet.Selections.Count; i++)
+
+        using var selectionEnumerator = context.Selections.Values.GetEnumerator();
+        int i = 0;
+        while (selectionEnumerator.MoveNext())
         {
-            ISelectionNode selectionNode = context.SelectionSet.Selections[i];
+            var selectionNode = selectionEnumerator.Current.SyntaxNode;
 
             if (selectionNode is FieldNode fn &&
                 selection.ResponseName == (fn.Alias?.Value ?? fn.Name.Value))
@@ -138,9 +149,8 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
                                 return false;
                             }
 
-                            return values[values.Length - 1].Equals(type.Name.Value);
+                            return values[^1].Equals(type.Name);
                         });
-
                 }
                 Temp.ValueConverter[selection.Id] = converter;
                 // TODO check if this really works
@@ -153,11 +163,12 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
                             selection.Id,
                             selection.DeclaringType,
                             selection.Field,
+                            selection.Type,
                             selection.SyntaxNode,
-                            null,
-                            c => c.Parent<object[]>()[index],
+                            selection.ResponseName,
+                            pureResolver: c => c.Parent<object[]>()[index],
                             arguments: selection.Arguments,
-                            internalSelection: false);
+                            isInternal: false);
                     }
                     else
                     {
@@ -178,13 +189,17 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
                             selection.Id,
                             selection.DeclaringType,
                             selection.Field,
+                            selection.Type,
                             selection.SyntaxNode,
-                            resolverPipeline,
+                            selection.ResponseName,
                             arguments: selection.Arguments,
-                            internalSelection: false);
+                            resolverPipeline: resolverPipeline,
+                            isInternal: false);
                     }
                 }
             }
+
+            i++;
         }
 
         return selection;

@@ -128,7 +128,7 @@ public class QueryableProjectionVisitorScalarTests
                 .SetQuery("{ root{ baz extended }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        res1.MatchSnapshot();
     }
 
     public class Foo

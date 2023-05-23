@@ -192,7 +192,7 @@ public class QueryableProjectionFilterTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        res1.MatchSnapshot();
     }
 
     [Fact]

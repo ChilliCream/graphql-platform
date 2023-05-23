@@ -32,7 +32,7 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
             var res = base.VisitObjectType(field, objectType, selection, context);
 
             context.PopInstance();
-            scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop().Append(Expression.Constant(objectType.Name.Value)));
+            scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop().Append(Expression.Constant(objectType.Name)));
 
             return res;
         }
