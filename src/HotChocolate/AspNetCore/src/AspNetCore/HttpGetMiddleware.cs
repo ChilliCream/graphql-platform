@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
+using static HotChocolate.AspNetCore.Serialization.DefaultHttpRequestParser;
 using static HotChocolate.Execution.GraphQLRequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -39,6 +40,11 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             var options = GetOptions(context);
 
             if (options.EnableGetRequests &&
+
+                // Verify that the request is relevant to this middleware.
+                (context.Request.Query.ContainsKey(QueryKey) ||
+                    context.Request.Query.ContainsKey(QueryIdKey) ||
+                    context.Request.Query.ContainsKey(ExtensionsKey)) &&
 
                 // Allow ALL GET requests if we do NOT enforce preflight
                 // requests on HTTP GraphQL GET requests

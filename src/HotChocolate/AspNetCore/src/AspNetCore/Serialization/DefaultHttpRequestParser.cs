@@ -10,11 +10,11 @@ namespace HotChocolate.AspNetCore.Serialization;
 internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
     private const int _minRequestSize = 256;
-    private const string _queryIdIdentifier = "id";
-    private const string _operationNameIdentifier = "operationName";
-    private const string _queryIdentifier = "query";
-    private const string _variablesIdentifier = "variables";
-    private const string _extensionsIdentifier = "extensions";
+    internal const string QueryIdKey = "id";
+    private const string _operationNameKey = "operationName";
+    internal const string QueryKey = "query";
+    private const string _variablesKey = "variables";
+    internal const string ExtensionsKey = "extensions";
 
     private readonly IDocumentCache _documentCache;
     private readonly IDocumentHashProvider _documentHashProvider;
@@ -46,9 +46,9 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     public GraphQLRequest ReadParamsRequest(IQueryCollection parameters)
     {
         // next we deserialize the GET request with the query request builder ...
-        string? query = parameters[_queryIdentifier];
-        string? queryId = parameters[_queryIdIdentifier];
-        string? operationName = parameters[_operationNameIdentifier];
+        string? query = parameters[QueryKey];
+        string? queryId = parameters[QueryIdKey];
+        string? operationName = parameters[_operationNameKey];
         IReadOnlyDictionary<string, object?>? extensions = null;
 
         // if we have no query or query id we cannot execute anything.
@@ -57,7 +57,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             // so, if we do not find a top-level query or top-level id we will try to parse
             // the extensions and look in the extensions for Apollo`s active persisted
             // query extensions.
-            if ((string?)parameters[_extensionsIdentifier] is { Length: > 0 } se)
+            if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -90,13 +90,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             IReadOnlyDictionary<string, object?>? variables = null;
 
             // if we find variables we do need to parse them
-            if ((string?)parameters[_variablesIdentifier] is { Length: > 0 } sv)
+            if ((string?)parameters[_variablesKey] is { Length: > 0 } sv)
             {
                 variables = ParseVariables(sv);
             }
 
             if (extensions is null &&
-                (string?)parameters[_extensionsIdentifier] is { Length: > 0 } se)
+                (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
