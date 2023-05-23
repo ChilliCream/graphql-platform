@@ -127,6 +127,20 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
             {
                 File.Delete(tempFile);
             }
+
+            // remove the temp directory.
+            var tempDirectory = GetDirectoryName(tempFile);
+            if (Directory.Exists(tempDirectory))
+            {
+                try
+                {
+                    Directory.Delete(tempDirectory);
+                }
+                catch (IOException)
+                {
+                    // ignore error when directory is not empty.
+                }
+            }
         }
 
         return !hasErrors;
