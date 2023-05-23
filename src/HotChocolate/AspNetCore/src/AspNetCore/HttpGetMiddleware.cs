@@ -34,27 +34,40 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (HttpMethods.IsGet(context.Request.Method) &&
-            (ParseContentType(context) is RequestContentType.Json ||
-                context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight)) &&
-            GetOptions(context).EnableGetRequests)
+        if (HttpMethods.IsGet(context.Request.Method))
         {
-            if (!IsDefaultSchema)
-            {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName;
-            }
+            var options = GetOptions(context);
 
-            using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
+            if (options.EnableGetRequests &&
+
+                // Allow ALL GET requests if we do NOT enforce preflight
+                // requests on HTTP GraphQL GET requests
+                (!options.EnforceGetRequestsPreflightHeader ||
+
+                    // Allow HTTP GraphQL GET requests if the preflight header is set.
+                    context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) ||
+
+                    // Allow HTTP GraphQL GET requests if the content type is set to
+                    // application/json.
+                    ParseContentType(context) is RequestContentType.Json))
             {
-                await HandleRequestAsync(context);
+                if (!IsDefaultSchema)
+                {
+                    context.Items[WellKnownContextData.SchemaName] = SchemaName;
+                }
+
+                using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
+                {
+                    await HandleRequestAsync(context);
+                }
+
+                return;
             }
         }
-        else
-        {
-            // if the request is not a get request or if the content type is not correct
-            // we will just invoke the next middleware and do nothing.
-            await NextAsync(context);
-        }
+
+        // if the request is not a get request or if the content type is not correct
+        // we will just invoke the next middleware and do nothing.
+        await NextAsync(context);
     }
 
     private async Task HandleRequestAsync(HttpContext context)
@@ -110,6 +123,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
         // next we parse the GraphQL request.
         GraphQLRequest request;
+
         using (_diagnosticEvents.ParseHttpRequest(context))
         {
             try

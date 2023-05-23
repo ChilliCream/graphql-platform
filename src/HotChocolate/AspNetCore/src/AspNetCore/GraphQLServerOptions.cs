@@ -27,6 +27,11 @@ public sealed class GraphQLServerOptions
     public bool EnableGetRequests { get; set; } = true;
 
     /// <summary>
+    /// Defines if GraphQL HTTP GET requests are allowed.
+    /// </summary>
+    public bool EnforceGetRequestsPreflightHeader { get; set; } = true;
+
+    /// <summary>
     /// Defines if GraphQL HTTP Multipart requests are allowed.
     /// </summary>
     public bool EnableMultipartRequests { get; set; } = true;
