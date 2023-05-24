@@ -19,7 +19,7 @@ public static class QueryableProjectExtensions
     /// The resolver context of the resolver that is annotated with UseProjection
     /// </param>
     /// <returns>The projected queryable</returns>
-    public static TypedValueT<T> Project<T>(
+    public static TypedCollectionT<T> Project<T>(
         this IQueryable<T> queryable,
         IResolverContext context) =>
         ExecuteProject<IQueryable<T>, T>(queryable, context);
@@ -32,7 +32,7 @@ public static class QueryableProjectExtensions
     /// The resolver context of the resolver that is annotated with UseProjection
     /// </param>
     /// <returns>The projected enumerable</returns>
-    public static TypedValueT<T> Project<T>(
+    public static TypedCollectionT<T> Project<T>(
         this IEnumerable<T> enumerable,
         IResolverContext context) =>
         ExecuteProject<IEnumerable<T>, T>(enumerable, context);
@@ -45,12 +45,12 @@ public static class QueryableProjectExtensions
     /// The resolver context of the resolver that is annotated with UseProjection
     /// </param>
     /// <returns>The projected enumerable</returns>
-    public static TypedValueT<T> Project<T>(
+    public static TypedCollectionT<T> Project<T>(
         this QueryableExecutable<T> enumerable,
         IResolverContext context) =>
         ExecuteProject<QueryableExecutable<T>, T>(enumerable, context);
 
-    private static TypedValueT<TLogicalElementType> ExecuteProject<T, TLogicalElementType>(
+    private static TypedCollectionT<TLogicalElementType> ExecuteProject<T, TLogicalElementType>(
         this T input,
         IResolverContext context)
 
@@ -68,7 +68,7 @@ public static class QueryableProjectExtensions
                 && typeof(T).GetGenericTypeDefinition().IsInstanceOfType(resultObj.Value)
                 && resultObj.Value.IsCollection)
             {
-                return new TypedValueT<TLogicalElementType>(resultObj.Value, isCollection: true);
+                return new(resultObj.Value);
             }
 
             throw ThrowHelper.Projection_TypeMismatch(
