@@ -1,76 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 
 #nullable enable
 
 namespace HotChocolate.Resolvers;
-
-public struct TypedValueT<TLogicalElementType>
-{
-    public TypedValueT(object value, bool isCollection)
-    {
-        Value = value;
-        IsCollection = isCollection;
-    }
-
-    public bool IsCollection { get; }
-    public object Value { get; }
-    public readonly Type LogicalElementType => typeof(TLogicalElementType);
-    public static implicit operator TypedValue(TypedValueT<TLogicalElementType> value) =>
-        new(value.Value, value.LogicalElementType, value.IsCollection);
-}
-
-public struct TypedValue
-{
-    public TypedValue(object value, Type logicalElementType, bool isCollection)
-    {
-        Value = value;
-        LogicalElementType = logicalElementType;
-        IsCollection = isCollection;
-    }
-
-    public bool IsCollection { get; }
-
-    public object Value { get; }
-
-    /// <summary>
-    /// Indicates the types of element in Result.
-    /// Use this, instead of doing type checks on the Result,
-    /// because the projection middleware might set this to some internal representation
-    /// of the actual type, which is going to be materialized into the resulting
-    /// object tree directly by the execution engine.
-    /// </summary>
-    public Type LogicalElementType { get; }
-
-
-    public static TypedValue? GuessFromValue(object? value)
-    {
-        switch (value)
-        {
-            case null:
-                return null;
-
-            case IQueryable q:
-                return new(value, q.ElementType, isCollection: true);
-
-            case string:
-                return new(value, typeof(string), isCollection: false);
-
-            case IEnumerable e:
-                // Doing reflection does an allocation.
-                // Wrapping it in a queryable also does an allocation.
-                // But reflection is a real hassle to implement.
-                return new(value, e.AsQueryable().ElementType, true);
-
-            default:
-                return new(value, value.GetType(), isCollection: false);
-        }
-    }
-}
 
 /// <summary>
 /// Encapsulates all resolver-specific information about the execution of
@@ -87,11 +22,6 @@ public interface IMiddlewareContext : IResolverContext
     /// Gets or sets the result of the middleware.
     /// </summary>
     object? Result { get; set; }
-
-    /// <summary>
-    ///
-    /// </summary>
-    TypedValue? TypedResult { get; set; }
 
     /// <summary>
     /// Defines if at least one middleware has modified the result.

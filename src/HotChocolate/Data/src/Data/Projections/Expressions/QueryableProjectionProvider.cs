@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 /// Applies the projection to input
 /// </summary>
 [return: NotNullIfNotNull("input")]
-public delegate TypedValue? ApplyProjection(IResolverContext context, TypedValue? input);
+public delegate object? ApplyProjection(IResolverContext context, object? input);
 
 /// <summary>
 /// A <see cref="IProjectionProvider"/> for IQueryable
@@ -65,7 +65,7 @@ public class QueryableProjectionProvider : ProjectionProvider
             // first we let the pipeline run and produce a result.
             await next(context).ConfigureAwait(false);
 
-            context.TypedResult = applyProjection(context, context.TypedResult);
+            context.Result = applyProjection(context, context.Result);
         }
     }
 
@@ -93,15 +93,15 @@ public class QueryableProjectionProvider : ProjectionProvider
     /// <param name="projection">The projected expression</param>
     /// <typeparam name="TEntityType">The runtime type of the list element of the resolver</typeparam>
     /// <returns>The input combined with the projection</returns>
-    protected virtual object ApplyToResult<TEntityType>(
-        object input,
+    protected virtual object? ApplyToResult<TEntityType>(
+        object? input,
         Expression<Func<TEntityType, object[]>> projection)
         => input switch
         {
             IQueryable<TEntityType> q => q.Select(projection),
             IEnumerable<TEntityType> q => q.AsQueryable().Select(projection),
-            QueryableExecutable<TEntityType> q => new QueryableExecutable<object[]>(q.Source.Select(projection)),
-            _ => input,
+            // QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
+            _ => input
         };
 
     private ApplyProjection CreateApplicator<TEntityType>()
@@ -109,7 +109,7 @@ public class QueryableProjectionProvider : ProjectionProvider
         {
             if (input is null)
             {
-                return null;
+                return input;
             }
 
             // if projections are already applied we can skip
@@ -139,7 +139,6 @@ public class QueryableProjectionProvider : ProjectionProvider
 
             var projection = visitorContext.Project<TEntityType>();
 
-            var resultObject = ApplyToResult(input.Value, projection);
-            return new TypedValue(resultObject, typeof(TEntityType), isCollection: true);
+            return ApplyToResult<TEntityType>(input, projection);
         };
 }

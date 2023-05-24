@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Projections.Expressions;
@@ -91,7 +90,7 @@ public class QueryableProjectionExtensionsTests
     public class Query
     {
         [UseProjection]
-        public TypedValue ShouldWork(IResolverContext context)
+        public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
@@ -99,13 +98,13 @@ public class QueryableProjectionExtensionsTests
         [CatchErrorMiddleware]
         [UseProjection]
         [AddTypeMissmatchMiddleware]
-        public TypedValue TypeMissmatch(IResolverContext context)
+        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
 
         [CatchErrorMiddleware]
-        public TypedValue MissingMiddleware(IResolverContext context)
+        public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
@@ -143,6 +142,6 @@ public class QueryableProjectionExtensionsTests
         }
 
         private static ApplyProjection CreateApplicatorAsync<TEntityType>() =>
-            (context, input) => new(new object(), typeof(object), isCollection: false);
+            (context, input) => new object();
     }
 }

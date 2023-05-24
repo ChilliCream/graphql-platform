@@ -162,9 +162,10 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
         int i = 0;
         while (selectionEnumerator.MoveNext())
         {
-            var fn = selectionEnumerator.Current.SyntaxNode;
+            var selectionNode = selectionEnumerator.Current.SyntaxNode;
 
-            if (selection.ResponseName == (fn.Alias?.Value ?? fn.Name.Value))
+            if (selectionNode is FieldNode fn &&
+                selection.ResponseName == (fn.Alias?.Value ?? fn.Name.Value))
             {
                 // abstract type resolver
                 if (selection.Field.Type.NamedType().IsAbstractType())
