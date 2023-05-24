@@ -9,7 +9,7 @@ namespace HotChocolate.AspNetCore;
 /// <item>
 /// <description>
 /// <see cref="GraphQLToolServeMode.Latest"/>: Uses the latest version of the tool, served over the
-/// Content Delivery Network (CDN).
+/// cdn.
 /// </description>
 /// </item>
 /// <item>
