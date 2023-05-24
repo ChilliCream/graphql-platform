@@ -9,7 +9,8 @@ public partial class OperationCompiler
 {
     private void OptimizeSelectionSet(CompilerContext context)
     {
-        if (context.Optimizers.Count == 0)
+        var optimizers = context.Optimizers;
+        if (optimizers.Count == 0)
         {
             return;
         }
@@ -22,16 +23,11 @@ public partial class OperationCompiler
             _createFieldPipeline,
             context.Path);
 
-        if (context.Optimizers.Count == 1)
+        var count = optimizers.Count;
+        optimizers[0].OptimizeSelectionSet(optimizerContext);
+        for (var i = 1; i < count; i++)
         {
-            context.Optimizers[0].OptimizeSelectionSet(optimizerContext);
-        }
-        else
-        {
-            for (var i = 0; i < context.Optimizers.Count; i++)
-            {
-                context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
-            }
+            optimizers[i].OptimizeSelectionSet(optimizerContext);
         }
     }
 
