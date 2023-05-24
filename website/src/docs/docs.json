@@ -45,6 +45,10 @@
             "title": "Apis"
           },
           {
+            "path": "environments",
+            "title": "Environments"
+          },
+          {
             "path": "workspaces",
             "title": "Workspaces"
           },
