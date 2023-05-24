@@ -88,7 +88,15 @@ public struct ProjectedValue
 
     public object?[] Values { get; }
     public readonly object? this[int index] => Values[index];
-    public readonly Type Type => (Type?) Values[^1] ?? throw new InvalidOperationException();
+    // public readonly Type Type => (Type?) Values[^1] ?? throw new InvalidOperationException();
+    public readonly string TypeName => (string?) Values[^1] ?? throw new InvalidOperationException();
+
+    public static ProjectedValue? FromObject(object value)
+    {
+        if (value is object[] { Length: > 0 } values)
+            return new ProjectedValue(values);
+        return null;
+    }
 }
 
 public static class ContextExtensions
@@ -164,12 +172,9 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
                     Temp.OfType.Add(selection.Id,
                         (o, type) =>
                         {
-                            if (o is not object[] values || values.Length < 1 )
-                            {
-                                return false;
-                            }
-
-                            return values[^1].Equals(type.Name);
+                            if (ProjectedValue.FromObject(o) is { } projectedValue)
+                                return projectedValue.TypeName.Equals(type.Name);
+                            return false;
                         });
                 }
                 Temp.ValueConverter[selection.Id] = converter;
