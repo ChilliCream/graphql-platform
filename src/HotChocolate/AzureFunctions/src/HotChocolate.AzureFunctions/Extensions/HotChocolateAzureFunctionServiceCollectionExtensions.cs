@@ -1,7 +1,9 @@
+using BananaCakePop.Middleware;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
 using HotChocolate.Execution.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -75,8 +77,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutor(
         this IServiceCollection services,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
-        string? schemaName = default
-    )
+        string? schemaName = default)
     {
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
@@ -87,15 +88,15 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             {
                 configure(options);
             }
+
             var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
-            var pipeline =
-                new PipelineBuilder()
+            var pipeline = new PipelineBuilder()
                     .UseMiddleware<WebSocketSubscriptionMiddleware>()
                     .UseMiddleware<HttpPostMiddleware>()
                     .UseMiddleware<HttpMultipartMiddleware>()
-                    // TODO add tool
                     .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
+                    .UseBananaCakePop(path)
                     .UseMiddleware<HttpGetSchemaMiddleware>()
                     .Compile(sp);
 
@@ -135,10 +136,31 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         return builder;
     }
 
+    private static PipelineBuilder UseBananaCakePop(
+        this PipelineBuilder requestPipeline,
+        PathString path)
+    {
+        if (requestPipeline is null)
+        {
+            throw new ArgumentNullException(nameof(requestPipeline));
+        }
+
+        path = path.ToString().TrimEnd('/');
+        var fileProvider = CreateFileProvider();
+        var forwarderAccessor = new HttpForwarderAccessor();
+
+        return requestPipeline
+            .UseMiddleware<BananaCakePopOptionsFileMiddleware>(path)
+            .UseMiddleware<BananaCakePopCdnMiddleware>(path, forwarderAccessor)
+            .UseMiddleware<BananaCakePopDefaultFileMiddleware>(fileProvider, path)
+            .UseMiddleware<BananaCakePopStaticFileMiddleware>(fileProvider, path);
+    }
+
     private static IFileProvider CreateFileProvider()
     {
-        var type = typeof(HttpMultipartMiddleware);
-        var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
+        var type = typeof(BananaCakePopStaticFileMiddleware);
+        var resourceNamespace = type.Namespace + ".Resources";
+
         return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
     }
 }
