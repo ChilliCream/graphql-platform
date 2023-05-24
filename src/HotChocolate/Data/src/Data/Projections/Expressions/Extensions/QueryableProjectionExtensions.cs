@@ -74,7 +74,7 @@ public static class QueryableProjectExtensions
             throw ThrowHelper.Projection_TypeMismatch(
                 context,
                 typeof(TLogicalElementType),
-                resultObj.Value.LogicalElementType);
+                resultObj!.GetType());
         }
 
         throw ThrowHelper.Projection_ProjectionWasNotFound(context);

@@ -7,7 +7,6 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    private TypedValue? _result;
     private object? _parent;
 
     public Path Path { get; private set; } = default!;
@@ -24,24 +23,18 @@ internal partial class MiddlewareContext
 
     public object? Result
     {
-        get => _result?.Value;
+        get => TypedResult?.Value;
         set
         {
-            if (ReferenceEquals(_result?.Value, value))
+            if (ReferenceEquals(TypedResult?.Value, value))
                 return;
+
+            IsResultModified = true;
             TypedResult = TypedValue.GuessFromValue(value);
         }
     }
 
-    public TypedValue? TypedResult
-    {
-        get => _result;
-        set
-        {
-            _result = value;
-            IsResultModified = true;
-        }
-    }
+    public TypedValue? TypedResult { get; set; }
     public bool IsResultModified { get; private set; }
 
     public T Parent<T>()
