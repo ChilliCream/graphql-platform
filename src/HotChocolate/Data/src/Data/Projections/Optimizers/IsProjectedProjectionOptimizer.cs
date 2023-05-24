@@ -79,6 +79,26 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
     }
 }
 
+public struct ProjectedValue
+{
+    public ProjectedValue(object?[] values)
+    {
+        Values = values;
+    }
+
+    public object?[] Values { get; }
+    public readonly object? this[int index] => Values[index];
+    public readonly Type Type => (Type?) Values[^1] ?? throw new InvalidOperationException();
+}
+
+public static class ContextExtensions
+{
+    public static ProjectedValue GetProjectedParent(this IPureResolverContext context)
+    {
+        return new ProjectedValue(context.Parent<object[]>());
+    }
+}
+
 public class RewriteToIndexerOptimizer : IProjectionOptimizer
 {
     private static class Temp1
@@ -95,9 +115,10 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         Selection selection)
     {
+        var runtimeType = context.Type.RuntimeType;
+
         if (!Temp1.Factories.TryGetValue(context.Path, out var converter))
         {
-            var runtimeType = context.Type.RuntimeType;
             if (runtimeType == typeof(object))
             {
                 converter = o =>
@@ -165,7 +186,11 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
                             selection.Type,
                             selection.SyntaxNode,
                             selection.ResponseName,
-                            pureResolver: c => c.Parent<object[]>()[index],
+                            pureResolver: c =>
+                            {
+                                var parent = c.GetProjectedParent();
+                                return parent[index];
+                            },
                             arguments: selection.Arguments,
                             isInternal: false);
                     }
@@ -178,7 +203,8 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
                         FieldDelegate WrappedPipeline(FieldDelegate next) =>
                             ctx =>
                             {
-                                ctx.Result = ctx.Parent<object[]>()[index];
+                                var parent = ctx.GetProjectedParent();
+                                ctx.Result = parent[index];
                                 return next(ctx);
                             };
 
