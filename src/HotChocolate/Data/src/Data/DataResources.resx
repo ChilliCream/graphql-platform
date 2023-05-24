@@ -233,7 +233,7 @@
     <value>Projection was not found. Register projection with [UseProjection] or descriptor.UseProjection().</value>
   </data>
   <data name="Projection_TypeMissmatch" xml:space="preserve">
-    <value>Projection is expected to be of type {0}, but was of type {1}</value>
+    <value>Projection is expected to be of logical type {0}, but was of logical type {1}</value>
   </data>
   <data name="FilterConvention_ProviderHasToBeInitializedByConvention" xml:space="preserve">
     <value>The filter provider {0} {1}was not initialized by a convention. It is only valid to register a provider over a FilterConvention</value>

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -6,7 +7,6 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    private object? _result;
     private object? _parent;
 
     public Path Path { get; private set; } = default!;
@@ -23,14 +23,18 @@ internal partial class MiddlewareContext
 
     public object? Result
     {
-        get => _result;
+        get => TypedResult?.Value;
         set
         {
-            _result = value;
+            if (ReferenceEquals(TypedResult?.Value, value))
+                return;
+
             IsResultModified = true;
+            TypedResult = TypedValue.GuessFromValue(value);
         }
     }
 
+    public TypedValue? TypedResult { get; set; }
     public bool IsResultModified { get; private set; }
 
     public T Parent<T>()

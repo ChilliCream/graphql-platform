@@ -19,10 +19,10 @@ public static class QueryableProjectExtensions
     /// The resolver context of the resolver that is annotated with UseProjection
     /// </param>
     /// <returns>The projected queryable</returns>
-    public static IQueryable<T> Project<T>(
+    public static TypedValueT<T> Project<T>(
         this IQueryable<T> queryable,
         IResolverContext context) =>
-        ExecuteProject(queryable, context, typeof(IQueryable<T>));
+        ExecuteProject<IQueryable<T>, T>(queryable, context);
 
     /// <summary>
     /// Projects the selection set of the request onto the enumerable.
@@ -32,10 +32,10 @@ public static class QueryableProjectExtensions
     /// The resolver context of the resolver that is annotated with UseProjection
     /// </param>
     /// <returns>The projected enumerable</returns>
-    public static IEnumerable<T> Project<T>(
+    public static TypedValueT<T> Project<T>(
         this IEnumerable<T> enumerable,
         IResolverContext context) =>
-        ExecuteProject(enumerable, context, typeof(IEnumerable<T>));
+        ExecuteProject<IEnumerable<T>, T>(enumerable, context);
 
     /// <summary>
     /// Projects the selection set of the request onto the enumerable.
@@ -45,30 +45,35 @@ public static class QueryableProjectExtensions
     /// The resolver context of the resolver that is annotated with UseProjection
     /// </param>
     /// <returns>The projected enumerable</returns>
-    public static QueryableExecutable<T> Project<T>(
+    public static TypedValueT<T> Project<T>(
         this QueryableExecutable<T> enumerable,
         IResolverContext context) =>
-        ExecuteProject(enumerable, context, typeof(QueryableExecutable<T>));
+        ExecuteProject<QueryableExecutable<T>, T>(enumerable, context);
 
-    private static T ExecuteProject<T>(
+    private static TypedValueT<TLogicalElementType> ExecuteProject<T, TLogicalElementType>(
         this T input,
-        IResolverContext context,
-        Type expectedType)
+        IResolverContext context)
+
+        where T : notnull
     {
         if (context.LocalContextData.TryGetValue(
             QueryableProjectionProvider.ContextApplyProjectionKey,
             out var applicatorObj) &&
             applicatorObj is ApplyProjection applicator)
         {
-            var resultObj = applicator(context, input);
-            if (resultObj is T result)
+            var resultObj = applicator(context,
+                new TypedValue(input, typeof(TLogicalElementType), isCollection: true));
+
+            if (resultObj.Value.LogicalElementType == typeof(TLogicalElementType)
+                && typeof(T).GetGenericTypeDefinition().IsInstanceOfType(resultObj.Value)
+                && resultObj.Value.IsCollection)
             {
-                return result;
+                return new TypedValueT<TLogicalElementType>(resultObj.Value, isCollection: true);
             }
 
             throw ThrowHelper.Projection_TypeMismatch(
                 context,
-                expectedType,
+                typeof(TLogicalElementType),
                 resultObj!.GetType());
         }
 
