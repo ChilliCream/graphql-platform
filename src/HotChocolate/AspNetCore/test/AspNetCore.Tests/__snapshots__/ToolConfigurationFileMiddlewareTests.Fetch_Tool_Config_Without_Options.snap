@@ -1,5 +1,5 @@
 {
-  "Content": "{\"useBrowserUrlAsEndpoint\":true}",
+  "Content": "{\"title\":null,\"useBrowserUrlAsEndpoint\":true,\"endpoint\":null,\"graphQLDocument\":null,\"includeCookies\":null,\"httpHeaders\":null,\"useGet\":false,\"gaTrackingId\":null,\"disableTelemetry\":null}",
   "ContentType": {
     "CharSet": "utf-8",
     "Parameters": [

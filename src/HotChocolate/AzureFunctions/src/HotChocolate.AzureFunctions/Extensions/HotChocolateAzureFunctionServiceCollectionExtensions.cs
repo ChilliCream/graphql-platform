@@ -81,7 +81,6 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
             PathString path = apiRoute.TrimEnd('/');
-            var fileProvider = CreateFileProvider();
             var options = new GraphQLServerOptions();
 
             foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
@@ -95,11 +94,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                     .UseMiddleware<WebSocketSubscriptionMiddleware>()
                     .UseMiddleware<HttpPostMiddleware>()
                     .UseMiddleware<HttpMultipartMiddleware>()
-                    .UseMiddleware<HttpGetSchemaMiddleware>()
-                    .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-                    .UseMiddleware<ToolOptionsFileMiddleware>(path)
-                    .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
+                    // TODO add tool
                     .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
+                    .UseMiddleware<HttpGetSchemaMiddleware>()
                     .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);

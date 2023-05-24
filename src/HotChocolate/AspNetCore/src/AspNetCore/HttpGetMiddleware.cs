@@ -35,9 +35,10 @@ public sealed class HttpGetMiddleware : MiddlewareBase
     public async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsGet(context.Request.Method) &&
+            HasGraphQLQueryParameters(context.Request.Query) &&
             (!_matchUrl.HasValue ||
                 (context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
-                !subPath.HasValue)) &&
+                    !subPath.HasValue)) &&
             (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
         {
             if (!IsDefaultSchema)
@@ -221,5 +222,12 @@ public sealed class HttpGetMiddleware : MiddlewareBase
                 await result.DisposeAsync();
             }
         }
+    }
+
+    private static bool HasGraphQLQueryParameters(IQueryCollection query)
+    {
+        return query.ContainsKey(GraphQLQueryParameter.Query) ||
+            query.ContainsKey(GraphQLQueryParameter.QueryId) ||
+            query.ContainsKey(GraphQLQueryParameter.Extensions);
     }
 }
