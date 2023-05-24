@@ -801,7 +801,7 @@ public sealed partial class OperationCompiler
 
     private void PrepareOptimizers(IReadOnlyList<IOperationCompilerOptimizer>? optimizers)
     {
-        // we only clear the selectionSetOptimizers since we use this list as a temp
+        // We only clear the selectionSetOptimizers since we use this list
         // to temporarily store the selectionSetOptimizers before they are copied to
         // the context.
         _selectionSetOptimizers.Clear();
@@ -861,4 +861,4 @@ public sealed partial class OperationCompiler
         public override int GetHashCode()
             => HashCode.Combine(SelectionSet, Path);
     }
-} 
+}
