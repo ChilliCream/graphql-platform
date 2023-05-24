@@ -85,9 +85,13 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
+        Expression rhs = memberInit;
+        if (context.InMemory)
+            rhs = NotNullAndAlso(nestedProperty, rhs, typeof(object[]));
+
         parentScope.Level
             .Peek()
-            .Enqueue(NotNullAndAlso(nestedProperty, memberInit, typeof(object[])));
+            .Enqueue(rhs);
 
         action = SelectionVisitor.Continue;
         return true;
