@@ -36,7 +36,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
             => b.MapBananaCakePop()
                 .WithOptions(new GraphQLToolOptions()
                 {
-                    ServeMode = GraphQlToolServeMode.Embedded
+                    ServeMode = GraphQLToolServeMode.Embedded
                 }));
 
         // act
@@ -56,7 +56,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
             b.MapBananaCakePop()
                 .WithOptions(new GraphQLToolOptions()
                 {
-                    ServeMode = GraphQlToolServeMode.Embedded
+                    ServeMode = GraphQLToolServeMode.Embedded
                 });
         });
 
@@ -72,7 +72,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateServer(b => b.MapBananaCakePop("/foo/bar")
-            .WithOptions(new GraphQLToolOptions { ServeMode = GraphQlToolServeMode.Embedded }));
+            .WithOptions(new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded }));
 
         // act
         var result = await GetBcpConfigAsync(server, "/foo/bar");
@@ -93,7 +93,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
-                    Tool = { ServeMode = GraphQlToolServeMode.Version(version), Enable = false }
+                    Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false }
                 }));
 
         // act
@@ -111,7 +111,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         {
             Tool =
             {
-                ServeMode = GraphQlToolServeMode.Embedded,
+                ServeMode = GraphQLToolServeMode.Embedded,
                 Document = "# foo",
                 IncludeCookies = true,
                 HttpHeaders =
@@ -143,7 +143,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
             => endpoint.MapBananaCakePop()
                 .WithOptions(new GraphQLToolOptions()
                 {
-                    ServeMode = GraphQlToolServeMode.Embedded
+                    ServeMode = GraphQLToolServeMode.Embedded
                 }));
 
         // act
@@ -161,7 +161,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
             => endpoint.MapBananaCakePop()
                 .WithOptions(new GraphQLToolOptions()
                 {
-                    ServeMode = GraphQlToolServeMode.Version("5.0.8")
+                    ServeMode = GraphQLToolServeMode.Version("5.0.8")
                 }));
 
         // act
