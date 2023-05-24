@@ -65,7 +65,8 @@ namespace HotChocolate.AspNetCore;
 public sealed class GraphQLToolServeMode
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="GraphQLToolServeMode"/> class using the provided mode.
+    /// Initializes a new instance of the <see cref="GraphQLToolServeMode"/> class using the
+    /// provided mode.
     /// </summary>
     /// <param name="mode">The mode to serve the GraphQL tool.</param>
     private GraphQLToolServeMode(string mode) { Mode = mode; }
@@ -94,6 +95,8 @@ public sealed class GraphQLToolServeMode
     /// Serves the GraphQL tool from a specific version available over the CDN.
     /// </summary>
     /// <param name="version">The version of the tool to serve.</param>
-    /// <returns>A new <see cref="GraphQLToolServeMode"/> object for serving the specific version.</returns>
+    /// <returns>
+    /// A new <see cref="GraphQLToolServeMode"/> object for serving the specific version.
+    /// </returns>
     public static GraphQLToolServeMode Version(string version) => new(version);
 }
