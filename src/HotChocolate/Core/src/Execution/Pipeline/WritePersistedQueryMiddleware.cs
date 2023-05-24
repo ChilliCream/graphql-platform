@@ -8,12 +8,11 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal sealed class WritePersistedQueryMiddleware
 {
-    private const string PersistedQueryKey = "persistedQuery";
-    private const string PersistedKey = "persisted";
-    private const string ExpectedValueKey = "expectedHashValue";
-    private const string ExpectedTypeKey = "expectedHashType";
-    private const string ExpectedFormatKey = "expectedHashFormat";
-
+    private const string _persistedQuery = "persistedQuery";
+    private const string _persisted = "persisted";
+    private const string _expectedValue = "expectedHashValue";
+    private const string _expectedType = "expectedHashType";
+    private const string _expectedFormat = "expectedHashFormat";
     private readonly RequestDelegate _next;
     private readonly IDocumentHashProvider _hashProvider;
     private readonly IWriteStoredQueries _persistedQueryStore;
@@ -42,7 +41,7 @@ internal sealed class WritePersistedQueryMiddleware
             context.Result is IQueryResult result &&
             context.IsValidDocument &&
             context.Request.Extensions is { } &&
-            context.Request.Extensions.TryGetValue(PersistedQueryKey, out var s) &&
+            context.Request.Extensions.TryGetValue(_persistedQuery, out var s) &&
             s is IReadOnlyDictionary<string, object> settings)
         {
             IQueryResultBuilder builder = QueryResultBuilder.FromResult(result);
@@ -55,11 +54,11 @@ internal sealed class WritePersistedQueryMiddleware
 
                 // add persistence receipt to the result
                 builder.SetExtension(
-                    PersistedQueryKey,
+                    _persistedQuery,
                     new Dictionary<string, object>
                     {
                         { _hashProvider.Name, userHash },
-                        { PersistedKey, true }
+                        { _persisted, true }
                     });
 
                 context.ContextData[WellKnownContextData.DocumentSaved] = true;
@@ -67,14 +66,14 @@ internal sealed class WritePersistedQueryMiddleware
             else
             {
                 builder.SetExtension(
-                    PersistedQueryKey,
+                    _persistedQuery,
                     new Dictionary<string, object?>
                     {
                         { _hashProvider.Name, userHash },
-                        { ExpectedValueKey, context.DocumentId },
-                        { ExpectedTypeKey, _hashProvider.Name },
-                        { ExpectedFormatKey, _hashProvider.Format.ToString() },
-                        { PersistedKey, false }
+                        { _expectedValue, context.DocumentId },
+                        { _expectedType, _hashProvider.Name },
+                        { _expectedFormat, _hashProvider.Format.ToString() },
+                        { _persisted, false }
                     });
             }
 
