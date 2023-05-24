@@ -32,12 +32,8 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
     {
         // arrange
-        var server = CreateServer(b
-            => b.MapBananaCakePop()
-                .WithOptions(new GraphQLToolOptions()
-                {
-                    ServeMode = GraphQLToolServeMode.Embedded
-                }));
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(builder => builder.MapBananaCakePop().WithOptions(options));
 
         // act
         var result = await GetBcpConfigAsync(server, "/graphql/ui");
@@ -50,14 +46,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
     {
         // arrange
-        var server = CreateServer(b =>
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(builder =>
         {
-            b.MapGraphQLHttp();
-            b.MapBananaCakePop()
-                .WithOptions(new GraphQLToolOptions()
-                {
-                    ServeMode = GraphQLToolServeMode.Embedded
-                });
+            builder.MapGraphQLHttp();
+            builder.MapBananaCakePop().WithOptions(options);
         });
 
         // act
@@ -71,8 +64,8 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
     {
         // arrange
-        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar")
-            .WithOptions(new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded }));
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar").WithOptions(options));
 
         // act
         var result = await GetBcpConfigAsync(server, "/foo/bar");
@@ -89,12 +82,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_When_Disabled(string version)
     {
         // arrange
-        var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false }
-                }));
+        var options = new GraphQLServerOptions
+        {
+            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false }
+        };
+        var server = CreateStarWarsServer(configureConventions: e => e.WithOptions(options));
 
         // act
         var result = await GetAsync(server, "/graphql/index.html");
@@ -139,12 +131,8 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapBananaCakePop_Tool_Config()
     {
         // arrange
-        var server = CreateServer(endpoint
-            => endpoint.MapBananaCakePop()
-                .WithOptions(new GraphQLToolOptions()
-                {
-                    ServeMode = GraphQLToolServeMode.Embedded
-                }));
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
 
         // act
         var result = await GetBcpConfigAsync(server, "/graphql/ui");
@@ -157,12 +145,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapBananaCakePop_Tool_FromCdn()
     {
         // arrange
-        var server = CreateServer(endpoint
-            => endpoint.MapBananaCakePop()
-                .WithOptions(new GraphQLToolOptions()
-                {
-                    ServeMode = GraphQLToolServeMode.Version("5.0.8")
-                }));
+        var options = new GraphQLToolOptions
+        {
+            ServeMode = GraphQLToolServeMode.Version("5.0.8")
+        };
+        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
 
         // act
         var result = await GetAsync(server, "/graphql/ui/index.html");
