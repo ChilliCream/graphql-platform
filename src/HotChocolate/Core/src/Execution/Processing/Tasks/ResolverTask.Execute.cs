@@ -105,7 +105,7 @@ internal sealed partial class ResolverTask
                 return false;
             }
 
-            // if this field has arguments that contain variables we first need to coerce them
+            // If this field has arguments that contain variables, we first need to coerce them
             // before we can start executing the resolver.
             // We coerce on the args dictionary that is pooled together with this task.
             Selection.Arguments.CoerceArguments(_context.Variables, _args);
@@ -147,7 +147,6 @@ internal sealed partial class ResolverTask
             return;
         }
 
-        // if we are not a list we do not need any further result processing.
         if (!_selection.IsList)
         {
             return;
