@@ -36,8 +36,9 @@ partial class Build
             return JsonDocument.Parse(jsonString)
                 .RootElement.GetProperty("versions")
                 .EnumerateArray()
-                .OrderByDescending(x => SemanticVersion.Parse(x.GetString()))
-                .Select(x => x.GetString())
+				.Select(x => x.GetString())
+                .Where(x => !x.Contains("insider"))
+                .OrderByDescending(x => SemanticVersion.Parse(x))
                 .First();
         }
 
