@@ -269,7 +269,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public IType? ValueType { get => _context.ValueType; set => _context.ValueType = value; }
 
         public object? Result { get => _context.Result; set => _context.Result = value; }
-        public LogicallyTypedValue? TypedResult { get => _context.TypedResult; set => _context.TypedResult = value; }
+        public TypedValue? TypedResult { get => _context.TypedResult; set => _context.TypedResult = value; }
 
         public bool IsResultModified => _context.IsResultModified;
 

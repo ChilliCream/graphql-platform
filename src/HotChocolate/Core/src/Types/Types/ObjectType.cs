@@ -88,11 +88,16 @@ public partial class ObjectType
     IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
     /// <inheritdoc />
-    public virtual bool IsInstanceOfType(IResolverContext context, LogicallyTypedValue resolverResult)
+    public virtual bool IsInstanceOfType(IResolverContext context, object resolverResult)
     {
         if (context is null)
         {
             throw new ArgumentNullException(nameof(context));
+        }
+
+        if (resolverResult is null)
+        {
+            throw new ArgumentNullException(nameof(resolverResult));
         }
 
         return _isOfType!.Invoke(context, resolverResult);
@@ -113,7 +118,7 @@ public partial class ObjectType
     /// otherwise, <c>false</c>.
     /// </returns>
     [Obsolete("Use IsInstanceOfType")]
-    public bool IsOfType(IResolverContext context, LogicallyTypedValue resolverResult)
+    public bool IsOfType(IResolverContext context, object resolverResult)
         => IsInstanceOfType(context, resolverResult);
 
     /// <inheritdoc />
@@ -126,7 +131,7 @@ public partial class ObjectType
 
         for (var i = 0; i < _implements.Length; i++)
         {
-            if (interfaceTypeName.EqualsOrdinal(_implements[i].Name))
+            if(interfaceTypeName.EqualsOrdinal(_implements[i].Name))
             {
                 return true;
             }
