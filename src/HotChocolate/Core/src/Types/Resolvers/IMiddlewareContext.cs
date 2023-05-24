@@ -9,23 +9,6 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers;
 
-public struct TypedCollectionT<TLogicalElementType>
-{
-    public TypedCollectionT(object value)
-    {
-        Value = value;
-    }
-
-    public object Value { get; }
-    public readonly bool IsCollection => true;
-    public readonly Type LogicalElementType => typeof(TLogicalElementType);
-
-    public static implicit operator TypedValue(TypedCollectionT<TLogicalElementType> value) =>
-        new(value.Value, value.LogicalElementType, value.IsCollection);
-    public static implicit operator TypedValueT<TLogicalElementType>(TypedCollectionT<TLogicalElementType> value) =>
-        new(value.Value, value.IsCollection);
-}
-
 public struct TypedValueT<TLogicalElementType>
 {
     public TypedValueT(object value, bool isCollection)

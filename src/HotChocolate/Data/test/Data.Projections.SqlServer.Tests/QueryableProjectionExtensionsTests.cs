@@ -54,7 +54,7 @@ public class QueryableProjectionExtensionsTests
         var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
-                .SetQuery("{ typeMismatch { bar baz }}")
+                .SetQuery("{ typeMissmatch { bar baz }}")
                 .Create());
 
         // assert
@@ -91,7 +91,7 @@ public class QueryableProjectionExtensionsTests
     public class Query
     {
         [UseProjection]
-        public TypedCollectionT<Foo> ShouldWork(IResolverContext context)
+        public TypedValue ShouldWork(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
@@ -99,13 +99,13 @@ public class QueryableProjectionExtensionsTests
         [CatchErrorMiddleware]
         [UseProjection]
         [AddTypeMissmatchMiddleware]
-        public TypedCollectionT<Foo> TypeMismatch(IResolverContext context)
+        public TypedValue TypeMissmatch(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
 
         [CatchErrorMiddleware]
-        public TypedCollectionT<Foo> MissingMiddleware(IResolverContext context)
+        public TypedValue MissingMiddleware(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
