@@ -46,6 +46,7 @@ internal partial class MiddlewareContext
         _services = default!;
         _selection = default!;
         _parent = default;
+        _result = default;
         _resolverResult = default;
         _hasResolverResult = false;
         _parser = default!;
