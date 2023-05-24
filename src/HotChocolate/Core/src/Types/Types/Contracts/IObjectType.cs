@@ -34,5 +34,5 @@ public interface IObjectType : IComplexOutputType
     /// <c>true</c> if the <paramref name="context"/> is an instance of this type;
     /// otherwise, <c>false</c>.
     /// </returns>
-    bool IsInstanceOfType(IResolverContext context, object resolverResult);
+    bool IsInstanceOfType(IResolverContext context, LogicallyTypedValue resolverResult);
 }

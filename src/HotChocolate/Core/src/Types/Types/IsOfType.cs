@@ -9,7 +9,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public delegate bool IsOfType(
     IResolverContext context,
-    object resolverResult);
+    LogicallyTypedValue resolverResult);
 
 /// <summary>
 /// A delegate to determine if a resolver result is of a certain object type.
@@ -17,4 +17,4 @@ public delegate bool IsOfType(
 public delegate bool IsOfTypeFallback(
     ObjectType objectType,
     IResolverContext context,
-    object resolverResult);
+    LogicallyTypedValue resolverResult);

@@ -9,9 +9,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers;
 
-public struct TypedCollectionT<TLogicalElementType>
+public struct LogicallyTypedCollectionT<TLogicalElementType>
 {
-    public TypedCollectionT(object value)
+    public LogicallyTypedCollectionT(object value)
     {
         Value = value;
     }
@@ -20,15 +20,15 @@ public struct TypedCollectionT<TLogicalElementType>
     public readonly bool IsCollection => true;
     public readonly Type LogicalElementType => typeof(TLogicalElementType);
 
-    public static implicit operator TypedValue(TypedCollectionT<TLogicalElementType> value) =>
+    public static implicit operator LogicallyTypedValue(LogicallyTypedCollectionT<TLogicalElementType> value) =>
         new(value.Value, value.LogicalElementType, value.IsCollection);
-    public static implicit operator TypedValueT<TLogicalElementType>(TypedCollectionT<TLogicalElementType> value) =>
+    public static implicit operator LogicallyTypedValueT<TLogicalElementType>(LogicallyTypedCollectionT<TLogicalElementType> value) =>
         new(value.Value, value.IsCollection);
 }
 
-public struct TypedValueT<TLogicalElementType>
+public struct LogicallyTypedValueT<TLogicalElementType>
 {
-    public TypedValueT(object value, bool isCollection)
+    public LogicallyTypedValueT(object value, bool isCollection)
     {
         Value = value;
         IsCollection = isCollection;
@@ -37,13 +37,13 @@ public struct TypedValueT<TLogicalElementType>
     public bool IsCollection { get; }
     public object Value { get; }
     public readonly Type LogicalElementType => typeof(TLogicalElementType);
-    public static implicit operator TypedValue(TypedValueT<TLogicalElementType> value) =>
+    public static implicit operator LogicallyTypedValue(LogicallyTypedValueT<TLogicalElementType> value) =>
         new(value.Value, value.LogicalElementType, value.IsCollection);
 }
 
-public struct TypedValue
+public struct LogicallyTypedValue
 {
-    public TypedValue(object value, Type logicalElementType, bool isCollection)
+    public LogicallyTypedValue(object value, Type logicalElementType, bool isCollection)
     {
         Value = value;
         LogicalElementType = logicalElementType;
@@ -60,11 +60,14 @@ public struct TypedValue
     /// because the projection middleware might set this to some internal representation
     /// of the actual type, which is going to be materialized into the resulting
     /// object tree directly by the execution engine.
+    ///
+    /// If the value is not a collection, this has the logical type of the Value.
+    /// Again, check that instead of the type of the Value.
     /// </summary>
     public Type LogicalElementType { get; }
 
 
-    public static TypedValue? GuessFromValue(object? value)
+    public static LogicallyTypedValue? GuessFromValue(object? value)
     {
         switch (value)
         {
@@ -108,7 +111,7 @@ public interface IMiddlewareContext : IResolverContext
     /// <summary>
     ///
     /// </summary>
-    TypedValue? TypedResult { get; set; }
+    LogicallyTypedValue? TypedResult { get; set; }
 
     /// <summary>
     /// Defines if at least one middleware has modified the result.

@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    private TypedValue? _result;
+    private LogicallyTypedValue? _result;
     private object? _parent;
 
     public Path Path { get; private set; } = default!;
@@ -29,11 +29,11 @@ internal partial class MiddlewareContext
         {
             if (ReferenceEquals(_result?.Value, value))
                 return;
-            TypedResult = TypedValue.GuessFromValue(value);
+            TypedResult = LogicallyTypedValue.GuessFromValue(value);
         }
     }
 
-    public TypedValue? TypedResult
+    public LogicallyTypedValue? TypedResult
     {
         get => _result;
         set

@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 /// Applies the projection to input
 /// </summary>
 [return: NotNullIfNotNull("input")]
-public delegate TypedValue? ApplyProjection(IResolverContext context, TypedValue? input);
+public delegate LogicallyTypedValue? ApplyProjection(IResolverContext context, LogicallyTypedValue? input);
 
 /// <summary>
 /// A <see cref="IProjectionProvider"/> for IQueryable
@@ -140,6 +140,6 @@ public class QueryableProjectionProvider : ProjectionProvider
             var projection = visitorContext.Project<TEntityType>();
 
             var resultObject = ApplyToResult(input.Value, projection);
-            return new TypedValue(resultObject, typeof(TEntityType), isCollection: true);
+            return new LogicallyTypedValue(resultObject, typeof(TEntityType), isCollection: true);
         };
 }

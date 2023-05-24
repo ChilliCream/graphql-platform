@@ -91,7 +91,7 @@ public class QueryableProjectionExtensionsTests
     public class Query
     {
         [UseProjection]
-        public TypedCollectionT<Foo> ShouldWork(IResolverContext context)
+        public LogicallyTypedCollectionT<Foo> ShouldWork(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
@@ -99,13 +99,13 @@ public class QueryableProjectionExtensionsTests
         [CatchErrorMiddleware]
         [UseProjection]
         [AddTypeMissmatchMiddleware]
-        public TypedCollectionT<Foo> TypeMismatch(IResolverContext context)
+        public LogicallyTypedCollectionT<Foo> TypeMismatch(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
 
         [CatchErrorMiddleware]
-        public TypedCollectionT<Foo> MissingMiddleware(IResolverContext context)
+        public LogicallyTypedCollectionT<Foo> MissingMiddleware(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }

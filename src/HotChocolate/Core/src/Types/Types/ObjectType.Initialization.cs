@@ -124,19 +124,16 @@ public partial class ObjectType
 
     private bool IsOfTypeWithRuntimeType(
         IResolverContext context,
-        object? result) =>
-        result is null || RuntimeType == result.GetType();
+        LogicallyTypedValue result)
+    {
+        return RuntimeType == result.LogicalElementType;
+    }
 
     private bool IsOfTypeWithName(
         IResolverContext context,
-        object? result)
+        LogicallyTypedValue result)
     {
-        if (result is null)
-        {
-            return true;
-        }
-
-        var type = result.GetType();
+        var type = result.LogicalElementType;
         return Name.EqualsOrdinal(type.Name);
     }
 }
