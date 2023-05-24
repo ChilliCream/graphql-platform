@@ -32,9 +32,10 @@ public class Neo4JProjectionFieldHandler : Neo4JProjectionHandlerBase
 
         context.StartNodes.Push(Cypher.NamedNode(selection.DeclaringType.Name));
 
-        if (context.RelationshipProjections.ContainsKey(context.CurrentLevel))
+        if (context.RelationshipProjections.TryGetValue(
+                context.CurrentLevel, out var projection))
         {
-            context.RelationshipProjections[context.CurrentLevel]
+            projection
                 .Enqueue(selection.Field.GetName());
         }
         else
