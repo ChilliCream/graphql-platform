@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
+using HotChocolate.Data.Projections.Handlers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -32,7 +33,17 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
             var res = base.VisitObjectType(field, objectType, selection, context);
 
             context.PopInstance();
-            scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop().Append(Expression.Constant(objectType.Name)));
+
+            {
+                var initializers = scope.Level.Pop();
+
+                // The object type goes into the last slot of the projected array.
+                // See ProjectedValue.
+                var initializersWithType = ProjectedValue.AppendObjectType(
+                    initializers, objectType);
+
+                scope.AddAbstractType(objectType.RuntimeType, initializersWithType);
+            }
 
             return res;
         }

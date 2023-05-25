@@ -37,12 +37,12 @@ public static class QueryableProjectionScopeExtensions
         {
             Expression lastValue = Expression.Default(typeof(object[]));
 
-            foreach (KeyValuePair<Type, IEnumerable<Expression>> val in scope.GetAbstractTypes())
+            foreach (var (type, initializers) in scope.GetAbstractTypes())
             {
-                Expression memberInit = Expression.NewArrayInit(typeof(object), val.Value);
+                Expression memberInit = Expression.NewArrayInit(typeof(object), initializers);
 
                 lastValue = Expression.Condition(
-                    Expression.TypeIs(scope.Instance.Peek(), val.Key),
+                    Expression.TypeIs(scope.Instance.Peek(), type),
                     memberInit,
                     lastValue);
             }

@@ -5,10 +5,14 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
+public readonly record struct AbstractTypeInfo(Type Type, IEnumerable<Expression> Initializers)
+{
+}
+
 public class QueryableProjectionScope
     : ProjectionScope<Expression>
 {
-    private Dictionary<Type, IEnumerable<Expression>>? _abstractType;
+    private Dictionary<Type, IEnumerable<Expression>>? _abstractTypeInitializers;
 
     public QueryableProjectionScope(
         Type type,
@@ -33,20 +37,20 @@ public class QueryableProjectionScope
 
     public void AddAbstractType(Type type, IEnumerable<Expression> initializers)
     {
-        _abstractType ??= new Dictionary<Type, IEnumerable<Expression>>();
-        _abstractType[type] = initializers;
+        _abstractTypeInitializers ??= new Dictionary<Type, IEnumerable<Expression>>();
+        _abstractTypeInitializers[type] = initializers;
     }
 
-    public IEnumerable<KeyValuePair<Type, IEnumerable<Expression>>> GetAbstractTypes()
+    public IEnumerable<AbstractTypeInfo> GetAbstractTypes()
     {
-        if (_abstractType is not null)
+        if (_abstractTypeInitializers is not null)
         {
-            foreach (KeyValuePair<Type, IEnumerable<Expression>> elm in _abstractType)
+            foreach (var elm in _abstractTypeInitializers)
             {
-                yield return elm;
+                yield return new(elm.Key, elm.Value);
             }
         }
     }
 
-    public bool HasAbstractTypes() => _abstractType is not null;
+    public bool HasAbstractTypes() => _abstractTypeInitializers is not null;
 }

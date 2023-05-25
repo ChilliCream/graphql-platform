@@ -97,6 +97,15 @@ public struct ProjectedValue
             return new ProjectedValue(values);
         return null;
     }
+
+    // Encapsulate what we store in the object array here.
+    public static IEnumerable<Expression> AppendObjectType(
+        IEnumerable<Expression> initializers, ObjectType objectType)
+    {
+        var initializersWithType = initializers
+            .Append(Expression.Constant(objectType.Name));
+        return initializersWithType/*.ToArray()*/;
+    }
 }
 
 public static class ContextExtensions
