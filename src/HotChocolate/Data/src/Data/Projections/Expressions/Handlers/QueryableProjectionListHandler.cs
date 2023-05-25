@@ -81,7 +81,7 @@ public class QueryableProjectionListHandler
         // in case the projection is empty we do not project. This can happen if the
         // field handler below skips fields
         if (!queryableScope.HasAbstractTypes() &&
-            (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
+            (!queryableScope.Level.TryPeek(out var q) || q.Count == 0))
         {
             action = SelectionVisitor.Continue;
             return true;
