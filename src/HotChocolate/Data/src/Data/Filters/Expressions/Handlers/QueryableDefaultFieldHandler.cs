@@ -43,14 +43,12 @@ public class QueryableDefaultFieldHandler
                 ErrorHelper.CreateNonNullError(field, node.Value, context));
 
             action = SyntaxVisitor.Skip;
-
             return true;
         }
 
         if (field.RuntimeType is null)
         {
             action = null;
-
             return false;
         }
 
@@ -100,8 +98,8 @@ public class QueryableDefaultFieldHandler
 
         context.PushInstance(nestedProperty);
         context.RuntimeTypes.Push(field.RuntimeType);
-        action = SyntaxVisitor.Continue;
 
+        action = SyntaxVisitor.Continue;
         return true;
     }
 
