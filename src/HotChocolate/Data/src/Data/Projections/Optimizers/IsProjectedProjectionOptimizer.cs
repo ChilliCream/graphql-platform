@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities.Serialization;
 using static HotChocolate.Data.Projections.ProjectionConvention;
 
 namespace HotChocolate.Data.Projections.Handlers;
@@ -24,59 +20,28 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        if (!(context.Type is ObjectType type &&
-                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
-                fieldsObj is string[] fields))
+        var type = (ObjectType) context.Type;
+        var alwaysProjectedFieldNames = (string[]) type.ContextData[AlwaysProjectedFieldsKey]!;
+
+        int aliasedFieldIndex = 0;
+
+        // TODO: cache these strings, because why not.
+        string GetCurrentAlias() => "__projection_alias_" + aliasedFieldIndex;
+
+        for (; aliasedFieldIndex < alwaysProjectedFieldNames.Length; aliasedFieldIndex++)
         {
-            return selection;
-        }
+            var alias = GetCurrentAlias();
+            var fieldName = alwaysProjectedFieldNames[aliasedFieldIndex];
 
-        for (var i = 0; i < fields.Length; i++)
-        {
-            var alias = "__projection_alias_" + i;
-
-            // if the field is already in the selection set we do not need to project it
-            if (context.Selections.TryGetValue(fields[i], out var field) &&
-                field.Field.Name == fields[i])
-            {
+            if (context.IsFieldAlreadyInSelection(fieldName, alias))
                 continue;
-            }
 
-            // if the field is already added as an alias we do not need to add it
-            if (context.Selections.TryGetValue(alias, out field) &&
-                field.Field.Name == fields[i])
-            {
-                continue;
-            }
-
-            IObjectField nodesField = type.Fields[fields[i]];
-            var nodesFieldNode = new FieldNode(
-                null,
-                new NameNode(fields[i]),
-                new NameNode(alias),
-                null,
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
-                null);
-
-            var nodesPipeline = context.CompileResolverPipeline(nodesField, nodesFieldNode);
-
-            var compiledSelection = new Selection.Sealed(
-                context.GetNextSelectionId(),
-                context.Type,
-                nodesField,
-                nodesField.Type,
-                nodesFieldNode,
-                alias,
-                resolverPipeline: nodesPipeline,
-                arguments: selection.Arguments,
-                isInternal: true);
-
-            context.AddSelection(compiledSelection);
+            context.AddNewFieldToSelection(selection, type, fieldName, alias);
         }
 
         return selection;
     }
+
 }
 
 public struct ProjectedValue
