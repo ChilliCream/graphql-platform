@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data.ExpressionUtils;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -63,9 +64,7 @@ public class QueryableDefaultFieldHandler
                     field);
             }
 
-            nestedProperty = ReplaceVariableExpressionVisitor
-                .ReplaceParameter(expression, expression.Parameters[0], context.GetInstance())
-                .Body;
+            nestedProperty = expression.ReplaceParameterAndGetBody(context.GetInstance());
         }
         else
         {
@@ -144,39 +143,6 @@ public class QueryableDefaultFieldHandler
         action = SyntaxVisitor.Continue;
 
         return true;
-    }
-
-    private sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
-    {
-        private readonly Expression _replacement;
-        private readonly ParameterExpression _parameter;
-
-        public ReplaceVariableExpressionVisitor(
-            Expression replacement,
-            ParameterExpression parameter)
-        {
-            _replacement = replacement;
-            _parameter = parameter;
-        }
-
-        protected override Expression VisitExtension(Expression node) => node.CanReduce ? base.VisitExtension(node) : node;
-
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            if (node == _parameter)
-            {
-                return _replacement;
-            }
-
-            return base.VisitParameter(node);
-        }
-
-        public static LambdaExpression ReplaceParameter(
-            LambdaExpression lambda,
-            ParameterExpression parameter,
-            Expression replacement)
-            => (LambdaExpression)
-                new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambda);
     }
 }
 
