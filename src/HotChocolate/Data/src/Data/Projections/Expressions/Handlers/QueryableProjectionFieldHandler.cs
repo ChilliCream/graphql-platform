@@ -24,10 +24,9 @@ public class QueryableProjectionFieldHandler
         var nestedProperty = field.GetProjectionExpression(context.GetInstance());
         var type = nestedProperty.Type;
 
-        // We add a new scope for the sub selection. This allows a new member initialization
+        // This new scope allows for a new member initialization
         context.AddScope(type);
 
-        // We push the instance onto the new scope.
         // We do not need this instance on the current scope.
         context.PushInstance(nestedProperty);
 
@@ -40,9 +39,7 @@ public class QueryableProjectionFieldHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        // Dequeue last
         var scope = context.PopScope();
-
         if (scope is not QueryableProjectionScope queryableScope)
         {
             action = null;
