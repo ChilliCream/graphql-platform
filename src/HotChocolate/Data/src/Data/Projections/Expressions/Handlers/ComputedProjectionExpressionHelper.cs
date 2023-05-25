@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Data.ExpressionUtils;
 using HotChocolate.Types;
@@ -17,6 +19,13 @@ public static class ComputedProjectionExpressionHelper
 
         public LambdaExpression Expression { get; }
         // public List<string> Dependencies { get; }
+    }
+
+    public static void SetComputedProjection(
+        this IDictionary<string, object?> contextData,
+        ComputedProjection computedProjection)
+    {
+        contextData[ComputedProjectionKey] = computedProjection;
     }
 
     public static ComputedProjection? GetComputedProjection(this IObjectField field)
