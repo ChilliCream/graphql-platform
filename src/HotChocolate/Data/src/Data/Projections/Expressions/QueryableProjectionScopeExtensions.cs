@@ -35,14 +35,22 @@ public static class QueryableProjectionScopeExtensions
     {
         if (scope.HasAbstractTypes())
         {
+            /*
+                instance is A
+                    ? new object[] { instance.a, instance.b.Select(x => ...), ..., A }
+                    : instance is B
+                        ? new object[] { instance.c, instance.d, ..., B }
+                        : null
+            */
             Expression lastValue = Expression.Default(typeof(object[]));
+            var instance = scope.Instance.Peek();
 
             foreach (var (type, initializers) in scope.GetAbstractTypes())
             {
                 Expression memberInit = Expression.NewArrayInit(typeof(object), initializers);
 
                 lastValue = Expression.Condition(
-                    Expression.TypeIs(scope.Instance.Peek(), type),
+                    Expression.TypeIs(instance, type),
                     memberInit,
                     lastValue);
             }
@@ -51,6 +59,7 @@ public static class QueryableProjectionScopeExtensions
         }
         else
         {
+            // new object[] { instance.a, instance.b, ... }
             return Expression.NewArrayInit(typeof(object), scope.Level.Peek());
         }
     }
@@ -62,6 +71,7 @@ public static class QueryableProjectionScopeExtensions
 
     private static Expression CreateMemberInitLambda<T>(this QueryableProjectionScope scope)
     {
+        // TODO: This is currently simply wrong! We have to keep both versions.
         Expression converted = Expression.Convert(scope.CreateMemberInit(), typeof(T));
         return Expression.Lambda(converted, scope.Parameter);
     }
