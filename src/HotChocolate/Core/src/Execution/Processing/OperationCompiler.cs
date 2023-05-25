@@ -308,15 +308,8 @@ public sealed partial class OperationCompiler
 
     private void CompileSelectionSet(CompilerContext context)
     {
-        // We first collect the fields that we find in the selection set ...
         CollectFields(context);
-
-        // next we will call the selection set optimizers to rewrite the
-        // selection set if necessary.
         OptimizeSelectionSet(context);
-
-        // after that we start completing the selections and build the SelectionSet from
-        // the completed selections.
         CompleteSelectionSet(context);
     }
 
