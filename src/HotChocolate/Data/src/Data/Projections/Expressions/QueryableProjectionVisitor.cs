@@ -36,9 +36,6 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
 
             {
                 var initializers = scope.Level.Pop();
-
-                // The object type goes into the last slot of the projected array.
-                // See ProjectedValue.
                 var initializersWithType = ProjectedValue.AppendObjectType(
                     initializers, objectType);
 
