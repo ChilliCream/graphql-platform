@@ -68,8 +68,10 @@ public class QueryableProjectionListHandler
         }
 
         var instance = context.PopInstance();
-        var type = instance.Type;
-        var select = queryableScope.CreateSelection(context.PopInstance(), type);
+        var select = queryableScope.CreateSelection(instance);
+
+        // Should this cast be left in?
+        // select = select.MaybeCastValueTypeToObject();
 
         parentScope.Level.Peek().Enqueue(select);
 

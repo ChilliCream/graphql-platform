@@ -78,15 +78,15 @@ public static class QueryableProjectionScopeExtensions
 
     public static Expression CreateSelection(
         this QueryableProjectionScope scope,
-        Expression source,
-        Type sourceType)
+        Expression source)
     {
+        var memberInitLambda = scope.CreateMemberInitLambda();
         var selection = Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Select),
             new[] { scope.RuntimeType, typeof(object[]), },
             source,
-            scope.CreateMemberInitLambda());
+            memberInitLambda);
 
         return selection;
         /*

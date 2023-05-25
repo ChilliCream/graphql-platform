@@ -38,6 +38,7 @@ public class QueryableProjectionScalarHandler
 
         var instance = scope.Instance.Peek();
         var value = field.GetProjectionExpression(instance);
+        value = value.MaybeCastValueTypeToObject();
 
         scope.Level.Peek().Enqueue(value);
 

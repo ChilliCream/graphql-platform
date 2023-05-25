@@ -62,9 +62,14 @@ public static class ComputedProjectionExpressionHelper
             result = instance.Append(field.Member);
         }
 
-        if (result.Type.IsValueType)
-            result = Expression.Convert(result, typeof(object));
-
         return result;
+    }
+
+    public static Expression MaybeCastValueTypeToObject(
+        this Expression expression)
+    {
+        if (expression.Type.IsValueType)
+            return Expression.Convert(expression, typeof(object));
+        return expression;
     }
 }
