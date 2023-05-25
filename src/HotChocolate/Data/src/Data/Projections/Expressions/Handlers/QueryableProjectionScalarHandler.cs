@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Data.ExpressionUtils;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -10,7 +11,7 @@ public class QueryableProjectionScalarHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
+        selection.Field.CanBeUsedInProjection() &&
         selection.SelectionSet is null;
 
     public override bool TryHandleEnter(
@@ -18,13 +19,7 @@ public class QueryableProjectionScalarHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        if (selection.Field.Member is PropertyInfo { CanWrite: true })
-        {
-            action = SelectionVisitor.SkipAndLeave;
-            return true;
-        }
-
-        action = SelectionVisitor.Skip;
+        action = SelectionVisitor.SkipAndLeave;
         return true;
     }
 
@@ -35,25 +30,18 @@ public class QueryableProjectionScalarHandler
     {
         var field = selection.Field;
 
-        if (context.Scopes.Count > 0 &&
-            context.Scopes.Peek() is QueryableProjectionScope closure &&
-            field.Member is PropertyInfo member)
+        if (!context.TryGetQueryableScope(out var scope))
         {
-            Expression instance = closure.Instance.Peek();
-            Expression value = Expression.Property(instance, member);
-
-            if (member.GetReturnType().IsValueType)
-            {
-                value = Expression.Convert(value, typeof(object));
-            }
-
-            closure.Level.Peek().Enqueue(value);
-
             action = SelectionVisitor.Continue;
             return true;
         }
 
-        action = SelectionVisitor.Skip;
+        var instance = scope.Instance.Peek();
+        var value = field.GetProjectionExpression(instance);
+
+        scope.Level.Peek().Enqueue(value);
+
+        action = SelectionVisitor.Continue;
         return true;
     }
 }

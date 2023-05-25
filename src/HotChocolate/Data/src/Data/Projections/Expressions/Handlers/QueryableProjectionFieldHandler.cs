@@ -11,7 +11,7 @@ public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
+        selection.Field.CanBeUsedInProjection() &&
         selection.SelectionSet is not null;
 
     public override bool TryHandleEnter(
@@ -20,25 +20,15 @@ public class QueryableProjectionFieldHandler
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
-        Expression nestedProperty;
-        Type memberType;
 
-        if (field.Member is PropertyInfo propertyInfo)
-        {
-            memberType = propertyInfo.PropertyType;
-            nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-        }
-        else
-        {
-            action = SelectionVisitor.Skip;
-            return true;
-        }
+        var nestedProperty = field.GetProjectionExpression(context.GetInstance());
+        var type = nestedProperty.Type;
 
         // We add a new scope for the sub selection. This allows a new member initialization
-        context.AddScope(memberType);
+        context.AddScope(type);
 
-        // We push the instance onto the new scope. We do not need this instance on the current
-        // scope.
+        // We push the instance onto the new scope.
+        // We do not need this instance on the current scope.
         context.PushInstance(nestedProperty);
 
         action = SelectionVisitor.Continue;
@@ -50,14 +40,6 @@ public class QueryableProjectionFieldHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        var field = selection.Field;
-
-        if (field.Member is null)
-        {
-            action = null;
-            return false;
-        }
-
         // Dequeue last
         var scope = context.PopScope();
 
@@ -74,16 +56,7 @@ public class QueryableProjectionFieldHandler
             throw ThrowHelper.ProjectionVisitor_InvalidState_NoParentScope();
         }
 
-        Expression nestedProperty;
-        if (field.Member is PropertyInfo propertyInfo)
-        {
-            nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-        }
-        else
-        {
-            action = SelectionVisitor.Skip;
-            return true;
-        }
+        var nestedProperty = scope.Instance.Peek();
 
         Expression rhs = memberInit;
         if (context.InMemory)
