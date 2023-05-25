@@ -5,16 +5,16 @@ namespace HotChocolate.Data.ExpressionUtils;
 
 public sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
 {
-    private static ThreadLocal<ReplaceVariableExpressionVisitor?> _ThreadInstance = new();
+    private static readonly ThreadLocal<ReplaceVariableExpressionVisitor?> _threadInstance = new();
 
     public static ReplaceVariableExpressionVisitor GetInstance(
         Expression replacement, ParameterExpression parameter)
     {
-        var visitor = _ThreadInstance.Value;
+        var visitor = _threadInstance.Value;
         if (visitor is null)
         {
             visitor = new(replacement, parameter);
-            _ThreadInstance.Value = visitor;
+            _threadInstance.Value = visitor;
         }
         else
         {
