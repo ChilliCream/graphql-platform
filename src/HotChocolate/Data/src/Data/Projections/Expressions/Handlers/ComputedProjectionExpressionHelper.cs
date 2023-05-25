@@ -69,7 +69,9 @@ public static class ComputedProjectionExpressionHelper
         this Expression expression)
     {
         if (expression.Type.IsValueType)
+        {
             return Expression.Convert(expression, typeof(object));
+        }
         return expression;
     }
 }

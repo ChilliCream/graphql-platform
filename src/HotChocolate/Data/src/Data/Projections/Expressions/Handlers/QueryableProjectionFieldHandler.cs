@@ -57,7 +57,9 @@ public class QueryableProjectionFieldHandler
 
         Expression rhs = memberInit;
         if (context.InMemory)
+        {
             rhs = NotNullAndAlso(nestedProperty, rhs, typeof(object[]));
+        }
 
         parentScope.Level
             .Peek()
