@@ -6,14 +6,15 @@ public sealed partial class OperationCompiler
 {
     internal readonly struct SelectionSetInfo
     {
-        public SelectionSetInfo(SelectionSetNode selectionSet, long includeCondition)
+        public SelectionSetInfo(SelectionSetNode selectionSet, long includeConditionsMask)
         {
             SelectionSet = selectionSet;
-            IncludeCondition = includeCondition;
+            IncludeConditionsMask = includeConditionsMask;
         }
 
         public SelectionSetNode SelectionSet { get; }
 
-        public long IncludeCondition { get; }
+        /// <see cref="OperationCompiler._includeConditions"/>
+        public long IncludeConditionsMask { get; }
     }
 }

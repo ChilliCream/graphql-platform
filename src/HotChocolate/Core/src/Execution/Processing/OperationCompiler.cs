@@ -385,7 +385,7 @@ public sealed partial class OperationCompiler
                      if (ifValue.Kind is not SyntaxKind.NullValue)
                      {
                          var ifCondition = new IncludeCondition(ifValue, nullValue);
-                         ifConditionFlags = GetSelectionIncludeCondition(ifCondition, 0);
+                         ifConditionFlags = GetSelectionIncludeConditionMask(ifCondition, 0);
                      }
 
                      selection.MarkAsStream(ifConditionFlags);
@@ -423,25 +423,25 @@ public sealed partial class OperationCompiler
             CollectFields(
                 context,
                 selectionSetInfo.SelectionSet,
-                selectionSetInfo.IncludeCondition);
+                selectionSetInfo.IncludeConditionsMask);
         }
     }
 
     private void CollectFields(
         CompilerContext context,
         SelectionSetNode selectionSet,
-        long includeCondition)
+        long includeConditionMask)
     {
         for (var j = 0; j < selectionSet.Selections.Count; j++)
         {
-            ResolveFields(context, selectionSet.Selections[j], includeCondition);
+            ResolveFields(context, selectionSet.Selections[j], includeConditionMask);
         }
     }
 
     private void ResolveFields(
         CompilerContext context,
         ISelectionNode selection,
-        long includeCondition)
+        long includeConditionMask)
     {
         switch (selection.Kind)
         {
@@ -449,21 +449,21 @@ public sealed partial class OperationCompiler
                 ResolveField(
                     context,
                     (FieldNode)selection,
-                    includeCondition);
+                    includeConditionMask);
                 break;
 
             case SyntaxKind.InlineFragment:
                 ResolveInlineFragment(
                     context,
                     (InlineFragmentNode)selection,
-                    includeCondition);
+                    includeConditionMask);
                 break;
 
             case SyntaxKind.FragmentSpread:
                 ResolveFragmentSpread(
                     context,
                     (FragmentSpreadNode)selection,
-                    includeCondition);
+                    includeConditionMask);
                 break;
         }
     }
@@ -471,9 +471,9 @@ public sealed partial class OperationCompiler
     private void ResolveField(
         CompilerContext context,
         FieldNode selection,
-        long includeCondition)
+        long includeConditionMask)
     {
-        includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
+        includeConditionMask = GetSelectionIncludeConditionMask(selection, includeConditionMask);
 
         var fieldName = selection.Name.Value;
         var responseName = selection.Alias?.Value ?? fieldName;
@@ -484,13 +484,13 @@ public sealed partial class OperationCompiler
 
             if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
-                preparedSelection.AddSelection(selection, includeCondition);
+                preparedSelection.AddSelection(selection, includeConditionMask);
 
                 if (selection.SelectionSet is not null)
                 {
                     var selectionSetInfo = new SelectionSetInfo(
                         selection.SelectionSet!,
-                        includeCondition);
+                        includeConditionMask);
                     var selectionInfos = _selectionLookup[preparedSelection];
                     var next = selectionInfos.Length;
                     Array.Resize(ref selectionInfos, next + 1);
@@ -515,7 +515,7 @@ public sealed partial class OperationCompiler
                     responseName: responseName,
                     isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
-                    includeConditions: includeCondition == 0 ? null : new[] { includeCondition });
+                    includeConditionMasks: includeConditionMask == 0 ? null : new[] { includeConditionMask });
 
                 context.Fields.Add(responseName, preparedSelection);
 
@@ -523,7 +523,7 @@ public sealed partial class OperationCompiler
                 {
                     var selectionSetInfo = new SelectionSetInfo(
                         selection.SelectionSet!,
-                        includeCondition);
+                        includeConditionMask);
                     _selectionLookup.Add(preparedSelection, new[] { selectionSetInfo });
                 }
             }
@@ -576,7 +576,7 @@ public sealed partial class OperationCompiler
             (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
                 DoesTypeApply(typeCon, context.Type)))
         {
-            includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
+            includeCondition = GetSelectionIncludeConditionMask(selection, includeCondition);
 
             if (directives.IsDeferrable())
             {
@@ -588,7 +588,7 @@ public sealed partial class OperationCompiler
                 if (ifValue.Kind is not SyntaxKind.NullValue)
                 {
                     var ifCondition = new IncludeCondition(ifValue, nullValue);
-                    ifConditionFlags = GetSelectionIncludeCondition(ifCondition, includeCondition);
+                    ifConditionFlags = GetSelectionIncludeConditionMask(ifCondition, includeCondition);
                 }
 
                 var id = GetOrCreateSelectionSetRefId(selectionSet, context.Path);
@@ -699,15 +699,15 @@ public sealed partial class OperationCompiler
         return variants;
     }
 
-    private long GetSelectionIncludeCondition(
+    private long GetSelectionIncludeConditionMask(
         ISelectionNode selectionSyntax,
-        long parentIncludeCondition)
+        long parentIncludeConditionMask)
     {
         var condition = IncludeCondition.FromSelection(selectionSyntax);
 
         if (condition.IsDefault)
         {
-            return parentIncludeCondition;
+            return parentIncludeConditionMask;
         }
 
         var pos = Array.IndexOf(_includeConditions, condition);
@@ -736,18 +736,18 @@ public sealed partial class OperationCompiler
         long selectionIncludeCondition = 1;
         selectionIncludeCondition <<= pos;
 
-        if (parentIncludeCondition == 0)
+        if (parentIncludeConditionMask == 0)
         {
             return selectionIncludeCondition;
         }
 
-        parentIncludeCondition |= selectionIncludeCondition;
-        return parentIncludeCondition;
+        parentIncludeConditionMask |= selectionIncludeCondition;
+        return parentIncludeConditionMask;
     }
 
-    private long GetSelectionIncludeCondition(
+    private long GetSelectionIncludeConditionMask(
         IncludeCondition condition,
-        long parentIncludeCondition)
+        long parentIncludeConditionMask)
     {
         var pos = Array.IndexOf(_includeConditions, condition);
 
@@ -775,13 +775,13 @@ public sealed partial class OperationCompiler
         long selectionIncludeCondition = 1;
         selectionIncludeCondition <<= pos;
 
-        if (parentIncludeCondition == 0)
+        if (parentIncludeConditionMask == 0)
         {
             return selectionIncludeCondition;
         }
 
-        parentIncludeCondition |= selectionIncludeCondition;
-        return parentIncludeCondition;
+        parentIncludeConditionMask |= selectionIncludeCondition;
+        return parentIncludeConditionMask;
     }
 
     private CompilerContext RentContext(CompilerContext context)

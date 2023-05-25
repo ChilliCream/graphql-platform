@@ -331,9 +331,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private static Selection CreateProxySelection(ISelection selection, NodeFieldProxy field)
     {
-        var includeConditionsSource = ((Selection)selection).IncludeConditions;
-        var includeConditions = new long[includeConditionsSource.Length];
-        includeConditionsSource.CopyTo(includeConditions);
+        var includeConditionMasksSource = ((Selection)selection).IncludeConditionMasks;
+        var includeConditionMasks = new long[includeConditionMasksSource.Length];
+        includeConditionMasksSource.CopyTo(includeConditionMasks);
 
         var proxy = new Selection.Sealed(selection.Id,
             selection.DeclaringType,
@@ -342,7 +342,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             selection.SyntaxNode,
             selection.ResponseName,
             selection.Arguments,
-            includeConditions,
+            includeConditionMasks,
             selection.IsInternal,
             selection.Strategy != SelectionExecutionStrategy.Serial,
             selection.ResolverPipeline,
