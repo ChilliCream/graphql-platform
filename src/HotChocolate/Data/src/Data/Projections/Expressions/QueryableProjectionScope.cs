@@ -22,8 +22,8 @@ public class QueryableProjectionScope
         Parameter = Expression.Parameter(type, parameterName);
         Instance.Push(Parameter);
         RuntimeType = type;
-        Level = new Stack<Queue<Expression>>();
-        Level.Push(new Queue<Expression>());
+        Level = new Stack<LevelOperations>();
+        Level.Push(new LevelOperations());
     }
 
     public Type RuntimeType { get; }
@@ -32,7 +32,7 @@ public class QueryableProjectionScope
     /// Contains a queue for each level of the AST. The queues contain all operations of a level
     /// A new queue is needed when entering new <see cref="ObjectValueNode"/>
     ///</summary>
-    public Stack<Queue<Expression>> Level { get; }
+    public Stack<LevelOperations> Level { get; }
 
     public ParameterExpression Parameter { get; }
 
