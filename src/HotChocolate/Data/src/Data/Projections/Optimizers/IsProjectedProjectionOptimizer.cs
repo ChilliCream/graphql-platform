@@ -12,9 +12,18 @@ namespace HotChocolate.Data.Projections.Handlers;
 
 public class IsProjectedProjectionOptimizer : IProjectionOptimizer
 {
+    private const string _aliasPrefix = "__projection_alias_";
+
     private static readonly string[] _fieldAliasesCache = Enumerable.Range(0, 8)
-        .Select(i => "__projection_alias_" + i)
+        .Select(i => _aliasPrefix + i)
         .ToArray();
+
+    private static string GetAlias(int i)
+    {
+        if (i < _fieldAliasesCache.Length)
+            return _fieldAliasesCache[i];
+        return _aliasPrefix + i;
+    }
 
     public bool CanHandle(ISelection field) =>
         field.DeclaringType is ObjectType objectType &&
@@ -27,12 +36,9 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         var type = (ObjectType) context.Type;
         var alwaysProjectedFieldNames = (string[]) type.ContextData[AlwaysProjectedFieldsKey]!;
 
-        int aliasedFieldIndex = 0;
-        string GetCurrentAlias() => _fieldAliasesCache[aliasedFieldIndex];
-
-        for (; aliasedFieldIndex < alwaysProjectedFieldNames.Length; aliasedFieldIndex++)
+        for (int aliasedFieldIndex = 0; aliasedFieldIndex < alwaysProjectedFieldNames.Length; aliasedFieldIndex++)
         {
-            var alias = GetCurrentAlias();
+            var alias = GetAlias(aliasedFieldIndex);
             var fieldName = alwaysProjectedFieldNames[aliasedFieldIndex];
 
             if (context.IsFieldAlreadyInSelection(fieldName, alias))
