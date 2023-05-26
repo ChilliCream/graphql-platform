@@ -45,6 +45,10 @@
             "title": "Apis"
           },
           {
+            "path": "environments",
+            "title": "Environments"
+          },
+          {
             "path": "workspaces",
             "title": "Workspaces"
           },
@@ -63,6 +67,14 @@
           {
             "path": "subscriptions",
             "title": "Subscriptions & Billing"
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              { "path": "express", "title": "Express Server" },
+              { "path": "hot-chocolate", "title": "Hot Chocolate" }
+            ]
           },
           {
             "path": "settings",

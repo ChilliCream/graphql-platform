@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching.Schemas.Contracts;
@@ -24,13 +21,13 @@ public class Query
         {
             return _contractStorage.Contracts
                 .OfType<LifeInsuranceContract>()
-                .FirstOrDefault(t => t.Id.Equals(value.Value));
+                .First(t => t.Id.Equals(value.Value));
         }
         else
         {
             return _contractStorage.Contracts
                 .OfType<SomeOtherContract>()
-                .FirstOrDefault(t => t.Id.Equals(value.Value));
+                .First(t => t.Id.Equals(value.Value));
         }
     }
 

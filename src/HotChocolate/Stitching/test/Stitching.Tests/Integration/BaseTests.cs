@@ -644,7 +644,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .BuildRequestExecutorAsync();
 
-        var variables = new Dictionary<string, object> { { "v", new FloatValueNode(1.2f) } };
+        var variables = new Dictionary<string, object?> { { "v", new FloatValueNode(1.2f) } };
 
         // act
         var result = await executor.ExecuteAsync(
