@@ -140,6 +140,15 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(fusionGraphResolver));
         }
 
+        services.AddTransient<IWebSocketConnectionFactory>(
+            _ => new DefaultWebSocketConnectionFactory());
+        services.TryAddSingleton<IGraphQLClientFactory>(
+            sp => new DefaultHttpGraphQLClientFactory(
+                sp.GetRequiredService<IHttpClientFactory>()));
+        services.TryAddSingleton<IGraphQLSubscriptionClientFactory>(
+            sp => new DefaultWebSocketGraphQLSubscriptionClientFactory(
+                sp.GetRequiredService<IWebSocketConnectionFactory>()));
+
         var builder = services
             .AddGraphQLServer(graphName)
             .UseField(next => next)
@@ -199,33 +208,24 @@ public static class FusionRequestExecutorBuilderExtensions
         FusionGraphConfiguration fusionGraphConfig)
     {
         var appSp = sp.GetApplicationServices();
-        var clientFactory = appSp.GetRequiredService<IHttpClientFactory>();
+        var clientFactory = appSp.GetRequiredService<IGraphQLClientFactory>();
         var map1 = new Dictionary<string, Func<IGraphQLClient>>();
         var map2 = new Dictionary<string, Func<IGraphQLSubscriptionClient>>();
 
-        IGraphQLClient CreateClient(
-            HttpClientConfiguration clientConfig)
-            => new HttpGraphQLClient(
-                clientConfig,
-                clientFactory.CreateClient(clientConfig.ClientName));
+        IGraphQLClient CreateClient(HttpClientConfiguration clientConfig)
+            => clientFactory.CreateClient(clientConfig);
 
         foreach (var config in fusionGraphConfig.HttpClients)
         {
             map1.Add(config.SubgraphName, () => CreateClient(config));
         }
 
-        var subClientFactory =
-            appSp.GetService<IWebSocketConnectionFactory>();
+        var subClientFactory = appSp.GetService<IGraphQLSubscriptionClientFactory>();
 
         if (subClientFactory is not null)
         {
-            IGraphQLSubscriptionClient Create(
-                WebSocketClientConfiguration clientConfig)
-                => new WebSocketGraphQLSubscriptionClient(
-                    clientConfig,
-                    subClientFactory.CreateConnection(
-                        clientConfig.ClientName));
-
+            IGraphQLSubscriptionClient Create(IGraphQLClientConfiguration clientConfig)
+                => subClientFactory.CreateClient(clientConfig);
 
             foreach (var config in fusionGraphConfig.WebSocketClients)
             {

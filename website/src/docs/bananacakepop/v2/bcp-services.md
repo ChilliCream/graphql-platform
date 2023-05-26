@@ -25,7 +25,7 @@ builder.Services
     {
         x.ApiId = "VGhpcyBpcyBub3QgYSByZWFsIGFwaSBpZA==";
         x.ApiKey = "Tm9wZSwgdGhpcyBpcyBhbHNvIG5vIHJlYWwga2V5IDspIA==";
-        x.StageName = "dev";
+        x.Stage = "dev";
     })
     .UseOnlyPersistedQueriesAllowed() // optional
     .UsePersistedQueryPipeline();
