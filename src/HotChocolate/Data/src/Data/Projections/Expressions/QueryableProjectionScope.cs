@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
@@ -12,7 +13,7 @@ public readonly record struct AbstractTypeInfo(Type Type, IEnumerable<Expression
 public class QueryableProjectionScope
     : ProjectionScope<Expression>
 {
-    private Dictionary<Type, IEnumerable<Expression>>? _abstractTypeInitializers;
+    private List<AbstractTypeInfo>? _abstractTypeInitializers;
 
     public QueryableProjectionScope(
         Type type,
@@ -37,19 +38,17 @@ public class QueryableProjectionScope
 
     public void AddAbstractType(Type type, IEnumerable<Expression> initializers)
     {
-        _abstractTypeInitializers ??= new Dictionary<Type, IEnumerable<Expression>>();
-        _abstractTypeInitializers[type] = initializers;
+        _abstractTypeInitializers ??= new();
+        _abstractTypeInitializers.Add(new(type, initializers));
     }
 
     public IEnumerable<AbstractTypeInfo> GetAbstractTypes()
     {
-        if (_abstractTypeInitializers is not null)
+        if (_abstractTypeInitializers is null)
         {
-            foreach (var elm in _abstractTypeInitializers)
-            {
-                yield return new(elm.Key, elm.Value);
-            }
+            return Enumerable.Empty<AbstractTypeInfo>();
         }
+        return _abstractTypeInitializers;
     }
 
     public bool HasAbstractTypes() => _abstractTypeInitializers is not null;
