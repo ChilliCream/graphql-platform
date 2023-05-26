@@ -79,7 +79,8 @@ public static class ContextExtensions
 {
     public static ProjectedValue GetProjectedParent(this IPureResolverContext context)
     {
-        return new ProjectedValue(context.Parent<object[]>());
+        var originalParent = context.RawParent!;
+        return new ProjectedValue((object?[]) originalParent);
     }
 }
 

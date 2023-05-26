@@ -307,6 +307,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public CancellationToken RequestAborted => _context.RequestAborted;
 
         public T Parent<T>() => _context.Parent<T>();
+        public object? RawParent => _context.RawParent;
 
         public T ArgumentValue<T>(string name) => _context.ArgumentValue<T>(name);
 

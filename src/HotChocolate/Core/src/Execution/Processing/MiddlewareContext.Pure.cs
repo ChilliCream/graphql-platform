@@ -96,6 +96,8 @@ internal partial class MiddlewareContext
                     _parent.GetType())
             };
 
+        public object? RawParent => _parent;
+
         public T ArgumentValue<T>(string name)
         {
             if (string.IsNullOrEmpty(name))
