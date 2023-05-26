@@ -19,7 +19,6 @@ internal static partial class ValueCompletion
         object? result)
     {
         var typeKind = fieldType.Kind;
-
         if (typeKind is TypeKind.NonNull)
         {
             fieldType = fieldType.InnerType();

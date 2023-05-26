@@ -10,5 +10,5 @@ internal static class HttpHeaderKeys
 
     public const string CacheControl = "Cache-Control";
 
-    public const string Preflight = "GraphQL-Require-Preflight";
+    public const string Preflight = "GraphQL-Preflight";
 }
