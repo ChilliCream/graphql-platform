@@ -50,7 +50,7 @@ internal sealed class OperationSession : IOperationSession
         {
             var requestBuilder = CreateRequestBuilder(request);
             await _interceptor.OnRequestAsync(_session, Id, requestBuilder, ct);
-            var result = await _executor.ExecuteAsync(requestBuilder.Create(), ct);
+            await using var result = await _executor.ExecuteAsync(requestBuilder.Create(), ct);
 
             switch (result)
             {

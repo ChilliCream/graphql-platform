@@ -21,7 +21,39 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
         _outgoing = outgoing ?? throw new ArgumentNullException(nameof(outgoing));
     }
 
+    internal bool IsCompleted
+    {
+        get
+        {
+            try
+            {
+                if (_outgoing.Reader.Completion.IsCompleted)
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
     internal Channel<TMessage> Outgoing => _outgoing;
+
+    internal bool TryWrite(TMessage message)
+    {
+        try
+        {
+            return _outgoing.Writer.TryWrite(message);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     internal void Complete() => _completed.TrySetResult(true);
 
@@ -83,7 +115,8 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
         {
             try
             {
-                while (!_reader.Completion.IsCompleted)
+                while (!_cancellationToken.IsCancellationRequested &&
+                    !_reader.Completion.IsCompleted)
                 {
                     if (_reader.TryRead(out var message))
                     {
@@ -96,10 +129,12 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
                         break;
                     }
 
-                    await Task.WhenAny(_completed.Task, WaitForMessages())
+                    var result = await Task.WhenAny(_completed.Task, WaitForMessages())
                         .ConfigureAwait(false);
 
-                    if (_completed.Task.IsCompleted && !_reader.TryPeek(out _))
+                    if (_cancellationToken.IsCancellationRequested ||
+                        !result.IsCompletedSuccessfully ||
+                        (_completed.Task.IsCompleted && !_reader.TryPeek(out _)))
                     {
                         break;
                     }
@@ -163,7 +198,8 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
         {
             try
             {
-                while (!_reader.Completion.IsCompleted)
+                while (!_cancellationToken.IsCancellationRequested &&
+                    !_reader.Completion.IsCompleted)
                 {
                     if (_reader.TryRead(out var message))
                     {
@@ -176,10 +212,12 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
                         break;
                     }
 
-                    await Task.WhenAny(_completed.Task, WaitForMessages())
+                    var result = await Task.WhenAny(_completed.Task, WaitForMessages())
                         .ConfigureAwait(false);
 
-                    if (_completed.Task.IsCompleted && !_reader.TryPeek(out _))
+                    if (_cancellationToken.IsCancellationRequested ||
+                        !result.IsCompletedSuccessfully ||
+                        (_completed.Task.IsCompleted && !_reader.TryPeek(out _)))
                     {
                         break;
                     }

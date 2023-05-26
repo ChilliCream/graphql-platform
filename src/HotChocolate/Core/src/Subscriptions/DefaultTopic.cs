@@ -13,7 +13,7 @@ namespace HotChocolate.Subscriptions;
 /// <typeparam name="TMessage">
 /// The message.
 /// </typeparam>
-public abstract class DefaultTopic<TMessage> : ITopic, IDisposable
+public abstract class DefaultTopic<TMessage> : ITopic
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
