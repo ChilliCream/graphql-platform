@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
-public class LevelOperations : IEnumerable<Expression>
+public sealed class LevelOperations : IEnumerable<Expression>
 {
     private readonly List<Expression> _operations = new();
 
