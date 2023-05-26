@@ -109,16 +109,14 @@ bcpMiddleware({
 | Property                | Description                                                   | Type                              |
 | ----------------------- | ------------------------------------------------------------- | --------------------------------- |
 | title                   | The title of the Banana Cake Pop IDE.                         | `string` (optional)               |
-| disableTelemetry        | If `true`, disables telemetry.                                | `boolean` (optional)              |
-| gaTrackingId            | Sets the Google Analytics tracking ID.                        | `string` (optional)               |
-| useBrowserUrlAsEndpoint | If `true`, uses the browser's URL as the GraphQL endpoint.    | `boolean`                         |
-| includeCookies          | If `true`, includes cookies in the request.                   | `boolean` (optional)              |
-| useGet                  | If `true`, uses GET method for sending the request.           | `boolean` (optional)              |
-| subscriptionProtocol    | Specifies the protocol used for GraphQL subscriptions.        | `SubscriptionProtocol` (optional) |
-| endpoint                | The GraphQL endpoint.                                         | `string` (optional)               |
-| httpHeaders             | Specifies HTTP headers for the request.                       | `HttpHeaderDictionary` (optional) |
 | graphQLDocument         | Specifies the GraphQL document (query/mutation/subscription). | `string` (optional)               |
 | variables               | Specifies the variables used in the GraphQL document.         | `Record<string, any>` (optional)  |
+| includeCookies          | If `true`, includes cookies in the request.                   | `boolean` (optional)              |
+| httpHeaders             | Specifies HTTP headers for the request.                       | `HttpHeaderDictionary` (optional) |
+| endpoint                | The GraphQL endpoint.                                         | `string` (optional)               |
+| useGet                  | If `true`, uses GET method for sending the request.           | `boolean` (optional)              |
+| useBrowserUrlAsEndpoint | If `true`, uses the browser's URL as the GraphQL endpoint.    | `boolean`                         |
+| subscriptionProtocol    | Specifies the protocol used for GraphQL subscriptions.        | `SubscriptionProtocol` (optional) |
 
 # Recipes
 Below are examples of how to use Banana Cake Pop Express Middleware with different GraphQL server setups.
