@@ -42,7 +42,7 @@ public class ElasticSearchFiledNameTest : TestBase
 
     public class FieldNameTestTerm
     {
-        [ElasticSearchFieldName("special")]
+        [ElasticSearch("special")]
         [PropertyName("special")]
         public string Value { get; set; } = string.Empty;
     }

@@ -1,7 +1,6 @@
 ﻿using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters.Comparable;
 
@@ -13,16 +12,13 @@ public class ElasticSearchComparableNotLowerThanHandler : ElasticSearchComparabl
     }
 
     /// <inheritdoc />
-    protected override int Operation => NotLowerThan;
+    protected override int Operation => DefaultFilterOperations.NotLowerThan;
 
     /// <inheritdoc />
-    public override ISearchOperation HandleOperation(
-        ElasticSearchFilterVisitorContext context,
-        IFilterOperationField field,
-        IValueNode value,
-        object? parsedValue)
+    public override ISearchOperation HandleOperation(ElasticSearchFilterVisitorContext context, IFilterOperationField field,
+        IValueNode value, object? parsedValue)
     {
-        var operation = base.HandleOperation(context, field, value, parsedValue);
+        ISearchOperation operation = base.HandleOperation(context, field, value, parsedValue);
         return ElasticSearchOperationHelpers.Negate(operation);
     }
 }

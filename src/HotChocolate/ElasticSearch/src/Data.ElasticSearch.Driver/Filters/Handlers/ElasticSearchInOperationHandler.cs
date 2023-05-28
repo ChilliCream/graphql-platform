@@ -1,10 +1,7 @@
-﻿using System.Collections;
-using HotChocolate.Configuration;
+﻿using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Data.ElasticSearch.ElasticSearchOperationKind;
-using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
@@ -28,7 +25,8 @@ public class ElasticSearchInOperationHandler
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
-        => fieldDefinition is FilterOperationFieldDefinition { Id: In };
+        => context.Type is IListFilterInputType &&
+           fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.In };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -42,11 +40,6 @@ public class ElasticSearchInOperationHandler
             throw new InvalidOperationException();
         }
 
-        var shouldOperations = ((IEnumerable)parsedValue)
-            .Cast<object>()
-            .Select(val => new MatchOperation(context.GetPath(), Filter, val.ToString()))
-            .ToArray();
-
-        return BoolOperation.Create(should: shouldOperations);
+        return new TermOperation(context.GetPath(), context.Boost, ElasticSearchOperationKind.Filter, parsedValue);
     }
 }

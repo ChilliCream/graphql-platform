@@ -49,9 +49,12 @@ public class ElasticSearchDefaultFieldHandler
             return false;
         }
 
-        var fieldName = field.GetElasticMetadata().Path ?? field.Name;
+        var metadata = field.GetElasticMetadata();
+        var fieldName = metadata.Field ?? field.Name;
+        var boost = metadata.Boost;
 
         context.Path.Push(fieldName);
+        context.Boost = boost;
         context.RuntimeTypes.Push(field.RuntimeType);
         action = SyntaxVisitor.Continue;
         return true;

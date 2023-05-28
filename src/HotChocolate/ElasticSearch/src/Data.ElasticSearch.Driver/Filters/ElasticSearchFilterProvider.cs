@@ -101,11 +101,15 @@ public class ElasticSearchFilterProvider
 
         var metadata = metadataObj as ElasticFilterMetadata;
 
-        if (fieldDefinition.Member?.GetCustomAttribute<ElasticSearchFieldNameAttribute>() is
-            { Path: var path })
+        if (fieldDefinition.Member?.GetCustomAttribute<ElasticSearchAttribute>() is
+            {
+                Field: var field,
+                Boost: var boost
+            })
         {
             metadata ??= new ElasticFilterMetadata();
-            metadata.Path = path;
+            metadata.Field = field;
+            metadata.Boost = boost;
         }
 
         return metadata;

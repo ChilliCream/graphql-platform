@@ -2,7 +2,6 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
@@ -28,7 +27,10 @@ public class ElasticSearchStringContainsHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is StringOperationFilterInputType &&
-           fieldDefinition is FilterOperationFieldDefinition { Id: Contains };
+           fieldDefinition is FilterOperationFieldDefinition
+           {
+               Id: DefaultFilterOperations.Contains
+           };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -42,10 +44,11 @@ public class ElasticSearchStringContainsHandler
             throw ThrowHelper.Filtering_WrongValueProvided(field);
         }
 
-        var metadata = field.GetElasticMetadata();
+        IElasticFilterMetadata metadata = field.GetElasticMetadata();
 
         return new WildCardOperation(
             context.GetPath(),
+            context.Boost,
             metadata.Kind,
             WildCardOperationKind.Contains,
             val);

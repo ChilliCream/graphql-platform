@@ -41,7 +41,7 @@ public class ElasticSearchListAnyOperationHandler
 
         var metadata = field.GetElasticMetadata();
 
-        ExistsOperation operation = new(context.GetPath(), metadata.Kind);
+        ExistsOperation operation = new(context.GetPath(), context.Boost, metadata.Kind);
 
         if (val)
         {

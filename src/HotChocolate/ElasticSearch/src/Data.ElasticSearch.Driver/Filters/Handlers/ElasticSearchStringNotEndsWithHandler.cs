@@ -2,7 +2,6 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
@@ -28,7 +27,10 @@ public class ElasticSearchStringNotEndsWithHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition { Id: NotEndsWith };
+           fieldDefinition is FilterOperationFieldDefinition
+           {
+               Id: DefaultFilterOperations.NotEndsWith
+           };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -37,8 +39,8 @@ public class ElasticSearchStringNotEndsWithHandler
         IValueNode value,
         object? parsedValue)
     {
-        var operation = base.HandleOperation(context, field, value, parsedValue);
-
+        ISearchOperation operation =
+            base.HandleOperation(context, field, value, parsedValue);
         return ElasticSearchOperationHelpers.Negate(operation);
     }
 }

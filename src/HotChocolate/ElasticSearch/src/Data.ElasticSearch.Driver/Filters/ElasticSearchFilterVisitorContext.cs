@@ -33,4 +33,6 @@ public class ElasticSearchFilterVisitorContext
     /// The path from the root to the current position in the input object
     /// </summary>
     public Stack<string> Path { get; } = new();
+
+    public int Boost { get; set; } = 1;
 }
