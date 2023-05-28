@@ -87,7 +87,7 @@ public sealed class NestExecutable<T> : ElasticSearchExecutable<T> where T : cla
         return result.ToList();
     }
 
-    private SearchRequest<T> CreateQuery()
+    internal SearchRequest<T> CreateQuery()
     {
         var searchRequest = new SearchRequest<T> { Query = new MatchAllQuery() };
 
