@@ -82,7 +82,11 @@ internal sealed class OperationSession : IOperationSession
             // we mark completeTry true so that in case of an error we do not try to send this
             // message again.
             completeTry = true;
-            await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
+
+            if (!ct.IsCancellationRequested)
+            {
+                await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
+            }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
