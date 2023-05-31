@@ -359,6 +359,13 @@ public abstract class DefaultTopic<TMessage> : ITopic
 
             if (raise)
             {
+                var shards = AsSpan(_shards);
+
+                for (var i = 0; i < shards.Length; i++)
+                {
+                    shards[i].Complete();
+                }
+
                 RaiseClosedEvent();
             }
         }

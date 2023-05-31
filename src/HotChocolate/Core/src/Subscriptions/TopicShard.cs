@@ -7,9 +7,9 @@ namespace HotChocolate.Subscriptions;
 
 internal sealed class TopicShard<TMessage>
 {
+    private readonly ReaderWriterLockSlim _lock = new();
     private readonly TaskCompletionSource<bool> _completion = new();
     private readonly Channel<TMessage> _incoming;
-    private readonly List<DefaultSourceStream<TMessage>> _newSubscribers = new();
     private readonly List<DefaultSourceStream<TMessage>> _subscribers = new();
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
@@ -46,21 +46,29 @@ internal sealed class TopicShard<TMessage>
         var channel = Channel.CreateBounded<TMessage>(_channelOptions);
         var stream = new DefaultSourceStream<TMessage>(this, channel);
 
-        lock (_newSubscribers)
-        {
-            _newSubscribers.Add(stream);
-        }
+        _lock.EnterWriteLock();
+
+        _subscribers.Add(stream);
+
+        _lock.ExitWriteLock();
 
         return stream;
     }
 
     public void Unsubscribe(DefaultSourceStream<TMessage> channel)
     {
-        lock (_subscribers)
+        _diagnosticEvents.Unsubscribe(_topicName, _topicShard, 1);
+
+        _lock.EnterWriteLock();
+
+        try
         {
-            _diagnosticEvents.Unsubscribe(_topicName, _topicShard, 1);
             _subscribers.Remove(channel);
             Unsubscribed?.Invoke(1);
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
         }
     }
 
@@ -81,7 +89,8 @@ internal sealed class TopicShard<TMessage>
             while (!reader.Completion.IsCompleted)
             {
                 if (reader.TryPeek(out _))
-                { DispatchMessages(closedChannels, postponedMessages);
+                {
+                    DispatchMessages(closedChannels, postponedMessages);
                     await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
                     UnsubscribeClosedChannels(closedChannels);
                 }
@@ -103,15 +112,7 @@ internal sealed class TopicShard<TMessage>
         }
         finally
         {
-            _incoming.Writer.TryComplete();
-
-            lock (_subscribers)
-            {
-                foreach (var subscriber in _subscribers)
-                {
-                    subscriber.Complete();
-                }
-            }
+            CompleteSubscribers();
         }
 
         async Task WaitForMessages() => await reader.WaitToReadAsync();
@@ -124,17 +125,10 @@ internal sealed class TopicShard<TMessage>
         var batchSize = 4;
         var dispatched = 0;
 
-        lock (_subscribers)
-        {
-            if (_newSubscribers.Count > 0)
-            {
-                lock (_newSubscribers)
-                {
-                    _subscribers.AddRange(_newSubscribers);
-                    _newSubscribers.Clear();
-                }
-            }
+        _lock.EnterReadLock();
 
+        try
+        {
             while (_incoming.Reader.TryRead(out var message))
             {
                 // we are not locking at this point since the only thing happening to this list
@@ -184,6 +178,10 @@ internal sealed class TopicShard<TMessage>
                 }
             }
         }
+        finally
+        {
+            _lock.EnterReadLock();
+        }
     }
 
     private async ValueTask DispatchDelayedMessagesAsync(List<PostponedMessage> postponedMessages)
@@ -224,16 +222,41 @@ internal sealed class TopicShard<TMessage>
         {
             _diagnosticEvents.Unsubscribe(_topicName, _topicShard, closedChannels.Count);
 
-            lock (_subscribers)
+            _lock.EnterWriteLock();
+
+            try
             {
                 foreach (var channel in closedChannels)
                 {
                     _subscribers.Remove(channel);
                 }
-            }
 
-            Unsubscribed?.Invoke(closedChannels.Count);
-            closedChannels.Clear();
+                Unsubscribed?.Invoke(closedChannels.Count);
+                closedChannels.Clear();
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+    }
+
+    private void CompleteSubscribers()
+    {
+        _incoming.Writer.TryComplete();
+
+        _lock.EnterReadLock();
+
+        try
+        {
+            foreach (var subscriber in _subscribers)
+            {
+                subscriber.Complete();
+            }
+        }
+        finally
+        {
+            _lock.ExitReadLock();
         }
     }
 
