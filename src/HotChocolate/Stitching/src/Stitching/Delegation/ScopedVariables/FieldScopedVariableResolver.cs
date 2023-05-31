@@ -1,7 +1,10 @@
+using System.Reflection;
+
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+
 using static HotChocolate.Execution.PathFactory;
 using static HotChocolate.Stitching.Properties.StitchingResources;
 
@@ -38,8 +41,7 @@ internal class FieldScopedVariableResolver
 
             IValueNode? valueLiteral = null;
 
-            if (parent is IReadOnlyDictionary<string, object> dict &&
-                dict.TryGetValue(field.Name, out var value))
+            void formatValue(object? value)
             {
                 var formatter = context.Service<InputFormatter>();
 
@@ -47,10 +49,19 @@ internal class FieldScopedVariableResolver
                 {
                     valueLiteral = v;
                 }
-                else if(field.Type.IsInputType() && field.Type is IInputType type)
+                else if (field.Type.IsInputType() && field.Type is IInputType type)
                 {
                     valueLiteral = formatter.FormatValue(value, type, Instance.New(field.Name));
                 }
+            }
+
+            if (parent is IReadOnlyDictionary<string, object> dict && dict.TryGetValue(field.Name, out var value))
+            {
+                formatValue(value);
+            }
+            else if (parent is not null && parent.GetType().GetProperty(field.Name, BindingFlags.Instance | BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Static) is PropertyInfo propertyInfo)
+            {
+                formatValue(propertyInfo.GetValue(parent));
             }
 
             return new ScopedVariableValue
