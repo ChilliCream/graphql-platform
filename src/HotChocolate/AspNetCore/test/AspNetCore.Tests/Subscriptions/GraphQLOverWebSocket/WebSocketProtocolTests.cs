@@ -385,6 +385,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 const string subscriptionId = "abc";
                 await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
 
+                await Task.Delay(250, ct);
+
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
@@ -398,6 +400,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                 }
                             }"
                     });
+
+                await Task.Delay(250, ct);
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
 
@@ -419,6 +423,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }
                     }"
                     });
+
+                await Task.Delay(250, ct);
 
                 // assert
                 var message = await WaitForMessage(webSocket, Messages.Next, ct);
