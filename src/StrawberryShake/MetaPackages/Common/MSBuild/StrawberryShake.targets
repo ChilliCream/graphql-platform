@@ -18,10 +18,17 @@
   <Target
     Name="GenerateGraphQLCode"
     BeforeTargets="BeforeBuild"
-    DependsOnTargets="_GenerateGraphQLCode">
+    DependsOnTargets="_GraphQLCodeGenerationRoot; _GenerateGraphQLCode">
     <ItemGroup>
       <Compile Include="$(GraphQLCodeGenerationRoot)\**\*.cs" />
     </ItemGroup>
+  </Target>
+
+  <Target
+    Name="_GraphQLCodeGenerationRoot">
+    <PropertyGroup>
+      <GraphQLCodeGenerationRoot>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)berry'))</GraphQLCodeGenerationRoot>
+    </PropertyGroup>
   </Target>
 
   <Target Name="_ParseVersion">
@@ -34,7 +41,7 @@
     Name="_GenerateGraphQLCode"
     Inputs="@(GenerateGraphQLCodeItems)"
     Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
-    DependsOnTargets="_ParseVersion"
+    DependsOnTargets="_ParseVersion;_GraphQLCodeGenerationRoot"
     Condition="'@(GraphQL)' != ''">
 
     <PropertyGroup>
@@ -47,7 +54,6 @@
       Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7'" />
 
     <PropertyGroup>
-      <GraphQLCodeGenerationRoot>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)berry'))</GraphQLCodeGenerationRoot>
       <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput.TrimEnd('/').TrimEnd('\'))</GraphQLQueryGenerationRoot>
       <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
