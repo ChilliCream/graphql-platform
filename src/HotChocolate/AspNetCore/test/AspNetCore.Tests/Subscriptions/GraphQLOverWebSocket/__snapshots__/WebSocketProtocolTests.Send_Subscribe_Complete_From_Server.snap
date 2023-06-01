@@ -6,3 +6,4 @@ Send: OnReview_NewHope {"stars":5,"commentary":"foo"}
 Dispatched: OnReview_NewHope {"stars":5,"commentary":"foo"} 1
 Close: OnReview_NewHope
 Disconnected: OnReview_NewHope
+Unsubscribe: OnReview_NewHope/0 1
