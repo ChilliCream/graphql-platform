@@ -389,20 +389,22 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     new ClientQueryRequest
                     {
                         Query = @"
-                    mutation {
-                        createReview(episode:NEW_HOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }"
+                            mutation {
+                                createReview(episode:NEW_HOPE review: {
+                                    commentary: ""foo""
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
+                            }"
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
 
                 // act
                 await webSocket.SendCompleteAsync(subscriptionId, ct);
+
+                await Task.Delay(250, ct);
 
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest

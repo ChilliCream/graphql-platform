@@ -18,6 +18,7 @@ type Query {
 
 type Mutation {
   createReview(episode: Episode! review: ReviewInput!): Review!
+  complete(episode: Episode!): Boolean!
 }
 
 type Subscription {
