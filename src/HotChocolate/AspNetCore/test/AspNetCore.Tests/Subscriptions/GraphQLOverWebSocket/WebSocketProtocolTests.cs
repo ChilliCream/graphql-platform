@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -432,8 +433,6 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public async Task Send_Subscribe_Complete_From_Server()
     {
-        var snapshot = new Snapshot();
-
         await TryTest(
             async ct =>
             {
@@ -485,8 +484,6 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 Assert.True(diagnostics.UnsubscribeInvoked, "UnsubscribeInvoked is false");
                 Assert.True(diagnostics.CloseInvoked, "CloseInvoked is false");
             });
-
-        await snapshot.MatchAsync();
     }
 
     [Fact]
