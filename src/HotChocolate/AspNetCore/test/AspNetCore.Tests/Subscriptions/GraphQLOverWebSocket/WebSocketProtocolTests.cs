@@ -1,9 +1,9 @@
-using System.Text;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
+using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -368,15 +368,17 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public async Task Send_Subscribe_Complete()
     {
-        var snapshot = new Snapshot();
-
         await TryTest(
             async ct =>
             {
                 // arrange
-                var log = new StringBuilder();
+                var diagnostics = new SubscriptionTestDiagnostics();
                 using var testServer = CreateStarWarsServer(
-                    output: new TestOutputInterceptor(_output, log));
+                    configureServices: services
+                        => services
+                            .AddGraphQL()
+                            .AddDiagnosticEventListener(_ => diagnostics),
+                    output: _output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -384,8 +386,6 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
                 const string subscriptionId = "abc";
                 await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
-
-                await Task.Delay(250, ct);
 
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
@@ -401,14 +401,10 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             }"
                     });
 
-                await Task.Delay(250, ct);
-
                 await WaitForMessage(webSocket, Messages.Next, ct);
 
                 // act
                 await webSocket.SendCompleteAsync(subscriptionId, ct);
-
-                await Task.Delay(250, ct);
 
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
@@ -424,16 +420,13 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     }"
                     });
 
-                await Task.Delay(250, ct);
-
                 // assert
                 var message = await WaitForMessage(webSocket, Messages.Next, ct);
-                Assert.Null(message);
-                await Task.Delay(400, ct);
-                snapshot.Add(log.ToString());
-            });
 
-        await snapshot.MatchAsync();
+                Assert.Null(message);
+                Assert.True(diagnostics.UnsubscribeInvoked, "UnsubscribeInvoked is false");
+                Assert.True(diagnostics.CloseInvoked, "CloseInvoked is false");
+            });
     }
 
     [Fact]
@@ -445,9 +438,13 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                var log = new StringBuilder();
+                var diagnostics = new SubscriptionTestDiagnostics();
                 using var testServer = CreateStarWarsServer(
-                    output: new TestOutputInterceptor(_output, log));
+                    configureServices: services
+                        => services
+                            .AddGraphQL()
+                            .AddDiagnosticEventListener(_ => diagnostics),
+                    output: _output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -484,9 +481,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // assert
                 await WaitForMessage(webSocket, Messages.Complete, ct);
-                await Task.Delay(400, ct);
 
-                snapshot.Add(log.ToString());
+                Assert.True(diagnostics.UnsubscribeInvoked, "UnsubscribeInvoked is false");
+                Assert.True(diagnostics.CloseInvoked, "CloseInvoked is false");
             });
 
         await snapshot.MatchAsync();
@@ -499,16 +496,20 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                var log = new StringBuilder();
+                var diagnostics = new SubscriptionTestDiagnostics();
                 using var testServer = CreateStarWarsServer(
-                    output: new TestOutputInterceptor(_output, log));
+                    configureServices: services
+                        => services
+                            .AddGraphQL()
+                            .AddDiagnosticEventListener(_ => diagnostics),
+                    output: _output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
                 var payload = new SubscribePayload(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
-                for(var i = 0; i < 600; i++)
+                for (var i = 0; i < 600; i++)
                 {
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
@@ -547,6 +548,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 {
                     await WaitForMessage(webSocket, Messages.Complete, ct);
                 }
+
+                Assert.True(diagnostics.UnsubscribeInvoked, "UnsubscribeInvoked is false");
+                Assert.True(diagnostics.CloseInvoked, "CloseInvoked is false");
             });
     }
 
@@ -933,27 +937,16 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         }
     }
 
-    private class TestOutputInterceptor : ITestOutputHelper
+    public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsListener
     {
-        private readonly ITestOutputHelper _helper;
-        private readonly StringBuilder _builder;
+        public bool UnsubscribeInvoked { get; private set; }
 
-        public TestOutputInterceptor(ITestOutputHelper helper, StringBuilder builder)
-        {
-            _helper = helper;
-            _builder = builder;
-        }
+        public bool CloseInvoked { get; private set; }
 
-        public void WriteLine(string message)
-        {
-            _builder.AppendLine(message);
-            _helper.WriteLine(message);
-        }
+        public override void Unsubscribe(string topicName, int shard, int subscribers)
+            => UnsubscribeInvoked = true;
 
-        public void WriteLine(string format, params object[] args)
-        {
-            _builder.AppendLine(string.Format(format, args));
-            _helper.WriteLine(format, args);
-        }
+        public override void Close(string topicName)
+            => CloseInvoked = true;
     }
 }
