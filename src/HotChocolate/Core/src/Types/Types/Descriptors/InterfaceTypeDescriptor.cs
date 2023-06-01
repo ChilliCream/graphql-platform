@@ -78,6 +78,7 @@ public class InterfaceTypeDescriptor
 
         OnCompleteFields(fields, handledMembers);
 
+        Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
 
         base.OnCreateDefinition(definition);
