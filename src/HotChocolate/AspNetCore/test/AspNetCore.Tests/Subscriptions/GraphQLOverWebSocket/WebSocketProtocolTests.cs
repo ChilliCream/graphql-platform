@@ -421,6 +421,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 // assert
                 var message = await WaitForMessage(webSocket, Messages.Next, ct);
                 Assert.Null(message);
+                await Task.Delay(400, ct);
                 snapshot.Add(log.ToString());
             });
 
@@ -475,6 +476,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // assert
                 await WaitForMessage(webSocket, Messages.Complete, ct);
+                await Task.Delay(400, ct);
+
                 snapshot.Add(log.ToString());
             });
 
