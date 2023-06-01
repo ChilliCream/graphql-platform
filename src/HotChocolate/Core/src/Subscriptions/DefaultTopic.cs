@@ -44,7 +44,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         _diagnosticEvents = diagnosticEvents;
 
         // initially we will run with one shard.
-        _shards.Add(new TopicShard<TMessage>(_channelOptions, name, 0, diagnosticEvents));
+        _shards.Add(CreateShard(0));
     }
 
     protected DefaultTopic(
@@ -63,7 +63,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         _diagnosticEvents = diagnosticEvents;
 
         // initially we will run with one shard.
-        _shards.Add(new TopicShard<TMessage>(_channelOptions, name, 0, diagnosticEvents));
+        _shards.Add(CreateShard(0));
     }
 
     /// <summary>
@@ -147,6 +147,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
                 }
 
                 var stream = GetOptimalShard().Subscribe();
+                _subscribers++;
                 _diagnosticEvents.SubscribeSuccess(Name);
                 return stream;
             }
@@ -360,9 +361,10 @@ public abstract class DefaultTopic<TMessage> : ITopic
             {
                 _subscribers -= subscribers;
 
-                if (_subscribers == 0 && !_completed)
+                if (_subscribers == 0)
                 {
                     _completed = true;
+                    _incoming.Writer.TryComplete();
                     raise = true;
                 }
             }

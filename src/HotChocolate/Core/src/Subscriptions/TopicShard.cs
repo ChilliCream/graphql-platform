@@ -64,8 +64,10 @@ internal sealed class TopicShard<TMessage>
 
         try
         {
-            _subscribers.Remove(channel);
-            Unsubscribed?.Invoke(1);
+            if (_subscribers.Remove(channel))
+            {
+                Unsubscribed?.Invoke(1);
+            }
         }
         finally
         {

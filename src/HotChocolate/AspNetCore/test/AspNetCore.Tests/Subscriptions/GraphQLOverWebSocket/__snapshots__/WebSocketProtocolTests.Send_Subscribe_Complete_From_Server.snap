@@ -1,0 +1,8 @@
+TrySubscribe: OnReview_NewHope 1
+Created: OnReview_NewHope
+Connected: OnReview_NewHope
+Subscribe Successful: OnReview_NewHope
+Send: OnReview_NewHope {"stars":5,"commentary":"foo"}
+Dispatched: OnReview_NewHope {"stars":5,"commentary":"foo"} 1
+Close: OnReview_NewHope
+Disconnected: OnReview_NewHope
