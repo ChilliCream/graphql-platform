@@ -79,8 +79,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
 
             if (_topics.TryGetValue(formattedTopic, out var topic))
             {
-                sourceStream = await TryCreateSourceStream(topic, cancellationToken)
-                    .ConfigureAwait(false);
+                sourceStream = TryCreateSourceStream(topic);
             }
             else
             {
@@ -105,8 +104,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
                     _subscribeSemaphore.Release();
                 }
 
-                sourceStream = await TryCreateSourceStream(topic, cancellationToken)
-                    .ConfigureAwait(false);
+                sourceStream = TryCreateSourceStream(topic);
             }
         }
 
@@ -118,13 +116,11 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
 
         return sourceStream;
 
-        static async ValueTask<ISourceStream<TMessage>?> TryCreateSourceStream(
-            ITopic topic,
-            CancellationToken cancellationToken)
+        static ISourceStream<TMessage>? TryCreateSourceStream(ITopic topic)
         {
             if (topic is DefaultTopic<TMessage> et)
             {
-                return await et.TrySubscribeAsync(cancellationToken).ConfigureAwait(false);
+                return et.TrySubscribe();
             }
 
             // we found a topic with the same name but a different message type.

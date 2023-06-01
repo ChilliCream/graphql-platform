@@ -208,7 +208,7 @@ public class UploadScalarTest : ServerTestBase
             c =>
             {
                 c.BaseAddress = new Uri("http://localhost:" + port + "/graphql");
-                c.DefaultRequestHeaders.Add("GraphQL-Require-Preflight", "1");
+                c.DefaultRequestHeaders.Add("GraphQL-Preflight", "1");
             });
         serviceCollection.AddWebSocketClient(
             UploadScalarClient.ClientName,
