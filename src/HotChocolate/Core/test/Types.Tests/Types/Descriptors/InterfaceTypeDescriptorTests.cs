@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Types.Descriptors;
+
 public class InterfaceTypeDescriptorTests : DescriptorTestBase
 {
     [Fact]
@@ -19,5 +14,4 @@ public class InterfaceTypeDescriptorTests : DescriptorTestBase
         descriptor.CreateDefinition();
         Assert.Single(interfaceType.Fields);
     }
-
 }
