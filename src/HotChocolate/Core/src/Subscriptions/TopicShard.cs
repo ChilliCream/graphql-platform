@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
@@ -8,7 +10,6 @@ namespace HotChocolate.Subscriptions;
 internal sealed class TopicShard<TMessage>
 {
     private readonly ReaderWriterLockSlim _lock = new();
-    private readonly TaskCompletionSource<bool> _completion = new();
     private readonly Channel<TMessage> _incoming;
     private readonly List<DefaultSourceStream<TMessage>> _subscribers = new();
     private readonly BoundedChannelOptions _channelOptions;
@@ -27,7 +28,7 @@ internal sealed class TopicShard<TMessage>
         _topicShard = topicShard;
         _diagnosticEvents = diagnosticEvents;
 
-        _incoming = Channel.CreateBounded<TMessage>(_channelOptions);
+        _incoming = Channel.CreateUnbounded<TMessage>();
 
         BeginProcessing();
     }
@@ -72,173 +73,53 @@ internal sealed class TopicShard<TMessage>
         }
     }
 
-    public void Complete() => _completion.TrySetResult(true);
-
     private void BeginProcessing()
         => Task.Factory.StartNew(
             async () => await ProcessMessagesAsync().ConfigureAwait(false));
 
     private async ValueTask ProcessMessagesAsync()
     {
-        var closedChannels = new List<DefaultSourceStream<TMessage>>();
-        var postponedMessages = new List<PostponedMessage>();
-        var reader = _incoming.Reader;
+        using var cts = new CancellationTokenSource();
+        var ct = cts.Token;
 
         try
         {
-            while (!reader.Completion.IsCompleted)
+            while (await _incoming.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
             {
-                if (reader.TryPeek(out _))
-                {
-                    DispatchMessages(closedChannels, postponedMessages);
-                    await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
-                    UnsubscribeClosedChannels(closedChannels);
-                }
-                else
-                {
-                    if (_completion.Task.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    await Task.WhenAny(_completion.Task, WaitForMessages()).ConfigureAwait(false);
-
-                    if (_completion.Task.IsCompleted && !reader.TryPeek(out _))
-                    {
-                        break;
-                    }
-                }
+                DispatchToSubscribers();
             }
         }
         finally
         {
             CompleteSubscribers();
+            cts.Cancel();
         }
-
-        async Task WaitForMessages() => await reader.WaitToReadAsync();
     }
 
-    private void DispatchMessages(
-        List<DefaultSourceStream<TMessage>> closedChannels,
-        List<PostponedMessage> postponedMessages)
+    private void DispatchToSubscribers()
     {
-        var batchSize = 4;
-        var dispatched = 0;
-
+        var reads = 0;
         _lock.EnterReadLock();
 
-        try
+        while (_incoming.Reader.TryRead(out var message))
         {
-            while (_incoming.Reader.TryRead(out var message))
+            var subscribersSpan = AsSpan(_subscribers);
+            ref var start = ref MemoryMarshal.GetReference(subscribersSpan);
+            ref var end = ref Unsafe.Add(ref start, subscribersSpan.Length);
+
+            while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                // we are not locking at this point since the only thing happening to this list
-                // is that new subscribers are added. This thread we are in is handling removals,
-                // so we just grab the internal array and iterate over the window we have.
-                var outgoingSpan = AsSpan(_subscribers);
-                var subscriberCount = outgoingSpan.Length;
+                start.Write(message);
+                start = ref Unsafe.Add(ref start, 1);
+            }
 
-                // if this shard is empty we will just return.
-                if (subscriberCount == 0)
-                {
-                    return;
-                }
-
-                for (var i = 0; i < subscriberCount; i++)
-                {
-                    var sourceStream = outgoingSpan[i];
-
-                    if (sourceStream.TryWrite(message))
-                    {
-                        continue;
-                    }
-
-                    // if we could not write to the channel we will check if the channel is closed.
-                    if (sourceStream.IsCompleted)
-                    {
-                        // if we detect channels that unsubscribed we will take a break and
-                        // reorganize the subscriber list.
-                        closedChannels.Add(sourceStream);
-                        batchSize = 0;
-                    }
-                    else
-                    {
-                        // if we cannot write because of back pressure we will postpone
-                        // the message and take a break from processing further.
-                        postponedMessages.Add(new PostponedMessage(message, sourceStream.Outgoing));
-                        batchSize = 0;
-                    }
-                }
-
-                // we try to avoid full message processing cycles and keep on dispatching messages,
-                // but we will interrupt every 4 messages and allow for new subscribers
-                // to join in.
-                if (++dispatched >= batchSize)
-                {
-                    break;
-                }
+            if (++reads > 5)
+            {
+                break;
             }
         }
-        finally
-        {
-            _lock.EnterReadLock();
-        }
-    }
 
-    private async ValueTask DispatchDelayedMessagesAsync(List<PostponedMessage> postponedMessages)
-    {
-        if (postponedMessages.Count > 0)
-        {
-            _diagnosticEvents.DelayedDispatch(
-                _topicName,
-                _topicShard,
-                postponedMessages[0].Message,
-                postponedMessages.Count);
-
-            for (var i = 0; i < postponedMessages.Count; i++)
-            {
-                var postponedMessage = postponedMessages[i];
-                var channel = postponedMessage.Channel;
-                var message = postponedMessage.Message;
-
-                try
-                {
-                    await channel.Writer.WriteAsync(message).ConfigureAwait(false);
-                }
-                catch (ChannelClosedException)
-                {
-                    // the channel might have been closed in the meantime.
-                    // we will skip over this error and the channel will be collected
-                    // on the next iteration.
-                }
-            }
-            postponedMessages.Clear();
-        }
-    }
-
-    private void UnsubscribeClosedChannels(
-        List<DefaultSourceStream<TMessage>> closedChannels)
-    {
-        if (closedChannels.Count > 0)
-        {
-            _diagnosticEvents.Unsubscribe(_topicName, _topicShard, closedChannels.Count);
-
-            _lock.EnterWriteLock();
-
-            try
-            {
-                foreach (var channel in closedChannels)
-                {
-                    _subscribers.Remove(channel);
-                }
-
-                Unsubscribed?.Invoke(closedChannels.Count);
-                closedChannels.Clear();
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-        }
+        _lock.ExitReadLock();
     }
 
     private void CompleteSubscribers()
@@ -258,20 +139,5 @@ internal sealed class TopicShard<TMessage>
         {
             _lock.ExitReadLock();
         }
-    }
-
-    private sealed class PostponedMessage
-    {
-        public PostponedMessage(
-            TMessage message,
-            Channel<TMessage> channel)
-        {
-            Message = message;
-            Channel = channel;
-        }
-
-        public TMessage Message { get; }
-
-        public Channel<TMessage> Channel { get; }
     }
 }

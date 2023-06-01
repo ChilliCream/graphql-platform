@@ -397,6 +397,48 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
+    public Task Send_Subscribe_Complete_From_Server()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using var testServer = CreateStarWarsServer(output: _output);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
+
+            var payload = new SubscribePayload(
+                "subscription { onReview(episode: NEW_HOPE) { stars } }");
+            const string subscriptionId = "abc";
+            await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
+
+            await testServer.SendPostRequestAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    mutation {
+                        createReview(episode:NEW_HOPE review: {
+                            commentary: ""foo""
+                            stars: 5
+                        }) {
+                            stars
+                        }
+                    }"
+            });
+
+            await WaitForMessage(webSocket, Messages.Next, ct);
+
+            // act
+            await testServer.SendPostRequestAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    mutation {
+                        complete(episode:NEW_HOPE)
+                    }"
+            });
+
+            // assert
+            await WaitForMessage(webSocket, Messages.Complete, ct);
+        });
+
+    [Fact]
     public Task Send_Subscribe_SyntaxError()
     {
         var snapshot = new Snapshot();

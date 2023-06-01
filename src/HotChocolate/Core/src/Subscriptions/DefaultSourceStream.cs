@@ -11,7 +11,6 @@ namespace HotChocolate.Subscriptions;
 /// </typeparam>
 internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
 {
-    private readonly TaskCompletionSource<bool> _completed = new();
     private readonly TopicShard<TMessage> _shard;
     private readonly Channel<TMessage> _outgoing;
 
@@ -21,49 +20,19 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
         _outgoing = outgoing ?? throw new ArgumentNullException(nameof(outgoing));
     }
 
-    internal bool IsCompleted
-    {
-        get
-        {
-            try
-            {
-                if (_outgoing.Reader.Completion.IsCompleted)
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                return true;
-            }
+    internal void Write(TMessage message)
+        => _outgoing.Writer.TryWrite(message);
 
-            return false;
-        }
-    }
-
-    internal Channel<TMessage> Outgoing => _outgoing;
-
-    internal bool TryWrite(TMessage message)
-    {
-        try
-        {
-            return _outgoing.Writer.TryWrite(message);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    internal void Complete() => _completed.TrySetResult(true);
+    internal void Complete()
+        => _outgoing.Writer.TryComplete();
 
     /// <inheritdoc />
     public IAsyncEnumerable<TMessage> ReadEventsAsync()
-        => new MessageEnumerable(_outgoing.Reader, _completed);
+        => new MessageEnumerable(_outgoing.Reader);
 
     /// <inheritdoc />
     IAsyncEnumerable<object?> ISourceStream.ReadEventsAsync()
-        => new MessageEnumerableAsObject(_outgoing.Reader, _completed);
+        => new MessageEnumerableAsObject(_outgoing.Reader);
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
@@ -78,82 +47,34 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
     private sealed class MessageEnumerable : IAsyncEnumerable<TMessage>
     {
         private readonly ChannelReader<TMessage> _reader;
-        private readonly TaskCompletionSource<bool> _completed;
 
-        public MessageEnumerable(
-            ChannelReader<TMessage> reader,
-            TaskCompletionSource<bool> completed)
+        public MessageEnumerable(ChannelReader<TMessage> reader)
         {
             _reader = reader;
-            _completed = completed;
         }
 
         public IAsyncEnumerator<TMessage> GetAsyncEnumerator(
             CancellationToken cancellationToken)
-            => new MessageEnumerator(_reader, _completed, cancellationToken);
+            => new MessageEnumerator(
+                _reader.ReadAllAsync(cancellationToken).GetAsyncEnumerator(cancellationToken));
     }
 
     private sealed class MessageEnumerator : IAsyncEnumerator<TMessage>
     {
-        private readonly ChannelReader<TMessage> _reader;
-        private readonly TaskCompletionSource<bool> _completed;
-        private readonly CancellationToken _cancellationToken;
+        private readonly IAsyncEnumerator<TMessage> _enumerator;
 
-        public MessageEnumerator(
-            ChannelReader<TMessage> reader,
-            TaskCompletionSource<bool> completed,
-            CancellationToken cancellationToken)
+        public MessageEnumerator(IAsyncEnumerator<TMessage> enumerator)
         {
-            _reader = reader;
-            _completed = completed;
-            _cancellationToken = cancellationToken;
+            _enumerator = enumerator;
         }
 
-        public TMessage Current { get; private set; } = default!;
+        public TMessage Current => _enumerator.Current;
 
         public async ValueTask<bool> MoveNextAsync()
-        {
-            try
-            {
-                while (!_cancellationToken.IsCancellationRequested &&
-                    !_reader.Completion.IsCompleted)
-                {
-                    if (_reader.TryRead(out var message))
-                    {
-                        Current = message;
-                        return true;
-                    }
-
-                    if (_completed.Task.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    var result = await Task.WhenAny(_completed.Task, WaitForMessages())
-                        .ConfigureAwait(false);
-
-                    if (_cancellationToken.IsCancellationRequested ||
-                        !result.IsCompletedSuccessfully ||
-                        (_completed.Task.IsCompleted && !_reader.TryPeek(out _)))
-                    {
-                        break;
-                    }
-                }
-            }
-            catch
-            {
-                // ignore errors
-            }
-
-            return false;
-
-            async Task WaitForMessages()
-                => await _reader.WaitToReadAsync(_cancellationToken);
-        }
+            => await _enumerator.MoveNextAsync().ConfigureAwait(false);
 
         public ValueTask DisposeAsync()
         {
-            _completed.TrySetCanceled();
             return default;
         }
     }
@@ -161,83 +82,33 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
     private sealed class MessageEnumerableAsObject : IAsyncEnumerable<object?>
     {
         private readonly ChannelReader<TMessage> _reader;
-        private readonly TaskCompletionSource<bool> _completed;
 
-        public MessageEnumerableAsObject(
-            ChannelReader<TMessage> reader,
-            TaskCompletionSource<bool> completed)
+        public MessageEnumerableAsObject(ChannelReader<TMessage> reader)
         {
             _reader = reader;
-            _completed = completed;
         }
 
         public IAsyncEnumerator<object?> GetAsyncEnumerator(
             CancellationToken cancellationToken)
-            => new MessageEnumeratorAsObject(_reader, _completed, cancellationToken);
+            => new MessageEnumeratorAsObject(
+                _reader.ReadAllAsync(cancellationToken).GetAsyncEnumerator(cancellationToken));
     }
 
     private sealed class MessageEnumeratorAsObject : IAsyncEnumerator<object?>
     {
-        private readonly ChannelReader<TMessage> _reader;
-        private readonly TaskCompletionSource<bool> _completed;
-        private readonly CancellationToken _cancellationToken;
+        private readonly IAsyncEnumerator<TMessage> _enumerator;
 
-        public MessageEnumeratorAsObject(
-            ChannelReader<TMessage> reader,
-            TaskCompletionSource<bool> completed,
-            CancellationToken cancellationToken)
+        public MessageEnumeratorAsObject(IAsyncEnumerator<TMessage> enumerator)
         {
-            _reader = reader;
-            _completed = completed;
-            _cancellationToken = cancellationToken;
+            _enumerator = enumerator;
         }
 
-        public object? Current { get; private set; }
+        public object? Current => _enumerator.Current;
 
         public async ValueTask<bool> MoveNextAsync()
-        {
-            try
-            {
-                while (!_cancellationToken.IsCancellationRequested &&
-                    !_reader.Completion.IsCompleted)
-                {
-                    if (_reader.TryRead(out var message))
-                    {
-                        Current = message;
-                        return true;
-                    }
-
-                    if (_completed.Task.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    var result = await Task.WhenAny(_completed.Task, WaitForMessages())
-                        .ConfigureAwait(false);
-
-                    if (_cancellationToken.IsCancellationRequested ||
-                        !result.IsCompletedSuccessfully ||
-                        (_completed.Task.IsCompleted && !_reader.TryPeek(out _)))
-                    {
-                        break;
-                    }
-                }
-            }
-            catch
-            {
-                // ignore errors
-            }
-
-            return false;
-
-            async Task WaitForMessages()
-                => await _reader.WaitToReadAsync(_cancellationToken);
-        }
+            => await _enumerator.MoveNextAsync().ConfigureAwait(false);
 
         public ValueTask DisposeAsync()
-        {
-            _completed.TrySetCanceled();
-            return default;
-        }
+            => _enumerator.DisposeAsync();
     }
 }

@@ -26,4 +26,12 @@ public class Mutation
         await eventSender.SendAsync($"{OnReview}_{episode}", review);
         return review;
     }
+
+    public async Task<bool> CompleteAsync(
+        Episode episode,
+        [Service] ITopicEventSender eventSender)
+    {
+        await eventSender.CompleteAsync($"{OnReview}_{episode}");
+        return true;
+    }
 }
