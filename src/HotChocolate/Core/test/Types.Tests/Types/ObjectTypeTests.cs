@@ -2208,6 +2208,18 @@ public class ObjectTypeTests : TypeTestBase
         Assert.Contains("non-abstract type is required", ex.Message);
     }
 
+    [Fact]
+    public async Task Ignore_Generic_Methods()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithGenerics>()
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
     public abstract class ResolverBase
     {
         public int GetValue() => 1024;
@@ -2529,5 +2541,12 @@ public class ObjectTypeTests : TypeTestBase
         public string Title { get; set; } = default!;
 
         public static bool IsComic => true;
+    }
+
+    public class QueryWithGenerics
+    {
+        public string Bar() => "bar";
+
+        public T Foo<T>() => default!;
     }
 }

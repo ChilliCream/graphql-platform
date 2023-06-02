@@ -1,0 +1,15 @@
+schema {
+  query: RootQuery
+}
+
+"The root query"
+type RootQuery {
+  "Returns testDataType."
+  testData: TestDataType
+}
+
+"Test Data Type."
+type TestDataType {
+  "Id"
+  id: String
+}
