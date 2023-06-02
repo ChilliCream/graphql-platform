@@ -186,6 +186,18 @@ public class CodeFirstTests
             """);
     }
 
+    [Fact]
+    public async Task Infer_Nullability_From_Nested_Classes()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryNestedClassNullableString>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
     public class Query
     {
         public string SayHello(string name) =>
@@ -323,5 +335,29 @@ public class CodeFirstTests
     public class PascalCaseQuery
     {
         public string TestResolver(string TestArgument) => "abc";
+    }
+
+    public sealed class QueryNestedClassNullableString
+    {
+        public class Outer
+        {
+            public string? shouldBeNullable { get; set; }
+        }
+
+        public class Example
+        {
+            public class Inner
+            {
+                public string? shouldAlsoBeNullable { get; set; }
+            }
+
+            public Inner? inner { get; set; } = new();
+            public Outer? outer { get; set; } = new();
+        }
+
+        public Example NestedClassNullableString()
+        {
+            return new Example();
+        }
     }
 }
