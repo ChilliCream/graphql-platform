@@ -349,7 +349,7 @@ internal sealed class TypeInitializer
 
                     {
                         if (isSchemaType &&
-                            extendsType.IsInstanceOfType(possibleMatchingType))
+                            extendsType.IsInstanceOfType(possibleMatchingType.Type))
                         {
                             MergeTypeExtension(
                                 extensionArray,
