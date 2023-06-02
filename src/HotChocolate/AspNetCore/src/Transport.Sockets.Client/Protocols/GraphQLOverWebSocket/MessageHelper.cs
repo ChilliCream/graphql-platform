@@ -82,7 +82,7 @@ internal static class MessageHelper
             WriteFieldValue(jsonWriter, request.Extensions);
         }
 
-        if (request.Variables is not null)
+        if (request.VariablesNode is not null)
         {
             jsonWriter.WritePropertyName(VariablesProp);
             WriteFieldValue(jsonWriter, request.VariablesNode);
