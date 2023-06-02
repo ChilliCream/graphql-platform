@@ -14,6 +14,7 @@ using HotChocolate.Utilities;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
+using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate;
 
@@ -2088,6 +2089,19 @@ public class SchemaBuilderTests
         Assert.True(Assert.IsType<MockConvention>(result).IsExtended);
     }
 
+    [Fact]
+    public async Task Ensure_Types_Are_Bound_Explicitly()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<RootQuery>()
+                .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
     public interface IMockConvention : IConvention
     {
     }
@@ -2297,5 +2311,43 @@ public class SchemaBuilderTests
             IDescriptorContext context,
             ISchemaBuilder schemaBuilder) =>
             _onBeforeCreate(context);
+    }
+
+    public class TestData
+    {
+        public T ResolveValue<T>()
+        {
+            return (T)new object();
+        }
+    }
+
+    public class TestDataType : ObjectType<TestData>
+    {
+        protected override void Configure(IObjectTypeDescriptor<TestData> descriptor)
+        {
+            descriptor.Name("TestDataType");
+            descriptor.Description("Test Data Type.");
+
+            descriptor
+                .Field("id")
+                .Description("Id")
+                .Type<StringType>()
+                .Resolve(c=> c.Parent<TestData>().ResolveValue<string>());
+        }
+    }
+
+    public class RootQuery : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name( "RootQuery");
+            descriptor.Description( "The root query");
+
+            descriptor
+                .Field("testData")
+                .Description("Returns testDataType.")
+                .Type<TestDataType>()
+                .Resolve(c => new TestData());
+        }
     }
 }

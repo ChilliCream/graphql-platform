@@ -81,20 +81,6 @@ internal sealed class AggregateSubscriptionDiagnosticEventsListener
         }
     }
 
-    public override void DelayedDispatch<T>(
-        string topicName,
-        int shard,
-        T message,
-        int subscribers)
-    {
-        var listenerSpan = _listeners.AsSpan();
-
-        for (var i = 0; i < listenerSpan.Length; i++)
-        {
-            listenerSpan[i].DelayedDispatch(topicName, shard, message, subscribers);
-        }
-    }
-
     public override void TrySubscribe(string topicName, int attempt)
     {
         var listenerSpan = _listeners.AsSpan();
