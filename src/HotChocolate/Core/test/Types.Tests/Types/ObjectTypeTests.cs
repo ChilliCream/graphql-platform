@@ -2074,7 +2074,7 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var schema =
+        async Task Error() =>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<WithStaticField>()
@@ -2082,23 +2082,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
-    }
-
-    [Fact]
-    public async Task Static_Field_Inference_3_Execute()
-    {
-        // arrange
-        // act
-        var result =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<WithStaticField>()
-                .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .ExecuteRequestAsync("{ hello }");
-
-        // assert
-        SnapshotExtensions.MatchSnapshot(result);
+        await Assert.ThrowsAsync<SchemaException>(Error);
     }
 
     [Fact]
