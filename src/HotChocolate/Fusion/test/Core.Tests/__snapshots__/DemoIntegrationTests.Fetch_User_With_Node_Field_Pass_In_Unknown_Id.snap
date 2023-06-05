@@ -141,6 +141,7 @@ type Product implements Node @variable(subgraph: "Reviews2", name: "Product_id",
   id: ID! @source(subgraph: "Products")
   name: String! @source(subgraph: "Products")
   price: Int! @source(subgraph: "Products")
+  repeat(num: Int!): Int! @source(subgraph: "Products") @variable(subgraph: "Products", name: "num", argument: "num")
   reviews: [Review!]! @source(subgraph: "Reviews2")
   upc: Int! @source(subgraph: "Reviews2")
   weight: Int! @source(subgraph: "Products")

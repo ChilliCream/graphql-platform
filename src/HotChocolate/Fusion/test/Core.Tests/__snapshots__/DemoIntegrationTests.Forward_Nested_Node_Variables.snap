@@ -28,9 +28,12 @@ QueryPlan
             "node": {
               "type": "Resolve",
               "subgraph": "Products",
-              "document": "query ProductReviews_1($id: ID!) { node(id: $id) { ... on Product { id repeat(num: $first) __typename } } }",
+              "document": "query ProductReviews_1($first: Int!, $id: ID!) { node(id: $id) { ... on Product { id repeat(num: $first) __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
+                {
+                  "variable": "first"
+                },
                 {
                   "variable": "id"
                 }
@@ -81,22 +84,11 @@ QueryPlan
 Result
 ---------------
 {
-  "errors": [
-    {
-      "message": "The following variables were not declared: first.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 1
-        }
-      ],
-      "extensions": {
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
-      }
-    }
-  ],
   "data": {
-    "node": null
+    "node": {
+      "id": "UHJvZHVjdAppMQ==",
+      "repeat": 1
+    }
   }
 }
 ---------------
