@@ -52,7 +52,6 @@ internal sealed class ObjectTypeInfo : IType
     /// </summary>
     public ObjectFieldInfoCollection Fields { get; }
 
-
     /// <summary>
     /// Returns the name of the object type as a string.
     /// </summary>

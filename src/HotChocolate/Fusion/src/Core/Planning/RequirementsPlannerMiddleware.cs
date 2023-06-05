@@ -26,15 +26,6 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
         foreach (var step in context.Steps)
         {
-            if(step is NodeExecutionStep nodeExecutionStep)
-            {
-                var declaringType = nodeExecutionStep.NodeSelection.DeclaringType;
-                var selectionSet = context.Operation.RootSelectionSet;
-
-
-
-            }
-
             if (step is SelectionExecutionStep defaultExecutionStep &&
                 defaultExecutionStep.ParentSelection is { } parent &&
                 defaultExecutionStep.Resolver is not null)

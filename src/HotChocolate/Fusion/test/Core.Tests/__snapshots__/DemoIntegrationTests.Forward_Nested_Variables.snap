@@ -1,15 +1,9 @@
 User Request
 ---------------
-query TopProducts {
-  __typename
-  topProducts(first: 2) {
-    __typename
-    reviews {
-      __typename
-      author {
-        __typename
-      }
-    }
+query ProductReviews($id: ID!, $first: Int!) {
+  productById(id: $id) {
+    id
+    repeat(num: $first)
   }
 }
 ---------------
@@ -17,23 +11,22 @@ query TopProducts {
 QueryPlan
 ---------------
 {
-  "document": "query TopProducts { __typename topProducts(first: 2) { __typename reviews { __typename author { __typename } } } }",
-  "operation": "TopProducts",
+  "document": "query ProductReviews($id: ID!, $first: Int!) { productById(id: $id) { id repeat(num: $first) } }",
+  "operation": "ProductReviews",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "Resolve",
+        "subgraph": "Products",
+        "document": "query ProductReviews_1($first: Int!, $id: ID!) { productById(id: $id) { id repeat(num: $first) } }",
+        "selectionSetId": 0,
+        "forwardedVariables": [
           {
-            "type": "Introspect",
-            "document": "{ __typename }"
+            "variable": "first"
           },
           {
-            "type": "Resolve",
-            "subgraph": "Products",
-            "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: id } }",
-            "selectionSetId": 0
+            "variable": "id"
           }
         ]
       },
@@ -41,26 +34,6 @@ QueryPlan
         "type": "Compose",
         "selectionSetIds": [
           0
-        ]
-      },
-      {
-        "type": "Resolve",
-        "subgraph": "Reviews2",
-        "document": "query TopProducts_2($__fusion_exports__1: ID!) { productById(id: $__fusion_exports__1) { reviews { __typename author { __typename } } } }",
-        "selectionSetId": 1,
-        "path": [
-          "productById"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          1
         ]
       }
     ]
@@ -72,50 +45,27 @@ Result
 ---------------
 {
   "data": {
-    "__typename": "Query",
-    "topProducts": [
-      {
-        "__typename": "Product",
-        "reviews": [
-          {
-            "__typename": "Review",
-            "author": {
-              "__typename": "User"
-            }
-          },
-          {
-            "__typename": "Review",
-            "author": {
-              "__typename": "User"
-            }
-          }
-        ]
-      },
-      {
-        "__typename": "Product",
-        "reviews": [
-          {
-            "__typename": "Review",
-            "author": {
-              "__typename": "User"
-            }
-          }
-        ]
-      }
-    ]
+    "productById": {
+      "id": "UHJvZHVjdAppMQ==",
+      "repeat": 1
+    }
   }
 }
 ---------------
 
 Fusion Graph
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Products", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+schema @fusion(version: 1) @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Products", baseAddress: "ws:\/\/localhost:5000\/graphql") @node(subgraph: "Reviews2", types: [ "User", "Review" ]) @node(subgraph: "Accounts", types: [ "User" ]) @node(subgraph: "Products", types: [ "Product" ]) {
   query: Query
   mutation: Mutation
   subscription: Subscription
 }
 
 type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Accounts", name: "id", argument: "id") @resolver(subgraph: "Accounts", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Products", name: "id", argument: "id") @resolver(subgraph: "Products", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @variable(subgraph: "Reviews2", name: "ids", argument: "ids") @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ]) @variable(subgraph: "Accounts", name: "ids", argument: "ids") @resolver(subgraph: "Accounts", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ]) @variable(subgraph: "Products", name: "ids", argument: "ids") @resolver(subgraph: "Products", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
   productById(id: ID!): Product @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Products", name: "id", argument: "id") @resolver(subgraph: "Products", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewById(id: ID!): Review @variable(subgraph: "Reviews2", name: "id", argument: "id") @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewOrAuthor: ReviewOrAuthor! @resolver(subgraph: "Reviews2", select: "{ reviewOrAuthor }")
