@@ -31,5 +31,5 @@ public sealed class FusionGatewayBuilder
     /// <summary>
     /// Gets the underlying request executor builder.
     /// </summary>
-    internal IRequestExecutorBuilder CoreBuilder { get; }
+    public IRequestExecutorBuilder CoreBuilder { get; }
 }
