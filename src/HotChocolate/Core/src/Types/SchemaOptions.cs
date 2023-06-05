@@ -13,6 +13,9 @@ namespace HotChocolate;
 /// </summary>
 public class SchemaOptions : IReadOnlySchemaOptions
 {
+    private BindingBehavior _defaultBindingBehavior = BindingBehavior.Implicit;
+    private FieldBindingFlags _defaultFieldBindingFlags = FieldBindingFlags.Instance;
+
     /// <summary>
     /// Gets or sets the name of the query type.
     /// </summary>
@@ -64,15 +67,37 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Defines the default binding behavior.
     /// </summary>
-    public BindingBehavior DefaultBindingBehavior { get; set; } =
-        BindingBehavior.Implicit;
+    public BindingBehavior DefaultBindingBehavior
+    {
+        get => _defaultBindingBehavior;
+        set
+        {
+            _defaultBindingBehavior = value;
+
+            if (value is BindingBehavior.Explicit)
+            {
+                _defaultFieldBindingFlags = FieldBindingFlags.Default;
+            }
+        }
+    }
 
     /// <summary>
     /// Defines which members shall be by default inferred as GraphQL fields.
     /// This default applies to <see cref="ObjectType"/> and <see cref="ObjectTypeExtension"/>.
     /// </summary>
-    public FieldBindingFlags DefaultFieldBindingFlags { get; set; } =
-        FieldBindingFlags.Instance;
+    public FieldBindingFlags DefaultFieldBindingFlags
+    {
+        get => _defaultFieldBindingFlags;
+        set
+        {
+            _defaultFieldBindingFlags = value;
+
+            if (value is not FieldBindingFlags.Default)
+            {
+                _defaultBindingBehavior = BindingBehavior.Implicit;
+            }
+        }
+    }
 
     /// <summary>
     /// Defines on which fields a middleware pipeline can be applied on.
@@ -174,6 +199,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public int MaxAllowedNodeBatchSize { get; set; } = 50;
 
     /// <summary>
+    /// Specified if the leading I shall be stripped from the interface name.
+    /// </summary>
+    public bool StripLeadingIFromInterface { get; set; } = false;
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -205,7 +235,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
-            MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize
+            MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
+            StripLeadingIFromInterface = options.StripLeadingIFromInterface
         };
     }
 }

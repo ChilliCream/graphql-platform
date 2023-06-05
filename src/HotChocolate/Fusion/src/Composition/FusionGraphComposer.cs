@@ -58,7 +58,7 @@ public sealed class FusionGraphComposer
         _pipeline =
             MergePipelineBuilder.New()
                 .Use<ParseSubgraphSchemaMiddleware>()
-                .Use<RegisterClientMiddleware>()
+                .Use<RegisterClientsMiddleware>()
                 .Use<ApplyRenameDirectiveMiddleware>()
                 .Use<ApplyRemoveDirectiveMiddleware>()
                 .Use(() => new EnrichEntityMiddleware(entityEnrichers))

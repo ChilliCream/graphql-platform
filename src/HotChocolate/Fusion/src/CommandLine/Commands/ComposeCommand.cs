@@ -164,14 +164,25 @@ internal sealed class ComposeCommand : Command
 
         public bool HasErrors { get; private set; }
 
-        public void Write(LogEntry entry)
+        public void Write(LogEntry e)
         {
-            if (entry.Severity is LogSeverity.Error)
+            if (e.Severity is LogSeverity.Error)
             {
                 HasErrors = true;
             }
 
-            _console.WriteLine(entry.Message);
+            if (e.Code is null)
+            {
+                _console.WriteLine($"{e.Severity}: {e.Message}");
+            }
+            else if(e.Coordinate is null)
+            {
+                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
+            }
+            else
+            {
+                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
+            }
         }
     }
 }

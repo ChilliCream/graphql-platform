@@ -6,7 +6,6 @@ using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 
-[CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild
 {
@@ -53,7 +52,6 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             TryDelete(AllSolutionFile);
-            TryDelete(SonarSolutionFile);
             TryDelete(TestSolutionFile);
             TryDelete(PackSolutionFile);
 
