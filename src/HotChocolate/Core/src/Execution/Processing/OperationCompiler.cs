@@ -703,39 +703,7 @@ public sealed partial class OperationCompiler
             return parentIncludeConditionMask;
         }
 
-        var pos = Array.IndexOf(_includeConditions, condition);
-
-        if (pos == -1)
-        {
-            pos = _includeConditions.Length;
-
-            if (pos == 64)
-            {
-                throw new InvalidOperationException(OperationCompiler_ToManyIncludeConditions);
-            }
-
-            if (_includeConditions.Length == 0)
-            {
-                _includeConditions = new IncludeCondition[1];
-            }
-            else
-            {
-                Array.Resize(ref _includeConditions, pos + 1);
-            }
-
-            _includeConditions[pos] = condition;
-        }
-
-        long selectionIncludeCondition = 1;
-        selectionIncludeCondition <<= pos;
-
-        if (parentIncludeConditionMask == 0)
-        {
-            return selectionIncludeCondition;
-        }
-
-        parentIncludeConditionMask |= selectionIncludeCondition;
-        return parentIncludeConditionMask;
+        return GetSelectionIncludeConditionMask(condition, parentIncludeConditionMask);
     }
 
     private long GetSelectionIncludeConditionMask(
@@ -750,7 +718,7 @@ public sealed partial class OperationCompiler
 
             if (pos == 64)
             {
-                throw new InvalidOperationException(OperationCompiler_ToManyIncludeConditions);
+                throw new InvalidOperationException(OperationCompiler_TooManyIncludeConditions);
             }
 
             if (_includeConditions.Length == 0)

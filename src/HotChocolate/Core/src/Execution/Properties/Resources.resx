@@ -285,7 +285,7 @@
   <data name="SelectionSetOptimizerContext_InvalidFieldName" xml:space="preserve">
     <value>The `{0}` is not a valid GraphQL field name.</value>
   </data>
-  <data name="OperationCompiler_ToManyIncludeConditions" xml:space="preserve">
+  <data name="OperationCompiler_TooManyIncludeConditions" xml:space="preserve">
     <value>The operation compiler only allows for 64 unique include conditions.</value>
   </data>
   <data name="SelectionVariants_TypeContextInvalid" xml:space="preserve">
