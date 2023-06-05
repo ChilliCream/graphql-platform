@@ -359,15 +359,6 @@ internal abstract class RequestDocumentFormatter
             }
         }
 
-        var forwardedNames = context.ForwardedVariables.Select(v => v.Variable.Name.Value).ToHashSet();
-        foreach (var variable in context.Operation.Definition.VariableDefinitions)
-        {
-            if (!forwardedNames.Contains(variable.Variable.Name.Value))
-            {
-                context.ForwardedVariables.Add(variable);
-            }
-        }
-
         static void TryForwardVariable(
             QueryPlanContext context,
             ResolverDefinition resolver,
