@@ -307,7 +307,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public CancellationToken RequestAborted => _context.RequestAborted;
 
         public T Parent<T>() => _context.Parent<T>();
-        public object? RawParent => _context.RawParent;
 
         public T ArgumentValue<T>(string name) => _context.ArgumentValue<T>(name);
 
@@ -365,7 +364,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
     private static Selection CreateProxySelection(ISelection selection, NodeFieldProxy field)
     {
         var includeConditionMasksSource = ((Selection)selection).IncludeConditionMasks;
-        var includeConditionMasks = new long[includeConditionMasksSource.Length];
+        var includeConditionMasks = new ulong[includeConditionMasksSource.Length];
         includeConditionMasksSource.CopyTo(includeConditionMasks);
 
         var proxy = new Selection.Sealed(selection.Id,

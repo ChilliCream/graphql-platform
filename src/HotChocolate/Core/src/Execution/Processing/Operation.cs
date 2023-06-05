@@ -105,15 +105,15 @@ internal sealed class Operation : IOperation
         return _selectionVariants[selectionSetId].GetPossibleTypes();
     }
 
-    public long CreateIncludeFlags(IVariableValueCollection variables)
+    public ulong CreateIncludeFlags(IVariableValueCollection variables)
     {
-        long context = 0;
+        ulong context = 0;
 
         for (var i = 0; i < _includeConditions.Length; i++)
         {
             if (_includeConditions[i].IsIncluded(variables))
             {
-                long flag = 1;
+                ulong flag = 1;
                 flag <<= i;
                 context |= flag;
             }

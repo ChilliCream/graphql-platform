@@ -83,9 +83,14 @@ public struct ProjectedValue
 
 public static class ContextExtensions
 {
+    public static object GetRawParent(this IPureResolverContext context)
+    {
+        return context.Parent<object>();
+    }
+
     public static ProjectedValue GetProjectedParent(this IPureResolverContext context)
     {
-        var originalParent = context.RawParent!;
+        var originalParent = context.GetRawParent();
         return new ProjectedValue((object?[]) originalParent);
     }
 }

@@ -14,8 +14,8 @@ namespace HotChocolate.Execution.Processing;
 public class Selection : ISelection
 {
     private static readonly ArgumentMap _emptyArguments = ArgumentMap.Empty;
-    private long[] _includeConditionMasks;
-    private long _streamIfCondition;
+    private ulong[] _includeConditionMasks;
+    private ulong _streamIfCondition;
     private Flags _flags;
 
     public Selection(
@@ -26,7 +26,7 @@ public class Selection : ISelection
         FieldNode syntaxNode,
         string responseName,
         ArgumentMap? arguments = null,
-        long[]? includeConditionMasks = null,
+        ulong[]? includeConditionMasks = null,
         bool isInternal = false,
         bool isParallelExecutable = true,
         FieldDelegate? resolverPipeline = null,
@@ -43,7 +43,7 @@ public class Selection : ISelection
         PureResolver = pureResolver;
         Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
 
-        _includeConditionMasks = includeConditionMasks ?? Array.Empty<long>();
+        _includeConditionMasks = includeConditionMasks ?? Array.Empty<ulong>();
 
         _flags = isInternal
             ? Flags.Internal
@@ -81,7 +81,7 @@ public class Selection : ISelection
 
         _includeConditionMasks =
             selection._includeConditionMasks.Length == 0
-                ? Array.Empty<long>()
+                ? Array.Empty<ulong>()
                 : selection._includeConditionMasks.ToArray();
     }
 
@@ -135,7 +135,7 @@ public class Selection : ISelection
     public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;
 
     /// <inheritdoc />
-    public bool HasStreamDirective(long includeFlags)
+    public bool HasStreamDirective(ulong includeFlags)
         => (_flags & Flags.Stream) == Flags.Stream &&
             (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
 
@@ -151,9 +151,9 @@ public class Selection : ISelection
     public bool IsConditional
         => _includeConditionMasks.Length > 0 || (_flags & Flags.Internal) == Flags.Internal;
 
-    internal ReadOnlySpan<long> IncludeConditionMasks => _includeConditionMasks;
+    internal ReadOnlySpan<ulong> IncludeConditionMasks => _includeConditionMasks;
 
-    public bool IsIncluded(long includeFlags, bool allowInternals = false)
+    public bool IsIncluded(ulong includeFlags, bool allowInternals = false)
     {
         // in most case we do not have any include condition,
         // so we can take the easy way out here if we do not have any flags.
@@ -194,7 +194,7 @@ public class Selection : ISelection
     public override string ToString()
         => SyntaxNode.ToString();
 
-    internal void AddSelection(FieldNode selectionSyntax, long includeCondition = 0)
+    internal void AddSelection(FieldNode selectionSyntax, ulong includeCondition = 0)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -205,7 +205,7 @@ public class Selection : ISelection
         {
             if (_includeConditionMasks.Length > 0)
             {
-                _includeConditionMasks = Array.Empty<long>();
+                _includeConditionMasks = Array.Empty<ulong>();
             }
         }
         else if (_includeConditionMasks.Length > 0 &&
@@ -309,7 +309,7 @@ public class Selection : ISelection
         SelectionSetId = selectionSetId;
     }
 
-    internal void MarkAsStream(long ifCondition)
+    internal void MarkAsStream(ulong ifCondition)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -410,7 +410,7 @@ public class Selection : ISelection
             FieldNode syntaxNode,
             string responseName,
             ArgumentMap? arguments = null,
-            long[]? includeConditionMasks = null,
+            ulong[]? includeConditionMasks = null,
             bool isInternal = false,
             bool isParallelExecutable = true,
             FieldDelegate? resolverPipeline = null,

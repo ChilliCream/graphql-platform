@@ -511,8 +511,6 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public object? RawParent => throw new NotImplementedException();
-
         public T ArgumentValue<T>(string name)
         {
             switch (name)

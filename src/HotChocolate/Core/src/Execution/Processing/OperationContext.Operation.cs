@@ -45,7 +45,7 @@ internal sealed partial class OperationContext
     /// <summary>
     /// Gets the include flags for the current request.
     /// </summary>
-    public long IncludeFlags { get; private set; }
+    public ulong IncludeFlags { get; private set; }
 
     /// <summary>
     /// Gets the value representing the instance of the

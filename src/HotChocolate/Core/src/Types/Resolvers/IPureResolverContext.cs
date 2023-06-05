@@ -63,14 +63,6 @@ public interface IPureResolverContext : IHasContextData
     T Parent<T>();
 
     /// <summary>
-    /// Gets the previous (parent) resolver result in its raw form (without conversions).
-    /// </summary>
-    /// <returns>
-    /// Returns the previous (parent) resolver result.
-    /// </returns>
-    object? RawParent { get; }
-
-    /// <summary>
     /// Gets a specific field argument value.
     /// </summary>
     /// <param name="name">

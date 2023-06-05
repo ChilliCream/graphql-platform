@@ -63,6 +63,4 @@ internal partial class MiddlewareContext
             typeof(T),
             _parent.GetType());
     }
-
-    public object? RawParent => _parent;
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Data.ExpressionUtils;
 using HotChocolate.Types;
 
@@ -44,7 +45,7 @@ public static class ComputedProjectionExpressionHelper
 
     public static bool CanBeUsedInProjection(this IObjectField field)
     {
-        return field.Member is not null || field.HasComputedProjection();
+        return field.Member is PropertyInfo || field.HasComputedProjection();
     }
 
     public static Expression GetProjectionExpression(

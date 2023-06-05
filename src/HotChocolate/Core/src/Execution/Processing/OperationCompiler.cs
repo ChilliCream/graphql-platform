@@ -96,7 +96,6 @@ public sealed partial class OperationCompiler
 
         try
         {
-            // prepare optimizers
             PrepareOptimizers(optimizers);
 
             var rootOptimizers = _emptyOptimizers;
@@ -373,7 +372,7 @@ public sealed partial class OperationCompiler
                      var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
                      var nullValue = NullValueNode.Default;
                      var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
-                     long ifConditionFlags = 0;
+                     ulong ifConditionFlags = 0;
 
                      if (ifValue.Kind is not SyntaxKind.NullValue)
                      {
@@ -423,7 +422,7 @@ public sealed partial class OperationCompiler
     private void CollectFields(
         CompilerContext context,
         SelectionSetNode selectionSet,
-        long includeConditionMask)
+        ulong includeConditionMask)
     {
         for (var j = 0; j < selectionSet.Selections.Count; j++)
         {
@@ -434,7 +433,7 @@ public sealed partial class OperationCompiler
     private void ResolveFields(
         CompilerContext context,
         ISelectionNode selection,
-        long includeConditionMask)
+        ulong includeConditionMask)
     {
         switch (selection.Kind)
         {
@@ -464,7 +463,7 @@ public sealed partial class OperationCompiler
     private void ResolveField(
         CompilerContext context,
         FieldNode selection,
-        long includeConditionMask)
+        ulong includeConditionMask)
     {
         includeConditionMask = GetSelectionIncludeConditionMask(selection, includeConditionMask);
 
@@ -530,7 +529,7 @@ public sealed partial class OperationCompiler
     private void ResolveInlineFragment(
         CompilerContext context,
         InlineFragmentNode inlineFragment,
-        long includeCondition)
+        ulong includeConditionMask)
     {
         ResolveFragment(
             context,
@@ -538,13 +537,13 @@ public sealed partial class OperationCompiler
             inlineFragment.TypeCondition,
             inlineFragment.SelectionSet,
             inlineFragment.Directives,
-            includeCondition);
+            includeConditionMask);
     }
 
     private void ResolveFragmentSpread(
         CompilerContext context,
         FragmentSpreadNode fragmentSpread,
-        long includeCondition)
+        ulong includeConditionMask)
     {
         var fragmentDef = GetFragmentDefinition(context, fragmentSpread);
 
@@ -554,7 +553,7 @@ public sealed partial class OperationCompiler
             fragmentDef.TypeCondition,
             fragmentDef.SelectionSet,
             fragmentSpread.Directives,
-            includeCondition);
+            includeConditionMask);
     }
 
     private void ResolveFragment(
@@ -563,13 +562,13 @@ public sealed partial class OperationCompiler
         NamedTypeNode? typeCondition,
         SelectionSetNode selectionSet,
         IReadOnlyList<DirectiveNode> directives,
-        long includeCondition)
+        ulong includeConditionMask)
     {
         if (typeCondition is null ||
             (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
                 DoesTypeApply(typeCon, context.Type)))
         {
-            includeCondition = GetSelectionIncludeConditionMask(selection, includeCondition);
+            includeConditionMask = GetSelectionIncludeConditionMask(selection, includeConditionMask);
 
             if (directives.IsDeferrable())
             {
@@ -577,16 +576,16 @@ public sealed partial class OperationCompiler
                 var nullValue = NullValueNode.Default;
                 var ifValue = deferDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
 
-                long ifConditionFlags = 0;
+                ulong ifConditionFlags = 0;
                 if (ifValue.Kind is not SyntaxKind.NullValue)
                 {
                     var ifCondition = new IncludeCondition(ifValue, nullValue);
-                    ifConditionFlags = GetSelectionIncludeConditionMask(ifCondition, includeCondition);
+                    ifConditionFlags = GetSelectionIncludeConditionMask(ifCondition, includeConditionMask);
                 }
 
                 var id = GetOrCreateSelectionSetRefId(selectionSet, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
-                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
+                var infos = new SelectionSetInfo[] { new(selectionSet, includeConditionMask) };
 
                 if (!variants.ContainsSelectionSet(context.Type))
                 {
@@ -602,7 +601,7 @@ public sealed partial class OperationCompiler
                     selection,
                     directives,
                     variants.GetSelectionSet(context.Type),
-                    includeCondition,
+                    includeConditionMask,
                     ifConditionFlags);
 
                 context.Fragments.Add(fragment);
@@ -620,7 +619,7 @@ public sealed partial class OperationCompiler
             }
             else
             {
-                CollectFields(context, selectionSet, includeCondition);
+                CollectFields(context, selectionSet, includeConditionMask);
             }
         }
     }
@@ -692,9 +691,9 @@ public sealed partial class OperationCompiler
         return variants;
     }
 
-    private long GetSelectionIncludeConditionMask(
+    private ulong GetSelectionIncludeConditionMask(
         ISelectionNode selectionSyntax,
-        long parentIncludeConditionMask)
+        ulong parentIncludeConditionMask)
     {
         var condition = IncludeCondition.FromSelection(selectionSyntax);
 
@@ -706,9 +705,9 @@ public sealed partial class OperationCompiler
         return GetSelectionIncludeConditionMask(condition, parentIncludeConditionMask);
     }
 
-    private long GetSelectionIncludeConditionMask(
+    private ulong GetSelectionIncludeConditionMask(
         IncludeCondition condition,
-        long parentIncludeConditionMask)
+        ulong parentIncludeConditionMask)
     {
         var pos = Array.IndexOf(_includeConditions, condition);
 
@@ -733,16 +732,10 @@ public sealed partial class OperationCompiler
             _includeConditions[pos] = condition;
         }
 
-        long selectionIncludeCondition = 1;
-        selectionIncludeCondition <<= pos;
-
-        if (parentIncludeConditionMask == 0)
-        {
-            return selectionIncludeCondition;
-        }
-
-        parentIncludeConditionMask |= selectionIncludeCondition;
-        return parentIncludeConditionMask;
+        ulong result = 1;
+        result <<= pos;
+        result |= parentIncludeConditionMask;
+        return result;
     }
 
     private CompilerContext RentContext(CompilerContext context)
