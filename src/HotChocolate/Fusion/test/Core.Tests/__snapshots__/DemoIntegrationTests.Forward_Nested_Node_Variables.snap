@@ -1,9 +1,11 @@
 User Request
 ---------------
 query ProductReviews($id: ID!, $first: Int!) {
-  productById(id: $id) {
-    id
-    repeat(num: $first)
+  node(id: $id) {
+    ... on Product {
+      id
+      repeat(num: $first)
+    }
   }
 }
 ---------------
@@ -11,22 +13,57 @@ query ProductReviews($id: ID!, $first: Int!) {
 QueryPlan
 ---------------
 {
-  "document": "query ProductReviews($id: ID!, $first: Int!) { productById(id: $id) { id repeat(num: $first) } }",
+  "document": "query ProductReviews($id: ID!, $first: Int!) { node(id: $id) { ... on Product { id repeat(num: $first) } } }",
   "operation": "ProductReviews",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
-        "type": "Resolve",
-        "subgraph": "Products",
-        "document": "query ProductReviews_1($first: Int!, $id: ID!) { productById(id: $id) { id repeat(num: $first) } }",
-        "selectionSetId": 0,
-        "forwardedVariables": [
+        "type": "ResolveNode",
+        "selectionId": 0,
+        "responseName": "node",
+        "branches": [
           {
-            "variable": "first"
+            "type": "Product",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Products",
+              "document": "query ProductReviews_1($id: ID!) { node(id: $id) { ... on Product { id repeat(num: $first) __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
           },
           {
-            "variable": "id"
+            "type": "Review",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Reviews2",
+              "document": "query ProductReviews_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
+          },
+          {
+            "type": "User",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Accounts",
+              "document": "query ProductReviews_3($id: ID!) { node(id: $id) { ... on User { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
           }
         ]
       },
@@ -44,11 +81,22 @@ QueryPlan
 Result
 ---------------
 {
-  "data": {
-    "productById": {
-      "id": "UHJvZHVjdAppMQ==",
-      "repeat": 1
+  "errors": [
+    {
+      "message": "The following variables were not declared: first.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "extensions": {
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+      }
     }
+  ],
+  "data": {
+    "node": null
   }
 }
 ---------------

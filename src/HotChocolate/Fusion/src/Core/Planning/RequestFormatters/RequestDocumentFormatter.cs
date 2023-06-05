@@ -2,6 +2,7 @@ using System.Diagnostics;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
@@ -246,6 +247,21 @@ internal abstract class RequestDocumentFormatter
                         executionStep,
                         selection,
                         typeContext.Fields[selection.Field.Name]));
+
+                if (!selection.Arguments.IsFullyCoercedNoErrors)
+                {
+                    foreach (var argument in selection.Arguments)
+                    {
+                        if (!argument.IsFullyCoerced)
+                        {
+                            TryForwardVariable(
+                                context,
+                                null,
+                                argument,
+                                argument.Name);
+                        }
+                    }
+                }
             }
         }
 
@@ -322,7 +338,7 @@ internal abstract class RequestDocumentFormatter
 
                 var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
-                TryForwardVariable(context, resolver, argumentValue, argumentVariable);
+                TryForwardVariable(context, resolver, argumentValue, argumentVariable.ArgumentName);
             }
         }
 
@@ -346,7 +362,7 @@ internal abstract class RequestDocumentFormatter
 
                 var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
-                TryForwardVariable(context, resolver, argumentValue, argumentVariable);
+                TryForwardVariable(context, resolver, argumentValue, argumentVariable.ArgumentName);
             }
         }
 
@@ -358,25 +374,80 @@ internal abstract class RequestDocumentFormatter
                 context.VariableValues.Add(requirement, new VariableNode(stateKey));
             }
         }
+    }
 
-        static void TryForwardVariable(
-            QueryPlanContext context,
-            ResolverDefinition resolver,
-            ArgumentValue argumentValue,
-            ArgumentVariableDefinition argumentVariable)
+    protected static void TryForwardVariable(
+        QueryPlanContext context,
+        ResolverDefinition? resolver,
+        ArgumentValue argumentValue,
+        string argumentName)
+    {
+        if (argumentValue.ValueLiteral is VariableNode variableValue)
         {
-            if (argumentValue.ValueLiteral is VariableNode variableValue)
+            var originalVarDef = context.Operation.Definition.VariableDefinitions
+                .First(t => t.Variable.Equals(variableValue, SyntaxComparison.Syntax));
+
+            if (resolver is null ||
+                !resolver.Arguments.TryGetValue(argumentName, out var type))
             {
+                type = originalVarDef.Type;
+            }
+
+            context.ForwardedVariables.Add(
+                new VariableDefinitionNode(
+                    null,
+                    variableValue,
+                    type,
+                    originalVarDef.DefaultValue,
+                    Array.Empty<DirectiveNode>()));
+        }
+        else if (argumentValue.ValueLiteral?.Kind is SyntaxKind.ListValue or SyntaxKind.ObjectValue)
+        {
+            foreach (var variable in VariableVisitor.Collect(argumentValue.ValueLiteral))
+            {
+                var originalVarDef = context.Operation.Definition.VariableDefinitions
+                    .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+
+                if (resolver is null ||
+                    !resolver.Arguments.TryGetValue(argumentName, out var type))
+                {
+                    type = originalVarDef.Type;
+                }
+
                 context.ForwardedVariables.Add(
                     new VariableDefinitionNode(
                         null,
-                        variableValue,
-                        resolver.Arguments[argumentVariable.ArgumentName],
-                        context.Operation.Definition.VariableDefinitions.First(
-                                t => t.Variable.Equals(variableValue, SyntaxComparison.Syntax))
-                            .DefaultValue,
+                        variable,
+                        type,
+                        originalVarDef.DefaultValue,
                         Array.Empty<DirectiveNode>()));
             }
         }
+
+
+    }
+
+    private sealed class VariableVisitor : SyntaxWalker<VariableVisitorContext>
+    {
+        protected override ISyntaxVisitorAction Enter(
+            VariableNode node,
+            VariableVisitorContext context)
+        {
+            context.VariableNodes.Add(node);
+            return Continue;
+        }
+
+        public static IEnumerable<VariableNode> Collect(IValueNode node)
+        {
+            var context = new VariableVisitorContext();
+            var visitor = new VariableVisitor();
+            visitor.Visit(node, context);
+            return context.VariableNodes;
+        }
+    }
+
+    private class VariableVisitorContext : ISyntaxVisitorContext
+    {
+        public HashSet<VariableNode> VariableNodes { get; } = new(SyntaxComparer.BySyntax);
     }
 }

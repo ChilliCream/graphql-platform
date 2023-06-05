@@ -191,6 +191,21 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
                         executionStep,
                         selection,
                         typeContext.Fields[selection.Field.Name]));
+
+                if (!selection.Arguments.IsFullyCoercedNoErrors)
+                {
+                    foreach (var argument in selection.Arguments)
+                    {
+                        if (!argument.IsFullyCoerced)
+                        {
+                            TryForwardVariable(
+                                context,
+                                null,
+                                argument,
+                                argument.Name);
+                        }
+                    }
+                }
             }
         }
 
