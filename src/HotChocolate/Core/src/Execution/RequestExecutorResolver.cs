@@ -398,13 +398,14 @@ internal sealed partial class RequestExecutorResolver
 
     private RequestDelegate CreatePipeline(
         string schemaName,
-        Action<IList<RequestCoreMiddleware>> defaultPipelineFactory,
+        Action<IList<RequestCoreMiddleware>>? defaultPipelineFactory,
         IList<RequestCoreMiddleware> pipeline,
         IServiceProvider schemaServices,
         IRequestExecutorOptionsAccessor options)
     {
         if (pipeline.Count == 0)
         {
+            defaultPipelineFactory ??= RequestExecutorBuilderExtensions.AddDefaultPipeline;
             defaultPipelineFactory(pipeline);
         }
 
