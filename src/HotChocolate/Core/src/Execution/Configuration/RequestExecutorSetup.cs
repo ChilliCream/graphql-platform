@@ -81,6 +81,12 @@ public sealed class RequestExecutorSetup
         => _pipeline;
 
     /// <summary>
+    /// Gets or sets the default pipeline factory.
+    /// </summary>
+    public Action<IList<RequestCoreMiddleware>> DefaultPipelineFactory { get; set; } =
+        RequestExecutorBuilderExtensions.AddDefaultPipeline;
+
+    /// <summary>
     /// Copies the options to the specified other options object.
     /// </summary>
     /// <param name="options">
