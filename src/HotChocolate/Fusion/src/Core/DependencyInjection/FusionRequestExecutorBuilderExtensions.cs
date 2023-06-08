@@ -189,6 +189,12 @@ public static class FusionRequestExecutorBuilderExtensions
         return new FusionGatewayBuilder(builder);
     }
 
+    /// <summary>
+    /// Uses the default fusion gateway pipeline.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static FusionGatewayBuilder UseDefaultPipeline(
         this FusionGatewayBuilder builder)
     {
@@ -201,6 +207,18 @@ public static class FusionRequestExecutorBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Uses the persisted query pipeline with the Fusion gateway.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
     public static FusionGatewayBuilder UsePersistedQueryPipeline(
         this FusionGatewayBuilder builder)
     {
@@ -213,6 +231,18 @@ public static class FusionRequestExecutorBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Uses the automatic persisted query pipeline with the Fusion gateway.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
     public static FusionGatewayBuilder UseAutomaticPersistedQueryPipeline(
         this FusionGatewayBuilder builder)
     {
