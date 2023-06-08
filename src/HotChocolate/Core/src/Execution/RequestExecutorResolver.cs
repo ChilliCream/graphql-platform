@@ -279,7 +279,9 @@ internal sealed partial class RequestExecutorResolver
 
         serviceCollection.AddSingleton<IActivator, DefaultActivator>();
 
-        serviceCollection.AddSingleton(
+        // NOTE: We specify the type explicitly here so that it's easier to
+        //       find this line from the delegate type in the IDE, don't remove it.
+        serviceCollection.AddSingleton<RequestDelegate>(
             sp => CreatePipeline(
                 context.SchemaName,
                 setup.DefaultPipelineFactory,
