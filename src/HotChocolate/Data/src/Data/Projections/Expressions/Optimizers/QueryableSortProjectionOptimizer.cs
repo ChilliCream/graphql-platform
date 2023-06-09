@@ -1,40 +1,14 @@
-using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
-using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
+using HotChocolate.Data.Sorting.Expressions;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
 
-public sealed class QueryableSortProjectionOptimizer : IProjectionOptimizer
+public sealed class QueryableSortProjectionOptimizer : QueryableKeysProjectionOptimizer
 {
-    public bool CanHandle(ISelection field) =>
-        field.Field.Member is { } &&
-        field.Field.ContextData.ContainsKey(ContextVisitSortArgumentKey) &&
-        field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
-
-    public Selection RewriteSelection(
-        SelectionSetOptimizerContext context,
-        Selection selection)
-    {
-        if (selection.Strategy is SelectionExecutionStrategy.Pure )
-        {
-            return selection;
-        }
-
-        FieldDelegate resolverPipeline =
-            selection.ResolverPipeline ??
-            context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
-
-        static FieldDelegate WrappedPipeline(FieldDelegate next) =>
-            ctx =>
-            {
-                ctx.LocalContextData = ctx.LocalContextData.SetItem(SkipSortingKey, true);
-                return next(ctx);
-            };
-
-        resolverPipeline = WrappedPipeline(resolverPipeline);
-
-        context.SetResolver(selection, resolverPipeline);
-
-        return selection;
-    }
+    protected override string ContextVisitArgumentKey =>
+        QueryableSortProvider.ContextVisitSortArgumentKey;
+    protected override string ContextArgumentNameKey =>
+        QueryableSortProvider.ContextArgumentNameKey;
+    protected override string SkipKey =>
+        QueryableSortProvider.SkipSortingKey;
 }

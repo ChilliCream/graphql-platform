@@ -165,10 +165,7 @@ public abstract class ProjectionProvider
     {
         for (var i = 0; i < _optimizer.Count; i++)
         {
-            if (_optimizer[i].CanHandle(selection))
-            {
-                selection = _optimizer[i].RewriteSelection(context, selection);
-            }
+            selection = _optimizer[i].RewriteSelection(context, selection);
         }
 
         for (var i = 0; i < _fieldHandlers.Count; i++)

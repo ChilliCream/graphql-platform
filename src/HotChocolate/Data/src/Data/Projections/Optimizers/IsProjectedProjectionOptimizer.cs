@@ -25,16 +25,16 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         return _aliasPrefix + i;
     }
 
-    public bool CanHandle(ISelection field) =>
-        field.DeclaringType is ObjectType objectType &&
-        objectType.ContextData.ContainsKey(AlwaysProjectedFieldsKey);
-
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        var type = (ObjectType) context.Type;
-        var alwaysProjectedFieldNames = (string[]) type.ContextData[AlwaysProjectedFieldsKey]!;
+        if (context.Type is not ObjectType objectType ||
+            !objectType.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var obj) ||
+            obj is not string[] alwaysProjectedFieldNames)
+        {
+            return selection;
+        }
 
         for (int aliasedFieldIndex = 0; aliasedFieldIndex < alwaysProjectedFieldNames.Length; aliasedFieldIndex++)
         {
@@ -44,7 +44,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             if (context.IsFieldAlreadyInSelection(fieldName, alias))
                 continue;
 
-            context.AddNewFieldToSelection(selection, type, fieldName, alias);
+            context.AddNewFieldToSelection(selection, objectType, fieldName, alias);
         }
 
         return selection;
@@ -111,6 +111,9 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         Selection selection)
     {
+        if (selection.DeclaringType is not ObjectType objectType)
+            return selection;
+
         var runtimeType = context.Type.RuntimeType;
 
         if (!Temp1.Factories.TryGetValue(context.Path, out var converter))
@@ -151,7 +154,9 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
         int i = 0;
         while (selectionEnumerator.MoveNext())
         {
-            var selectionNode = selectionEnumerator.Current.SyntaxNode;
+            var s = selectionEnumerator.Current;
+            var selectionNode = s.SyntaxNode;
+
             string fieldName = selectionNode.Alias?.Value ?? selectionNode.Name.Value;
 
             if (selection.ResponseName == fieldName)

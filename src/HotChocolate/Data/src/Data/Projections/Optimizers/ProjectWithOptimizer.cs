@@ -38,14 +38,10 @@ public static class ProjectedWithExtensions
 /// </summary>
 public sealed class ProjectWithOptimizer : IProjectionOptimizer
 {
-    public bool CanHandle(ISelection selection)
-    {
-        return selection.DeclaringType is ObjectType;
-    }
-
     public Selection RewriteSelection(SelectionSetOptimizerContext context, Selection selection)
     {
-        var type = (ObjectType) selection.Type;
+        if (selection.Type is not ObjectType objectType)
+            return selection;
 
         int aliasIndex = 0;
         string GetCurrentAlias() => "__required_" + aliasIndex++;
@@ -62,7 +58,7 @@ public sealed class ProjectWithOptimizer : IProjectionOptimizer
                 if (context.IsFieldAlreadyInSelection(otherFieldName))
                     continue;
 
-                context.AddNewFieldToSelection(selection, type, fieldName, alias);
+                context.AddNewFieldToSelection(selection, objectType, fieldName, alias);
             }
         }
 
