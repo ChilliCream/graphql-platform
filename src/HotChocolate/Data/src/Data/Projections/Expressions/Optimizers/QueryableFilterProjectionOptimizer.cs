@@ -1,44 +1,14 @@
-using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
-using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
+using HotChocolate.Data.Filters.Expressions;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
 
-public sealed class QueryableFilterProjectionOptimizer : IProjectionOptimizer
+public sealed class QueryableFilterProjectionOptimizer : QueryableKeysProjectionOptimizer
 {
-    public bool CanHandle(ISelection field) =>
-        field.Field.Member is { } &&
-        field.Field.ContextData.ContainsKey(ContextVisitFilterArgumentKey) &&
-        field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
-
-    public Selection RewriteSelection(
-        SelectionSetOptimizerContext context,
-        Selection selection)
-    {
-        if (selection.Strategy is SelectionExecutionStrategy.Pure)
-        {
-            return selection;
-        }
-
-        FieldDelegate resolverPipeline =
-            selection.ResolverPipeline ??
-            context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
-
-        static FieldDelegate WrappedPipeline(FieldDelegate next) =>
-            ctx =>
-            {
-                ctx.LocalContextData = ctx.LocalContextData.SetItem(
-                    SkipFilteringKey,
-                    true);
-
-                return next(ctx);
-            };
-
-        resolverPipeline = WrappedPipeline(resolverPipeline);
-
-        context.SetResolver(selection, resolverPipeline);
-
-        return selection;
-    }
+    protected override string ContextVisitArgumentKey =>
+        QueryableFilterProvider.ContextVisitFilterArgumentKey;
+    protected override string ContextArgumentNameKey =>
+        QueryableFilterProvider.ContextArgumentNameKey;
+    protected override string SkipKey =>
+        QueryableFilterProvider.SkipFilteringKey;
 }
