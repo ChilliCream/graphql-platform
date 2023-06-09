@@ -115,6 +115,7 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
 
         if (!Temp1.Factories.TryGetValue(context.Path, out var converter))
         {
+            // TODO: what does an "object" mean here?
             if (runtimeType == typeof(object))
             {
                 converter = o =>

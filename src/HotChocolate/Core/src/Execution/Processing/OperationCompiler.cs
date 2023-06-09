@@ -130,7 +130,6 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            // create operation
             return CreateOperation(
                 operationId,
                 operationDefinition,
@@ -265,8 +264,9 @@ public sealed partial class OperationCompiler
     {
 #if NET6_0_OR_GREATER
         ref var searchSpace = ref GetReference(AsSpan(_selections));
+        int count = _selections.Count;
 
-        for (var i = 0; i < _selections.Count; i++)
+        for (var i = 0; i < count; i++)
         {
             var selection = Unsafe.Add(ref searchSpace, i);
 
