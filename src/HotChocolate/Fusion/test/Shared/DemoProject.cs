@@ -143,8 +143,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddGraphQLServer()
-                .AddQueryType<ShippingQuery>()
-                .AddGlobalObjectIdentification(),
+                .AddQueryType<ShippingQuery>(),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
