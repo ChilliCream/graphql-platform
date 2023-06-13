@@ -87,9 +87,15 @@ internal static class LogEntryHelper
 
     public static LogEntry OutputFieldArgumentSetMismatch(
         SchemaCoordinate coordinate,
-        OutputField field)
+        OutputField field,
+        IReadOnlyList<string> targetArgs,
+        IReadOnlyList<string> sourceArgs)
         => new LogEntry(
-            string.Format(LogEntryHelper_OutputFieldArgumentSetMismatch, coordinate.ToString()),
+            string.Format(
+                LogEntryHelper_OutputFieldArgumentSetMismatch,
+                coordinate.ToString(),
+                string.Join(", ", targetArgs),
+                string.Join(", ", sourceArgs)),
             code: LogEntryCodes.OutputFieldArgumentSetMismatch,
             severity: LogSeverity.Error,
             coordinate: coordinate,

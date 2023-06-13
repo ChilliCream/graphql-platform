@@ -93,15 +93,15 @@ namespace HotChocolate.Fusion.Composition.Properties {
             }
         }
         
-        internal static string LogEntryHelper_OutputFieldArgumentSetMismatch {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_OutputFieldArgumentSetMismatch", resourceCulture);
-            }
-        }
-        
         internal static string DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate {
             get {
                 return ResourceManager.GetString("DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_OutputFieldArgumentSetMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_OutputFieldArgumentSetMismatch", resourceCulture);
             }
         }
     }

@@ -4,10 +4,13 @@ namespace HotChocolate.Fusion.Composition;
 
 internal sealed class FieldDependency
 {
-    public FieldDependency(string subgraphName)
+    public FieldDependency(int id, string subgraphName)
     {
+        Id = id;
         SubgraphName = subgraphName;
     }
+
+    public int Id { get; }
 
     public string SubgraphName { get; }
 
@@ -18,3 +21,4 @@ internal sealed record MemberReference(IsDirective Reference, InputField Argumen
 {
     public bool IsRequired => Argument.Type.Kind is TypeKind.NonNull;
 }
+

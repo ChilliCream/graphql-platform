@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Skimmed;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -73,4 +75,14 @@ internal sealed class CompositionContext
     /// Gets the composition log.
     /// </summary>
     public ICompositionLog Log { get; }
+
+    public bool TryGetSubgraphMember<T>(
+        string subgraphName,
+        SchemaCoordinate coordinate,
+        [NotNullWhen(true)] out T? member)
+        where T : ITypeSystemMember
+    {
+        var subgraph = Subgraphs.First(t => t.Name.EqualsOrdinal(subgraphName));
+        return subgraph.TryGetMember(coordinate, out member);
+    }
 }

@@ -55,12 +55,16 @@ public static class DemoProjectSchemaExtensions
               weight: Int @is(field: "dimension { weight }")
             ): DeliveryEstimates
         }
+
+        type DeliveryEstimates {
+            days: Int!
+        }
         """;
 
     public const string ShippingExtensionSdl =
         """
         extend type Query {
-          productDimensionByProductId(id: ID! @is(field: "productId")): ProductDimension
+          productDimensionByProductId(productId: ID! @is(field: "productId")): ProductDimension
         }
 
         extend type ProductDimension {

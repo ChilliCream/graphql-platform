@@ -7,6 +7,8 @@ internal sealed class RequireEnricher : IEntityEnricher
         EntityGroup entity,
         CancellationToken cancellationToken = default)
     {
+        var nextId = 0;
+
         foreach (var (type, schema) in entity.Parts)
         {
             foreach (var field in type.Fields)
@@ -18,7 +20,7 @@ internal sealed class RequireEnricher : IEntityEnricher
                     if (argument.ContainsIsDirective())
                     {
                         var memberRef = new MemberReference(argument.GetIsDirective(), argument);
-                        dependency ??= new FieldDependency(schema.Name);
+                        dependency ??= new FieldDependency(++nextId, schema.Name);
                         dependency.Arguments.Add(argument.Name, memberRef);
                     }
                 }
