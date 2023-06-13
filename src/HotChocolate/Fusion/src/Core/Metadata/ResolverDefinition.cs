@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using static HotChocolate.Fusion.FusionResources;
 
 namespace HotChocolate.Fusion.Metadata;
 
@@ -33,8 +34,11 @@ internal sealed partial class ResolverDefinition
     /// </summary>
     public string SubgraphName { get; }
 
+    /// <summary>
+    /// Gets the kind of the resolver.
+    /// </summary>
     public ResolverKind Kind { get; }
-
+    
     public SelectionSetNode Select { get; }
 
     public FragmentSpreadNode? Placeholder { get; }
@@ -56,7 +60,7 @@ internal sealed partial class ResolverDefinition
             if (selection is not FieldNode fieldNode)
             {
                 throw new InvalidOperationException(
-                    "Either provide a placeholder or the select expression must be a FieldNode.");
+                    CreateSelection_MustBePlaceholderOrSelectExpression);
             }
 
             return (fieldNode.WithSelectionSet(selectionSet), new[] { fieldNode.Name.Value });

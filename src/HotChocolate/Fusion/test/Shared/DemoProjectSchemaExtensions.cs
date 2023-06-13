@@ -42,37 +42,17 @@ public static class DemoProjectSchemaExtensions
         }
         """;
 
-    public const string ProductsExtensionSdl2 =
+    public const string ShippingExtensionSdl =
         """
         extend type Query {
           productById(id: ID! @is(field: "id")): Product
         }
 
         extend type Product {
-          delivery(
-              zip: String!
-              size: Int @is(field: "dimension { size }")
-              weight: Int @is(field: "dimension { weight }")
-            ): DeliveryEstimates
-        }
-
-        type DeliveryEstimates {
-            days: Int!
-        }
-        """;
-
-    public const string ShippingExtensionSdl =
-        """
-        extend type Query {
-          productDimensionByProductId(productId: ID! @is(field: "productId")): ProductDimension
-        }
-
-        extend type ProductDimension {
-          productId: ID! @is(coordinate: "Product.id") @internal
-        }
-
-        extend type Product {
-          dimension: ProductDimension
+          deliveryEstimate(
+            size: Int! @is(field: "dimension { size }"),
+            weight: Int! @is(field: "dimension { weight }"),
+            zip: String!): DeliveryEstimate!
         }
         """;
 

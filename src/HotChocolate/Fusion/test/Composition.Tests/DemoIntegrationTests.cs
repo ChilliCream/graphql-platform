@@ -134,7 +134,7 @@ public sealed class DemoIntegrationTests
             {
                 demoProject.Accounts.ToConfiguration(),
                 demoProject.Reviews.ToConfiguration(),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl2),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             });
 
@@ -156,7 +156,7 @@ public sealed class DemoIntegrationTests
             {
                 demoProject.Accounts.ToConfiguration(),
                 demoProject.Reviews.ToConfiguration(),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl2),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl2),
             });
 

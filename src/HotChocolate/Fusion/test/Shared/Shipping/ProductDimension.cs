@@ -1,3 +1,3 @@
 namespace HotChocolate.Fusion.Shared.Shipping;
 
-public sealed record ProductDimension(int ProductId, int Weight, int Size);
+public sealed record DeliveryEstimate(int Min, int Max);

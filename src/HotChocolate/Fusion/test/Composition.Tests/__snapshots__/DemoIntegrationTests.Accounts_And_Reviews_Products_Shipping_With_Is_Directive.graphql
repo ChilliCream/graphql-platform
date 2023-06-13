@@ -55,12 +55,11 @@ type Query {
       select: "{ productById(id: $id) }"
       arguments: [{ name: "id", type: "ID!" }]
     )
-  productDimensionByProductId(productId: Int!): ProductDimension!
-    @variable(subgraph: "Shipping", name: "productId", argument: "productId")
+    @variable(subgraph: "Shipping", name: "id", argument: "id")
     @resolver(
       subgraph: "Shipping"
-      select: "{ productDimensionByProductId(productId: $productId) }"
-      arguments: [{ name: "productId", type: "Int!" }]
+      select: "{ productById(id: $id) }"
+      arguments: [{ name: "id", type: "ID!" }]
     )
   reviewById(id: ID!): Review
     @variable(subgraph: "Reviews", name: "id", argument: "id")
@@ -148,14 +147,21 @@ type Author implements Node
   reviews: [Review!]! @source(subgraph: "Reviews")
 }
 
-type DeliveryEstimates {
-  days: Int! @source(subgraph: "Products")
+type DeliveryEstimate {
+  max: Int! @source(subgraph: "Shipping")
+  min: Int! @source(subgraph: "Shipping")
 }
 
 type Product implements Node
   @variable(subgraph: "Products", name: "Product_id", select: "id")
+  @variable(subgraph: "Shipping", name: "Product_id", select: "id")
   @resolver(
     subgraph: "Products"
+    select: "{ productById(id: $Product_id) }"
+    arguments: [{ name: "Product_id", type: "ID!" }]
+  )
+  @resolver(
+    subgraph: "Shipping"
     select: "{ productById(id: $Product_id) }"
     arguments: [{ name: "Product_id", type: "ID!" }]
   )
@@ -170,30 +176,30 @@ type Product implements Node
     arguments: [{ name: "Product_id", type: "[ID!]!" }]
     kind: "BATCH_BY_KEY"
   ) {
-  delivery(zip: String!): DeliveryEstimates
-    @source(subgraph: "Products")
-    @variable(subgraph: "Products", name: "zip", argument: "zip")
+  deliveryEstimate(zip: String!): DeliveryEstimate!
+    @source(subgraph: "Shipping")
+    @variable(subgraph: "Shipping", name: "zip", argument: "zip")
     @variable(
-      subgraph: "Shipping"
-      name: "_1_size"
+      subgraph: "Products"
+      name: "__1_size"
       select: "dimension { size }"
     )
     @variable(
-      subgraph: "Shipping"
-      name: "_1_weight"
+      subgraph: "Products"
+      name: "__1_weight"
       select: "dimension { weight }"
     )
     @resolver(
-      subgraph: "Products"
-      select: "{ delivery(size: $_1_size, weight: $_1_weight, zip: $zip) }"
+      subgraph: "Shipping"
+      select: "{ deliveryEstimate(size: $__1_size, weight: $__1_weight, zip: $zip) }"
       arguments: [
-        { name: "size", type: "Int" }
-        { name: "weight", type: "Int" }
+        { name: "size", type: "Int!" }
+        { name: "weight", type: "Int!" }
         { name: "zip", type: "String!" }
       ]
     )
-  dimension: ProductDimension @source(subgraph: "Shipping")
-  id: ID! @source(subgraph: "Products")
+  dimension: ProductDimension! @source(subgraph: "Products")
+  id: ID! @source(subgraph: "Products") @source(subgraph: "Shipping")
   name: String! @source(subgraph: "Products")
   price: Int! @source(subgraph: "Products")
   repeat(num: Int!): Int!
@@ -207,20 +213,9 @@ type Product implements Node
   weight: Int! @source(subgraph: "Products")
 }
 
-type ProductDimension
-  @variable(
-    subgraph: "Shipping"
-    name: "ProductDimension_productId"
-    select: "productId"
-  )
-  @resolver(
-    subgraph: "Shipping"
-    select: "{ productDimensionByProductId(productId: $ProductDimension_productId) }"
-    arguments: [{ name: "ProductDimension_productId", type: "Int!" }]
-  ) {
-  productId: Int! @source(subgraph: "Shipping")
-  size: Int! @source(subgraph: "Shipping")
-  weight: Int! @source(subgraph: "Shipping")
+type ProductDimension {
+  size: Int! @source(subgraph: "Products")
+  weight: Int! @source(subgraph: "Products")
 }
 
 type Review implements Node

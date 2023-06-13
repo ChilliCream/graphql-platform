@@ -1,8 +1,16 @@
+using HotChocolate.Types.Relay;
+
 namespace HotChocolate.Fusion.Shared.Shipping;
 
 [GraphQLName("Query")]
 public sealed class ShippingQuery
 {
-    public ProductDimension GetProductDimensionByProductId(int productId)
-        => new(productId, 15, 20);
+    public Product GetProductById([ID<Product>] int id)
+        => new(id);
+}
+
+public sealed record Product([ID<Product>] int Id)
+{
+    public DeliveryEstimate GetDeliveryEstimate(string zip, int weight, int size)
+        => new(1 * (weight + size), 2 * (weight + size));
 }
