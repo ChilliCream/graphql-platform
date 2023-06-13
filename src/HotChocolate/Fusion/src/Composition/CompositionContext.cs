@@ -76,13 +76,42 @@ internal sealed class CompositionContext
     /// </summary>
     public ICompositionLog Log { get; }
 
+    /// <summary>
+    /// Gets the subgraph schema by its name.
+    /// </summary>
+    /// <param name="subgraphName">
+    /// The name of the subgraph.
+    /// </param>
+    /// <returns>
+    /// Returns the subgraph schema.
+    /// </returns>
+    public Schema GetSubgraphSchema(string subgraphName)
+        => Subgraphs.First(t => t.Name.EqualsOrdinal(subgraphName));
+
+    /// <summary>
+    /// Tries to resolve a type system member from the specified subgraph by its schema coordinate.
+    /// </summary>
+    /// <param name="subgraphName">
+    /// The name of the subgraph.
+    /// </param>
+    /// <param name="coordinate">
+    /// The schema coordinate.
+    /// </param>
+    /// <param name="member">
+    /// The resolved type system member.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the type system member.
+    /// </typeparam>
+    /// <returns>
+    /// <c>true</c> if the type system member was resolved; otherwise, <c>false</c>.
+    /// </returns>
     public bool TryGetSubgraphMember<T>(
         string subgraphName,
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out T? member)
         where T : ITypeSystemMember
     {
-        var subgraph = Subgraphs.First(t => t.Name.EqualsOrdinal(subgraphName));
-        return subgraph.TryGetMember(coordinate, out member);
+        return GetSubgraphSchema(subgraphName).TryGetMember(coordinate, out member);
     }
 }

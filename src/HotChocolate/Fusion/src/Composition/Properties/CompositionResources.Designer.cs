@@ -104,5 +104,23 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldArgumentSetMismatch", resourceCulture);
             }
         }
+        
+        internal static string LogEntryHelper_CoordinateNotAllowedForRequirements {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_CoordinateNotAllowedForRequirements", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_FieldDependencyCannotBeResolved {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FieldDependencyCannotBeResolved", resourceCulture);
+            }
+        }
+        
+        internal static string CannotFindCorrelatingSubgraphField {
+            get {
+                return ResourceManager.GetString("CannotFindCorrelatingSubgraphField", resourceCulture);
+            }
+        }
     }
 }

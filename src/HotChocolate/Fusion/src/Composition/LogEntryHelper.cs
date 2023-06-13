@@ -1,4 +1,5 @@
 using System.Security;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 
@@ -100,9 +101,32 @@ internal static class LogEntryHelper
             severity: LogSeverity.Error,
             coordinate: coordinate,
             member: field);
+
+    public static LogEntry CoordinateNotAllowedForRequirements(
+        SchemaCoordinate coordinate,
+        Schema schema)
+        => new LogEntry(
+            LogEntryHelper_CoordinateNotAllowedForRequirements,
+            severity: LogSeverity.Error,
+            code: LogEntryCodes.CoordinateNotAllowedForRequirements,
+            coordinate: coordinate,
+            schema: schema);
+
+    public static LogEntry FieldDependencyCannotBeResolved(
+        SchemaCoordinate coordinate,
+        FieldNode dependency,
+        Schema schema)
+        => new LogEntry(
+            string.Format(
+                LogEntryHelper_FieldDependencyCannotBeResolved,
+                dependency),
+            severity: LogSeverity.Error,
+            code: LogEntryCodes.FieldDependencyCannotBeResolved,
+            coordinate: coordinate,
+            schema: schema);
 }
 
-internal static class LogEntryCodes
+static file class LogEntryCodes
 {
     public const string RemoveMemberNotFound = "HF0001";
 
@@ -115,4 +139,8 @@ internal static class LogEntryCodes
     public const string OutputFieldArgumentMismatch = "HF0005";
 
     public const string OutputFieldArgumentSetMismatch = "HF0006";
+
+    public const string CoordinateNotAllowedForRequirements = "HF0007";
+
+    public const string FieldDependencyCannotBeResolved = "HF0008";
 }

@@ -51,4 +51,13 @@
 Target Arguments: {1}
 Source Arguments: {2}</value>
   </data>
+  <data name="LogEntryHelper_CoordinateNotAllowedForRequirements" xml:space="preserve">
+    <value>A coordinate is not allowed when declaring field requirements.</value>
+  </data>
+  <data name="LogEntryHelper_FieldDependencyCannotBeResolved" xml:space="preserve">
+    <value>The field dependency `{0}` cannot be resolved.</value>
+  </data>
+  <data name="CannotFindCorrelatingSubgraphField" xml:space="preserve">
+    <value>Cannot find correlating subgraph field.</value>
+  </data>
 </root>
