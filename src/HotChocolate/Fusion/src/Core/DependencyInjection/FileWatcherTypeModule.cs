@@ -18,6 +18,7 @@ internal sealed class FileWatcherTypeModule : TypeModule, IDisposable
         var directory = Path.GetDirectoryName(fullPath);
         if (directory is null)
         {
+            // TODO : resources
             throw new FileNotFoundException(
                 "The file name must contain a directory path.",
                 fileName);
