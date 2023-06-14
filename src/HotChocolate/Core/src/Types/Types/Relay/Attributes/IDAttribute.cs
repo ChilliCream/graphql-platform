@@ -171,7 +171,9 @@ public class IDAttribute<T> : DescriptorAttribute
     /// <inheritdoc cref="IDAttribute{T}"/>
     public IDAttribute()
     {
-        TypeName = typeof(T).Name;
+        var type = typeof(T);
+
+        TypeName = type.GetCustomAttribute<GraphQLNameAttribute>()?.Name ?? type.Name;
     }
 
     /// <summary>

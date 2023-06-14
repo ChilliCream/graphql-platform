@@ -9,6 +9,7 @@ using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -321,6 +322,34 @@ public class IdAttributeTests
     }
 
     [Fact]
+    public async Task Id_Uses_GraphQLName()
+    {
+        var builder = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification(false)
+            .AddMutationConventions(true)
+            .AddMutationType<Mutation>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync();
+
+        var result = await builder.MakeExecutable()
+            .ExecuteAsync(QueryRequestBuilder.New()
+                .SetQuery(
+                    @"mutation test {
+                        create() {
+                            id
+                        }
+                    }")
+                .Create());
+
+        var create = (IReadOnlyDictionary<string, object?>?)((IQueryResult)result).Data?["create"]!;
+
+        var idValue = new IdSerializer().Deserialize((string)create["id"]!);
+
+        Assert.Equal("Bar", idValue.TypeName);
+    }
+
+    [Fact]
     public void EnsureIdIsOnlyAppliedOnce()
     {
         var inspector = new TestTypeInterceptor();
@@ -468,6 +497,16 @@ public class IdAttributeTests
 
         string Raw { get; }
     }
+
+    [SuppressMessage("Performance", "CA1822:Mark members as static")]
+    public class Mutation
+    {
+        [ID<BarModel>]
+        public long Create() => 123;
+    }
+
+    [GraphQLName("Bar")]
+    public class BarModel { }
 
     [AttributeUsage(
         AttributeTargets.Parameter |
