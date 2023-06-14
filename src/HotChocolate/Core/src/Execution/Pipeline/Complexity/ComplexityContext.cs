@@ -26,7 +26,7 @@ public readonly ref struct ComplexityContext
         int nodeDepth,
         int childComplexity,
         int defaultComplexity,
-        IVariableValueCollection variables,
+        IVariableValueCollection valueCollection,
         InputParser inputParser)
     {
         Field = field;
@@ -37,7 +37,7 @@ public readonly ref struct ComplexityContext
         DefaultMultiplier = cost?.DefaultMultiplier;
         FieldDepth = fieldDepth;
         NodeDepth = nodeDepth;
-        _valueCollection = variables;
+        _valueCollection = valueCollection;
         _inputParser = inputParser;
     }
 
