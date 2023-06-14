@@ -130,7 +130,7 @@ static file class MergeEntitiesMiddlewareExtensions
                 continue;
             }
 
-            var argumentRef = $"__{dependency.Id}_{argumentName}";
+            var argumentRef = entityType.CreateVariableName(memberRef.Reference);
             argumentRefLookup.Add(argumentName, argumentRef);
             arguments.Add(argumentName, memberRef.Argument.Type.ToTypeNode());
 

@@ -23,6 +23,11 @@ internal sealed class ExportDefinitionRegistry
         FieldVariableDefinition variableDefinition,
         ExecutionStep providingExecutionStep)
     {
+        if(_stateKeyLookup.TryGetValue((selectionSet, variableDefinition.Name), out var stateKey))
+        {
+            return stateKey;
+        }
+
         var exportDefinition = new ExportDefinition(
             $"_{_groupKey}_{++_stateId}",
             selectionSet,

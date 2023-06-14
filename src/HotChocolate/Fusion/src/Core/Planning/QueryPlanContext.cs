@@ -105,7 +105,8 @@ internal sealed class QueryPlanContext
     {
         if (_rootNode is not null)
         {
-            throw new InvalidOperationException("The root node can only be set once.");
+            throw new InvalidOperationException(
+                "The root node can only be set once.");
         }
 
         _rootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));

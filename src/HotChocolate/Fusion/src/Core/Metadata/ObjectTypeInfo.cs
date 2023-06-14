@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Metadata;
 
 /// <summary>
-/// Represents metadata or information about an object type for the purpose of query planning.
+/// Represents metadata about an object type for the purpose of query planning.
 /// </summary>
 internal sealed class ObjectTypeInfo : IType
 {

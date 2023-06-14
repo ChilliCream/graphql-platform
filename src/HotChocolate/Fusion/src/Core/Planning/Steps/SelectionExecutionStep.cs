@@ -55,3 +55,16 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     /// </summary>
     public HashSet<string> Requires { get; } = new();
 }
+
+
+internal class RequirementExecutionStep : ExecutionStep
+{
+    public RequirementExecutionStep(
+        string subgraphName,
+        ObjectTypeInfo selectionSetTypeInfo,
+        ISelection? parentSelection)
+        : base(selectionSetTypeInfo, parentSelection)
+    {
+
+    }
+}

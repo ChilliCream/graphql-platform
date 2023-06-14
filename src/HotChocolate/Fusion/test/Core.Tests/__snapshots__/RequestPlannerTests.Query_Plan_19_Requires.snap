@@ -1,0 +1,89 @@
+UserRequest
+---------------
+query Requires {
+  reviews {
+    body
+    author {
+      name
+      birthdate
+    }
+    product {
+      deliveryEstimate(zip: "12345") {
+        min
+        max
+      }
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query Requires { reviews { body author { name birthdate } product { deliveryEstimate(zip: \u002212345\u0022) { min max } } } }",
+  "operation": "Requires",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Reviews2",
+        "document": "query Requires_1 { reviews { body author { name __fusion_exports__1: id } product { __fusion_exports__2: id } } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Parallel",
+        "nodes": [
+          {
+            "type": "ResolveByKeyBatch",
+            "subgraph": "Accounts",
+            "document": "query Requires_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { birthdate __fusion_exports__1: id } } }",
+            "selectionSetId": 4,
+            "argumentTypes": [
+              {
+                "argument": "__fusion_exports__1",
+                "type": "[ID!]!"
+              }
+            ],
+            "path": [
+              "nodes"
+            ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__1"
+              }
+            ]
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "Shipping",
+            "document": "query Requires_3($__fusion_exports__2: ID!) { productById(id: $__fusion_exports__2) { deliveryEstimate(size: $__1_size, weight: $__1_weight, zip: \u002212345\u0022) { min max } } }",
+            "selectionSetId": 2,
+            "path": [
+              "productById"
+            ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          4,
+          2
+        ]
+      }
+    ]
+  }
+}
+---------------

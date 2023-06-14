@@ -181,17 +181,17 @@ type Product implements Node
     @variable(subgraph: "Shipping", name: "zip", argument: "zip")
     @variable(
       subgraph: "Products"
-      name: "__1_size"
+      name: "Product_dimension_size"
       select: "dimension { size }"
     )
     @variable(
       subgraph: "Products"
-      name: "__1_weight"
+      name: "Product_dimension_weight"
       select: "dimension { weight }"
     )
     @resolver(
       subgraph: "Shipping"
-      select: "{ deliveryEstimate(size: $__1_size, weight: $__1_weight, zip: $zip) }"
+      select: "{ deliveryEstimate(size: $Product_dimension_size, weight: $Product_dimension_weight, zip: $zip) }"
       arguments: [
         { name: "size", type: "Int!" }
         { name: "weight", type: "Int!" }
