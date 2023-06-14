@@ -12,7 +12,11 @@ namespace HotChocolate.Execution.Pipeline.Complexity;
 /// </summary>
 public readonly ref struct ComplexityContext
 {
-    private readonly IVariableValueCollection _valueCollection;
+    /// <summary>
+    /// Set to public on purpose (see https://github.com/ChilliCream/graphql-platform/issues/6251)
+    /// </summary>
+    public IVariableValueCollection Variables { get; }
+
     private readonly InputParser _inputParser;
 
     /// <summary>
@@ -26,7 +30,7 @@ public readonly ref struct ComplexityContext
         int nodeDepth,
         int childComplexity,
         int defaultComplexity,
-        IVariableValueCollection valueCollection,
+        IVariableValueCollection variables,
         InputParser inputParser)
     {
         Field = field;
@@ -37,7 +41,7 @@ public readonly ref struct ComplexityContext
         DefaultMultiplier = cost?.DefaultMultiplier;
         FieldDepth = fieldDepth;
         NodeDepth = nodeDepth;
-        _valueCollection = valueCollection;
+        Variables = variables;
         _inputParser = inputParser;
     }
 
@@ -96,7 +100,7 @@ public readonly ref struct ComplexityContext
                 .Value;
 
             if (argumentValue is VariableNode variable &&
-                _valueCollection.TryGetVariable(variable.Name.Value, out T? castedVariable))
+                Variables.TryGetVariable(variable.Name.Value, out T? castedVariable))
             {
                 value = castedVariable;
                 return true;
