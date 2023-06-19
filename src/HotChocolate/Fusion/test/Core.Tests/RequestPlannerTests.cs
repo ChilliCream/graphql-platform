@@ -150,7 +150,7 @@ public class RequestPlannerTests
             """
             query TopProducts($first: Int!) {
                 topProducts(first: $first) {
-                    upc
+                    id
                 }
             }
             """);
@@ -263,7 +263,7 @@ public class RequestPlannerTests
             """
             query TopProducts($first: Int!) {
                 topProducts(first: $first) {
-                    upc
+                    id
                 }
                 __schema {
                     types {

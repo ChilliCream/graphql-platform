@@ -641,7 +641,7 @@ public class DemoIntegrationTests
             """
             query TopProducts($first: Int!) {
                 topProducts(first: $first) {
-                    upc
+                    id
                 }
             }
             """);
