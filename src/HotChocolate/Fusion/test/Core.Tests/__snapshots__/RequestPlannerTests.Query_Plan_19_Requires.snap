@@ -8,6 +8,7 @@ query Requires {
       birthdate
     }
     product {
+      name
       deliveryEstimate(zip: "12345") {
         min
         max
@@ -20,7 +21,7 @@ query Requires {
 QueryPlan
 ---------------
 {
-  "document": "query Requires { reviews { body author { name birthdate } product { deliveryEstimate(zip: \u002212345\u0022) { min max } } } }",
+  "document": "query Requires { reviews { body author { name birthdate } product { name deliveryEstimate(zip: \u002212345\u0022) { min max } } } }",
   "operation": "Requires",
   "rootNode": {
     "type": "Sequence",
@@ -28,7 +29,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Reviews2",
-        "document": "query Requires_1 { reviews { body author { name __fusion_exports__1: id } product { __fusion_exports__2: id } } }",
+        "document": "query Requires_1 { reviews { body author { name __fusion_exports__3: id } product { __fusion_exports__4: id } } }",
         "selectionSetId": 0
       },
       {
@@ -43,11 +44,11 @@ QueryPlan
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
-            "document": "query Requires_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { birthdate __fusion_exports__1: id } } }",
+            "document": "query Requires_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { birthdate __fusion_exports__3: id } } }",
             "selectionSetId": 4,
             "argumentTypes": [
               {
-                "argument": "__fusion_exports__1",
+                "argument": "__fusion_exports__3",
                 "type": "[ID!]!"
               }
             ],
@@ -56,21 +57,27 @@ QueryPlan
             ],
             "requires": [
               {
-                "variable": "__fusion_exports__1"
+                "variable": "__fusion_exports__3"
               }
             ]
           },
           {
-            "type": "Resolve",
-            "subgraph": "Shipping",
-            "document": "query Requires_3($__fusion_exports__2: ID!) { productById(id: $__fusion_exports__2) { deliveryEstimate(size: $__1_size, weight: $__1_weight, zip: \u002212345\u0022) { min max } } }",
+            "type": "ResolveByKeyBatch",
+            "subgraph": "Products",
+            "document": "query Requires_4($__fusion_exports__4: [ID!]!) { nodes(ids: $__fusion_exports__4) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__4: id } } }",
             "selectionSetId": 2,
+            "argumentTypes": [
+              {
+                "argument": "__fusion_exports__4",
+                "type": "[ID!]!"
+              }
+            ],
             "path": [
-              "productById"
+              "nodes"
             ],
             "requires": [
               {
-                "variable": "__fusion_exports__2"
+                "variable": "__fusion_exports__4"
               }
             ]
           }
@@ -80,6 +87,32 @@ QueryPlan
         "type": "Compose",
         "selectionSetIds": [
           4,
+          2
+        ]
+      },
+      {
+        "type": "Resolve",
+        "subgraph": "Shipping",
+        "document": "query Requires_3($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__4: ID!) { productById(id: $__fusion_exports__4) { deliveryEstimate(size: $__fusion_exports__1, weight: $__fusion_exports__2, zip: \u002212345\u0022) { min max } } }",
+        "selectionSetId": 2,
+        "path": [
+          "productById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          },
+          {
+            "variable": "__fusion_exports__2"
+          },
+          {
+            "variable": "__fusion_exports__4"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
           2
         ]
       }

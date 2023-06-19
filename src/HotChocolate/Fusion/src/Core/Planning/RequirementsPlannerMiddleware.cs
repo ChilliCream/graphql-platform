@@ -97,6 +97,11 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                     throw new Exception("NEEDS A PROPER EXCEPTION");
                 }
 
+                foreach (var (name, type) in currentStep.Resolver.ArgumentTypes)
+                {
+                    currentStep.ArgumentTypes.TryAdd(name, type);
+                }
+
                 // if we do by key batching the current execution step must
                 // re-export its requirements so we know where entities belong to.
                 if (currentStep.Resolver.Kind is ResolverKind.BatchByKey)

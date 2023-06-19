@@ -26,8 +26,6 @@ internal class EntityFieldDependencyMiddleware : IMergeMiddleware
 
 static file class MergeEntitiesMiddlewareExtensions
 {
-    static MergeEntitiesMiddlewareExtensions() { }
-
     public static void ApplyDependencies(
         this CompositionContext context,
         ObjectType entityType,
@@ -132,7 +130,7 @@ static file class MergeEntitiesMiddlewareExtensions
 
             var argumentRef = entityType.CreateVariableName(memberRef.Reference);
             argumentRefLookup.Add(argumentName, argumentRef);
-            arguments.Add(argumentName, memberRef.Argument.Type.ToTypeNode());
+            arguments.Add(argumentRef, memberRef.Argument.Type.ToTypeNode());
 
             foreach (var subgraph in supportedBy)
             {

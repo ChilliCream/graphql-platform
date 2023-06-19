@@ -111,7 +111,5 @@ internal sealed class CompositionContext
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out T? member)
         where T : ITypeSystemMember
-    {
-        return GetSubgraphSchema(subgraphName).TryGetMember(coordinate, out member);
-    }
+        => GetSubgraphSchema(subgraphName).TryGetMember(coordinate, out member);
 }

@@ -117,7 +117,6 @@ internal sealed class ExportDefinitionRegistry
             if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
                 ReferenceEquals(exportDefinition.SelectionSet, selectionSet))
             {
-                // TODO : we need to transform this for better selection during execution
                 var selection = exportDefinition.VariableDefinition.Select;
                 var stateKey = exportDefinition.StateKey;
                 yield return selection.WithAlias(new NameNode(stateKey));

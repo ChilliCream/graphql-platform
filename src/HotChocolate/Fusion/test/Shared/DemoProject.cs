@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Shared.Shipping;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Fusion.Shared;
 
@@ -143,7 +144,8 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddGraphQLServer()
-                .AddQueryType<ShippingQuery>(),
+                .AddQueryType<ShippingQuery>()
+                .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1)),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));

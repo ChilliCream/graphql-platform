@@ -14,14 +14,14 @@ internal sealed partial class ResolverDefinition
         SelectionSetNode select,
         FragmentSpreadNode? placeholder,
         IReadOnlyList<string> requires,
-        IReadOnlyDictionary<string, ITypeNode> arguments)
+        IReadOnlyDictionary<string, ITypeNode> argumentTypes)
     {
         SubgraphName = subgraphName;
         Kind = kind;
         Select = select;
         Placeholder = placeholder;
         Requires = requires;
-        Arguments = arguments;
+        ArgumentTypes = argumentTypes;
 
         if (select.Selections is [FieldNode field])
         {
@@ -38,14 +38,17 @@ internal sealed partial class ResolverDefinition
     /// Gets the kind of the resolver.
     /// </summary>
     public ResolverKind Kind { get; }
-    
+
     public SelectionSetNode Select { get; }
 
     public FragmentSpreadNode? Placeholder { get; }
 
     public IReadOnlyList<string> Requires { get; }
 
-    public IReadOnlyDictionary<string, ITypeNode> Arguments { get;  }
+    /// <summary>
+    /// Gets the argument target types of this resolver.
+    /// </summary>
+    public IReadOnlyDictionary<string, ITypeNode> ArgumentTypes { get;  }
 
     public (ISelectionNode selectionNode, IReadOnlyList<string> Path) CreateSelection(
         IReadOnlyDictionary<string, IValueNode> variables,

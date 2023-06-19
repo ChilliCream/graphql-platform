@@ -112,6 +112,11 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                             }
                         }
 
+                        foreach (var (name, type) in selected.ArgumentTypes)
+                        {
+                            currentStep.ArgumentTypes.TryAdd(name, type);
+                        }
+
                         foreach (var variable in fieldInfo.Variables)
                         {
                             if (!requires.Contains(variable.Name))

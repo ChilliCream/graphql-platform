@@ -739,7 +739,7 @@ public class InputParser
     }
 
     private static object? FormatValue(IInputFieldInfo field, object? value)
-        => field.Formatter is null || value is null
+        => value is null || field.Formatter is null
             ? value
             : field.Formatter.Format(value);
 
