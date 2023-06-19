@@ -124,29 +124,65 @@ QueryPlan
 Result
 ---------------
 {
-  "errors": [
-    {
-      "message": "The field \u0060id\u0060 does not exist on the type \u0060Product\u0060.",
-      "locations": [
-        {
-          "line": 9,
-          "column": 7
-        }
-      ],
-      "extensions": {
-        "type": "Product",
-        "field": "id",
-        "responseName": "__fusion_exports__4",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types",
-        "remotePath": [
-          "reviews",
-          "product"
-        ]
-      }
-    }
-  ],
   "data": {
-    "reviews": null
+    "reviews": [
+      {
+        "body": "Love it!",
+        "author": {
+          "name": "@ada",
+          "birthdate": "1815-12-10"
+        },
+        "product": {
+          "name": "Table",
+          "deliveryEstimate": {
+            "min": 400,
+            "max": 800
+          }
+        }
+      },
+      {
+        "body": "Too expensive.",
+        "author": {
+          "name": "@alan",
+          "birthdate": "1912-06-23"
+        },
+        "product": {
+          "name": "Couch",
+          "deliveryEstimate": {
+            "min": 2650,
+            "max": 5300
+          }
+        }
+      },
+      {
+        "body": "Could be better.",
+        "author": {
+          "name": "@ada",
+          "birthdate": "1815-12-10"
+        },
+        "product": {
+          "name": "Chair",
+          "deliveryEstimate": {
+            "min": 45,
+            "max": 90
+          }
+        }
+      },
+      {
+        "body": "Prefer something else.",
+        "author": {
+          "name": "@alan",
+          "birthdate": "1912-06-23"
+        },
+        "product": {
+          "name": "Table",
+          "deliveryEstimate": {
+            "min": 400,
+            "max": 800
+          }
+        }
+      }
+    ]
   }
 }
 ---------------
@@ -199,13 +235,12 @@ type DeliveryEstimate {
 type Product implements Node @variable(subgraph: "Reviews2", name: "Product_id", select: "id") @variable(subgraph: "Products", name: "Product_id", select: "id") @variable(subgraph: "Shipping", name: "Product_id", select: "id") @resolver(subgraph: "Reviews2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Shipping", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ node(id: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
   deliveryEstimate(zip: String!): DeliveryEstimate! @source(subgraph: "Shipping") @variable(subgraph: "Shipping", name: "zip", argument: "zip") @variable(subgraph: "Products", name: "Product_dimension_size", select: "dimension { size }") @variable(subgraph: "Products", name: "Product_dimension_weight", select: "dimension { weight }") @resolver(subgraph: "Shipping", select: "{ deliveryEstimate(size: $Product_dimension_size, weight: $Product_dimension_weight, zip: $zip) }", arguments: [ { name: "Product_dimension_size", type: "Int!" }, { name: "Product_dimension_weight", type: "Int!" }, { name: "zip", type: "String!" } ])
   dimension: ProductDimension! @source(subgraph: "Products")
-  id: ID! @source(subgraph: "Products") @source(subgraph: "Shipping")
+  id: ID! @source(subgraph: "Reviews2") @source(subgraph: "Products") @source(subgraph: "Shipping")
   name: String! @source(subgraph: "Products")
   price: Int! @source(subgraph: "Products")
   repeat(num: Int!): Int! @source(subgraph: "Products") @variable(subgraph: "Products", name: "num", argument: "num")
   repeatData(data: SomeDataInput!): SomeData! @source(subgraph: "Products") @variable(subgraph: "Products", name: "data", argument: "data")
   reviews: [Review!]! @source(subgraph: "Reviews2")
-  upc: Int! @source(subgraph: "Reviews2")
   weight: Int! @source(subgraph: "Products")
 }
 
