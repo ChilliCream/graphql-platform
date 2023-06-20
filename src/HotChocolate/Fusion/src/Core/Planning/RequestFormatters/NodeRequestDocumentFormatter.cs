@@ -48,7 +48,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
             context.Exports.CreateVariableDefinitions(
                 context.ForwardedVariables,
                 executionStep.Variables.Values,
-                executionStep.Resolver?.Arguments),
+                executionStep.ArgumentTypes),
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 

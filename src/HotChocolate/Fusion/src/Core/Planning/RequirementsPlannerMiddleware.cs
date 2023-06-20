@@ -26,16 +26,16 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
         foreach (var step in context.Steps)
         {
-            if (step is SelectionExecutionStep defaultExecutionStep &&
-                defaultExecutionStep.ParentSelection is { } parent &&
-                defaultExecutionStep.Resolver is not null)
+            if (step is SelectionExecutionStep currentStep &&
+                currentStep.ParentSelection is { } parent &&
+                currentStep.Resolver is not null)
             {
-                var declaringType = defaultExecutionStep.RootSelections[0].Selection.DeclaringType;
+                var declaringType = currentStep.RootSelections[0].Selection.DeclaringType;
                 var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
                 var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
 
                 // remove the execution step for which we try to resolve dependencies.
-                siblingExecutionSteps.Remove(defaultExecutionStep);
+                siblingExecutionSteps.Remove(currentStep);
 
                 // clean and fill the schema execution step lookup
                 foreach (var siblingExecutionStep in siblingExecutionSteps)
@@ -44,7 +44,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 }
 
                 // clean and fill requires set
-                InitializeSet(requires, defaultExecutionStep.Requires);
+                InitializeSet(requires, currentStep.Requires);
 
                 // first we need to check if the selectionSet from which we want to do the
                 // exports already is exporting the required variables
@@ -57,8 +57,8 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                         out var stateKey,
                         out var providingExecutionStep))
                     {
-                        defaultExecutionStep.DependsOn.Add(providingExecutionStep);
-                        defaultExecutionStep.Variables.Add(requirement, stateKey);
+                        currentStep.DependsOn.Add(providingExecutionStep);
+                        currentStep.Variables.Add(requirement, stateKey);
                     }
                 }
 
@@ -78,8 +78,8 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                             variable,
                             providingExecutionStep);
 
-                        defaultExecutionStep.DependsOn.Add(providingExecutionStep);
-                        defaultExecutionStep.Variables.Add(variable.Name, stateKey);
+                        currentStep.DependsOn.Add(providingExecutionStep);
+                        currentStep.Variables.TryAdd(variable.Name, stateKey);
                     }
                 }
 
@@ -97,14 +97,19 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                     throw new Exception("NEEDS A PROPER EXCEPTION");
                 }
 
+                foreach (var (name, type) in currentStep.Resolver.ArgumentTypes)
+                {
+                    currentStep.ArgumentTypes.TryAdd(name, type);
+                }
+
                 // if we do by key batching the current execution step must
-                // re-export its requirements.
-                if (defaultExecutionStep.Resolver.Kind is ResolverKind.BatchByKey)
+                // re-export its requirements so we know where entities belong to.
+                if (currentStep.Resolver.Kind is ResolverKind.BatchByKey)
                 {
                     foreach (var variable in step.SelectionSetTypeInfo.Variables)
                     {
-                        if (defaultExecutionStep.Requires.Contains(variable.Name) &&
-                            defaultExecutionStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
+                        if (currentStep.Requires.Contains(variable.Name) &&
+                            currentStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
                             context.Exports.TryGetStateKey(
                                 selectionSet,
                                 variable.Name,
@@ -113,7 +118,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                         {
                             context.Exports.RegisterAdditionExport(
                                 variable,
-                                defaultExecutionStep,
+                                currentStep,
                                 stateKey);
                         }
                     }

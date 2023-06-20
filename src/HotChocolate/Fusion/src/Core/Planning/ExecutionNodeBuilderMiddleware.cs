@@ -172,13 +172,13 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
         context.RegisterSelectionSet(selectionSet);
 
-        var argumentTypes = executionStep.Resolver!.Arguments;
+        var argumentTypes = executionStep.Resolver!.ArgumentTypes;
 
         if (argumentTypes.Count > 0)
         {
             var temp = new Dictionary<string, ITypeNode>();
 
-            foreach (var argument in executionStep.Resolver!.Arguments)
+            foreach (var argument in executionStep.Resolver!.ArgumentTypes)
             {
                 if (!context.Exports.TryGetStateKey(
                     executionStep.RootSelections[0].Selection.DeclaringSelectionSet,

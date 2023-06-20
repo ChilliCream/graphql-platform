@@ -55,7 +55,7 @@ internal abstract class RequestDocumentFormatter
             context.Exports.CreateVariableDefinitions(
                 context.ForwardedVariables,
                 executionStep.Variables.Values,
-                executionStep.Resolver?.Arguments),
+                executionStep.ArgumentTypes),
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
@@ -388,7 +388,7 @@ internal abstract class RequestDocumentFormatter
                 .First(t => t.Variable.Equals(variableValue, SyntaxComparison.Syntax));
 
             if (resolver is null ||
-                !resolver.Arguments.TryGetValue(argumentName, out var type))
+                !resolver.ArgumentTypes.TryGetValue(argumentName, out var type))
             {
                 type = originalVarDef.Type;
             }
@@ -409,7 +409,7 @@ internal abstract class RequestDocumentFormatter
                     .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
 
                 if (resolver is null ||
-                    !resolver.Arguments.TryGetValue(argumentName, out var type))
+                    !resolver.ArgumentTypes.TryGetValue(argumentName, out var type))
                 {
                     type = originalVarDef.Type;
                 }

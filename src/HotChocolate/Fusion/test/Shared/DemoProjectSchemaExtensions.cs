@@ -41,4 +41,27 @@ public static class DemoProjectSchemaExtensions
           productById(id: ID! @is(field: "id")): Product
         }
         """;
+
+    public const string ShippingExtensionSdl =
+        """
+        extend type Query {
+          productById(id: ID! @is(field: "id")): Product
+        }
+
+        extend type Product {
+          deliveryEstimate(
+            size: Int! @is(field: "dimension { size }"),
+            weight: Int! @is(field: "dimension { weight }"),
+            zip: String!): DeliveryEstimate!
+        }
+        """;
+
+    public const string ShippingExtensionSdl2 =
+        """
+        extend type Product {
+          dimension: ProductDimension
+            @declare(variable: "productId" select: "id")
+            @map(select: "productDimensionByProductId(id: $productId)")
+        }
+        """;
 }

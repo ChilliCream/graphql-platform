@@ -85,7 +85,9 @@ internal static class ComplexTypeMergeExtensions
             context.Log.Write(
                 LogEntryHelper.OutputFieldArgumentSetMismatch(
                     new SchemaCoordinate(typeName, source.Name),
-                    source));
+                    source,
+                    target.Arguments.Select(t => t.Name).ToArray(),
+                    source.Arguments.Select(t => t.Name).ToArray()));
             return;
         }
 
