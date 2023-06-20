@@ -149,6 +149,17 @@ public class CodeFirstTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Comparison_Is_Ignored()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryComparableEntity>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
 
     [Fact]
     public async Task Allow_PascalCasedArguments_Schema()
@@ -320,16 +331,36 @@ public class CodeFirstTests
 
     public class QueryStructEquals
     {
-        public Example Foo(Example example) => example;
+        public EquatableExample Foo(EquatableExample example) => example;
     }
 
-    public class Example : IStructuralEquatable
+    public class EquatableExample : IStructuralEquatable
     {
         public string Some { get; set; } = default!;
 
         public bool Equals(object? other, IEqualityComparer comparer) => throw new NotImplementedException();
 
         public int GetHashCode(IEqualityComparer comparer) => throw new NotImplementedException();
+    }
+
+    public class QueryComparableEntity
+    {
+        public ComparableExample Foo(ComparableExample example) => example;
+    }
+
+    public class ComparableExample : IComparable, IComparable<EquatableExample>
+    {
+        public string Some { get; set; } = default!;
+
+        public int CompareTo(object? obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CompareTo(EquatableExample? other)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class PascalCaseQuery
