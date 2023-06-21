@@ -17,9 +17,11 @@ internal sealed class RequireEnricher : IEntityEnricher
 
                 foreach (var argument in field.Arguments)
                 {
-                    if (argument.ContainsIsDirective())
+                    if (argument.ContainsRequireDirective())
                     {
-                        var memberRef = new MemberReference(argument.GetIsDirective(), argument);
+                        var memberRef = new MemberReference(
+                            argument,
+                            argument.GetRequireDirective().Field);
                         dependency ??= new FieldDependency(++nextId, schema.Name);
                         dependency.Arguments.Add(argument.Name, memberRef);
                     }

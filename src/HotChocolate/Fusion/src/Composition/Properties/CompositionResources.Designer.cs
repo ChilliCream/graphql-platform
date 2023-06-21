@@ -122,5 +122,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("CannotFindCorrelatingSubgraphField", resourceCulture);
             }
         }
+        
+        internal static string DirectivesHelper_GetRequireDirective_NoFieldArg {
+            get {
+                return ResourceManager.GetString("DirectivesHelper_GetRequireDirective_NoFieldArg", resourceCulture);
+            }
+        }
     }
 }

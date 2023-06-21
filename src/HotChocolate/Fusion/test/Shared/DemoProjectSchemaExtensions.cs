@@ -50,8 +50,8 @@ public static class DemoProjectSchemaExtensions
 
         extend type Product {
           deliveryEstimate(
-            size: Int! @is(field: "dimension { size }"),
-            weight: Int! @is(field: "dimension { weight }"),
+            size: Int! @require(field: "dimension { size }"),
+            weight: Int! @require(field: "dimension { weight }"),
             zip: String!): DeliveryEstimate!
         }
         """;
