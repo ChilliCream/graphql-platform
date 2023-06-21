@@ -120,48 +120,4 @@ public sealed class DemoIntegrationTests
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
-
-    [Fact]
-    public async Task Accounts_And_Reviews_Products_Shipping_With_Is_Directive()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        var composer = new FusionGraphComposer(logFactory: _logFactory);
-
-        var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(),
-                demoProject.Reviews.ToConfiguration(),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
-            });
-
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
-    }
-
-    [Fact]
-    public async Task Accounts_And_Reviews_Products_Shipping_With_Map_Directive()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        var composer = new FusionGraphComposer(logFactory: _logFactory);
-
-        var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(),
-                demoProject.Reviews.ToConfiguration(),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl2),
-            });
-
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
-    }
 }

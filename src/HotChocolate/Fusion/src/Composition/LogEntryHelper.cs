@@ -102,16 +102,6 @@ internal static class LogEntryHelper
             coordinate: coordinate,
             member: field);
 
-    public static LogEntry CoordinateNotAllowedForRequirements(
-        SchemaCoordinate coordinate,
-        Schema schema)
-        => new LogEntry(
-            LogEntryHelper_CoordinateNotAllowedForRequirements,
-            severity: LogSeverity.Error,
-            code: LogEntryCodes.CoordinateNotAllowedForRequirements,
-            coordinate: coordinate,
-            schema: schema);
-
     public static LogEntry FieldDependencyCannotBeResolved(
         SchemaCoordinate coordinate,
         FieldNode dependency,

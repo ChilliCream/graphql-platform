@@ -99,22 +99,10 @@ static file class MergeEntitiesMiddlewareExtensions
                 supportedBy.Add(subgraph.Name);
             }
 
-            if (memberRef.Reference.IsCoordinate)
-            {
-                context.Log.Write(
-                    CoordinateNotAllowedForRequirements(
-                        new SchemaCoordinate(
-                            entityType.Name,
-                            entityField.Name,
-                            argumentName),
-                        context.GetSubgraphSchema(dependency.SubgraphName)));
-                continue;
-            }
-
             if (!CanResolve(
                 context,
                 entityType,
-                memberRef.Reference.Field,
+                memberRef.Requirement,
                 supportedBy))
             {
                 context.Log.Write(
@@ -123,12 +111,12 @@ static file class MergeEntitiesMiddlewareExtensions
                             entityType.Name,
                             entityField.Name,
                             argumentName),
-                        memberRef.Reference.Field,
+                        memberRef.Requirement,
                         context.GetSubgraphSchema(dependency.SubgraphName)));
                 continue;
             }
 
-            var argumentRef = entityType.CreateVariableName(memberRef.Reference);
+            var argumentRef = entityType.CreateVariableName(memberRef.Requirement);
             argumentRefLookup.Add(argumentName, argumentRef);
             arguments.Add(argumentRef, memberRef.Argument.Type.ToTypeNode());
 
@@ -138,7 +126,7 @@ static file class MergeEntitiesMiddlewareExtensions
                     context.FusionTypes.CreateVariableDirective(
                         subgraph,
                         argumentRef,
-                        memberRef.Reference.Field));
+                        memberRef.Requirement));
             }
         }
     }

@@ -24,8 +24,8 @@ internal static class SchemaExtensions
         SchemaCoordinate coordinate)
         => $"{type.Name}_{coordinate.MemberName}";
 
-    private static string CreateVariableName(
-        ObjectType type,
+    public static string CreateVariableName(
+        this ObjectType type,
         FieldNode field)
     {
         var context = new FieldVariableNameContext();
