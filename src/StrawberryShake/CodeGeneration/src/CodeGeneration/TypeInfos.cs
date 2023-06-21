@@ -102,7 +102,8 @@ public sealed class TypeInfos
         { DateTimeSerializer, new RuntimeTypeInfo(DateTimeSerializer) },
         { DateSerializer, new RuntimeTypeInfo(DateSerializer) },
         { ByteArraySerializer, new RuntimeTypeInfo(ByteArraySerializer) },
-        { TimeSpanSerializer, new RuntimeTypeInfo(TimeSpanSerializer) }
+        { TimeSpanSerializer, new RuntimeTypeInfo(TimeSpanSerializer) },
+        { JsonSerializer, new RuntimeTypeInfo(JsonSerializer) }
     };
 
     public RuntimeTypeInfo GetOrAdd(string fullTypeName, bool valueType = false) =>
