@@ -2,7 +2,7 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Fusion.Planning;
 
-public static class OperationExtensions
+internal static class OperationExtensions
 {
     public static ISelectionSet GetSelectionSet(this IOperation operation, ExecutionStep step)
     {
@@ -18,7 +18,12 @@ public static class OperationExtensions
 
         if (step.ParentSelection == null)
         {
-            throw new ArgumentException("step.ParentSelection is null.", nameof(step));
+            if (step.SelectionSetType == operation.RootType)
+            {
+                return operation.RootSelectionSet;
+            }
+
+            throw new ArgumentException($"{nameof(step)}.ParentSelection is null.", nameof(step));
         }
 
         return operation.GetSelectionSet(step.ParentSelection, step.SelectionSetType);
