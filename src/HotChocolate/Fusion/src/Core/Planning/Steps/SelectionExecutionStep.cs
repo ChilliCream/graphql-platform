@@ -45,6 +45,11 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     public HashSet<ISelectionSet> AllSelectionSets { get; } = new();
 
     /// <summary>
+    /// Gets the selection resolvers.
+    /// </summary>
+    public Dictionary<ISelection, ResolverDefinition> SelectionResolvers { get; } = new();
+
+    /// <summary>
     /// Gets a map for this execution task from the variable name
     /// to the internal state key.
     /// </summary>

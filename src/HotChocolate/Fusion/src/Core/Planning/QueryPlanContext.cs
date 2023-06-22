@@ -32,6 +32,8 @@ internal sealed class QueryPlanContext
     public HashSet<VariableDefinitionNode> ForwardedVariables { get; } =
         new(SyntaxComparer.BySyntax);
 
+    public Dictionary<ISelection, ISelection> ParentSelections { get; } = new();
+
     public bool HasIntrospectionSelections { get; set; }
 
     public bool HasHandledSpecialQueryFields { get; set; }

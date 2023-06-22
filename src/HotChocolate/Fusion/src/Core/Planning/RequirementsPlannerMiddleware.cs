@@ -58,7 +58,8 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                         out var providingExecutionStep))
                     {
                         currentStep.DependsOn.Add(providingExecutionStep);
-                        currentStep.Variables.Add(requirement, stateKey);
+                        currentStep.Variables.TryAdd(requirement, stateKey);
+                        requires.Remove(requirement);
                     }
                 }
 
