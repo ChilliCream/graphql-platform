@@ -1,6 +1,7 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -12,9 +13,18 @@ internal sealed class SelectionExecutionStep : ExecutionStep
 {
     public SelectionExecutionStep(
         string subgraphName,
-        ObjectTypeInfo selectionSetTypeInfo,
-        ISelection? parentSelection)
-        : base(selectionSetTypeInfo, parentSelection)
+        IObjectType selectionSet,
+        ObjectTypeInfo selectionSetTypeInfo)
+        : this(subgraphName, null, selectionSet, selectionSetTypeInfo)
+    {
+    }
+
+    public SelectionExecutionStep(
+        string subgraphName,
+        ISelection? parentSelection,
+        IObjectType selectionSet,
+        ObjectTypeInfo selectionSetTypeInfo)
+        : base(parentSelection, selectionSet, selectionSetTypeInfo)
     {
         SubgraphName = subgraphName;
     }

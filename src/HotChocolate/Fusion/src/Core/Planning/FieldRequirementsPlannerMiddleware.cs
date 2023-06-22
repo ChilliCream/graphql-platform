@@ -11,7 +11,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
 
     public FieldRequirementsPlannerMiddleware(FusionGraphConfiguration config)
     {
-        _config = config;
+        _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
     public void Invoke(QueryPlanContext context, QueryPlanDelegate next)
@@ -37,11 +37,8 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
 
                     var field = selection.Field;
                     var declaringType = selection.DeclaringType;
-                    var selectionSet = context.Operation.GetSelectionSet(
-                        currentStep.ParentSelection,
-                        declaringType);
-                    var siblingExecutionSteps =
-                        GetSiblingExecutionSteps(selectionLookup, selectionSet);
+                    var selectionSet = context.Operation.GetSelectionSet(currentStep.ParentSelection, declaringType);
+                    var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
 
                     // remove the execution step for which we try to resolve dependencies.
                     siblingExecutionSteps.Remove(currentStep);
@@ -73,7 +70,8 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                                 currentStep,
                                 selection,
                                 typeInfo,
-                                fieldInfo);
+                                fieldInfo,
+                                resolver);
                         }
                     }
                 }
@@ -89,7 +87,8 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         SelectionExecutionStep currentStep,
         ISelection selection,
         ObjectTypeInfo typeInfo,
-        ObjectFieldInfo fieldInfo)
+        ObjectFieldInfo fieldInfo,
+        ResolverDefinition resolver)
     {
         fieldContext.Variables.AddRange(
             fieldInfo.Variables.OfType<FieldVariableDefinition>()
@@ -117,6 +116,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                 currentStep,
                 selection,
                 typeInfo,
+                resolver,
                 fieldContext.AllSubgraphs.First());
 
             foreach (var item in fieldContext.Selected)
@@ -161,7 +161,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
             {
                 if (fieldContext.AllSubgraphs.Count > fieldContext.VariableSubgraphs.Count)
                 {
-                    fieldContext.AllSubgraphs.IntersectWith(fieldContext.AllSubgraphs);
+                    fieldContext.AllSubgraphs.IntersectWith(fieldContext.VariableSubgraphs);
                 }
 
                 fieldContext.VariableSubgraphs.Clear();
@@ -176,10 +176,20 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         SelectionExecutionStep currentStep,
         ISelection selection,
         ObjectTypeInfo typeInfo,
+        ResolverDefinition resolver,
         string subgraph)
     {
         context.ParentSelections.TryGetValue(selection, out var parentSelection);
-        var requirementStep = new SelectionExecutionStep(subgraph, typeInfo, parentSelection);
+
+        var requirementStep = new SelectionExecutionStep(
+            subgraph,
+            parentSelection,
+            selection.DeclaringType,
+            typeInfo)
+        {
+            Resolver = resolver
+        };
+
         fieldContext.RequirementSteps.Add(requirementStep);
 
         var selectionSet = parentSelection is null
@@ -285,22 +295,18 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                 continue;
             }
 
-            if (variable is FieldVariableDefinition fieldVariable)
+            if (variable is FieldVariableDefinition fieldVariable &&
+                fieldContext.Schemas.TryGetValue(variable.SubgraphName, out var providingExecutionStep))
             {
-                if (fieldContext.Schemas.TryGetValue(
-                    variable.SubgraphName,
-                    out var providingExecutionStep))
-                {
-                    fieldContext.Requires.Remove(variable.Name);
+                fieldContext.Requires.Remove(variable.Name);
 
-                    var stateKey = context.Exports.Register(
-                        selectionSet,
-                        fieldVariable,
-                        providingExecutionStep);
+                var stateKey = context.Exports.Register(
+                    selectionSet,
+                    fieldVariable,
+                    providingExecutionStep);
 
-                    executionStep.DependsOn.Add(providingExecutionStep);
-                    executionStep.Variables.TryAdd(variable.Name, stateKey);
-                }
+                executionStep.DependsOn.Add(providingExecutionStep);
+                executionStep.Variables.TryAdd(variable.Name, stateKey);
             }
         }
     }

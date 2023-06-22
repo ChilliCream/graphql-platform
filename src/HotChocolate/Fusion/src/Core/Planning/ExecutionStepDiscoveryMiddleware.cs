@@ -17,18 +17,24 @@ namespace HotChocolate.Fusion.Planning;
 internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 {
     private readonly FusionGraphConfiguration _config;
+    private readonly ISchema _schema;
 
     /// <summary>
     /// Creates a new instance of <see cref="ExecutionStepDiscoveryMiddleware"/>.
     /// </summary>
+    /// <param name="schema">
+    /// The schema.
+    /// </param>
     /// <param name="configuration">
     /// The fusion gateway configuration.
     /// </param>
-    /// <exception cref="ArgumentNullException"></exception>
-    public ExecutionStepDiscoveryMiddleware(FusionGraphConfiguration configuration)
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="schema"/> is <c>null</c> or <paramref name="configuration"/> is <c>null</c>.
+    /// </exception>
+    public ExecutionStepDiscoveryMiddleware(ISchema schema, FusionGraphConfiguration configuration)
     {
-        _config = configuration ??
-            throw new ArgumentNullException(nameof(configuration));
+        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     /// <summary>
@@ -109,8 +115,9 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 selectionSetTypeInfo);
             var executionStep = new SelectionExecutionStep(
                 subgraph,
-                selectionSetTypeInfo,
-                parentSelection);
+                parentSelection,
+                _schema.GetType<IObjectType>(selectionSetTypeInfo.Name),
+                selectionSetTypeInfo);
             leftovers = null;
 
             // we will first try to resolve and set an entity resolver.
@@ -214,6 +221,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     AddIntrospectionStepIfNotExists(
                         context,
                         field,
+                        operation.RootType,
                         selectionSetTypeInfo);
                     (processed ??= new()).Add(i);
                     continue;
@@ -362,6 +370,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     private static void AddIntrospectionStepIfNotExists(
         QueryPlanContext context,
         IObjectField field,
+        IObjectType queryType,
         ObjectTypeInfo queryTypeInfo)
     {
         if (!context.HasIntrospectionSelections &&
@@ -369,7 +378,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 field.Name.EqualsOrdinal(IntrospectionFields.Type) ||
                 field.Name.EqualsOrdinal(IntrospectionFields.TypeName)))
         {
-            context.Steps.Add(new IntrospectionExecutionStep(queryTypeInfo));
+            context.Steps.Add(new IntrospectionExecutionStep(queryType, queryTypeInfo));
             context.HasIntrospectionSelections = true;
         }
     }
@@ -382,7 +391,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         Dictionary<ISelection, ISelection> parentSelectionLookup)
     {
         var operation = context.Operation;
-        var nodeExecutionStep = new NodeExecutionStep(nodeSelection, queryTypeInfo);
+        var queryType = operation.RootType;
+        var nodeExecutionStep = new NodeExecutionStep(nodeSelection, queryType, queryTypeInfo);
         context.Steps.Add(nodeExecutionStep);
 
         foreach (var entityType in operation.GetPossibleTypes(nodeSelection))
@@ -404,6 +414,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
             var nodeEntityExecutionStep =
                 new NodeEntityExecutionStep(
+                    entityType,
                     entityTypeInfo,
                     selectionExecutionStep);
 
@@ -431,6 +442,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     {
         var variablesInContext = new HashSet<string>();
         var operation = context.Operation;
+        var queryType = operation.RootType;
 
         // we will first determine from which subgraph we can
         // fetch an entity through the node resolver.
@@ -449,7 +461,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         var field = nodeSelection.Field;
         var fieldInfo = queryTypeInfo.Fields[field.Name];
-        var executionStep = new SelectionExecutionStep(subgraph, queryTypeInfo, null);
+        var executionStep = new SelectionExecutionStep(subgraph, queryType,  queryTypeInfo);
 
         var preference = ChoosePreferredResolverKind(operation, null, preferBatching);
         GatherVariablesInContext(nodeSelection, queryTypeInfo, null, variablesInContext);
