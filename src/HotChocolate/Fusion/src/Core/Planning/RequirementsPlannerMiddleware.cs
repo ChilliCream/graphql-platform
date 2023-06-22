@@ -30,7 +30,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 currentStep.ParentSelection is { } parent &&
                 currentStep.Resolver is not null)
             {
-                var declaringType = currentStep.RootSelections[0].Selection.DeclaringType;
+                var declaringType = currentStep.SelectionSetType;
                 var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
                 var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
 

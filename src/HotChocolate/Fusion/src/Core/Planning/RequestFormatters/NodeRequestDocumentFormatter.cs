@@ -63,7 +63,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         string entityTypeName)
     {
         var selectionNodes = new List<ISelectionNode>();
-        var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
+        var selectionSet = context.Operation.GetSelectionSet(executionStep);
         var selectionSetType = executionStep.SelectionSetTypeInfo;
         var nodeSelection = executionStep.RootSelections[0];
         Debug.Assert(selectionSet is not null);

@@ -69,7 +69,7 @@ internal abstract class RequestDocumentFormatter
         SelectionExecutionStep executionStep)
     {
         var selectionNodes = new List<ISelectionNode>();
-        var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
+        var selectionSet = context.Operation.GetSelectionSet(executionStep);
         var selectionSetType = executionStep.SelectionSetTypeInfo;
         Debug.Assert(selectionSet is not null);
 
