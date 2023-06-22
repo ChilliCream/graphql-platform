@@ -105,7 +105,8 @@ internal sealed class QueryPlanContext
     {
         if (_rootNode is not null)
         {
-            throw new InvalidOperationException("The root node can only be set once.");
+            throw new InvalidOperationException(
+                "The root node can only be set once.");
         }
 
         _rootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
@@ -138,12 +139,6 @@ internal sealed class QueryPlanContext
                 "In order to build a query plan a root node must be set.");
         }
 
-        return new QueryPlan(
-            Operation,
-            _rootNode,
-            Exports.All
-                .GroupBy(t => t.SelectionSet)
-                .ToDictionary(t => t.Key, t => t.Select(x => x.StateKey).ToArray()),
-            _selectionSets);
+        return new QueryPlan(Operation, _rootNode, _selectionSets, Exports.All);
     }
 }

@@ -150,7 +150,7 @@ public class RequestPlannerTests
             """
             query TopProducts($first: Int!) {
                 topProducts(first: $first) {
-                    upc
+                    id
                 }
             }
             """);
@@ -263,7 +263,7 @@ public class RequestPlannerTests
             """
             query TopProducts($first: Int!) {
                 topProducts(first: $first) {
-                    upc
+                    id
                 }
                 __schema {
                     types {
@@ -712,6 +712,51 @@ public class RequestPlannerTests
                             birthdate
                         }
                     }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_19_Requires()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            FusionFeatureFlags.NodeField);
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                reviews {
+                  body
+                  author {
+                    name
+                    birthdate
+                  }
+                  product {
+                    name
+                    deliveryEstimate(zip: "12345") {
+                      min
+                      max
+                    }
+                  }
                 }
             }
             """);

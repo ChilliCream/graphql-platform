@@ -93,15 +93,39 @@ namespace HotChocolate.Fusion.Composition.Properties {
             }
         }
         
+        internal static string DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate {
+            get {
+                return ResourceManager.GetString("DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate", resourceCulture);
+            }
+        }
+        
         internal static string LogEntryHelper_OutputFieldArgumentSetMismatch {
             get {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldArgumentSetMismatch", resourceCulture);
             }
         }
         
-        internal static string DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate {
+        internal static string LogEntryHelper_CoordinateNotAllowedForRequirements {
             get {
-                return ResourceManager.GetString("DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_CoordinateNotAllowedForRequirements", resourceCulture);
+            }
+        }
+        
+        internal static string LogEntryHelper_FieldDependencyCannotBeResolved {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FieldDependencyCannotBeResolved", resourceCulture);
+            }
+        }
+        
+        internal static string CannotFindCorrelatingSubgraphField {
+            get {
+                return ResourceManager.GetString("CannotFindCorrelatingSubgraphField", resourceCulture);
+            }
+        }
+        
+        internal static string DirectivesHelper_GetRequireDirective_NoFieldArg {
+            get {
+                return ResourceManager.GetString("DirectivesHelper_GetRequireDirective_NoFieldArg", resourceCulture);
             }
         }
     }

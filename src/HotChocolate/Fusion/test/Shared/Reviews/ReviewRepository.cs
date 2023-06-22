@@ -26,7 +26,7 @@ public class ReviewRepository
         _reviews.Values.OrderBy(t => t.Id);
 
     public IEnumerable<Review> GetReviewsByProductId(int upc) =>
-        _reviews.Values.OrderBy(t => t.Id).Where(t => t.Product.Upc == upc);
+        _reviews.Values.OrderBy(t => t.Id).Where(t => t.Product.Id == upc);
 
     public IEnumerable<Review> GetReviewsByAuthorId(int authorId) =>
         _reviews.Values.OrderBy(t => t.Id).Where(t => t.Author.Id == authorId);

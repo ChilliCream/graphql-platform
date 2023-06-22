@@ -1,6 +1,6 @@
-using System.Diagnostics.Contracts;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -49,6 +49,11 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     /// to the internal state key.
     /// </summary>
     public Dictionary<string, string> Variables { get; } = new();
+
+    /// <summary>
+    /// Gets the argument target types.
+    /// </summary>
+    public Dictionary<string, ITypeNode> ArgumentTypes { get; } = new();
 
     /// <summary>
     /// The variable requirements by this task.

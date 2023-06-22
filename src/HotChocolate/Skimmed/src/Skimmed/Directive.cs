@@ -1,3 +1,5 @@
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+
 namespace HotChocolate.Skimmed;
 
 public sealed class Directive : ITypeSystemMember
@@ -18,4 +20,7 @@ public sealed class Directive : ITypeSystemMember
     public DirectiveType Type { get; }
 
     public ArgumentCollection Arguments { get; }
+
+    public override string ToString()
+        => RewriteDirective(this).ToString(true);
 }

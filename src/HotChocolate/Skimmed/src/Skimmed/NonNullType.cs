@@ -1,3 +1,5 @@
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+
 namespace HotChocolate.Skimmed;
 
 public sealed class NonNullType : IType
@@ -22,4 +24,7 @@ public sealed class NonNullType : IType
     public TypeKind Kind => TypeKind.NonNull;
 
     public IType NullableType { get; }
+
+    public override string ToString()
+        => RewriteTypeRef(this).ToString(true);
 }

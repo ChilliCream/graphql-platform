@@ -18,6 +18,7 @@ internal sealed class QueryPlanner
             QueryPlanPipelineBuilder
                 .New()
                 .Use(() => new ExecutionStepDiscoveryMiddleware(configuration))
+                .Use(() => new FieldRequirementsPlannerMiddleware(configuration))
                 .Use<RequirementsPlannerMiddleware>()
                 .Use(() => new ExecutionNodeBuilderMiddleware(configuration, schema))
                 .Use(() => new ExecutionTreeBuilderMiddleware(schema))
