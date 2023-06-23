@@ -31,53 +31,68 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                 currentStep.ParentSelection is not null &&
                 currentStep.SelectionResolvers.Count > 0)
             {
-                foreach (var (selection, resolver) in currentStep.SelectionResolvers)
-                {
-                    fieldContext.Schemas.Clear();
-
-                    var field = selection.Field;
-                    var declaringType = selection.DeclaringType;
-                    var selectionSet = context.Operation.GetSelectionSet(currentStep.ParentSelection, declaringType);
-                    var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
-
-                    // remove the execution step for which we try to resolve dependencies.
-                    siblingExecutionSteps.Remove(currentStep);
-
-                    // clean and fill the schema execution step lookup
-                    foreach (var siblingExecutionStep in siblingExecutionSteps)
-                    {
-                        fieldContext.Schemas.TryAdd(
-                            siblingExecutionStep.SubgraphName,
-                            siblingExecutionStep);
-                    }
-
-                    if (_config.TryGetType<ObjectTypeInfo>(declaringType.Name, out var typeInfo) &&
-                        typeInfo.Fields.TryGetField(field.Name, out var fieldInfo))
-                    {
-                        ResolveVariablesInContext(
-                            context,
-                            fieldContext,
-                            currentStep,
-                            fieldInfo,
-                            selectionSet,
-                            resolver);
-
-                        if (fieldContext.Requires.Count > 0)
-                        {
-                            ResolveVariableRequirements(
-                                context,
-                                fieldContext,
-                                currentStep,
-                                selection,
-                                typeInfo,
-                                fieldInfo);
-                        }
-                    }
-                }
+                ResolveRequirementsForSelectionResolvers(
+                    context,
+                    fieldContext,
+                    selectionLookup,
+                    currentStep,
+                    currentStep.ParentSelection);
             }
         }
 
         context.Steps.AddRange(fieldContext.RequirementSteps);
+    }
+
+    private void ResolveRequirementsForSelectionResolvers(
+        QueryPlanContext context,
+        FieldContext fieldContext,
+        Dictionary<object, SelectionExecutionStep> selectionLookup,
+        SelectionExecutionStep currentStep,
+        ISelection parentSelection)
+    {
+        foreach (var (selection, resolver) in currentStep.SelectionResolvers)
+        {
+            fieldContext.Schemas.Clear();
+
+            var field = selection.Field;
+            var declaringType = selection.DeclaringType;
+            var selectionSet = context.Operation.GetSelectionSet(parentSelection, declaringType);
+            var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
+
+            // remove the execution step for which we try to resolve dependencies.
+            siblingExecutionSteps.Remove(currentStep);
+
+            // clean and fill the schema execution step lookup
+            foreach (var siblingExecutionStep in siblingExecutionSteps)
+            {
+                fieldContext.Schemas.TryAdd(
+                    siblingExecutionStep.SubgraphName,
+                    siblingExecutionStep);
+            }
+
+            if (_config.TryGetType<ObjectTypeInfo>(declaringType.Name, out var typeInfo) &&
+                typeInfo.Fields.TryGetField(field.Name, out var fieldInfo))
+            {
+                ResolveVariablesInContext(
+                    context,
+                    fieldContext,
+                    currentStep,
+                    fieldInfo,
+                    selectionSet,
+                    resolver);
+
+                if (fieldContext.Requires.Count > 0)
+                {
+                    ResolveVariableRequirements(
+                        context,
+                        fieldContext,
+                        currentStep,
+                        selection,
+                        typeInfo,
+                        fieldInfo);
+                }
+            }
+        }
     }
 
     private static void ResolveVariableRequirements(
@@ -248,7 +263,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
             }
         }
 
-        if(selectedResolver is null)
+        if (selectedResolver is null)
         {
             throw ThrowHelper.NoResolverInContext();
         }
