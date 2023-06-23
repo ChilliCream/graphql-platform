@@ -461,7 +461,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         var field = nodeSelection.Field;
         var fieldInfo = queryTypeInfo.Fields[field.Name];
-        var executionStep = new SelectionExecutionStep(subgraph, queryType,  queryTypeInfo);
+        var executionStep = new SelectionExecutionStep(subgraph, queryType, queryTypeInfo);
 
         var preference = ChoosePreferredResolverKind(operation, null, preferBatching);
         GatherVariablesInContext(nodeSelection, queryTypeInfo, null, variablesInContext);
@@ -614,7 +614,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                                 resolver = current;
                                 break;
 
-                            case ResolverKind.Query:
                             default:
                                 if (preference is PreferredResolverKind.Query)
                                 {

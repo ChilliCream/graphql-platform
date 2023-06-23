@@ -70,8 +70,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                                 currentStep,
                                 selection,
                                 typeInfo,
-                                fieldInfo,
-                                resolver);
+                                fieldInfo);
                         }
                     }
                 }
@@ -87,8 +86,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         SelectionExecutionStep currentStep,
         ISelection selection,
         ObjectTypeInfo typeInfo,
-        ObjectFieldInfo fieldInfo,
-        ResolverDefinition resolver)
+        ObjectFieldInfo fieldInfo)
     {
         fieldContext.Variables.AddRange(
             fieldInfo.Variables.OfType<FieldVariableDefinition>()
@@ -116,7 +114,6 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                 currentStep,
                 selection,
                 typeInfo,
-                resolver,
                 fieldContext.AllSubgraphs.First());
 
             foreach (var item in fieldContext.Selected)
@@ -176,25 +173,30 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         SelectionExecutionStep currentStep,
         ISelection selection,
         ObjectTypeInfo typeInfo,
-        ResolverDefinition resolver,
         string subgraph)
     {
         context.ParentSelections.TryGetValue(selection, out var parentSelection);
+
+        var selectionSet = parentSelection is null
+            ? context.Operation.RootSelectionSet
+            : context.Operation.GetSelectionSet(parentSelection, selection.DeclaringType);
+
+        var resolver = SelectResolver(fieldContext, typeInfo, subgraph);
 
         var requirementStep = new SelectionExecutionStep(
             subgraph,
             parentSelection,
             selection.DeclaringType,
-            typeInfo)
+            typeInfo);
+
+        foreach (var requirement in resolver.Requires)
         {
-            Resolver = resolver
-        };
+            requirementStep.Requires.Add(requirement);
+        }
+
+        requirementStep.Resolver = resolver;
 
         fieldContext.RequirementSteps.Add(requirementStep);
-
-        var selectionSet = parentSelection is null
-            ? context.Operation.RootSelectionSet
-            : context.Operation.GetSelectionSet(parentSelection, selection.DeclaringType);
 
         foreach (var variable in fieldContext.Selected)
         {
@@ -205,6 +207,67 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
 
             currentStep.DependsOn.Add(requirementStep);
             currentStep.Variables.TryAdd(variable.Key, stateKey);
+        }
+    }
+
+    private static ResolverDefinition SelectResolver(
+        FieldContext fieldContext,
+        ObjectTypeInfo typeInfo,
+        string subgraph)
+    {
+        fieldContext.VariablesInContext.Clear();
+
+        foreach (var variable in typeInfo.Variables)
+        {
+            fieldContext.VariablesInContext.Add(variable.Name);
+        }
+
+        if (!typeInfo.Resolvers.TryGetValue(subgraph, out var resolvers))
+        {
+            throw ThrowHelper.NoResolverInContext();
+        }
+
+        ResolverDefinition selectedResolver = null;
+        var requirements = 0;
+
+        foreach (var resolver in resolvers)
+        {
+            if (!FulfillsRequirements(resolver, fieldContext.VariablesInContext))
+            {
+                continue;
+            }
+
+            if (requirements > resolver.Requires.Count || selectedResolver is null ||
+                (selectedResolver.Requires.Count == resolver.Requires.Count &&
+                    selectedResolver.Kind == ResolverKind.Query &&
+                    (resolver.Kind == ResolverKind.Batch ||
+                        resolver.Kind == ResolverKind.BatchByKey)))
+            {
+                requirements = resolver.Requires.Count;
+                selectedResolver = resolver;
+            }
+        }
+
+        if(selectedResolver is null)
+        {
+            throw ThrowHelper.NoResolverInContext();
+        }
+
+        return selectedResolver;
+
+        static bool FulfillsRequirements(
+            ResolverDefinition resolver,
+            HashSet<string> variabesInContext)
+        {
+            foreach (var requirement in resolver.Requires)
+            {
+                if (!variabesInContext.Contains(requirement))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 
@@ -325,5 +388,6 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         public readonly HashSet<string> VariableSubgraphs = new();
         public readonly List<IGrouping<string, VariableInfo>> Variables = new();
         public readonly List<IGrouping<string, VariableInfo>> Selected = new();
+        public readonly HashSet<string> VariablesInContext = new(Ordinal);
     }
 }
