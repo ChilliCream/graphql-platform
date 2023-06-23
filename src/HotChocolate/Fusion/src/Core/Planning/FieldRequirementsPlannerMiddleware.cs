@@ -1,7 +1,9 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Utilities;
 using static System.StringComparer;
+using static HotChocolate.Fusion.Planning.PlanningUitilities;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -22,7 +24,8 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
 
     private void Plan(QueryPlanContext context)
     {
-        var selectionLookup = CreateSelectionLookup(context.Steps);
+        context.ReBuildSelectionLookup();
+
         var fieldContext = new FieldContext();
 
         foreach (var step in context.Steps)
@@ -34,7 +37,6 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                 ResolveRequirementsForSelectionResolvers(
                     context,
                     fieldContext,
-                    selectionLookup,
                     currentStep,
                     currentStep.ParentSelection);
             }
@@ -46,7 +48,6 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
     private void ResolveRequirementsForSelectionResolvers(
         QueryPlanContext context,
         FieldContext fieldContext,
-        Dictionary<object, SelectionExecutionStep> selectionLookup,
         SelectionExecutionStep currentStep,
         ISelection parentSelection)
     {
@@ -57,7 +58,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
             var field = selection.Field;
             var declaringType = selection.DeclaringType;
             var selectionSet = context.Operation.GetSelectionSet(parentSelection, declaringType);
-            var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
+            var siblingExecutionSteps = GetSiblingExecutionSteps(context, selectionSet);
 
             // remove the execution step for which we try to resolve dependencies.
             siblingExecutionSteps.Remove(currentStep);
@@ -242,7 +243,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
             throw ThrowHelper.NoResolverInContext();
         }
 
-        ResolverDefinition selectedResolver = null;
+        ResolverDefinition? selectedResolver = null;
         var requirements = 0;
 
         foreach (var resolver in resolvers)
@@ -286,51 +287,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         }
     }
 
-    private static HashSet<SelectionExecutionStep> GetSiblingExecutionSteps(
-        Dictionary<object, SelectionExecutionStep> selectionLookup,
-        ISelectionSet selectionSet)
-    {
-        var executionSteps = new HashSet<SelectionExecutionStep>();
 
-        if (selectionLookup.TryGetValue(selectionSet, out var executionStep))
-        {
-            executionSteps.Add(executionStep);
-        }
-
-        foreach (var sibling in selectionSet.Selections)
-        {
-            if (selectionLookup.TryGetValue(sibling, out executionStep))
-            {
-                executionSteps.Add(executionStep);
-            }
-        }
-
-        return executionSteps;
-    }
-
-    private static Dictionary<object, SelectionExecutionStep> CreateSelectionLookup(
-        IReadOnlyList<ExecutionStep> executionSteps)
-    {
-        var dictionary = new Dictionary<object, SelectionExecutionStep>();
-
-        foreach (var executionStep in executionSteps)
-        {
-            if (executionStep is SelectionExecutionStep ses)
-            {
-                foreach (var selection in ses.AllSelections)
-                {
-                    dictionary.TryAdd(selection, ses);
-                }
-
-                foreach (var selectionSet in ses.AllSelectionSets)
-                {
-                    dictionary.TryAdd(selectionSet, ses);
-                }
-            }
-        }
-
-        return dictionary;
-    }
 
     private static void ResolveVariablesInContext(
         QueryPlanContext context,
