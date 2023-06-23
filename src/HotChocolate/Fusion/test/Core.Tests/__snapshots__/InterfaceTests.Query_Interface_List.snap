@@ -1,0 +1,126 @@
+User Request
+---------------
+query Appointments {
+  appointments {
+    nodes {
+      patientId {
+        id
+      }
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query Appointments { appointments { nodes { patientId { id } } } }",
+  "operation": "Appointments",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Appointment",
+        "document": "query Appointments_1 { appointments(after: null, before: null, first: null, last: null) { nodes { patientId { __typename ... on PatientCH { id } ... on PatientDE { id } } } } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Result
+---------------
+{
+  "data": {
+    "appointments": {
+      "nodes": [
+        {
+          "patientId": {
+            "id": "UGF0aWVudERFCmkx"
+          }
+        },
+        {
+          "patientId": {
+            "id": "UGF0aWVudENICmky"
+          }
+        }
+      ]
+    }
+  }
+}
+---------------
+
+Fusion Graph
+---------------
+schema @fusion(version: 1) @httpClient(subgraph: "Appointment", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Appointment", baseAddress: "ws:\/\/localhost:5000\/graphql") @node(subgraph: "Appointment", types: [ "Appointment" ]) {
+  query: Query
+}
+
+type Query {
+  appointmentById(appointmentId: ID!): Appointment @variable(subgraph: "Appointment", name: "appointmentId", argument: "appointmentId") @resolver(subgraph: "Appointment", select: "{ appointmentById(appointmentId: $appointmentId) }", arguments: [ { name: "appointmentId", type: "ID!" } ])
+  appointments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): AppointmentsConnection @variable(subgraph: "Appointment", name: "after", argument: "after") @variable(subgraph: "Appointment", name: "before", argument: "before") @variable(subgraph: "Appointment", name: "first", argument: "first") @variable(subgraph: "Appointment", name: "last", argument: "last") @resolver(subgraph: "Appointment", select: "{ appointments(after: $after, before: $before, first: $first, last: $last) }", arguments: [ { name: "after", type: "String" }, { name: "before", type: "String" }, { name: "first", type: "Int" }, { name: "last", type: "Int" } ])
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @variable(subgraph: "Appointment", name: "id", argument: "id") @resolver(subgraph: "Appointment", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @variable(subgraph: "Appointment", name: "ids", argument: "ids") @resolver(subgraph: "Appointment", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+}
+
+type Appointment implements Node @variable(subgraph: "Appointment", name: "Appointment_id", select: "id") @resolver(subgraph: "Appointment", select: "{ node(id: $Appointment_id) { ... on Appointment { ... Appointment } } }", arguments: [ { name: "Appointment_id", type: "ID!" } ]) @resolver(subgraph: "Appointment", select: "{ nodes(ids: $Appointment_id) { ... on Appointment { ... Appointment } } }", arguments: [ { name: "Appointment_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  id: ID! @source(subgraph: "Appointment")
+  patientId: IPatient! @source(subgraph: "Appointment")
+}
+
+"A connection to a list of items."
+type AppointmentsConnection {
+  "A list of edges."
+  edges: [AppointmentsEdge!] @source(subgraph: "Appointment")
+  "A flattened list of the nodes."
+  nodes: [Appointment!] @source(subgraph: "Appointment")
+  "Information to aid in pagination."
+  pageInfo: PageInfo! @source(subgraph: "Appointment")
+}
+
+"An edge in a connection."
+type AppointmentsEdge {
+  "A cursor for use in pagination."
+  cursor: String! @source(subgraph: "Appointment")
+  "The item at the end of the edge."
+  node: Appointment! @source(subgraph: "Appointment")
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "When paginating forwards, the cursor to continue."
+  endCursor: String @source(subgraph: "Appointment")
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean! @source(subgraph: "Appointment")
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean! @source(subgraph: "Appointment")
+  "When paginating backwards, the cursor to continue."
+  startCursor: String @source(subgraph: "Appointment")
+}
+
+type PatientCH implements IPatient {
+  id: ID! @source(subgraph: "Appointment")
+}
+
+type PatientDE implements IPatient {
+  id: ID! @source(subgraph: "Appointment")
+}
+
+interface IPatient {
+  id: ID!
+}
+
+interface Node {
+  id: ID!
+}
+---------------
