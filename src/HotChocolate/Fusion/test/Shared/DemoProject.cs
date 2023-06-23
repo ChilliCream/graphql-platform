@@ -1,6 +1,7 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Shared.Accounts;
+using HotChocolate.Fusion.Shared.Appointments;
 using HotChocolate.Fusion.Shared.Products;
 using HotChocolate.Fusion.Shared.Reviews;
 using HotChocolate.Fusion.Shared.Shipping;
@@ -23,6 +24,7 @@ public sealed class DemoProject : IDisposable
         DemoSubgraph reviews2,
         DemoSubgraph products,
         DemoSubgraph shipping,
+        DemoSubgraph appointment,
         IHttpClientFactory clientFactory,
         IWebSocketConnectionFactory webSocketConnectionFactory)
     {
@@ -32,6 +34,7 @@ public sealed class DemoProject : IDisposable
         Reviews2 = reviews2;
         Products = products;
         Shipping = shipping;
+        Appointment = appointment;
         HttpClientFactory = clientFactory;
         WebSocketConnectionFactory = webSocketConnectionFactory;
     }
@@ -49,6 +52,8 @@ public sealed class DemoProject : IDisposable
     public DemoSubgraph Accounts { get; }
 
     public DemoSubgraph Shipping { get; }
+
+    public DemoSubgraph Appointment { get; }
 
     public static async Task<DemoProject> CreateAsync(CancellationToken ct = default)
     {
@@ -157,6 +162,25 @@ public sealed class DemoProject : IDisposable
             .DownloadSchemaAsync(shippingClient, ct)
             .ConfigureAwait(false);
 
+        var appointment = testServerFactory.Create(
+            s => s
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType<AppointmentQuery>()
+                .AddObjectType<PatientDE>()
+                .AddObjectType<PatientCH>()
+                .AddGlobalObjectIdentification(),
+            c => c
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        disposables.Add(products);
+
+        var appointmentClient = appointment.CreateClient();
+        appointmentClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+        var appointmentSchema = await introspection
+            .DownloadSchemaAsync(appointmentClient, ct)
+            .ConfigureAwait(false);
+
         var httpClients = new Dictionary<string, Func<HttpClient>>
         {
             {
@@ -204,6 +228,15 @@ public sealed class DemoProject : IDisposable
                     return httpClient;
                 }
             },
+            {
+                "Appointment", () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = appointment.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    return httpClient;
+                }
+            },
         };
 
         var webSocketClients = new Dictionary<string, Func<IWebSocketConnection>>
@@ -219,6 +252,9 @@ public sealed class DemoProject : IDisposable
             },
             {
                 "Shipping", () => new MockWebSocketConnection(shipping.CreateWebSocketClient())
+            },
+            {
+                "Appointment", () => new MockWebSocketConnection(appointment.CreateWebSocketClient())
             },
         };
 
@@ -254,6 +290,12 @@ public sealed class DemoProject : IDisposable
                 new Uri("ws://localhost:5000/graphql"),
                 shippingSchema,
                 shipping),
+            new DemoSubgraph(
+                "Appointment",
+                appointmentClient.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                appointmentSchema,
+                appointment),
             new MockHttpClientFactory(httpClients),
             new MockWebSocketConnectionFactory(webSocketClients));
     }

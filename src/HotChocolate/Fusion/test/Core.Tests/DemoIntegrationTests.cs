@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
+using static HotChocolate.Fusion.TestHelper;
 
 namespace HotChocolate.Fusion;
 
@@ -1326,50 +1327,5 @@ public class DemoIntegrationTests
     private class ReloadTypeModule : TypeModule
     {
         public void Evict() => OnTypesChanged();
-    }
-
-    private static void CollectSnapshotData(
-        Snapshot snapshot,
-        DocumentNode request,
-        IExecutionResult result,
-        Skimmed.Schema fusionGraph)
-    {
-        snapshot.Add(request, "User Request");
-
-        if (result.ContextData is not null &&
-            result.ContextData.TryGetValue("queryPlan", out var value) &&
-            value is QueryPlan queryPlan)
-        {
-            snapshot.Add(queryPlan, "QueryPlan");
-        }
-
-        snapshot.Add(result, "Result");
-        snapshot.Add(SchemaFormatter.FormatAsDocument(fusionGraph), "Fusion Graph");
-    }
-
-    private static async Task CollectStreamSnapshotData(
-        Snapshot snapshot,
-        DocumentNode request,
-        IExecutionResult result,
-        Skimmed.Schema fusionGraph,
-        CancellationToken cancellationToken)
-    {
-        snapshot.Add(request, "User Request");
-
-        var i = 0;
-        await foreach (var item in result.ExpectResponseStream()
-            .ReadResultsAsync().WithCancellation(cancellationToken))
-        {
-            if (item.ContextData is not null &&
-                item.ContextData.TryGetValue("queryPlan", out var value) &&
-                value is QueryPlan queryPlan)
-            {
-                snapshot.Add(queryPlan, "QueryPlan");
-            }
-
-            snapshot.Add(item, $"Result {++i}");
-        }
-
-        snapshot.Add(SchemaFormatter.FormatAsDocument(fusionGraph), "Fusion Graph");
     }
 }
