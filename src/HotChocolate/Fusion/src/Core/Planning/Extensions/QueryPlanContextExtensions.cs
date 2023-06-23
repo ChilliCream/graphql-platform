@@ -2,10 +2,10 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal static class PlanningUitilities
+internal static class QueryPlanContextExtensions
 {
     public static HashSet<SelectionExecutionStep> GetSiblingExecutionSteps(
-        QueryPlanContext context,
+        this QueryPlanContext context,
         ISelectionSet selectionSet)
     {
         var executionSteps = new HashSet<SelectionExecutionStep>();

@@ -3,7 +3,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Utilities;
 using static System.StringComparer;
-using static HotChocolate.Fusion.Planning.PlanningUitilities;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -58,7 +57,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
             var field = selection.Field;
             var declaringType = selection.DeclaringType;
             var selectionSet = context.Operation.GetSelectionSet(parentSelection, declaringType);
-            var siblingExecutionSteps = GetSiblingExecutionSteps(context, selectionSet);
+            var siblingExecutionSteps = context.GetSiblingExecutionSteps(selectionSet);
 
             // remove the execution step for which we try to resolve dependencies.
             siblingExecutionSteps.Remove(currentStep);
