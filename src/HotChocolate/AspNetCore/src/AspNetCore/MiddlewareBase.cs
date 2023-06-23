@@ -16,8 +16,9 @@ public class MiddlewareBase : IDisposable
 {
     private readonly RequestDelegate _next;
     private readonly IHttpResponseFormatter _responseFormatter;
-    private bool _disposed;
     private readonly RequestExecutorProxy _executorProxy;
+    private GraphQLServerOptions? _options;
+    private bool _disposed;
 
     protected MiddlewareBase(
         RequestDelegate next,
@@ -214,6 +215,17 @@ public class MiddlewareBase : IDisposable
 
         context.Items[nameof(RequestContentType)] = RequestContentType.None;
         return RequestContentType.None;
+    }
+
+    protected GraphQLServerOptions GetOptions(HttpContext context)
+    {
+        if (_options is not null)
+        {
+            return _options;
+        }
+
+        _options = context.GetGraphQLServerOptions() ?? new GraphQLServerOptions();
+        return _options;
     }
 
     public void Dispose()

@@ -48,7 +48,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
             context.Exports.CreateVariableDefinitions(
                 context.ForwardedVariables,
                 executionStep.Variables.Values,
-                executionStep.Resolver?.Arguments),
+                executionStep.ArgumentTypes),
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
@@ -63,7 +63,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         string entityTypeName)
     {
         var selectionNodes = new List<ISelectionNode>();
-        var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
+        var selectionSet = context.Operation.GetSelectionSet(executionStep);
         var selectionSetType = executionStep.SelectionSetTypeInfo;
         var nodeSelection = executionStep.RootSelections[0];
         Debug.Assert(selectionSet is not null);
@@ -191,6 +191,21 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
                         executionStep,
                         selection,
                         typeContext.Fields[selection.Field.Name]));
+
+                if (!selection.Arguments.IsFullyCoercedNoErrors)
+                {
+                    foreach (var argument in selection.Arguments)
+                    {
+                        if (!argument.IsFullyCoerced)
+                        {
+                            TryForwardVariable(
+                                context,
+                                null,
+                                argument,
+                                argument.Name);
+                        }
+                    }
+                }
             }
         }
 

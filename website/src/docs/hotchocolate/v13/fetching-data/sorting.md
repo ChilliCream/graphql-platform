@@ -7,7 +7,7 @@ title: Sorting
 Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument that abstracts the complexity of ordering logic.
 With little configuration, your GraphQL API has sorting capabilities, which translates to native database queries.
 The default sort implementation translates sorting statements to expression trees that are applied to `IQueryable`.
-Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
+Hot Chocolate by default will inspect your .NET model and infer the possible sorting operations from it.
 Sorting uses `IQueryable` (`IEnumerable`) by default, but you can also easily customize them to use other interfaces.
 
 The following type would yield the following sorting operation
@@ -24,7 +24,6 @@ The following type would yield the following sorting operation
     {
         public string Street { get; set; }
     }
-
 ```
 
 ```sdl
@@ -188,7 +187,6 @@ public class AscOnlySortEnumType : DefaultSortEnumType
         descriptor.Operation(DefaultSortOperations.Ascending);
     }
 }
-
 ```
 
 ```sdl
@@ -262,8 +260,7 @@ You then have to register your custom convention on the schema builder with `Add
 By default, a new convention is empty. To add the default behavior, you have to add `AddDefaults`.
 
 ```csharp
-public class CustomConvention
-    : SortConvention
+public class CustomConvention : SortConvention
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
     {
@@ -282,12 +279,11 @@ services.AddGraphQLServer()
 Often you just want to extend the default behavior of sorting. If this is the case, you can also use `SortConventionExtension`
 
 ```csharp
-public class CustomConventionExtension
-    : SortConventionExtension
+public class CustomConventionExtension : SortConventionExtension
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
     {
-      // config
+        // config
     }
 }
 
@@ -295,7 +291,7 @@ services.AddGraphQLServer()
     .AddConvention<ISortConvention, CustomConventionExtension>();
 // or
 services.AddGraphQLServer()
-    .AddConvention<IFilterConvention>(new FilterConventionExtension(x =>
+    .AddConvention<ISortConvention>(new SortConventionExtension(x =>
     {
         // config
     }))
@@ -303,7 +299,7 @@ services.AddGraphQLServer()
 
 ## Argument Name
 
-With the convention descriptor, you can easily change the argument name of the `FilterInputType`.
+With the convention descriptor, you can easily change the argument name of the `SortInputType`.
 
 **Configuration**
 
@@ -330,16 +326,15 @@ By default, only the `string` type is bound explicitly. If you want to configure
 **Configuration**
 
 ```csharp
-public class CustomSortInputType
-    : SortInputType<User>
+public class CustomSortInputType : SortInputType<User>
 {
     protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
     {
         descriptor.Name("CustomSortInputType");
     }
 }
-public class CustomConvention
-    : SortConvention
+
+public class CustomConvention : SortConvention
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
     {
@@ -351,7 +346,6 @@ public class CustomConvention
 **Result**
 
 ```sdl
-
 type Query {
   users(order: [CustomSortInputType!]): [User]
 }
@@ -437,7 +431,7 @@ descriptor.Configure<CustomSortInputType>(
 ```
 
 ```sdl
-"This is my customer description"
+"This is my custom description"
 input CustomSortInputType {
   name: SortEnumType
 }

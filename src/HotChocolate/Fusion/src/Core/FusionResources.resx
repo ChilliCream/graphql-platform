@@ -54,4 +54,10 @@
   <data name="ThrowHelper_NoResolverInContext" xml:space="preserve">
     <value>There must be a field resolver definition in this context!</value>
   </data>
+  <data name="TransportConfigurationNotSupported" xml:space="preserve">
+    <value>Transport configuration not supported.</value>
+  </data>
+  <data name="CreateSelection_MustBePlaceholderOrSelectExpression" xml:space="preserve">
+    <value>Either provide a placeholder or the select expression must be a FieldNode.</value>
+  </data>
 </root>

@@ -36,21 +36,14 @@ internal class MergeRequestRewriter : SyntaxRewriter<Context>
 
         foreach (var variable in operation.VariableDefinitions)
         {
-            if (!_variables.ContainsKey(variable.Variable.Name.Value))
-            {
-                _variables.Add(variable.Variable.Name.Value, variable);
-            }
+            _variables.TryAdd(variable.Variable.Name.Value, variable);
         }
 
         _fields.AddRange(operation.SelectionSet.Selections.OfType<FieldNode>());
 
-        foreach (var fragment in rewritten.Definitions
-            .OfType<FragmentDefinitionNode>())
+        foreach (var fragment in rewritten.Definitions.OfType<FragmentDefinitionNode>())
         {
-            if (!_fragments.ContainsKey(fragment.Name.Value))
-            {
-                _fragments.Add(fragment.Name.Value, fragment);
-            }
+            _fragments.TryAdd(fragment.Name.Value, fragment);
         }
 
         return _aliases;

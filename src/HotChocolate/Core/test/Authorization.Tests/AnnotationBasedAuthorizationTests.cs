@@ -159,6 +159,63 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Person_AllowAnonymous()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: AuthorizeResult.NotAllowed,
+            validation: AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              person(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+              person2(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "locations": [
+                        {
+                          "line": 2,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "person"
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "person": null,
+                    "person2": {
+                      "name": "Joe"
+                    }
+                  }
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Authorize_CityOrStreet_Skip_Auth_When_Street()
     {
         // arrange
@@ -845,6 +902,48 @@ public class AnnotationBasedAuthorizationTests
                 """);
     }
 
+    [Fact]
+    public async Task Skip_After_Validation_For_Null()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, p)
+                => p.Policy.EnsureGraphQLName().EqualsOrdinal("NULL")
+                    ? AuthorizeResult.NotAllowed
+                    : AuthorizeResult.Allowed,
+            validation: (_, _)
+                => AuthorizeResult.Allowed);
+
+        var services = CreateServices(handler);
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetQuery(
+                        """
+                        {
+                          null
+                        }
+                        """)
+                    .SetUser(new ClaimsPrincipal()));
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "data": {
+                    "null": null
+                  }
+                }
+                """);
+    }
+
     private static IServiceProvider CreateServices(
         IAuthorizationHandler handler,
         Action<AuthorizationOptions>? configure = null)
@@ -863,10 +962,18 @@ public class AnnotationBasedAuthorizationTests
 
     [FooDirective]
     [Authorize("QUERY", ApplyPolicy.Validation)]
+    [Authorize("QUERY2", ApplyPolicy.BeforeResolver)]
     public sealed class Query
     {
+        [Authorize("NULL", ApplyPolicy.AfterResolver)]
+        public string? Null() => null;
+
         [NodeResolver]
         public Person? GetPerson(string id)
+            => new(id, "Joe");
+
+        [AllowAnonymous]
+        public Person? GetPerson2(string id)
             => new(id, "Joe");
 
         public ICityOrStreet? GetCityOrStreet(bool street)

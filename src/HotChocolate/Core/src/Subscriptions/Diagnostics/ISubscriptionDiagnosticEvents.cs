@@ -81,27 +81,6 @@ public interface ISubscriptionDiagnosticEvents
     void Dispatch<T>(string topicName, T message, int subscribers);
 
     /// <summary>
-    /// Some messages were delayed since the <see cref="ISourceStream"/> backpressure was to high.
-    /// These delayed messages are now bing dispatched.
-    /// </summary>
-    /// <param name="topicName">
-    /// The name of the topic.
-    /// </param>
-    /// <param name="shard">
-    /// The shard of the topic that has delayed messages.
-    /// </param>
-    /// <param name="message">
-    /// The message that shall be dispatched.
-    /// </param>
-    /// <param name="subscribers">
-    /// The count of subscribers the <paramref name="message"/> shall be dispatched to.
-    /// </param>
-    /// <typeparam name="T">
-    /// The message body type.
-    /// </typeparam>
-    void DelayedDispatch<T>(string topicName, int shard, T message, int subscribers);
-
-    /// <summary>
     /// The GraphQL execution engine is trying to subscribe to a topic.
     /// </summary>
     /// <param name="topicName">

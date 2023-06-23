@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Xunit;
 
@@ -18,5 +19,21 @@ public class DirectiveArgumentDescriptorTests : DescriptorTestBase
     {
         void Error() => default(DirectiveArgumentDescriptor).Type("foo");
         Assert.Throws<ArgumentNullException>(Error);
+    }
+
+    [Fact]
+    public void SetDefaultValueViaSyntax()
+    {
+        // arrange
+        var descriptor = DirectiveArgumentDescriptor.New(
+            Context,
+            typeof(ObjectField).GetProperty("Arguments"));
+
+        // act
+        descriptor.DefaultValueSyntax("[]");
+
+        // assert
+        var description = descriptor.CreateDefinition();
+        Assert.IsType<ListValueNode>(description.DefaultValue);
     }
 }

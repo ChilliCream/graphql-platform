@@ -6,7 +6,11 @@ using IHasName = HotChocolate.Skimmed.IHasName;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-internal  sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
+/// <summary>
+/// This composition middleware will apply the @rename directives to subgraphs
+/// and rename type system member.
+/// </summary>
+internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
@@ -67,7 +71,7 @@ static file class ApplyRenameDirectiveMiddlewareExtensions
                 continue;
             }
 
-            yield return new RenameDirective(coordinate.Value,newName);
+            yield return new RenameDirective(coordinate.Value, newName);
         }
     }
 }

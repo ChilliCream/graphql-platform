@@ -1,4 +1,5 @@
 using HotChocolate.Utilities;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -26,6 +27,9 @@ public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
     public IList<ObjectType> Types { get; } = new List<ObjectType>();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public override string ToString()
+        => RewriteUnionType(this).ToString(true);
 
     public static UnionType Create(string name) => new(name);
 }

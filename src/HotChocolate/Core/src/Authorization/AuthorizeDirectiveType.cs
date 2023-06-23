@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -51,8 +50,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             .Type<NonNullType<ApplyPolicyType>>()
             .DefaultValue(ApplyPolicy.BeforeResolver);
 
-        var context = descriptor.Extend().Context;
-        descriptor.Use(CreateMiddleware(context.Services));
+        descriptor.Use(CreateMiddleware());
     }
 
     public void ApplyConfiguration(
@@ -88,16 +86,13 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
         }
     }
 
-    private static DirectiveMiddleware CreateMiddleware(
-        IServiceProvider schemaServices)
-    {
-        return (next, directive) =>
+    private static DirectiveMiddleware CreateMiddleware()
+        => (next, directive) =>
         {
             var value = directive.AsValue<AuthorizeDirective>();
             var auth = new AuthorizeMiddleware(next, value);
             return async context => await auth.InvokeAsync(context).ConfigureAwait(false);
         };
-    }
 
     public static class Names
     {

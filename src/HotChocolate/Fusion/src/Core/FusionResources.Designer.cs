@@ -116,5 +116,17 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("ThrowHelper_NoResolverInContext", resourceCulture);
             }
         }
+        
+        internal static string TransportConfigurationNotSupported {
+            get {
+                return ResourceManager.GetString("TransportConfigurationNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string CreateSelection_MustBePlaceholderOrSelectExpression {
+            get {
+                return ResourceManager.GetString("CreateSelection_MustBePlaceholderOrSelectExpression", resourceCulture);
+            }
+        }
     }
 }

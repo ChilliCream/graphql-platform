@@ -163,15 +163,20 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 {
                     foreach (var fieldDef in type.TypeDef.Fields)
                     {
+                        // we are not interested in introspection fields or the node fields.
                         if (fieldDef.IsIntrospectionField || fieldDef.IsNodeField())
                         {
                             continue;
                         }
 
-                        ApplyAuthMiddleware(
-                            fieldDef,
-                            registration,
-                            false);
+                        // if the field contains the AnonymousAllowed flag we will not
+                        // apply authorization on it.
+                        if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+                        {
+                            continue;
+                        }
+
+                        ApplyAuthMiddleware(fieldDef, registration, false);
                     }
                 }
 
@@ -338,6 +343,13 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         ObjectFieldDefinition fieldDef,
         State state)
     {
+        // if the field contains the AnonymousAllowed flag we will not apply authorization
+        // on it.
+        if(fieldDef.GetContextData().ContainsKey(AllowAnonymous))
+        {
+            return;
+        }
+
         var isNodeField = fieldDef.IsNodeField();
 
         if (fieldDef.Type is not null &&

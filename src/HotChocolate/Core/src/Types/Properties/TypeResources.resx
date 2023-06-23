@@ -349,6 +349,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
     <value>A field-expression must be a property-expression or a method-call-expression.</value>
   </data>
+  <data name="ObjectTypeDescriptor_ResolveWith_NonAbstract" xml:space="preserve">
+    <value>The resolver type {0} cannot be used, a non-abstract type is required.</value>
+  </data>
   <data name="NodeDescriptor_MustBeMethod" xml:space="preserve">
     <value>A node-resolver-expression must be a method-call-expression.</value>
   </data>

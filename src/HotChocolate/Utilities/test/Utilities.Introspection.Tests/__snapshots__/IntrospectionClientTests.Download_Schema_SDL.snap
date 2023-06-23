@@ -18,12 +18,14 @@ type Query {
 
 type Mutation {
   createReview(episode: Episode! review: ReviewInput!): Review!
+  complete(episode: Episode!): Boolean!
 }
 
 type Subscription {
   onReview(episode: Episode!): Review!
   onNext: String!
   onException: String!
+  delay(delay: Int! count: Int!): String!
 }
 
 type Human implements Character {

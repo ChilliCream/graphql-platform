@@ -1,40 +1,39 @@
 ﻿using System;
 using Xunit;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public class CacheEntryEventArgsTests
 {
-    public class CacheEntryEventArgsTests
+    [Fact]
+    public void ValueIsNull()
     {
-        [Fact]
-        public void ValueIsNull()
-        {
-            // act
-            var eventArgs = new CacheEntryEventArgs<string>("key", null);
+        // act
+        var eventArgs = new CacheEntryEventArgs<string>("key", null);
 
-            // assert
-            Assert.Equal("key", eventArgs.Key);
-            Assert.Null(eventArgs.Value);
-        }
+        // assert
+        Assert.Equal("key", eventArgs.Key);
+        Assert.Null(eventArgs.Value);
+    }
 
-        [Fact]
-        public void ValueAndKeyAreSet()
-        {
-            // act
-            var eventArgs = new CacheEntryEventArgs<string>("key", "value");
+    [Fact]
+    public void ValueAndKeyAreSet()
+    {
+        // act
+        var eventArgs = new CacheEntryEventArgs<string>("key", "value");
 
-            // assert
-            Assert.Equal("key", eventArgs.Key);
-            Assert.Equal("value", eventArgs.Value);
-        }
+        // assert
+        Assert.Equal("key", eventArgs.Key);
+        Assert.Equal("value", eventArgs.Value);
+    }
 
-        [Fact]
-        public void KeyIsNull()
-        {
-            // act
-            Action action = () => new CacheEntryEventArgs<string>(null, "value");
+    [Fact]
+    public void KeyIsNull()
+    {
+        // act
+        Action action = () => new CacheEntryEventArgs<string>(null, "value");
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
     }
 }

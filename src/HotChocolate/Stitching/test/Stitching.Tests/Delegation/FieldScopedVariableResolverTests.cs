@@ -46,7 +46,7 @@ public class FieldScopedVariableResolverTests
         Assert.Null(value.DefaultValue);
         Assert.Equal("__fields_a", value.Name);
         Assert.IsType<NamedTypeNode>(value.Type);
-        Assert.Equal("baz", value.Value.Value);
+        Assert.Equal("baz", value.Value!.Value);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class FieldScopedVariableResolverTests
         var resolver = new FieldScopedVariableResolver();
         Action a = () => resolver.Resolve(
             context.Object,
-            null,
+            null!,
             schema.GetType<StringType>("String"));
 
         // assert

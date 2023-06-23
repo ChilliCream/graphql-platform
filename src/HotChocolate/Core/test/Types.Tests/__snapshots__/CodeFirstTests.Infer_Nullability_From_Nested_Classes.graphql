@@ -1,0 +1,20 @@
+schema {
+  query: QueryNestedClassNullableString
+}
+
+type Example {
+  inner: Inner!
+  outer: Outer!
+}
+
+type Inner {
+  shouldAlsoBeNullable: String!
+}
+
+type Outer {
+  shouldBeNullable: String!
+}
+
+type QueryNestedClassNullableString {
+  nestedClassNullableString: Example!
+}
