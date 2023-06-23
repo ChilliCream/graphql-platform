@@ -1,4 +1,3 @@
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Utilities;
 using static System.StringComparer;
@@ -20,7 +19,8 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
     private static void Plan(QueryPlanContext context)
     {
-        var selectionLookup = CreateSelectionLookup(context.Steps);
+        context.ReBuildSelectionLookup();
+
         var schemas = new Dictionary<string, SelectionExecutionStep>(Ordinal);
         var requires = new HashSet<string>(Ordinal);
 
@@ -30,9 +30,9 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 currentStep.ParentSelection is { } parent &&
                 currentStep.Resolver is not null)
             {
-                var declaringType = currentStep.RootSelections[0].Selection.DeclaringType;
+                var declaringType = currentStep.SelectionSetType;
                 var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
-                var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
+                var siblingExecutionSteps = context.GetSiblingExecutionSteps(selectionSet);
 
                 // remove the execution step for which we try to resolve dependencies.
                 siblingExecutionSteps.Remove(currentStep);
@@ -58,7 +58,8 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                         out var providingExecutionStep))
                     {
                         currentStep.DependsOn.Add(providingExecutionStep);
-                        currentStep.Variables.Add(requirement, stateKey);
+                        currentStep.Variables.TryAdd(requirement, stateKey);
+                        requires.Remove(requirement);
                     }
                 }
 
@@ -125,52 +126,6 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 }
             }
         }
-    }
-
-    private static HashSet<SelectionExecutionStep> GetSiblingExecutionSteps(
-        Dictionary<object, SelectionExecutionStep> selectionLookup,
-        ISelectionSet selectionSet)
-    {
-        var executionSteps = new HashSet<SelectionExecutionStep>();
-
-        if (selectionLookup.TryGetValue(selectionSet, out var executionStep))
-        {
-            executionSteps.Add(executionStep);
-        }
-
-        foreach (var sibling in selectionSet.Selections)
-        {
-            if (selectionLookup.TryGetValue(sibling, out executionStep))
-            {
-                executionSteps.Add(executionStep);
-            }
-        }
-
-        return executionSteps;
-    }
-
-    private static Dictionary<object, SelectionExecutionStep> CreateSelectionLookup(
-        IReadOnlyList<ExecutionStep> executionSteps)
-    {
-        var dictionary = new Dictionary<object, SelectionExecutionStep>();
-
-        foreach (var executionStep in executionSteps)
-        {
-            if (executionStep is SelectionExecutionStep ses)
-            {
-                foreach (var selection in ses.AllSelections)
-                {
-                    dictionary.TryAdd(selection, ses);
-                }
-
-                foreach (var selectionSet in ses.AllSelectionSets)
-                {
-                    dictionary.TryAdd(selectionSet, ses);
-                }
-            }
-        }
-
-        return dictionary;
     }
 
     private static void InitializeSet(HashSet<string> set, IEnumerable<string> values)

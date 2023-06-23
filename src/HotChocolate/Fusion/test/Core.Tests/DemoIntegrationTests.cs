@@ -4,7 +4,6 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Fusion.Shared.Shipping;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types.Relay;
@@ -1239,6 +1238,65 @@ public class DemoIntegrationTests
                   }
                   product {
                     name
+                    deliveryEstimate(zip: "12345") {
+                      min
+                      max
+                    }
+                  }
+                }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("first", 1)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task Require_Data_In_Context_2()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            FusionFeatureFlags.NodeField);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query Requires {
+                reviews {
+                  body
+                  author {
+                    name
+                    birthdate
+                  }
+                  product {
                     deliveryEstimate(zip: "12345") {
                       min
                       max

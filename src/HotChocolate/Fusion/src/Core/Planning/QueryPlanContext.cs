@@ -8,6 +8,7 @@ internal sealed class QueryPlanContext
 {
     private readonly Dictionary<ExecutionStep, QueryPlanNode> _stepToNode = new();
     private readonly Dictionary<QueryPlanNode, ExecutionStep> _nodeToStep = new();
+    private readonly Dictionary<object, SelectionExecutionStep> _selectionLookup = new();
     private readonly HashSet<ISelectionSet> _selectionSets = new();
     private readonly HashSet<ExecutionStep> _completed = new();
     private readonly string _opName;
@@ -31,6 +32,8 @@ internal sealed class QueryPlanContext
 
     public HashSet<VariableDefinitionNode> ForwardedVariables { get; } =
         new(SyntaxComparer.BySyntax);
+
+    public Dictionary<ISelection, ISelection> ParentSelections { get; } = new();
 
     public bool HasIntrospectionSelections { get; set; }
 
@@ -89,7 +92,7 @@ internal sealed class QueryPlanContext
         _selectionSets.Add(selectionSet);
     }
 
-    public bool TryGetExecutionSteps(
+    public bool TryGetExecutionStep(
         QueryPlanNode node,
         [NotNullWhen(true)] out ExecutionStep? step)
     {
@@ -99,6 +102,51 @@ internal sealed class QueryPlanContext
         }
 
         return _nodeToStep.TryGetValue(node, out step);
+    }
+
+    public bool TryGetExecutionStep(
+        ISelection selection,
+        [NotNullWhen(true)] out SelectionExecutionStep? step)
+    {
+        if (selection is null)
+        {
+            throw new ArgumentNullException(nameof(selection));
+        }
+
+        return _selectionLookup.TryGetValue(selection, out step);
+    }
+
+    public bool TryGetExecutionStep(
+        ISelectionSet selectionSet,
+        [NotNullWhen(true)] out SelectionExecutionStep? step)
+    {
+        if (selectionSet is null)
+        {
+            throw new ArgumentNullException(nameof(selectionSet));
+        }
+
+        return _selectionLookup.TryGetValue(selectionSet, out step);
+    }
+
+    public void ReBuildSelectionLookup()
+    {
+        _selectionLookup.Clear();
+
+        foreach (var executionStep in Steps)
+        {
+            if (executionStep is SelectionExecutionStep ses)
+            {
+                foreach (var selection in ses.AllSelections)
+                {
+                    _selectionLookup.TryAdd(selection, ses);
+                }
+
+                foreach (var selectionSet in ses.AllSelectionSets)
+                {
+                    _selectionLookup.TryAdd(selectionSet, ses);
+                }
+            }
+        }
     }
 
     public void SetRootNode(QueryPlanNode rootNode)
