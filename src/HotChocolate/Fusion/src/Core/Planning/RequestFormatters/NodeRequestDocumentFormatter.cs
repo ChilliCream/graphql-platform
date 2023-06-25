@@ -10,15 +10,6 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
 {
-    private static readonly FieldNode _typeNameField =
-        new FieldNode(
-            null,
-            new NameNode(null, IntrospectionFields.TypeName),
-            null,
-            null,
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
-            null);
     private readonly ISchema _schema;
 
     public NodeRequestDocumentFormatter(FusionGraphConfiguration configuration, ISchema schema)
@@ -63,7 +54,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         string entityTypeName)
     {
         var selectionNodes = new List<ISelectionNode>();
-        var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
+        var selectionSet = context.Operation.GetSelectionSet(executionStep);
         var selectionSetType = executionStep.SelectionSetTypeInfo;
         var nodeSelection = executionStep.RootSelections[0];
         Debug.Assert(selectionSet is not null);
@@ -152,7 +143,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
 
             if (needsTypeNameField)
             {
-                typeSelectionNodes.Add(_typeNameField);
+                typeSelectionNodes.Add(TypeNameField);
             }
 
             var inlineFragment = new InlineFragmentNode(
@@ -213,7 +204,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         {
             // Since each entity type has its unique subgraph query we need to substitute
             // subgraph queries where the consumer did not specify any fields explicitly.
-            selectionNodes.Add(_typeNameField);
+            selectionNodes.Add(TypeNameField);
         }
 
         // append exports that were required by other execution steps.

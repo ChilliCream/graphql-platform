@@ -1,12 +1,12 @@
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class IntrospectionExecutionStep : ExecutionStep
 {
-    public IntrospectionExecutionStep(ObjectTypeInfo queryTypeInfo)
-        : base(queryTypeInfo, null)
+    public IntrospectionExecutionStep(IObjectType queryType, ObjectTypeInfo queryTypeInfo)
+        : base(null, queryType, queryTypeInfo)
     {
     }
 }
