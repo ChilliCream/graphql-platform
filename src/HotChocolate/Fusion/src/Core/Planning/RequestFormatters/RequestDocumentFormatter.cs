@@ -12,6 +12,15 @@ namespace HotChocolate.Fusion.Planning;
 
 internal abstract class RequestDocumentFormatter
 {
+    protected static readonly FieldNode TypeNameField = new(
+        null,
+        new NameNode("__typename"),
+        null,
+        null,
+        Array.Empty<DirectiveNode>(),
+        Array.Empty<ArgumentNode>(),
+        null);
+
     private readonly FusionGraphConfiguration _config;
 
     protected RequestDocumentFormatter(FusionGraphConfiguration configuration)
@@ -69,7 +78,7 @@ internal abstract class RequestDocumentFormatter
         SelectionExecutionStep executionStep)
     {
         var selectionNodes = new List<ISelectionNode>();
-        var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
+        var selectionSet = context.Operation.GetSelectionSet(executionStep);
         var selectionSetType = executionStep.SelectionSetTypeInfo;
         Debug.Assert(selectionSet is not null);
 
@@ -179,6 +188,7 @@ internal abstract class RequestDocumentFormatter
 
         using var typeEnumerator = possibleTypes.GetEnumerator();
         var next = typeEnumerator.MoveNext();
+        var needsTypeNameField = true;
 
         while (next)
         {
@@ -203,6 +213,11 @@ internal abstract class RequestDocumentFormatter
 
             if (!single)
             {
+                if (needsTypeNameField)
+                {
+                    selectionNodes.Add(TypeNameField);
+                    needsTypeNameField = false;
+                }
                 AddInlineFragment(possibleType);
             }
         }
@@ -423,8 +438,6 @@ internal abstract class RequestDocumentFormatter
                         Array.Empty<DirectiveNode>()));
             }
         }
-
-
     }
 
     private sealed class VariableVisitor : SyntaxWalker<VariableVisitorContext>

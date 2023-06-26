@@ -181,7 +181,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             foreach (var argument in executionStep.Resolver!.ArgumentTypes)
             {
                 if (!context.Exports.TryGetStateKey(
-                    executionStep.RootSelections[0].Selection.DeclaringSelectionSet,
+                    context.Operation.GetSelectionSet(executionStep),
                     argument.Key,
                     out var stateKey,
                     out _))

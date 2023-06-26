@@ -1,13 +1,15 @@
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class NodeEntityExecutionStep : ExecutionStep
 {
     public NodeEntityExecutionStep(
+        IObjectType entityType,
         ObjectTypeInfo entityTypeInfo,
         SelectionExecutionStep selectEntityStep)
-        : base(entityTypeInfo, null)
+        : base(null, entityType, entityTypeInfo)
     {
         SelectEntityStep = selectEntityStep;
     }
