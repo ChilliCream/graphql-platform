@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
+
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using Snapshooter.Xunit;
-using Xunit;
+
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types;
@@ -154,6 +158,56 @@ public class AnyTypeTests
             .Create();
 
         var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Output_Return_CultureInfo()
+    {
+        // arrange
+        var executor = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("foo")
+                .Type<AnyType>()
+                .Resolve(_ => CultureInfo.GetCultureInfo("pl-PL")))
+            .AddTypeConverter<CultureInfo, string>(source => source.Name)
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync()
+            .Result;
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Output_Return_Uri()
+    {
+        // arrange
+        var executor = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("foo")
+                .Type<AnyType>()
+                .Resolve(_ => new Uri("https://chillicream.com/docs/hotchocolate")))
+            .AddTypeConverter<Uri, string>(source => source.ToString())
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync()
+            .Result;
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
@@ -1096,8 +1150,8 @@ public class AnyTypeTests
         // assert
         Assert.Collection(
             Assert.IsType<object[]>(value)!,
-            x => Assert.Equal("Foo",x),
-            x => Assert.Equal("Bar",x));
+            x => Assert.Equal("Foo", x),
+            x => Assert.Equal("Bar", x));
     }
 
     [Fact]
