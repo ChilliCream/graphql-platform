@@ -51,7 +51,7 @@ stages:
           - task: CmdLine@2
             displayName: "Create Packages"
             inputs:
-              script: "./build.cmd pack"
+              script: "./build.cmd pack --SemVersion $(Build.SourceBranchName)"
           - task: PublishBuildArtifacts@1
             displayName: "Upload Packages"
             inputs:

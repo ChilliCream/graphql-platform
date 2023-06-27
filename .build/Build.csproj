@@ -13,10 +13,10 @@
   <ItemGroup>
     <PackageReference Include="Nuke.Common" Version="5.3.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
+    <PackageReference Include="Semver" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageDownload Include="GitVersion.Tool" Version="[5.8.1]" />
     <PackageDownload Include="NuGet.CommandLine" Version="[6.0.0]" />
     <PackageDownload Include="dotnet-sonarscanner" Version="[5.4.0]" />
     <PackageDownload Include="OpenCover" Version="[4.7.1221]" />

@@ -34,16 +34,16 @@ partial class Build
         .Executes(() =>
         {
             var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyServerProj);
-            File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyServer12Proj);
-            File.WriteAllText(EmptyServer12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(EmptyServer12Proj, projFile.Replace("11.1.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyAzf12Proj);
-            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", SemVersion));
         })
         .Executes(() =>
         {
@@ -56,10 +56,10 @@ partial class Build
             DotNetBuild(c => c
                 .SetProjectFile(PackSolutionFile)
                 .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion));
 
             DotNetPack(c => c
                 .SetProject(PackSolutionFile)
@@ -67,10 +67,10 @@ partial class Build
                 .SetOutputDirectory(PackageDirectory)
                 .SetNoRestore(true)
                 .SetNoBuild(true)
-                .SetVersion(GitVersion.SemVer));
+                .SetVersion(SemVersion));
 
             NuGetPack(c => c
-                .SetVersion(GitVersion.SemVer)
+                .SetVersion(SemVersion)
                 .SetOutputDirectory(PackageDirectory)
                 .SetConfiguration(Configuration)
                 .CombineWith(
@@ -89,23 +89,23 @@ partial class Build
                     t.ItemType == "PackageReference" &&
                     t.IsImported == false &&
                     t.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp");
-            packageReference.SetMetadataValue("Version", GitVersion.SemVer);
+            packageReference.SetMetadataValue("Version", SemVersion);
             parsedProject.Save();
 
             DotNetBuild(c => c
                 .SetProjectFile(analyzerProject)
                 .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion));
 
             DotNetPack(c => c
                 .SetProject(analyzerProject)
                 .SetNoBuild(InvokedTargets.Contains(Compile))
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
-                .SetVersion(GitVersion.SemVer));
+                .SetVersion(SemVersion));
 
             var analyzerTestProject = ProjectModelTasks
                 .ParseSolution(SgSolutionFile)
@@ -118,16 +118,16 @@ partial class Build
                     t.ItemType == "PackageReference" &&
                     t.IsImported == false &&
                     t.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp.Analyzers");
-            packageReference.SetMetadataValue("Version", GitVersion.SemVer);
+            packageReference.SetMetadataValue("Version", SemVersion);
             parsedProject.Save();
 
             DotNetBuild(c => c
                 .SetProjectFile(analyzerTestProject)
                 .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion));
         });
 
     Target Publish => _ => _
