@@ -11,7 +11,7 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Pipeline;
 
-internal sealed class OperationExecutionMiddleware
+internal sealed class DistributedOperationExecutionMiddleware
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
@@ -23,7 +23,7 @@ internal sealed class OperationExecutionMiddleware
     private readonly IIdSerializer _idSerializer;
     private readonly GraphQLClientFactory _clientFactory;
 
-    public OperationExecutionMiddleware(
+    public DistributedOperationExecutionMiddleware(
         RequestDelegate next,
         IFactory<OperationContextOwner> contextFactory,
         IIdSerializer idSerializer,

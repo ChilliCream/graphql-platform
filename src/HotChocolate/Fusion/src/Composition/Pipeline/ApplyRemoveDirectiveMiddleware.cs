@@ -6,8 +6,8 @@ using static HotChocolate.Fusion.Composition.LogEntryHelper;
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
 /// <summary>
-/// This composition middleware will apply the @remove directives to the
-/// schema and remove type system member that are not wanted in the fusion schema.
+/// This composition middleware will apply the @remove directives to the subgraph
+/// and remove type system member that are not wanted in the fusion schema.
 /// </summary>
 internal sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
 {

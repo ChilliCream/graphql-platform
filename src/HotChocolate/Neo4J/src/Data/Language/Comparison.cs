@@ -5,7 +5,7 @@
 /// </summary>
 public class Comparison : Condition
 {
-    private Comparison(Expression left, Operator op, Expression right)
+    private Comparison(Expression? left, Operator op, Expression? right)
     {
         Left = NestedIfCondition(left);
         Operator = op;
@@ -50,6 +50,6 @@ public class Comparison : Condition
             _ => throw new ArgumentException("Invalid operator type"),
         };
 
-    private static Expression NestedIfCondition(Expression expression) =>
+    private static Expression? NestedIfCondition(Expression? expression) =>
         expression is Condition ? new NestedExpression(expression) : expression;
 }

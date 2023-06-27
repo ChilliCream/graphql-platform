@@ -19,7 +19,6 @@ internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         var typeNames = new HashSet<string>();
-
         foreach (var schema in context.Subgraphs)
         {
             foreach (var type in schema.Types)
