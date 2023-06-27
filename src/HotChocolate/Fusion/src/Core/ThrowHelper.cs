@@ -58,4 +58,10 @@ internal static class ThrowHelper
 
     public static InvalidOperationException RequestFormatter_SelectionSetEmpty()
         => new("A selection set must not be empty.");
+
+    public static InvalidOperationException SubscriptionsMustSubscribe()
+        => new("A subscription execution plan can not be executed as a query.");
+
+    public static InvalidOperationException QueryAndMutationMustExecute()
+        => new("A query or mutation execution plan can not be executed as a subscription.");
 }

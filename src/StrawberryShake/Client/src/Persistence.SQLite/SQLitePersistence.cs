@@ -93,7 +93,7 @@ public class SQLitePersistence : IDisposable
             var dataInfo =
                 JsonConvert.DeserializeObject<IOperationResultDataInfo>(
                     dto.DataInfo,
-                    _serializerSettings);
+                    _serializerSettings)!;
 
             var requestFactory =
                 _storeAccessor.GetOperationRequestFactory(resultType);

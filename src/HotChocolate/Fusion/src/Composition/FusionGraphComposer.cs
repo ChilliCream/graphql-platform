@@ -34,6 +34,7 @@ public sealed class FusionGraphComposer
             new IEntityEnricher[]
             {
                 new RefResolverEntityEnricher(),
+                new RequireEnricher(),
                 new NodeEntityEnricher()
             },
             new ITypeMergeHandler[]
@@ -64,6 +65,7 @@ public sealed class FusionGraphComposer
                 .Use(() => new EnrichEntityMiddleware(entityEnrichers))
                 .Use<PrepareFusionSchemaMiddleware>()
                 .Use<MergeEntityMiddleware>()
+                .Use<EntityFieldDependencyMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
                 .Use<MergeQueryAndMutationTypeMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()

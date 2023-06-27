@@ -8,7 +8,6 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
-using static HotChocolate.Fusion.FusionContextDataKeys;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Fusion.Planning;
@@ -136,7 +135,7 @@ internal sealed class Subscribe : ResolverNodeBase
 
             // Next we need to extract any variables that we need for followup requests.
             // The variables we extract here are requirements for the next execution step.
-            ExtractVariables(data, exportKeys, variableValues);
+            ExtractVariables(data, context.QueryPlan, SelectionSet, exportKeys, variableValues);
 
             // We now execute the rest of the execution tree.
             await ExecuteAsync(context, cancellationToken).ConfigureAwait(false);

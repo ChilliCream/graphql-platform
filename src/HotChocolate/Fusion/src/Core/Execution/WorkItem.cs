@@ -46,4 +46,10 @@ internal sealed class WorkItem
     /// Gets the completed selection set result.
     /// </summary>
     public ObjectResult SelectionSetResult { get; }
+
+    /// <summary>
+    /// Gets a flag that indicates if the work item has been initialized.
+    /// </summary>
+    /// <value></value>
+    public bool IsInitialized { get; set; }
 }

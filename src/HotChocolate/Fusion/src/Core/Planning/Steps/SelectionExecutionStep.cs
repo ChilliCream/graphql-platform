@@ -1,6 +1,7 @@
-using System.Diagnostics.Contracts;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -12,9 +13,18 @@ internal sealed class SelectionExecutionStep : ExecutionStep
 {
     public SelectionExecutionStep(
         string subgraphName,
-        ObjectTypeInfo selectionSetTypeInfo,
-        ISelection? parentSelection)
-        : base(selectionSetTypeInfo, parentSelection)
+        IObjectType selectionSet,
+        ObjectTypeInfo selectionSetTypeInfo)
+        : this(subgraphName, null, selectionSet, selectionSetTypeInfo)
+    {
+    }
+
+    public SelectionExecutionStep(
+        string subgraphName,
+        ISelection? parentSelection,
+        IObjectType selectionSet,
+        ObjectTypeInfo selectionSetTypeInfo)
+        : base(parentSelection, selectionSet, selectionSetTypeInfo)
     {
         SubgraphName = subgraphName;
     }
@@ -45,10 +55,20 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     public HashSet<ISelectionSet> AllSelectionSets { get; } = new();
 
     /// <summary>
+    /// Gets the selection resolvers.
+    /// </summary>
+    public Dictionary<ISelection, ResolverDefinition> SelectionResolvers { get; } = new();
+
+    /// <summary>
     /// Gets a map for this execution task from the variable name
     /// to the internal state key.
     /// </summary>
     public Dictionary<string, string> Variables { get; } = new();
+
+    /// <summary>
+    /// Gets the argument target types.
+    /// </summary>
+    public Dictionary<string, ITypeNode> ArgumentTypes { get; } = new();
 
     /// <summary>
     /// The variable requirements by this task.

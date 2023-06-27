@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
@@ -7,16 +9,13 @@ namespace HotChocolate.Subscriptions;
 
 internal sealed class TopicShard<TMessage>
 {
-    private readonly object _sync = new();
-    private readonly TaskCompletionSource<bool> _completion = new();
+    private readonly ReaderWriterLockSlim _lock = new();
     private readonly Channel<TMessage> _incoming;
     private readonly List<DefaultSourceStream<TMessage>> _subscribers = new();
-    private readonly List<DefaultSourceStream<TMessage>> _channelUnsubscribed = new();
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly string _topicName;
     private readonly int _topicShard;
-    private bool _hasUnsubscribed;
 
     public TopicShard(
         BoundedChannelOptions channelOptions,
@@ -29,7 +28,7 @@ internal sealed class TopicShard<TMessage>
         _topicShard = topicShard;
         _diagnosticEvents = diagnosticEvents;
 
-        _incoming = Channel.CreateBounded<TMessage>(_channelOptions);
+        _incoming = Channel.CreateUnbounded<TMessage>();
 
         BeginProcessing();
     }
@@ -48,24 +47,33 @@ internal sealed class TopicShard<TMessage>
         var channel = Channel.CreateBounded<TMessage>(_channelOptions);
         var stream = new DefaultSourceStream<TMessage>(this, channel);
 
-        lock (_sync)
-        {
-            _subscribers.Add(stream);
-        }
+        _lock.EnterWriteLock();
+
+        _subscribers.Add(stream);
+
+        _lock.ExitWriteLock();
 
         return stream;
     }
 
     public void Unsubscribe(DefaultSourceStream<TMessage> channel)
     {
-        lock (_sync)
+        _diagnosticEvents.Unsubscribe(_topicName, _topicShard, 1);
+
+        _lock.EnterWriteLock();
+
+        try
         {
-            _channelUnsubscribed.Add(channel);
-            _hasUnsubscribed = true;
+            if (_subscribers.Remove(channel))
+            {
+                Unsubscribed?.Invoke(1);
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
         }
     }
-
-    public void Complete() => _completion.TrySetResult(true);
 
     private void BeginProcessing()
         => Task.Factory.StartNew(
@@ -73,181 +81,65 @@ internal sealed class TopicShard<TMessage>
 
     private async ValueTask ProcessMessagesAsync()
     {
-        var closedChannels = new List<DefaultSourceStream<TMessage>>();
-        var postponedMessages = new List<PostponedMessage>();
-        var reader = _incoming.Reader;
+        using var cts = new CancellationTokenSource();
+        var ct = cts.Token;
 
         try
         {
-            while (!reader.Completion.IsCompleted)
+            while (await _incoming.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
             {
-                if (reader.TryPeek(out _))
-                {
-                    DispatchMessages(closedChannels, postponedMessages);
-                    await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
-                    UnsubscribeClosedChannels(closedChannels);
-                }
-                else
-                {
-                    if (_completion.Task.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    await Task.WhenAny(_completion.Task, WaitForMessages())
-                        .ConfigureAwait(false);
-
-                    if (_completion.Task.IsCompleted && !reader.TryPeek(out _))
-                    {
-                        break;
-                    }
-                }
+                DispatchToSubscribers();
             }
         }
         finally
         {
-            _incoming.Writer.TryComplete();
-
-            lock (_sync)
-            {
-                foreach (var subscriber in _subscribers)
-                {
-                    subscriber.Complete();
-                }
-            }
+            CompleteSubscribers();
+            cts.Cancel();
         }
-
-        async Task WaitForMessages() => await reader.WaitToReadAsync();
     }
 
-    private void DispatchMessages(
-        List<DefaultSourceStream<TMessage>> closedChannels,
-        List<PostponedMessage> postponedMessages)
+    private void DispatchToSubscribers()
     {
-        var batchSize = 4;
-        var dispatched = 0;
-
-        if (_hasUnsubscribed)
-        {
-            lock (_sync)
-            {
-                closedChannels.AddRange(_channelUnsubscribed);
-                _channelUnsubscribed.Clear();
-                _hasUnsubscribed = false;
-                return;
-            }
-        }
+        var reads = 0;
+        _lock.EnterReadLock();
 
         while (_incoming.Reader.TryRead(out var message))
         {
-            // we are not locking at this point since the only thing happening to this list
-            // is that new subscribers are added. This thread we are in is handling removals,
-            // so we just grab the internal array and iterate over the window we have.
-            var outgoingSpan = AsSpan(_subscribers);
-            var subscriberCount = outgoingSpan.Length;
+            var subscribersSpan = AsSpan(_subscribers);
+            ref var start = ref MemoryMarshal.GetReference(subscribersSpan);
+            ref var end = ref Unsafe.Add(ref start, subscribersSpan.Length);
 
-            // if this shard is empty we will just return.
-            if (subscriberCount == 0)
+            while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                return;
+                start.Write(message);
+                start = ref Unsafe.Add(ref start, 1);
             }
 
-            for (var i = 0; i < subscriberCount; i++)
-            {
-                var channel = outgoingSpan[i];
-
-                if (channel.Outgoing.Writer.TryWrite(message))
-                {
-                    continue;
-                }
-
-                // if we could not write to the channel we will check if the channel is closed.
-                if (channel.Outgoing.Reader.Completion.IsCompleted)
-                {
-                    // if we detect channels that unsubscribed we will take a break and
-                    // reorganize the subscriber list.
-                    closedChannels.Add(channel);
-                    batchSize = 0;
-                }
-                else
-                {
-                    // if we cannot write because of back pressure we will postpone
-                    // the message and take a break from processing further.
-                    postponedMessages.Add(new PostponedMessage(message, channel.Outgoing));
-                    batchSize = 0;
-                }
-            }
-
-            // we try to avoid full message processing cycles and keep on dispatching messages,
-            // but we will interrupt every 4 messages and allow for new subscribers
-            // to join in.
-            if (++dispatched >= batchSize)
+            if (++reads > 5)
             {
                 break;
             }
         }
+
+        _lock.ExitReadLock();
     }
 
-    private async ValueTask DispatchDelayedMessagesAsync(List<PostponedMessage> postponedMessages)
+    private void CompleteSubscribers()
     {
-        if (postponedMessages.Count > 0)
-        {
-            _diagnosticEvents.DelayedDispatch(
-                _topicName,
-                _topicShard,
-                postponedMessages[0].Message,
-                postponedMessages.Count);
+        _incoming.Writer.TryComplete();
 
-            for (var i = 0; i < postponedMessages.Count; i++)
+        _lock.EnterReadLock();
+
+        try
+        {
+            foreach (var subscriber in _subscribers)
             {
-                var postponedMessage = postponedMessages[i];
-                var channel = postponedMessage.Channel;
-                var message = postponedMessage.Message;
-
-                try
-                {
-                    await channel.Writer.WriteAsync(message).ConfigureAwait(false);
-                }
-                catch (ChannelClosedException)
-                {
-                    // the channel might have been closed in the meantime.
-                    // we will skip over this error and the channel will be collected
-                    // on the next iteration.
-                }
+                subscriber.Complete();
             }
-            postponedMessages.Clear();
         }
-    }
-
-    private void UnsubscribeClosedChannels(
-        List<DefaultSourceStream<TMessage>> closedChannels)
-    {
-        if (closedChannels.Count > 0)
+        finally
         {
-            _diagnosticEvents.Unsubscribe(_topicName, _topicShard, closedChannels.Count);
-
-            lock (_sync)
-            {
-                _subscribers.RemoveAll(c => closedChannels.Contains(c));
-            }
-
-            Unsubscribed?.Invoke(closedChannels.Count);
-            closedChannels.Clear();
+            _lock.ExitReadLock();
         }
-    }
-
-    private sealed class PostponedMessage
-    {
-        public PostponedMessage(
-            TMessage message,
-            Channel<TMessage> channel)
-        {
-            Message = message;
-            Channel = channel;
-        }
-
-        public TMessage Message { get; }
-
-        public Channel<TMessage> Channel { get; }
     }
 }

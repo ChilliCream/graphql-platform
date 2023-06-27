@@ -1,4 +1,5 @@
 using HotChocolate.Utilities;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -29,6 +30,9 @@ public sealed class DirectiveType : IHasName, IHasContextData, INamedTypeSystemM
     public DirectiveLocation Locations { get; set; }
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public override string ToString()
+        => RewriteDirectiveType(this).ToString(true);
 
     public static DirectiveType Create(string name)
         => new(name);

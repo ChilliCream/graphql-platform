@@ -11,16 +11,17 @@ using static HotChocolate.Properties.TypeResources;
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// A GraphQL schema describes directives which are used to annotate various parts of a
 /// GraphQL document as an indicator that they should be evaluated differently by a
 /// validator, executor, or client tool such as a code generator.
-///
-/// http://spec.graphql.org/draft/#sec-Type-System.Directives
+/// </para>
+/// <para>http://spec.graphql.org/draft/#sec-Type-System.Directives</para>
 /// </summary>
 public partial class DirectiveType
     : TypeSystemObjectBase<DirectiveTypeDefinition>
-        , IHasRuntimeType
-        , IHasTypeIdentity
+    , IHasRuntimeType
+    , IHasTypeIdentity
 {
     private Action<IDirectiveTypeDescriptor>? _configure;
     private Func<object?[], object> _createInstance = default!;
@@ -81,12 +82,11 @@ public partial class DirectiveType
     /// <summary>
     /// Gets the directive field middleware.
     /// </summary>
-    public DirectiveMiddleware? Middleware { get; private set; } =
-        default!;
+    public DirectiveMiddleware? Middleware { get; private set; }
 
     /// <summary>
-    /// Defines that this directive can be used in executable GraphQL documents.
-    ///
+    /// <para>Defines that this directive can be used in executable GraphQL documents.</para>
+    /// <para>
     /// In order to be executable a directive must at least be valid
     /// in one of the following locations:
     /// QUERY (<see cref="DirectiveLocation.Query"/>)
@@ -97,12 +97,13 @@ public partial class DirectiveType
     /// FRAGMENT_SPREAD (<see cref="DirectiveLocation.FragmentSpread"/>)
     /// INLINE_FRAGMENT (<see cref="DirectiveLocation.InlineFragment"/>)
     /// VARIABLE_DEFINITION (<see cref="DirectiveLocation.VariableDefinition"/>)
+    /// </para>
     /// </summary>
     public bool IsExecutableDirective { get; private set; }
 
     /// <summary>
-    /// Defines that this directive can be applied to type system members.
-    ///
+    /// <para>Defines that this directive can be applied to type system members.</para>
+    /// <para>
     /// In order to be a type system directive it must at least be valid
     /// in one of the following locations:
     /// SCHEMA (<see cref="DirectiveLocation.Schema"/>)
@@ -116,6 +117,7 @@ public partial class DirectiveType
     /// ENUM_VALUE (<see cref="DirectiveLocation.EnumValue"/>)
     /// INPUT_OBJECT (<see cref="DirectiveLocation.InputObject"/>)
     /// INPUT_FIELD_DEFINITION (<see cref="DirectiveLocation.InputFieldDefinition"/>)
+    /// </para>
     /// </summary>
     public bool IsTypeSystemDirective { get; private set; }
 

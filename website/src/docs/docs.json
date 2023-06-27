@@ -69,6 +69,14 @@
             "title": "Subscriptions & Billing"
           },
           {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              { "path": "express", "title": "Express Server" },
+              { "path": "hot-chocolate", "title": "Hot Chocolate" }
+            ]
+          },
+          {
             "path": "settings",
             "title": "Settings",
             "items": [
