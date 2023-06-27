@@ -14,6 +14,25 @@ using static System.IO.Path;
 
 namespace CookieCrumble;
 
+enum TestType
+{
+    Unknown,
+    Xunit,
+    MSTest
+}
+
+internal sealed class TestInfo
+{
+    internal string FileName { get; }
+    internal TestType Type { get; }
+
+    internal TestInfo(string fileName, TestType type)
+    {
+        FileName = fileName;
+        Type = type;
+    }
+}
+
 public sealed class Snapshot
 {
     private static readonly object _sync = new();
@@ -35,13 +54,13 @@ public sealed class Snapshot
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
     private readonly List<SnapshotSegment> _segments = new();
-    private readonly string _fileName;
     private string _extension;
     private string? _postFix;
+    private TestInfo _testInfo;
 
     public Snapshot(string? postFix = null, string? extension = null)
     {
-        _fileName = CreateFileName();
+        _testInfo = GetTestInfo();
         _postFix = postFix;
         _extension = extension ?? ".snap";
     }
@@ -208,7 +227,7 @@ public sealed class Snapshot
                 EnsureDirectoryExists(mismatchFile);
                 await using var stream = File.Create(mismatchFile);
                 await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
-                throw new Xunit.Sdk.XunitException(diff);
+                throwTestException(diff);
             }
         }
     }
@@ -238,7 +257,7 @@ public sealed class Snapshot
                 EnsureDirectoryExists(mismatchFile);
                 using var stream = File.Create(mismatchFile);
                 stream.Write(writer.WrittenSpan);
-                throw new Xunit.Sdk.XunitException(diff);
+                throwTestException(diff);
             }
         }
     }
@@ -252,7 +271,7 @@ public sealed class Snapshot
 
         if (!MatchSnapshot(expected, after, true, out var diff))
         {
-            throw new Xunit.Sdk.XunitException(diff);
+            throwTestException(diff);
         }
     }
 
@@ -346,7 +365,7 @@ public sealed class Snapshot
 
     private string CreateSnapshotDirectoryName(bool mismatch = false)
     {
-        var directoryName = GetDirectoryName(_fileName)!;
+        var directoryName = GetDirectoryName(_testInfo.FileName)!;
 
         return mismatch
             ? Combine(directoryName, "__snapshots__", "__MISMATCH__")
@@ -380,14 +399,14 @@ public sealed class Snapshot
 
     private string CreateSnapshotFileName()
     {
-        var fileName = GetFileNameWithoutExtension(_fileName);
+        var fileName = GetFileNameWithoutExtension(_testInfo.FileName);
 
         return string.IsNullOrEmpty(_postFix)
             ? string.Concat(fileName, _extension)
             : string.Concat(fileName, "_", _postFix, _extension);
     }
 
-    private static string CreateFileName()
+    private static TestInfo GetTestInfo()
     {
         foreach (var stackFrame in new StackTrace(true).GetFrames())
         {
@@ -395,25 +414,28 @@ public sealed class Snapshot
             var fileName = stackFrame?.GetFileName();
 
             if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(method))
+                !string.IsNullOrEmpty(fileName))
             {
-                return Combine(GetDirectoryName(fileName)!, method.ToName());
+                var testType = GetTestType(method);
+                if (testType != TestType.Unknown)
+                    return new TestInfo(Combine(GetDirectoryName(fileName)!, method.ToName()), testType);
             }
 
-            var asyncMethod = EvaluateAsynchronousMethodBase(method);
+            method = EvaluateAsynchronousMethodBase(method);
 
-            if (asyncMethod is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                IsXunitTestMethod(asyncMethod))
+            if (method is not null &&
+                !string.IsNullOrEmpty(fileName))
             {
-                return Combine(GetDirectoryName(fileName)!, asyncMethod.ToName());
+                var testType = GetTestType(method);
+                if (testType != TestType.Unknown)
+                    return new TestInfo(Combine(GetDirectoryName(fileName)!, method.ToName()), testType);
             }
         }
 
         throw new Exception(
             "The snapshot full name could not be evaluated. " +
-            "This error can occur, if you use the snapshot match " +
+            "Only XUnit or MSTest test suites are supported. " +
+            "This error can also occur, if you use the snapshot match " +
             "within a async test helper child method. To solve this issue, " +
             "use the Snapshot.FullName directly in the unit test to " +
             "get the snapshot name, then reach this name to your " +
@@ -443,19 +465,37 @@ public sealed class Snapshot
         return actualMethodInfo;
     }
 
-    private static bool IsXunitTestMethod(MemberInfo? method)
+    private static TestType GetTestType(MemberInfo? method)
     {
-        var isFactTest = IsFactTestMethod(method);
-        var isTheoryTest = IsTheoryTestMethod(method);
+        if (IsMSTestMethod(method))
+            return TestType.MSTest;
 
-        return isFactTest || isTheoryTest;
+        if (IsXunitTestMethod(method))
+            return TestType.Xunit;
+
+        return TestType.Unknown;
     }
+
+    private static bool IsMSTestMethod(MemberInfo? method)
+        => method?.GetCustomAttributes(typeof(Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute)).Any() ?? false;
+
+    private static bool IsXunitTestMethod(MemberInfo? method)
+        => IsFactTestMethod(method) || IsTheoryTestMethod(method);
 
     private static bool IsFactTestMethod(MemberInfo? method)
         => method?.GetCustomAttributes(typeof(FactAttribute)).Any() ?? false;
 
     private static bool IsTheoryTestMethod(MemberInfo? method)
         => method?.GetCustomAttributes(typeof(TheoryAttribute)).Any() ?? false;
+
+    private void throwTestException(string message)
+    {
+        if (_testInfo.Type == TestType.Xunit)
+            throw new Xunit.Sdk.XunitException(message);
+
+        if (_testInfo.Type == TestType.MSTest)
+            throw new Microsoft.VisualStudio.TestTools.UnitTesting.AssertFailedException(message);
+    }
 
     private struct SnapshotSegment
     {
