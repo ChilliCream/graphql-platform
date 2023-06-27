@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Metadata;
 /// <summary>
 /// Represents the configuration of a GraphQL over WS client.
 /// </summary>
-internal sealed class WebSocketClientConfiguration
+public sealed class WebSocketClientConfiguration : IGraphQLClientConfiguration
 {
     /// <summary>
     /// Initializes a new instance of <see cref="HttpClientConfiguration"/>.

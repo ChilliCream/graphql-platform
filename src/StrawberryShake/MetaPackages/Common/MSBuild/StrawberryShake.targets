@@ -24,7 +24,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="_DotNetVersion">
+  <Target Name="_ParseVersion">
     <Exec Command="dotnet --version" StandardOutputImportance="Low" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="DotNetVersion" />
     </Exec>
@@ -32,10 +32,11 @@
 
   <Target
     Name="_GenerateGraphQLCode"
-    DependsOnTargets="_DotNetVersion"
     Inputs="@(GenerateGraphQLCodeItems)"
     Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
+    DependsOnTargets="_ParseVersion"
     Condition="'@(GraphQL)' != ''">
+
     <PropertyGroup>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 6))">6</DotNetMajor>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 7))">7</DotNetMajor>

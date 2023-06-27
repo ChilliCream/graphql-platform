@@ -69,6 +69,7 @@
     "Rgba",
     "Postgraphile",
     "Normen",
+    "typeof",
     // youtube
     "Ufjn",
     "Wguo",
@@ -82,7 +83,11 @@
     "Mihsg",
     "Eciou",
     "cfnm",
-    "UHVQ"
+    "UHVQ",
+    "PKCE",
+    "URQL",
+    "unpublish",
+    "elete"
   ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links

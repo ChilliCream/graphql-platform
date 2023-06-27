@@ -164,6 +164,20 @@ public class ArgumentDescriptorTests
     }
 
     [Fact]
+    public void SetDefaultValueViaSyntax()
+    {
+        // arrange
+        var descriptor = new ArgumentDescriptor(Context, "args");
+
+        // act
+        descriptor.DefaultValueSyntax("[]");
+
+        // assert
+        var description = descriptor.CreateDefinition();
+        Assert.IsType<ListValueNode>(description.DefaultValue);
+    }
+
+    [Fact]
     public void SetDefaultValueNull()
     {
         // arrange
