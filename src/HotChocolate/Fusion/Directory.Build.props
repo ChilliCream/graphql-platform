@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net7.0</TargetFrameworks>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>
