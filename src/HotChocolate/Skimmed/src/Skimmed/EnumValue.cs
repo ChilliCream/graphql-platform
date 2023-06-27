@@ -1,4 +1,5 @@
 using HotChocolate.Utilities;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -56,6 +57,9 @@ public sealed class EnumValue
     public DirectiveCollection Directives { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public override string ToString()
+        => RewriteEnumValue(this).ToString(true);
 
     public static EnumValue Create(string name) => new(name);
 }

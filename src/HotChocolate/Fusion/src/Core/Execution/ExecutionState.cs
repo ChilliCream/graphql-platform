@@ -45,7 +45,7 @@ internal sealed class ExecutionState
                     return true;
                 }
 
-                start = ref Unsafe.Add(ref start, 1);
+                start = ref Unsafe.Add(ref start, 1)!;
             }
         }
         finally

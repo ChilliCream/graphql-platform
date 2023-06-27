@@ -104,8 +104,8 @@ type AddUserPayload {
 }
 
 type Product @variable(subgraph: "Reviews", name: "Product_id", select: "id") @resolver(subgraph: "Reviews", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) {
+  id: ID! @source(subgraph: "Reviews")
   reviews: [Review!]! @source(subgraph: "Reviews")
-  upc: Int! @source(subgraph: "Reviews")
 }
 
 type Review implements Node @variable(subgraph: "Reviews", name: "Review_id", select: "id") @resolver(subgraph: "Reviews", select: "{ node(id: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "ID!" } ]) @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {

@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -42,7 +43,7 @@ internal static class ExecutorUtils
         ref var data = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
         ref var endSelection = ref Unsafe.Add(ref selection, count);
 
-        while(Unsafe.IsAddressLessThan(ref selection, ref endSelection))
+        while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
         {
             var selectionType = selection.Type;
             var responseName = selection.ResponseName;
@@ -90,8 +91,8 @@ internal static class ExecutorUtils
             }
 
             // move our pointers
-            selection = ref Unsafe.Add(ref selection, 1);
-            result = ref Unsafe.Add(ref result, 1);
+            selection = ref Unsafe.Add(ref selection, 1)!;
+            result = ref Unsafe.Add(ref result, 1)!;
             data = ref Unsafe.Add(ref data, 1);
         }
     }
@@ -231,15 +232,15 @@ internal static class ExecutorUtils
             ref var selectionData = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
             ref var endSelection = ref Unsafe.Add(ref selection, selectionCount);
 
-            while(Unsafe.IsAddressLessThan(ref selection, ref endSelection))
+            while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
             {
                 if (data.TryGetProperty(selection.ResponseName, out var value))
                 {
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
 
-                selection = ref Unsafe.Add(ref selection, 1);
-                selectionData = ref Unsafe.Add(ref selectionData, 1);
+                selection = ref Unsafe.Add(ref selection, 1)!;
+                selectionData = ref Unsafe.Add(ref selectionData, 1)!;
             }
         }
         else
@@ -253,15 +254,15 @@ internal static class ExecutorUtils
                 ref var selectionData = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
                 ref var endSelection = ref Unsafe.Add(ref selection, selectionCount);
 
-                while(Unsafe.IsAddressLessThan(ref selection, ref endSelection))
+                while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
                 {
                     if (element.TryGetProperty(selection.ResponseName, out var value))
                     {
                         selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                     }
 
-                    selection = ref Unsafe.Add(ref selection, 1);
-                    selectionData = ref Unsafe.Add(ref selectionData, 1);
+                    selection = ref Unsafe.Add(ref selection, 1)!;
+                    selectionData = ref Unsafe.Add(ref selectionData, 1)!;
                 }
             }
         }
@@ -282,7 +283,7 @@ internal static class ExecutorUtils
         ref var currentResult = ref MemoryMarshal.GetArrayDataReference(selectionResults);
         ref var endSelection = ref Unsafe.Add(ref currentSelection, selectionSet.Selections.Count);
 
-        while(Unsafe.IsAddressLessThan(ref currentSelection, ref endSelection))
+        while (Unsafe.IsAddressLessThan(ref currentSelection, ref endSelection))
         {
             if (data.TryGetProperty(currentSelection.ResponseName, out var property))
             {
@@ -291,13 +292,18 @@ internal static class ExecutorUtils
                     : new(new JsonResult(schemaName, property));
             }
 
-            currentSelection = ref Unsafe.Add(ref currentSelection, 1);
-            currentResult = ref Unsafe.Add(ref currentResult, 1);
+            currentSelection = ref Unsafe.Add(ref currentSelection, 1)!;
+            currentResult = ref Unsafe.Add(ref currentResult, 1)!;
         }
     }
 
-    public static void ExtractPartialResult(WorkItem workItem)
+    public static void TryInitializeWorkItem(QueryPlan queryPlan, WorkItem workItem)
     {
+        if (workItem.IsInitialized)
+        {
+            return;
+        }
+
         // capture the partial result available
         var partialResult = workItem.SelectionSetData[0];
 
@@ -317,9 +323,13 @@ internal static class ExecutorUtils
             // last we will check if there are any exports for this selection-set.
             ExtractVariables(
                 partialResult,
+                queryPlan,
+                workItem.SelectionSet,
                 workItem.ExportKeys,
                 workItem.VariableValues);
         }
+
+        workItem.IsInitialized = true;
     }
 
     public static void ExtractErrors(
@@ -373,7 +383,6 @@ internal static class ExecutorUtils
                 remotePath.ValueKind is JsonValueKind.Array)
             {
                 // TODO : rewrite remote path if possible!
-
                 if (addDebugInfo)
                 {
                     errorBuilder.SetExtension("remotePath", remotePath);
@@ -387,7 +396,7 @@ internal static class ExecutorUtils
                 {
                     if (location.TryGetProperty("line", out var lineValue) &&
                         location.TryGetProperty("column", out var columnValue) &&
-                        lineValue.TryGetInt32(out var line)&&
+                        lineValue.TryGetInt32(out var line) &&
                         columnValue.TryGetInt32(out var column))
                     {
                         errorBuilder.AddLocation(line, column);
@@ -401,6 +410,8 @@ internal static class ExecutorUtils
 
     public static void ExtractVariables(
         SelectionData parent,
+        QueryPlan queryPlan,
+        ISelectionSet selectionSet,
         IReadOnlyList<string> exportKeys,
         Dictionary<string, IValueNode> variableValues)
     {
@@ -408,13 +419,23 @@ internal static class ExecutorUtils
         {
             if (parent.Multiple is null)
             {
-                ExtractVariables(parent.Single.Element, exportKeys, variableValues);
+                ExtractVariables(
+                    parent.Single.Element,
+                    queryPlan,
+                    selectionSet,
+                    exportKeys,
+                    variableValues);
             }
             else
             {
                 foreach (var result in parent.Multiple)
                 {
-                    ExtractVariables(result.Element, exportKeys, variableValues);
+                    ExtractVariables(
+                        result.Element,
+                        queryPlan,
+                        selectionSet,
+                        exportKeys,
+                        variableValues);
                 }
             }
         }
@@ -422,6 +443,8 @@ internal static class ExecutorUtils
 
     public static void ExtractVariables(
         JsonElement parent,
+        QueryPlan queryPlan,
+        ISelectionSet selectionSet,
         IReadOnlyList<string> exportKeys,
         Dictionary<string, IValueNode> variableValues)
     {
@@ -440,6 +463,23 @@ internal static class ExecutorUtils
                 if (!variableValues.ContainsKey(key) &&
                     parent.TryGetProperty(key, out var property))
                 {
+                    var path = queryPlan.GetExportPath(selectionSet, key);
+                    if (path.Count >= 2)
+                    {
+                        for (var j = 1; j < path.Count; j++)
+                        {
+                            if (property.TryGetProperty(path[j], out var next))
+                            {
+                                property = next;
+                            }
+                            else
+                            {
+                                property = default;
+                                break;
+                            }
+                        }
+                    }
+
                     variableValues.TryAdd(key, JsonValueToGraphQLValueConverter.Convert(property));
                 }
             }

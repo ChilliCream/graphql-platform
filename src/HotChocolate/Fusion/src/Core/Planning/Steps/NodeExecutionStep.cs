@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -23,8 +24,9 @@ internal sealed class NodeExecutionStep : ExecutionStep
     /// </exception>
     public NodeExecutionStep(
         ISelection nodeSelection,
+        IObjectType queryType,
         ObjectTypeInfo queryTypeInfo)
-        : base(queryTypeInfo, null)
+        : base(null, queryType, queryTypeInfo)
     {
         NodeSelection = nodeSelection ??
             throw new ArgumentNullException(nameof(nodeSelection));

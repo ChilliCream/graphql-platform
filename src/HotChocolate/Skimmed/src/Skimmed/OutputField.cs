@@ -1,4 +1,5 @@
 using HotChocolate.Utilities;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -58,5 +59,9 @@ public sealed class OutputField : IField, INamedTypeSystemMember<OutputField>
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 
+    public override string ToString()
+        => RewriteOutputField(this).ToString(true);
+
     public static OutputField Create(string name) => new(name);
 }
+
