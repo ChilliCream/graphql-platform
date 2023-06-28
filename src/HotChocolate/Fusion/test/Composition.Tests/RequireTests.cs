@@ -2,7 +2,6 @@ using CookieCrumble;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
-using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
