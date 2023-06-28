@@ -14,25 +14,6 @@ using static System.IO.Path;
 
 namespace CookieCrumble;
 
-enum TestType
-{
-    Unknown,
-    Xunit,
-    MSTest
-}
-
-internal sealed class TestInfo
-{
-    internal string FileName { get; }
-    internal TestType Type { get; }
-
-    internal TestInfo(string fileName, TestType type)
-    {
-        FileName = fileName;
-        Type = type;
-    }
-}
-
 public sealed class Snapshot
 {
     private static readonly object _sync = new();
@@ -54,9 +35,9 @@ public sealed class Snapshot
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
     private readonly List<SnapshotSegment> _segments = new();
+    private readonly TestInfo _testInfo;
     private string _extension;
     private string? _postFix;
-    private TestInfo _testInfo;
 
     public Snapshot(string? postFix = null, string? extension = null)
     {
@@ -413,22 +394,32 @@ public sealed class Snapshot
             var method = stackFrame?.GetMethod();
             var fileName = stackFrame?.GetFileName();
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName))
+            if (method is not null && !string.IsNullOrEmpty(fileName))
             {
                 var testType = GetTestType(method);
+
                 if (testType != TestType.Unknown)
-                    return new TestInfo(Combine(GetDirectoryName(fileName)!, method.ToName()), testType);
+                {
+                    return new TestInfo(Combine(
+                        GetDirectoryName(fileName)!,
+                        method.ToName()),
+                        testType);
+                }
             }
 
             method = EvaluateAsynchronousMethodBase(method);
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName))
+            if (method is not null && !string.IsNullOrEmpty(fileName))
             {
                 var testType = GetTestType(method);
+
                 if (testType != TestType.Unknown)
-                    return new TestInfo(Combine(GetDirectoryName(fileName)!, method.ToName()), testType);
+                {
+                    return new TestInfo(Combine(
+                        GetDirectoryName(fileName)!,
+                        method.ToName()),
+                        testType);
+                }
             }
         }
 
@@ -468,16 +459,22 @@ public sealed class Snapshot
     private static TestType GetTestType(MemberInfo? method)
     {
         if (IsMSTestMethod(method))
+        {
             return TestType.MSTest;
+        }
 
         if (IsXunitTestMethod(method))
+        {
             return TestType.Xunit;
+        }
 
         return TestType.Unknown;
     }
 
     private static bool IsMSTestMethod(MemberInfo? method)
-        => method?.GetCustomAttributes(typeof(Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute)).Any() ?? false;
+        => method?.GetCustomAttributes(
+            typeof(Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute)).Any() ??
+                false;
 
     private static bool IsXunitTestMethod(MemberInfo? method)
         => IsFactTestMethod(method) || IsTheoryTestMethod(method);
