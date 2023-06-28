@@ -1,9 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
-using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -31,7 +29,6 @@ static file class MergeEntitiesMiddlewareExtensions
         ObjectType entityType,
         EntityMetadata metadata)
     {
-        var supportedBy = new HashSet<string>();
         var arguments = new Dictionary<string, ITypeNode>();
         var argumentRefLookup = new Dictionary<string, string>();
 
@@ -49,7 +46,6 @@ static file class MergeEntitiesMiddlewareExtensions
                         entityType,
                         field,
                         dependency,
-                        supportedBy,
                         arguments,
                         argumentRefLookup);
 
@@ -88,22 +84,14 @@ static file class MergeEntitiesMiddlewareExtensions
         ObjectType entityType,
         OutputField entityField,
         FieldDependency dependency,
-        HashSet<string> supportedBy,
         Dictionary<string, ITypeNode> arguments,
         Dictionary<string, string> argumentRefLookup)
     {
         foreach (var (argumentName, memberRef) in dependency.Arguments)
         {
-            foreach (var subgraph in context.Subgraphs)
-            {
-                supportedBy.Add(subgraph.Name);
-            }
+            context.ResetSupportedBy();
 
-            if (!CanResolve(
-                context,
-                entityType,
-                memberRef.Requirement,
-                supportedBy))
+            if (!context.CanResolveDependency(entityType, memberRef.Requirement))
             {
                 context.Log.Write(
                     FieldDependencyCannotBeResolved(
@@ -120,7 +108,7 @@ static file class MergeEntitiesMiddlewareExtensions
             argumentRefLookup.Add(argumentName, argumentRef);
             arguments.Add(argumentRef, memberRef.Argument.Type.ToTypeNode());
 
-            foreach (var subgraph in supportedBy)
+            foreach (var subgraph in context.SupportedBy)
             {
                 entityField.Directives.Add(
                     context.FusionTypes.CreateVariableDirective(
@@ -129,83 +117,6 @@ static file class MergeEntitiesMiddlewareExtensions
                         memberRef.Requirement));
             }
         }
-    }
-
-    private static bool CanResolve(
-        CompositionContext context,
-        ComplexType complexType,
-        FieldNode fieldRef,
-        ISet<string> supportedBy)
-    {
-        // not supported yet.
-        if (fieldRef.Arguments.Count > 0)
-        {
-            return false;
-        }
-
-        if (!complexType.Fields.TryGetField(fieldRef.Name.Value, out var fieldDef))
-        {
-            return false;
-        }
-
-        if (fieldRef.SelectionSet is not null)
-        {
-            if (fieldDef.Type.NamedType() is not ComplexType namedType)
-            {
-                return false;
-            }
-
-            return CanResolveChildren(context, namedType, fieldRef.SelectionSet, supportedBy);
-        }
-
-        supportedBy.IntersectWith(
-            fieldDef.Directives
-                .Where(t => t.Name.EqualsOrdinal(context.FusionTypes.Source.Name))
-                .Select(t => ((StringValueNode)t.Arguments[SubgraphArg]).Value));
-
-        return supportedBy.Count > 0;
-    }
-
-    private static bool CanResolveChildren(
-        CompositionContext context,
-        ComplexType complexType,
-        SelectionSetNode selectionSet,
-        ISet<string> supportedBy)
-    {
-        if (selectionSet.Selections.Count != 1)
-        {
-            return false;
-        }
-
-        foreach (var selection in selectionSet.Selections)
-        {
-            if (selection is FieldNode fieldNode)
-            {
-                return CanResolve(context, complexType, fieldNode, supportedBy);
-            }
-            else if (selection is InlineFragmentNode inlineFragment)
-            {
-                if (inlineFragment.TypeCondition is null ||
-                    !context.FusionGraph.Types.TryGetType<ComplexType>(
-                        inlineFragment.TypeCondition.Name.Value,
-                        out var fragmentType))
-                {
-                    return false;
-                }
-
-                return CanResolveChildren(
-                    context,
-                    fragmentType,
-                    inlineFragment.SelectionSet,
-                    supportedBy);
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private static SelectionSetNode CreateFieldResolver(
