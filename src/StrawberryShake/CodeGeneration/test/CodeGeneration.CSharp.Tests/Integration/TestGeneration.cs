@@ -96,11 +96,10 @@ public class TestGeneration
     [Fact]
     public void JsonScalarDefaultSerialization() =>
         AssertResult(
-            CreateIntegrationTest(
-                configure: b =>
-                {
-                    b.AddType(new JsonType("Json"));
-                }),
+            CreateIntegrationTest(profiles: new[]
+            {
+                new TransportProfile("Default", TransportType.InMemory)
+            }),
             skipWarnings: true,
             @"query GetJson {
                 json1
@@ -111,6 +110,7 @@ public class TestGeneration
                 json2: JSON!
             }
 
+            scalar Json
             scalar JSON");
 
     [Fact]

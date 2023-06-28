@@ -18,7 +18,6 @@ public static class SchemaHelper
 
     public static ISchema Load(
         IReadOnlyCollection<GraphQLFile> schemaFiles,
-        Action<ISchemaBuilder>? configure = null,
         bool strictValidation = true,
         bool noStore = false)
     {
@@ -90,8 +89,6 @@ public static class SchemaHelper
 
         AddDefaultScalarInfos(builder, leafTypes);
 
-        configure?.Invoke(builder);
-
         return builder
             .ModifyOptions(
                 o =>
@@ -122,9 +119,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out var scalarInfo))
+            if (!leafTypes.TryGetValue(scalarTypeExtension.Name.Value, out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -255,26 +250,11 @@ public static class SchemaHelper
         TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
         TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
         TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
-        TryAddLeafType(
-            leafTypes,
-            typeName: ScalarNames.ByteArray,
-            runtimeType: TypeNames.ByteArray,
-            serializationType: TypeNames.ByteArray);
-        TryAddLeafType(
-            leafTypes,
-            typeName: ScalarNames.Any,
-            runtimeType: TypeNames.JsonDocument,
-            serializationType: TypeNames.JsonElement);
-        TryAddLeafType(
-          leafTypes,
-          typeName: ScalarNames.JSON,
-          runtimeType: TypeNames.JsonDocument,
-          serializationType: TypeNames.JsonElement);
-        TryAddLeafType(
-            leafTypes,
-            typeName: "Upload",
-            runtimeType: TypeNames.Upload,
-            serializationType: TypeNames.String);
+        TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray, TypeNames.ByteArray);
+        TryAddLeafType(leafTypes, ScalarNames.Any, TypeNames.JsonDocument, TypeNames.JsonElement);
+        TryAddLeafType(leafTypes, ScalarNames.JSON, TypeNames.JsonDocument, TypeNames.JsonElement);
+        TryAddLeafType(leafTypes, "Json", TypeNames.JsonDocument, TypeNames.JsonElement);
+        TryAddLeafType(leafTypes, "Upload", TypeNames.Upload, TypeNames.String);
 
         // register aliases
         schemaBuilder.AddType(new UrlType());
@@ -284,6 +264,7 @@ public static class SchemaHelper
         schemaBuilder.AddType(new UuidType());
         schemaBuilder.AddType(new UuidType("Uuid"));
         schemaBuilder.AddType(new UuidType("Guid"));
+        schemaBuilder.AddType(new UuidType("Json"));
     }
 
     private static bool TryGetKeys(

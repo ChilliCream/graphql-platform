@@ -56,8 +56,7 @@ public static class GeneratorTestHelper
         var clientModel = CreateClientModel(
             sourceTexts,
             settings.StrictValidation,
-            settings.NoStore,
-            settings.Configure);
+            settings.NoStore);
 
         var documents = new StringBuilder();
         var documentNames = new HashSet<string>();
@@ -236,8 +235,7 @@ public static class GeneratorTestHelper
     private static ClientModel CreateClientModel(
         string[] sourceText,
         bool strictValidation,
-        bool noStore,
-        Action<ISchemaBuilder>? configure = null)
+        bool noStore)
     {
         var files = sourceText
             .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
@@ -248,7 +246,7 @@ public static class GeneratorTestHelper
 
         var analyzer = new DocumentAnalyzer();
 
-        analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, configure, strictValidation, noStore));
+        analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation, noStore));
 
         foreach (var executable in executableDocs.Select(file => file.Document))
         {

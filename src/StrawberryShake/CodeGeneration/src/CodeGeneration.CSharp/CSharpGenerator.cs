@@ -420,7 +420,7 @@ public static class CSharpGenerator
     {
         try
         {
-            schema = SchemaHelper.Load(files, null, strictValidation, noStore);
+            schema = SchemaHelper.Load(files, strictValidation, noStore);
             return true;
         }
         catch (SchemaException ex)

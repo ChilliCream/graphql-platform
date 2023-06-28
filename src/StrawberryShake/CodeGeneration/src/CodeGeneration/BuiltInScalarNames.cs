@@ -30,6 +30,7 @@ public static class BuiltInScalarNames
         ScalarNames.ByteArray,
         ScalarNames.Any,
         ScalarNames.JSON,
+        "Json",
         ScalarNames.TimeSpan
     };
 

@@ -39,10 +39,10 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.InMemory.IInMemoryConnection>(services, sp =>
             {
-                var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("JsonScalarDefaultSerializationClient"));
+                var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.InMemory.IInMemoryClientFactory>(parentServices);
+                return new global::StrawberryShake.Transport.InMemory.InMemoryConnection(async ct => await clientFactory.CreateAsync("JsonScalarDefaultSerializationClient", ct));
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
@@ -59,13 +59,12 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer>(services, new global::StrawberryShake.Serialization.JsonSerializer("Json"));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer>(services, new global::StrawberryShake.Serialization.JsonSerializer("JSON"));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer>(services, new global::StrawberryShake.Serialization.StringSerializer("Json"));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.State.GetJsonResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.State.GetJsonBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.InMemory.IInMemoryConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.GetJsonQuery>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.GetJsonQuery>(sp));
@@ -105,13 +104,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSer
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetJsonResult : global::System.IEquatable<GetJsonResult>, IGetJsonResult
     {
-        public GetJsonResult(global::System.String json1, global::System.Text.Json.JsonDocument json2)
+        public GetJsonResult(global::System.Text.Json.JsonDocument json1, global::System.Text.Json.JsonDocument json2)
         {
             Json1 = json1;
             Json2 = json2;
         }
 
-        public global::System.String Json1 { get; }
+        public global::System.Text.Json.JsonDocument Json1 { get; }
 
         public global::System.Text.Json.JsonDocument Json2 { get; }
 
@@ -132,7 +131,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSer
                 return false;
             }
 
-            return (Json1.Equals(other.Json1)) && Json2 == other.Json2;
+            return (Json1 == other.Json1) && Json2 == other.Json2;
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -171,7 +170,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSer
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetJsonResult
     {
-        public global::System.String Json1 { get; }
+        public global::System.Text.Json.JsonDocument Json1 { get; }
 
         public global::System.Text.Json.JsonDocument Json2 { get; }
     }
@@ -340,7 +339,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSer
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-        public GetJsonResultInfo(global::System.String json1, global::System.Text.Json.JsonDocument json2, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
+        public GetJsonResultInfo(global::System.Text.Json.JsonDocument json1, global::System.Text.Json.JsonDocument json2, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             Json1 = json1;
             Json2 = json2;
@@ -348,7 +347,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSer
             _version = version;
         }
 
-        public global::System.String Json1 { get; }
+        public global::System.Text.Json.JsonDocument Json1 { get; }
 
         public global::System.Text.Json.JsonDocument Json2 { get; }
 
@@ -366,14 +365,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSer
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _jsonParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonDocument> _jsonParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonDocument> _jSONParser;
         public GetJsonBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSerialization.IGetJsonResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _jsonParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("Json") ?? throw new global::System.ArgumentException("No serializer for type `Json` found.");
+            _jsonParser = serializerResolver.GetLeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonDocument>("Json") ?? throw new global::System.ArgumentException("No serializer for type `Json` found.");
             _jSONParser = serializerResolver.GetLeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonDocument>("JSON") ?? throw new global::System.ArgumentException("No serializer for type `JSON` found.");
         }
 
@@ -387,17 +386,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSer
             {
                 snapshot = session.CurrentSnapshot;
             });
-            return new GetJsonResultInfo(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "json1")), Deserialize_NonNullableJsonDocument(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "json2")), entityIds, snapshot.Version);
-        }
-
-        private global::System.String Deserialize_NonNullableString(global::System.Text.Json.JsonElement? obj)
-        {
-            if (!obj.HasValue)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            return _jsonParser.Parse(obj.Value.GetString()!);
+            return new GetJsonResultInfo(Deserialize_NonNullableJsonDocument(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "json1")), Deserialize_NonNullableJsonDocument(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "json2")), entityIds, snapshot.Version);
         }
 
         private global::System.Text.Json.JsonDocument Deserialize_NonNullableJsonDocument(global::System.Text.Json.JsonElement? obj)
@@ -407,7 +396,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.JsonScalarDefaultSer
                 throw new global::System.ArgumentNullException();
             }
 
-            return _jSONParser.Parse(obj.Value!);
+            return _jsonParser.Parse(obj.Value!);
         }
     }
 

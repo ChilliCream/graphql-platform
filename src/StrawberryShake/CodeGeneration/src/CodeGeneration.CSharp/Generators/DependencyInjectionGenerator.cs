@@ -10,6 +10,7 @@ using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.Tools.Configuration;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.TypeKind;
 using static StrawberryShake.CodeGeneration.TypeNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;
@@ -465,8 +466,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .AddArgument(_services);
         }
 
-        foreach (var scalarTypes in
-                 descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+        foreach (var scalarTypes in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
             if (_alternativeTypeNames.TryGetValue(scalarTypes.Name, out var serializer))
             {
@@ -483,8 +483,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         }
 
         var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
-        foreach (var scalar in
-                 descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+        foreach (var scalar in  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
             if (scalar.RuntimeType.Equals(stringTypeInfo) &&
                 scalar.SerializationType.Equals(stringTypeInfo) &&
@@ -502,8 +501,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
         }
 
-        foreach (var inputTypeDescriptor in
-                 descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
+        foreach (var inputTypeDescriptor in descriptor.TypeDescriptors.Where(x => x.Kind is Input))
         {
             var formatter =
                 CreateInputValueFormatter(
