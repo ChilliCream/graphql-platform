@@ -122,5 +122,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("TransportConfigurationNotSupported", resourceCulture);
             }
         }
+        
+        internal static string CreateSelection_MustBePlaceholderOrSelectExpression {
+            get {
+                return ResourceManager.GetString("CreateSelection_MustBePlaceholderOrSelectExpression", resourceCulture);
+            }
+        }
     }
 }

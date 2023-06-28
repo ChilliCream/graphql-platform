@@ -63,7 +63,7 @@ internal sealed class Compose : QueryPlanNode
                     }
                 }
 
-                start = ref Unsafe.Add(ref start, 1);
+                start = ref Unsafe.Add(ref start, 1)!;
             }
         }
 
