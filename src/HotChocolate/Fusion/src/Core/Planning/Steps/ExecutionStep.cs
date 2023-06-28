@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -9,22 +10,44 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal abstract class ExecutionStep
 {
-    protected ExecutionStep(ObjectTypeInfo selectionSetTypeInfo, ISelection? parentSelection)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ExecutionStep"/>.
+    /// </summary>
+    /// <param name="parentSelection">
+    /// The parent selection of this execution step.
+    /// </param>
+    /// <param name="selectionSetType">
+    /// The declaring type of the selection set of this execution step.
+    /// </param>
+    /// <param name="selectionSetTypeInfo">
+    /// The declaring type of the selection set of this execution step.
+    /// </param>
+    protected ExecutionStep(
+        ISelection? parentSelection,
+        IObjectType selectionSetType,
+        ObjectTypeInfo selectionSetTypeInfo)
     {
+        ParentSelection = parentSelection;
+        SelectionSetType = selectionSetType  ??
+            throw new ArgumentNullException(nameof(selectionSetType));
         SelectionSetTypeInfo = selectionSetTypeInfo ??
             throw new ArgumentNullException(nameof(selectionSetTypeInfo));
-        ParentSelection = parentSelection;
     }
-
-    /// <summary>
-    /// Gets the declaring type of the root selection set of this execution step.
-    /// </summary>
-    public ObjectTypeInfo SelectionSetTypeInfo { get; }
 
     /// <summary>
     /// Gets the parent selection.
     /// </summary>
     public ISelection? ParentSelection { get; }
+
+    /// <summary>
+    /// Gets the declaring type of the selection set of this execution step.
+    /// </summary>
+    public ObjectTypeInfo SelectionSetTypeInfo { get; }
+
+    /// <summary>
+    /// Gets the declaring type of the selection set of this execution step.
+    /// </summary>
+    public IObjectType SelectionSetType { get; }
 
     /// <summary>
     /// Gets the execution steps this execution step is depending on.

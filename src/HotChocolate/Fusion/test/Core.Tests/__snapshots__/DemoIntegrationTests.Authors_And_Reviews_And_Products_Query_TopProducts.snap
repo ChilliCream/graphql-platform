@@ -133,13 +133,18 @@ type AddUserPayload {
 }
 
 type Product implements Node @variable(subgraph: "Reviews2", name: "Product_id", select: "id") @variable(subgraph: "Products", name: "Product_id", select: "id") @resolver(subgraph: "Reviews2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ node(id: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
-  id: ID! @source(subgraph: "Products")
+  dimension: ProductDimension! @source(subgraph: "Products")
+  id: ID! @source(subgraph: "Reviews2") @source(subgraph: "Products")
   name: String! @source(subgraph: "Products")
   price: Int! @source(subgraph: "Products")
   repeat(num: Int!): Int! @source(subgraph: "Products") @variable(subgraph: "Products", name: "num", argument: "num")
   repeatData(data: SomeDataInput!): SomeData! @source(subgraph: "Products") @variable(subgraph: "Products", name: "data", argument: "data")
   reviews: [Review!]! @source(subgraph: "Reviews2")
-  upc: Int! @source(subgraph: "Reviews2")
+  weight: Int! @source(subgraph: "Products")
+}
+
+type ProductDimension {
+  size: Int! @source(subgraph: "Products")
   weight: Int! @source(subgraph: "Products")
 }
 

@@ -78,7 +78,7 @@ internal sealed class Resolve : ResolverNodeBase
             for (var i = 0; i < workItems.Count; i++)
             {
                 var workItem = workItems[i];
-                ExtractPartialResult(workItem);
+                TryInitializeWorkItem(context.QueryPlan, workItem);
                 requests[i] = CreateRequest(
                     context.OperationContext.Variables,
                     workItem.VariableValues);
@@ -113,6 +113,7 @@ internal sealed class Resolve : ResolverNodeBase
                 var workItem = workItems[i];
 
                 var data = UnwrapResult(response);
+                var selectionSet = workItem.SelectionSet;
                 var selectionResults = workItem.SelectionSetData;
                 var exportKeys = workItem.ExportKeys;
                 var variableValues = workItem.VariableValues;
@@ -125,7 +126,7 @@ internal sealed class Resolve : ResolverNodeBase
                 ExtractErrors(context.Result, response.Errors, addDebugInfo: true);
 
                 // next we need to extract any variables that we need for followup requests.
-                ExtractVariables(data, exportKeys, variableValues);
+                ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);
             }
         }
     }
