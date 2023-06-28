@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             var client = services.GetRequiredService<EntityIdOrDataClient>();
 
             // act
-            IOperationResult<IGetFooResult> result = await client.GetFoo.ExecuteAsync(ct);
+            var result = await client.GetFoo.ExecuteAsync(ct);
 
             // assert
             result.MatchSnapshot();

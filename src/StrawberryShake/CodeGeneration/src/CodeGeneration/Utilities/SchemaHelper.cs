@@ -18,6 +18,7 @@ public static class SchemaHelper
 
     public static ISchema Load(
         IReadOnlyCollection<GraphQLFile> schemaFiles,
+        Action<ISchemaBuilder>? configure = null,
         bool strictValidation = true,
         bool noStore = false)
     {
@@ -81,7 +82,6 @@ public static class SchemaHelper
                     {
                         builder.AddType(new JsonType());
                     }
-
                 }
 
                 builder.AddDocument(document);
@@ -89,6 +89,8 @@ public static class SchemaHelper
         }
 
         AddDefaultScalarInfos(builder, leafTypes);
+
+        configure?.Invoke(builder);
 
         return builder
             .ModifyOptions(

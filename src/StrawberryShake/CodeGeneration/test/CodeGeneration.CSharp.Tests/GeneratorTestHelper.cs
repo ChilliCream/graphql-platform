@@ -20,12 +20,8 @@ public static class GeneratorTestHelper
     public static IReadOnlyList<IError> AssertError(params string[] fileNames)
     {
         var result = GenerateAsync(
-            fileNames,
-            new CSharpGeneratorSettings
-            {
-                Namespace = "Foo.Bar",
-                ClientName = "FooClient"
-            })
+                fileNames,
+                new CSharpGeneratorSettings { Namespace = "Foo.Bar", ClientName = "FooClient" })
             .Result;
 
         Assert.True(
@@ -57,8 +53,11 @@ public static class GeneratorTestHelper
         bool skipWarnings,
         params string[] sourceTexts)
     {
-        var clientModel =
-            CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
+        var clientModel = CreateClientModel(
+            sourceTexts,
+            settings.StrictValidation,
+            settings.NoStore,
+            settings.Configure);
 
         var documents = new StringBuilder();
         var documentNames = new HashSet<string>();
@@ -125,6 +124,7 @@ public static class GeneratorTestHelper
                 do
                 {
                     line = reader.ReadLine();
+
                     if (line is not null)
                     {
                         documents.AppendLine("// " + line);
@@ -159,12 +159,14 @@ public static class GeneratorTestHelper
 
         if (diagnostics.Any())
         {
-            Assert.True(false,
+            Assert.True(
+                false,
                 "Diagnostic Errors: \n" +
                 diagnostics
-                    .Select(x =>
-                        $"{x.GetMessage()}" +
-                        $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
+                    .Select(
+                        x =>
+                            $"{x.GetMessage()}" +
+                            $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
                     .Aggregate((acc, val) => acc + "\n" + val));
         }
     }
@@ -198,7 +200,8 @@ public static class GeneratorTestHelper
         RequestStrategyGen requestStrategy = RequestStrategyGen.Default,
         TransportProfile[]? profiles = null,
         bool noStore = false,
-        [CallerMemberName] string? testName = null)
+        [CallerMemberName] string? testName = null,
+        Action<ISchemaBuilder>? configure = null)
     {
         var snapshotFullName = Snapshot.FullName();
         var testFile = System.IO.Path.Combine(
@@ -225,17 +228,16 @@ public static class GeneratorTestHelper
                 testName + "Test.Client.cs"),
             RequestStrategy = requestStrategy,
             NoStore = noStore,
-            Profiles = (profiles ?? new[]
-            {
-                TransportProfile.Default
-            }).ToList()
+            Profiles = (profiles ?? new[] { TransportProfile.Default }).ToList(),
+            Configure = configure
         };
     }
 
     private static ClientModel CreateClientModel(
         string[] sourceText,
         bool strictValidation,
-        bool noStore)
+        bool noStore,
+        Action<ISchemaBuilder>? configure = null)
     {
         var files = sourceText
             .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
@@ -246,7 +248,7 @@ public static class GeneratorTestHelper
 
         var analyzer = new DocumentAnalyzer();
 
-        analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation, noStore));
+        analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, configure, strictValidation, noStore));
 
         foreach (var executable in executableDocs.Select(file => file.Document))
         {
@@ -278,5 +280,7 @@ public static class GeneratorTestHelper
 
         public RequestStrategyGen RequestStrategy { get; set; } =
             RequestStrategyGen.Default;
+
+        public Action<ISchemaBuilder>? Configure { get; set; }
     }
 }

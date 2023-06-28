@@ -252,7 +252,7 @@ public static class GeneratorTestHelper
 
         var analyzer = new DocumentAnalyzer();
 
-        analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation, noStore));
+        analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, null, strictValidation, noStore));
 
         foreach (var executable in executableDocs.Select(file => file.Document))
         {

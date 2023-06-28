@@ -1,4 +1,5 @@
 using ChilliCream.Testing;
+using HotChocolate.Types;
 using StrawberryShake.Tools.Configuration;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
@@ -91,6 +92,26 @@ public class TestGeneration
             @"type Query {
                 json: Any!
             }");
+
+    [Fact]
+    public void JsonScalarDefaultSerialization() =>
+        AssertResult(
+            CreateIntegrationTest(
+                configure: b =>
+                {
+                    b.AddType(new JsonType("Json"));
+                }),
+            skipWarnings: true,
+            @"query GetJson {
+                json1
+                json2
+            }",
+            @"type Query {
+                json1: Json!
+                json2: JSON!
+            }
+
+            scalar JSON");
 
     [Fact]
     public void StarWarsTypeNameOnInterfaces() =>
@@ -274,6 +295,7 @@ public class TestGeneration
                 }
             }");
             */
+
     private const string UploadQueries = @"
         query TestUpload(
                 $nonUpload: String
@@ -292,6 +314,7 @@ public class TestGeneration
                 objectList: $objectList
                 objectNested: $objectNested)
         }";
+
     private const string UploadSchema = @"
         type Query {
             upload(
