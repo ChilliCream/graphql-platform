@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
@@ -35,24 +36,23 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         LongSerializer,
         FloatSerializer,
         DecimalSerializer,
-        UrlSerializer,
-        UUIDSerializer,
         IdSerializer,
         DateTimeSerializer,
         DateSerializer,
         ByteArraySerializer,
         TimeSpanSerializer,
-        JsonSerializer
     };
 
-    private static readonly Dictionary<string, string> _alternativeTypeNames = new()
-    {
-        ["Uuid"] = UUIDSerializer,
-        ["Guid"] = UUIDSerializer,
-        ["URL"] = UrlSerializer,
-        ["Uri"] = UrlSerializer,
-        ["URI"] = UrlSerializer
-    };
+    private static readonly Dictionary<string, string> _alternativeTypeNames =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["uuid"] = UUIDSerializer,
+            ["guid"] = UUIDSerializer,
+            ["url"] = UrlSerializer,
+            ["uri"] = UrlSerializer,
+            ["any"] = JsonSerializer,
+            ["json"] = JsonSerializer
+        };
 
     protected override void Generate(
         DependencyInjectionDescriptor descriptor,
@@ -113,7 +113,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .SetPrivate()
             .SetStatic()
             .SetReturnType(IServiceCollection)
-            .AddParameter(_parentServices, x => x.SetType(IServiceProvider))
+            .AddParameter(_parentServices, x => x.SetType(TypeNames.IServiceProvider))
             .AddParameter(_services, x => x.SetType(ServiceCollection))
             .AddParameter(
                 _strategy,
@@ -482,7 +482,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
         }
 
-        var stringTypeInfo = new RuntimeTypeInfo(String);
+        var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
         foreach (var scalar in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
