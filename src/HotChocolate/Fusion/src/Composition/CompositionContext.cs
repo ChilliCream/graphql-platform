@@ -77,6 +77,11 @@ internal sealed class CompositionContext
     public ICompositionLog Log { get; }
 
     /// <summary>
+    /// Gets a set that can be used to calculate subgraph support of a component.
+    /// </summary>
+    public HashSet<string> SupportedBy { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Gets the subgraph schema by its name.
     /// </summary>
     /// <param name="subgraphName">

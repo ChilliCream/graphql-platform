@@ -39,7 +39,7 @@ type Author implements Node @variable(subgraph: "Reviews", name: "Author_id", se
   reviews: [Review!]! @source(subgraph: "Reviews")
 }
 
-type Product implements Node @variable(subgraph: "Products", name: "Product_id", select: "id") @resolver(subgraph: "Products", select: "{ node(id: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+type Product implements Node @variable(subgraph: "Reviews", name: "Product_id", select: "id") @variable(subgraph: "Products", name: "Product_id", select: "id") @resolver(subgraph: "Products", select: "{ node(id: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
   dimension: ProductDimension! @source(subgraph: "Products")
   id: ID! @source(subgraph: "Reviews") @source(subgraph: "Products")
   name: String! @source(subgraph: "Products")
