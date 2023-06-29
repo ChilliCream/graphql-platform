@@ -12,6 +12,9 @@ public abstract class ResultData
     /// </summary>
     internal ResultData? Parent { get; set; }
 
+    
+    internal int ParentIndex { get; set; }
+
     /// <summary>
     /// Gets an internal ID that tracks result objects.
     /// In most cases this id is 0. But if this result object has

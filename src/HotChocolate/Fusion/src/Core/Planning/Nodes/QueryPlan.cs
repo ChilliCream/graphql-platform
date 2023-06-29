@@ -99,7 +99,23 @@ internal sealed class QueryPlan
         context.Result.SetData(rootResult);
         context.RegisterState(rootSelectionSet, rootResult);
 
-        await RootNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await RootNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+        }
+        catch (NonNullPropagateException)
+        {
+            context.Result.SetData(null);
+
+            // TODO : REMOVE after non-null prop is good.
+            if (context.Result.Errors.Count == 0)
+            {
+                context.Result.AddError(
+                    ErrorBuilder.New()
+                        .SetMessage("Error")
+                        .Build());
+            }
+        }
 
         context.Result.RegisterForCleanup(
             () =>
@@ -107,6 +123,7 @@ internal sealed class QueryPlan
                 context.Dispose();
                 return default;
             });
+
         return context.Result.BuildResult();
     }
 

@@ -42,6 +42,7 @@ internal static class ExecutorUtils
         ref var result = ref selectionSetResult.GetReference();
         ref var data = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
         ref var endSelection = ref Unsafe.Add(ref selection, count);
+        var responseIndex = 0;
 
         while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
         {
@@ -54,9 +55,27 @@ internal static class ExecutorUtils
                 var nullable = selection.TypeKind is not TypeKind.NonNull;
                 var namedType = selectionType.NamedType();
 
-                if (namedType.IsType(TypeKind.Scalar))
+                if (!data.HasValue)
+                {
+                    if (!nullable)
+                    {
+                        PropagateNonNullError(selectionSetResult);
+                        break;
+                    }
+
+                    result.Set(responseName, null, nullable);
+                }
+                else if (namedType.IsType(TypeKind.Scalar))
                 {
                     var value = data.Single.Element;
+
+                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined &&
+                        !nullable)
+                    {
+                        PropagateNonNullError(selectionSetResult);
+                        break;
+                    }
+
                     result.Set(responseName, value, nullable);
 
                     if (value.ValueKind is JsonValueKind.String &&
@@ -71,16 +90,50 @@ internal static class ExecutorUtils
                 {
                     // we might need to map the enum value!
                     var value = data.Single.Element;
+
+                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined &&
+                        !nullable)
+                    {
+                        PropagateNonNullError(selectionSetResult);
+                        break;
+                    }
+
                     result.Set(responseName, value, nullable);
                 }
                 else if (selectionType.IsCompositeType())
                 {
                     var value = ComposeObject(context, selection, data);
+
+                    if (value is null && !nullable)
+                    {
+                        PropagateNonNullError(selectionSetResult);
+                        break;
+                    }
+
+                    if (value is not null)
+                    {
+                        value.Parent = selectionSetResult;
+                        value.ParentIndex = responseIndex;
+                    }
+
                     result.Set(responseName, value, nullable);
                 }
                 else
                 {
                     var value = ComposeList(context, selection, data, selectionType);
+
+                    if (value is null && !nullable)
+                    {
+                        PropagateNonNullError(selectionSetResult);
+                        break;
+                    }
+
+                    if (value is not null)
+                    {
+                        value.Parent = selectionSetResult;
+                        value.ParentIndex = responseIndex;
+                    }
+
                     result.Set(responseName, value, nullable);
                 }
             }
@@ -89,6 +142,10 @@ internal static class ExecutorUtils
                 var value = selection.DeclaringType.Name;
                 result.Set(responseName, value, false);
             }
+
+            // REMEMBER: this counter needs to be only raised if the selection is included.
+            // ALSO: data ref needs to change once we do this.
+            responseIndex++;
 
             // move our pointers
             selection = ref Unsafe.Add(ref selection, 1)!;
@@ -111,7 +168,9 @@ internal static class ExecutorUtils
         var json = selectionData.Single.Element;
         var schemaName = selectionData.Single.SubgraphName;
         Debug.Assert(selectionData.Multiple is null, "selectionResult.Multiple is null");
-        Debug.Assert(json.ValueKind is JsonValueKind.Array, "json.ValueKind is JsonValueKind.Array");
+        Debug.Assert(
+            json.ValueKind is JsonValueKind.Array,
+            "json.ValueKind is JsonValueKind.Array");
 
         var elementType = type.ElementType();
         var result = context.Result.RentList(json.GetArrayLength());
@@ -154,6 +213,7 @@ internal static class ExecutorUtils
         }
 
         ObjectType type;
+
         if (selection.Type.NamedType() is ObjectType ot)
         {
             type = ot;
@@ -464,6 +524,7 @@ internal static class ExecutorUtils
                     parent.TryGetProperty(key, out var property))
                 {
                     var path = queryPlan.GetExportPath(selectionSet, key);
+
                     if (path.Count >= 2)
                     {
                         for (var j = 1; j < path.Count; j++)
@@ -483,6 +544,43 @@ internal static class ExecutorUtils
                     variableValues.TryAdd(key, JsonValueToGraphQLValueConverter.Convert(property));
                 }
             }
+        }
+    }
+
+    private static void PropagateNonNullError(ResultData data)
+    {
+        var current = data;
+
+        while (current.Parent is not null)
+        {
+            current = current.Parent;
+            var index = current.ParentIndex;
+
+            switch (current)
+            {
+                case ObjectResult result:
+                    if (result[index].TrySetNull())
+                    {
+                        return;
+                    }
+                    break;
+
+                case ListResult listResult:
+                    if (listResult.TrySetNull(index))
+                    {
+                        return;
+                    }
+                    break;
+
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(current));
+            }
+        }
+
+        if (current.Parent is null)
+        {
+            throw new NonNullPropagateException();
         }
     }
 }

@@ -154,9 +154,19 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     {
         var data = response.Data;
 
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return new Dictionary<string, JsonElement>();
+        }
+
         if (_path.Count > 0)
         {
             data = LiftData();
+        }
+
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return new Dictionary<string, JsonElement>();
         }
 
         var result = new Dictionary<string, JsonElement>();

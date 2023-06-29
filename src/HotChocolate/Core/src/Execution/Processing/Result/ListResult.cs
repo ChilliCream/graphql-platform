@@ -44,12 +44,15 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
 
     internal void AddUnsafe(ResultData? item)
     {
+        var index = _count++;
+
         if (item is not null)
         {
             item.Parent = this;
+            item.ParentIndex = index;
         }
 
-        _buffer[_count++] = item;
+        _buffer[index] = item;
     }
 
     internal void SetUnsafe(int index, object? item)
@@ -60,9 +63,21 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
         if (item is not null)
         {
             item.Parent = this;
+            item.ParentIndex = index;
         }
 
         _buffer[index] = item;
+    }
+
+    internal bool TrySetNull(int index)
+    {
+        if (IsNullable && _count > index)
+        {
+            _buffer[index] = null;
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
