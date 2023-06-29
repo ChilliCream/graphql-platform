@@ -130,6 +130,31 @@ public static class FusionRequestExecutorBuilderExtensions
         this IServiceCollection services,
         ResolveFusionGraphDocAsync fusionGraphResolver,
         string? graphName = default)
+        => services.AddFusionGatewayServer((_, ct) => fusionGraphResolver(ct), graphName);
+
+    /// <summary>
+    /// Adds a Fusion GraphQL Gateway to the service collection.
+    /// </summary>
+    /// <param name="services">
+    /// The service collection.
+    /// </param>
+    /// <param name="fusionGraphResolver">
+    /// A delegate that is used to resolve a fusion graph document.
+    /// </param>
+    /// <param name="graphName">
+    /// The name of the fusion graph.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="services"/> is <c>null</c> or
+    /// <paramref name="fusionGraphResolver"/> is <c>null</c>.
+    /// </exception>
+    public static FusionGatewayBuilder AddFusionGatewayServer(
+        this IServiceCollection services,
+        ResolveFusionGraphDocServiceProviderAsync fusionGraphResolver,
+        string? graphName = default)
     {
         if (services is null)
         {
@@ -165,7 +190,8 @@ public static class FusionRequestExecutorBuilderExtensions
                             async: async (ctx, _, ct) =>
                             {
                                 var rewriter = new FusionGraphConfigurationToSchemaRewriter();
-                                var fusionGraphDoc = await fusionGraphResolver(ct);
+                                var fusionGraphDoc =
+                                    await fusionGraphResolver(ctx.ApplicationServices, ct);
                                 var fusionGraphConfig = Load(fusionGraphDoc);
                                 var schemaDoc = rewriter.Rewrite(fusionGraphDoc);
 
