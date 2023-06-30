@@ -28,9 +28,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
 
     public string SubgraphName => _config.SubgraphName;
 
-    public Task<GraphQLResponse> ExecuteAsync(
-        GraphQLRequest request,
-        CancellationToken cancellationToken)
+    public Task<GraphQLResponse> ExecuteAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
         if (request is null)
         {
@@ -40,9 +38,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
         return ExecuteInternalAsync(request, cancellationToken);
     }
 
-    private async Task<GraphQLResponse> ExecuteInternalAsync(
-        GraphQLRequest request,
-        CancellationToken ct)
+    private async Task<GraphQLResponse> ExecuteInternalAsync(GraphQLRequest request, CancellationToken ct)
     {
         try
         {
@@ -50,9 +46,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
             using var requestMessage = CreateRequestMessage(writer, request);
             using var responseMessage = await _client.SendAsync(requestMessage, ct);
 
-            await using var contentStream = await responseMessage.Content
-                .ReadAsStreamAsync(ct)
-                .ConfigureAwait(false);
+            await using var contentStream = await responseMessage.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
 
             var stream = contentStream;
             var contentType = responseMessage.Content.Headers.ContentType;
