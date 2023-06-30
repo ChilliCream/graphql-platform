@@ -135,9 +135,15 @@ internal sealed class ComposeCommand : Command
         }
 
         var composer = new FusionGraphComposer(prefix, prefixSelf, () => new ConsoleLog(console));
-        var fusionGraph = await composer.ComposeAsync(configs.Values, flags, cancellationToken);
-        var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
+        var fusionGraph = await composer.TryComposeAsync(configs.Values, flags, cancellationToken);
 
+        if (fusionGraph is null)
+        {
+            console.WriteLine("Fusion graph composition failed.");
+            return;
+        }
+
+        var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
         var typeNames = FusionTypeNames.From(fusionGraphDoc);
         var rewriter = new Metadata.FusionGraphConfigurationToSchemaRewriter();
         var schemaDoc = (DocumentNode)rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
