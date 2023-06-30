@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -41,6 +40,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         Queue<BacklogItem> backlog)
     {
         var stack = new Stack<QueryPlanNode>();
+        var lookup = BuildSelectionSetToStepLookup(context, stack);
 
         while (backlog.TryDequeue(out var next))
         {
@@ -57,8 +57,12 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
                 next.Parent.AddNode(single.Node);
 
                 var selectionSet = ResolveSelectionSet(context, single.Step);
-                var compose = new Compose(context.NextNodeId(), selectionSet);
-                next.Parent.AddNode(compose);
+
+                if (NeedsComposition(single.Step, selectionSet))
+                {
+                    var compose = new Compose(context.NextNodeId(), selectionSet);
+                    next.Parent.AddNode(compose);
+                }
 
                 Complete(context, stack, single.Node);
             }
@@ -72,24 +76,101 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
                 foreach (var item in next.Batch)
                 {
-                    selectionSets.Add(ResolveSelectionSet(context, item.Step));
+                    var selectionSet = ResolveSelectionSet(context, item.Step);
+
+                    if (NeedsComposition(item.Step, selectionSet))
+                    {
+                        selectionSets.Add(selectionSet);
+                    }
+
                     parallel.AddNode(item.Node);
                     Complete(context, stack, item.Node);
                 }
 
-                // we will chain a single composition step at the end.
-                // The parent node always is serial.
-                var compose = new Compose(context.NextNodeId(), selectionSets);
-
                 next.Parent.AddNode(parallel);
-                next.Parent.AddNode(compose);
+
+                if (selectionSets.Count > 0)
+                {
+                    // we will chain a single composition step at the end.
+                    // The parent node always is serial.
+                    var compose = new Compose(context.NextNodeId(), selectionSets);
+                    next.Parent.AddNode(compose);
+                }
             }
 
             var batch = context.NextBatch();
 
             if (batch.Length > 0)
             {
-                backlog.Enqueue(new BacklogItem(batch, next.Parent));
+                backlog.Enqueue(next with { Batch = batch });
+            }
+        }
+
+        bool NeedsComposition(ExecutionStep step, ISelectionSet selectionSet)
+        {
+            var steps = lookup[selectionSet];
+            steps.Remove(step);
+            return steps.Count == 0;
+        }
+    }
+
+    private Dictionary<ISelectionSet, HashSet<ExecutionStep>> BuildSelectionSetToStepLookup(
+        QueryPlanContext context,
+        Stack<QueryPlanNode> stack)
+    {
+        var map = new Dictionary<ISelectionSet, HashSet<ExecutionStep>>();
+        var childSteps = new HashSet<ExecutionStep>();
+
+        foreach (var item in context.AllNodes())
+        {
+            CollectChildSteps(context, stack, childSteps, item.Node);
+            var selectionSet = ResolveSelectionSet(context, item.Step);
+
+            if (!map.TryGetValue(selectionSet, out var set))
+            {
+                set = new HashSet<ExecutionStep>();
+                map.Add(selectionSet, set);
+            }
+
+            set.Add(item.Step);
+        }
+
+        foreach (var sets in map.Values)
+        {
+            sets.ExceptWith(childSteps);
+        }
+
+        return map;
+    }
+
+    private static void CollectChildSteps(
+        QueryPlanContext context,
+        Stack<QueryPlanNode> stack,
+        HashSet<ExecutionStep> childSteps,
+        QueryPlanNode node)
+    {
+        if (node.Nodes.Count == 0)
+        {
+            return;
+        }
+
+        EnqueueChildren(node, stack);
+
+        while (stack.TryPop(out var current))
+        {
+            EnqueueChildren(current, stack);
+
+            if (context.TryGetExecutionStep(current, out var executionStep))
+            {
+                childSteps.Add(executionStep);
+            }
+        }
+
+        static void EnqueueChildren(QueryPlanNode node, Stack<QueryPlanNode> stack)
+        {
+            foreach (var next in node.Nodes)
+            {
+                stack.Push(next);
             }
         }
     }
@@ -177,19 +258,3 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
     private readonly record struct BacklogItem(NodeAndStep[] Batch, Sequence Parent);
 }
-
-static file class ExecutionTreeBuilderMiddlewareExtensions
-{
-    public static Sequence ExpectSerial(this QueryPlanNode node)
-    {
-        if (node is not Sequence serialNode)
-        {
-            throw new ArgumentException(
-                "The node is expected to be a serial node.");
-        }
-
-        return serialNode;
-    }
-}
-
-internal readonly record struct NodeAndStep(QueryPlanNode Node, ExecutionStep Step);
