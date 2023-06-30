@@ -937,16 +937,13 @@ public class DemoIntegrationTests
         var fusionGraph =
             await new FusionGraphComposer(logFactory: _logFactory)
                 .ComposeAsync(
-                    new[]
-                    {
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                    },
+                    new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl), },
                     FusionFeatureFlags.NodeField);
 
         var services = new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(_ => new(SchemaFormatter.FormatAsDocument(fusionGraph)))
+            .AddFusionGatewayServer((_, _) => new(SchemaFormatter.FormatAsDocument(fusionGraph)))
             .CoreBuilder
             .AddTypeModule(_ => reloadTypeModule)
             .Services
