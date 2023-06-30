@@ -12,8 +12,10 @@ public abstract class ResultData
     /// </summary>
     internal ResultData? Parent { get; set; }
 
-    
+
     internal int ParentIndex { get; set; }
+
+    internal bool IsInvalidated { get; set; }
 
     /// <summary>
     /// Gets an internal ID that tracks result objects.

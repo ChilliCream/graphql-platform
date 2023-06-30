@@ -112,7 +112,7 @@ internal sealed class QueryPlan
             {
                 context.Result.AddError(
                     ErrorBuilder.New()
-                        .SetMessage("Error")
+                        .SetMessage("NON NULL PROPAGATION")
                         .Build());
             }
         }

@@ -74,6 +74,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     return default!;
                 });
 
+            ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
             var result = UnwrapResult(response, Requires);
 
             for (var i = 0; i < workItems.Length; i++)

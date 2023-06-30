@@ -1,13 +1,9 @@
 using System.Net;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Composition;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
@@ -27,7 +23,7 @@ public class ErrorTests
     }
 
     [Fact]
-    public async Task Authors_And_Reviews_Query_Reformat_AuthorIds()
+    public async Task Accounts_Offline_Author_Nullable()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -54,6 +50,104 @@ public class ErrorTests
             """
             query ReformatIds {
                 reviews {
+                    body
+                    author? {
+                        birthdate
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Accounts_Offline_Author_NonNull()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                    },
+                    FusionFeatureFlags.NodeField);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query ReformatIds {
+                reviews {
+                    body
+                    author! {
+                        birthdate
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Accounts_Offline_Reviews_ListElement_Nullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                    },
+                    FusionFeatureFlags.NodeField);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query ReformatIds {
+                reviews[?]! {
                     body
                     author {
                         birthdate
