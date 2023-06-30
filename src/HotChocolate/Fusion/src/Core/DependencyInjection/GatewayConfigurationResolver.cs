@@ -8,5 +8,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <param name="cancellationToken">
 /// The cancellation token.
 /// </param>
-public delegate ValueTask<DocumentNode> ResolveFusionGraphDocAsync(
+public delegate ValueTask<DocumentNode> GatewayConfigurationResolver(
+    GatewayConfigurationContext context,
     CancellationToken cancellationToken = default);

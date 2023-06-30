@@ -22,8 +22,8 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="services">
     /// The service collection.
     /// </param>
-    /// <param name="fusionGraphDocument">
-    /// The fusion graph document.
+    /// <param name="gatewayConfigurationDoc">
+    /// The fusion gateway configuration document.
     /// </param>
     /// <param name="graphName">
     /// The name of the fusion graph.
@@ -33,11 +33,11 @@ public static class FusionRequestExecutorBuilderExtensions
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="fusionGraphDocument"/> is <c>null</c>.
+    /// <paramref name="gatewayConfigurationDoc"/> is <c>null</c>.
     /// </exception>
     public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
-        DocumentNode fusionGraphDocument,
+        DocumentNode gatewayConfigurationDoc,
         string? graphName = default)
     {
         if (services is null)
@@ -45,13 +45,13 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
-        if (fusionGraphDocument is null)
+        if (gatewayConfigurationDoc is null)
         {
-            throw new ArgumentNullException(nameof(fusionGraphDocument));
+            throw new ArgumentNullException(nameof(gatewayConfigurationDoc));
         }
 
         return services.AddFusionGatewayServer(
-            _ => new ValueTask<DocumentNode>(fusionGraphDocument),
+            (_, _) => new ValueTask<DocumentNode>(gatewayConfigurationDoc),
             graphName: graphName);
     }
 
@@ -61,8 +61,8 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="services">
     /// The service collection.
     /// </param>
-    /// <param name="fusionGraphFile">
-    /// The path to the fusion graph package file or fusion graph file.
+    /// <param name="gatewayConfigurationFile">
+    /// The path to the fusion gateway configuration file.
     /// </param>
     /// <param name="graphName">
     /// The name of the fusion graph.
@@ -76,12 +76,12 @@ public static class FusionRequestExecutorBuilderExtensions
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="fusionGraphFile"/> is <c>null</c> or
-    /// <paramref name="fusionGraphFile"/> is equals to <see cref="string.Empty"/>.
+    /// <paramref name="gatewayConfigurationFile"/> is <c>null</c> or
+    /// <paramref name="gatewayConfigurationFile"/> is equals to <see cref="string.Empty"/>.
     /// </exception>
     public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
-        string fusionGraphFile,
+        string gatewayConfigurationFile,
         string? graphName = default,
         bool watchFileForUpdates = false)
     {
@@ -90,18 +90,18 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
-        if (string.IsNullOrEmpty(fusionGraphFile))
+        if (string.IsNullOrEmpty(gatewayConfigurationFile))
         {
-            throw new ArgumentNullException(nameof(fusionGraphFile));
+            throw new ArgumentNullException(nameof(gatewayConfigurationFile));
         }
 
         var builder = services.AddFusionGatewayServer(
-            ct => LoadDocumentAsync(fusionGraphFile, ct),
+            (_, ct) => LoadDocumentAsync(gatewayConfigurationFile, ct),
             graphName: graphName);
 
         if (watchFileForUpdates)
         {
-            builder.CoreBuilder.AddTypeModule(_ => new FileWatcherTypeModule(fusionGraphFile));
+            builder.CoreBuilder.AddTypeModule(_ => new FileWatcherTypeModule(gatewayConfigurationFile));
         }
 
         return builder;
@@ -113,8 +113,8 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="services">
     /// The service collection.
     /// </param>
-    /// <param name="fusionGraphResolver">
-    /// A delegate that is used to resolve a fusion graph document.
+    /// <param name="resolveConfig">
+    /// A delegate that is used to resolve the fusion gateway configuration.
     /// </param>
     /// <param name="graphName">
     /// The name of the fusion graph.
@@ -124,11 +124,11 @@ public static class FusionRequestExecutorBuilderExtensions
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="fusionGraphResolver"/> is <c>null</c>.
+    /// <paramref name="resolveConfig"/> is <c>null</c>.
     /// </exception>
     public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
-        ResolveFusionGraphDocAsync fusionGraphResolver,
+        GatewayConfigurationResolver resolveConfig,
         string? graphName = default)
     {
         if (services is null)
@@ -136,9 +136,9 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
-        if (fusionGraphResolver is null)
+        if (resolveConfig is null)
         {
-            throw new ArgumentNullException(nameof(fusionGraphResolver));
+            throw new ArgumentNullException(nameof(resolveConfig));
         }
 
         services.AddTransient<IWebSocketConnectionFactory>(
@@ -165,9 +165,9 @@ public static class FusionRequestExecutorBuilderExtensions
                             async: async (ctx, _, ct) =>
                             {
                                 var rewriter = new FusionGraphConfigurationToSchemaRewriter();
-                                var fusionGraphDoc = await fusionGraphResolver(ct);
-                                var fusionGraphConfig = Load(fusionGraphDoc);
-                                var schemaDoc = rewriter.Rewrite(fusionGraphDoc);
+                                var config = await resolveConfig(new(ctx.ApplicationServices), ct);
+                                var fusionGraphConfig = Load(config);
+                                var schemaDoc = rewriter.Rewrite(config);
 
                                 ctx.SchemaBuilder
                                     .AddDocument(schemaDoc)
