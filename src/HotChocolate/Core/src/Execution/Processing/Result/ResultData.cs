@@ -12,9 +12,14 @@ public abstract class ResultData
     /// </summary>
     internal ResultData? Parent { get; set; }
 
-
+    /// <summary>
+    /// Gets the index under which this data is stored in the parent result.
+    /// </summary>
     internal int ParentIndex { get; set; }
 
+    /// <summary>
+    /// Defines that this result was invalidated by one task and can be discarded.
+    /// </summary>
     internal bool IsInvalidated { get; set; }
 
     /// <summary>
