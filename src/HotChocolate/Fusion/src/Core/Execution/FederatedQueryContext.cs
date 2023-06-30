@@ -74,6 +74,11 @@ internal sealed class FusionExecutionContext : IDisposable
     public ResultBuilder Result => OperationContext.Result;
 
     /// <summary>
+    /// Defines if query plan components should emit debug infos.
+    /// </summary>
+    public bool ShowDebugInfo => true;
+
+    /// <summary>
     /// Determines if all data has been fetched for the specified selection set.
     /// </summary>
     /// <param name="selectionSet">

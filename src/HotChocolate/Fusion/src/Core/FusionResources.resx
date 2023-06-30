@@ -39,9 +39,6 @@
   <data name="ThrowHelper_ServiceConfInvalidDirectiveArgs" xml:space="preserve">
     <value>Expected arguments for the directive `{0}` are `{1}`. The service configuration reader found the following arguments `{2}` on the directive in line number {3}.</value>
   </data>
-  <data name="GraphQLHttpClient_InvalidContentType" xml:space="preserve">
-    <value>The GraphQL server returned an invalid content type. The content type must be either application/json or application/graphql-response+json.</value>
-  </data>
   <data name="FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue" xml:space="preserve">
     <value>The kind must be of the values query, batch, batchByKey or subscription.</value>
   </data>

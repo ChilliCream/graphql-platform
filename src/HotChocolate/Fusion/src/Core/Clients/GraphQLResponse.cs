@@ -7,6 +7,11 @@ public sealed class GraphQLResponse : IDisposable
 {
     private readonly IDisposable? _resource;
 
+    internal GraphQLResponse(JsonElement errors)
+    {
+        Errors = errors;
+    }
+
     internal GraphQLResponse(OperationResult result)
     {
         _resource = result;
