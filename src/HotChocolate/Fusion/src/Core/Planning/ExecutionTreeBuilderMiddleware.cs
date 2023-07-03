@@ -17,7 +17,6 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
     {
         var backlog = new Queue<BacklogItem>();
 
-        // Depending on the operation type we will create the root nodes of the query plan.
         var rootNode = context.Operation.Type is OperationType.Subscription
             ? CreateSubscriptionRoot(context, backlog)
             : CreateDefaultRoot(context, backlog);
@@ -27,7 +26,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         {
             // If there are nodes that are dependant on the root node and are
             // not yet integrated into the execution tree we will start
-            // processing the backlog to do so.
+            // processing the backlog to integrate those.
             ProcessBacklog(context, backlog);
         }
 
@@ -44,8 +43,9 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 
         while (backlog.TryDequeue(out var next))
         {
-            // If the batch contains only one node we can add it to the parent node which will be
-            // a serial node. Same applies if the current batch steps deal with the
+            // If the batch contains only one node we can add it
+            // to the parent node which will be a serial node.
+            // Same applies if the current batch steps deal with the
             // mutation selection set as we need to adhere to the GraphQL spec and ensure
             // that mutation fields are executed serially.
             if (next.Batch.Length == 1 ||
