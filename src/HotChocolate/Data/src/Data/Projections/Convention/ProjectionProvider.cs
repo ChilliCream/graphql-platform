@@ -28,7 +28,7 @@ public abstract class ProjectionProvider
     private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors =
         new List<IProjectionFieldInterceptor>();
 
-    private readonly IList<IProjectionOptimizer> _optimizer = new List<IProjectionOptimizer>()
+    private readonly IList<IProjectionOptimizer> _optimizers = new List<IProjectionOptimizer>()
     {
         new RewriteToIndexerOptimizer()
     };
@@ -105,8 +105,10 @@ public abstract class ProjectionProvider
                 case null when services.TryGetOrCreateService(
                     type,
                     out IProjectionFieldHandler? service):
+                {
                     _fieldHandlers.Add(service);
                     break;
+                }
 
                 case null:
                     throw new SchemaException(
@@ -125,8 +127,10 @@ public abstract class ProjectionProvider
                 case null when services.TryGetOrCreateService(
                     type,
                     out IProjectionFieldInterceptor? service):
+                {
                     _fieldInterceptors.Add(service);
                     break;
+                }
 
                 case null:
                     throw new SchemaException(
@@ -145,15 +149,17 @@ public abstract class ProjectionProvider
                 case null when services.TryGetOrCreateService(
                     type,
                     out IProjectionOptimizer? service):
-                    _optimizer.Add(service);
+                {
+                    _optimizers.Add(service);
                     break;
+                }
 
                 case null:
                     throw new SchemaException(
                         ProjectionConvention_UnableToCreateFieldHandler(this, type));
 
                 default:
-                    _optimizer.Add(instance);
+                    _optimizers.Add(instance);
                     break;
             }
         }
@@ -163,9 +169,9 @@ public abstract class ProjectionProvider
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        for (var i = 0; i < _optimizer.Count; i++)
+        for (var i = 0; i < _optimizers.Count; i++)
         {
-            selection = _optimizer[i].RewriteSelection(context, selection);
+            selection = _optimizers[i].RewriteSelection(context, selection);
         }
 
         for (var i = 0; i < _fieldHandlers.Count; i++)

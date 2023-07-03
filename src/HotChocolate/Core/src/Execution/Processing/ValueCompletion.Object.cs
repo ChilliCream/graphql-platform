@@ -32,11 +32,11 @@ internal static partial class ValueCompletion
             var selectionSet = operationContext.CollectFields(selection, objectType);
             var runtimeType = objectType.RuntimeType;
 
-            if (!runtimeType.IsInstanceOfType(result) &&
-                operationContext.Converter.TryConvert(runtimeType, result, out var converted))
-            {
-                result = converted;
-            }
+            // if (!runtimeType.IsInstanceOfType(result) &&
+            //     operationContext.Converter.TryConvert(runtimeType, result, out var converted))
+            // {
+            //     result = converted;
+            // }
 
             return EnqueueOrInlineResolverTasks(
                 operationContext,

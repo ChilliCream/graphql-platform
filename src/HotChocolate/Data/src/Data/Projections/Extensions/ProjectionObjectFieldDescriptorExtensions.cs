@@ -51,7 +51,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         descriptor
             .Extend()
             .OnBeforeCreate(
-                x => x.ContextData[ProjectionConvention.IsProjectedKey] = isProjected);
+                x => x.ContextData.Set(ProjectionConvention.IsProjectedKey, isProjected));
 
         return descriptor;
     }

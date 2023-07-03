@@ -11,8 +11,7 @@ internal static class OutputFieldExtensions
         field.IsExcludedManually() || field.HasProjectionMiddleware() || field.IsPagingField();
 
     private static bool IsExcludedManually(this IOutputField field)
-        => field.ContextData.TryGetValue(IsProjectedKey, out var isProjectedObject) &&
-            isProjectedObject is false;
+        => field.ContextData.TryGet(IsProjectedKey, out var isProjectedObject) && !isProjectedObject;
 
     private static bool HasProjectionMiddleware(this IOutputField field)
         => field.ContextData.ContainsKey(ProjectionContextIdentifier);

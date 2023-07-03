@@ -15,8 +15,8 @@ public class ProjectionConvention
     private Action<IProjectionConventionDescriptor>? _configure;
     private IProjectionProvider _provider = default!;
 
-    public const string IsProjectedKey = nameof(IsProjectedKey);
-    public const string AlwaysProjectedFieldsKey = nameof(AlwaysProjectedFieldsKey);
+    public static readonly StateKey<bool> IsProjectedKey = StateKey.Create<bool>("IsProjectedKey");
+    public static readonly StateKey<string[]> AlwaysProjectedFieldsKey = StateKey.Create<string[]>("AlwaysProjectedFieldsKey");
 
     protected ProjectionConvention()
     {

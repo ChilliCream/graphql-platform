@@ -30,8 +30,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         Selection selection)
     {
         if (context.Type is not ObjectType objectType ||
-            !objectType.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var obj) ||
-            obj is not string[] alwaysProjectedFieldNames)
+            !objectType.ContextData.TryGet(AlwaysProjectedFieldsKey, out var alwaysProjectedFieldNames))
         {
             return selection;
         }
@@ -49,7 +48,6 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
 
         return selection;
     }
-
 }
 
 public struct ProjectedValue
@@ -105,14 +103,14 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
         } = new();
     }
 
-    public bool CanHandle(ISelection field) => field.DeclaringType is ObjectType;
-
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        if (selection.DeclaringType is not ObjectType objectType)
+        if (selection.Field.Member is not PropertyInfo)
+        {
             return selection;
+        }
 
         var runtimeType = context.Type.RuntimeType;
 
