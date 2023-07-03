@@ -1,5 +1,6 @@
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 
@@ -29,11 +30,7 @@ internal sealed class GatewayConfigurationTypeModule : TypeModule
 
         if (_configuration is null)
         {
-            // TODO : Resources
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage("Unable to load the Fusion gateway configuration.")
-                    .Build());
+            throw ThrowHelper.UnableToLoadConfiguration();
         }
 
         var rewriter = new FusionGraphConfigurationToSchemaRewriter();

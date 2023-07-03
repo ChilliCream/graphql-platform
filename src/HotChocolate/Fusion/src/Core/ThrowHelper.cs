@@ -70,4 +70,10 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage("No configuration provider registered.")
                 .Build());
+
+    public static SchemaException UnableToLoadConfiguration()
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage("Unable to load the Fusion gateway configuration.")
+                .Build());
 }
