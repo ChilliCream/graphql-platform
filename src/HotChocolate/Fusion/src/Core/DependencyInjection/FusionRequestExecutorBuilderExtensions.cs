@@ -101,7 +101,7 @@ public static class FusionRequestExecutorBuilderExtensions
     public static FusionGatewayBuilder ConfigureFromFile(
         this FusionGatewayBuilder builder,
         string gatewayConfigurationFile,
-        bool watchFileForUpdates = false)
+        bool watchFileForUpdates = true)
     {
         if (builder is null)
         {
