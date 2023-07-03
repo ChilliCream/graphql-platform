@@ -109,6 +109,7 @@ internal sealed class FusionExecutionContext : IDisposable
         return await client.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
+    // TODO: It doesn't seem to be batching anything yet.
     public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
         string subgraphName,
         IReadOnlyList<GraphQLRequest> requests,
