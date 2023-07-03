@@ -4,7 +4,6 @@ using HotChocolate.Fusion;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using static System.Threading.Tasks.TaskCreationOptions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -31,10 +30,15 @@ internal sealed class GatewayConfigurationTypeModule : TypeModule
             config =>
             {
                 _configuration = config.Document;
-                _ready.TrySetResult();
+
+                if (!_ready.Task.IsCompletedSuccessfully)
+                {
+                    _ready.TrySetResult();
+                }
+
                 OnTypesChanged();
             },
-            error => _ready.TrySetException(error),
+            _ => { },
             () => _ready.TrySetCanceled());
     }
 
@@ -42,7 +46,12 @@ internal sealed class GatewayConfigurationTypeModule : TypeModule
         ConfigurationContext context,
         CancellationToken cancellationToken)
     {
-        await _ready.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        if (!_ready.Task.IsCompletedSuccessfully)
+        {
+            await _ready.Task.WaitAsync(cancellationToken)
+                .WaitAsync(TimeSpan.FromSeconds(5), cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         if (_configuration is null)
         {
@@ -60,7 +69,7 @@ internal sealed class GatewayConfigurationTypeModule : TypeModule
         ApplyConfiguration(context.SchemaBuilder, config);
     }
 
-    private void ApplyConfiguration(ISchemaBuilder schemaBuilder, DocumentNode config)
+    private static void ApplyConfiguration(ISchemaBuilder schemaBuilder, DocumentNode config)
     {
         var rewriter = new FusionGraphConfigurationToSchemaRewriter();
         var fusionGraphConfig = FusionGraphConfiguration.Load(config);

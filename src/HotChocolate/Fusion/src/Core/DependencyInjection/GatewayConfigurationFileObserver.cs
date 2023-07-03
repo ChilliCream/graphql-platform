@@ -32,6 +32,9 @@ internal sealed class GatewayConfigurationFileObserver : IObservable<GatewayConf
         {
             _observer = observer;
             _fileName = fileName;
+
+            BeginLoadConfig();
+
             var fullPath = Path.GetFullPath(fileName);
             var directory = Path.GetDirectoryName(fullPath);
 
@@ -86,7 +89,6 @@ internal sealed class GatewayConfigurationFileObserver : IObservable<GatewayConf
                     catch(Exception ex)
                     {
                         _observer.OnError(ex);
-                        _observer.OnCompleted();
                     }
                 });
 
