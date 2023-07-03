@@ -69,7 +69,7 @@ internal sealed class GatewayConfigurationFileObserver : IObservable<GatewayConf
         return new FileConfigurationSession(observer, _filename);
     }
 
-    private class FileConfigurationSession : IDisposable
+    private sealed class FileConfigurationSession : IDisposable
     {
         private readonly IObserver<GatewayConfiguration> _observer;
         private readonly string _fileName;

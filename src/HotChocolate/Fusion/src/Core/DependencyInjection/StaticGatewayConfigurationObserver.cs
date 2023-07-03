@@ -17,7 +17,7 @@ internal sealed class StaticGatewayConfigurationObserver : IObservable<GatewayCo
         return new FileConfigurationSession(observer, _gatewayConfigDoc);
     }
 
-    private class FileConfigurationSession : IDisposable
+    private sealed class FileConfigurationSession : IDisposable
     {
         public FileConfigurationSession(
             IObserver<GatewayConfiguration> observer,
