@@ -2,14 +2,12 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using static HotChocolate.Fusion.Metadata.FusionGraphConfiguration;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -50,9 +48,10 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(gatewayConfigurationDoc));
         }
 
-        return services.AddFusionGatewayServer(
-            (_, _) => new ValueTask<DocumentNode>(gatewayConfigurationDoc),
-            graphName: graphName);
+        return services
+            .AddFusionGatewayServerCore(graphName)
+            .RegisterGatewayConfiguration(
+                _ => new StaticGatewayConfigurationObserver(gatewayConfigurationDoc));
     }
 
     /// <summary>
@@ -82,8 +81,8 @@ public static class FusionRequestExecutorBuilderExtensions
     public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
         string gatewayConfigurationFile,
-        string? graphName = default,
-        bool watchFileForUpdates = false)
+        bool watchFileForUpdates = false,
+        string? graphName = default)
     {
         if (services is null)
         {
@@ -95,13 +94,17 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(gatewayConfigurationFile));
         }
 
-        var builder = services.AddFusionGatewayServer(
-            (_, ct) => LoadDocumentAsync(gatewayConfigurationFile, ct),
-            graphName: graphName);
+        var builder = services.AddFusionGatewayServerCore(graphName);
 
         if (watchFileForUpdates)
         {
-            builder.CoreBuilder.AddTypeModule(_ => new FileWatcherTypeModule(gatewayConfigurationFile));
+            builder.RegisterGatewayConfiguration(
+                _ => new GatewayConfigurationFileObserver(gatewayConfigurationFile));
+        }
+        else
+        {
+            builder.RegisterGatewayConfiguration(
+                _ => new StaticGatewayConfigurationFileObserver(gatewayConfigurationFile));
         }
 
         return builder;
@@ -113,9 +116,6 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="services">
     /// The service collection.
     /// </param>
-    /// <param name="resolveConfig">
-    /// A delegate that is used to resolve the fusion gateway configuration.
-    /// </param>
     /// <param name="graphName">
     /// The name of the fusion graph.
     /// </param>
@@ -124,21 +124,14 @@ public static class FusionRequestExecutorBuilderExtensions
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="resolveConfig"/> is <c>null</c>.
     /// </exception>
-    public static FusionGatewayBuilder AddFusionGatewayServer(
+    public static FusionGatewayBuilder AddFusionGatewayServerCore(
         this IServiceCollection services,
-        GatewayConfigurationResolver resolveConfig,
-        string? graphName = default)
+        string? graphName)
     {
         if (services is null)
         {
             throw new ArgumentNullException(nameof(services));
-        }
-
-        if (resolveConfig is null)
-        {
-            throw new ArgumentNullException(nameof(resolveConfig));
         }
 
         services.AddTransient<IWebSocketConnectionFactory>(
@@ -160,23 +153,18 @@ public static class FusionRequestExecutorBuilderExtensions
                 {
                     c.DefaultPipelineFactory = AddDefaultPipeline;
 
-                    c.OnConfigureRequestExecutorOptionsHooks.Add(
-                        new OnConfigureRequestExecutorOptionsAction(
-                            async: async (ctx, _, ct) =>
-                            {
-                                var rewriter = new FusionGraphConfigurationToSchemaRewriter();
-                                var config = await resolveConfig(new(ctx.ApplicationServices), ct);
-                                var fusionGraphConfig = Load(config);
-                                var schemaDoc = rewriter.Rewrite(config);
-
-                                ctx.SchemaBuilder
-                                    .AddDocument(schemaDoc)
-                                    .SetFusionGraphConfig(fusionGraphConfig);
-                            }));
-
                     c.OnConfigureSchemaServicesHooks.Add(
                         (ctx, sc) =>
                         {
+                            if (!ctx.SchemaBuilder.ContainsFusionGraphConfig())
+                            {
+                                // TODO : Resources
+                                throw new SchemaException(
+                                    SchemaErrorBuilder.New()
+                                        .SetMessage("No configuration provider registered.")
+                                        .Build());
+                            }
+
                             var fusionGraphConfig = ctx.SchemaBuilder.GetFusionGraphConfig();
                             sc.AddSingleton<GraphQLClientFactory>(
                                 sp => CreateGraphQLClientFactory(sp, fusionGraphConfig));
@@ -186,6 +174,26 @@ public static class FusionRequestExecutorBuilderExtensions
                 });
 
         return new FusionGatewayBuilder(builder);
+    }
+
+    public static FusionGatewayBuilder RegisterGatewayConfiguration(
+        this FusionGatewayBuilder builder,
+        Func<IServiceProvider, IObservable<GatewayConfiguration>> factory)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
+
+        builder.Services.AddSingleton(factory);
+        builder.Services.AddSingleton<GatewayConfigurationTypeModule>();
+        builder.CoreBuilder.AddTypeModule<GatewayConfigurationTypeModule>();
+        return builder;
     }
 
     /// <summary>
@@ -380,27 +388,6 @@ public static class FusionRequestExecutorBuilderExtensions
         return new GraphQLClientFactory(map1, map2);
     }
 
-    private static async ValueTask<DocumentNode> LoadDocumentAsync(
-        string fileName,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            // We first try to load the file name as a fusion graph package.
-            // This might fails as a the file that was provided is a fusion
-            // graph document.
-            await using var package = FusionGraphPackage.Open(fileName, FileAccess.Read);
-            return await package.GetFusionGraphAsync(cancellationToken);
-        }
-        catch
-        {
-            // If we fail to load the file as a fusion graph package we will
-            // try to load it as a GraphQL schema document.
-            var sourceText = await File.ReadAllTextAsync(fileName, cancellationToken);
-            return Utf8GraphQLParser.Parse(sourceText);
-        }
-    }
-
     /// <summary>
     /// Builds a <see cref="IRequestExecutor"/> from the specified
     /// <see cref="FusionGatewayBuilder"/>.
@@ -439,18 +426,4 @@ public static class FusionRequestExecutorBuilderExtensions
         string? graphName = default,
         CancellationToken cancellationToken = default)
         => builder.CoreBuilder.BuildSchemaAsync(graphName, cancellationToken);
-}
-
-static file class FileExtensions
-{
-    private const string _fusionGraphConfig = "HotChocolate.Fusion.FusionGraphConfig";
-
-    public static FusionGraphConfiguration GetFusionGraphConfig(
-        this ISchemaBuilder builder)
-        => (FusionGraphConfiguration)builder.ContextData[_fusionGraphConfig]!;
-
-    public static ISchemaBuilder SetFusionGraphConfig(
-        this ISchemaBuilder builder,
-        FusionGraphConfiguration config)
-        => builder.SetContextData(_fusionGraphConfig, config);
 }
