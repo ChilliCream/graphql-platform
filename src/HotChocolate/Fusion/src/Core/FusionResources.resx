@@ -57,4 +57,10 @@
   <data name="CreateSelection_MustBePlaceholderOrSelectExpression" xml:space="preserve">
     <value>Either provide a placeholder or the select expression must be a FieldNode.</value>
   </data>
+  <data name="GatewayConfigurationFileObserver_FileNameNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="FileConfigurationSession_MustContainPath" xml:space="preserve">
+    <value>The file name must contain a directory path.</value>
+  </data>
 </root>

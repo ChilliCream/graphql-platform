@@ -64,4 +64,16 @@ internal static class ThrowHelper
 
     public static InvalidOperationException QueryAndMutationMustExecute()
         => new("A query or mutation execution plan can not be executed as a subscription.");
+
+    public static SchemaException NoConfigurationProvider()
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage("No configuration provider registered.")
+                .Build());
+
+    public static SchemaException UnableToLoadConfiguration()
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage("Unable to load the Fusion gateway configuration.")
+                .Build());
 }

@@ -1,3 +1,5 @@
+using HotChocolate.Execution.Configuration;
+
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
@@ -11,13 +13,23 @@ public readonly struct GatewayConfigurationContext
     /// <param name="services">
     /// The service provider.
     /// </param>
-    public GatewayConfigurationContext(IServiceProvider services)
+    /// <param name="typeModules">
+    ///
+    /// </param>
+    public GatewayConfigurationContext(IServiceProvider services, IReadOnlyList<ITypeModule> typeModules)
     {
         Services = services ?? throw new ArgumentNullException(nameof(services));
+        TypeModules = typeModules;
     }
 
     /// <summary>
     /// Gets the service provider.
     /// </summary>
     public IServiceProvider Services { get; }
+
+
+    /// <summary>
+    /// Get Gateway Type Modules.
+    /// </summary>
+    public IReadOnlyList<ITypeModule> TypeModules { get; }
 }

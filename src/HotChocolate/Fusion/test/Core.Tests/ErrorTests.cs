@@ -43,7 +43,8 @@ public class ErrorTests
             .AddSingleton<IHttpClientFactory>(
                 new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -92,7 +93,8 @@ public class ErrorTests
             .AddSingleton<IHttpClientFactory>(
                 new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -141,7 +143,8 @@ public class ErrorTests
             .AddSingleton<IHttpClientFactory>(
                 new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
