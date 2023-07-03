@@ -37,7 +37,8 @@ public class InterfaceTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -86,7 +87,8 @@ public class InterfaceTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -140,7 +142,8 @@ public class InterfaceTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(

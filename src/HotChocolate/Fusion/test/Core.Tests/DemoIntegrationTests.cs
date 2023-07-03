@@ -82,7 +82,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -132,7 +133,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -176,7 +178,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -224,7 +227,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync(cancellationToken: cts.Token);
 
         var request = Parse(
@@ -273,7 +277,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync(cancellationToken: cts.Token);
 
         var request = Parse(
@@ -320,7 +325,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -385,7 +391,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -434,7 +441,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -483,7 +491,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -531,7 +540,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -582,7 +592,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -634,7 +645,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -680,7 +692,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -736,7 +749,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -788,7 +802,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -840,7 +855,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -890,7 +906,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -945,7 +962,7 @@ public class DemoIntegrationTests
         var services = new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServerCore(null)
+            .AddFusionGatewayServer(null)
             .RegisterGatewayConfiguration(_ => config)
             .Services
             .BuildServiceProvider();
@@ -1017,7 +1034,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -1061,7 +1079,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -1113,7 +1132,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -1167,7 +1187,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -1224,7 +1245,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -1284,7 +1306,8 @@ public class DemoIntegrationTests
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync();
 
         var request = Parse(

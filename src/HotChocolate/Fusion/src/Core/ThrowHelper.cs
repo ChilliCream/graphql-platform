@@ -64,4 +64,10 @@ internal static class ThrowHelper
 
     public static InvalidOperationException QueryAndMutationMustExecute()
         => new("A query or mutation execution plan can not be executed as a subscription.");
+
+    public static SchemaException NoConfigurationProvider()
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage("No configuration provider registered.")
+                .Build());
 }

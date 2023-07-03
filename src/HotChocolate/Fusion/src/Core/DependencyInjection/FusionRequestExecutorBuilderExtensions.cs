@@ -8,6 +8,7 @@ using HotChocolate.Fusion.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using static HotChocolate.Fusion.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -20,9 +21,6 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="services">
     /// The service collection.
     /// </param>
-    /// <param name="gatewayConfigurationDoc">
-    /// The fusion gateway configuration document.
-    /// </param>
     /// <param name="graphName">
     /// The name of the fusion graph.
     /// </param>
@@ -31,103 +29,10 @@ public static class FusionRequestExecutorBuilderExtensions
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="gatewayConfigurationDoc"/> is <c>null</c>.
     /// </exception>
     public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
-        DocumentNode gatewayConfigurationDoc,
-        string? graphName = default)
-    {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (gatewayConfigurationDoc is null)
-        {
-            throw new ArgumentNullException(nameof(gatewayConfigurationDoc));
-        }
-
-        return services
-            .AddFusionGatewayServerCore(graphName)
-            .RegisterGatewayConfiguration(
-                _ => new StaticGatewayConfigurationObserver(gatewayConfigurationDoc));
-    }
-
-    /// <summary>
-    /// Adds a Fusion GraphQL Gateway to the service collection.
-    /// </summary>
-    /// <param name="services">
-    /// The service collection.
-    /// </param>
-    /// <param name="gatewayConfigurationFile">
-    /// The path to the fusion gateway configuration file.
-    /// </param>
-    /// <param name="graphName">
-    /// The name of the fusion graph.
-    /// </param>
-    /// <param name="watchFileForUpdates">
-    /// If set to <c>true</c> the fusion graph file will be watched for updates and
-    /// the schema is rebuild whenever the file changes.
-    /// </param>
-    /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="gatewayConfigurationFile"/> is <c>null</c> or
-    /// <paramref name="gatewayConfigurationFile"/> is equals to <see cref="string.Empty"/>.
-    /// </exception>
-    public static FusionGatewayBuilder AddFusionGatewayServer(
-        this IServiceCollection services,
-        string gatewayConfigurationFile,
-        bool watchFileForUpdates = false,
-        string? graphName = default)
-    {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (string.IsNullOrEmpty(gatewayConfigurationFile))
-        {
-            throw new ArgumentNullException(nameof(gatewayConfigurationFile));
-        }
-
-        var builder = services.AddFusionGatewayServerCore(graphName);
-
-        if (watchFileForUpdates)
-        {
-            builder.RegisterGatewayConfiguration(
-                _ => new GatewayConfigurationFileObserver(gatewayConfigurationFile));
-        }
-        else
-        {
-            builder.RegisterGatewayConfiguration(
-                _ => new StaticGatewayConfigurationFileObserver(gatewayConfigurationFile));
-        }
-
-        return builder;
-    }
-
-    /// <summary>
-    /// Adds a Fusion GraphQL Gateway to the service collection.
-    /// </summary>
-    /// <param name="services">
-    /// The service collection.
-    /// </param>
-    /// <param name="graphName">
-    /// The name of the fusion graph.
-    /// </param>
-    /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="services"/> is <c>null</c> or
-    /// </exception>
-    public static FusionGatewayBuilder AddFusionGatewayServerCore(
-        this IServiceCollection services,
-        string? graphName)
+        string? graphName = null)
     {
         if (services is null)
         {
@@ -158,11 +63,7 @@ public static class FusionRequestExecutorBuilderExtensions
                         {
                             if (!ctx.SchemaBuilder.ContainsFusionGraphConfig())
                             {
-                                // TODO : Resources
-                                throw new SchemaException(
-                                    SchemaErrorBuilder.New()
-                                        .SetMessage("No configuration provider registered.")
-                                        .Build());
+                                throw NoConfigurationProvider();
                             }
 
                             var fusionGraphConfig = ctx.SchemaBuilder.GetFusionGraphConfig();
@@ -174,6 +75,91 @@ public static class FusionRequestExecutorBuilderExtensions
                 });
 
         return new FusionGatewayBuilder(builder);
+    }
+
+    /// <summary>
+    /// Specifies that the gateway configuration is loaded from a file.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="gatewayConfigurationFile">
+    /// The path to the fusion gateway configuration file.
+    /// </param>
+    /// <param name="watchFileForUpdates">
+    /// If set to <c>true</c> the fusion graph file will be watched for updates and
+    /// the schema is rebuild whenever the file changes.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c> or
+    /// <paramref name="gatewayConfigurationFile"/> is <c>null</c> or
+    /// <paramref name="gatewayConfigurationFile"/> is equals to <see cref="string.Empty"/>.
+    /// </exception>
+    public static FusionGatewayBuilder ConfigureFromFile(
+        this FusionGatewayBuilder builder,
+        string gatewayConfigurationFile,
+        bool watchFileForUpdates = false)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (string.IsNullOrEmpty(gatewayConfigurationFile))
+        {
+            throw new ArgumentNullException(nameof(gatewayConfigurationFile));
+        }
+
+        if (watchFileForUpdates)
+        {
+            builder.RegisterGatewayConfiguration(
+                _ => new GatewayConfigurationFileObserver(gatewayConfigurationFile));
+        }
+        else
+        {
+            builder.RegisterGatewayConfiguration(
+                _ => new StaticGatewayConfigurationFileObserver(gatewayConfigurationFile));
+        }
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Specifies that the gateway configuration is loaded from an in-memory GraphQL document.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="gatewayConfigurationDoc">
+    /// The fusion gateway configuration document.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c> or
+    /// <paramref name="gatewayConfigurationDoc"/> is <c>null</c>.
+    /// </exception>
+    public static FusionGatewayBuilder ConfigureFromDocument(
+        this FusionGatewayBuilder builder,
+        DocumentNode gatewayConfigurationDoc)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (gatewayConfigurationDoc is null)
+        {
+            throw new ArgumentNullException(nameof(gatewayConfigurationDoc));
+        }
+
+        return builder
+            .RegisterGatewayConfiguration(
+                _ => new StaticGatewayConfigurationObserver(gatewayConfigurationDoc));
     }
 
     public static FusionGatewayBuilder RegisterGatewayConfiguration(
