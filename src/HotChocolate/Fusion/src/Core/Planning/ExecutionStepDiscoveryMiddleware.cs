@@ -586,9 +586,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     break;
 
                 case ResolverKind.Batch:
-                    resolver = current;
-                    break;
-
                 case ResolverKind.BatchByKey:
                     resolver = current;
                     break;
