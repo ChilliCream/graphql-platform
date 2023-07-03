@@ -162,6 +162,20 @@ public static class FusionRequestExecutorBuilderExtensions
                 _ => new StaticGatewayConfigurationObserver(gatewayConfigurationDoc));
     }
 
+    /// <summary>
+    /// Registers an observable Gateway configuration.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="factory">
+    /// The factory that creates the observable Gateway configuration.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c> or
+    /// <paramref name="factory"/> is <c>null</c>.
+    /// </exception>
     public static FusionGatewayBuilder RegisterGatewayConfiguration(
         this FusionGatewayBuilder builder,
         Func<IServiceProvider, IObservable<GatewayConfiguration>> factory)
