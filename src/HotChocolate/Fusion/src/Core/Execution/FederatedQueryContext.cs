@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
@@ -114,17 +115,20 @@ internal sealed class FusionExecutionContext : IDisposable
         IReadOnlyList<GraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
+        if(requests.Count == 1)
+        {
+            return new[] { await ExecuteAsync(subgraphName, requests[0], cancellationToken) };
+        }
+
         await using var client = _clientFactory.CreateClient(subgraphName);
-        var responses = new GraphQLResponse[requests.Count];
+        var tasks = new Task<GraphQLResponse>[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
         {
-            responses[i] =
-                await client.ExecuteAsync(requests[i], cancellationToken)
-                    .ConfigureAwait(false);
+            tasks[i] = client.ExecuteAsync(requests[i], cancellationToken);
         }
 
-        return responses;
+        return await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     public async IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
