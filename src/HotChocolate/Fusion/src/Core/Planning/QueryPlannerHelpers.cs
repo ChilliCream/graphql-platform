@@ -53,21 +53,26 @@ internal static class QueryPlannerHelpers
 
             foreach (var selection in currentSelections)
             {
-                if (!selection.Field.IsIntrospectionField &&
-                    currentTypeContext.Fields[selection.Field.Name].Bindings
+                var field = selection.Field;
+                if (field.IsIntrospectionField ||
+                    !currentTypeContext.Fields[field.Name].Bindings
                         .ContainsSubgraph(schemaName))
                 {
-                    score++;
+                    continue;
+                }
 
-                    if (selection.SelectionSet is not null)
-                    {
-                        foreach (var possibleType in operation.GetPossibleTypes(selection))
-                        {
-                            var type = configuration.GetType<ObjectTypeInfo>(possibleType.Name);
-                            var selectionSet = operation.GetSelectionSet(selection, possibleType);
-                            stack.Push((selectionSet.Selections, type));
-                        }
-                    }
+                score++;
+
+                if (selection.SelectionSet is null)
+                {
+                    continue;
+                }
+
+                foreach (var possibleType in operation.GetPossibleTypes(selection))
+                {
+                    var type = configuration.GetType<ObjectTypeInfo>(possibleType.Name);
+                    var selectionSet = operation.GetSelectionSet(selection, possibleType);
+                    stack.Push((selectionSet.Selections, type));
                 }
             }
         }
