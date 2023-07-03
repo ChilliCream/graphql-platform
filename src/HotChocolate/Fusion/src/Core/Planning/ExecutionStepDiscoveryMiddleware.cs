@@ -10,9 +10,8 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// The request planer will rewrite the <see cref="IOperation"/> into
-/// execution steps that outline the rough structure of the execution
-/// plan.
+/// The request planner will rewrite the <see cref="IOperation"/> into
+/// execution steps that outline the rough structure of the execution plan.
 /// </summary>
 internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 {
