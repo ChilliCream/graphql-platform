@@ -36,6 +36,7 @@ internal static class QueryPlannerHelpers
         return bestSubgraph;
     }
 
+    // Returns the count of matching fields in the subgraph (?)
     private static int EvaluateSubgraphCompatibilityScore(
         FusionGraphConfiguration configuration,
         IOperation operation,

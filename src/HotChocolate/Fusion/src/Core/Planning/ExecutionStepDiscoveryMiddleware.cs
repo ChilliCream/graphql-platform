@@ -109,8 +109,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 selectionSetTypeInfo);
             leftovers = null;
 
-            // we will first try to resolve and set an entity resolver.
-            // The entity resolver is like a patch fetch from a subgraph where
+            // We will first try to resolve and set an entity resolver.
+            // The entity resolver is like a patch fetched from a subgraph where
             // the resulting data is merged into the current selection set.
             TrySetEntityResolver(
                 selectionSetTypeInfo,
@@ -514,12 +514,16 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         IOperation operation,
         ISelection? parentSelection,
         bool preferBatching)
-        => operation.Type is OperationType.Subscription &&
-            parentSelection is null
-                ? PreferredResolverKind.Subscription
-                : preferBatching
-                    ? PreferredResolverKind.Batch
-                    : PreferredResolverKind.Query;
+    {
+        if (operation.Type == OperationType.Subscription && parentSelection is null)
+        {
+            return PreferredResolverKind.Subscription;
+        }
+
+        return preferBatching
+            ? PreferredResolverKind.Batch
+            : PreferredResolverKind.Query;
+    }
 
 
     private static bool TryGetResolver(
@@ -550,18 +554,19 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 : PreferredResolverKind.Query,
             out resolver);
 
-    private static bool TryGetResolver(
+    private static ResolverDefinition? MaybeGetResolver(
         ResolverDefinitionCollection resolverDefinitions,
         string schemaName,
         HashSet<string> variablesInContext,
-        PreferredResolverKind preference,
-        [NotNullWhen(true)] out ResolverDefinition? resolver)
+        PreferredResolverKind preference)
     {
-        resolver = null;
+        if (!resolverDefinitions.TryGetValue(schemaName, out var resolvers))
+            return null;
 
-        if (resolverDefinitions.TryGetValue(schemaName, out var resolvers))
+        ResolverDefinition? resolver = null;
+
+        foreach (var current in resolvers)
         {
-            foreach (var current in resolvers)
             {
                 var canBeUsed = true;
 
@@ -574,50 +579,45 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     }
                 }
 
-                if (canBeUsed)
-                {
-                    if (preference is PreferredResolverKind.Subscription)
-                    {
-                        if (current.Kind is ResolverKind.Subscription)
-                        {
-                            resolver = current;
-                            return true;
-                        }
+                if (!canBeUsed)
+                    continue;
+            }
 
-                        resolver = null;
-                    }
-                    else
-                    {
-                        switch (current.Kind)
-                        {
-                            case ResolverKind.Batch:
-                                resolver = current;
+            if ((ResolverKind)preference == current.Kind)
+                return current;
 
-                                if (preference is PreferredResolverKind.Batch)
-                                {
-                                    return true;
-                                }
-                                break;
+            switch (current.Kind)
+            {
+                case ResolverKind.Subscription:
+                    resolver = null;
+                    break;
 
-                            case ResolverKind.BatchByKey:
-                                resolver = current;
-                                break;
+                case ResolverKind.Batch:
+                    resolver = current;
+                    break;
 
-                            default:
-                                if (preference is PreferredResolverKind.Query)
-                                {
-                                    resolver = current;
-                                    return true;
-                                }
+                case ResolverKind.BatchByKey:
+                    resolver = current;
+                    break;
 
-                                resolver ??= current;
-                                break;
-                        }
-                    }
-                }
+                default:
+                    resolver ??= current;
+                    break;
             }
         }
 
+        return resolver;
+    }
+
+    private static bool TryGetResolver(
+        ResolverDefinitionCollection resolverDefinitions,
+        string schemaName,
+        HashSet<string> variablesInContext,
+        PreferredResolverKind preference,
+        [NotNullWhen(true)] out ResolverDefinition? resolver)
+    {
+        resolver = MaybeGetResolver(
+            resolverDefinitions, schemaName, variablesInContext, preference);
         return resolver is not null;
     }
 
@@ -743,8 +743,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
     private enum PreferredResolverKind
     {
-        Query,
-        Batch,
-        Subscription
+        Query = ResolverKind.Query,
+        Batch = ResolverKind.Batch,
+        Subscription = ResolverKind.Subscription,
     }
 }
