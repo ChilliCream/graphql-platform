@@ -181,13 +181,18 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     public IQueryRequestBuilder SetProperty(string name, object? value)
         => SetGlobalState(name, value);
 
+    public Dictionary<string, object?> GetContextDataForMutation()
+    {
+        InitializeContextData();
+        return _contextData!;
+    }
+
     /// <inheritdoc />
     public IQueryRequestBuilder SetGlobalState(
         string name, object? value)
     {
-        InitializeContextData();
-
-        _contextData![name] = value;
+        var contextData = GetContextDataForMutation();
+        contextData[name] = value;
         return this;
     }
 
@@ -200,9 +205,8 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     public IQueryRequestBuilder AddGlobalState(
         string name, object? value)
     {
-        InitializeContextData();
-
-        _contextData!.Add(name, value);
+        var contextData = GetContextDataForMutation();
+        contextData.Add(name, value);
         return this;
     }
 
@@ -215,12 +219,8 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     public IQueryRequestBuilder TryAddGlobalState(
         string name, object? value)
     {
-        InitializeContextData();
-
-        if (!_contextData!.ContainsKey(name))
-        {
-            _contextData!.Add(name, value);
-        }
+        var contextData = GetContextDataForMutation();
+        contextData.TryAdd(name, value);
         return this;
     }
 

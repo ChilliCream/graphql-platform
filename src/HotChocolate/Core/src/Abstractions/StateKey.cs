@@ -68,6 +68,13 @@ public static class ContextDataExtensions
         return contextData.ContainsKey(key);
     }
 
+    public static bool Has(
+        this IDictionary<string, object?> contextData,
+        StateFlagKey key)
+    {
+        return contextData.ContainsKey(key);
+    }
+
     public static void Add(
         this IDictionary<string, object?> contextData,
         StateFlagKey key)

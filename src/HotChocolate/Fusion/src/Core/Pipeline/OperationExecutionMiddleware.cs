@@ -48,8 +48,7 @@ internal sealed class DistributedOperationExecutionMiddleware
     {
         if (context.Operation is not null &&
             context.Variables is not null &&
-            context.Operation.ContextData.TryGetValue(PipelineProps.QueryPlan, out var value) &&
-            value is QueryPlan queryPlan)
+            context.Operation.ContextData.TryGet(PipelineProps.QueryPlan, out var queryPlan))
         {
             var operationContextOwner = _contextFactory.Create();
             var operationContext = operationContextOwner.OperationContext;
