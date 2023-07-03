@@ -180,7 +180,7 @@ internal sealed class FusionGraphConfigurationReader
             name = subgraph;
         }
 
-        return new HttpClientConfiguration(name, subgraph, new Uri(baseAddress));
+        return new HttpClientConfiguration(name, subgraph, new Uri(baseAddress), directiveNode);
 
         static void OptionalArgs(HashSet<string> assert)
         {
@@ -239,7 +239,7 @@ internal sealed class FusionGraphConfigurationReader
             name = subgraph;
         }
 
-        return new WebSocketClientConfiguration(name, subgraph, new Uri(baseAddress));
+        return new WebSocketClientConfiguration(name, subgraph, new Uri(baseAddress), directiveNode);
 
         static void OptionalArgs(HashSet<string> assert)
         {
