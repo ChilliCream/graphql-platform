@@ -46,6 +46,7 @@ internal sealed class StaticGatewayConfigurationFileObserver : IObservable<Gatew
 
         public void Dispose()
         {
+            // there is nothing to dispose here.
         }
     }
 }
