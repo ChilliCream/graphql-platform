@@ -20,9 +20,7 @@ internal sealed class GatewayConfigurationFileObserver : IObservable<GatewayConf
     }
 
     public IDisposable Subscribe(IObserver<GatewayConfiguration> observer)
-    {
-        return new FileConfigurationSession(observer, _filename);
-    }
+        => new FileConfigurationSession(observer, _filename);
 
     private sealed class FileConfigurationSession : IDisposable
     {
