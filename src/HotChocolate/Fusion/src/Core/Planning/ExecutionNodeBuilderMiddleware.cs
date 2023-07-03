@@ -68,14 +68,19 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
         foreach (var executionStep in executionSteps)
         {
+            void RegisterNode(QueryPlanNode node)
+            {
+                context.RegisterNode(node, executionStep);
+                context.RegisterSelectionSet(context.Operation.RootSelectionSet);
+                handled.Add(executionStep);
+            }
+
             if (executionStep is NodeExecutionStep nodeStep)
             {
                 var nodeResolverNode = new ResolveNode(
                     context.NextNodeId(),
                     nodeStep.NodeSelection);
-                context.RegisterNode(nodeResolverNode, nodeStep);
-                context.RegisterSelectionSet(context.Operation.RootSelectionSet);
-                handled.Add(nodeStep);
+                RegisterNode(nodeResolverNode);
 
                 foreach (var entityStep in nodeStep.EntitySteps)
                 {
@@ -90,14 +95,12 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 }
             }
 
-            if (executionStep is IntrospectionExecutionStep)
+            else if (executionStep is IntrospectionExecutionStep)
             {
                 var introspectionNode = new Introspect(
                     context.NextNodeId(),
                     context.Operation.RootSelectionSet);
-                context.RegisterNode(introspectionNode, executionStep);
-                context.RegisterSelectionSet(context.Operation.RootSelectionSet);
-                handled.Add(executionStep);
+                RegisterNode(introspectionNode);
             }
         }
 

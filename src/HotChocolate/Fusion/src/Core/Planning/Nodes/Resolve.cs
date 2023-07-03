@@ -69,64 +69,62 @@ internal sealed class Resolve : ResolverNodeBase
         ExecutionState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var workItems))
+        if (!state.TryGetState(SelectionSet, out var workItems))
         {
-            var schemaName = SubgraphName;
-            var requests = new GraphQLRequest[workItems.Count];
+            return;
+        }
 
-            // first we will create a request for all of our work items.
-            for (var i = 0; i < workItems.Count; i++)
+        var schemaName = SubgraphName;
+        var requests = new GraphQLRequest[workItems.Count];
+
+        for (var i = 0; i < workItems.Count; i++)
+        {
+            var workItem = workItems[i];
+            MaybeInitializeWorkItem(context.QueryPlan, workItem);
+            requests[i] = CreateRequest(
+                context.OperationContext.Variables,
+                workItem.VariableValues);
+        }
+
+        // Enqueue the requests for execution.
+        // The execution engine will batch them requests when possible.
+        var responses = await context.ExecuteAsync(
+            schemaName,
+            requests,
+            cancellationToken)
+            .ConfigureAwait(false);
+
+        // Since we are not fully deserializing the responses we cannot release the memory here
+        // but need to wait until the transport layer is finished to dispose the result.
+        context.Result.RegisterForCleanup(
+            responses,
+            r =>
             {
-                var workItem = workItems[i];
-                TryInitializeWorkItem(context.QueryPlan, workItem);
-                requests[i] = CreateRequest(
-                    context.OperationContext.Variables,
-                    workItem.VariableValues);
-            }
-
-            // once we have the requests, we will enqueue them for execution with the execution engine.
-            // the execution engine will batch these requests if possible.
-            var responses = await context.ExecuteAsync(
-                schemaName,
-                requests,
-                cancellationToken)
-                .ConfigureAwait(false);
-
-            // before we extract the data from the responses we will enqueue the responses
-            // for cleanup so that the memory can be released at the end of the execution.
-            // Since we are not fully deserializing the responses we cannot release the memory here
-            // but need to wait until the transport layer is finished and disposes the result.
-            context.Result.RegisterForCleanup(
-                responses,
-                r =>
+                for (var i = 0; i < r.Count; i++)
                 {
-                    for (var i = 0; i < r.Count; i++)
-                    {
-                        r[i].Dispose();
-                    }
-                    return default!;
-                });
+                    r[i].Dispose();
+                }
+                return default!;
+            });
 
-            for (var i = 0; i < requests.Length; i++)
-            {
-                var response = responses[i];
-                var workItem = workItems[i];
+        for (var i = 0; i < requests.Length; i++)
+        {
+            var response = responses[i];
+            var workItem = workItems[i];
 
-                var data = UnwrapResult(response);
-                var selectionSet = workItem.SelectionSet;
-                var selectionResults = workItem.SelectionSetData;
-                var exportKeys = workItem.ExportKeys;
-                var variableValues = workItem.VariableValues;
+            var data = UnwrapResult(response);
+            var selectionSet = workItem.SelectionSet;
+            var selectionResults = workItem.SelectionSetData;
+            var exportKeys = workItem.ExportKeys;
+            var variableValues = workItem.VariableValues;
 
-                ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
+            ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
 
-                // we extract the selection data from the request and add it to the
-                // workItem results.
-                ExtractSelectionResults(SelectionSet, schemaName, data, selectionResults);
+            // Write the selection data into selectionResults.
+            ExtractSelectionResults(SelectionSet, schemaName, data, selectionResults);
 
-                // next we need to extract any variables that we need for followup requests.
-                ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);
-            }
+            // Certain variables may be needed for followup requests.
+            ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);
         }
     }
 
