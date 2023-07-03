@@ -37,8 +37,6 @@ internal sealed class QueryPlanContext
 
     public bool HasIntrospectionSelections { get; set; }
 
-    public bool HasHandledSpecialQueryFields { get; set; }
-
     public NameNode CreateRemoteOperationName()
         => new($"{_opName}_{++_opId}");
 

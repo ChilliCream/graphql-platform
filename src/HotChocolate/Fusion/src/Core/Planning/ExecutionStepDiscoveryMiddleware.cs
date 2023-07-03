@@ -54,6 +54,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         var selections = context.Operation.RootSelectionSet.Selections;
         var backlog = new Queue<BacklogItem>();
 
+        HandleSpecialQuerySelections(
+            context,
+            context.Operation,
+            ref selections,
+            selectionSetType,
+            backlog);
+
         CreateExecutionSteps(
             context,
             backlog,
@@ -87,24 +94,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         var variablesInContext = new HashSet<string>();
         var operation = context.Operation;
         List<ISelection>? leftovers = null;
-
-        // if this is the root selection set of a query we will
-        // look for some special selections.
-        if (!context.HasHandledSpecialQueryFields && parentSelection is null)
-        {
-            HandleSpecialQuerySelections(
-                context,
-                operation,
-                ref selections,
-                selectionSetTypeInfo,
-                backlog);
-            context.HasHandledSpecialQueryFields = true;
-
-            if (selections.Count == 0)
-            {
-                return;
-            }
-        }
 
         do
         {
