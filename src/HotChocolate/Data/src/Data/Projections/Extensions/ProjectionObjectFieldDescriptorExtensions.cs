@@ -212,7 +212,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var convention = context.DescriptorContext.GetProjectionConvention(scope);
         RegisterOptimizer(definition.ContextData, convention.CreateOptimizer());
 
-        definition.ContextData[ProjectionContextIdentifier] = true;
+        definition.ContextData.Add(ProjectionContextKey);
 
         var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;

@@ -14,7 +14,7 @@ internal static class OutputFieldExtensions
         => field.ContextData.TryGet(IsProjectedKey, out var isProjectedObject) && !isProjectedObject;
 
     private static bool HasProjectionMiddleware(this IOutputField field)
-        => field.ContextData.ContainsKey(ProjectionContextIdentifier);
+        => field.ContextData.Has(ProjectionContextKey);
 
     private static bool IsPagingField(this IOutputField field)
         => field.Type.NamedType() is IPageType;

@@ -33,7 +33,7 @@ public abstract class ProjectionProvider
         new RewriteToIndexerOptimizer()
     };
 
-    public const string ProjectionContextIdentifier = "ProjectionMiddleware";
+    public static readonly StateFlagKey ProjectionContextKey = StateFlagKey.Create("ProjectionMiddleware");
 
     protected ProjectionProvider()
     {
