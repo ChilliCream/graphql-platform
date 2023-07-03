@@ -28,6 +28,7 @@ internal sealed class StaticGatewayConfigurationObserver : IObservable<GatewayCo
 
         public void Dispose()
         {
+            // there is nothing to dispose here.
         }
     }
 }
