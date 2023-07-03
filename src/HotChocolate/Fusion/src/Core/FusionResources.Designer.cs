@@ -128,5 +128,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("GatewayConfigurationFileObserver_FileNameNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string FileConfigurationSession_MustContainPath {
+            get {
+                return ResourceManager.GetString("FileConfigurationSession_MustContainPath", resourceCulture);
+            }
+        }
     }
 }

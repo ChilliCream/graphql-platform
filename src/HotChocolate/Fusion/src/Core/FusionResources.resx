@@ -60,4 +60,7 @@
   <data name="GatewayConfigurationFileObserver_FileNameNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
+  <data name="FileConfigurationSession_MustContainPath" xml:space="preserve">
+    <value>The file name must contain a directory path.</value>
+  </data>
 </root>

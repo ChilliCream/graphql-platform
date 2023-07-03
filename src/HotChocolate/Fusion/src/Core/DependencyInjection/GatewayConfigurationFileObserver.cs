@@ -39,9 +39,8 @@ internal sealed class GatewayConfigurationFileObserver : IObservable<GatewayConf
 
             if (directory is null)
             {
-                // TODO : resources
                 throw new FileNotFoundException(
-                    "The file name must contain a directory path.",
+                    FileConfigurationSession_MustContainPath,
                     fileName);
             }
 
