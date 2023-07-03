@@ -13,10 +13,17 @@ internal static class QueryPlannerHelpers
         ObjectTypeInfo typeInfoContext,
         IReadOnlyList<string>? availableSubgraphs = null)
     {
+        availableSubgraphs ??= configuration.SubgraphNames;
+
+        if (availableSubgraphs.Count == 1)
+        {
+            return availableSubgraphs[0];
+        }
+
         var bestScore = 0;
         var bestSubgraph = configuration.SubgraphNames[0];
 
-        foreach (var subgraphName in availableSubgraphs ?? configuration.SubgraphNames)
+        foreach (var subgraphName in availableSubgraphs)
         {
             var score =
                 EvaluateSubgraphCompatibilityScore(

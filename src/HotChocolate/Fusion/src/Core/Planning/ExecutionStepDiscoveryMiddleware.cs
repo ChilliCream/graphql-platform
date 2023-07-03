@@ -433,20 +433,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         var operation = context.Operation;
         var queryType = operation.RootType;
 
-        // we will first determine from which subgraph we can
-        // fetch an entity through the node resolver.
+        // Determine from which subgraph's entity resolver to fetch the entity.
         var availableSubgraphs = _config.GetAvailableSubgraphs(entityTypeInfo.Name);
-
-        // next we determine the best subgraph to fetch from.
-        var subgraph =
-            availableSubgraphs.Count == 1
-                ? availableSubgraphs[0]
-                : _config.GetBestMatchingSubgraph(
-                    operation,
-                    entityTypeSelectionSet.Selections,
-                    entityTypeInfo,
-                    availableSubgraphs);
-
+        var subgraph = _config.GetBestMatchingSubgraph(
+            operation,
+            entityTypeSelectionSet.Selections,
+            entityTypeInfo,
+            availableSubgraphs);
 
         var field = nodeSelection.Field;
         var fieldInfo = queryTypeInfo.Fields[field.Name];
@@ -646,7 +639,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         }
 
         var field = declaringTypeInfo.Fields[selection.Field.Name];
-
         foreach (var variable in field.Variables)
         {
             variablesInContext.Add(variable.Name);
@@ -738,6 +730,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         public IReadOnlyList<ISelection> Selections { get; }
 
+        // NOTE: Don't remove, ig it's reserved for later?
         public bool PreferBatching { get; }
     }
 
