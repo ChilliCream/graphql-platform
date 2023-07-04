@@ -1,0 +1,42 @@
+using System.Collections.Generic;
+using System.Diagnostics;
+
+namespace HotChocolate.Data.ExpressionNodes;
+
+public abstract class PlanMetaTreeVisitor<TContext>
+{
+    public virtual void Visit(PlanMetaTree tree, TContext context)
+    {
+        Visit(tree.Root, context);
+    }
+
+    public virtual void Visit(ExpressionNode node, TContext context)
+    {
+        Debug.Assert(node.Scope is not null);
+        VisitScope(node.Scope!, context);
+
+        var children = node.Children;
+        if (children is not null)
+            VisitChildren(children, context);
+    }
+
+    public virtual void VisitChildren(List<ExpressionNode> children, TContext context)
+    {
+        foreach (var child in children)
+            VisitChild(child, context);
+    }
+
+    public virtual void VisitChild(ExpressionNode child, TContext context)
+    {
+        Visit(child, context);
+    }
+
+    public virtual void VisitScope(Scope scope, TContext context)
+    {
+        Debug.Assert(scope is not null);
+        // if (scope.ParentScope is { } parentScope)
+        //     VisitScope(parentScope, context);
+
+        Visit(scope.Instance!, context);
+    }
+}
