@@ -4,13 +4,28 @@ namespace HotChocolate.Data.ExpressionNodes;
 
 public interface IVariableContext
 {
-    IReadOnlyDictionary<Identifier, BoxExpression> Expressions { get; }
+    IReadOnlyDictionary<Identifier, BoxExpressions> Expressions { get; }
     IReadOnlyDictionary<Identifier, IBox> Boxes { get; }
+}
+
+public sealed class VariableContext : IVariableContext
+{
+    public IReadOnlyDictionary<Identifier, BoxExpressions> Expressions { get; }
+    public IReadOnlyDictionary<Identifier, IBox> Boxes { get; }
+
+    public VariableContext(
+        IReadOnlyDictionary<Identifier, BoxExpressions> expressions,
+        IReadOnlyDictionary<Identifier, IBox> boxes)
+    {
+        Expressions = expressions;
+        Boxes = boxes;
+    }
+
 }
 
 public static class ParameterContextExtensions
 {
-    public static BoxExpression GetParameter(
+    public static BoxExpressions GetExpressions(
         this IVariableContext context, Identifier id)
     {
         return context.Expressions[id];
@@ -25,7 +40,7 @@ public static class ParameterContextExtensions
     public static VariableExpressionsEnumerable.Enumerator GetEnumerator(
         this IVariableContext context, ReadOnlyStructuralDependencies dependencies)
     {
-        return new VariableExpressionsEnumerable(dependencies, context).GetEnumerator();
+        return GetEnumerable(context, dependencies).GetEnumerator();
     }
 
     public static T? GetValue<T>(

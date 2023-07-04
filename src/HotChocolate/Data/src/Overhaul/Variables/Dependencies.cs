@@ -53,7 +53,7 @@ public readonly struct VariableExpressionsEnumerable
         private readonly IVariableContext _variables;
         private readonly bool _iteratingAll;
         private HashSet<Identifier>.Enumerator _idEnumerator;
-        private Dictionary<Identifier, BoxExpression>.Enumerator _boxExpressionsEnumerator;
+        private Dictionary<Identifier, BoxExpressions>.Enumerator _boxExpressionsEnumerator;
 
         public Enumerator(VariableExpressionsEnumerable enumerable)
         {
@@ -62,7 +62,7 @@ public readonly struct VariableExpressionsEnumerable
             if (_iteratingAll)
                 _idEnumerator = ((HashSet<Identifier>) enumerable._dependencies.VariableIds!).GetEnumerator();
             else
-                _boxExpressionsEnumerator = ((Dictionary<Identifier, BoxExpression>) enumerable._context.Expressions).GetEnumerator();
+                _boxExpressionsEnumerator = ((Dictionary<Identifier, BoxExpressions>) enumerable._context.Expressions).GetEnumerator();
         }
 
         public bool MoveNext()
@@ -73,7 +73,7 @@ public readonly struct VariableExpressionsEnumerable
                 return _idEnumerator.MoveNext();
         }
 
-        public readonly (Identifier Id, BoxExpression Box) Current
+        public readonly (Identifier Id, BoxExpressions Box) Current
         {
             get
             {
@@ -85,7 +85,7 @@ public readonly struct VariableExpressionsEnumerable
                 else
                 {
                     var id = _idEnumerator.Current;
-                    var box = _variables.GetParameter(id);
+                    var box = _variables.GetExpressions(id);
                     return (id, box);
                 }
             }

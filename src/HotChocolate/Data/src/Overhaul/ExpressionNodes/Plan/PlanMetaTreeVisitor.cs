@@ -12,8 +12,8 @@ public abstract class PlanMetaTreeVisitor<TContext>
 
     public virtual void Visit(ExpressionNode node, TContext context)
     {
-        Debug.Assert(node.Scope is not null);
-        VisitScope(node.Scope!, context);
+        if (node.Scope is { } scope)
+            VisitScope(scope, context);
 
         var children = node.Children;
         if (children is not null)

@@ -15,8 +15,8 @@ public static class MetaTreeSealing
         {
             if (node.Id != default)
                 return;
-            node.Id = context.Generator.Next();
             base.Visit(node, context);
+            node.Id = context.Generator.Next();
         }
     }
 
@@ -48,7 +48,10 @@ public static class MetaTreeSealing
                 return result;
             }
 
-            var scope = context.Scopes.Pop();
+            SealedScope? scope = null;
+            if (node.Scope is not null)
+                scope = context.Scopes.Pop();
+
             var childrenList = node.Children is { Count: > 0 }
                 ? FindChildren()
                 : Array.Empty<SealedExpressionNode>();
@@ -56,14 +59,14 @@ public static class MetaTreeSealing
             ReadOnlyStructuralDependencies dependencies;
             {
                 if (childrenList.Any(c => c.Dependencies.Unspecified)
-                    || scope.Instance.Dependencies.Unspecified
-                    || node.OwnDependencies?.Unspecified == true)
+                    || (scope?.OutermostInstance.Dependencies.Unspecified ?? false)
+                    || (node.OwnDependencies?.Unspecified ?? false))
                 {
                     dependencies = ReadOnlyStructuralDependencies.All;
                 }
                 else if (childrenList.All(c => c.Dependencies.VariableIds!.Count == 0)
-                         && scope.Instance.Dependencies.VariableIds!.Count == 0
-                         && node.OwnDependencies?.VariableIds?.Count == 0)
+                         && scope?.OutermostInstance.Dependencies.VariableIds!.Count == 0
+                         && node.OwnDependencies?.VariableIds!.Count == 0)
                 {
                     dependencies = ReadOnlyStructuralDependencies.None;
                 }
@@ -77,8 +80,11 @@ public static class MetaTreeSealing
                             dependencyIds.Add(id);
                     }
 
-                    foreach (var id in scope.Instance.Dependencies.VariableIds!)
-                        dependencyIds.Add(id);
+                    if (scope is not null)
+                    {
+                        foreach (var id in scope.OutermostInstance.Dependencies.VariableIds!)
+                            dependencyIds.Add(id);
+                    }
 
                     if (node.OwnDependencies is { } ownDependencies)
                     {
@@ -169,10 +175,7 @@ public static class MetaTreeSealing
         foreach (var (id, node) in tree.SelectionIdToOuterNode)
             selectionIdToOuterNode.Add(id, sealingContext.NodeRef(node.Id)!);
 
-        return new SealedMetaTree(
-            nodes,
-            sealingContext.NodeRef(tree.Root.Id)!,
-            selectionIdToOuterNode);
+        return new SealedMetaTree(nodes, selectionIdToOuterNode);
     }
 
 }

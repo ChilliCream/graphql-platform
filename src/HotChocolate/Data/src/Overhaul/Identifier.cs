@@ -1,6 +1,10 @@
 namespace HotChocolate.Data.ExpressionNodes;
 
-public readonly record struct Identifier(int Value);
+public readonly record struct Identifier(int Value)
+{
+    public int AsIndex() => Value - 1;
+    public static Identifier FromIndex(int i) => new(i + 1);
+}
 
 public struct SequentialIdentifierGenerator
 {
