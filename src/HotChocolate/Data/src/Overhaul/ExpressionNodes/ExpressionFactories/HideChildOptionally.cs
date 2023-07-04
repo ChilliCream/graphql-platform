@@ -9,18 +9,37 @@ namespace HotChocolate.Data.ExpressionNodes;
 // Let's leave that for later, since it's not essential (structural dependencies as a whole is a rarity).
 public sealed class HideChildOptionally : IExpressionFactory
 {
-    private readonly Box<bool> _hideVariable;
+    [Dependency(Structural = true)]
+    public Identifier<bool> HideVariable { get; }
 
-    public HideChildOptionally(Box<bool> hideVariable)
+    public HideChildOptionally(Identifier<bool> hideVariable)
     {
-        _hideVariable = hideVariable;
+        HideVariable = hideVariable;
     }
 
     public Expression GetExpression(IExpressionCompilationContext context)
     {
-        bool hide = _hideVariable.Value;
+        bool hide = context.Variables.GetValue(HideVariable);
         if (hide)
             return Expression.Default(context.ExpectedExpressionType);
         return context.Expressions.Children[0];
+    }
+}
+
+// Another example, which suffers from this even more.
+public sealed class Choice : IExpressionFactory
+{
+    [Dependency(Structural = true)]
+    public Identifier<int> IndexVariable { get; }
+
+    public Choice(Identifier<int> indexVariable)
+    {
+        IndexVariable = indexVariable;
+    }
+
+    public Expression GetExpression(IExpressionCompilationContext context)
+    {
+        int index = context.Variables.GetValue(IndexVariable);
+        return context.Expressions.Children[index];
     }
 }

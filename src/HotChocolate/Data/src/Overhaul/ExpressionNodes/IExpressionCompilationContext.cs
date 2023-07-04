@@ -9,7 +9,7 @@ public interface IExpressionCompilationContext
     Identifier NodeId { get; }
     Type ExpectedExpressionType { get; }
     ICompiledExpressions Expressions { get; }
-    IParameterContext Parameters { get; }
+    IVariableContext Variables { get; }
 }
 
 public struct CachedExpressionNode

@@ -1,24 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Data.ExpressionNodes;
-
-public class ParameterDependencies : IReadOnlyParameterDependencies
-{
-    IReadOnlySet<Identifier>? IReadOnlyParameterDependencies.Ids => _ids;
-
-    private readonly HashSet<Identifier>? _ids;
-
-    public ParameterDependencies(HashSet<Identifier>? ids)
-    {
-        _ids = ids;
-    }
-}
-
-public interface IReadOnlyParameterDependencies
-{
-    IReadOnlySet<Identifier>? Ids { get; }
-}
 
 public readonly struct ReadOnlyStructuralDependencies
 {
@@ -44,42 +28,47 @@ public readonly struct StructuralDependencies
     public static StructuralDependencies None => new() { VariableIds = new() };
 }
 
-public readonly struct ParameterBoxesEnumerable
+public readonly struct Dependencies
 {
-    public ParameterBoxesEnumerable(
+    public StructuralDependencies Structural { get; init; }
+}
+
+public readonly struct VariableExpressionsEnumerable
+{
+    public VariableExpressionsEnumerable(
         ReadOnlyStructuralDependencies dependencies,
-        IParameterContext context)
+        IVariableContext context)
     {
         _dependencies = dependencies;
         _context = context;
     }
 
     private readonly ReadOnlyStructuralDependencies _dependencies;
-    private readonly IParameterContext _context;
+    private readonly IVariableContext _context;
 
     public Enumerator GetEnumerator() => new(this);
 
     public struct Enumerator
     {
-        private readonly IParameterContext _parameters;
-        private readonly bool _iteratingAllParameters;
+        private readonly IVariableContext _variables;
+        private readonly bool _iteratingAll;
         private HashSet<Identifier>.Enumerator _idEnumerator;
-        private Dictionary<Identifier, BoxExpression>.Enumerator _parameterEnumerator;
+        private Dictionary<Identifier, BoxExpression>.Enumerator _boxExpressionsEnumerator;
 
-        public Enumerator(ParameterBoxesEnumerable enumerable)
+        public Enumerator(VariableExpressionsEnumerable enumerable)
         {
-            _parameters = enumerable._context;
-            _iteratingAllParameters = enumerable._dependencies.Unspecified;
-            if (_iteratingAllParameters)
+            _variables = enumerable._context;
+            _iteratingAll = enumerable._dependencies.Unspecified;
+            if (_iteratingAll)
                 _idEnumerator = ((HashSet<Identifier>) enumerable._dependencies.VariableIds!).GetEnumerator();
             else
-                _parameterEnumerator = ((Dictionary<Identifier, BoxExpression>) enumerable._context.Expressions).GetEnumerator();
+                _boxExpressionsEnumerator = ((Dictionary<Identifier, BoxExpression>) enumerable._context.Expressions).GetEnumerator();
         }
 
         public bool MoveNext()
         {
-            if (_iteratingAllParameters)
-                return _parameterEnumerator.MoveNext();
+            if (_iteratingAll)
+                return _boxExpressionsEnumerator.MoveNext();
             else
                 return _idEnumerator.MoveNext();
         }
@@ -88,18 +77,25 @@ public readonly struct ParameterBoxesEnumerable
         {
             get
             {
-                if (_iteratingAllParameters)
+                if (_iteratingAll)
                 {
-                    var (id, box) = _parameterEnumerator.Current;
+                    var (id, box) = _boxExpressionsEnumerator.Current;
                     return (id, box);
                 }
                 else
                 {
                     var id = _idEnumerator.Current;
-                    var box = _parameters.GetParameter(id);
+                    var box = _variables.GetParameter(id);
                     return (id, box);
                 }
             }
         }
     }
+}
+
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class DependencyAttribute : Attribute
+{
+    public bool Structural { get; set; }
+    public bool Expression { get; set; }
 }
