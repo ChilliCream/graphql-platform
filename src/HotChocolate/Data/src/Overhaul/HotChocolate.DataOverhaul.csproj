@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.DataOverhaul</PackageId>
+    <AssemblyName>HotChocolate.DataOverhaul</AssemblyName>
+    <RootNamespace>HotChocolate.DataOverhaul</RootNamespace>
+    <Description>Contains ready to use extensions for data management in HotChocolate. This includes filtering, projections and sorting</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.InMemory.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.SqlLite.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.InMemory.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.SqlServer.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.props" Pack="true" PackagePath="build/HotChocolate.Data.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.targets" Pack="true" PackagePath="build/HotChocolate.Data.targets" Visible="false" />
+  </ItemGroup>
+
+</Project>
