@@ -9,7 +9,7 @@ public sealed class ProjectionLambda : IExpressionFactory
 {
     public Expression GetExpression(IExpressionCompilationContext context)
     {
-        var instance = context.Expressions.InstanceRoot;
+        var instance = context.Expressions.InstanceRoot!;
         var projection = context.Expressions.Children[0];
         var lambda = Expression.Lambda(projection, instance);
         return lambda;

@@ -27,7 +27,7 @@ public static class MetaTreeSealing
             // Need this since scopes don't have ids. Should they?
             Stack<SealedScope> Scopes)
         {
-            public ref SealedExpressionNode? NodeRef(Identifier id) => ref Nodes[id.Value - 1];
+            public ref SealedExpressionNode? NodeRef(Identifier id) => ref Nodes[id.AsIndex()];
         }
 
         public static readonly SealingVisitor Instance = new();
