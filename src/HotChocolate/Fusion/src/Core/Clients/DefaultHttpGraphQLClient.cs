@@ -5,7 +5,6 @@ using System.Text.Json;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Utilities;
-using static HotChocolate.Fusion.FusionResources;
 
 namespace HotChocolate.Fusion.Clients;
 
@@ -14,6 +13,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
     private const string _jsonMediaType = "application/json";
     private const string _graphqlMediaType = "application/graphql-response+json";
     private static readonly Encoding _utf8 = Encoding.UTF8;
+    private static readonly GraphQLResponse _transportError = new(CreateTransportError());
     private readonly JsonRequestFormatter _formatter = new();
     private readonly HttpClientConfiguration _config;
     private readonly HttpClient _client;
@@ -28,9 +28,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
 
     public string SubgraphName => _config.SubgraphName;
 
-    public Task<GraphQLResponse> ExecuteAsync(
-        GraphQLRequest request,
-        CancellationToken cancellationToken)
+    public Task<GraphQLResponse> ExecuteAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
         if (request is null)
         {
@@ -40,41 +38,44 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
         return ExecuteInternalAsync(request, cancellationToken);
     }
 
-    private async Task<GraphQLResponse> ExecuteInternalAsync(
-        GraphQLRequest request,
-        CancellationToken ct)
+    private async Task<GraphQLResponse> ExecuteInternalAsync(GraphQLRequest request, CancellationToken ct)
     {
-        using var writer = new ArrayWriter();
-        using var requestMessage = CreateRequestMessage(writer, request);
-        using var responseMessage = await _client.SendAsync(requestMessage, ct);
-
-        await using var contentStream = await responseMessage.Content
-            .ReadAsStreamAsync(ct)
-            .ConfigureAwait(false);
-
-        var stream = contentStream;
-        var contentType = responseMessage.Content.Headers.ContentType;
-        var sourceEncoding = GetEncoding(contentType?.CharSet);
-
-        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
+        try
         {
-            stream = GetTranscodingStream(contentStream, sourceEncoding);
-        }
+            using var writer = new ArrayWriter();
+            using var requestMessage = CreateRequestMessage(writer, request);
+            using var responseMessage = await _client.SendAsync(requestMessage, ct);
 
-        if (contentType?.MediaType.EqualsOrdinal(_jsonMediaType) ?? false)
+            await using var contentStream = await responseMessage.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+
+            var stream = contentStream;
+            var contentType = responseMessage.Content.Headers.ContentType;
+            var sourceEncoding = GetEncoding(contentType?.CharSet);
+
+            if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
+            {
+                stream = GetTranscodingStream(contentStream, sourceEncoding);
+            }
+
+            if (contentType?.MediaType.EqualsOrdinal(_jsonMediaType) ?? false)
+            {
+                responseMessage.EnsureSuccessStatusCode();
+                var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+                return new GraphQLResponse(document);
+            }
+
+            if (contentType?.MediaType.EqualsOrdinal(_graphqlMediaType) ?? false)
+            {
+                var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+                return new GraphQLResponse(document);
+            }
+
+            return _transportError;
+        }
+        catch
         {
-            responseMessage.EnsureSuccessStatusCode();
-            var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
-            return new GraphQLResponse(document);
+            return _transportError;
         }
-
-        if (contentType?.MediaType.EqualsOrdinal(_graphqlMediaType) ?? false)
-        {
-            var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
-            return new GraphQLResponse(document);
-        }
-
-        throw new InvalidContentTypeException(GraphQLHttpClient_InvalidContentType);
     }
 
     private HttpRequestMessage CreateRequestMessage(ArrayWriter writer, GraphQLRequest request)
@@ -124,6 +125,14 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
             contentStream,
             innerStreamEncoding: sourceEncoding,
             outerStreamEncoding: _utf8);
+
+    private static JsonElement CreateTransportError()
+    {
+        return JsonDocument.Parse(
+            """
+            [{"message": "Internal Execution Error"}]
+            """).RootElement;
+    }
 
     public ValueTask DisposeAsync()
     {

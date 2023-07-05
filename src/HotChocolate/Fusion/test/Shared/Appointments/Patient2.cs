@@ -2,7 +2,7 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Shared.Appointments;
 
-public class PatientCH : IPatient
+public class Patient2 : IPatient
 {
-    [ID<PatientCH>]public int Id { get; set;}
+    [ID<Patient2>]public int Id { get; set;}
 }

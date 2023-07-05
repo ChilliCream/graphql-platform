@@ -74,6 +74,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     return default!;
                 });
 
+            ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
             var result = UnwrapResult(response, Requires);
 
             for (var i = 0; i < workItems.Length; i++)
@@ -154,9 +155,19 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     {
         var data = response.Data;
 
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return new Dictionary<string, JsonElement>();
+        }
+
         if (_path.Count > 0)
         {
             data = LiftData();
+        }
+
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return new Dictionary<string, JsonElement>();
         }
 
         var result = new Dictionary<string, JsonElement>();

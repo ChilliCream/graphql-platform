@@ -60,6 +60,9 @@ internal sealed class QueryPlanContext
             .ToArray();
     }
 
+    public IEnumerable<NodeAndStep> AllNodes()
+        => _stepToNode.Select(t => new NodeAndStep(t.Value, t.Key));
+
     public NodeAndStep GetSubscribeRoot()
     {
         var item = _stepToNode.Single(t => t.Value.Kind is QueryPlanNodeKind.Subscribe);

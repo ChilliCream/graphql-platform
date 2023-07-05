@@ -189,17 +189,3 @@ internal sealed class FusionGraphConfiguration
     public static FusionGraphConfiguration Load(DocumentNode document)
         => new FusionGraphConfigurationReader().Read(document);
 }
-
-internal sealed class SubgraphInfo
-{
-    public SubgraphInfo(string name)
-    {
-        Name = name;
-    }
-
-    public string Name { get; }
-
-    public List<string> Entities { get; } = new();
-}
-
-public readonly record struct QualifiedTypeName(string SubgraphName, string TypeName);
