@@ -23,18 +23,18 @@ public static class MetaTreeSealing
     private sealed class SealingVisitor : PlanMetaTreeVisitor<SealingVisitor.Context>
     {
         internal sealed record Context(
-            SealedExpressionNode?[] Nodes,
+            SealedExpressionNode[] Nodes,
             // Need this since scopes don't have ids. Should they?
             Stack<SealedScope> Scopes)
         {
-            public ref SealedExpressionNode? NodeRef(Identifier id) => ref Nodes[id.AsIndex()];
+            public ref SealedExpressionNode NodeRef(Identifier id) => ref Nodes[id.AsIndex()];
         }
 
         public static readonly SealingVisitor Instance = new();
         public override void Visit(ExpressionNode node, Context context)
         {
             ref var sealedNode = ref context.NodeRef(node.Id);
-            Debug.Assert(sealedNode is null);
+            Debug.Assert(sealedNode.IsInitialized);
 
             // This adds a scope
             base.Visit(node, context);
@@ -58,37 +58,36 @@ public static class MetaTreeSealing
 
             ReadOnlyStructuralDependencies dependencies;
             {
-                if (ScopeInstanceChildrenAndSelf().Any(c => c.Dependencies.Unspecified))
+                if (GetDependencies().Any(c => c.Unspecified))
                 {
                     dependencies = ReadOnlyStructuralDependencies.All;
                 }
-                else if (ScopeInstanceChildrenAndSelf().All(c => c.Dependencies.VariableIds!.Count == 0))
+                else if (GetDependencies().All(c => c.VariableIds!.Count == 0))
                 {
                     dependencies = ReadOnlyStructuralDependencies.None;
                 }
                 else
                 {
                     var dependencyIds = new HashSet<Identifier>();
-                    foreach (var c in ScopeInstanceChildrenAndSelf())
-                        dependencyIds.UnionWith(c.Dependencies.VariableIds!);
+                    foreach (var c in GetDependencies())
+                        dependencyIds.UnionWith(c.VariableIds!);
                     dependencies = new() { VariableIds = dependencyIds };
                 }
             }
 
-            IEnumerable<SealedExpressionNode> ScopeInstanceChildrenAndSelf()
+            IEnumerable<ReadOnlyStructuralDependencies> GetDependencies()
             {
-                yield return context.NodeRef(node.Id)!;
+                yield return context.NodeRef(node.Id).Dependencies;
 
                 if (node.Scope is { } s)
-                    yield return context.NodeRef(s.Instance!.Id)!;
+                    yield return context.NodeRef(s.Instance!.Id).Dependencies;
 
                 foreach (var child in childrenList)
-                    yield return context.NodeRef(child)!;
+                    yield return context.NodeRef(child).Dependencies;
             }
 
             sealedNode = new SealedExpressionNode(
                 scope,
-                node.Id,
                 node.ExpressionFactory,
                 dependencies,
                 childrenList);
@@ -98,7 +97,7 @@ public static class MetaTreeSealing
         {
             // The root has been initialized, which means the scope has too.
             ref var rootRef = ref context.NodeRef(scope.Root!.Id);
-            if (rootRef is not null)
+            if (rootRef.IsInitialized)
             {
                 context.Scopes.Push(rootRef.Scope!);
                 return;
@@ -110,14 +109,14 @@ public static class MetaTreeSealing
             if (scope.ParentScope is { } parentScopeMutable)
             {
                 ref var parentRootRef = ref context.NodeRef(parentScopeMutable.Root!.Id);
-                Debug.Assert(parentRootRef is not null);
+                Debug.Assert(parentRootRef.IsInitialized);
                 parentScope = parentRootRef.Scope!.ParentScope;
             }
 
             base.VisitScope(scope, context);
 
             var sealedScope = new SealedScope(
-                rootRef!.Id,
+                scope.Root!.Id,
                 scope.Instance!.Id,
                 parentScope);
             context.Scopes.Push(sealedScope);
@@ -154,13 +153,13 @@ public static class MetaTreeSealing
         SealingVisitor.Instance.Visit(tree, sealingContext);
 
         foreach (var node in nodes)
-            Debug.Assert(node is not null);
+            Debug.Assert(node.IsInitialized);
 
         ReturnToObjectPoolVisitor.Instance.Visit(tree, pools);
 
-        var selectionIdToOuterNode = new Dictionary<Identifier, SealedExpressionNode>(tree.SelectionIdToOuterNode.Count);
+        var selectionIdToOuterNode = new Dictionary<Identifier, Identifier>(tree.SelectionIdToOuterNode.Count);
         foreach (var (id, node) in tree.SelectionIdToOuterNode)
-            selectionIdToOuterNode.Add(id, sealingContext.NodeRef(node.Id)!);
+            selectionIdToOuterNode.Add(id, node.Id);
 
         return new SealedMetaTree(nodes, selectionIdToOuterNode);
     }
