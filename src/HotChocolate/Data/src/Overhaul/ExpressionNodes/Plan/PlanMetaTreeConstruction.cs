@@ -135,6 +135,12 @@ public static class MetaTreeConstruction
         // We can wrap everything into null checks if needed at a later stage.
         // It might be worth it to scan the respective branch of the tree
         // to see whether it's been added by other components.
+
+        // We can wrap the innermost node (x.Property) e.g. for filtering before projections
+
+        // Also, should allow an abstraction when selecting members and types,
+        // in order to map projections from dtos.
+        // I don't grasp how this is going to work yet though.
         throw new NotImplementedException();
     }
 }

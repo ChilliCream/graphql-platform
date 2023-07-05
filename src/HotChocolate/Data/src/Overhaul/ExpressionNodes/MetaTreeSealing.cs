@@ -39,61 +39,51 @@ public static class MetaTreeSealing
             // This adds a scope
             base.Visit(node, context);
 
-            SealedExpressionNode[] FindChildren()
-            {
-                var result = new SealedExpressionNode[node.Children!.Count];
-                var children = node.Children!;
-                for (int i = 0; i < children.Count; i++)
-                    result[i] = context.NodeRef(children[i].Id)!;
-                return result;
-            }
-
             SealedScope? scope = null;
             if (node.Scope is not null)
                 scope = context.Scopes.Pop();
 
             var childrenList = node.Children is { Count: > 0 }
                 ? FindChildren()
-                : Array.Empty<SealedExpressionNode>();
+                : Array.Empty<Identifier>();
+
+            Identifier[] FindChildren()
+            {
+                var result = new Identifier[node.Children!.Count];
+                var children = node.Children!;
+                for (int i = 0; i < children.Count; i++)
+                    result[i] = children[i].Id;
+                return result;
+            }
 
             ReadOnlyStructuralDependencies dependencies;
             {
-                if (childrenList.Any(c => c.Dependencies.Unspecified)
-                    || (scope?.OutermostInstance.Dependencies.Unspecified ?? false)
-                    || (node.OwnDependencies?.Unspecified ?? false))
+                if (ScopeInstanceChildrenAndSelf().Any(c => c.Dependencies.Unspecified))
                 {
                     dependencies = ReadOnlyStructuralDependencies.All;
                 }
-                else if (childrenList.All(c => c.Dependencies.VariableIds!.Count == 0)
-                         && scope?.OutermostInstance.Dependencies.VariableIds!.Count == 0
-                         && node.OwnDependencies?.VariableIds!.Count == 0)
+                else if (ScopeInstanceChildrenAndSelf().All(c => c.Dependencies.VariableIds!.Count == 0))
                 {
                     dependencies = ReadOnlyStructuralDependencies.None;
                 }
                 else
                 {
                     var dependencyIds = new HashSet<Identifier>();
-
-                    foreach (var child in childrenList)
-                    {
-                        foreach (var id in child.Dependencies.VariableIds!)
-                            dependencyIds.Add(id);
-                    }
-
-                    if (scope is not null)
-                    {
-                        foreach (var id in scope.OutermostInstance.Dependencies.VariableIds!)
-                            dependencyIds.Add(id);
-                    }
-
-                    if (node.OwnDependencies is { } ownDependencies)
-                    {
-                        foreach (var id in ownDependencies.VariableIds!)
-                            dependencyIds.Add(id);
-                    }
-
+                    foreach (var c in ScopeInstanceChildrenAndSelf())
+                        dependencyIds.UnionWith(c.Dependencies.VariableIds!);
                     dependencies = new() { VariableIds = dependencyIds };
                 }
+            }
+
+            IEnumerable<SealedExpressionNode> ScopeInstanceChildrenAndSelf()
+            {
+                yield return context.NodeRef(node.Id)!;
+
+                if (node.Scope is { } s)
+                    yield return context.NodeRef(s.Instance!.Id)!;
+
+                foreach (var child in childrenList)
+                    yield return context.NodeRef(child)!;
             }
 
             sealedNode = new SealedExpressionNode(
@@ -102,9 +92,6 @@ public static class MetaTreeSealing
                 node.ExpressionFactory,
                 dependencies,
                 childrenList);
-
-            foreach (var c in childrenList)
-                c.Parent = sealedNode;
         }
 
         public override void VisitScope(Scope scope, Context context)
@@ -130,8 +117,8 @@ public static class MetaTreeSealing
             base.VisitScope(scope, context);
 
             var sealedScope = new SealedScope(
-                rootRef!,
-                context.NodeRef(scope.Instance!.Id)!,
+                rootRef!.Id,
+                scope.Instance!.Id,
                 parentScope);
             context.Scopes.Push(sealedScope);
         }

@@ -3,12 +3,12 @@ namespace HotChocolate.Data.ExpressionNodes;
 public sealed class SealedScope
 {
     public SealedScope? ParentScope { get; }
-    public SealedExpressionNode InnermostInstance { get; }
-    public SealedExpressionNode OutermostInstance { get; }
+    public Identifier InnermostInstance { get; }
+    public Identifier OutermostInstance { get; }
 
     public SealedScope(
-        SealedExpressionNode innermostInstance,
-        SealedExpressionNode outermostInstance,
+        Identifier innermostInstance,
+        Identifier outermostInstance,
         SealedScope? parentScope)
     {
         InnermostInstance = innermostInstance;

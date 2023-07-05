@@ -33,7 +33,7 @@ public sealed class ProjectionExpressionCompiler
         }
 
         var rootExpression = expressions[^1].Expression;
-        var innermostInstanceIndex = Tree.Root.Scope!.InnermostInstance.Id.AsIndex();
+        var innermostInstanceIndex = Tree.Root.Scope!.InnermostInstance.AsIndex();
         var innermostInstance = (ParameterExpression) expressions[innermostInstanceIndex].Expression;
         return Expression.Lambda(rootExpression, innermostInstance);
     }

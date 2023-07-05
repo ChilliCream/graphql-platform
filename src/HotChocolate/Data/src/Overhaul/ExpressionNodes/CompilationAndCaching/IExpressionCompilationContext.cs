@@ -53,7 +53,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
         {
             if (NodeRef.Scope is { } scope)
             {
-                int index = scope.OutermostInstance.Id.AsIndex();
+                int index = scope.OutermostInstance.AsIndex();
                 var expression = _expressionTreeCache.CachedExpressions[index].Expression;
                 return expression;
             }
@@ -67,7 +67,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
         {
             if (NodeRef.Scope is { } scope)
             {
-                int index = scope.InnermostInstance.Id.AsIndex();
+                int index = scope.InnermostInstance.AsIndex();
                 var expression = (ParameterExpression) _expressionTreeCache.CachedExpressions[index].Expression;
                 return expression;
             }
@@ -92,7 +92,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
         {
             get
             {
-                var i = _context.NodeRef.Children[index].Id.AsIndex();
+                var i = _context.NodeRef.Children[index].AsIndex();
                 return _context._expressionTreeCache.CachedExpressions[i].Expression;
             }
         }

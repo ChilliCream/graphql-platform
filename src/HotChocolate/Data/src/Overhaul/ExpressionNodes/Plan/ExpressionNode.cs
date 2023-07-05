@@ -4,6 +4,7 @@ namespace HotChocolate.Data.ExpressionNodes;
 
 public sealed class ExpressionNode
 {
+    // Even though the parent here is not used, we might need it later.
     public ExpressionNode? Parent { get; set; }
 
     // This exists in order to be able to wrap the instance used in this scope
