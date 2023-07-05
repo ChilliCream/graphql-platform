@@ -69,6 +69,8 @@ internal sealed class SubgraphConfigSetHttpCommand : Command
             var config = await PackageHelper.LoadSubgraphConfigAsync(configFile.FullName, cancellationToken);
 
             var clients = config.Clients.ToList();
+            
+            clients.RemoveAll(t => t is HttpClientConfiguration);
             clients.Add(new HttpClientConfiguration(uri, clientName));
 
             var configJson = PackageHelper.FormatSubgraphConfig(config with { Clients = clients });
