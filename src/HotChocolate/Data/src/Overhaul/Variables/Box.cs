@@ -32,7 +32,7 @@ public class Box<T> : IBox
     public T? Value { get; set; }
     public PropertyInfo ValuePropertyInfo => Property;
 
-    public bool UpdateValue(object? newValue)
+    bool IBox.UpdateValue(object? newValue)
     {
         var previousValue = Value;
         Value = (T?) newValue;
