@@ -28,13 +28,12 @@ public static class MetaTreeConstruction
         Debug.Assert(!wrapperNode.IsInnermost);
 
         var initialNode = nodeToWrap.InnermostInitialNode;
-        var outerNode = initialNode.InnermostOrOutermostNode;
-
+        var outerNode = nodeToWrap.OutermostNode;
         if (nodeToWrap == outerNode)
-            initialNode.InnermostOrOutermostNode = wrapperNode;
+            initialNode.OutermostNode = wrapperNode;
 
         // The wrapper node can never be the innermost node.
-        wrapperNode.InnermostOrOutermostNode = initialNode;
+        wrapperNode.InnermostInitialNode = initialNode;
         (wrapperNode.Children ??= new()).Insert(0, nodeToWrap);
 
         var parent = nodeToWrap.Parent;
