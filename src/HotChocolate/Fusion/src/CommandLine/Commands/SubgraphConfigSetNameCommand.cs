@@ -56,8 +56,7 @@ internal sealed class SubgraphConfigSetNameCommand : Command
             
             await ReplaceSubgraphConfigInSubgraphPackageAsync(
                 configFile.FullName,
-                config with { Name = subgraphName },
-                cancellationToken);
+                config with { Name = subgraphName });
         }
         else
         {

@@ -13,8 +13,6 @@ namespace HotChocolate.Fusion.CommandLine.Helpers;
 
 internal static class PackageHelper
 {
-    private const string _fusionKind = "urn:hotchocolate:fusion:graph";
-    private const string _fusionId = "fusion";
     private const string _schemaKind = "urn:graphql:schema";
     private const string _schemaId = "schema";
     private const string _schemaExtensionKind = "urn:graphql:schema-extensions";

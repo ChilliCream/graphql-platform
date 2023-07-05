@@ -77,8 +77,7 @@ internal sealed class SubgraphConfigSetHttpCommand : Command
 
             await ReplaceSubgraphConfigInSubgraphPackageAsync(
                 configFile.FullName,
-                config with { Clients = clients },
-                cancellationToken);
+                config with { Clients = clients });
         }
         else
         {
