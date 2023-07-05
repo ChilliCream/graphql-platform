@@ -19,6 +19,7 @@ public readonly struct StateKey<T>
 public static class StateKey
 {
     public static StateKey<T> Create<T>(string key) => new(key);
+    public static StateKey<T> Create<T>() => new(typeof(T).Name);
 }
 
 public readonly struct StateFlagKey
@@ -40,6 +41,21 @@ public static class ContextDataExtensions
 {
     public static bool TryGet<T>(
         this IReadOnlyDictionary<string, object?> contextData,
+        StateKey<T> key,
+        [NotNullWhen(true)] out T? value)
+    {
+        if (contextData.TryGetValue(key, out var obj))
+        {
+            value = (T) obj!;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    public static bool TryGet<T>(
+        this IDictionary<string, object?> contextData,
         StateKey<T> key,
         [NotNullWhen(true)] out T? value)
     {

@@ -1,23 +1,64 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Data.ExpressionNodes;
 
+public sealed class BorrowedProjectionExpressionCache : IDisposable
+{
+    internal ExpressionTreeCache Cache { get; }
+    internal ProjectionExpressionCompiler Compiler { get; }
+
+    internal BorrowedProjectionExpressionCache(
+        ExpressionTreeCache cache,
+        ProjectionExpressionCompiler compiler)
+    {
+        Cache = cache;
+        Compiler = compiler;
+    }
+
+    public LambdaExpression GetRootExpression()
+    {
+        var nodeIndex = Compiler.Tree.RootNodeIndex;
+        return GetExpressionForNode(nodeIndex);
+    }
+
+    public LambdaExpression GetExpression(Identifier selectionId)
+    {
+        var nodeIndex = Compiler.Tree.SelectionIdToOuterNode[selectionId].AsIndex();
+        return GetExpressionForNode(nodeIndex);
+    }
+
+    private LambdaExpression GetExpressionForNode(int nodeIndex)
+    {
+        var expression = Cache.CachedExpressions[nodeIndex].Expression;
+        var innermostInstanceIndex = Compiler.Tree.Nodes[nodeIndex].Scope!.InnermostInstance.AsIndex();
+        var innermostInstance = (ParameterExpression) Cache.CachedExpressions[innermostInstanceIndex].Expression;
+        return Expression.Lambda(expression, innermostInstance);
+    }
+
+    public void Dispose()
+    {
+        Compiler.ReturnCache(this);
+    }
+}
+
 public sealed class ProjectionExpressionCompiler
 {
     // In this model, the caching is done per tree.
     public SealedMetaTree Tree { get; }
-    private ConcurrentStack<ExpressionTreeCache> _cache = new();
+    private ConcurrentStack<BorrowedProjectionExpressionCache> _cache = new();
 
     public ProjectionExpressionCompiler(SealedMetaTree tree)
     {
         Tree = tree;
     }
 
-    public LambdaExpression GetExpression(IReadOnlyCollection<(Identifier, Variable)> variables)
+    public BorrowedProjectionExpressionCache LeaseCache(IReadOnlyCollection<(Identifier, Variable)> variables)
     {
-        var cache = GetCache(variables);
+        var cacheLease = GetCache(variables);
+        var cache = cacheLease.Cache;
 
         bool allValuesChanged = cache.AllValuesChanged;
         var expressions = cache.CachedExpressions;
@@ -32,16 +73,21 @@ public sealed class ProjectionExpressionCompiler
             }
         }
 
-        var rootExpression = expressions[^1].Expression;
-        var innermostInstanceIndex = Tree.Root.Scope!.InnermostInstance.AsIndex();
-        var innermostInstance = (ParameterExpression) expressions[innermostInstanceIndex].Expression;
-        return Expression.Lambda(rootExpression, innermostInstance);
+        return cacheLease;
     }
 
-    private ExpressionTreeCache GetCache(IReadOnlyCollection<(Identifier, Variable)> variables)
+    internal void ReturnCache(BorrowedProjectionExpressionCache lease)
     {
-        if (GetMostSuitableCache() is not { } cache)
+        // TODO: error out if already returned.
+        _cache.Push(lease);
+    }
+
+    private BorrowedProjectionExpressionCache GetCache(IReadOnlyCollection<(Identifier, Variable)> variables)
+    {
+        if (GetMostSuitableCache() is not { } cacheLease)
             return CreateCache(variables);
+
+        var cache = cacheLease.Cache;
 
         var boxes = cache.Variables.Boxes;
         var valuesChanged = cache.ValuesChanged;
@@ -53,10 +99,10 @@ public sealed class ProjectionExpressionCompiler
                 valuesChanged.Add(id);
         }
 
-        return cache;
+        return cacheLease;
     }
 
-    private ExpressionTreeCache CreateCache(IReadOnlyCollection<(Identifier, Variable)> variables)
+    private BorrowedProjectionExpressionCache CreateCache(IReadOnlyCollection<(Identifier, Variable)> variables)
     {
         // TODO: Add more filtering for the non structural dependencies
         Dictionary<Identifier, IBox> boxes = new(variables.Count);
@@ -79,11 +125,12 @@ public sealed class ProjectionExpressionCompiler
         var cache = new ExpressionTreeCache(cachedExpressions, variableContext);
         cache.Context = new ExpressionCompilationContext(cache, Tree);
 
-        return cache;
+        var cacheLease = new BorrowedProjectionExpressionCache(cache, this);
+        return cacheLease;
     }
 
     // For now let's just return the first cache
-    private ExpressionTreeCache? GetMostSuitableCache()
+    private BorrowedProjectionExpressionCache? GetMostSuitableCache()
     {
         if (_cache.TryPop(out var cache))
             return cache;

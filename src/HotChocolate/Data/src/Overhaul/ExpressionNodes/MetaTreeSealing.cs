@@ -158,7 +158,7 @@ public static class MetaTreeSealing
 
         var selectionIdToOuterNode = new Dictionary<Identifier, Identifier>(tree.SelectionIdToInnerNode.Count);
         foreach (var (id, node) in tree.SelectionIdToInnerNode)
-            selectionIdToOuterNode.Add(id, node.Id);
+            selectionIdToOuterNode.Add(id, node.OutermostNode.Id);
 
         return new SealedMetaTree(nodes, selectionIdToOuterNode);
     }

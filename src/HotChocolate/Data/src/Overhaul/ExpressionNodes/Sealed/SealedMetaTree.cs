@@ -7,7 +7,8 @@ public sealed class SealedMetaTree
     // The nodes are ordered in the dependency order. Instance -> Children -> Self
     internal SealedExpressionNode[] Nodes { get; }
     // This is also why we can be sure the root node is always the last node.
-    internal ref SealedExpressionNode Root => ref Nodes[^1];
+    internal int RootNodeIndex => Nodes.Length - 1;
+    internal ref SealedExpressionNode Root => ref Nodes[RootNodeIndex];
 
     internal IReadOnlyDictionary<Identifier, Identifier> SelectionIdToOuterNode { get; }
 
