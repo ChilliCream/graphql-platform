@@ -57,10 +57,9 @@ internal static class PackageHelper
     
     public static async Task ReplaceSubgraphConfigInSubgraphPackageAsync(
         string packageFile,
-        SubgraphConfigurationDto config,
-        CancellationToken ct = default)
+        SubgraphConfigurationDto config)
     {
-        using var package = Package.Open(packageFile, FileMode.Open, FileAccess.Read);
+        using var package = Package.Open(packageFile, FileMode.Open, FileAccess.ReadWrite);
         await ReplaceTransportConfigInPackageAsync(package, config);
     }
 
@@ -362,8 +361,6 @@ internal static class PackageHelper
         await using var stream = part.GetStream(FileMode.Create);
         await using var writer = new StreamWriter(stream, Encoding.UTF8);
         await writer.WriteAsync(FormatSubgraphConfig(subgraphConfig));
-
-        package.CreateRelationship(part.Uri, TargetMode.Internal, _subgraphConfigKind, _subgraphConfigId);
     }
 
     private static async Task<SubgraphConfigurationDto> ReadSubgraphConfigPartAsync(
