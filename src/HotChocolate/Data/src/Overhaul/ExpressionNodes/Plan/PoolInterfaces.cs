@@ -18,7 +18,7 @@ public static class ExpressionNodeCreation
     {
         var node = pool.Create(factory);
         node.IsInnermost = true;
-        node.InnermostOrOutermostNode = node;
+        node.OutermostNode = node;
         return node;
     }
 }

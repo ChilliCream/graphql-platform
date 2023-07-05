@@ -20,89 +20,50 @@ public interface ICompiledExpressions
     Expression? Instance { get; }
     ParameterExpression? InstanceRoot { get; }
 
-    IReadOnlyList<Expression> Children { get; }
+    ChildrenExpressionCollection Children { get; }
 }
 
-internal sealed class ExpressionCompilationContext : IExpressionCompilationContext, ICompiledExpressions
+// This is necessary to be able to foreach without allocations.
+// This has to be a class to be able to use linq without boxing of the enumerable
+// (still with boxing of the enumerator).
+public sealed class ChildrenExpressionCollection : IReadOnlyList<Expression>
 {
-    private readonly ExpressionTreeCache _expressionTreeCache;
-    private readonly SealedMetaTree _tree;
-    private readonly ChildList _children;
+    private readonly IReadOnlyList<Expression> _expressions;
 
-    public ExpressionCompilationContext(ExpressionTreeCache expressionTreeCache, SealedMetaTree tree)
+    public ChildrenExpressionCollection(IReadOnlyList<Expression> expressions)
     {
-        _expressionTreeCache = expressionTreeCache;
-        _tree = tree;
-        _children = new ChildList(this);
+        _expressions = expressions;
     }
 
-    public IVariableContext Variables => _expressionTreeCache.Variables;
-    public ICompiledExpressions Expressions => this;
+    public int Count => _expressions.Count;
+    public Expression this[int index] => _expressions[index];
 
-    public int NodeIndex { get; set; }
-    public Identifier NodeId => Identifier.FromIndex(NodeIndex);
-
-    private ref SealedExpressionNode NodeRef => ref _tree.Nodes[NodeIndex];
-
-    // TODO:
-    public Type ExpectedExpressionType => null!;
-
-    public Expression? Instance
+    public struct Enumerator : IEnumerator<Expression>
     {
-        get
+        private readonly IReadOnlyList<Expression> _expressions;
+        private int _index;
+
+        public Enumerator(IReadOnlyList<Expression> expressions)
         {
-            if (NodeRef.Scope is { } scope)
-            {
-                int index = scope.OutermostInstance.AsIndex();
-                var expression = _expressionTreeCache.CachedExpressions[index].Expression;
-                return expression;
-            }
-            return null;
+            _expressions = expressions;
+            _index = -1;
         }
-    }
 
-    public ParameterExpression? InstanceRoot
-    {
-        get
+        public bool MoveNext()
         {
-            if (NodeRef.Scope is { } scope)
-            {
-                int index = scope.InnermostInstance.AsIndex();
-                var expression = (ParameterExpression) _expressionTreeCache.CachedExpressions[index].Expression;
-                return expression;
-            }
-            return null;
+            _index++;
+            return _index < _expressions.Count;
+        }
+
+        public void Reset() => _index = -1;
+        public readonly Expression Current => _expressions[_index];
+
+        object IEnumerator.Current => Current;
+        public void Dispose()
+        {
         }
     }
 
-    public IReadOnlyList<Expression> Children => _children;
-
-    private sealed class ChildList : IReadOnlyList<Expression>
-    {
-        private readonly ExpressionCompilationContext _context;
-
-        public ChildList(ExpressionCompilationContext context)
-        {
-            _context = context;
-        }
-
-        public int Count => _context.NodeRef.Children.Count;
-
-        public Expression this[int index]
-        {
-            get
-            {
-                var i = _context.NodeRef.Children[index].AsIndex();
-                return _context._expressionTreeCache.CachedExpressions[i].Expression;
-            }
-        }
-
-        public IEnumerator<Expression> GetEnumerator()
-        {
-            for (int i = 0; i < Count; i++)
-                yield return this[i];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
+    public IEnumerator<Expression> GetEnumerator() => new Enumerator(_expressions);
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
