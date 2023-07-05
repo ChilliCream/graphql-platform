@@ -156,8 +156,8 @@ public static class MetaTreeSealing
 
         ReturnToObjectPoolVisitor.Instance.Visit(tree, pools);
 
-        var selectionIdToOuterNode = new Dictionary<Identifier, Identifier>(tree.SelectionIdToOuterNode.Count);
-        foreach (var (id, node) in tree.SelectionIdToOuterNode)
+        var selectionIdToOuterNode = new Dictionary<Identifier, Identifier>(tree.SelectionIdToInnerNode.Count);
+        foreach (var (id, node) in tree.SelectionIdToInnerNode)
             selectionIdToOuterNode.Add(id, node.Id);
 
         return new SealedMetaTree(nodes, selectionIdToOuterNode);

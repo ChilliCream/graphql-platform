@@ -10,24 +10,31 @@ namespace HotChocolate.Data.ExpressionNodes;
 public static class MetaTreeConstruction
 {
     public static ExpressionNode GetExpressionNodeOfSelection(
-        // This has to return the node that's current the immediate child of the initial parent.
-        // That is, the wrapped node (if it's been wrapped) rather than the initial node.
-        Dictionary<Identifier, ExpressionNode> selectionIdToOuterNode,
+        Dictionary<Identifier, ExpressionNode> selectionIdToInnerNode,
         Identifier selectionId,
         bool innermost = true)
     {
-        var node = selectionIdToOuterNode[selectionId];
+        var node = selectionIdToInnerNode[selectionId];
         if (innermost)
-            return node.GetInnermostInitialNode();
-        return node;
+            return node;
+        return node.OutermostNode;
     }
 
     public static void WrapExpressionNode(
+        this PlanMetaTree tree,
         ExpressionNode wrapperNode,
         ExpressionNode nodeToWrap)
     {
-        var initialNode = nodeToWrap.GetInnermostInitialNode();
-        wrapperNode.InnermostInitialNode = initialNode;
+        Debug.Assert(!wrapperNode.IsInnermost);
+
+        var initialNode = nodeToWrap.InnermostInitialNode;
+        var outerNode = initialNode.InnermostOrOutermostNode;
+
+        if (nodeToWrap == outerNode)
+            initialNode.InnermostOrOutermostNode = wrapperNode;
+
+        // The wrapper node can never be the innermost node.
+        wrapperNode.InnermostOrOutermostNode = initialNode;
         (wrapperNode.Children ??= new()).Insert(0, nodeToWrap);
 
         var parent = nodeToWrap.Parent;
@@ -49,6 +56,15 @@ public static class MetaTreeConstruction
         {
             wrapperNode.Scope = nodeToWrap.Scope;
         }
+    }
+
+    public static void WrapScopeInstance(
+        this PlanMetaTree tree,
+        ExpressionNode wrapperNode,
+        Scope scopeToWrap)
+    {
+        WrapExpressionNode(tree, wrapperNode, scopeToWrap.Instance!);
+        scopeToWrap.Instance = wrapperNode;
     }
 
     public enum ResultKind
@@ -98,10 +114,10 @@ public static class MetaTreeConstruction
         IExpressionNodePool pool,
         IObjectPool<Scope> scopePool)
     {
-        var rootInstance = pool.Get(InstanceExpressionFactory.Instance);
+        var rootInstance = pool.Create(InstanceExpressionFactory.Instance);
         var rootScope = scopePool.Get();
         rootScope.Instance = rootInstance;
-        var selectionIdToOuterNode = new Dictionary<Identifier, ExpressionNode>();
+        var selectionIdToInnerNode = new Dictionary<Identifier, ExpressionNode>();
 
         // Go through the selection tree
 
@@ -119,18 +135,16 @@ public static class MetaTreeConstruction
             Scope scope)
         {
             var expressionFactory = new MemberAccess(property);
-            var result = pool.Get(expressionFactory);
+            var result = pool.CreateInnermost(expressionFactory);
             result.Scope = scope;
-            result.InnermostInitialNode = result;
             return result;
         }
 
         // object property access --> ObjectCreationAsObjectArray
         ExpressionNode HandleObjectNode(Scope scope)
         {
-            var result = pool.Get(ObjectCreationAsObjectArray.Instance);
+            var result = pool.CreateInnermost(ObjectCreationAsObjectArray.Instance);
             result.Scope = scope;
-            result.InnermostInitialNode = result;
 
             // Could pool the lists as well for each of the pooled nodes.
             // var children = new List<ExpressionNode>();
@@ -149,11 +163,9 @@ public static class MetaTreeConstruction
             ExpressionNode declaringNode,
             Scope scope)
         {
-            var result = pool.Get(InstanceExpressionFactory.Instance);
+            var result = pool.CreateInnermost(InstanceExpressionFactory.Instance);
             scope.Instance = result;
-            scope.RootInstance = result;
             scope.DeclaringNode = declaringNode;
-            result.InnermostInitialNode = result;
             Debug.Assert(result.Scope is null);
             Debug.Assert(result.Parent is null);
             return result;
@@ -203,14 +215,14 @@ public static class MetaTreeConstruction
             var memberAccess = CreateMemberAccess(property, scope);
 
             // x => { }
-            var lambda = pool.Get(ProjectionLambda.Instance);
+            var lambda = pool.CreateInnermost(ProjectionLambda.Instance);
             var lambdaScope = scopePool.Get();
             // the x parameter
             _ = CreateScopeInstance(lambda, lambdaScope);
             lambda.Scope = lambdaScope;
 
             // ().Select(...)
-            var select = pool.Get(Select.Instance);
+            var select = pool.Create(Select.Instance);
             select.AssumeArray().ArrangeChildren(memberAccess, lambda);
             select.Scope = scope;
 
@@ -218,8 +230,7 @@ public static class MetaTreeConstruction
         }
 
         var rootNode = HandleObjectNode(rootScope);
-        rootNode.InnermostInitialNode = rootNode;
-        selectionIdToOuterNode.Add(new(operation.RootSelectionSet.Id), rootNode);
+        selectionIdToInnerNode.Add(new(operation.RootSelectionSet.Id), rootNode);
         // TODO:
         var fieldsToProject = Array.Empty<FieldNode>();
         var children = new List<ExpressionNode>();
@@ -241,11 +252,11 @@ public static class MetaTreeConstruction
             children.Add(node);
 
             var id = default(Identifier); // how do I get the selection id here?
-            selectionIdToOuterNode.Add(id, node);
+            selectionIdToInnerNode.Add(id, node.InnermostInitialNode);
         }
         rootNode.Children = children;
 
-        return new PlanMetaTree(selectionIdToOuterNode, rootNode);
+        return new PlanMetaTree(selectionIdToInnerNode, rootNode);
         // Also, should allow an abstraction when selecting members and types,
         // in order to map projections from dtos.
         // I don't grasp how this is going to work yet though.

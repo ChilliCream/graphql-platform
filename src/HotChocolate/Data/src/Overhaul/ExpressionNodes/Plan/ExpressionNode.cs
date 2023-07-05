@@ -22,13 +22,13 @@ public sealed class ExpressionNode
     public ReadOnlyStructuralDependencies? OwnDependencies { get; set; }
     public List<ExpressionNode>? Children { get; set; } = new();
 
-    // TODO:
-    // Might want to either specify with a bool that the node is innermost,
-    // and have a property that stores the innermost node for all nodes except
-    // the innermost node, which would store the outermost node.
-    public ExpressionNode? InnermostInitialNode { get; set; }
+    // Stores the innermost node for nodes other than the innermost nodes.
+    // The innermost nodes stores the outermost node here.
+    public ExpressionNode? InnermostOrOutermostNode { get; set; }
+    public bool IsInnermost { get; set; }
 
-    public ExpressionNode GetInnermostInitialNode() => InnermostInitialNode ?? this;
+    public ExpressionNode InnermostInitialNode => IsInnermost ? this : InnermostOrOutermostNode!;
+    public ExpressionNode OutermostNode => InnermostInitialNode.InnermostOrOutermostNode!;
 
     public RelatedArrayNodesProxy AssumeArray() => new(this);
 }
@@ -46,7 +46,7 @@ public readonly struct RelatedArrayNodesProxy
     public ExpressionNode MemberAccessLike => _node.Children![0];
     // If you're going to be adding filtering against the initial type, it must be done here.
     // (You should wrap this node with your filter node).
-    public ExpressionNode InitialMemberAccess => _node.InnermostInitialNode!;
+    public ExpressionNode InitialMemberAccess => _node.InnermostOrOutermostNode!;
 
     public ExpressionNode Lambda => _node.Children![1];
 
@@ -57,7 +57,7 @@ public readonly struct RelatedArrayNodesProxy
         else
             list = new();
 
-        _node.InnermostInitialNode = memberAccess;
+        _node.InnermostOrOutermostNode = memberAccess;
         memberAccess.Parent = _node;
         lambda.Parent = _node;
         list.Add(memberAccess);

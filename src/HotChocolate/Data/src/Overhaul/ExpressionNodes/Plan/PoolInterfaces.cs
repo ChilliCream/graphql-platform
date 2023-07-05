@@ -6,8 +6,21 @@ namespace HotChocolate.Data.ExpressionNodes;
 
 public interface IExpressionNodePool
 {
-    ExpressionNode Get(IExpressionFactory factory);
+    ExpressionNode Create(IExpressionFactory factory);
     void Return(ExpressionNode node);
+}
+
+public static class ExpressionNodeCreation
+{
+    public static ExpressionNode CreateInnermost(
+        this IExpressionNodePool pool,
+        IExpressionFactory factory)
+    {
+        var node = pool.Create(factory);
+        node.IsInnermost = true;
+        node.InnermostOrOutermostNode = node;
+        return node;
+    }
 }
 
 // TEMP:
@@ -15,7 +28,7 @@ public sealed class ExpressionNodePool : IExpressionNodePool
 {
     private readonly HashSet<ExpressionNode> _notReturned = new();
 
-    public ExpressionNode Get(IExpressionFactory factory)
+    public ExpressionNode Create(IExpressionFactory factory)
     {
         var node = new ExpressionNode { ExpressionFactory = factory };
         node.OwnDependencies = DependencyHelper.GetDependencies(factory);
