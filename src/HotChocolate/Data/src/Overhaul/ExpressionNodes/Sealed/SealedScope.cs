@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.ExpressionNodes;
 
-public sealed class SealedScope
+internal sealed class SealedScope
 {
     public SealedScope? ParentScope { get; }
     public Identifier InnermostInstance { get; }

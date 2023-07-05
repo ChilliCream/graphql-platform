@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Data.ExpressionNodes;
 
-public readonly record struct SealedExpressionNode(
+internal readonly record struct SealedExpressionNode(
     SealedScope? Scope,
     IExpressionFactory ExpressionFactory,
     ReadOnlyStructuralDependencies Dependencies,
