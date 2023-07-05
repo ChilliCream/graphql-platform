@@ -9,6 +9,7 @@ public interface IPredicateExpressionFactory : IExpressionFactory
 {
 }
 
+[NoStructuralDependencies]
 public sealed class PredicateCombinator : IPredicateExpressionFactory
 {
     private readonly BitArray _combineWithAnd;

@@ -3,6 +3,7 @@ using System.Reflection;
 
 namespace HotChocolate.Data.ExpressionNodes;
 
+[NoStructuralDependencies]
 public sealed class MemberAccess : IExpressionFactory
 {
     public MemberInfo Member { get; }

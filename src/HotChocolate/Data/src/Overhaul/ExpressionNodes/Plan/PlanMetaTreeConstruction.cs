@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 
 namespace HotChocolate.Data.ExpressionNodes;
 
@@ -99,6 +101,7 @@ public static class MetaTreeConstruction
         var rootInstance = pool.Get(InstanceExpressionFactory.Instance);
         var rootScope = scopePool.Get();
         rootScope.Instance = rootInstance;
+        var selectionIdToOuterNode = new Dictionary<Identifier, ExpressionNode>();
 
         // Go through the selection tree
 
@@ -109,13 +112,61 @@ public static class MetaTreeConstruction
 
         // Convert the nodes to an initial tree by just mapping
         // each source node to an expression factory node.
+
         // scalar property access --> MemberAccess
+        ExpressionNode CreateMemberAccess(
+            PropertyInfo property,
+            Scope scope)
+        {
+            var expressionFactory = new MemberAccess(property);
+            var result = pool.Get(expressionFactory);
+            result.Scope = scope;
+            result.InnermostInitialNode = result;
+            return result;
+        }
+
         // object property access --> ObjectCreationAsObjectArray
+        ExpressionNode HandleObjectNode(Scope scope)
+        {
+            var result = pool.Get(ObjectCreationAsObjectArray.Instance);
+            result.Scope = scope;
+            result.InnermostInitialNode = result;
+
+            // Could pool the lists as well for each of the pooled nodes.
+            // var children = new List<ExpressionNode>();
+            // foreach (var property in propertiesToProject)
+            // {
+            //     var child = CreateMemberAccess(property, scope);
+            //     children.Add(child);
+            //     child.Parent = result;
+            // }
+            // result.Children = children;
+
+            return result;
+        }
+
+        ExpressionNode CreateScopeInstance(
+            ExpressionNode declaringNode,
+            Scope scope)
+        {
+            var result = pool.Get(InstanceExpressionFactory.Instance);
+            scope.Instance = result;
+            scope.RootInstance = result;
+            scope.DeclaringNode = declaringNode;
+            result.InnermostInitialNode = result;
+            Debug.Assert(result.Scope is null);
+            Debug.Assert(result.Parent is null);
+            return result;
+        }
+
         // array property access -->
         /*
          Note that the member access node has to be a child rather than an instance,
          because by definition the instance refers to the outer variable,
          which may be further wrapped (per scope).
+
+         If you think of .Select as a static method call instead of as an extension method call,
+         it makes more sense why it should wrap the member access.
 
          // .Select
          Select(
@@ -125,9 +176,14 @@ public static class MetaTreeConstruction
                 Lambda(
                     instance (root): x1,
                     children: [
-                        // x2 is initially x1, but can be wrapped
-                        MemberAccess(instance: x2, Property1),
-                        MemberAccess(instance: x2, Property2)
+                        // Here we have the regular object projection with the new scope.
+                        ObjectArray(
+                            children: [
+                                // x2 is initially x1, but can be wrapped
+                                MemberAccess(instance: x2, Property1),
+                                MemberAccess(instance: x2, Property2)
+                            ]
+                        )
                     ]
                 ]
             )
@@ -138,9 +194,61 @@ public static class MetaTreeConstruction
 
         // We can wrap the innermost node (x.Property) e.g. for filtering before projections
 
+        // Returns the node that you can safely call AssumeArray on.
+        ExpressionNode HandleArrayNode(
+            PropertyInfo property,
+            Scope scope)
+        {
+            // x.Property
+            var memberAccess = CreateMemberAccess(property, scope);
+
+            // x => { }
+            var lambda = pool.Get(ProjectionLambda.Instance);
+            var lambdaScope = scopePool.Get();
+            // the x parameter
+            _ = CreateScopeInstance(lambda, lambdaScope);
+            lambda.Scope = lambdaScope;
+
+            // ().Select(...)
+            var select = pool.Get(Select.Instance);
+            select.AssumeArray().ArrangeChildren(memberAccess, lambda);
+            select.Scope = scope;
+
+            return select;
+        }
+
+        var rootNode = HandleObjectNode(rootScope);
+        rootNode.InnermostInitialNode = rootNode;
+        selectionIdToOuterNode.Add(new(operation.RootSelectionSet.Id), rootNode);
+        // TODO:
+        var fieldsToProject = Array.Empty<FieldNode>();
+        var children = new List<ExpressionNode>();
+        foreach (var field in fieldsToProject)
+        {
+            var propertyInfo = default(PropertyInfo)!; // field.PropertyInfo
+            bool hasProjections = field.SelectionSet is not null;
+            bool isArray = propertyInfo.PropertyType.IsArray;
+
+            ExpressionNode node;
+            if (hasProjections && isArray)
+                node = HandleArrayNode(propertyInfo, rootNode.Scope!); // recurse here for the child selections
+            else if (hasProjections)
+                node = HandleObjectNode(rootNode.Scope!); // recurse here for the child selections
+            else
+                node = CreateMemberAccess(propertyInfo, rootScope);
+
+            node.Parent = rootNode;
+            children.Add(node);
+
+            var id = default(Identifier); // how do I get the selection id here?
+            selectionIdToOuterNode.Add(id, node);
+        }
+        rootNode.Children = children;
+
+        return new PlanMetaTree(selectionIdToOuterNode, rootNode);
         // Also, should allow an abstraction when selecting members and types,
         // in order to map projections from dtos.
         // I don't grasp how this is going to work yet though.
-        throw new NotImplementedException();
+        // May also want to allow some sort of tagging, but that's for later.
     }
 }

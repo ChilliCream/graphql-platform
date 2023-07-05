@@ -4,11 +4,14 @@ using System.Reflection;
 
 namespace HotChocolate.Data.ExpressionNodes;
 
+[NoStructuralDependencies]
 public sealed class Select : IExpressionFactory
 {
     private static readonly MethodInfo SelectMethod =
         typeof(Enumerable).GetMethods()
             .Single(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2);
+
+    public static readonly Select Instance = new();
 
     public Expression GetExpression(IExpressionCompilationContext context)
     {

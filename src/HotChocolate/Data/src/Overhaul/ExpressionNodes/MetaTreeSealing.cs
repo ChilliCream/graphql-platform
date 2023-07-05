@@ -96,7 +96,7 @@ public static class MetaTreeSealing
         public override void VisitScope(Scope scope, Context context)
         {
             // The root has been initialized, which means the scope has too.
-            ref var rootRef = ref context.NodeRef(scope.Root!.Id);
+            ref var rootRef = ref context.NodeRef(scope.RootInstance!.Id);
             if (rootRef.IsInitialized)
             {
                 context.Scopes.Push(rootRef.Scope!);
@@ -108,7 +108,7 @@ public static class MetaTreeSealing
             SealedScope? parentScope = null;
             if (scope.ParentScope is { } parentScopeMutable)
             {
-                ref var parentRootRef = ref context.NodeRef(parentScopeMutable.Root!.Id);
+                ref var parentRootRef = ref context.NodeRef(parentScopeMutable.RootInstance!.Id);
                 Debug.Assert(parentRootRef.IsInitialized);
                 parentScope = parentRootRef.Scope!.ParentScope;
             }
@@ -116,7 +116,7 @@ public static class MetaTreeSealing
             base.VisitScope(scope, context);
 
             var sealedScope = new SealedScope(
-                scope.Root!.Id,
+                scope.RootInstance!.Id,
                 scope.Instance!.Id,
                 parentScope);
             context.Scopes.Push(sealedScope);
@@ -147,7 +147,6 @@ public static class MetaTreeSealing
         var assignIdsContext = new AssignIdsVisitor.Context(new());
         AssignIdsVisitor.Instance.Visit(tree, assignIdsContext);
 
-        // Let's write them in a flat array for convenience.
         var nodes = new SealedExpressionNode[assignIdsContext.Generator.Count];
         var sealingContext = new SealingVisitor.Context(nodes, new());
         SealingVisitor.Instance.Visit(tree, sealingContext);
@@ -163,5 +162,4 @@ public static class MetaTreeSealing
 
         return new SealedMetaTree(nodes, selectionIdToOuterNode);
     }
-
 }
