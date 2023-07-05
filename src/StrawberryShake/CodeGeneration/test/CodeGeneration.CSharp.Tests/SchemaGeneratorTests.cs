@@ -4,7 +4,7 @@ using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-public class SchemaGeneratorTests
+public class SchemaTypeWithJsonScalarGeneratorTests
 {
     [Fact]
     public void Schema_With_Spec_Errors()
@@ -537,7 +537,7 @@ public class SchemaGeneratorTests
         AssertResult(
             @"
                     query GetTypeWithJson() {
-                        typeWithStringScalar() {
+                        typeWithScalar() {
                             json
                         }
                     }

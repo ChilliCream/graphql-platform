@@ -3,11 +3,11 @@
 }
 
 type Query {
-  typeWithStringScalar: TypeWithStringScalar
+  typeWithScalar: TypeWithJsonScalar
 }
 
 scalar JSON
 
-type TypeWithStringScalar {
+type TypeWithJsonScalar {
   json: JSON
 }

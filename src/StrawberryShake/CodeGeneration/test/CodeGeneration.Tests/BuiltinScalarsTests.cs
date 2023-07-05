@@ -44,7 +44,7 @@ public class BuiltinScalarsTests
     [InlineData(ScalarNames.Any)]
     [InlineData(ScalarNames.TimeSpan)]
     [InlineData(ScalarNames.JSON)]
-    public void Builtin_ScalarName(string typeName)
+    public void Scalar_Is_Builtin(string typeName)
     {
         // arrange
         // act
@@ -53,7 +53,7 @@ public class BuiltinScalarsTests
     }
 
     [Fact]
-    public void IsNotBuiltinScalarName()
+    public void Scalar_Is_Not_Builtin()
     {
         // arrange
         // act
