@@ -877,7 +877,7 @@ public class RequestPlannerTests
             query Appointments {
               appointments {
                 nodes {
-                  patientId {
+                  patient {
                     id
                   }
                 }
@@ -892,6 +892,44 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task Query_Plan_23_Interfaces_Merge()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Appointment.ToConfiguration(),
+                demoProject.Patient1.ToConfiguration(),
+            },
+            FusionFeatureFlags.NodeField);
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Appointments {
+              appointments {
+                nodes {
+                  patient {
+                    id
+                    ... on Patient1 {
+                        name
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
 
     private static async Task<(DocumentNode UserRequest, QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
