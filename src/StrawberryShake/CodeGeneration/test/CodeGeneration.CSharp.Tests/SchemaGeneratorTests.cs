@@ -530,4 +530,19 @@ public class SchemaGeneratorTests
             "extend schema @key(fields: \"id\")",
             FileResource.Open("HasuraSchema.graphql"));
     }
+
+    [Fact]
+    public void ScalarBuiltinJson()
+    {
+        AssertResult(
+            @"
+                    query GetTypeWithJson() {
+                        typeWithStringScalar() {
+                            json
+                        }
+                    }
+                ",
+            FileResource.Open("Schema_Bug_BuiltinJson.graphql"));
+
+    }
 }

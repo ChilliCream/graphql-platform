@@ -1,0 +1,13 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  typeWithStringScalar: TypeWithStringScalar
+}
+
+scalar JSON
+
+type TypeWithStringScalar {
+  json: JSON
+}
