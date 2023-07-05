@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace HotChocolate.Data.ExpressionNodes;
 
-public interface IBox : IEquatable<IBox>
+public interface IBox
 {
     PropertyInfo ValuePropertyInfo { get; }
 
@@ -45,11 +45,6 @@ public class Box<T> : IBox
 
     public static readonly PropertyInfo Property =
         typeof(Box<T>).GetProperty(nameof(Value))!;
-
-    public bool Equals(IBox? other)
-    {
-        return other is Box<T> b && (Value is null ? b.Value is null : Value.Equals(b.Value));
-    }
 }
 
 public static class BoxHelper
