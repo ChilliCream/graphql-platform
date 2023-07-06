@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
@@ -27,18 +28,15 @@ public sealed class ProjectionMiddleware
 
         if (!context.ContextData.TryGet(ProjectionConstants.CacheLease, out var cacheLease))
         {
-            if (!context.ContextData.TryGet(ProjectionConstants.TreeCache, out var treeCache))
+            if (!context.ContextData.TryGet(ProjectionConstants.CacheManager, out var treeCache))
                 throw new InvalidOperationException();
 
-            // TODO: get from some system or whatever.
-            var variables = new ReadOnlyCollection<(Identifier, Variable)>(null!);
-
-            cacheLease = treeCache.LeaseCache(variables);
+            cacheLease = treeCache.LeaseCache();
 
             context.ContextData.Set(ProjectionConstants.CacheLease, cacheLease);
         }
 
-        var root = cacheLease.GetRootExpression();
+        var root = (LambdaExpression) cacheLease.GetRootExpression();
 
         if (context.Result is IQueryable queryable)
             context.Result = queryable.SelectT(root);
@@ -51,6 +49,6 @@ public sealed class ProjectionMiddleware
 public static class ProjectionConstants
 {
     public static readonly StateKey<BorrowedProjectionExpressionCache> CacheLease = StateKey.Create<BorrowedProjectionExpressionCache>();
-    internal static readonly StateKey<ProjectionExpressionCacheManager> TreeCache = StateKey.Create<ProjectionExpressionCacheManager>();
+    internal static readonly StateKey<ProjectionExpressionCacheManager> CacheManager = StateKey.Create<ProjectionExpressionCacheManager>();
     public static readonly StateFlagKey SkipProjection = StateFlagKey.Create("SkipProjection");
 }
