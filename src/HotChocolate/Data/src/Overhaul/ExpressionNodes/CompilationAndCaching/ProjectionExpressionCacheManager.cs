@@ -65,13 +65,14 @@ public sealed class BorrowedProjectionExpressionCache : IDisposable
             bool changed = box.UpdateValue(value);
             if (changed)
                 Cache.ValuesChanged.Add(id);
-
-
         }
     }
 
     private void CacheExpressions()
     {
+        if (HaveVariablesBeenProcessed)
+            return;
+
         var expressions = Cache.CachedExpressions;
         var context = Cache.Context;
         var valuesChanged = Cache.ValuesChanged;
@@ -85,10 +86,23 @@ public sealed class BorrowedProjectionExpressionCache : IDisposable
         }
 
         // bypass the checks on first use
+        // NOTE: It might be faster to do the caching in a tree like fashion,
+        //       at least in the case where we don't recache everything.
+        //       But it's not exactly clear if it will actually at a glance.
+        //       It does in theory help avoid most of the checks,
+        //       because they would be done at an earlier stage in the tree,
+        //       cutting all the whole branches, but cache misses would likely kill the benefits.
         if (Cache.IsFirstUse)
         {
             for (int i = 0; i < nodes.Length; i++)
-                CacheNode(i);
+            {
+                var node = nodes[i];
+                // The ones that have no dependencies are computed
+                if (!node.Dependencies.HasNoDependencies)
+                    CacheNode(i);
+            }
+
+            Cache.IsFirstUse = false;
         }
         else if (valuesChanged.Count > 0)
         {
@@ -100,6 +114,8 @@ public sealed class BorrowedProjectionExpressionCache : IDisposable
                     CacheNode(i);
             }
         }
+
+        HaveVariablesBeenProcessed = true;
     }
 
     public void Dispose()
@@ -119,13 +135,7 @@ public sealed class ProjectionExpressionCacheManager
         _referenceCache = referenceCache;
     }
 
-    public BorrowedProjectionExpressionCache LeaseCache()
-    {
-        var cacheLease = GetCache();
-        var cache = cacheLease.Cache;
-
-        return cacheLease;
-    }
+    public BorrowedProjectionExpressionCache LeaseCache() => GetCache();
 
     internal void ReturnCache(BorrowedProjectionExpressionCache lease)
     {
@@ -138,9 +148,8 @@ public sealed class ProjectionExpressionCacheManager
         if (GetMostSuitableCache() is not { } cacheLease)
             return CreateCache();
 
-        var cache = cacheLease.Cache;
-        var valuesChanged = cache.ValuesChanged;
-        valuesChanged.Clear();
+        cacheLease.Cache.ValuesChanged.Clear();
+        cacheLease.HaveVariablesBeenProcessed = false;
 
         return cacheLease;
     }
@@ -164,7 +173,6 @@ public sealed class ProjectionExpressionCacheManager
         }
     }
 
-
     private BorrowedProjectionExpressionCache CreateCache()
     {
         // Copy boxes
@@ -181,25 +189,7 @@ public sealed class ProjectionExpressionCacheManager
 
         var cachedExpressions = _referenceCache.CachedExpressions.ToArray();
         var variableContext = new VariableContext(newBoxExpressions, newBoxes);
-
         var cache = new ExpressionTreeCache(_referenceCache.Tree, cachedExpressions, variableContext);
-        cache.IsFirstUse = false;
-
-        var context = cache.Context;
-        var nodes = _referenceCache.Tree.Nodes;
-        for (int i = 0; i < nodes.Length; i++)
-        {
-            var node = nodes[i];
-            // This allows us to recompute all nodes that depend on boxes,
-            // while simply copying all the ones that don't.
-            // The ones that don't hence end up being only cached once per tree.
-            if (node.Dependencies.HasExpressionDependencies)
-            {
-                context.NodeIndex = i;
-                cachedExpressions[i].Expression = node.ExpressionFactory.GetExpression(context);
-            }
-        }
-
         var cacheLease = new BorrowedProjectionExpressionCache(cache, this);
         return cacheLease;
     }
