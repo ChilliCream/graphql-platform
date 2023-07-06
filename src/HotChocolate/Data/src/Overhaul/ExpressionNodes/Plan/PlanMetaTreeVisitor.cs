@@ -15,7 +15,7 @@ public abstract class PlanMetaTreeVisitor<TContext>
         if (node.Scope is { } scope)
             VisitScope(scope, context);
 
-        var children = node.Children;
+        var children = node.ChildrenInternal;
         if (children is not null)
             VisitChildren(children, context);
     }

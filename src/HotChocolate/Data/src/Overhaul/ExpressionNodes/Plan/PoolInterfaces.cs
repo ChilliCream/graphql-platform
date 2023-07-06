@@ -41,7 +41,7 @@ public sealed class ExpressionNodePool : IExpressionNodePool
 
     public ExpressionNode Create(IExpressionFactory factory)
     {
-        var node = new ExpressionNode { ExpressionFactory = factory };
+        var node = new ExpressionNode(factory);
         node.OwnDependencies = DependencyHelper.GetDependencies(factory);
         _notReturned.Add(node);
         return node;

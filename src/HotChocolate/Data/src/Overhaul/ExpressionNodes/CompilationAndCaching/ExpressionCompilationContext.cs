@@ -28,8 +28,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
 
     private ref SealedExpressionNode NodeRef => ref Tree.Nodes[NodeIndex];
 
-    // TODO:
-    public Type ExpectedExpressionType => null!;
+    public Type ExpectedExpressionType => NodeRef.ExpectedType;
 
     public Expression? Instance
     {

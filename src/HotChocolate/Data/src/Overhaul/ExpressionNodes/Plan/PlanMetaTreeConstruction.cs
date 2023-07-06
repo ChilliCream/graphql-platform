@@ -34,7 +34,7 @@ public static class MetaTreeConstruction
 
         // The wrapper node can never be the innermost node.
         wrapperNode.InnermostInitialNode = initialNode;
-        (wrapperNode.Children ??= new()).Insert(0, nodeToWrap);
+        (wrapperNode.ChildrenInternal ??= new()).Insert(0, nodeToWrap);
 
         var parent = nodeToWrap.Parent;
         wrapperNode.Parent = parent;
@@ -42,7 +42,7 @@ public static class MetaTreeConstruction
 
         if (parent is not null)
         {
-            var children = parent.Children!;
+            var children = parent.Children;
             var indexOfWrapped = children.IndexOf(nodeToWrap);
             children[indexOfWrapped] = wrapperNode;
         }
@@ -83,7 +83,7 @@ public static class MetaTreeConstruction
         if (instanceResult == ResultKind.All)
             return ResultKind.All;
 
-        var children = node.Children;
+        var children = node.ChildrenInternal;
         if (children is not null)
         {
             foreach (var child in children)
@@ -244,7 +244,7 @@ public static class MetaTreeConstruction
             var id = default(Identifier); // how do I get the selection id here?
             selectionIdToInnerNode.Add(id, node.InnermostInitialNode);
         }
-        rootNode.Children = children;
+        rootNode.ChildrenInternal = children;
 
         return new PlanMetaTree(selectionIdToInnerNode, rootNode);
         // Also, should allow an abstraction when selecting members and types,

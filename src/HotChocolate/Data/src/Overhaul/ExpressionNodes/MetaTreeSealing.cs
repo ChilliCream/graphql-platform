@@ -109,7 +109,8 @@ public static class MetaTreeSealing
                 scope,
                 node.ExpressionFactory,
                 dependencies,
-                childrenList);
+                childrenList,
+                node.ExpectedType ?? typeof(object));
         }
 
         public override void VisitScope(Scope scope, Context context)
