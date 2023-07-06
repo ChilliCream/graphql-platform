@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <RootNamespace>HotChocolate.DataOverhaul</RootNamespace>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
