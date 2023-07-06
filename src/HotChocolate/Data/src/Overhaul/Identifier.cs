@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Data.ExpressionNodes;
 
 public readonly record struct Identifier(int Value)
@@ -22,4 +24,6 @@ public readonly record struct Identifier<T>(Identifier Id)
 {
     public int Value => Id.Value;
     public static implicit operator Identifier(Identifier<T> id) => id.Id;
+
+    public Type Type => typeof(T);
 }
