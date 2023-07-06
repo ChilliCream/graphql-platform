@@ -11,6 +11,8 @@ public interface IBox
 
     // Returns true if the value has changed.
     internal bool UpdateValue(object? newValue);
+
+    internal IBox Clone();
 }
 
 public readonly record struct BoxExpressions(
@@ -32,16 +34,25 @@ public class Box<T> : IBox
     public T? Value { get; set; }
     public PropertyInfo ValuePropertyInfo => Property;
 
-    bool IBox.UpdateValue(object? newValue)
+    bool IBox.UpdateValue(object? newValue) => UpdateValue((T?)newValue);
+    IBox IBox.Clone() => new Box<T> { Value = Value };
+
+    internal bool UpdateValue(T? newValue)
     {
-        var previousValue = Value;
-        Value = (T?) newValue;
+        if (Value is null)
+        {
+            if (newValue is null)
+                return false;
+        }
+        else if (newValue is not null && Value.Equals(newValue))
+        {
+            return false;
+        }
 
-        if (previousValue is null)
-            return newValue is not null;
-
-        return previousValue.Equals(Value);
+        Value = newValue;
+        return true;
     }
+
 
     public static readonly PropertyInfo Property =
         typeof(Box<T>).GetProperty(nameof(Value))!;

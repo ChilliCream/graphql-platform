@@ -20,7 +20,7 @@ public sealed class ExpressionNode
     internal Identifier Id { get; set; }
 
     public required IExpressionFactory ExpressionFactory { get; set; }
-    public ReadOnlyStructuralDependencies? OwnDependencies { get; set; }
+    public Dependencies? OwnDependencies { get; set; }
     public List<ExpressionNode>? Children { get; set; } = new();
 
     // Stores the innermost node for nodes other than the innermost node.

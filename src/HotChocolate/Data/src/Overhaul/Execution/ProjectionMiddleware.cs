@@ -51,6 +51,6 @@ public sealed class ProjectionMiddleware
 public static class ProjectionConstants
 {
     public static readonly StateKey<BorrowedProjectionExpressionCache> CacheLease = StateKey.Create<BorrowedProjectionExpressionCache>();
-    internal static readonly StateKey<ProjectionExpressionCompiler> TreeCache = StateKey.Create<ProjectionExpressionCompiler>();
+    internal static readonly StateKey<ProjectionExpressionCacheManager> TreeCache = StateKey.Create<ProjectionExpressionCacheManager>();
     public static readonly StateFlagKey SkipProjection = StateFlagKey.Create("SkipProjection");
 }

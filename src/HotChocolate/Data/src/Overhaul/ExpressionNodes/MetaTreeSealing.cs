@@ -56,26 +56,39 @@ public static class MetaTreeSealing
                 return result;
             }
 
-            ReadOnlyStructuralDependencies dependencies;
+            Dependencies dependencies;
             {
-                if (GetDependencies().Any(c => c.Unspecified))
+                StructuralDependencies structuralDependencies;
+                bool hasExpressionDependencies = false;
+
+                if (GetDependencies().Any(c => c.Structural.Unspecified))
                 {
-                    dependencies = ReadOnlyStructuralDependencies.All;
+                    structuralDependencies = StructuralDependencies.All;
+                    hasExpressionDependencies = true;
                 }
-                else if (GetDependencies().All(c => c.VariableIds!.Count == 0))
+                else if (GetDependencies().All(c => c.Structural.VariableIds!.Count == 0))
                 {
-                    dependencies = ReadOnlyStructuralDependencies.None;
+                    structuralDependencies = StructuralDependencies.None;
                 }
                 else
                 {
                     var dependencyIds = new HashSet<Identifier>();
                     foreach (var c in GetDependencies())
-                        dependencyIds.UnionWith(c.VariableIds!);
-                    dependencies = new() { VariableIds = dependencyIds };
+                        dependencyIds.UnionWith(c.Structural.VariableIds!);
+                    structuralDependencies = new() { VariableIds = dependencyIds };
                 }
+
+                if (!hasExpressionDependencies)
+                    hasExpressionDependencies = GetDependencies().Any(c => c.HasExpressionDependencies);
+
+                dependencies = new()
+                {
+                    Structural = structuralDependencies,
+                    HasExpressionDependencies = hasExpressionDependencies,
+                };
             }
 
-            IEnumerable<ReadOnlyStructuralDependencies> GetDependencies()
+            IEnumerable<Dependencies> GetDependencies()
             {
                 yield return context.NodeRef(node.Id).Dependencies;
 

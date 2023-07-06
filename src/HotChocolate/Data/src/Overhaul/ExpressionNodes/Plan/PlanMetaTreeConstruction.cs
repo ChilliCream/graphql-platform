@@ -81,9 +81,9 @@ public static class MetaTreeConstruction
 
         if (node.OwnDependencies is { } deps)
         {
-            if (deps.Unspecified)
+            if (deps.Structural.Unspecified)
                 return ResultKind.All;
-            foreach (var id in deps.VariableIds!)
+            foreach (var id in deps.Structural.VariableIds!)
                 outResult.Add(id);
         }
 

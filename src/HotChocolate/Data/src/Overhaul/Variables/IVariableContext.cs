@@ -20,7 +20,6 @@ public sealed class VariableContext : IVariableContext
         Expressions = expressions;
         Boxes = boxes;
     }
-
 }
 
 public static class ParameterContextExtensions
@@ -32,13 +31,13 @@ public static class ParameterContextExtensions
     }
 
     public static VariableExpressionsEnumerable GetEnumerable(
-        this IVariableContext context, ReadOnlyStructuralDependencies dependencies)
+        this IVariableContext context, StructuralDependencies dependencies)
     {
         return new VariableExpressionsEnumerable(dependencies, context);
     }
 
     public static VariableExpressionsEnumerable.Enumerator GetEnumerator(
-        this IVariableContext context, ReadOnlyStructuralDependencies dependencies)
+        this IVariableContext context, StructuralDependencies dependencies)
     {
         return GetEnumerable(context, dependencies).GetEnumerator();
     }

@@ -10,17 +10,21 @@ public struct CachedExpression
 
 internal sealed class ExpressionTreeCache
 {
+    public SealedMetaTree Tree { get; }
     public CachedExpression[] CachedExpressions { get; }
-    public IVariableContext Variables { get; }
+    public VariableContext Variables { get; }
     public HashSet<Identifier> ValuesChanged { get; } = new();
-    public bool AllValuesChanged { get; set; }
-    public ExpressionCompilationContext Context { get; internal set; } = null!;
+    public ExpressionCompilationContext Context { get; }
+    public bool IsFirstUse { get; set; } = true;
 
     public ExpressionTreeCache(
+        SealedMetaTree tree,
         CachedExpression[] cachedExpressions,
-        IVariableContext variables)
+        VariableContext variables)
     {
+        Tree = tree;
         CachedExpressions = cachedExpressions;
         Variables = variables;
+        Context = new(this, Tree);
     }
 }

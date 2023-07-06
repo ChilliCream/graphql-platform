@@ -7,46 +7,40 @@ using System.Reflection;
 
 namespace HotChocolate.Data.ExpressionNodes;
 
-public readonly struct ReadOnlyStructuralDependencies
+public readonly struct StructuralDependencies
 {
     [MemberNotNullWhen(false, nameof(Unspecified))]
     public IReadOnlySet<Identifier>? VariableIds { get; init; }
 
     public bool Unspecified => VariableIds is null;
 
-    public static ReadOnlyStructuralDependencies All => new() { VariableIds = null };
+    public static StructuralDependencies All => new() { VariableIds = null };
 
     private static readonly HashSet<Identifier> _none = new();
-    public static ReadOnlyStructuralDependencies None => new() { VariableIds = _none };
-}
-
-public readonly struct StructuralDependencies
-{
-    [MemberNotNullWhen(false, nameof(Unspecified))]
-    public HashSet<Identifier>? VariableIds { get; init; }
-
-    public bool Unspecified => VariableIds is null;
-
-    public static StructuralDependencies All => new() { VariableIds = null };
-    public static StructuralDependencies None => new() { VariableIds = new() };
+    public static StructuralDependencies None => new() { VariableIds = _none };
 }
 
 public readonly struct Dependencies
 {
     public StructuralDependencies Structural { get; init; }
+
+    // TODO: further decrease the number of computed box expressions by keeping track
+    //       of which expression dependencies are used as well.
+    //       This can be done by having a hash set here instead of a bool
+    public bool HasExpressionDependencies { get; init; }
 }
 
 public readonly struct VariableExpressionsEnumerable
 {
     public VariableExpressionsEnumerable(
-        ReadOnlyStructuralDependencies dependencies,
+        StructuralDependencies dependencies,
         IVariableContext context)
     {
         _dependencies = dependencies;
         _context = context;
     }
 
-    private readonly ReadOnlyStructuralDependencies _dependencies;
+    private readonly StructuralDependencies _dependencies;
     private readonly IVariableContext _context;
 
     public Enumerator GetEnumerator() => new(this);
@@ -110,21 +104,22 @@ public sealed class NoStructuralDependenciesAttribute : Attribute
 
 public interface IGetDependencies
 {
-    ReadOnlyStructuralDependencies Dependencies { get; }
+    Dependencies Dependencies { get; }
 }
 
 public static class DependencyHelper
 {
-    private struct Cache
+    private readonly struct Cache
     {
         [MemberNotNullWhen(false, nameof(Unspecified))]
         public List<Func<IExpressionFactory, Identifier>>? StructuralDependencyGetters { get; init; }
         public bool NoDependencies { get; init; }
+        public bool NoExpressionDependencies { get; init; }
 
         public readonly bool Unspecified => !NoDependencies && StructuralDependencyGetters is null;
 
         public static Cache All => default;
-        public static Cache None => new() { NoDependencies = true };
+        public static Cache None => new() { NoDependencies = true, NoExpressionDependencies = true };
         public static Cache Structural(List<Func<IExpressionFactory, Identifier>> getters)
             => new() { StructuralDependencyGetters = getters.ToList() };
     }
@@ -139,7 +134,7 @@ public static class DependencyHelper
     private static readonly MethodInfo _getGetIdentifierMethodInfo = typeof(DependencyHelper)
         .GetMethod(nameof(GetGetIdentifier), BindingFlags.NonPublic | BindingFlags.Static)!;
 
-    public static ReadOnlyStructuralDependencies GetDependencies(IExpressionFactory factory)
+    public static Dependencies GetDependencies(IExpressionFactory factory)
     {
         if (factory is IGetDependencies deps)
             return deps.Dependencies;
@@ -148,15 +143,24 @@ public static class DependencyHelper
         var dependencies = new HashSet<Identifier>();
         var cache = _cache.GetOrAdd(type, CreateCache);
 
-        if (cache.Unspecified)
-            return ReadOnlyStructuralDependencies.All;
-        if (cache.NoDependencies)
-            return ReadOnlyStructuralDependencies.None;
+        StructuralDependencies GetStructural()
+        {
+            if (cache.Unspecified)
+                return StructuralDependencies.All;
+            if (cache.NoDependencies)
+                return StructuralDependencies.None;
 
-        foreach (var depGetter in cache.StructuralDependencyGetters!)
-            dependencies.Add(depGetter(factory));
+            foreach (var depGetter in cache.StructuralDependencyGetters!)
+                dependencies.Add(depGetter(factory));
 
-        return new() { VariableIds = dependencies };
+            return new() { VariableIds = dependencies };
+        }
+
+        return new()
+        {
+            Structural = GetStructural(),
+            HasExpressionDependencies = !cache.NoExpressionDependencies,
+        };
     }
 
     private static Cache CreateCache(Type type)
@@ -168,6 +172,7 @@ public static class DependencyHelper
         var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         bool isUnspecified = true;
+        bool hasNoExpressionDependency = true;
         foreach (var p in properties)
         {
             if (p.GetCustomAttribute<DependencyAttribute>() is not { } deps)
@@ -176,6 +181,9 @@ public static class DependencyHelper
             if (p.GetMethod is not { } getMethod)
                 throw new InvalidOperationException("Invalid attribute usage: the property must have a public getter.");
             isUnspecified = false;
+
+            if (deps.Expression)
+                hasNoExpressionDependency = false;
 
             if (!deps.Structural)
                 continue;
@@ -206,6 +214,9 @@ public static class DependencyHelper
         if (isUnspecified)
             return Cache.All;
 
-        return Cache.Structural(getters);
+        return Cache.Structural(getters) with
+        {
+            NoExpressionDependencies = hasNoExpressionDependency
+        };
     }
 }
