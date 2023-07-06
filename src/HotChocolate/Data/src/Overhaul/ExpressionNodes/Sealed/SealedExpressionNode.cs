@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Data.ExpressionNodes;
 
 internal readonly record struct SealedExpressionNode(

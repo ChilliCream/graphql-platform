@@ -54,7 +54,7 @@ public static class MetaTreeSealing
             Identifier[] FindChildren()
             {
                 var result = new Identifier[node.Children!.Count];
-                var children = node.Children!;
+                var children = node.Children;
                 for (int i = 0; i < children.Count; i++)
                     result[i] = children[i].Id;
                 return result;
