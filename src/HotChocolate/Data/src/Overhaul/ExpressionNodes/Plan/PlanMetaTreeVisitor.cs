@@ -34,9 +34,7 @@ public abstract class PlanMetaTreeVisitor<TContext>
     public virtual void VisitScope(Scope scope, TContext context)
     {
         Debug.Assert(scope is not null);
-        // if (scope.ParentScope is { } parentScope)
-        //     VisitScope(parentScope, context);
-
-        Visit(scope.Instance!, context);
+        // The root instance eventually includes the instance as a child.
+        Visit(scope.RootInstance, context);
     }
 }
