@@ -21,7 +21,6 @@ public static class MetaTreeConstruction
     }
 
     public static void WrapExpressionNode(
-        this PlanMetaTree tree,
         ExpressionNode wrapperNode,
         ExpressionNode nodeToWrap)
     {
@@ -70,8 +69,8 @@ public static class MetaTreeConstruction
         if (node is null)
             return ResultKind.Particular;
 
-        if (node.OwnDependencies is { } deps)
         {
+            var deps = node.OwnDependencies;
             if (deps.Structural.Unspecified)
                 return ResultKind.All;
             foreach (var id in deps.Structural.VariableIds!)
@@ -101,13 +100,11 @@ public static class MetaTreeConstruction
     // There are going to be no structural dependencies in the initial tree.
     public static PlanMetaTree CreateInitialForProjections(
         IOperation operation,
-        IExpressionNodePool pool,
-        IObjectPool<Scope> scopePool)
+        ExpressionPools pools)
     {
-        var rootInstance = pool.Create(InstanceExpressionFactory.Instance);
-        var rootScope = scopePool.Get();
-        rootScope.Instance = rootInstance;
         var selectionIdToInnerNode = new Dictionary<Identifier, ExpressionNode>();
+        var rootLambdaNode = pools.ExpressionNodePool.Create(ProjectionLambda.Instance);
+        rootLambdaNode.Scope = pools.CreateScopeWithInstance(rootLambdaNode);
 
         // Go through the selection tree
 
@@ -125,7 +122,7 @@ public static class MetaTreeConstruction
             Scope scope)
         {
             var expressionFactory = new MemberAccess(property);
-            var result = pool.CreateInnermost(expressionFactory);
+            var result = pools.ExpressionNodePool.CreateInnermost(expressionFactory);
             result.Scope = scope;
             return result;
         }
@@ -133,7 +130,7 @@ public static class MetaTreeConstruction
         // object property access --> ObjectCreationAsObjectArray
         ExpressionNode HandleObjectNode(Scope scope)
         {
-            var result = pool.CreateInnermost(ObjectCreationAsObjectArray.Instance);
+            var result = pools.ExpressionNodePool.CreateInnermost(ObjectCreationAsObjectArray.Instance);
             result.Scope = scope;
 
             // Could pool the lists as well for each of the pooled nodes.
@@ -146,18 +143,6 @@ public static class MetaTreeConstruction
             // }
             // result.Children = children;
 
-            return result;
-        }
-
-        ExpressionNode CreateScopeInstance(
-            ExpressionNode declaringNode,
-            Scope scope)
-        {
-            var result = pool.CreateInnermost(InstanceExpressionFactory.Instance);
-            scope.Instance = result;
-            scope.DeclaringNode = declaringNode;
-            Debug.Assert(result.Scope is null);
-            Debug.Assert(result.Parent is null);
             return result;
         }
 
@@ -205,21 +190,21 @@ public static class MetaTreeConstruction
             var memberAccess = CreateMemberAccess(property, scope);
 
             // x => { }
-            var lambda = pool.CreateInnermost(ProjectionLambda.Instance);
-            var lambdaScope = scopePool.Get();
+            var lambda = pools.ExpressionNodePool.CreateInnermost(ProjectionLambda.Instance);
             // the x parameter
-            _ = CreateScopeInstance(lambda, lambdaScope);
-            lambda.Scope = lambdaScope;
+            lambda.Scope = pools.CreateScopeWithInstance(lambda);
 
             // ().Select(...)
-            var select = pool.Create(Select.Instance);
+            var select = pools.ExpressionNodePool.Create(Select.Instance);
             select.AssumeArray().ArrangeChildren(memberAccess, lambda);
             select.Scope = scope;
 
             return select;
         }
 
-        var rootNode = HandleObjectNode(rootScope);
+        var rootNode = HandleObjectNode(rootLambdaNode.Scope);
+        rootLambdaNode.Children.Add(rootNode);
+
         selectionIdToInnerNode.Add(new(operation.RootSelectionSet.Id), rootNode);
         // TODO:
         var fieldsToProject = Array.Empty<FieldNode>();
@@ -236,7 +221,7 @@ public static class MetaTreeConstruction
             else if (hasProjections)
                 node = HandleObjectNode(rootNode.Scope!); // recurse here for the child selections
             else
-                node = CreateMemberAccess(propertyInfo, rootScope);
+                node = CreateMemberAccess(propertyInfo, rootLambdaNode.Scope);
 
             node.Parent = rootNode;
             children.Add(node);
