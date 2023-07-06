@@ -20,24 +20,22 @@ public sealed class BorrowedProjectionExpressionCache : IDisposable
         Manager = manager;
     }
 
-    public LambdaExpression GetRootExpression()
+    public Expression GetRootExpression()
     {
         var nodeIndex = Cache.Tree.RootNodeIndex;
         return GetExpressionForNode(nodeIndex);
     }
 
-    public LambdaExpression GetExpression(Identifier selectionId)
+    public Expression GetExpression(Identifier selectionId)
     {
         var nodeIndex = Cache.Tree.SelectionIdToOuterNode[selectionId].AsIndex();
         return GetExpressionForNode(nodeIndex);
     }
 
-    private LambdaExpression GetExpressionForNode(int nodeIndex)
+    private Expression GetExpressionForNode(int nodeIndex)
     {
-        var expression = Cache.CachedExpressions[nodeIndex].Expression;
-        var innermostInstanceIndex = Cache.Tree.Nodes[nodeIndex].Scope!.InnermostInstance.AsIndex();
-        var innermostInstance = (ParameterExpression) Cache.CachedExpressions[innermostInstanceIndex].Expression;
-        return Expression.Lambda(expression, innermostInstance);
+        CacheExpressions();
+        return Cache.CachedExpressions[nodeIndex].Expression;
     }
 
     public void SetVariableValue<T>(Identifier id, T value)
