@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Data.ExpressionNodes;
@@ -44,7 +45,9 @@ public static class ParameterContextExtensions
 
     public static T? GetValue<T>(
         this IVariableContext context, Identifier<T> parameterId)
+
+        where T : IEquatable<T>
     {
-        return (T?) context.Boxes[parameterId];
+        return ((Box<T>) context.Boxes[parameterId]).Value;
     }
 }
