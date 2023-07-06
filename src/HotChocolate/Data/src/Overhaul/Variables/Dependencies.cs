@@ -28,6 +28,8 @@ public readonly struct Dependencies
     //       of which expression dependencies are used as well.
     //       This can be done by having a hash set here instead of a bool
     public bool HasExpressionDependencies { get; init; }
+
+    public bool HasNoDependencies => Structural.VariableIds?.Count == 0 && !HasExpressionDependencies;
 }
 
 public readonly struct VariableExpressionsEnumerable
@@ -125,14 +127,24 @@ public static class DependencyHelper
     }
     private static readonly ConcurrentDictionary<Type, Cache> _cache = new();
 
-    private static Func<IExpressionFactory, Identifier> GetGetIdentifier<T>(
-        Func<IExpressionFactory, Identifier<T>> getter)
+    private static Func<IExpressionFactory, Identifier> GetGetIdentifier1<TFactory>(
+        Func<TFactory, Identifier> getter)
+        where TFactory : IExpressionFactory
     {
-        return f => getter(f).Id;
+        return f => getter((TFactory) f);
     }
 
-    private static readonly MethodInfo _getGetIdentifierMethodInfo = typeof(DependencyHelper)
-        .GetMethod(nameof(GetGetIdentifier), BindingFlags.NonPublic | BindingFlags.Static)!;
+    private static Func<IExpressionFactory, Identifier> GetGetIdentifier2<TFactory, T>(
+        Func<TFactory, Identifier<T>> getter)
+        where TFactory : IExpressionFactory
+    {
+        return f => getter((TFactory) f).Id;
+    }
+
+    private static readonly MethodInfo _getGetIdentifier1MethodInfo = typeof(DependencyHelper)
+        .GetMethod(nameof(GetGetIdentifier1), BindingFlags.NonPublic | BindingFlags.Static)!;
+    private static readonly MethodInfo _getGetIdentifier2MethodInfo = typeof(DependencyHelper)
+        .GetMethod(nameof(GetGetIdentifier2), BindingFlags.NonPublic | BindingFlags.Static)!;
 
     public static Dependencies GetDependencies(IExpressionFactory factory)
     {
@@ -189,20 +201,21 @@ public static class DependencyHelper
                 continue;
 
             var idType = p.PropertyType;
+            var getterFunc = getMethod.CreateDelegate(
+                typeof(Func<,>).MakeGenericType(type, idType));
             if (idType == typeof(Identifier))
             {
-                var getterFunc = getMethod.CreateDelegate<Func<IExpressionFactory, Identifier>>();
-                getters.Add(getterFunc);
+                var adapterFunc = _getGetIdentifier1MethodInfo
+                    .MakeGenericMethod(type)
+                    .Invoke(null, new object?[] { getterFunc })!;
+                getters.Add((Func<IExpressionFactory, Identifier>) getterFunc);
             }
             else if (idType.IsGenericType && idType.GetGenericTypeDefinition() == typeof(Identifier<>))
             {
                 var valueType = idType.GetGenericArguments()[0];
-                var typedGetterFunc = getMethod
-                    .CreateDelegate(typeof(Func<>)
-                    .MakeGenericType(typeof(IExpressionFactory), valueType));
-                var convertedGetterFunc = _getGetIdentifierMethodInfo
-                    .MakeGenericMethod(valueType)
-                    .Invoke(null, new object?[] { typedGetterFunc })!;
+                var convertedGetterFunc = _getGetIdentifier2MethodInfo
+                    .MakeGenericMethod(type, valueType)
+                    .Invoke(null, new object?[] { getterFunc })!;
                 getters.Add((Func<IExpressionFactory, Identifier>) convertedGetterFunc);
             }
             else
