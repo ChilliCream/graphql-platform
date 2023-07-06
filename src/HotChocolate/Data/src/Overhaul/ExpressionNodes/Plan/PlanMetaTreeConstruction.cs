@@ -57,15 +57,6 @@ public static class MetaTreeConstruction
         }
     }
 
-    public static void WrapScopeInstance(
-        this PlanMetaTree tree,
-        ExpressionNode wrapperNode,
-        Scope scopeToWrap)
-    {
-        WrapExpressionNode(tree, wrapperNode, scopeToWrap.Instance!);
-        scopeToWrap.Instance = wrapperNode;
-    }
-
     public enum ResultKind
     {
         All,
