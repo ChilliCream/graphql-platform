@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+// ReSharper disable PossibleMultipleEnumeration
 
 namespace HotChocolate.Data.ExpressionNodes;
 
@@ -9,7 +10,10 @@ public static class MetaTreeSealing
 {
     private sealed class AssignIdsVisitor : PlanMetaTreeVisitor<AssignIdsVisitor.Context>
     {
-        internal sealed record Context(SequentialIdentifierGenerator Generator);
+        internal sealed record Context(SequentialIdentifierGenerator Generator)
+        {
+            public SequentialIdentifierGenerator Generator = Generator;
+        }
         public static readonly AssignIdsVisitor Instance = new();
         public override void Visit(ExpressionNode node, Context context)
         {
@@ -34,7 +38,7 @@ public static class MetaTreeSealing
         public override void Visit(ExpressionNode node, Context context)
         {
             ref var sealedNode = ref context.NodeRef(node.Id);
-            Debug.Assert(sealedNode.IsInitialized);
+            Debug.Assert(!sealedNode.IsInitialized);
 
             // This adds a scope
             base.Visit(node, context);
@@ -61,25 +65,27 @@ public static class MetaTreeSealing
                 StructuralDependencies structuralDependencies;
                 bool hasExpressionDependencies = false;
 
-                if (GetDependencies().Any(c => c.Structural.Unspecified))
+                var dependencyObjects = GetDependencies();
+
+                if (dependencyObjects.Any(c => c.Structural.Unspecified))
                 {
                     structuralDependencies = StructuralDependencies.All;
                     hasExpressionDependencies = true;
                 }
-                else if (GetDependencies().All(c => c.Structural.VariableIds!.Count == 0))
+                else if (dependencyObjects.All(c => c.Structural.VariableIds!.Count == 0))
                 {
                     structuralDependencies = StructuralDependencies.None;
                 }
                 else
                 {
                     var dependencyIds = new HashSet<Identifier>();
-                    foreach (var c in GetDependencies())
+                    foreach (var c in dependencyObjects)
                         dependencyIds.UnionWith(c.Structural.VariableIds!);
                     structuralDependencies = new() { VariableIds = dependencyIds };
                 }
 
                 if (!hasExpressionDependencies)
-                    hasExpressionDependencies = GetDependencies().Any(c => c.HasExpressionDependencies);
+                    hasExpressionDependencies = dependencyObjects.Any(c => c.HasExpressionDependencies);
 
                 dependencies = new()
                 {
@@ -90,10 +96,10 @@ public static class MetaTreeSealing
 
             IEnumerable<Dependencies> GetDependencies()
             {
-                yield return context.NodeRef(node.Id).Dependencies;
+                yield return node.OwnDependencies;
 
                 if (node.Scope is { } s)
-                    yield return context.NodeRef(s.Instance!.Id).Dependencies;
+                    yield return context.NodeRef(s.Instance.Id).Dependencies;
 
                 foreach (var child in childrenList)
                     yield return context.NodeRef(child).Dependencies;
@@ -109,7 +115,7 @@ public static class MetaTreeSealing
         public override void VisitScope(Scope scope, Context context)
         {
             // The root has been initialized, which means the scope has too.
-            ref var rootRef = ref context.NodeRef(scope.RootInstance!.Id);
+            ref var rootRef = ref context.NodeRef(scope.Instance.Id);
             if (rootRef.IsInitialized)
             {
                 context.Scopes.Push(rootRef.Scope!);
@@ -121,7 +127,7 @@ public static class MetaTreeSealing
             SealedScope? parentScope = null;
             if (scope.ParentScope is { } parentScopeMutable)
             {
-                ref var parentRootRef = ref context.NodeRef(parentScopeMutable.RootInstance!.Id);
+                ref var parentRootRef = ref context.NodeRef(parentScopeMutable.Instance.Id);
                 Debug.Assert(parentRootRef.IsInitialized);
                 parentScope = parentRootRef.Scope!.ParentScope;
             }
@@ -129,8 +135,8 @@ public static class MetaTreeSealing
             base.VisitScope(scope, context);
 
             var sealedScope = new SealedScope(
-                scope.RootInstance!.Id,
-                scope.Instance!.Id,
+                scope.Instance.Id,
+                scope.InnerInstance!.Id,
                 parentScope);
             context.Scopes.Push(sealedScope);
         }
