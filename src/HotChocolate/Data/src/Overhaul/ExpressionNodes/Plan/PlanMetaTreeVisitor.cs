@@ -35,6 +35,6 @@ public abstract class PlanMetaTreeVisitor<TContext>
     {
         Debug.Assert(scope is not null);
         // The root instance eventually includes the instance as a child.
-        Visit(scope.RootInstance, context);
+        Visit(scope.Instance, context);
     }
 }
