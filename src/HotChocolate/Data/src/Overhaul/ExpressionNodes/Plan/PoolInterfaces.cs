@@ -21,6 +21,17 @@ public static class ExpressionNodeCreation
         node.OutermostNode = node;
         return node;
     }
+
+    public static Scope CreateScopeWithInstance(
+        this ExpressionPools pools,
+        ExpressionNode? declaringNode = null)
+    {
+        var instance = pools.ExpressionNodePool.CreateInnermost(InstanceExpressionFactory.Instance);
+        var scope = pools.ScopePool.Get();
+        scope.InnerInstance = instance;
+        scope.DeclaringNode = declaringNode;
+        return scope;
+    }
 }
 
 // TEMP:
@@ -53,6 +64,20 @@ public interface IObjectPool<T>
     T Get();
     // Returns false if it's already been returned.
     bool Return(T item);
+}
+
+public class ScopePool : IObjectPool<Scope>
+{
+    private readonly HashSet<Scope> _notReturned = new();
+
+    public Scope Get()
+    {
+        var scope = new Scope();
+        _notReturned.Add(scope);
+        return scope;
+    }
+
+    public bool Return(Scope scope) => _notReturned.Remove(scope);
 }
 
 public sealed record ExpressionPools(
