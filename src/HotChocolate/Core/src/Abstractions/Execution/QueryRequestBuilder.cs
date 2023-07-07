@@ -220,7 +220,8 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         string name, object? value)
     {
         var contextData = GetContextDataForMutation();
-        contextData.TryAdd(name, value);
+        if (!contextData.ContainsKey(name))
+            contextData.Add(name, value);
         return this;
     }
 

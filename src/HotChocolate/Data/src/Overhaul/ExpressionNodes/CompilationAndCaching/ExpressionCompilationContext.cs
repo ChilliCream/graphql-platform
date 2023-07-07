@@ -24,7 +24,6 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
     public ICompiledExpressions Expressions => this;
 
     public int NodeIndex { get; set; }
-    public Identifier NodeId => Identifier.FromIndex(NodeIndex);
 
     private ref SealedExpressionNode NodeRef => ref Tree.Nodes[NodeIndex];
 
@@ -36,7 +35,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
         {
             if (NodeRef.Scope is { } scope)
             {
-                int index = scope.OutermostInstance.AsIndex();
+                int index = scope.OutermostInstance;
                 var expression = _expressionTreeCache.CachedExpressions[index].Expression;
                 return expression;
             }
@@ -44,13 +43,13 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
         }
     }
 
-    public ParameterExpression? InstanceRoot
+    public ParameterExpression? InnerInstance
     {
         get
         {
             if (NodeRef.Scope is { } scope)
             {
-                int index = scope.InnermostInstance.AsIndex();
+                int index = scope.InnermostInstance;
                 var expression = (ParameterExpression) _expressionTreeCache.CachedExpressions[index].Expression;
                 return expression;
             }
@@ -75,7 +74,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
         {
             get
             {
-                var i = _context.NodeRef.Children[index].AsIndex();
+                var i = _context.NodeRef.Children[index];
                 return _context._expressionTreeCache.CachedExpressions[i].Expression;
             }
         }

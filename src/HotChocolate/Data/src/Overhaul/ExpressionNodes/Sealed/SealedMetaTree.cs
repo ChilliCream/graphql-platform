@@ -10,18 +10,18 @@ public sealed class SealedMetaTree
     internal int RootNodeIndex => Nodes.Length - 1;
     internal ref SealedExpressionNode Root => ref Nodes[RootNodeIndex];
 
-    internal IReadOnlyDictionary<Identifier, Identifier> SelectionIdToOuterNode { get; }
+    internal IReadOnlyDictionary<Identifier, int> SelectionIdToOuterNode { get; }
 
     internal SealedMetaTree(
         SealedExpressionNode[] nodes,
-        IReadOnlyDictionary<Identifier, Identifier> selectionIdToOuterNode)
+        IReadOnlyDictionary<Identifier, int> selectionIdToOuterNode)
     {
         Nodes = nodes;
         SelectionIdToOuterNode = selectionIdToOuterNode;
     }
 
-    internal ref SealedExpressionNode NodeRef(Identifier id)
-        => ref Nodes[id.AsIndex()];
-    internal ref SealedExpressionNode NodeRefBySelectionId(Identifier id)
-        => ref NodeRef(SelectionIdToOuterNode[id]);
+    internal ref SealedExpressionNode NodeRef(int index)
+        => ref Nodes[index];
+    internal ref SealedExpressionNode NodeRefBySelectionId(Identifier index)
+        => ref NodeRef(SelectionIdToOuterNode[index]);
 }

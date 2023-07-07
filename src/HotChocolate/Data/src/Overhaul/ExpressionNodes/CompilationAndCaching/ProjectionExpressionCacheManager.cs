@@ -28,7 +28,7 @@ public sealed class BorrowedProjectionExpressionCache : IDisposable
 
     public Expression GetExpression(Identifier selectionId)
     {
-        var nodeIndex = Cache.Tree.SelectionIdToOuterNode[selectionId].AsIndex();
+        var nodeIndex = Cache.Tree.SelectionIdToOuterNode[selectionId];
         return GetExpressionForNode(nodeIndex);
     }
 

@@ -26,7 +26,7 @@ public sealed class ExpressionNode
     public Scope? Scope { get; set; }
 
     // Initialized when the tree is sealed.
-    internal Identifier Id { get; set; }
+    internal int Index { get; set; } = -1;
 
     // This will likely require some more care.
     // TODO: We don't actually need this everywhere, maybe this should be stored in factories?

@@ -10,7 +10,7 @@ internal readonly record struct SealedExpressionNode(
     // This is only needed for scoping the access to just the declared variables.
     Dependencies OwnDependencies,
 
-    Identifier[] Children,
+    int[] Children,
     // The type that the expression should evaluate to.
     Type ExpectedType)
 {

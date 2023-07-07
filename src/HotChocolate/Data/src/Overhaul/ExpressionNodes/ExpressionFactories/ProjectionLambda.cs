@@ -11,7 +11,7 @@ public sealed class ProjectionLambda : IExpressionFactory
     public static readonly ProjectionLambda Instance = new();
     public Expression GetExpression(IExpressionCompilationContext context)
     {
-        var instance = context.Expressions.InstanceRoot!;
+        var instance = context.Expressions.InnerInstance!;
         var projection = context.Expressions.Children[0];
         var lambda = Expression.Lambda(projection, instance);
         return lambda;

@@ -8,19 +8,19 @@ namespace HotChocolate.Data.ExpressionNodes;
 
 public static class MetaTreeSealing
 {
-    private sealed class AssignIdsVisitor : PlanMetaTreeVisitor<AssignIdsVisitor.Context>
+    private sealed class AssignIndexVisitor : PlanMetaTreeVisitor<AssignIndexVisitor.Context>
     {
-        internal sealed record Context(SequentialIdentifierGenerator Generator)
+        internal sealed class Context
         {
-            public SequentialIdentifierGenerator Generator = Generator;
+            public int NodeCounter;
         }
-        public static readonly AssignIdsVisitor Instance = new();
+        public static readonly AssignIndexVisitor Instance = new();
         public override void Visit(ExpressionNode node, Context context)
         {
-            if (node.Id != default)
+            if (node.Index != -1)
                 return;
             base.Visit(node, context);
-            node.Id = context.Generator.Next();
+            node.Index = context.NodeCounter++;
         }
     }
 
@@ -31,13 +31,13 @@ public static class MetaTreeSealing
             // Need this since scopes don't have ids. Should they?
             Stack<SealedScope> Scopes)
         {
-            public ref SealedExpressionNode NodeRef(Identifier id) => ref Nodes[id.AsIndex()];
+            public ref SealedExpressionNode NodeRef(int index) => ref Nodes[index];
         }
 
         public static readonly SealingVisitor Instance = new();
         public override void Visit(ExpressionNode node, Context context)
         {
-            ref var sealedNode = ref context.NodeRef(node.Id);
+            ref var sealedNode = ref context.NodeRef(node.Index);
             Debug.Assert(!sealedNode.IsInitialized);
 
             // This adds a scope
@@ -49,14 +49,14 @@ public static class MetaTreeSealing
 
             var childrenList = node.Children is { Count: > 0 }
                 ? FindChildren()
-                : Array.Empty<Identifier>();
+                : Array.Empty<int>();
 
-            Identifier[] FindChildren()
+            int[] FindChildren()
             {
-                var result = new Identifier[node.Children!.Count];
+                var result = new int[node.Children.Count];
                 var children = node.Children;
                 for (int i = 0; i < children.Count; i++)
-                    result[i] = children[i].Id;
+                    result[i] = children[i].Index;
                 return result;
             }
 
@@ -99,7 +99,7 @@ public static class MetaTreeSealing
                 yield return node.OwnDependencies;
 
                 if (node.Scope is { } s)
-                    yield return context.NodeRef(s.Instance.Id).AllDependencies;
+                    yield return context.NodeRef(s.Instance.Index).AllDependencies;
 
                 foreach (var child in childrenList)
                     yield return context.NodeRef(child).AllDependencies;
@@ -117,7 +117,7 @@ public static class MetaTreeSealing
         public override void VisitScope(Scope scope, Context context)
         {
             // The root has been initialized, which means the scope has too.
-            ref var rootRef = ref context.NodeRef(scope.Instance.Id);
+            ref var rootRef = ref context.NodeRef(scope.Instance.Index);
             if (rootRef.IsInitialized)
             {
                 context.Scopes.Push(rootRef.Scope!);
@@ -129,7 +129,7 @@ public static class MetaTreeSealing
             SealedScope? parentScope = null;
             if (scope.ParentScope is { } parentScopeMutable)
             {
-                ref var parentRootRef = ref context.NodeRef(parentScopeMutable.Instance.Id);
+                ref var parentRootRef = ref context.NodeRef(parentScopeMutable.Instance.Index);
                 Debug.Assert(parentRootRef.IsInitialized);
                 parentScope = parentRootRef.Scope!.ParentScope;
             }
@@ -137,8 +137,8 @@ public static class MetaTreeSealing
             base.VisitScope(scope, context);
 
             var sealedScope = new SealedScope(
-                scope.Instance.Id,
-                scope.InnerInstance!.Id,
+                scope.Instance.Index,
+                scope.InnerInstance!.Index,
                 parentScope);
             context.Scopes.Push(sealedScope);
         }
@@ -165,10 +165,10 @@ public static class MetaTreeSealing
         this PlanMetaTree tree,
         ExpressionPools pools)
     {
-        var assignIdsContext = new AssignIdsVisitor.Context(new());
-        AssignIdsVisitor.Instance.Visit(tree, assignIdsContext);
+        var assignIndexContext = new AssignIndexVisitor.Context();
+        AssignIndexVisitor.Instance.Visit(tree, assignIndexContext);
 
-        var nodes = new SealedExpressionNode[assignIdsContext.Generator.Count];
+        var nodes = new SealedExpressionNode[assignIndexContext.NodeCounter];
         var sealingContext = new SealingVisitor.Context(nodes, new());
         SealingVisitor.Instance.Visit(tree, sealingContext);
 
@@ -177,9 +177,9 @@ public static class MetaTreeSealing
 
         ReturnToObjectPoolVisitor.Instance.Visit(tree, pools);
 
-        var selectionIdToOuterNode = new Dictionary<Identifier, Identifier>(tree.SelectionIdToInnerNode.Count);
+        var selectionIdToOuterNode = new Dictionary<Identifier, int>(tree.SelectionIdToInnerNode.Count);
         foreach (var (id, node) in tree.SelectionIdToInnerNode)
-            selectionIdToOuterNode.Add(id, node.OutermostNode.Id);
+            selectionIdToOuterNode.Add(id, node.OutermostNode.Index);
 
         return new SealedMetaTree(nodes, selectionIdToOuterNode);
     }

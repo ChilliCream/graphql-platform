@@ -11,7 +11,7 @@ public sealed class InstanceExpressionFactory : IExpressionFactory
 
     public Expression GetExpression(IExpressionCompilationContext context)
     {
-        var name = "x" + context.NodeId.Value;
+        var name = "x" + context.NodeIndex;
         return Expression.Variable(context.ExpectedExpressionType, name);
     }
 }

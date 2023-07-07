@@ -7,7 +7,7 @@ namespace HotChocolate.Data.ExpressionNodes;
 
 public interface IExpressionCompilationContext
 {
-    Identifier NodeId { get; }
+    int NodeIndex { get; }
     Type ExpectedExpressionType { get; }
     ICompiledExpressions Expressions { get; }
     IVariableContext Variables { get; }
@@ -18,7 +18,7 @@ public interface ICompiledExpressions
     // These are null in the case when we're handling a instance node ourselves.
     // I've current set it such that the scope is null when inside an instance node of a scope.
     Expression? Instance { get; }
-    ParameterExpression? InstanceRoot { get; }
+    ParameterExpression? InnerInstance { get; }
 
     ChildrenExpressionCollection Children { get; }
 }
