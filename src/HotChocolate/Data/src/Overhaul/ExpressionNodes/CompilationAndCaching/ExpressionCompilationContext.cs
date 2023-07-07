@@ -110,7 +110,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
             }
 
             private IReadOnlyDictionary<Identifier, IBox> Impl => _context._expressionTreeCache.Variables.Boxes;
-            private StructuralDependencies Dependencies => _context.NodeRef.Dependencies.Structural;
+            private StructuralDependencies Dependencies => _context.NodeRef.OwnDependencies.Structural;
             private bool CanAccess(Identifier id) => Dependencies.VariableIds?.Contains(id) ?? true;
 
             private void MakeSureCanAccess(Identifier id)
@@ -188,7 +188,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
             }
 
             private IReadOnlyDictionary<Identifier, BoxExpressions> Impl => _context._expressionTreeCache.Variables.Expressions;
-            private bool CanAccess(Identifier _ = default) => _context.NodeRef.Dependencies.HasExpressionDependencies;
+            private bool CanAccess(Identifier _ = default) => _context.NodeRef.OwnDependencies.HasExpressionDependencies;
 
             private void MakeSureCanAccess(Identifier id)
             {

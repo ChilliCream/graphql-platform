@@ -99,16 +99,17 @@ public static class MetaTreeSealing
                 yield return node.OwnDependencies;
 
                 if (node.Scope is { } s)
-                    yield return context.NodeRef(s.Instance.Id).Dependencies;
+                    yield return context.NodeRef(s.Instance.Id).AllDependencies;
 
                 foreach (var child in childrenList)
-                    yield return context.NodeRef(child).Dependencies;
+                    yield return context.NodeRef(child).AllDependencies;
             }
 
             sealedNode = new SealedExpressionNode(
                 scope,
                 node.ExpressionFactory,
                 dependencies,
+                node.OwnDependencies,
                 childrenList,
                 node.ExpectedType ?? typeof(object));
         }

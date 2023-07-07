@@ -98,7 +98,7 @@ public sealed class BorrowedProjectionExpressionCache : IDisposable
             {
                 var node = nodes[i];
                 // The ones that have no dependencies are computed
-                if (!node.Dependencies.HasNoDependencies)
+                if (!node.AllDependencies.HasNoDependencies)
                     CacheNode(i);
             }
 
@@ -109,7 +109,7 @@ public sealed class BorrowedProjectionExpressionCache : IDisposable
             for (int i = 0; i < nodes.Length; i++)
             {
                 var node = nodes[i];
-                var structuralDeps = node.Dependencies.Structural;
+                var structuralDeps = node.AllDependencies.Structural;
                 if (structuralDeps.Unspecified || valuesChanged.Overlaps(structuralDeps.VariableIds!))
                     CacheNode(i);
             }

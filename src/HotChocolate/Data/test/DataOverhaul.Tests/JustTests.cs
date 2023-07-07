@@ -29,7 +29,7 @@ public class ReferenceCacheBuilder
         for (int i = 0; i < tree.Nodes.Length; i++)
         {
             var node = tree.Nodes[i];
-            if (node.Dependencies.HasNoDependencies)
+            if (node.AllDependencies.HasNoDependencies)
             {
                 context.NodeIndex = i;
                 cachedExpressions[i].Expression = node.ExpressionFactory.GetExpression(context);
