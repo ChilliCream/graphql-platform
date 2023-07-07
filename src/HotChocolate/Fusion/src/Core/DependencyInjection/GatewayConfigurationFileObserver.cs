@@ -30,13 +30,13 @@ internal sealed class GatewayConfigurationFileObserver : IObservable<GatewayConf
 
         public FileConfigurationSession(IObserver<GatewayConfiguration> observer, string fileName)
         {
-            _observer = observer;
-            _fileName = fileName;
-
-            BeginLoadConfig();
-
             var fullPath = Path.GetFullPath(fileName);
             var directory = Path.GetDirectoryName(fullPath);
+
+            _observer = observer;
+            _fileName = fullPath;
+
+            BeginLoadConfig();
 
             if (directory is null)
             {

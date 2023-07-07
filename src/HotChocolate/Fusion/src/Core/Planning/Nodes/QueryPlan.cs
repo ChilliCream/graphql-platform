@@ -116,6 +116,16 @@ internal sealed class QueryPlan
                         .Build());
             }
         }
+        catch
+        {
+            if (context.Result.Errors.Count == 0)
+            {
+                context.Result.AddError(
+                    ErrorBuilder.New()
+                        .SetMessage("Broken")
+                        .Build());
+            }
+        }
 
         context.Result.RegisterForCleanup(
             () =>

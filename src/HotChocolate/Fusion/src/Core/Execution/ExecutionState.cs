@@ -1,13 +1,17 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using HotChocolate.Execution.Processing;
+using static HotChocolate.Fusion.FusionResources;
 
 namespace HotChocolate.Fusion.Execution;
 
 internal sealed class ExecutionState
 {
-    private readonly Dictionary<ISelectionSet, List<WorkItem>> _map = new();
+    private readonly Dictionary<ISelectionSet, List<SelectionSetState>> _map = new();
     private readonly HashSet<ISelectionSet> _immutable = new();
 
     public bool ContainsState(ISelectionSet selectionSet)
@@ -61,7 +65,7 @@ internal sealed class ExecutionState
 
     public bool TryGetState(
         ISelectionSet selectionSet,
-        [NotNullWhen(true)] out IReadOnlyList<WorkItem>? values)
+        [NotNullWhen(true)] out IReadOnlyList<SelectionSetState>? values)
     {
         var taken = false;
         Monitor.Enter(_map, ref taken);
@@ -97,24 +101,33 @@ internal sealed class ExecutionState
         }
     }
 
-    public void RegisterState(WorkItem value)
+    public void TryRegisterState(
+        ISelectionSet selectionSet,
+        ObjectResult result,
+        IReadOnlyList<string> exportKeys,
+        SelectionData parentData)
     {
         var taken = false;
-        List<WorkItem>? values;
+        List<SelectionSetState>? states;
+        SelectionSetState? state = null;
         Monitor.Enter(_map, ref taken);
 
         try
         {
-            if (_immutable.Contains(value.SelectionSet))
+            if (_immutable.Contains(selectionSet))
             {
-                throw new InvalidOperationException(
-                    $"The state for the selection set `{value.SelectionSet.Id}` is immutable.");
+                return;
             }
-
-            if (!_map.TryGetValue(value.SelectionSet, out values))
+            
+            state = new SelectionSetState(selectionSet, result, exportKeys)
             {
-                var temp = new List<WorkItem> { value };
-                _map.Add(value.SelectionSet, temp);
+                SelectionSetData = { [0] = parentData }
+            };
+            
+            if (!_map.TryGetValue(state.SelectionSet, out states))
+            {
+                var temp = new List<SelectionSetState> { state };
+                _map.Add(state.SelectionSet, temp);
             }
         }
         finally
@@ -125,23 +138,69 @@ internal sealed class ExecutionState
             }
         }
 
-        if (values is not null)
+        if (states is not null)
         {
             taken = false;
-            Monitor.Enter(values, ref taken);
+            Monitor.Enter(states, ref taken);
 
             try
             {
-                values.Add(value);
+                states.Add(state);
             }
             finally
             {
                 if (taken)
                 {
-                    Monitor.Exit(values);
+                    Monitor.Exit(states);
+                }
+            }
+        }
+    }
+
+    public void RegisterState(SelectionSetState state)
+    {
+        var taken = false;
+        List<SelectionSetState>? states;
+        Monitor.Enter(_map, ref taken);
+
+        try
+        {
+            if (_immutable.Contains(state.SelectionSet))
+            {
+                throw new InvalidOperationException(
+                    string.Format(ExecutionState_RegisterState_StateImmutable, state.SelectionSet.Id));
+            }
+
+            if (!_map.TryGetValue(state.SelectionSet, out states))
+            {
+                var temp = new List<SelectionSetState> { state };
+                _map.Add(state.SelectionSet, temp);
+            }
+        }
+        finally
+        {
+            if (taken)
+            {
+                Monitor.Exit(_map);
+            }
+        }
+
+        if (states is not null)
+        {
+            taken = false;
+            Monitor.Enter(states, ref taken);
+
+            try
+            {
+                states.Add(state);
+            }
+            finally
+            {
+                if (taken)
+                {
+                    Monitor.Exit(states);
                 }
             }
         }
     }
 }
-

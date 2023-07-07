@@ -63,4 +63,7 @@
   <data name="FileConfigurationSession_MustContainPath" xml:space="preserve">
     <value>The file name must contain a directory path.</value>
   </data>
+  <data name="ExecutionState_RegisterState_StateImmutable" xml:space="preserve">
+    <value>The state for the selection set `{0}` is immutable.</value>
+  </data>
 </root>
