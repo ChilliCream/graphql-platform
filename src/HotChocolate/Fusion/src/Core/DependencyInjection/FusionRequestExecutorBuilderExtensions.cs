@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using static HotChocolate.Fusion.ThrowHelper;
 
@@ -53,6 +54,7 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseField(next => next)
             .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
+            .AddConvention<INamingConventions>(_ => new DefaultNamingConventions())
             .Configure(
                 c =>
                 {
