@@ -109,7 +109,7 @@ internal sealed class ExecutionState
     {
         var taken = false;
         List<SelectionSetState>? states;
-        SelectionSetState? state = null;
+        SelectionSetState? state;
         Monitor.Enter(_map, ref taken);
 
         try
@@ -138,23 +138,7 @@ internal sealed class ExecutionState
             }
         }
 
-        if (states is not null)
-        {
-            taken = false;
-            Monitor.Enter(states, ref taken);
-
-            try
-            {
-                states.Add(state);
-            }
-            finally
-            {
-                if (taken)
-                {
-                    Monitor.Exit(states);
-                }
-            }
-        }
+        AddState(states, state);
     }
 
     public void RegisterState(SelectionSetState state)
@@ -185,21 +169,28 @@ internal sealed class ExecutionState
             }
         }
 
-        if (states is not null)
+        AddState(states, state);
+    }
+    
+    private static void AddState(List<SelectionSetState>? states, SelectionSetState state)
+    {
+        if (states is null)
         {
-            taken = false;
-            Monitor.Enter(states, ref taken);
+            return;
+        }
+        
+        var taken = false;
+        Monitor.Enter(states, ref taken);
 
-            try
+        try
+        {
+            states.Add(state);
+        }
+        finally
+        {
+            if (taken)
             {
-                states.Add(state);
-            }
-            finally
-            {
-                if (taken)
-                {
-                    Monitor.Exit(states);
-                }
+                Monitor.Exit(states);
             }
         }
     }
