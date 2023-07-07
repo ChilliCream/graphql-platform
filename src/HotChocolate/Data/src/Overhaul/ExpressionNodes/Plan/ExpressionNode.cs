@@ -63,13 +63,6 @@ public sealed class ExpressionNode
     }
 
     public RelatedArrayNodesProxy AssumeArray() => new(this);
-
-    public void SetParent(ExpressionNode node)
-    {
-        if (node.Parent == this)
-            return;
-        Children.Add(node);
-    }
 }
 
 
@@ -117,13 +110,13 @@ public class ChildrenCollection : IList<ExpressionNode>
     public int IndexOf(ExpressionNode item) => MaybeList?.IndexOf(item) ?? -1;
     public void Insert(int index, ExpressionNode node)
     {
-        SetParent(node);
+        SetSelfAsParent(node);
         List.Insert(index, node);
     }
     public void RemoveAt(int index) => MaybeList!.RemoveAt(index);
     public void Add(ExpressionNode node)
     {
-        SetParent(node);
+        SetSelfAsParent(node);
         List.Add(node);
     }
 
@@ -138,7 +131,7 @@ public class ChildrenCollection : IList<ExpressionNode>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private void SetParent(ExpressionNode node)
+    private void SetSelfAsParent(ExpressionNode node)
     {
         if (node.Parent == _node)
         {
