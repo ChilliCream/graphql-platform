@@ -208,7 +208,7 @@ public static class DependencyHelper
                 var adapterFunc = _getGetIdentifier1MethodInfo
                     .MakeGenericMethod(type)
                     .Invoke(null, new object?[] { getterFunc })!;
-                getters.Add((Func<IExpressionFactory, Identifier>) getterFunc);
+                getters.Add((Func<IExpressionFactory, Identifier>) adapterFunc);
             }
             else if (idType.IsGenericType && idType.GetGenericTypeDefinition() == typeof(Identifier<>))
             {
