@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using HotChocolate.Transport.Abstractions;
 using HotChocolate.Transport.Http.Helper;
 
@@ -85,30 +84,30 @@ public class GraphQLHttpClient : IGraphQLHttpClient
 
     private static NameValueCollection GetQueryParameter(OperationRequest request)
     {
-        var queryString = new NameValueCollection();
+        var queryParameter = new NameValueCollection();
 
         if (request.OperationName is not null)
         {
-            queryString["operationName"] = Uri.EscapeDataString(request.OperationName);
+            queryParameter["operationName"] = Uri.EscapeDataString(request.OperationName);
         }
 
         if (request.Query is not null)
         {
-            queryString["query"] = Uri.EscapeDataString(request.Query);
+            queryParameter["query"] = Uri.EscapeDataString(request.Query);
         }
 
         if (request.Variables is not null)
         {
             var variablesObject = JsonSerializer.Serialize(request.Variables);
-            queryString["variables"] = variablesObject;
+            queryParameter["variables"] = Uri.EscapeDataString(variablesObject);
         }
 
         if (request.Extensions is not null)
         {
             var extensionsObject = JsonSerializer.Serialize(request.Extensions);
-            queryString["extensions"] = extensionsObject;
+            queryParameter["extensions"] = Uri.EscapeDataString(extensionsObject);
         }
 
-        return queryString;
+        return queryParameter;
     }
 }
