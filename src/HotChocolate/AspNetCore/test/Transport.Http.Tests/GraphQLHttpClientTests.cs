@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
-using HotChocolate.Language;
 using HotChocolate.Transport.Abstractions;
 using Snapshooter.Xunit;
 
@@ -27,6 +26,6 @@ public class GraphQLHttpClientTests : ServerTestBase
             new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
 
         // assert
-        response.MatchSnapshot();
+        response.Data.ToString().MatchSnapshot();
     }
 }

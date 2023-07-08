@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Transport.Http.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Transport.Http</RootNamespace>
+    <UserSecretsId>aefb0b37-0d4d-4349-be03-935bcc510ff4</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +19,10 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="__snapshots__\" />
   </ItemGroup>
 
 </Project>

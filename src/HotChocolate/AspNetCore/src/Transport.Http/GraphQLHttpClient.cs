@@ -1,7 +1,5 @@
 using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,10 +48,15 @@ public class GraphQLHttpClient : IGraphQLHttpClient
 
         if (!httpResponseMessage.IsSuccessStatusCode)
             throw new InvalidOperationException(
-                $"Response indicated failure: {httpResponseMessage.StatusCode} {httpResponseMessage.ReasonPhrase}");
+                $"Response indicates failure: {httpResponseMessage.StatusCode} {httpResponseMessage.ReasonPhrase}");
 
-        using var resultStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-        var operationResult = JsonSerializer.Deserialize<OperationResult>(resultStream);
-        return operationResult ?? throw new InvalidOperationException("Result data is empty");
+        var json = await httpResponseMessage.Content.ReadAsStringAsync();
+        var jsonDocument = JsonDocument.Parse(json);
+        var operationResult = new OperationResult(
+            jsonDocument,
+            jsonDocument.RootElement.TryGetProperty("data", out var data) ? data : default,
+            jsonDocument.RootElement.TryGetProperty("errors", out var errors) ? errors : default,
+            jsonDocument.RootElement.TryGetProperty("extensions", out var extensions) ? extensions : default);
+        return operationResult;
     }
 }
