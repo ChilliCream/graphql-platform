@@ -28,4 +28,22 @@ public class GraphQLHttpClientTests : ServerTestBase
         // assert
         response.Data.ToString().MatchSnapshot();
     }
+
+    [Fact]
+    public async Task ExecuteGetAsync_Returns_OperationResult()
+    {
+        // arrange
+        using var testServer = CreateStarWarsServer();
+        var httpClient = testServer.CreateClient();
+        httpClient.BaseAddress = new Uri(TestServerExtensions.CreateUrl("/graphql"));
+        var graphQLHttpClient = new GraphQLHttpClient(httpClient);
+
+        // act
+        var response = await graphQLHttpClient.ExecuteGetAsync(
+            new OperationRequest("query { hero(episode: JEDI) { name } }"),
+            new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
+
+        // assert
+        response.Data.ToString().MatchSnapshot();
+    }
 }

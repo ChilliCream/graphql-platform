@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Specialized;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using HotChocolate.Transport.Abstractions;
 using HotChocolate.Transport.Http.Helper;
 
@@ -21,9 +24,13 @@ public class GraphQLHttpClient : IGraphQLHttpClient
     /// <inheritdoc />
     public Task<OperationResult> ExecuteGetAsync(OperationRequest request, CancellationToken cancellationToken)
     {
+        var parameter = GetQueryParameter(request);
+        var queryString = GetQueryString(parameter);
+        var requestUri = $"{_httpClient.BaseAddress}?{queryString}";
         var requestMessage = new HttpRequestMessage
         {
-            Method = HttpMethod.Get
+            Method = HttpMethod.Get,
+            RequestUri = new Uri(requestUri)
         };
         requestMessage.AddDefaultAcceptHeaders();
         return SendHttpRequestMessageAsync(requestMessage, cancellationToken);
@@ -58,5 +65,50 @@ public class GraphQLHttpClient : IGraphQLHttpClient
             jsonDocument.RootElement.TryGetProperty("errors", out var errors) ? errors : default,
             jsonDocument.RootElement.TryGetProperty("extensions", out var extensions) ? extensions : default);
         return operationResult;
+    }
+
+    private static string GetQueryString(NameValueCollection valueCollection)
+    {
+        var sb = new StringBuilder();
+
+        for (var i = 0; i < valueCollection.Count; i++)
+        {
+            sb.Append($"{valueCollection.Keys[i]}={valueCollection[i]}");
+            if (i + 1 < valueCollection.Count)
+            {
+                sb.Append('&');
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    private static NameValueCollection GetQueryParameter(OperationRequest request)
+    {
+        var queryString = new NameValueCollection();
+
+        if (request.OperationName is not null)
+        {
+            queryString["operationName"] = Uri.EscapeDataString(request.OperationName);
+        }
+
+        if (request.Query is not null)
+        {
+            queryString["query"] = Uri.EscapeDataString(request.Query);
+        }
+
+        if (request.Variables is not null)
+        {
+            var variablesObject = JsonSerializer.Serialize(request.Variables);
+            queryString["variables"] = variablesObject;
+        }
+
+        if (request.Extensions is not null)
+        {
+            var extensionsObject = JsonSerializer.Serialize(request.Extensions);
+            queryString["extensions"] = extensionsObject;
+        }
+
+        return queryString;
     }
 }
