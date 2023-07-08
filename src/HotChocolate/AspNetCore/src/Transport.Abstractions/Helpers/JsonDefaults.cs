@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-namespace HotChocolate.Transport.Sockets.Client.Helpers;
+namespace HotChocolate.Transport.Abstractions.Helpers;
 
-internal static class JsonDefaults
+public static class JsonDefaults
 {
     public static JsonWriterOptions WriterOptions { get; } =
         new() { Indented = false };
