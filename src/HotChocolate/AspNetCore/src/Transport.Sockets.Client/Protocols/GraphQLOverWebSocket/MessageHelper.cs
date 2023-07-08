@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Transport.Abstractions;
+using HotChocolate.Transport.Abstractions.Helpers;
 using HotChocolate.Transport.Sockets.Client.Helpers;
 using static System.Net.WebSockets.WebSocketMessageType;
 using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
