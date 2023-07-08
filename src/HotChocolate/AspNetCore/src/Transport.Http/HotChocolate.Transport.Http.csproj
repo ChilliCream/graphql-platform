@@ -1,13 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Transport.Http</PackageId>
+    <AssemblyName>HotChocolate.Transport.Http</AssemblyName>
+    <RootNamespace>HotChocolate.Transport.Http</RootNamespace>
+    <Description>This package contains a graphql over http client.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
   </ItemGroup>
+
 
 </Project>

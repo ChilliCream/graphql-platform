@@ -1,6 +1,12 @@
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Transport.Abstractions;
+using HotChocolate.Transport.Http.Helper;
 
 namespace HotChocolate.Transport.Http;
 
@@ -21,7 +27,7 @@ public class GraphQLHttpClient : IGraphQLHttpClient
         {
             Method = HttpMethod.Get
         };
-        AddAcceptHeader(requestMessage);
+        requestMessage.AddDefaultAcceptHeaders();
         return SendHttpRequestMessageAsync(requestMessage, cancellationToken);
     }
 
@@ -32,9 +38,9 @@ public class GraphQLHttpClient : IGraphQLHttpClient
         {
             Method = HttpMethod.Post
         };
-        AddAcceptHeader(requestMessage);
-        AddBody(requestMessage, request);
-        requestMessage.Headers.Add("Content-Type", "application/json");
+        requestMessage
+            .AddDefaultAcceptHeaders()
+            .AddJsonBody(request);
         return SendHttpRequestMessageAsync(requestMessage, cancellationToken);
     }
 
@@ -42,24 +48,12 @@ public class GraphQLHttpClient : IGraphQLHttpClient
     {
         var httpResponseMessage = await _httpClient.SendAsync(requestMessage, cancellationToken);
 
-        if (httpResponseMessage.IsSuccessStatusCode)
-        {
-            await using var resultStream = await httpResponseMessage.Content.ReadAsStreamAsync(cancellationToken);
-            var operationResult = JsonSerializer.Deserialize<OperationResult>(resultStream);
-            return operationResult ?? throw new InvalidOperationException("Result data is empty");
-        }
+        if (!httpResponseMessage.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                $"Response indicated failure: {httpResponseMessage.StatusCode} {httpResponseMessage.ReasonPhrase}");
 
-        throw new InvalidOperationException(
-            $"Response indicated failure: {httpResponseMessage.StatusCode} {httpResponseMessage.ReasonPhrase}");
-    }
-
-    private static void AddBody(HttpRequestMessage requestMessage, OperationRequest request)
-    {
-        requestMessage.Content = new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(request));
-    }
-
-    private static void AddAcceptHeader(HttpRequestMessage requestMessage)
-    {
-        requestMessage.Headers.Add("Accept", "application/graphql-response+json; charset=utf-8, application/json; charset=utf-8");
+        using var resultStream = await httpResponseMessage.Content.ReadAsStreamAsync();
+        var operationResult = JsonSerializer.Deserialize<OperationResult>(resultStream);
+        return operationResult ?? throw new InvalidOperationException("Result data is empty");
     }
 }
