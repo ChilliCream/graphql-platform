@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using static HotChocolate.Transport.Sockets.Client.Properties.SocketClientResources;
+using static HotChocolate.Transport.Abstractions.Properties.TransportAbstractionResoucrces;
 
-namespace HotChocolate.Transport.Sockets.Client;
+namespace HotChocolate.Transport.Abstractions;
 
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket connection.

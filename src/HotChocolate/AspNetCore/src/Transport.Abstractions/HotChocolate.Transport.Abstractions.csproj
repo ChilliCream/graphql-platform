@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Transport.Abstractions</PackageId>
+    <AssemblyName>HotChocolate.Transport.Abstractions</AssemblyName>
+    <RootNamespace>HotChocolate.Transport.Abstractions</RootNamespace>
+    <Description>This package contains common abstractions and base classes for transport.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="6.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\TransportAbstractionResoucrces.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TransportAbstractionResoucrces.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\TransportAbstractionResoucrces.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TransportAbstractionResoucrces.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

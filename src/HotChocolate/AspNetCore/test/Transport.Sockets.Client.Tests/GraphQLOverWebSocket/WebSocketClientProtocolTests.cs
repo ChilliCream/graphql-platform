@@ -5,6 +5,7 @@ using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
+using HotChocolate.Transport.Abstractions;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
