@@ -5,16 +5,16 @@ using System.Linq.Expressions;
 namespace HotChocolate.Data.ExpressionNodes;
 
 // A marker interface, might come useful later.
-public interface IPredicateExpressionFactory : IExpressionFactory
+public interface ILogicalExpressionFactory : IExpressionFactory
 {
 }
 
 [NoStructuralDependencies]
-public sealed class PredicateCombinator : IPredicateExpressionFactory
+public sealed class LogicalCombinator : ILogicalExpressionFactory
 {
     private readonly BitArray _combineWithAnd;
 
-    public PredicateCombinator(BitArray combineWithAnd)
+    public LogicalCombinator(BitArray combineWithAnd)
     {
         _combineWithAnd = combineWithAnd;
     }

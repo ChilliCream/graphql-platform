@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace HotChocolate.Data.ExpressionNodes;
 
 [NoStructuralDependencies]
-public sealed class BinaryOperation : IPredicateExpressionFactory
+public sealed class BinaryOperation : ILogicalExpressionFactory
 {
     public static readonly BinaryOperation Equal = new(Expression.Equal);
     public static readonly BinaryOperation NotEqual = new(Expression.NotEqual);

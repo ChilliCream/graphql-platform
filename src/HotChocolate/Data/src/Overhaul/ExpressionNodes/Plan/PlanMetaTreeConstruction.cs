@@ -103,7 +103,7 @@ public static class MetaTreeConstruction
         ExpressionPools pools)
     {
         var selectionIdToInnerNode = new Dictionary<Identifier, ExpressionNode>();
-        var rootLambdaNode = pools.ExpressionNodePool.Create(ProjectionLambda.Instance);
+        var rootLambdaNode = pools.ExpressionNodePool.Create(Lambda.Instance);
         rootLambdaNode.Scope = pools.CreateScopeWithInstance(rootLambdaNode);
 
         // Go through the selection tree
@@ -190,7 +190,7 @@ public static class MetaTreeConstruction
             var memberAccess = CreateMemberAccess(property, scope);
 
             // x => { }
-            var lambda = pools.ExpressionNodePool.CreateInnermost(ProjectionLambda.Instance);
+            var lambda = pools.ExpressionNodePool.CreateInnermost(Lambda.Instance);
             // the x parameter
             lambda.Scope = pools.CreateScopeWithInstance(lambda);
 
