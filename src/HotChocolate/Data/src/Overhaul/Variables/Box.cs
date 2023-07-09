@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -29,25 +30,18 @@ public readonly record struct BoxExpressions(
 }
 
 public class Box<T> : IBox
-    where T : IEquatable<T>
 {
     public T? Value { get; set; }
+    public IEqualityComparer<T?> Comparer { get; set; } = EqualityComparer<T?>.Default;
     public PropertyInfo ValuePropertyInfo => Property;
 
-    bool IBox.UpdateValue(object? newValue) => UpdateValue((T?)newValue);
+    bool IBox.UpdateValue(object? newValue) => UpdateValue((T?) newValue);
     IBox IBox.Clone() => new Box<T> { Value = Value };
 
     internal bool UpdateValue(T? newValue)
     {
-        if (Value is null)
-        {
-            if (newValue is null)
-                return false;
-        }
-        else if (newValue is not null && Value.Equals(newValue))
-        {
+        if (Comparer.Equals(Value, newValue))
             return false;
-        }
 
         Value = newValue;
         return true;
