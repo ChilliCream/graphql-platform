@@ -58,7 +58,7 @@ public abstract class QueryableComparableOperationHandler : QueryableOperationHa
     /// <summary>
     /// Converts the value of the <paramref name="parsedValue"/> into the needed runtime type
     /// </summary>
-    /// <param name="node">The value node to parse</param>
+    /// <param name="node">The value node from which the parsed value had been derived</param>
     /// <param name="parsedValue">The parsed value of the <paramref name="node"/></param>
     /// <param name="type">
     /// The type of the field that the <paramref name="node"/> was defined
