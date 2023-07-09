@@ -12,7 +12,7 @@ internal sealed class ExpressionCompilationContext : IExpressionCompilationConte
     public ChildrenExpressionCollection Children { get; }
     private readonly VariableContextWithSafety _variableContextWithSafety;
 
-    public ExpressionCompilationContext(ExpressionTreeCache expressionTreeCache, SealedMetaTree tree)
+    public ExpressionCompilationContext(ExpressionTreeCache expressionTreeCache)
     {
         _expressionTreeCache = expressionTreeCache;
         Children = new(new ChildList(this));

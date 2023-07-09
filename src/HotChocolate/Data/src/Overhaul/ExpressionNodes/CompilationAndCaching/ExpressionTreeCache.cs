@@ -25,6 +25,6 @@ internal sealed class ExpressionTreeCache
         Tree = tree;
         CachedExpressions = cachedExpressions;
         Variables = variables;
-        Context = new(this, Tree);
+        Context = new(this);
     }
 }
