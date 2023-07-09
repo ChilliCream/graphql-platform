@@ -11,7 +11,7 @@ using static HotChocolate.Data.ThrowHelper;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// A <see cref="FilterProvider{TContext}"/> translates a incoming query to another
+/// A <see cref="FilterProvider{TContext}"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
