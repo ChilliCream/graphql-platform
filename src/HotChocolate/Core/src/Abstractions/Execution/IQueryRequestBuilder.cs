@@ -84,6 +84,8 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder AddProperty(
         string name, object? value);
 
+    Dictionary<string, object?> GetContextDataForMutation();
+
     /// <summary>
     /// Sets the global state for <paramref name="name" />
     /// to the specified <paramref name="value" />,

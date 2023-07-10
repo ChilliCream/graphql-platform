@@ -43,7 +43,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         {
             for (var i = 0; i < originalWorkItems.Count; i++)
             {
-                TryInitializeWorkItem(context.QueryPlan, originalWorkItems[i]);
+                MaybeInitializeWorkItem(context.QueryPlan, originalWorkItems[i]);
             }
 
             var workItems = CreateBatchWorkItem(originalWorkItems, Requires);

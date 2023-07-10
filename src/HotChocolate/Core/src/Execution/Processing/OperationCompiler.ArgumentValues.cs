@@ -142,7 +142,7 @@ public sealed partial class OperationCompiler
         IObjectField field,
         FieldNode selection,
         HashSet<string> processed,
-        List<FieldMiddleware> pipelineComponents)
+        List<FieldMiddleware> middlewareComponents)
     {
         var pipeline = field.Middleware;
 
@@ -151,27 +151,26 @@ public sealed partial class OperationCompiler
             return pipeline;
         }
 
-        // if we have selection directives we will inspect them and try to build a
+        // If we have selection directives, we will inspect them and try to build a
         // pipeline from them if they have middleware components.
-        BuildDirectivePipeline(schema, selection, processed, pipelineComponents);
+        BuildDirectivePipeline(schema, selection, processed, middlewareComponents);
 
-        // if we found middleware components on the selection directives we will build a new
-        // pipeline.
-        if (pipelineComponents.Count > 0)
+        // If we found middleware components on the selection directives,
+        // we will build a new pipeline.
+        if (middlewareComponents.Count > 0)
         {
             var next = pipeline;
 
-            for (var i = pipelineComponents.Count - 1; i >= 0; i--)
+            for (var i = middlewareComponents.Count - 1; i >= 0; i--)
             {
-                next = pipelineComponents[i](next);
+                next = middlewareComponents[i](next);
             }
 
             pipeline = next;
         }
 
-        // at last we clear the rented lists
         processed.Clear();
-        pipelineComponents.Clear();
+        middlewareComponents.Clear();
 
         return pipeline;
     }

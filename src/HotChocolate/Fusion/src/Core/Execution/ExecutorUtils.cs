@@ -354,17 +354,13 @@ internal static class ExecutorUtils
     private static void ExtractSelectionResults(
         SelectionData parent,
         SelectionSet selectionSet,
-        SelectionData[] selectionSetData)
+        SelectionData[] outSelectionSetData)
     {
-        var selectionCount = selectionSet.Selections.Count;
-
-        if (parent.Multiple is null)
+        void CopyResultData(JsonElement data, string schemaName)
         {
-            var schemaName = parent.Single.SubgraphName;
-            var data = parent.Single.Element;
-
+            var selectionCount = selectionSet.Selections.Count;
             ref var selection = ref selectionSet.GetSelectionsReference();
-            ref var selectionData = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
+            ref var selectionData = ref MemoryMarshal.GetArrayDataReference(outSelectionSetData);
             ref var endSelection = ref Unsafe.Add(ref selection, selectionCount);
 
             while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
@@ -374,32 +370,27 @@ internal static class ExecutorUtils
                     selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
                 }
 
-                selection = ref Unsafe.Add(ref selection, 1)!;
-                selectionData = ref Unsafe.Add(ref selectionData, 1)!;
+                selection = ref Unsafe.Add(ref selection, 1);
+                selectionData = ref Unsafe.Add(ref selectionData, 1);
             }
         }
-        else
+
+        if (parent.Multiple is { } multiple)
         {
-            foreach (var result in parent.Multiple)
+            foreach (var result in multiple)
             {
                 var schemaName = result.SubgraphName;
                 var element = result.Element;
 
-                ref var selection = ref selectionSet.GetSelectionsReference();
-                ref var selectionData = ref MemoryMarshal.GetArrayDataReference(selectionSetData);
-                ref var endSelection = ref Unsafe.Add(ref selection, selectionCount);
-
-                while (Unsafe.IsAddressLessThan(ref selection, ref endSelection))
-                {
-                    if (element.TryGetProperty(selection.ResponseName, out var value))
-                    {
-                        selectionData = selectionData.AddResult(new JsonResult(schemaName, value));
-                    }
-
-                    selection = ref Unsafe.Add(ref selection, 1)!;
-                    selectionData = ref Unsafe.Add(ref selectionData, 1)!;
-                }
+                CopyResultData(element, schemaName);
             }
+        }
+        else
+        {
+            var schemaName = parent.Single.SubgraphName;
+            var data = parent.Single.Element;
+
+            CopyResultData(data, schemaName);
         }
     }
 
@@ -432,30 +423,26 @@ internal static class ExecutorUtils
         }
     }
 
-    public static void TryInitializeWorkItem(QueryPlan queryPlan, WorkItem workItem)
+    public static void MaybeInitializeWorkItem(QueryPlan queryPlan, WorkItem workItem)
     {
         if (workItem.IsInitialized)
         {
             return;
         }
 
-        // capture the partial result available
         var partialResult = workItem.SelectionSetData[0];
 
-        // if we have a partial result available lets unwrap it.
+        // Unwrap the result (copy data to all selections)
         if (partialResult.HasValue)
         {
-            // first we need to erase the partial result from the array so that its not
-            // combined into the result creation.
+            // Erase the partial result so that its not combined into the result creation.
             workItem.SelectionSetData[0] = default;
 
-            // next we will unwrap the results.
             ExtractSelectionResults(
                 partialResult,
                 (SelectionSet)workItem.SelectionSet,
                 workItem.SelectionSetData);
 
-            // last we will check if there are any exports for this selection-set.
             ExtractVariables(
                 partialResult,
                 queryPlan,
@@ -548,7 +535,7 @@ internal static class ExecutorUtils
         QueryPlan queryPlan,
         ISelectionSet selectionSet,
         IReadOnlyList<string> exportKeys,
-        Dictionary<string, IValueNode> variableValues)
+        Dictionary<string, IValueNode> resultVariableValues)
     {
         if (exportKeys.Count > 0)
         {
@@ -559,7 +546,7 @@ internal static class ExecutorUtils
                     queryPlan,
                     selectionSet,
                     exportKeys,
-                    variableValues);
+                    resultVariableValues);
             }
             else
             {
@@ -570,7 +557,7 @@ internal static class ExecutorUtils
                         queryPlan,
                         selectionSet,
                         exportKeys,
-                        variableValues);
+                        resultVariableValues);
                 }
             }
         }
@@ -581,7 +568,7 @@ internal static class ExecutorUtils
         QueryPlan queryPlan,
         ISelectionSet selectionSet,
         IReadOnlyList<string> exportKeys,
-        Dictionary<string, IValueNode> variableValues)
+        Dictionary<string, IValueNode> resultVariableValues)
     {
         if (parent.ValueKind is not JsonValueKind.Object)
         {
@@ -595,7 +582,7 @@ internal static class ExecutorUtils
             {
                 var key = exportKeys[i];
 
-                if (!variableValues.ContainsKey(key) &&
+                if (!resultVariableValues.ContainsKey(key) &&
                     parent.TryGetProperty(key, out var property))
                 {
                     var path = queryPlan.GetExportPath(selectionSet, key);
@@ -616,7 +603,7 @@ internal static class ExecutorUtils
                         }
                     }
 
-                    variableValues.TryAdd(key, JsonValueToGraphQLValueConverter.Convert(property));
+                    resultVariableValues.Add(key, JsonValueToGraphQLValueConverter.Convert(property));
                 }
             }
         }

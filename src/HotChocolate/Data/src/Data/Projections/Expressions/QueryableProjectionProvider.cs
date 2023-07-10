@@ -95,12 +95,12 @@ public class QueryableProjectionProvider : ProjectionProvider
     /// <returns>The input combined with the projection</returns>
     protected virtual object? ApplyToResult<TEntityType>(
         object? input,
-        Expression<Func<TEntityType, TEntityType>> projection)
+        Expression<Func<TEntityType, object[]>> projection)
         => input switch
         {
             IQueryable<TEntityType> q => q.Select(projection),
             IEnumerable<TEntityType> q => q.AsQueryable().Select(projection),
-            QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
+            // QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
             _ => input
         };
 
@@ -116,15 +116,14 @@ public class QueryableProjectionProvider : ProjectionProvider
             var skipProjection =
                 context.LocalContextData.TryGetValue(SkipProjectionKey, out var skip) &&
                 skip is true;
-
-            // ensure sorting is only applied once
-            context.LocalContextData =
-                context.LocalContextData.SetItem(SkipProjectionKey, true);
-
             if (skipProjection)
             {
                 return input;
             }
+
+            // ensure projection is only applied once
+            context.LocalContextData =
+                context.LocalContextData.SetItem(SkipProjectionKey, true);
 
             var inMemory = IsInMemoryQuery<TEntityType>(input);
 
@@ -140,6 +139,6 @@ public class QueryableProjectionProvider : ProjectionProvider
 
             var projection = visitorContext.Project<TEntityType>();
 
-            return ApplyToResult(input, projection);
+            return ApplyToResult<TEntityType>(input, projection);
         };
 }

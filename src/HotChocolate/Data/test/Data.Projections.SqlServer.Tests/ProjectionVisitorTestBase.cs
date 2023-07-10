@@ -156,6 +156,20 @@ public class ProjectionVisitorTestBase
                         context.Result = await queryable.ToListAsync();
                     }
 
+                    if (context.Result is IQueryable<object[]> objectQueryable)
+                    {
+                        try
+                        {
+                            context.ContextData["sql"] = objectQueryable.ToQueryString();
+                        }
+                        catch (Exception ex)
+                        {
+                            context.ContextData["sql"] = ex.Message;
+                        }
+
+                        context.Result = await objectQueryable.ToListAsync();
+                    }
+
                     if (context.Result is IExecutable executable)
                     {
                         try

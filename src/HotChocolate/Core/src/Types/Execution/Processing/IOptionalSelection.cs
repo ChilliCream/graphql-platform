@@ -29,5 +29,5 @@ public interface IOptionalSelection
     /// <returns>
     /// True, if this selection shall be included into the request execution.
     /// </returns>
-    bool IsIncluded(long includeFlags, bool allowInternals = false);
+    bool IsIncluded(ulong includeFlags, bool allowInternals = false);
 }

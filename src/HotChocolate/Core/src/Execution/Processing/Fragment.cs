@@ -6,8 +6,8 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class Fragment : IFragment
 {
-    private readonly long _includeCondition;
-    private readonly long _deferIfCondition;
+    private readonly ulong _includeCondition;
+    private readonly ulong _deferIfCondition;
 
     public Fragment(
         int id,
@@ -15,8 +15,8 @@ internal sealed class Fragment : IFragment
         ISyntaxNode syntaxNode,
         IReadOnlyList<DirectiveNode> directives,
         ISelectionSet selectionSet,
-        long includeCondition,
-        long deferIfCondition,
+        ulong includeCondition,
+        ulong deferIfCondition,
         bool isInternal = false)
     {
         Id = id;
@@ -46,7 +46,7 @@ internal sealed class Fragment : IFragment
     public string? GetLabel(IVariableValueCollection variables)
         => Directives.GetDeferDirective(variables)?.Label;
 
-    public bool IsIncluded(long includeFlags, bool allowInternals = false)
+    public bool IsIncluded(ulong includeFlags, bool allowInternals = false)
         => (includeFlags & _includeCondition) == _includeCondition &&
             (_deferIfCondition is 0 || (includeFlags & _deferIfCondition) != _deferIfCondition) &&
             (!IsInternal || allowInternals);

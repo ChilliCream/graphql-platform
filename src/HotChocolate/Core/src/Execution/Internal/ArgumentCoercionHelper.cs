@@ -73,8 +73,8 @@ public static class ArgumentCoercionHelper
         IVariableValueCollection variableValues,
         Dictionary<string, ArgumentValue> coercedArgs)
     {
-        // if there are arguments that have variables and need variable replacement we will
-        // rewrite the arguments that need variable replacement.
+        // If there are arguments that have variables and need variable replacement,
+        // we will rewrite the arguments that need variable replacement.
         foreach (var argument in arguments)
         {
             if (argument.IsFullyCoerced)

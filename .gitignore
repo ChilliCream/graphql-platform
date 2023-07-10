@@ -321,4 +321,9 @@ conferences.db-shm
 conferences.db-wal
 
 .server/
+
 .nuke/
+
+
+# ignore worktree
+.wt/

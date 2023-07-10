@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Threading;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Projections;
+using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -49,9 +51,39 @@ public static class ProjectionObjectFieldDescriptorExtensions
         descriptor
             .Extend()
             .OnBeforeCreate(
-                x => x.ContextData[ProjectionConvention.IsProjectedKey] = isProjected);
+                x => x.ContextData.Set(ProjectionConvention.IsProjectedKey, isProjected));
 
         return descriptor;
+    }
+
+    /// <summary>
+    /// Makes the given field be projected via an expression, based on the original object's type.
+    /// </summary>
+    public static IObjectFieldDescriptor ComputedProjection<TParent, TResult>(
+        this IObjectFieldDescriptor descriptor,
+        Expression<Func<TParent, TResult>> projectionExpression)
+    {
+        descriptor
+            .Extend()
+            .OnBeforeCreate(x =>
+            {
+                x.ContextData.SetComputedProjection(
+                    new(projectionExpression));
+            });
+
+        return descriptor;
+    }
+
+    /// <summary>
+    /// A type safe overload which draws the parent type
+    /// from the <see cref="IObjectTypeDescriptor{T}"/>
+    /// </summary>
+    public static IObjectFieldDescriptor ComputedProjection<TParent, TResult>(
+        this IObjectFieldDescriptor descriptor,
+        IObjectTypeDescriptor<TParent> parentTypeDescriptor,
+        Expression<Func<TParent, TResult>> projectionExpression)
+    {
+        return ComputedProjection(descriptor, projectionExpression);
     }
 
     /// <summary>
@@ -180,7 +212,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var convention = context.DescriptorContext.GetProjectionConvention(scope);
         RegisterOptimizer(definition.ContextData, convention.CreateOptimizer());
 
-        definition.ContextData[ProjectionContextIdentifier] = true;
+        definition.ContextData.Add(ProjectionContextKey);
 
         var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
@@ -331,9 +363,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private static Selection CreateProxySelection(ISelection selection, NodeFieldProxy field)
     {
-        var includeConditionsSource = ((Selection)selection).IncludeConditions;
-        var includeConditions = new long[includeConditionsSource.Length];
-        includeConditionsSource.CopyTo(includeConditions);
+        var includeConditionMasksSource = ((Selection)selection).IncludeConditionMasks;
+        var includeConditionMasks = new ulong[includeConditionMasksSource.Length];
+        includeConditionMasksSource.CopyTo(includeConditionMasks);
 
         var proxy = new Selection.Sealed(selection.Id,
             selection.DeclaringType,
@@ -342,7 +374,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             selection.SyntaxNode,
             selection.ResponseName,
             selection.Arguments,
-            includeConditions,
+            includeConditionMasks,
             selection.IsInternal,
             selection.Strategy != SelectionExecutionStrategy.Serial,
             selection.ResolverPipeline,

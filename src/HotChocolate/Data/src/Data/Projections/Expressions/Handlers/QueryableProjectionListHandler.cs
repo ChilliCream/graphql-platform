@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Data.ExpressionUtils;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -11,7 +12,7 @@ public class QueryableProjectionListHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
+        selection.Field.CanBeUsedInProjection() &&
         (selection.IsList ||
             selection.Field.ContextData.ContainsKey(SelectionOptions.MemberIsList));
 
@@ -20,13 +21,8 @@ public class QueryableProjectionListHandler
         ISelection selection)
     {
         var field = selection.Field;
-        if (field.Member is PropertyInfo { CanWrite: true })
-        {
-            var next = context.GetInstance().Append(field.Member);
-
-            context.PushInstance(next);
-        }
-
+        var next = field.GetProjectionExpression(context.GetInstance());
+        context.PushInstance(next);
         return context;
     }
 
@@ -36,14 +32,6 @@ public class QueryableProjectionListHandler
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
-
-        if (field.Member is not PropertyInfo { CanWrite: true })
-        {
-            action = SelectionVisitor.Skip;
-
-            return true;
-        }
-
         var type = field.Type;
 
         var clrType = type.IsListType()
@@ -54,7 +42,6 @@ public class QueryableProjectionListHandler
         context.AddScope(clrType);
 
         action = SelectionVisitor.Continue;
-
         return true;
     }
 
@@ -63,43 +50,32 @@ public class QueryableProjectionListHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        var field = selection.Field;
-
-        if (field.Member is null)
-        {
-            action = null;
-
-            return false;
-        }
-
         var scope = context.PopScope();
-
-        if (!(scope is QueryableProjectionScope queryableScope) ||
+        if (scope is not QueryableProjectionScope queryableScope ||
             !context.TryGetQueryableScope(out var parentScope))
         {
             action = null;
-
             return false;
         }
 
-        // in case the projection is empty we do not project. This can happen if the
-        // field handler below skips fields
-        if (!queryableScope.HasAbstractTypes() &&
-            (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
+        // This can happen if the field handler below skips fields.
+        bool hasProjectedFields = queryableScope.Level.TryPeek(out var q) && q.Count > 0;
+        bool hasAbstractTypes = queryableScope.HasAbstractTypes();
+        if (!hasAbstractTypes && !hasProjectedFields)
         {
             action = SelectionVisitor.Continue;
-
             return true;
         }
 
-        var type = field.Member.GetReturnType();
+        var instance = context.PopInstance();
+        var select = queryableScope.CreateSelection(instance);
 
-        var select = queryableScope.CreateSelection(context.PopInstance(), type);
+        // Should this cast be left in?
+        // select = select.MaybeCastValueTypeToObject();
 
-        parentScope.Level.Peek().Enqueue(Expression.Bind(field.Member, select));
+        parentScope.Level.Peek().Enqueue(select);
 
         action = SelectionVisitor.Continue;
-
         return true;
     }
 }

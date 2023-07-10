@@ -10,9 +10,8 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// The request planer will rewrite the <see cref="IOperation"/> into
-/// execution steps that outline the rough structure of the execution
-/// plan.
+/// The request planner will rewrite the <see cref="IOperation"/> into
+/// execution steps that outline the rough structure of the execution plan.
 /// </summary>
 internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 {
@@ -54,6 +53,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         var selections = context.Operation.RootSelectionSet.Selections;
         var backlog = new Queue<BacklogItem>();
 
+        HandleSpecialQuerySelections(
+            context,
+            context.Operation,
+            ref selections,
+            selectionSetType,
+            backlog);
+
         CreateExecutionSteps(
             context,
             backlog,
@@ -88,24 +94,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         var operation = context.Operation;
         List<ISelection>? leftovers = null;
 
-        // if this is the root selection set of a query we will
-        // look for some special selections.
-        if (!context.HasHandledSpecialQueryFields && parentSelection is null)
-        {
-            HandleSpecialQuerySelections(
-                context,
-                operation,
-                ref selections,
-                selectionSetTypeInfo,
-                backlog);
-            context.HasHandledSpecialQueryFields = true;
-
-            if (selections.Count == 0)
-            {
-                return;
-            }
-        }
-
         do
         {
             var current = leftovers ?? selections;
@@ -120,8 +108,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 selectionSetTypeInfo);
             leftovers = null;
 
-            // we will first try to resolve and set an entity resolver.
-            // The entity resolver is like a patch fetch from a subgraph where
+            // We will first try to resolve and set an entity resolver.
+            // The entity resolver is like a patch fetched from a subgraph where
             // the resulting data is merged into the current selection set.
             TrySetEntityResolver(
                 selectionSetTypeInfo,
@@ -444,20 +432,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         var operation = context.Operation;
         var queryType = operation.RootType;
 
-        // we will first determine from which subgraph we can
-        // fetch an entity through the node resolver.
+        // Determine from which subgraph's entity resolver to fetch the entity.
         var availableSubgraphs = _config.GetAvailableSubgraphs(entityTypeInfo.Name);
-
-        // next we determine the best subgraph to fetch from.
-        var subgraph =
-            availableSubgraphs.Count == 1
-                ? availableSubgraphs[0]
-                : _config.GetBestMatchingSubgraph(
-                    operation,
-                    entityTypeSelectionSet.Selections,
-                    entityTypeInfo,
-                    availableSubgraphs);
-
+        var subgraph = _config.GetBestMatchingSubgraph(
+            operation,
+            entityTypeSelectionSet.Selections,
+            entityTypeInfo,
+            availableSubgraphs);
 
         var field = nodeSelection.Field;
         var fieldInfo = queryTypeInfo.Fields[field.Name];
@@ -525,12 +506,16 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         IOperation operation,
         ISelection? parentSelection,
         bool preferBatching)
-        => operation.Type is OperationType.Subscription &&
-            parentSelection is null
-                ? PreferredResolverKind.Subscription
-                : preferBatching
-                    ? PreferredResolverKind.Batch
-                    : PreferredResolverKind.Query;
+    {
+        if (operation.Type == OperationType.Subscription && parentSelection is null)
+        {
+            return PreferredResolverKind.Subscription;
+        }
+
+        return preferBatching
+            ? PreferredResolverKind.Batch
+            : PreferredResolverKind.Query;
+    }
 
 
     private static bool TryGetResolver(
@@ -561,18 +546,19 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 : PreferredResolverKind.Query,
             out resolver);
 
-    private static bool TryGetResolver(
+    private static ResolverDefinition? MaybeGetResolver(
         ResolverDefinitionCollection resolverDefinitions,
         string schemaName,
         HashSet<string> variablesInContext,
-        PreferredResolverKind preference,
-        [NotNullWhen(true)] out ResolverDefinition? resolver)
+        PreferredResolverKind preference)
     {
-        resolver = null;
+        if (!resolverDefinitions.TryGetValue(schemaName, out var resolvers))
+            return null;
 
-        if (resolverDefinitions.TryGetValue(schemaName, out var resolvers))
+        ResolverDefinition? resolver = null;
+
+        foreach (var current in resolvers)
         {
-            foreach (var current in resolvers)
             {
                 var canBeUsed = true;
 
@@ -585,50 +571,42 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     }
                 }
 
-                if (canBeUsed)
-                {
-                    if (preference is PreferredResolverKind.Subscription)
-                    {
-                        if (current.Kind is ResolverKind.Subscription)
-                        {
-                            resolver = current;
-                            return true;
-                        }
+                if (!canBeUsed)
+                    continue;
+            }
 
-                        resolver = null;
-                    }
-                    else
-                    {
-                        switch (current.Kind)
-                        {
-                            case ResolverKind.Batch:
-                                resolver = current;
+            if ((ResolverKind)preference == current.Kind)
+                return current;
 
-                                if (preference is PreferredResolverKind.Batch)
-                                {
-                                    return true;
-                                }
-                                break;
+            switch (current.Kind)
+            {
+                case ResolverKind.Subscription:
+                    resolver = null;
+                    break;
 
-                            case ResolverKind.BatchByKey:
-                                resolver = current;
-                                break;
+                case ResolverKind.Batch:
+                case ResolverKind.BatchByKey:
+                    resolver = current;
+                    break;
 
-                            default:
-                                if (preference is PreferredResolverKind.Query)
-                                {
-                                    resolver = current;
-                                    return true;
-                                }
-
-                                resolver ??= current;
-                                break;
-                        }
-                    }
-                }
+                default:
+                    resolver ??= current;
+                    break;
             }
         }
 
+        return resolver;
+    }
+
+    private static bool TryGetResolver(
+        ResolverDefinitionCollection resolverDefinitions,
+        string schemaName,
+        HashSet<string> variablesInContext,
+        PreferredResolverKind preference,
+        [NotNullWhen(true)] out ResolverDefinition? resolver)
+    {
+        resolver = MaybeGetResolver(
+            resolverDefinitions, schemaName, variablesInContext, preference);
         return resolver is not null;
     }
 
@@ -657,7 +635,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         }
 
         var field = declaringTypeInfo.Fields[selection.Field.Name];
-
         foreach (var variable in field.Variables)
         {
             variablesInContext.Add(variable.Name);
@@ -749,13 +726,14 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         public IReadOnlyList<ISelection> Selections { get; }
 
+        // NOTE: Don't remove, ig it's reserved for later?
         public bool PreferBatching { get; }
     }
 
     private enum PreferredResolverKind
     {
-        Query,
-        Batch,
-        Subscription
+        Query = ResolverKind.Query,
+        Batch = ResolverKind.Batch,
+        Subscription = ResolverKind.Subscription,
     }
 }

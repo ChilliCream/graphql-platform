@@ -50,23 +50,23 @@ public class ProjectionConventionExtension
     public override void Merge(IConventionContext context, Convention convention)
     {
         if (convention is ProjectionConvention projectionConvention &&
-            Definition is not null &&
-            projectionConvention.Definition is not null)
+            Definition is {} ownDefinition &&
+            projectionConvention.Definition is {} otherDefinition)
         {
-            projectionConvention.Definition.ProviderExtensions.AddRange(
-                Definition.ProviderExtensions);
+            otherDefinition.ProviderExtensions.AddRange(
+                ownDefinition.ProviderExtensions);
 
-            projectionConvention.Definition.ProviderExtensionsTypes.AddRange(
-                Definition.ProviderExtensionsTypes);
+            otherDefinition.ProviderExtensionsTypes.AddRange(
+                ownDefinition.ProviderExtensionsTypes);
 
-            if (Definition.Provider is not null)
+            if (ownDefinition.Provider is not null)
             {
-                projectionConvention.Definition.Provider = Definition.Provider;
+                otherDefinition.Provider = ownDefinition.Provider;
             }
 
-            if (Definition.ProviderInstance is not null)
+            if (ownDefinition.ProviderInstance is not null)
             {
-                projectionConvention.Definition.ProviderInstance = Definition.ProviderInstance;
+                otherDefinition.ProviderInstance = ownDefinition.ProviderInstance;
             }
         }
     }

@@ -14,6 +14,7 @@ internal sealed class ProjectionOptimizer : ISelectionSetOptimizer
 
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {
+        // Process in a tree manner
         var processedSelections = new HashSet<string>();
         while (!processedSelections.SetEquals(context.Selections.Keys))
         {

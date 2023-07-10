@@ -31,7 +31,8 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
 
         if (context.IncludeQueryPlan())
         {
-            requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);
+            var contextData = requestBuilder.GetContextDataForMutation();
+            contextData.Add(WellKnownContextData.IncludeQueryPlan);
         }
 
         return default;

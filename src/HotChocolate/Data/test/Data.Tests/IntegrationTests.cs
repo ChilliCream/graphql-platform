@@ -702,7 +702,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddFiltering()
             .AddSorting()
             .AddProjections()
-            .AddQueryType<FirstOrDefaulQuery>()
+            .AddQueryType<FirstOrDefaultQuery>()
             .BuildRequestExecutorAsync();
 
         // act
@@ -729,7 +729,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddFiltering()
             .AddSorting()
             .AddProjections()
-            .AddQueryType<FirstOrDefaulQuery>()
+            .AddQueryType<FirstOrDefaultQuery>()
             .AddMutationType<FirstOrDefaultMutation_ManyToMany>()
             .BuildRequestExecutorAsync();
 
@@ -750,7 +750,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddFiltering()
             .AddSorting()
             .AddProjections()
-            .AddQueryType<FirstOrDefaulQuery>()
+            .AddQueryType<FirstOrDefaultQuery>()
             .AddMutationType<FirstOrDefaultMutation_ManyToOne>()
             .BuildRequestExecutorAsync();
 
@@ -864,7 +864,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
     }
 
-    public class FirstOrDefaulQuery
+    public class FirstOrDefaultQuery
     {
         [UseFirstOrDefault]
         [UseProjection]

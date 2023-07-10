@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
+using HotChocolate.Data.Projections.Handlers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -24,13 +26,21 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
                 return Continue;
             }
 
-            context.PushInstance(Expression.Convert(context.GetInstance(), objectType.RuntimeType));
-            scope.Level.Push(new Queue<MemberAssignment>());
+            context.PushInstance(
+                Expression.Convert(context.GetInstance(), objectType.RuntimeType));
+            scope.Level.Push(new());
 
             var res = base.VisitObjectType(field, objectType, selection, context);
 
             context.PopInstance();
-            scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop());
+
+            {
+                var initializers = scope.Level.Pop();
+                var initializersWithType = ProjectedValue.AppendObjectType(
+                    initializers, objectType);
+
+                scope.AddAbstractType(objectType.RuntimeType, initializersWithType);
+            }
 
             return res;
         }

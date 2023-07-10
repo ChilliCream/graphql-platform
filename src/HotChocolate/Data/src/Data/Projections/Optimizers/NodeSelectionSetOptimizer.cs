@@ -16,7 +16,7 @@ internal sealed class NodeSelectionSetOptimizer : ISelectionSetOptimizer
     {
         if (context.Type.ContextData.TryGetValue(WellKnownContextData.NodeResolver, out var o) &&
             o is NodeResolverInfo { QueryField.ContextData: var fieldContextData } &&
-           fieldContextData.ContainsKey(ProjectionProvider.ProjectionContextIdentifier))
+           fieldContextData.Has(ProjectionProvider.ProjectionContextKey))
         {
             _optimizer.OptimizeSelectionSet(context);
         }

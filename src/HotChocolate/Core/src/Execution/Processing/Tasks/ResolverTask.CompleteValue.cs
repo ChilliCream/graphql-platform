@@ -17,7 +17,7 @@ internal sealed partial class ResolverTask
 
         try
         {
-            // we will only try to complete the resolver value if there are no known errors.
+            // We will only try to complete the resolver value if there are no known errors.
             if (success)
             {
                 completedValue = ValueCompletion.Complete(
@@ -66,8 +66,8 @@ internal sealed partial class ResolverTask
 
         if (completedValue is null && isNonNullType)
         {
-            // if we detect a non-null violation we will stash it for later.
-            // the non-null propagation is delayed so that we can parallelize better.
+            // If we detect a non-null violation, we will stash it for later.
+            // The non-null propagation is delayed so that we can parallelize better.
             _completionStatus = ExecutionTaskStatus.Faulted;
             _operationContext.Result.AddNonNullViolation(
                 _context.Selection,

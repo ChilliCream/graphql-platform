@@ -192,49 +192,4 @@ public readonly ref struct SelectionSetOptimizerContext
             _selectionLookup.Add(newSelection, selectionSetInfos);
         }
     }
-
-    /// <summary>
-    /// Replaces an existing selection with an optimized version.
-    /// </summary>
-    /// <param name="responseName">
-    /// The selection response name.
-    /// </param>
-    /// <param name="newSelection">
-    /// The new optimized selection.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="newSelection"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    /// - The <paramref name="responseName"/> is not a valid GraphQL field name.
-    /// - There is no existing selection with the specified <paramref name="responseName"/>.
-    /// - <see cref="Selection.ResponseName"/> is not equal to <paramref name="responseName"/>.
-    /// </exception>
-    [Obsolete("Use ReplaceSelection(Selection) instead.")]
-    public void ReplaceSelection(string responseName, Selection newSelection)
-    {
-        if (!responseName.IsValidGraphQLName())
-        {
-            throw new ArgumentException(
-                string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));
-        }
-
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
-
-        if (!_compilerContext.Fields.TryGetValue(responseName, out var currentSelection))
-        {
-            throw new ArgumentException($"The `{responseName}` does not exist.");
-        }
-
-        _compilerContext.Fields[responseName] = newSelection;
-
-        if (_selectionLookup.TryGetValue(currentSelection, out var selectionSetInfos))
-        {
-            _selectionLookup.Remove(currentSelection);
-            _selectionLookup.Add(newSelection, selectionSetInfos);
-        }
-    }
 }

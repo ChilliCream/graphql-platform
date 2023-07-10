@@ -14,8 +14,8 @@ namespace HotChocolate.Execution.Processing;
 public class Selection : ISelection
 {
     private static readonly ArgumentMap _emptyArguments = ArgumentMap.Empty;
-    private long[] _includeConditions;
-    private long _streamIfCondition;
+    private ulong[] _includeConditionMasks;
+    private ulong _streamIfCondition;
     private Flags _flags;
 
     public Selection(
@@ -26,7 +26,7 @@ public class Selection : ISelection
         FieldNode syntaxNode,
         string responseName,
         ArgumentMap? arguments = null,
-        long[]? includeConditions = null,
+        ulong[]? includeConditionMasks = null,
         bool isInternal = false,
         bool isParallelExecutable = true,
         FieldDelegate? resolverPipeline = null,
@@ -43,7 +43,7 @@ public class Selection : ISelection
         PureResolver = pureResolver;
         Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
 
-        _includeConditions = includeConditions ?? Array.Empty<long>();
+        _includeConditionMasks = includeConditionMasks ?? Array.Empty<ulong>();
 
         _flags = isInternal
             ? Flags.Internal
@@ -79,10 +79,10 @@ public class Selection : ISelection
         Arguments = selection.Arguments;
         _flags = selection._flags;
 
-        _includeConditions =
-            selection._includeConditions.Length == 0
-                ? Array.Empty<long>()
-                : selection._includeConditions.ToArray();
+        _includeConditionMasks =
+            selection._includeConditionMasks.Length == 0
+                ? Array.Empty<ulong>()
+                : selection._includeConditionMasks.ToArray();
     }
 
     /// <inheritdoc />
@@ -117,7 +117,7 @@ public class Selection : ISelection
     public int SelectionSetId { get; private set; }
 
     /// <inheritdoc />
-    public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
+    public SelectionSetNode? SelectionSet => SyntaxNode?.SelectionSet;
 
     /// <inheritdoc />
     public string ResponseName { get; }
@@ -135,7 +135,7 @@ public class Selection : ISelection
     public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;
 
     /// <inheritdoc />
-    public bool HasStreamDirective(long includeFlags)
+    public bool HasStreamDirective(ulong includeFlags)
         => (_flags & Flags.Stream) == Flags.Stream &&
             (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
 
@@ -149,40 +149,40 @@ public class Selection : ISelection
 
     /// <inheritdoc />
     public bool IsConditional
-        => _includeConditions.Length > 0 || (_flags & Flags.Internal) == Flags.Internal;
+        => _includeConditionMasks.Length > 0 || (_flags & Flags.Internal) == Flags.Internal;
 
-    internal ReadOnlySpan<long> IncludeConditions => _includeConditions;
+    internal ReadOnlySpan<ulong> IncludeConditionMasks => _includeConditionMasks;
 
-    public bool IsIncluded(long includeFlags, bool allowInternals = false)
+    public bool IsIncluded(ulong includeFlags, bool allowInternals = false)
     {
         // in most case we do not have any include condition,
         // so we can take the easy way out here if we do not have any flags.
-        if (_includeConditions.Length is 0)
+        if (_includeConditionMasks.Length is 0)
         {
             return !IsInternal || allowInternals;
         }
 
         // if there are flags in most cases we just have one so we can
         // check the first and optimize for this.
-        var includeCondition = _includeConditions[0];
+        var includeConditionMask = _includeConditionMasks[0];
 
-        if ((includeFlags & includeCondition) == includeCondition)
+        if ((includeFlags & includeConditionMask) == includeConditionMask)
         {
             return !IsInternal || allowInternals;
         }
 
         // if we just have one flag and the flags are not fulfilled we can just exit.
-        if (_includeConditions.Length is 1)
+        if (_includeConditionMasks.Length is 1)
         {
             return false;
         }
 
         // else, we will iterate over the rest of the conditions and validate them one by one.
-        for (var i = 1; i < _includeConditions.Length; i++)
+        for (var i = 1; i < _includeConditionMasks.Length; i++)
         {
-            includeCondition = _includeConditions[i];
+            includeConditionMask = _includeConditionMasks[i];
 
-            if ((includeFlags & includeCondition) == includeCondition)
+            if ((includeFlags & includeConditionMask) == includeConditionMask)
             {
                 return !IsInternal || allowInternals;
             }
@@ -194,7 +194,7 @@ public class Selection : ISelection
     public override string ToString()
         => SyntaxNode.ToString();
 
-    internal void AddSelection(FieldNode selectionSyntax, long includeCondition = 0)
+    internal void AddSelection(FieldNode selectionSyntax, ulong includeCondition = 0)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -203,17 +203,17 @@ public class Selection : ISelection
 
         if (includeCondition == 0)
         {
-            if (_includeConditions.Length > 0)
+            if (_includeConditionMasks.Length > 0)
             {
-                _includeConditions = Array.Empty<long>();
+                _includeConditionMasks = Array.Empty<ulong>();
             }
         }
-        else if (_includeConditions.Length > 0 &&
-            Array.IndexOf(_includeConditions, includeCondition) == -1)
+        else if (_includeConditionMasks.Length > 0 &&
+            Array.IndexOf(_includeConditionMasks, includeCondition) == -1)
         {
-            var next = _includeConditions.Length;
-            Array.Resize(ref _includeConditions, next + 1);
-            _includeConditions[next] = includeCondition;
+            var next = _includeConditionMasks.Length;
+            Array.Resize(ref _includeConditionMasks, next + 1);
+            _includeConditionMasks[next] = includeCondition;
         }
 
         if (!SyntaxNode.Equals(selectionSyntax, SyntaxComparison.Syntax))
@@ -309,7 +309,7 @@ public class Selection : ISelection
         SelectionSetId = selectionSetId;
     }
 
-    internal void MarkAsStream(long ifCondition)
+    internal void MarkAsStream(ulong ifCondition)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -410,7 +410,7 @@ public class Selection : ISelection
             FieldNode syntaxNode,
             string responseName,
             ArgumentMap? arguments = null,
-            long[]? includeConditions = null,
+            ulong[]? includeConditionMasks = null,
             bool isInternal = false,
             bool isParallelExecutable = true,
             FieldDelegate? resolverPipeline = null,
@@ -422,7 +422,7 @@ public class Selection : ISelection
             syntaxNode,
             responseName,
             arguments,
-            includeConditions,
+            includeConditionMasks,
             isInternal,
             isParallelExecutable,
             resolverPipeline,

@@ -22,11 +22,14 @@ internal static class ProjectionExpressionBuilder
         return Expression.NotEqual(expression, _null);
     }
 
-    public static Expression NotNullAndAlso(Expression property, Expression condition)
+    public static Expression NotNullAndAlso(Expression property, Expression condition) =>
+        NotNullAndAlso(NotNull(property), condition, property.Type);
+
+    public static Expression NotNullAndAlso(Expression property, Expression condition, Type type)
     {
         return Expression.Condition(
             NotNull(property),
             condition,
-            Expression.Default(property.Type));
+            Expression.Default(type));
     }
 }

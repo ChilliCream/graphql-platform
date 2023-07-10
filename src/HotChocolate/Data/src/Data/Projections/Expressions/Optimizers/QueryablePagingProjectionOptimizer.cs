@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -12,7 +13,7 @@ namespace HotChocolate.Data.Projections.Handlers;
 
 public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 {
-    public bool CanHandle(ISelection field) =>
+    public static bool CanHandle(ISelection field) =>
         field.DeclaringType is IPageType &&
         field.Field.Name is "edges" or "items" or "nodes";
 
@@ -20,6 +21,11 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         Selection selection)
     {
+        if (!CanHandle(selection))
+        {
+            return selection;
+        }
+
         // The selection optimizer will also process the field we just added
         // we have to avoid processing this field twice.
         if (context.Selections.ContainsKey(CombinedEdgeField))

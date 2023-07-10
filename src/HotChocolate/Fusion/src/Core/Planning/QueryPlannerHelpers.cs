@@ -13,10 +13,17 @@ internal static class QueryPlannerHelpers
         ObjectTypeInfo typeInfoContext,
         IReadOnlyList<string>? availableSubgraphs = null)
     {
+        availableSubgraphs ??= configuration.SubgraphNames;
+
+        if (availableSubgraphs.Count == 1)
+        {
+            return availableSubgraphs[0];
+        }
+
         var bestScore = 0;
         var bestSubgraph = configuration.SubgraphNames[0];
 
-        foreach (var subgraphName in availableSubgraphs ?? configuration.SubgraphNames)
+        foreach (var subgraphName in availableSubgraphs)
         {
             var score =
                 EvaluateSubgraphCompatibilityScore(
@@ -36,6 +43,7 @@ internal static class QueryPlannerHelpers
         return bestSubgraph;
     }
 
+    // Returns the count of matching fields in the subgraph (?)
     private static int EvaluateSubgraphCompatibilityScore(
         FusionGraphConfiguration configuration,
         IOperation operation,
@@ -53,21 +61,26 @@ internal static class QueryPlannerHelpers
 
             foreach (var selection in currentSelections)
             {
-                if (!selection.Field.IsIntrospectionField &&
-                    currentTypeContext.Fields[selection.Field.Name].Bindings
+                var field = selection.Field;
+                if (field.IsIntrospectionField ||
+                    !currentTypeContext.Fields[field.Name].Bindings
                         .ContainsSubgraph(schemaName))
                 {
-                    score++;
+                    continue;
+                }
 
-                    if (selection.SelectionSet is not null)
-                    {
-                        foreach (var possibleType in operation.GetPossibleTypes(selection))
-                        {
-                            var type = configuration.GetType<ObjectTypeInfo>(possibleType.Name);
-                            var selectionSet = operation.GetSelectionSet(selection, possibleType);
-                            stack.Push((selectionSet.Selections, type));
-                        }
-                    }
+                score++;
+
+                if (selection.SelectionSet is null)
+                {
+                    continue;
+                }
+
+                foreach (var possibleType in operation.GetPossibleTypes(selection))
+                {
+                    var type = configuration.GetType<ObjectTypeInfo>(possibleType.Name);
+                    var selectionSet = operation.GetSelectionSet(selection, possibleType);
+                    stack.Push((selectionSet.Selections, type));
                 }
             }
         }

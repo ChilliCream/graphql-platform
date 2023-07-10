@@ -104,5 +104,5 @@ public interface ISelection : IOptionalSelection
     /// <returns>
     /// Returns if this selection is annotated with the stream directive.
     /// </returns>
-    bool HasStreamDirective(long includeFlags);
+    bool HasStreamDirective(ulong includeFlags);
 }

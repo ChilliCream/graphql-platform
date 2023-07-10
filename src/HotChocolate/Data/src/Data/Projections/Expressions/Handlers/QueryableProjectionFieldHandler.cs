@@ -11,7 +11,7 @@ public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
+        selection.Field.CanBeUsedInProjection() &&
         selection.SelectionSet is not null;
 
     public override bool TryHandleEnter(
@@ -20,30 +20,17 @@ public class QueryableProjectionFieldHandler
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
-        Expression nestedProperty;
-        Type memberType;
 
-        if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
-        {
-            memberType = propertyInfo.PropertyType;
-            nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-        }
-        else
-        {
-            action = SelectionVisitor.Skip;
+        var nestedProperty = field.GetProjectionExpression(context.GetInstance());
+        var type = nestedProperty.Type;
 
-            return true;
-        }
+        // This new scope allows for a new member initialization
+        context.AddScope(type);
 
-        // We add a new scope for the sub selection. This allows a new member initialization
-        context.AddScope(memberType);
-
-        // We push the instance onto the new scope. We do not need this instance on the current
-        // scope.
+        // We do not need this instance on the current scope.
         context.PushInstance(nestedProperty);
 
         action = SelectionVisitor.Continue;
-
         return true;
     }
 
@@ -52,22 +39,10 @@ public class QueryableProjectionFieldHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        var field = selection.Field;
-
-        if (field.Member is null)
-        {
-            action = null;
-
-            return false;
-        }
-
-        // Dequeue last
         var scope = context.PopScope();
-
         if (scope is not QueryableProjectionScope queryableScope)
         {
             action = null;
-
             return false;
         }
 
@@ -78,33 +53,19 @@ public class QueryableProjectionFieldHandler
             throw ThrowHelper.ProjectionVisitor_InvalidState_NoParentScope();
         }
 
-        Expression nestedProperty;
-        if (field.Member is PropertyInfo propertyInfo)
-        {
-            nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-        }
-        else
-        {
-            action = SelectionVisitor.Skip;
+        var nestedProperty = scope.Instance.Peek();
 
-            return true;
-        }
-
+        Expression rhs = memberInit;
         if (context.InMemory)
         {
-            parentScope.Level
-                .Peek()
-                .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+            rhs = NotNullAndAlso(nestedProperty, rhs, typeof(object[]));
         }
-        else
-        {
-            parentScope.Level
-                .Peek()
-                .Enqueue(Expression.Bind(field.Member, memberInit));
-        }
+
+        parentScope.Level
+            .Peek()
+            .Enqueue(rhs);
 
         action = SelectionVisitor.Continue;
-
         return true;
     }
 }

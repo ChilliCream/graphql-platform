@@ -36,12 +36,12 @@ internal static class ResolverTaskFactory
         {
             ref var selectionSpace = ref ((SelectionSet)selectionSet).GetSelectionsReference();
 
-            // we are iterating reverse so that in the case of a mutation the first
+            // We are iterating reverse so that in the case of a mutation the first
             // synchronous root selection is executed first, since the work scheduler
-            // is using two stacks one for parallel work an one for synchronous work.
-            // the scheduler this tries to schedule new work first.
-            // coincidentally we can use that to schedule a mutation so that we honor the spec
-            // guarantees while executing efficient.
+            // is using two stacks: one for parallel work and one for synchronous work.
+            // The scheduler thus tries to schedule new work first.
+            // Coincidentally we can use that to schedule a mutation so that we honor the spec
+            // guarantees while also executing efficiently.
             for (var i = selectionsCount - 1; i >= 0; i--)
             {
                 ref var selection = ref Unsafe.Add(ref selectionSpace, i);
@@ -61,8 +61,8 @@ internal static class ResolverTaskFactory
 
             if (bufferedTasks.Count == 0)
             {
-                // in the case all root fields are skipped we execute a dummy task in order
-                // to not have to many extra API for this special case.
+                // In the case all root fields are skipped, we execute a dummy task in order
+                // to avoid having extra APIs for this special case.
                 scheduler.Register(new NoOpExecutionTask(operationContext));
             }
             else

@@ -59,8 +59,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             foreach (var field in objectTypeDefinition.Fields)
             {
                 alwaysProjected ??= new List<string>();
-                if (field.GetContextData().TryGetValue(IsProjectedKey, out var value) &&
-                    value is true)
+                if (field.GetContextData().TryGet(IsProjectedKey, out var value) && value)
                 {
                     alwaysProjected.Add(field.Name);
                 }
@@ -68,7 +67,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
             if (alwaysProjected?.Count > 0)
             {
-                definition.ContextData[AlwaysProjectedFieldsKey] = alwaysProjected.ToArray();
+                definition.ContextData.Set(AlwaysProjectedFieldsKey, alwaysProjected.ToArray());
             }
         }
     }

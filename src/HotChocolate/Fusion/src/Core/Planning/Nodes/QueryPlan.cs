@@ -62,7 +62,9 @@ internal sealed class QueryPlan
         => _selectionSets.Contains(selectionSet);
 
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
-        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : Array.Empty<string>();
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
+            ? keys
+            : Array.Empty<string>();
 
     public IReadOnlyList<string> GetExportPath(ISelectionSet selectionSet, string key)
         => _exportPathsLookup.TryGetValue((selectionSet, key), out var path)
@@ -80,7 +82,7 @@ internal sealed class QueryPlan
 
         var operationContext = context.OperationContext;
 
-        if (operationContext.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
+        if (operationContext.ContextData.Has(WellKnownContextData.IncludeQueryPlan))
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             context.QueryPlan.Format(bufferWriter);

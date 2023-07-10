@@ -15,8 +15,8 @@ public static class QueryableProjectionScopeExtensions
     /// <param name="scope">The scope that contains the projection information</param>
     /// <typeparam name="T">The target type</typeparam>
     /// <returns>An expression</returns>
-    public static Expression<Func<T, T>> Project<T>(this QueryableProjectionScope scope)
-        => (Expression<Func<T, T>>)scope.CreateMemberInitLambda();
+    public static Expression<Func<T, object[]>> Project<T>(this QueryableProjectionScope scope)
+        => (Expression<Func<T, object[]>>)scope.CreateMemberInitLambda();
 
     /// <summary>
     /// Creates an expression based on the result stored on <see cref="QueryableProjectionScope"/>.
@@ -35,16 +35,23 @@ public static class QueryableProjectionScopeExtensions
     {
         if (scope.HasAbstractTypes())
         {
-            Expression lastValue = Expression.Default(scope.RuntimeType);
+            /*
+                instance is A
+                    ? new object[] { instance.a, instance.b.Select(x => ...), ..., A }
+                    : instance is B
+                        ? new object[] { instance.c, instance.d, ..., B }
+                        : null
+            */
+            Expression lastValue = Expression.Default(typeof(object[]));
+            var instance = scope.Instance.Peek();
 
-            foreach (var val in scope.GetAbstractTypes())
+            foreach (var (type, initializers) in scope.GetAbstractTypes())
             {
-                var ctor = Expression.New(val.Key);
-                Expression memberInit = Expression.MemberInit(ctor, val.Value);
+                Expression memberInit = Expression.NewArrayInit(typeof(object), initializers);
 
                 lastValue = Expression.Condition(
-                    Expression.TypeIs(scope.Instance.Peek(), val.Key),
-                    Expression.Convert(memberInit, scope.RuntimeType),
+                    Expression.TypeIs(instance, type),
+                    memberInit,
                     lastValue);
             }
 
@@ -52,8 +59,8 @@ public static class QueryableProjectionScopeExtensions
         }
         else
         {
-            var ctor = Expression.New(scope.RuntimeType);
-            return Expression.MemberInit(ctor, scope.Level.Peek());
+            // new object[] { instance.a, instance.b, ... }
+            return Expression.NewArrayInit(typeof(object), scope.Level.Peek());
         }
     }
 
@@ -64,25 +71,33 @@ public static class QueryableProjectionScopeExtensions
 
     private static Expression CreateMemberInitLambda<T>(this QueryableProjectionScope scope)
     {
+        // TODO: This is currently simply wrong! We have to keep both versions.
         Expression converted = Expression.Convert(scope.CreateMemberInit(), typeof(T));
         return Expression.Lambda(converted, scope.Parameter);
     }
 
     public static Expression CreateSelection(
         this QueryableProjectionScope scope,
-        Expression source,
-        Type sourceType)
+        Expression source)
     {
+        var memberInitLambda = scope.CreateMemberInitLambda();
         var selection = Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Select),
+            new[] { scope.RuntimeType, typeof(object[]), },
+            source,
+            memberInitLambda);
+
+        return selection;
+        /*
+        return Expression.Call(
+            typeof(Enumerable),
+            nameof(Enumerable.ToList),
             new[]
             {
-                scope.RuntimeType,
-                scope.RuntimeType
+                typeof(object[])
             },
-            source,
-            scope.CreateMemberInitLambda());
+            selection);
 
         if (sourceType.IsArray)
         {
@@ -95,6 +110,7 @@ public static class QueryableProjectionScopeExtensions
         }
 
         return ToList(scope, selection);
+    */
     }
 
     private static Expression ToArray(QueryableProjectionScope scope, Expression source)
@@ -102,10 +118,7 @@ public static class QueryableProjectionScopeExtensions
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.ToArray),
-            new[]
-            {
-                scope.RuntimeType
-            },
+            new[] { scope.RuntimeType },
             source);
     }
 
@@ -114,10 +127,7 @@ public static class QueryableProjectionScopeExtensions
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.ToList),
-            new[]
-            {
-                scope.RuntimeType
-            },
+            new[] { scope.RuntimeType },
             source);
     }
 
@@ -129,10 +139,7 @@ public static class QueryableProjectionScopeExtensions
             setType.MakeGenericType(source.Type.GetGenericArguments()[0]);
 
         var ctor =
-            typedGeneric.GetConstructor(new[]
-            {
-                source.Type
-            });
+            typedGeneric.GetConstructor(new[] { source.Type });
 
         if (ctor is null)
         {

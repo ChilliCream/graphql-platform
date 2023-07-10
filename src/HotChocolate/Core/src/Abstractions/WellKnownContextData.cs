@@ -75,7 +75,7 @@ public static class WellKnownContextData
     /// <summary>
     /// Includes the query plan into the response.
     /// </summary>
-    public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
+    public static readonly StateFlagKey IncludeQueryPlan = StateFlagKey.Create("HotChocolate.Execution.EmitQueryPlan");
 
     /// <summary>
     /// The key for setting resolver configurations.

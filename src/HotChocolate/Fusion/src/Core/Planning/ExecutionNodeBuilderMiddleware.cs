@@ -64,53 +64,53 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         QueryPlanContext context,
         ref List<ExecutionStep> executionSteps)
     {
-        if (context.HasHandledSpecialQueryFields)
+        var handled = new HashSet<ExecutionStep>();
+
+        foreach (var executionStep in executionSteps)
         {
-            var handled = new HashSet<ExecutionStep>();
-
-            foreach (var executionStep in executionSteps)
+            void RegisterNode(QueryPlanNode node)
             {
-                if (executionStep is NodeExecutionStep nodeStep)
+                context.RegisterNode(node, executionStep);
+                context.RegisterSelectionSet(context.Operation.RootSelectionSet);
+                handled.Add(executionStep);
+            }
+
+            if (executionStep is NodeExecutionStep nodeStep)
+            {
+                var nodeResolverNode = new ResolveNode(
+                    context.NextNodeId(),
+                    nodeStep.NodeSelection);
+                RegisterNode(nodeResolverNode);
+
+                foreach (var entityStep in nodeStep.EntitySteps)
                 {
-                    var nodeResolverNode = new ResolveNode(
-                        context.NextNodeId(),
-                        nodeStep.NodeSelection);
-                    context.RegisterNode(nodeResolverNode, nodeStep);
-                    context.RegisterSelectionSet(context.Operation.RootSelectionSet);
-                    handled.Add(nodeStep);
+                    context.ForwardedVariables.Clear();
 
-                    foreach (var entityStep in nodeStep.EntitySteps)
-                    {
-                        context.ForwardedVariables.Clear();
+                    var resolve = CreateResolveNodeNode(context, entityStep);
+                    nodeResolverNode.AddEntityResolver(entityStep.TypeName, resolve);
+                    context.RegisterNode(resolve, entityStep.SelectEntityStep);
 
-                        var resolve = CreateResolveNodeNode(context, entityStep);
-                        nodeResolverNode.AddEntityResolver(entityStep.TypeName, resolve);
-                        context.RegisterNode(resolve, entityStep.SelectEntityStep);
-
-                        handled.Add(entityStep);
-                        handled.Add(entityStep.SelectEntityStep);
-                    }
-                }
-
-                if (executionStep is IntrospectionExecutionStep)
-                {
-                    var introspectionNode = new Introspect(
-                        context.NextNodeId(),
-                        context.Operation.RootSelectionSet);
-                    context.RegisterNode(introspectionNode, executionStep);
-                    context.RegisterSelectionSet(context.Operation.RootSelectionSet);
-                    handled.Add(executionStep);
+                    handled.Add(entityStep);
+                    handled.Add(entityStep.SelectEntityStep);
                 }
             }
 
-            if (executionSteps.Count == handled.Count)
+            else if (executionStep is IntrospectionExecutionStep)
             {
-                executionSteps.Clear();
+                var introspectionNode = new Introspect(
+                    context.NextNodeId(),
+                    context.Operation.RootSelectionSet);
+                RegisterNode(introspectionNode);
             }
-            else
-            {
-                executionSteps = executionSteps.Where(t => !handled.Contains(t)).ToList();
-            }
+        }
+
+        if (executionSteps.Count == handled.Count)
+        {
+            executionSteps.Clear();
+        }
+        else
+        {
+            executionSteps = executionSteps.Where(t => !handled.Contains(t)).ToList();
         }
     }
 

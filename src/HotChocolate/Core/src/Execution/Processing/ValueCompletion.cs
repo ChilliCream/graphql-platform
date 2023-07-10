@@ -30,45 +30,48 @@ internal static partial class ValueCompletion
             return null;
         }
 
-        if (typeKind is TypeKind.Scalar or TypeKind.Enum)
+        switch (typeKind)
         {
-            return CompleteLeafValue(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType,
-                result);
-        }
+            case TypeKind.Scalar:
+            case TypeKind.Enum:
+                return CompleteLeafValue(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    result);
 
-        if (typeKind is TypeKind.List)
-        {
-            return CompleteListValue(
-                operationContext,
-                resolverContext,
-                tasks,
-                selection,
-                path,
-                fieldType,
-                responseName,
-                responseIndex,
-                result);
-        }
+            case TypeKind.List:
+                return CompleteListValue(
+                    operationContext,
+                    resolverContext,
+                    tasks,
+                    selection,
+                    path,
+                    fieldType,
+                    responseName,
+                    responseIndex,
+                    result);
 
-        if (typeKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
-        {
-            return CompleteCompositeValue(
-                operationContext,
-                resolverContext,
-                tasks,
-                selection,
-                path,
-                fieldType,
-                result);
-        }
+            case TypeKind.Object:
+            case TypeKind.Interface:
+            case TypeKind.Union:
+                return CompleteCompositeValue(
+                    operationContext,
+                    resolverContext,
+                    tasks,
+                    selection,
+                    path,
+                    fieldType,
+                    result);
 
-        var error = UnexpectedValueCompletionError(selection.SyntaxNode, path);
-        operationContext.ReportError(error, resolverContext, selection);
-        return null;
+            default:
+            {
+                var error = UnexpectedValueCompletionError(selection.SyntaxNode, path);
+                operationContext.ReportError(error, resolverContext, selection);
+                return null;
+            }
+        }
     }
 }

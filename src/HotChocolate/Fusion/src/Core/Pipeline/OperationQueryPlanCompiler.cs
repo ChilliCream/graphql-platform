@@ -17,6 +17,6 @@ internal sealed class OperationQueryPlanCompiler : IOperationOptimizer
     {
         var operation = context.CreateOperation();
         var queryPlan = _queryPlanner.Plan(operation);
-        context.ContextData[PipelineProps.QueryPlan] = queryPlan;
+        context.ContextData.Set(PipelineProps.QueryPlan, queryPlan);
     }
 }
