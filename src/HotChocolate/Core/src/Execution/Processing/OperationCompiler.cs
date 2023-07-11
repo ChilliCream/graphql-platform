@@ -341,7 +341,8 @@ public sealed partial class OperationCompiler
                 isConditional = true;
             }
 
-            if (fieldType.IsCompositeType())
+            // Determines if the type is a composite type.
+            if (fieldType.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
             {
                 if (selection.SelectionSet is null)
                 {
@@ -861,4 +862,4 @@ public sealed partial class OperationCompiler
         public override int GetHashCode()
             => HashCode.Combine(SelectionSet, Path);
     }
-} 
+}

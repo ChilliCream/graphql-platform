@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Shared.Patients;
 using HotChocolate.Fusion.Shared.Products;
 using HotChocolate.Fusion.Shared.Reviews;
 using HotChocolate.Fusion.Shared.Shipping;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,7 +78,8 @@ public sealed class DemoProject : IDisposable
                 .AddMutationType<ReviewsMutation>()
                 .AddSubscriptionType<ReviewsSubscription>()
                 .AddMutationConventions()
-                .AddGlobalObjectIdentification(),
+                .AddGlobalObjectIdentification()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseWebSockets()
                 .UseRouting()
@@ -99,7 +101,8 @@ public sealed class DemoProject : IDisposable
                 .AddMutationType<Reviews2.ReviewsMutation>()
                 .AddSubscriptionType<Reviews2.ReviewsSubscription>()
                 .AddMutationConventions()
-                .AddGlobalObjectIdentification(),
+                .AddGlobalObjectIdentification()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseWebSockets()
                 .UseRouting()
@@ -120,7 +123,8 @@ public sealed class DemoProject : IDisposable
                 .AddQueryType<AccountQuery>()
                 .AddMutationType<AccountMutation>()
                 .AddMutationConventions()
-                .AddGlobalObjectIdentification(),
+                .AddGlobalObjectIdentification()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
@@ -138,7 +142,8 @@ public sealed class DemoProject : IDisposable
                 .AddSingleton<ProductRepository>()
                 .AddGraphQLServer()
                 .AddQueryType<ProductQuery>()
-                .AddGlobalObjectIdentification(),
+                .AddGlobalObjectIdentification()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
@@ -155,7 +160,8 @@ public sealed class DemoProject : IDisposable
                 .AddRouting()
                 .AddGraphQLServer()
                 .AddQueryType<ShippingQuery>()
-                .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1)),
+                .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1))
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
@@ -174,7 +180,8 @@ public sealed class DemoProject : IDisposable
                 .AddQueryType<AppointmentQuery>()
                 .AddObjectType<Appointments.Patient1>()
                 .AddObjectType<Patient2>()
-                .AddGlobalObjectIdentification(),
+                .AddGlobalObjectIdentification()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
@@ -191,7 +198,8 @@ public sealed class DemoProject : IDisposable
                 .AddRouting()
                 .AddGraphQLServer()
                 .AddQueryType<Patient1Query>()
-                .AddGlobalObjectIdentification(),
+                .AddGlobalObjectIdentification()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
