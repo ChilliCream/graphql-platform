@@ -959,7 +959,15 @@ public class InputObjectTypeTests : TypeTestBase
         [DefaultValue(FooEnum.Bar)]
         public FooEnum Enum { get; set; }
 
+        [DefaultValueSyntax("[[{ foo: 1 } ]]")]
+        public List<List<ComplexInput>> ComplexInput { get; set; }
+
         public string? WithoutDefault { get; set; }
+    }
+
+    public class ComplexInput
+    {
+        public int Foo { get; set; }
     }
 
     public class InputWithDeprecatedField

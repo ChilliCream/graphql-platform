@@ -2,7 +2,7 @@ User Request
 ---------------
 query TopProducts($first: Int!) {
   topProducts(first: $first) {
-    upc
+    id
   }
 }
 ---------------
@@ -10,7 +10,7 @@ query TopProducts($first: Int!) {
 QueryPlan
 ---------------
 {
-  "document": "query TopProducts($first: Int!) { topProducts(first: $first) { upc } }",
+  "document": "query TopProducts($first: Int!) { topProducts(first: $first) { id } }",
   "operation": "TopProducts",
   "rootNode": {
     "type": "Sequence",
@@ -18,7 +18,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Products",
-        "document": "query TopProducts_1($first: Int!) { topProducts(first: $first) { __fusion_exports__1: id } }",
+        "document": "query TopProducts_1($first: Int!) { topProducts(first: $first) { id } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
@@ -30,26 +30,6 @@ QueryPlan
         "type": "Compose",
         "selectionSetIds": [
           0
-        ]
-      },
-      {
-        "type": "Resolve",
-        "subgraph": "Reviews2",
-        "document": "query TopProducts_2($__fusion_exports__1: ID!) { productById(id: $__fusion_exports__1) { upc } }",
-        "selectionSetId": 1,
-        "path": [
-          "productById"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          1
         ]
       }
     ]
@@ -63,10 +43,10 @@ Result
   "data": {
     "topProducts": [
       {
-        "upc": 1
+        "id": "UHJvZHVjdAppMQ=="
       },
       {
-        "upc": 2
+        "id": "UHJvZHVjdAppMg=="
       }
     ]
   }
@@ -110,11 +90,18 @@ type AddUserPayload {
 }
 
 type Product implements Node @variable(subgraph: "Reviews2", name: "Product_id", select: "id") @variable(subgraph: "Products", name: "Product_id", select: "id") @resolver(subgraph: "Reviews2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ node(id: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "ID!" } ]) @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
-  id: ID! @source(subgraph: "Products")
+  dimension: ProductDimension! @source(subgraph: "Products")
+  id: ID! @source(subgraph: "Reviews2") @source(subgraph: "Products")
   name: String! @source(subgraph: "Products")
   price: Int! @source(subgraph: "Products")
+  repeat(num: Int!): Int! @source(subgraph: "Products") @variable(subgraph: "Products", name: "num", argument: "num")
+  repeatData(data: SomeDataInput!): SomeData! @source(subgraph: "Products") @variable(subgraph: "Products", name: "data", argument: "data")
   reviews: [Review!]! @source(subgraph: "Reviews2")
-  upc: Int! @source(subgraph: "Reviews2")
+  weight: Int! @source(subgraph: "Products")
+}
+
+type ProductDimension {
+  size: Int! @source(subgraph: "Products")
   weight: Int! @source(subgraph: "Products")
 }
 
@@ -123,6 +110,11 @@ type Review implements Node @variable(subgraph: "Reviews2", name: "Review_id", s
   body: String! @source(subgraph: "Reviews2")
   id: ID! @source(subgraph: "Reviews2")
   product: Product! @source(subgraph: "Reviews2")
+}
+
+type SomeData {
+  data: SomeData @source(subgraph: "Products")
+  num: Int @source(subgraph: "Products")
 }
 
 type User implements Node @variable(subgraph: "Reviews2", name: "User_id", select: "id") @variable(subgraph: "Accounts", name: "User_id", select: "id") @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") @resolver(subgraph: "Reviews2", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") @resolver(subgraph: "Accounts", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
@@ -149,6 +141,11 @@ input AddUserInput {
   birthdate: DateTime!
   name: String!
   username: String!
+}
+
+input SomeDataInput {
+  data: SomeDataInput
+  num: Int
 }
 
 "The `Date` scalar represents an ISO-8601 compliant date type."

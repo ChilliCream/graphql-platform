@@ -50,7 +50,7 @@ internal sealed class OperationSession : IOperationSession
         {
             var requestBuilder = CreateRequestBuilder(request);
             await _interceptor.OnRequestAsync(_session, Id, requestBuilder, ct);
-            var result = await _executor.ExecuteAsync(requestBuilder.Create(), ct);
+            await using var result = await _executor.ExecuteAsync(requestBuilder.Create(), ct);
 
             switch (result)
             {
@@ -82,7 +82,11 @@ internal sealed class OperationSession : IOperationSession
             // we mark completeTry true so that in case of an error we do not try to send this
             // message again.
             completeTry = true;
-            await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
+
+            if (!ct.IsCancellationRequested)
+            {
+                await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
+            }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {

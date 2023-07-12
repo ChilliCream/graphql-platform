@@ -1,6 +1,7 @@
 namespace HotChocolate.Fusion.Metadata;
 
-internal interface IType // TODO : should be called named type
+// TODO : should be called INamedType
+internal interface IType
 {
     string Name { get; }
 

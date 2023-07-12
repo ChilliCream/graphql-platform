@@ -12,14 +12,10 @@ internal sealed class Compose : QueryPlanNode
     private readonly ISelectionSet[] _selectionSets;
 
     public Compose(int id, Resolve resolve)
-        : this(id, new[] { resolve.SelectionSet })
-    {
-    }
+        : this(id, new[] { resolve.SelectionSet }) { }
 
     public Compose(int id, ISelectionSet selectionSet)
-        : this(id, new[] { selectionSet })
-    {
-    }
+        : this(id, new[] { selectionSet }) { }
 
     public Compose(int id, IReadOnlyList<ISelectionSet> selectionSets) : base(id)
     {
@@ -63,7 +59,7 @@ internal sealed class Compose : QueryPlanNode
                     }
                 }
 
-                start = ref Unsafe.Add(ref start, 1);
+                start = ref Unsafe.Add(ref start, 1)!;
             }
         }
 

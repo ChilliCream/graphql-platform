@@ -39,9 +39,6 @@
   <data name="ThrowHelper_ServiceConfInvalidDirectiveArgs" xml:space="preserve">
     <value>Expected arguments for the directive `{0}` are `{1}`. The service configuration reader found the following arguments `{2}` on the directive in line number {3}.</value>
   </data>
-  <data name="GraphQLHttpClient_InvalidContentType" xml:space="preserve">
-    <value>The GraphQL server returned an invalid content type. The content type must be either application/json or application/graphql-response+json.</value>
-  </data>
   <data name="FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue" xml:space="preserve">
     <value>The kind must be of the values query, batch, batchByKey or subscription.</value>
   </data>
@@ -53,5 +50,17 @@
   </data>
   <data name="ThrowHelper_NoResolverInContext" xml:space="preserve">
     <value>There must be a field resolver definition in this context!</value>
+  </data>
+  <data name="TransportConfigurationNotSupported" xml:space="preserve">
+    <value>Transport configuration not supported.</value>
+  </data>
+  <data name="CreateSelection_MustBePlaceholderOrSelectExpression" xml:space="preserve">
+    <value>Either provide a placeholder or the select expression must be a FieldNode.</value>
+  </data>
+  <data name="GatewayConfigurationFileObserver_FileNameNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="FileConfigurationSession_MustContainPath" xml:space="preserve">
+    <value>The file name must contain a directory path.</value>
   </data>
 </root>

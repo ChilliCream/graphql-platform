@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Stitching.ThrowHelper;

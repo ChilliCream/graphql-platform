@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HotChocolate.Fusion.CommandLine.Helpers;
 using HotChocolate.Fusion.CommandLine.Options;
+using HotChocolate.Utilities;
 using static System.IO.Path;
 using static HotChocolate.Fusion.CommandLine.Helpers.PackageHelper;
 using static HotChocolate.Fusion.CommandLine.Defaults;
@@ -48,6 +49,14 @@ internal sealed class SubgraphConfigSetNameCommand : Command
             var config = new SubgraphConfigurationDto(subgraphName);
             var configJson = FormatSubgraphConfig(config);
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);
+        }
+        else if (configFile.Extension.EqualsOrdinal(".fsp"))
+        {
+            var config = await LoadSubgraphConfigFromSubgraphPackageAsync(configFile.FullName, cancellationToken);
+            
+            await ReplaceSubgraphConfigInSubgraphPackageAsync(
+                configFile.FullName,
+                config with { Name = subgraphName });
         }
         else
         {

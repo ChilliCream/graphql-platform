@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -10,11 +11,26 @@ namespace HotChocolate.Types;
 /// <a href="https://tools.ietf.org/html/rfc7042#page-19">RFC7042</a> and
 /// <a href="https://tools.ietf.org/html/rfc7043">RFC 7043</a> respectively.
 /// </summary>
+#if BACKREFERENCE_NOT_SUPPORTED
+public partial class MacAddressType : RegexType
+#else
 public class MacAddressType : RegexType
+#endif
 {
     private const string _validationPattern =
         @"^(?:[0-9A-Fa-f]{2}([:-]?)[0-9A-Fa-f]{2})(?:(?:\1|\.)(?:[0-9A-Fa-f]{2}([:-]?)" +
         "[0-9A-Fa-f]{2})){2,3}$";
+
+#if BACKREFERENCE_NOT_SUPPORTED
+    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegex();
+#else
+    private static Regex CreateRegex()
+        => new Regex(
+            _validationPattern,
+            RegexOptions.Compiled | RegexOptions.IgnoreCase,
+            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
+#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MacAddressType"/> class.
@@ -35,9 +51,8 @@ public class MacAddressType : RegexType
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(
             name,
-            _validationPattern,
+            CreateRegex(),
             description,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
             bind)
     {
     }

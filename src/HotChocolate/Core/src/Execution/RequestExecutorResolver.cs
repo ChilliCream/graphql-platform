@@ -243,6 +243,10 @@ internal sealed partial class RequestExecutorResolver
             typeModuleChangeMonitor.Register(typeModule);
         }
 
+        // we allow newer type modules to apply configurations.
+        await typeModuleChangeMonitor.ConfigureAsync(context, cancellationToken)
+            .ConfigureAwait(false);
+
         serviceCollection.AddSingleton<IApplicationServiceProvider>(
             _ => new DefaultApplicationServiceProvider(_applicationServices));
 
@@ -282,6 +286,7 @@ internal sealed partial class RequestExecutorResolver
         serviceCollection.AddSingleton(
             sp => CreatePipeline(
                 context.SchemaName,
+                setup.DefaultPipelineFactory,
                 setup.Pipeline,
                 sp,
                 sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
@@ -294,7 +299,7 @@ internal sealed partial class RequestExecutorResolver
 
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
-        serviceCollection.TryAddSingleton<ObjectPool<RequestContext>>(
+        serviceCollection.TryAddSingleton(
             sp =>
             {
                 var provider = sp.GetRequiredService<ObjectPoolProvider>();
@@ -320,14 +325,13 @@ internal sealed partial class RequestExecutorResolver
         OnConfigureSchemaServices(context, serviceCollection, setup);
 
         var schemaServices = serviceCollection.BuildServiceProvider();
-        // var combinedServices = schemaServices.Include(_applicationServices);
 
         lazy.Schema =
             await CreateSchemaAsync(
                     context,
                     setup,
                     executorOptions,
-                    schemaServices,
+                    schemaServices.Include(_applicationServices),
                     typeModuleChangeMonitor,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -398,13 +402,15 @@ internal sealed partial class RequestExecutorResolver
 
     private RequestDelegate CreatePipeline(
         string schemaName,
+        Action<IList<RequestCoreMiddleware>>? defaultPipelineFactory,
         IList<RequestCoreMiddleware> pipeline,
         IServiceProvider schemaServices,
         IRequestExecutorOptionsAccessor options)
     {
         if (pipeline.Count == 0)
         {
-            pipeline.AddDefaultPipeline();
+            defaultPipelineFactory ??= RequestExecutorBuilderExtensions.AddDefaultPipeline;
+            defaultPipelineFactory(pipeline);
         }
 
         var factoryContext = new RequestCoreMiddlewareContext(
@@ -515,6 +521,20 @@ internal sealed partial class RequestExecutorResolver
         {
             typeModule.TypesChanged += EvictRequestExecutor;
             _typeModules.Add(typeModule);
+        }
+
+        internal async ValueTask ConfigureAsync(
+            ConfigurationContext context,
+            CancellationToken cancellationToken)
+        {
+            foreach (var item in _typeModules)
+            {
+                if (item is TypeModule typeModule)
+                {
+                    await typeModule.ConfigureAsync(context, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
         }
 
         public IAsyncEnumerable<ITypeSystemMember> CreateTypesAsync(IDescriptorContext context)

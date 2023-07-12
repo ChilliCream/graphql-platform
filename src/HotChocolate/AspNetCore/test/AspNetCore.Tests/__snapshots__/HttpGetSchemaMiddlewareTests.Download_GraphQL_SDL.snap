@@ -51,6 +51,7 @@ type Human implements Character {
 
 type Mutation {
   createReview(episode: Episode! review: ReviewInput!): Review!
+  complete(episode: Episode!): Boolean!
 }
 
 "Information about pagination in a connection."
