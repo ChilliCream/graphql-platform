@@ -62,7 +62,9 @@ internal sealed class QueryPlan
         => _selectionSets.Contains(selectionSet);
 
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
-        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : Array.Empty<string>();
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
+            ? keys
+            : Array.Empty<string>();
 
     public IReadOnlyList<string> GetExportPath(ISelectionSet selectionSet, string key)
         => _exportPathsLookup.TryGetValue((selectionSet, key), out var path)
@@ -103,27 +105,31 @@ internal sealed class QueryPlan
         {
             await RootNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
         }
-        catch (NonNullPropagateException)
+        catch (NonNullPropagateException ex)
         {
             context.Result.SetData(null);
 
             // TODO : REMOVE after non-null prop is good.
             if (context.Result.Errors.Count == 0)
             {
-                context.Result.AddError(
-                    ErrorBuilder.New()
-                        .SetMessage("NON NULL PROPAGATION")
-                        .Build());
+                var error =
+                    context.OperationContext.ErrorHandler.Handle(
+                        ErrorBuilder.New()
+                            .SetMessage("NON NULL PROPAGATION")
+                            .SetException(ex)
+                            .Build());
+
+                context.Result.AddError(error);
             }
         }
-        catch
+        catch (Exception ex)
         {
             if (context.Result.Errors.Count == 0)
             {
-                context.Result.AddError(
-                    ErrorBuilder.New()
-                        .SetMessage("Broken")
-                        .Build());
+                var errorHandler = context.OperationContext.ErrorHandler;
+                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                error = errorHandler.Handle(error);
+                context.Result.AddError(error);
             }
         }
 
