@@ -419,7 +419,7 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLEndpointConventionBuilder WithOptions(
         this GraphQLEndpointConventionBuilder builder,
         GraphQLServerOptions serverOptions) =>
-        builder.WithMetadata(serverOptions).WithMetadata(From(serverOptions.Tool));
+        builder.WithMetadata(serverOptions).WithMetadata(ToBcpOptions(serverOptions.Tool));
 
     /// <summary>
     /// Specifies the GraphQL HTTP request options.
@@ -467,7 +467,7 @@ public static class EndpointRouteBuilderExtensions
             var previousOptions = convention.Metadata.OfType<BananaCakePopOptions>().First();
             convention.Metadata.Remove(previousOptions);
 
-            var newOptions = From(toolOptions);
+            var newOptions = toolOptions.ToBcpOptions();
 
             // we override the GraphQLEndpoint in case it was set through
             // GraphQLEndpointOptions
@@ -511,7 +511,7 @@ public static class EndpointRouteBuilderExtensions
             }
         });
 
-    private static BananaCakePopOptions From(GraphQLToolOptions options)
+    internal static BananaCakePopOptions ToBcpOptions(this GraphQLToolOptions options)
         => new()
         {
             ServeMode = ServeMode.Version(options.ServeMode.Mode),

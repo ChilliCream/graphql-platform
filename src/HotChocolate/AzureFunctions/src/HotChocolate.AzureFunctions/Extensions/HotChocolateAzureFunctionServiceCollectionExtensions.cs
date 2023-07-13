@@ -89,6 +89,11 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                 configure(options);
             }
 
+            // We need to set the ServeMode to Embedded to ensure that the GraphQL IDE is
+            // working since the isolation mode does not allow us to take control over the response
+            // object.
+            options.Tool.ServeMode = GraphQLToolServeMode.Embedded;
+
             var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
             var pipeline = new PipelineBuilder()
