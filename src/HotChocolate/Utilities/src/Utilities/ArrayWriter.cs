@@ -177,7 +177,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
 
             // if that new buffer size is not enough to satisfy the needed capacity
             // we add the needed capacity to the doubled buffer capacity.
-            if (neededCapacity > newSize)
+            if (neededCapacity > newSize - _start)
             {
                 newSize += neededCapacity;
             }

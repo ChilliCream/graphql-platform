@@ -30,7 +30,7 @@ internal sealed partial class ResultBuilder
 
     public IReadOnlyList<IError> Errors => _errors;
 
-    public void SetData(ObjectResult data)
+    public void SetData(ObjectResult? data)
     {
         if (_items is not null)
         {

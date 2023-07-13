@@ -49,7 +49,7 @@ public class Selection : ISelection
             ? Flags.Internal
             : Flags.None;
 
-        if (Type.IsListType())
+        if (Type.IsType(TypeKind.List))
         {
             _flags |= Flags.List;
         }

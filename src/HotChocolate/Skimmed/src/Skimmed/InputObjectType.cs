@@ -1,5 +1,5 @@
-using HotChocolate.Language;
 using HotChocolate.Utilities;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -27,6 +27,9 @@ public sealed class InputObjectType : INamedType, INamedTypeSystemMember<InputOb
     public FieldCollection<InputField> Fields { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public override string ToString()
+        => RewriteInputObjectType(this).ToString(true);
 
     public static InputObjectType Create(string name) => new(name);
 }

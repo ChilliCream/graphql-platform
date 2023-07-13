@@ -11,15 +11,15 @@ public class ConsultantType
         IObjectTypeDescriptor<Consultant> descriptor)
     {
         descriptor
-            .AsNode()
+            .ImplementsNode()
             .IdField(t => t.Id)
-            .NodeResolver((ctx, id) => 
+            .ResolveNode((ctx, id) =>
             {
                 return Task.FromResult(
                     ctx.Service<CustomerRepository>()
-                        .Consultants.FirstOrDefault(t => t.Id.Equals(id)));
+                        .Consultants.FirstOrDefault(t => Equals(id, t.Id)));
             });
-                
+
         descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
         descriptor.Field("customers")
             .UsePaging<CustomerType>()

@@ -92,5 +92,11 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("ThrowHelper_PagingHandler_NoBoundariesSet", resourceCulture);
             }
         }
+        
+        internal static string Edge_Cursor_CursorAndResolverNull {
+            get {
+                return ResourceManager.GetString("Edge_Cursor_CursorAndResolverNull", resourceCulture);
+            }
+        }
     }
 }

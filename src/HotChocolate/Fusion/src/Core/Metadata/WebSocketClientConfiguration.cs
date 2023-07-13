@@ -1,9 +1,11 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Fusion.Metadata;
 
 /// <summary>
 /// Represents the configuration of a GraphQL over WS client.
 /// </summary>
-internal sealed class WebSocketClientConfiguration
+public sealed record WebSocketClientConfiguration : IGraphQLClientConfiguration
 {
     /// <summary>
     /// Initializes a new instance of <see cref="HttpClientConfiguration"/>.
@@ -17,25 +19,38 @@ internal sealed class WebSocketClientConfiguration
     /// <param name="endpointUri">
     /// The base address of the GraphQL over WS endpoint.
     /// </param>
-    public WebSocketClientConfiguration(string clientName, string subgraphName, Uri endpointUri)
+    /// <param name="syntaxNode">
+    /// The configuration syntax node.
+    /// </param>
+    public WebSocketClientConfiguration(
+        string clientName,
+        string subgraphName,
+        Uri endpointUri,
+        DirectiveNode? syntaxNode = default)
     {
         ClientName = clientName;
         SubgraphName = subgraphName;
         EndpointUri = endpointUri;
+        SyntaxNode = syntaxNode;
     }
 
     /// <summary>
     /// Gets the name of the client.
     /// </summary>
-    public string ClientName { get; }
+    public string ClientName { get; init; }
 
     /// <summary>
     /// Gets the name of the subgraph that the client is connecting to.
     /// </summary>
-    public string SubgraphName { get; }
+    public string SubgraphName { get; init; }
 
     /// <summary>
     /// Gets the URI of the GraphQL over WS endpoint.
     /// </summary>
-    public Uri EndpointUri { get; }
+    public Uri EndpointUri { get; init; }
+
+    /// <summary>
+    /// Gets the configuration syntax node.
+    /// </summary>
+    public DirectiveNode? SyntaxNode { get; init; }
 }

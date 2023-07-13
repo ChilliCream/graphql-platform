@@ -17,18 +17,24 @@ namespace HotChocolate.Fusion.Planning;
 internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 {
     private readonly FusionGraphConfiguration _config;
+    private readonly ISchema _schema;
 
     /// <summary>
     /// Creates a new instance of <see cref="ExecutionStepDiscoveryMiddleware"/>.
     /// </summary>
+    /// <param name="schema">
+    /// The schema.
+    /// </param>
     /// <param name="configuration">
     /// The fusion gateway configuration.
     /// </param>
-    /// <exception cref="ArgumentNullException"></exception>
-    public ExecutionStepDiscoveryMiddleware(FusionGraphConfiguration configuration)
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="schema"/> is <c>null</c> or <paramref name="configuration"/> is <c>null</c>.
+    /// </exception>
+    public ExecutionStepDiscoveryMiddleware(ISchema schema, FusionGraphConfiguration configuration)
     {
-        _config = configuration ??
-            throw new ArgumentNullException(nameof(configuration));
+        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     /// <summary>
@@ -109,8 +115,9 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 selectionSetTypeInfo);
             var executionStep = new SelectionExecutionStep(
                 subgraph,
-                selectionSetTypeInfo,
-                parentSelection);
+                parentSelection,
+                _schema.GetType<IObjectType>(selectionSetTypeInfo.Name),
+                selectionSetTypeInfo);
             leftovers = null;
 
             // we will first try to resolve and set an entity resolver.
@@ -172,6 +179,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 executionStep.AllSelections.Add(selection);
                 executionStep.RootSelections.Add(new RootSelection(selection, resolver));
 
+                if (resolver is not null)
+                {
+                    executionStep.SelectionResolvers.Add(selection, resolver);
+                }
+
                 if (selection.SelectionSet is not null)
                 {
                     CollectNestedSelections(
@@ -179,7 +191,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                         operation,
                         selection,
                         executionStep,
-                        preferBatching);
+                        preferBatching,
+                        context.ParentSelections);
                 }
             }
 
@@ -208,6 +221,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     AddIntrospectionStepIfNotExists(
                         context,
                         field,
+                        operation.RootType,
                         selectionSetTypeInfo);
                     (processed ??= new()).Add(i);
                     continue;
@@ -219,7 +233,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                         context,
                         backlog,
                         selection,
-                        selectionSetTypeInfo);
+                        selectionSetTypeInfo,
+                        context.ParentSelections);
                     (processed ??= new()).Add(i);
                 }
             }
@@ -243,7 +258,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         IOperation operation,
         ISelection parentSelection,
         SelectionExecutionStep executionStep,
-        bool preferBatching)
+        bool preferBatching,
+        Dictionary<ISelection, ISelection> parentSelectionLookup)
     {
         if (!preferBatching)
         {
@@ -258,7 +274,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 parentSelection,
                 executionStep,
                 possibleType,
-                preferBatching);
+                preferBatching,
+                parentSelectionLookup);
         }
     }
 
@@ -268,7 +285,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         ISelection parentSelection,
         SelectionExecutionStep executionStep,
         IObjectType possibleType,
-        bool preferBatching)
+        bool preferBatching,
+        Dictionary<ISelection, ISelection> parentSelectionLookup)
     {
         var declaringType = _config.GetType<ObjectTypeInfo>(possibleType.Name);
         var selectionSet = operation.GetSelectionSet(parentSelection, possibleType);
@@ -278,11 +296,48 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         foreach (var selection in selectionSet.Selections)
         {
+            parentSelectionLookup.TryAdd(selection, parentSelection);
             var field = declaringType.Fields[selection.Field.Name];
 
             if (field.Bindings.TryGetBinding(executionStep.SubgraphName, out _))
             {
                 executionStep.AllSelections.Add(selection);
+
+                if (field.Resolvers.ContainsResolvers(executionStep.SubgraphName))
+                {
+                    var variablesInContext = new HashSet<string>();
+
+                    GatherVariablesInContext(
+                        selection,
+                        declaringType,
+                        parentSelection,
+                        variablesInContext);
+
+                    var resolverPreference =
+                        ChoosePreferredResolverKind(
+                            operation,
+                            parentSelection,
+                            preferBatching);
+
+                    if (!TryGetResolver(
+                        field,
+                        executionStep.SubgraphName,
+                        variablesInContext,
+                        resolverPreference,
+                        out var resolver))
+                    {
+                        throw ThrowHelper.NoResolverInContext();
+                    }
+
+                    DetermineRequiredVariables(
+                        selection,
+                        declaringType,
+                        parentSelection,
+                        resolver,
+                        executionStep.Requires);
+
+                    executionStep.SelectionResolvers.Add(selection, resolver);
+                }
 
                 if (selection.SelectionSet is not null)
                 {
@@ -291,7 +346,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                         operation,
                         selection,
                         executionStep,
-                        preferBatching);
+                        preferBatching,
+                        parentSelectionLookup);
                 }
             }
             else
@@ -314,6 +370,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     private static void AddIntrospectionStepIfNotExists(
         QueryPlanContext context,
         IObjectField field,
+        IObjectType queryType,
         ObjectTypeInfo queryTypeInfo)
     {
         if (!context.HasIntrospectionSelections &&
@@ -321,7 +378,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 field.Name.EqualsOrdinal(IntrospectionFields.Type) ||
                 field.Name.EqualsOrdinal(IntrospectionFields.TypeName)))
         {
-            context.Steps.Add(new IntrospectionExecutionStep(queryTypeInfo));
+            context.Steps.Add(new IntrospectionExecutionStep(queryType, queryTypeInfo));
             context.HasIntrospectionSelections = true;
         }
     }
@@ -330,10 +387,12 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         QueryPlanContext context,
         Queue<BacklogItem> backlog,
         ISelection nodeSelection,
-        ObjectTypeInfo queryTypeInfo)
+        ObjectTypeInfo queryTypeInfo,
+        Dictionary<ISelection, ISelection> parentSelectionLookup)
     {
         var operation = context.Operation;
-        var nodeExecutionStep = new NodeExecutionStep(nodeSelection, queryTypeInfo);
+        var queryType = operation.RootType;
+        var nodeExecutionStep = new NodeExecutionStep(nodeSelection, queryType, queryTypeInfo);
         context.Steps.Add(nodeExecutionStep);
 
         foreach (var entityType in operation.GetPossibleTypes(nodeSelection))
@@ -350,10 +409,12 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     entityType,
                     entityTypeInfo,
                     selectionSet,
-                    preferBatching: false);
+                    preferBatching: false,
+                    parentSelectionLookup: parentSelectionLookup);
 
             var nodeEntityExecutionStep =
                 new NodeEntityExecutionStep(
+                    entityType,
                     entityTypeInfo,
                     selectionExecutionStep);
 
@@ -376,10 +437,12 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         IObjectType entityType,
         ObjectTypeInfo entityTypeInfo,
         ISelectionSet entityTypeSelectionSet,
-        bool preferBatching)
+        bool preferBatching,
+        Dictionary<ISelection, ISelection> parentSelectionLookup)
     {
         var variablesInContext = new HashSet<string>();
         var operation = context.Operation;
+        var queryType = operation.RootType;
 
         // we will first determine from which subgraph we can
         // fetch an entity through the node resolver.
@@ -398,7 +461,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         var field = nodeSelection.Field;
         var fieldInfo = queryTypeInfo.Fields[field.Name];
-        var executionStep = new SelectionExecutionStep(subgraph, queryTypeInfo, null);
+        var executionStep = new SelectionExecutionStep(subgraph, queryType, queryTypeInfo);
 
         var preference = ChoosePreferredResolverKind(operation, null, preferBatching);
         GatherVariablesInContext(nodeSelection, queryTypeInfo, null, variablesInContext);
@@ -423,7 +486,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             nodeSelection,
             executionStep,
             entityType,
-            preferBatching);
+            preferBatching,
+            parentSelectionLookup);
 
         context.Steps.Add(executionStep);
 
@@ -550,7 +614,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                                 resolver = current;
                                 break;
 
-                            case ResolverKind.Query:
                             default:
                                 if (preference is PreferredResolverKind.Query)
                                 {
@@ -630,7 +693,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         HashSet<string> requirements)
     {
         var field = declaringTypeInfo.Fields[selection.Field.Name];
-        var inContext = field.Variables.Select(t => t.Name);
+        var inContext = field.Variables.OfType<ArgumentVariableDefinition>().Select(t => t.Name);
 
         if (parent is not null)
         {

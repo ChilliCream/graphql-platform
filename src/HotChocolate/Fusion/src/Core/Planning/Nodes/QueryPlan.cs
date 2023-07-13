@@ -5,25 +5,44 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class QueryPlan
 {
     private readonly IOperation _operation;
-    private readonly IReadOnlyDictionary<ISelectionSet, string[]> _exportKeysLookup;
+    private readonly Dictionary<ISelectionSet, string[]> _exportKeysLookup = new();
+    private readonly Dictionary<(ISelectionSet, string), string[]> _exportPathsLookup = new();
     private readonly IReadOnlySet<ISelectionSet> _selectionSets;
 
     public QueryPlan(
         IOperation operation,
         QueryPlanNode rootNode,
-        IReadOnlyDictionary<ISelectionSet, string[]> exportKeysLookup,
-        IReadOnlySet<ISelectionSet> selectionSets)
+        IReadOnlySet<ISelectionSet> selectionSets,
+        IReadOnlyCollection<ExportDefinition> exports)
     {
         _operation = operation;
-        _exportKeysLookup = exportKeysLookup;
-        _selectionSets = selectionSets;
         RootNode = rootNode;
+        _selectionSets = selectionSets;
+
+        if (exports.Count > 0)
+        {
+            var context = new ExportPathVisitorContext();
+
+            foreach (var exportGroup in exports.GroupBy(t => t.SelectionSet))
+            {
+                _exportKeysLookup.Add(exportGroup.Key, exportGroup.Select(t => t.StateKey).ToArray());
+
+                foreach (var export in exportGroup)
+                {
+                    context.Path.Clear();
+                    ExportPathVisitor.Instance.Visit(export.VariableDefinition.Select, context);
+                    _exportPathsLookup.Add((exportGroup.Key, export.StateKey), context.Path.ToArray());
+                }
+            }
+        }
     }
 
     public QueryPlanNode RootNode { get; }
@@ -43,7 +62,14 @@ internal sealed class QueryPlan
         => _selectionSets.Contains(selectionSet);
 
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
-        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : Array.Empty<string>();
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
+            ? keys
+            : Array.Empty<string>();
+
+    public IReadOnlyList<string> GetExportPath(ISelectionSet selectionSet, string key)
+        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path)
+            ? path
+            : Array.Empty<string>();
 
     public async Task<IQueryResult> ExecuteAsync(
         FusionExecutionContext context,
@@ -51,9 +77,7 @@ internal sealed class QueryPlan
     {
         if (RootNode is Subscribe)
         {
-            // TODO : exception
-            throw new InvalidOperationException(
-                "A subscription execution plan can not be executed as a query.");
+            throw ThrowHelper.SubscriptionsMustSubscribe();
         }
 
         var operationContext = context.OperationContext;
@@ -77,7 +101,37 @@ internal sealed class QueryPlan
         context.Result.SetData(rootResult);
         context.RegisterState(rootSelectionSet, rootResult);
 
-        await RootNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await RootNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+        }
+        catch (NonNullPropagateException ex)
+        {
+            context.Result.SetData(null);
+
+            // TODO : REMOVE after non-null prop is good.
+            if (context.Result.Errors.Count == 0)
+            {
+                var error =
+                    context.OperationContext.ErrorHandler.Handle(
+                        ErrorBuilder.New()
+                            .SetMessage("NON NULL PROPAGATION")
+                            .SetException(ex)
+                            .Build());
+
+                context.Result.AddError(error);
+            }
+        }
+        catch (Exception ex)
+        {
+            if (context.Result.Errors.Count == 0)
+            {
+                var errorHandler = context.OperationContext.ErrorHandler;
+                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                error = errorHandler.Handle(error);
+                context.Result.AddError(error);
+            }
+        }
 
         context.Result.RegisterForCleanup(
             () =>
@@ -85,6 +139,7 @@ internal sealed class QueryPlan
                 context.Dispose();
                 return default;
             });
+
         return context.Result.BuildResult();
     }
 
@@ -94,9 +149,7 @@ internal sealed class QueryPlan
     {
         if (RootNode is not Subscribe subscriptionNode)
         {
-            // TODO : exception
-            throw new InvalidOperationException(
-                "A query execution plan can not be executed as a subscription.");
+            throw ThrowHelper.QueryAndMutationMustExecute();
         }
 
         var result = new ResponseStream(
@@ -148,5 +201,23 @@ internal sealed class QueryPlan
         jsonWriter.Flush();
 
         return Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
+    }
+
+    private sealed class ExportPathVisitor : SyntaxWalker<ExportPathVisitorContext>
+    {
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            ExportPathVisitorContext context)
+        {
+            context.Path.Enqueue(node.Name.Value);
+            return base.Enter(node, context);
+        }
+
+        public static ExportPathVisitor Instance { get; } = new();
+    }
+
+    private sealed class ExportPathVisitorContext : ISyntaxVisitorContext
+    {
+        public Queue<string> Path { get; } = new();
     }
 }

@@ -76,7 +76,6 @@ Take note of the following key elements:
 ```
 
 **Step 7:** Click on the 'Run' button. You should see a response with data in the 'Response' area. Congratulations, you have completed a GraphQL query!
-![Banana Cake Pop - Start](./images/getting-started-6.png)
 
 **Step 8:** 
 Now, let's save your document. 

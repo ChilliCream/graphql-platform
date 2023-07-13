@@ -1,5 +1,8 @@
 namespace HotChocolate.Types.Pagination;
 
+/// <summary>
+/// Represents an edge in a connection.
+/// </summary>
 public interface IEdge
 {
     /// <summary>

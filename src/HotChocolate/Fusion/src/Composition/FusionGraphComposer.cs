@@ -34,6 +34,7 @@ public sealed class FusionGraphComposer
             new IEntityEnricher[]
             {
                 new RefResolverEntityEnricher(),
+                new RequireEnricher(),
                 new NodeEntityEnricher()
             },
             new ITypeMergeHandler[]
@@ -64,6 +65,7 @@ public sealed class FusionGraphComposer
                 .Use(() => new EnrichEntityMiddleware(entityEnrichers))
                 .Use<PrepareFusionSchemaMiddleware>()
                 .Use<MergeEntityMiddleware>()
+                .Use<EntityFieldDependencyMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
                 .Use<MergeQueryAndMutationTypeMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()
@@ -119,5 +121,44 @@ public sealed class FusionGraphComposer
 
         // Return the resulting merged schema.
         return context.FusionGraph;
+    }
+
+    /// <summary>
+    /// Composes the subgraph schemas into a single,
+    /// merged schema representing the fusion gateway configuration.
+    /// </summary>
+    /// <param name="configurations">
+    /// The subgraph configurations to compose.
+    /// </param>
+    /// <param name="features">
+    /// The composition feature flags.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the operation.
+    /// </param>
+    /// <returns>The fusion gateway configuration.</returns>
+    public async ValueTask<Schema?> TryComposeAsync(
+        IEnumerable<SubgraphConfiguration> configurations,
+        FusionFeatureFlags features = FusionFeatureFlags.None,
+        CancellationToken cancellationToken = default)
+    {
+        var log = new DefaultCompositionLog(_logFactory?.Invoke());
+
+        // Create a new composition context with the given subgraph configurations,
+        // fusion type prefix, and fusion type self option.
+        var context = new CompositionContext(
+            configurations.ToArray(),
+            log,
+            _fusionTypePrefix,
+            _fusionTypeSelf)
+        {
+            Features = features,
+            Abort = cancellationToken
+        };
+
+        // Run the merge pipeline on the composition context.
+        await _pipeline(context);
+
+        return log.HasErrors ? null : context.FusionGraph;
     }
 }

@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class FusionContextExtensions
 {
-    public static WorkItem RegisterState(
+    public static SelectionSetState RegisterState(
         this FusionExecutionContext context,
         ISelectionSet selectionSet,
         ObjectResult result,
@@ -12,7 +12,7 @@ internal static class FusionContextExtensions
     {
         var exportKeys = context.QueryPlan.GetExportKeys(selectionSet);
 
-        var workItem = new WorkItem(selectionSet, result, exportKeys)
+        var workItem = new SelectionSetState(selectionSet, result, exportKeys)
         {
             SelectionSetData = { [0] = parentData }
         };
@@ -20,5 +20,15 @@ internal static class FusionContextExtensions
         context.State.RegisterState(workItem);
 
         return workItem;
+    }
+
+    public static void TryRegisterState(
+        this FusionExecutionContext context,
+        ISelectionSet selectionSet,
+        ObjectResult result,
+        SelectionData parentData = default)
+    {
+        var exportKeys = context.QueryPlan.GetExportKeys(selectionSet);
+        context.State.TryRegisterState(selectionSet, result, exportKeys, parentData);
     }
 }

@@ -1,12 +1,10 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
-using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -45,10 +43,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         {
             for (var i = 0; i < originalWorkItems.Count; i++)
             {
-                ExtractPartialResult(originalWorkItems[i]);
+                TryInitializeWorkItem(context.QueryPlan, originalWorkItems[i]);
             }
 
-            var workItems = CreateBatchWorkItem(originalWorkItems);
+            var workItems = CreateBatchWorkItem(originalWorkItems, Requires);
             var subgraphName = SubgraphName;
             var firstWorkItem = workItems[0];
 
@@ -76,7 +74,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     return default!;
                 });
 
-            var result = UnwrapResult(response, firstWorkItem.ExportKeys);
+            ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
+            var result = UnwrapResult(response, Requires);
 
             for (var i = 0; i < workItems.Length; i++)
             {
@@ -84,10 +83,9 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 if (result.TryGetValue(workItem.Key, out var workItemData))
                 {
                     ExtractSelectionResults(SelectionSet, subgraphName, workItemData, workItem.SelectionResults);
-                    ExtractVariables(workItemData, firstWorkItem.ExportKeys, workItem.VariableValues);
+                    ExtractVariables(workItemData, context.QueryPlan, SelectionSet, firstWorkItem.ExportKeys, workItem.VariableValues);
                 }
             }
-
         }
     }
 
@@ -157,9 +155,19 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     {
         var data = response.Data;
 
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return new Dictionary<string, JsonElement>();
+        }
+
         if (_path.Count > 0)
         {
             data = LiftData();
+        }
+
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return new Dictionary<string, JsonElement>();
         }
 
         var result = new Dictionary<string, JsonElement>();
@@ -219,17 +227,18 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         }
     }
 
-    private static BatchWorkItem[] CreateBatchWorkItem(IReadOnlyList<WorkItem> workItems)
+    private static BatchWorkItem[] CreateBatchWorkItem(
+        IReadOnlyList<SelectionSetState> workItems,
+        IReadOnlyList<string> requirements)
     {
-        var exportKeys = workItems[0].ExportKeys;
         var batchWorkItems = new BatchWorkItem[workItems.Count];
 
-        if (exportKeys.Count == 1)
+        if (requirements.Count == 1)
         {
             for (var i = 0; i < workItems.Count; i++)
             {
                 var workItem = workItems[i];
-                var key = FormatKeyValue(workItem.VariableValues.First().Value);
+                var key = FormatKeyValue(workItem.VariableValues[requirements[0]]);
                 batchWorkItems[i] = new BatchWorkItem(key, workItem);
             }
         }
@@ -240,9 +249,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 var workItem = workItems[i];
                 var key = string.Empty;
 
-                for (var j = 0; j < exportKeys.Count; j++)
+                for (var j = 0; j < requirements.Count; j++)
                 {
-                    var value = FormatKeyValue(workItem.VariableValues[exportKeys[j]]);
+                    var requirement = requirements[j];
+                    var value = FormatKeyValue(workItem.VariableValues[requirement]);
                     key += value;
                 }
 
@@ -350,14 +360,12 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     {
         public BatchWorkItem(
             string batchKey,
-            WorkItem workItem)
+            SelectionSetState selectionSetState)
         {
             Key = batchKey;
-            VariableValues = workItem.VariableValues;
-            ExportKeys = workItem.ExportKeys;
-            SelectionSet = workItem.SelectionSet;
-            SelectionResults = workItem.SelectionSetData;
-            Result = workItem.SelectionSetResult;
+            VariableValues = selectionSetState.VariableValues;
+            ExportKeys = selectionSetState.ExportKeys;
+            SelectionResults = selectionSetState.SelectionSetData;
         }
 
         public string Key { get; }
@@ -366,10 +374,6 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         public IReadOnlyList<string> ExportKeys { get; }
 
-        public ISelectionSet SelectionSet { get; }
-
         public SelectionData[] SelectionResults { get; }
-
-        public ObjectResult Result { get; }
     }
 }
