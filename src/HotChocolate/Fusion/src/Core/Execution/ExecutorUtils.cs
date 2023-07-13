@@ -63,13 +63,16 @@ internal static class ExecutorUtils
 
                 if (!data.HasValue)
                 {
-                    if (!partialResult && !nullable)
+                    if (!partialResult)
                     {
-                        PropagateNonNullError(selectionSetResult);
-                        break;
-                    }
+                        if (!nullable)
+                        {
+                            PropagateNonNullError(selectionSetResult);
+                            break;
+                        }
 
-                    result.Set(responseName, null, nullable);
+                        result.Set(responseName, null, nullable);
+                    }
                 }
                 else if (namedType.IsType(TypeKind.Scalar))
                 {
