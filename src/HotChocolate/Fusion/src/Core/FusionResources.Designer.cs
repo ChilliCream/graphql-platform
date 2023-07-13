@@ -134,5 +134,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("FileConfigurationSession_MustContainPath", resourceCulture);
             }
         }
+        
+        internal static string ExecutionState_RegisterState_StateImmutable {
+            get {
+                return ResourceManager.GetString("ExecutionState_RegisterState_StateImmutable", resourceCulture);
+            }
+        }
     }
 }

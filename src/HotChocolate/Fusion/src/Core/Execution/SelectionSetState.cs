@@ -4,12 +4,12 @@ using HotChocolate.Language;
 namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
-/// Represents the working state for a single selection set.
-/// This working state can be shared between query plan nodes.
+/// Represents the query plan state for a single selection set.
+/// This working state can be shared between nodes of a query plan.
 /// </summary>
-internal sealed class WorkItem
+internal sealed class SelectionSetState // SelectionSetState
 {
-    public WorkItem(
+    public SelectionSetState(
         ISelectionSet selectionSet,
         ObjectResult selectionSetResult,
         IReadOnlyList<string> exportKeys)

@@ -20,22 +20,39 @@ namespace HotChocolate.ApolloFederation;
 internal sealed class FederationTypeInterceptor : TypeInterceptor
 {
     private static readonly object _empty = new();
+
     private static readonly MethodInfo _matches =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.Matches),
                 BindingFlags.Static | BindingFlags.Public)!;
+
     private static readonly MethodInfo _execute =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.ExecuteAsync),
                 BindingFlags.Static | BindingFlags.Public)!;
+
     private static readonly MethodInfo _invalid =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.Invalid),
                 BindingFlags.Static | BindingFlags.Public)!;
+
     private readonly List<ObjectType> _entityTypes = new();
+    private IDescriptorContext _context = default!;
+    private ITypeInspector _typeInspector = default!;
+
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
+    {
+        _context = context;
+        _typeInspector = context.TypeInspector;
+    }
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
@@ -46,8 +63,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         {
             ApplyMethodLevelReferenceResolvers(
                 objectType,
-                objectTypeDefinition,
-                discoveryContext);
+                objectTypeDefinition);
 
             AddToUnionIfHasTypeLevelKeyDirective(
                 objectType,
@@ -147,7 +163,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             definition is ObjectTypeDefinition objectTypeDefinition)
         {
             var serviceFieldDescriptor = ObjectFieldDescriptor.New(
-                completionContext.DescriptorContext,
+                _context,
                 WellKnownFieldNames.Service);
             serviceFieldDescriptor
                 .Type<NonNullType<ServiceType>>()
@@ -155,41 +171,39 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             objectTypeDefinition.Fields.Add(serviceFieldDescriptor.CreateDefinition());
 
             var entitiesFieldDescriptor = ObjectFieldDescriptor.New(
-                completionContext.DescriptorContext,
+                _context,
                 WellKnownFieldNames.Entities);
             entitiesFieldDescriptor
                 .Type<NonNullType<ListType<EntityType>>>()
                 .Argument(
                     WellKnownArgumentNames.Representations,
                     descriptor => descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>())
-                .Resolve(c => EntitiesResolver.ResolveAsync(
-                    c.Schema,
-                    c.ArgumentValue<IReadOnlyList<Representation>>(
-                        WellKnownArgumentNames.Representations),
-                    c
-                ));
+                .Resolve(
+                    c => EntitiesResolver.ResolveAsync(
+                        c.Schema,
+                        c.ArgumentValue<IReadOnlyList<Representation>>(
+                            WellKnownArgumentNames.Representations),
+                        c
+                    ));
             objectTypeDefinition.Fields.Add(entitiesFieldDescriptor.CreateDefinition());
         }
     }
 
     private void ApplyMethodLevelReferenceResolvers(
         ObjectType objectType,
-        ObjectTypeDefinition objectTypeDefinition,
-        ITypeDiscoveryContext discoveryContext)
+        ObjectTypeDefinition objectTypeDefinition)
     {
         if (objectType.RuntimeType != typeof(object))
         {
-            var descriptorContext = discoveryContext.DescriptorContext;
-            var typeInspector = discoveryContext.TypeInspector;
-            var descriptor = ObjectTypeDescriptor.From(descriptorContext, objectTypeDefinition);
+            var descriptor = ObjectTypeDescriptor.From(_context, objectTypeDefinition);
 
             foreach (var possibleReferenceResolver in
                 objectType.RuntimeType.GetMethods(BindingFlags.Static | BindingFlags.Public))
             {
                 if (possibleReferenceResolver.IsDefined(typeof(ReferenceResolverAttribute)))
                 {
-                    typeInspector.ApplyAttributes(
-                        descriptorContext,
+                    _typeInspector.ApplyAttributes(
+                        _context,
                         descriptor,
                         possibleReferenceResolver);
                 }
@@ -204,7 +218,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectTypeDefinition objectTypeDefinition)
     {
         if (objectTypeDefinition.Directives.Any(
-            d => d.Value is DirectiveNode { Name.Value: WellKnownTypeNames.Key }) ||
+                d => d.Value is DirectiveNode { Name.Value: WellKnownTypeNames.Key }) ||
             objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
         {
             _entityTypes.Add(objectType);

@@ -24,18 +24,19 @@ internal static class ExecutorUtils
 
     public static void ComposeResult(
         FusionExecutionContext context,
-        WorkItem workItem)
+        SelectionSetState selectionSetState)
         => ComposeResult(
             context,
-            (SelectionSet)workItem.SelectionSet,
-            workItem.SelectionSetData,
-            workItem.SelectionSetResult);
+            (SelectionSet)selectionSetState.SelectionSet,
+            selectionSetState.SelectionSetData,
+            selectionSetState.SelectionSetResult);
 
     private static void ComposeResult(
         FusionExecutionContext context,
         SelectionSet selectionSet,
         SelectionData[] selectionSetData,
-        ObjectResult selectionSetResult)
+        ObjectResult selectionSetResult,
+        bool partialResult = false)
     {
         if (selectionSetResult.IsInvalidated)
         {
@@ -62,13 +63,16 @@ internal static class ExecutorUtils
 
                 if (!data.HasValue)
                 {
-                    if (!nullable)
+                    if (!partialResult)
                     {
-                        PropagateNonNullError(selectionSetResult);
-                        break;
-                    }
+                        if (!nullable)
+                        {
+                            PropagateNonNullError(selectionSetResult);
+                            break;
+                        }
 
-                    result.Set(responseName, null, nullable);
+                        result.Set(responseName, null, nullable);
+                    }
                 }
                 else if (namedType.IsType(TypeKind.Scalar))
                 {
@@ -107,38 +111,44 @@ internal static class ExecutorUtils
                 }
                 else if (selectionType.IsCompositeType())
                 {
-                    var value = ComposeObject(
-                        context,
-                        selectionSetResult,
-                        responseIndex,
-                        selection,
-                        data);
-
-                    if (value is null && !nullable)
+                    if (!result.IsInitialized)
                     {
-                        PropagateNonNullError(selectionSetResult);
-                        break;
-                    }
+                        var value = ComposeObject(
+                            context,
+                            selectionSetResult,
+                            responseIndex,
+                            selection,
+                            data);
 
-                    result.Set(responseName, value, nullable);
+                        if (value is null && !nullable)
+                        {
+                            PropagateNonNullError(selectionSetResult);
+                            break;
+                        }
+
+                        result.Set(responseName, value, nullable);
+                    }
                 }
                 else
                 {
-                    var value = ComposeList(
-                        context,
-                        selectionSetResult,
-                        responseIndex,
-                        selection,
-                        data,
-                        selectionType);
-
-                    if (value is null && !nullable)
+                    if (!result.IsInitialized)
                     {
-                        PropagateNonNullError(selectionSetResult);
-                        break;
-                    }
+                        var value = ComposeList(
+                            context,
+                            selectionSetResult,
+                            responseIndex,
+                            selection,
+                            data,
+                            selectionType);
 
-                    result.Set(responseName, value, nullable);
+                        if (value is null && !nullable)
+                        {
+                            PropagateNonNullError(selectionSetResult);
+                            break;
+                        }
+
+                        result.Set(responseName, value, nullable);
+                    }
                 }
             }
             else if ((selection.CustomOptions & _typeNameFlag) == _typeNameFlag)
@@ -306,7 +316,11 @@ internal static class ExecutorUtils
 
         if (context.NeedsMoreData(selectionSet))
         {
-            context.RegisterState(selectionSet, result, selectionData);
+            context.TryRegisterState(selectionSet, result, selectionData);
+
+            var childSelectionResults = new SelectionData[selectionCount];
+            ExtractSelectionResults(selectionData, selectionSet, childSelectionResults);
+            ComposeResult(context, selectionSet, childSelectionResults, result, true);
         }
         else
         {
@@ -432,39 +446,39 @@ internal static class ExecutorUtils
         }
     }
 
-    public static void TryInitializeWorkItem(QueryPlan queryPlan, WorkItem workItem)
+    public static void TryInitializeWorkItem(QueryPlan queryPlan, SelectionSetState selectionSetState)
     {
-        if (workItem.IsInitialized)
+        if (selectionSetState.IsInitialized)
         {
             return;
         }
 
         // capture the partial result available
-        var partialResult = workItem.SelectionSetData[0];
+        var partialResult = selectionSetState.SelectionSetData[0];
 
         // if we have a partial result available lets unwrap it.
         if (partialResult.HasValue)
         {
             // first we need to erase the partial result from the array so that its not
             // combined into the result creation.
-            workItem.SelectionSetData[0] = default;
+            selectionSetState.SelectionSetData[0] = default;
 
             // next we will unwrap the results.
             ExtractSelectionResults(
                 partialResult,
-                (SelectionSet)workItem.SelectionSet,
-                workItem.SelectionSetData);
+                (SelectionSet)selectionSetState.SelectionSet,
+                selectionSetState.SelectionSetData);
 
             // last we will check if there are any exports for this selection-set.
             ExtractVariables(
                 partialResult,
                 queryPlan,
-                workItem.SelectionSet,
-                workItem.ExportKeys,
-                workItem.VariableValues);
+                selectionSetState.SelectionSet,
+                selectionSetState.ExportKeys,
+                selectionSetState.VariableValues);
         }
 
-        workItem.IsInitialized = true;
+        selectionSetState.IsInitialized = true;
     }
 
     public static void ExtractErrors(
