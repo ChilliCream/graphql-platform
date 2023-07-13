@@ -63,13 +63,16 @@ internal static class ExecutorUtils
 
                 if (!data.HasValue)
                 {
-                    if (!partialResult && !nullable)
+                    if (!partialResult)
                     {
-                        PropagateNonNullError(selectionSetResult);
-                        break;
-                    }
+                        if (!nullable)
+                        {
+                            PropagateNonNullError(selectionSetResult);
+                            break;
+                        }
 
-                    result.Set(responseName, null, nullable);
+                        result.Set(responseName, null, nullable);
+                    }
                 }
                 else if (namedType.IsType(TypeKind.Scalar))
                 {
@@ -108,38 +111,44 @@ internal static class ExecutorUtils
                 }
                 else if (selectionType.IsCompositeType())
                 {
-                    var value = ComposeObject(
-                        context,
-                        selectionSetResult,
-                        responseIndex,
-                        selection,
-                        data);
-
-                    if (value is null && !nullable)
+                    if (!result.IsInitialized)
                     {
-                        PropagateNonNullError(selectionSetResult);
-                        break;
-                    }
+                        var value = ComposeObject(
+                            context,
+                            selectionSetResult,
+                            responseIndex,
+                            selection,
+                            data);
 
-                    result.Set(responseName, value, nullable);
+                        if (value is null && !nullable)
+                        {
+                            PropagateNonNullError(selectionSetResult);
+                            break;
+                        }
+
+                        result.Set(responseName, value, nullable);
+                    }
                 }
                 else
                 {
-                    var value = ComposeList(
-                        context,
-                        selectionSetResult,
-                        responseIndex,
-                        selection,
-                        data,
-                        selectionType);
-
-                    if (value is null && !nullable)
+                    if (!result.IsInitialized)
                     {
-                        PropagateNonNullError(selectionSetResult);
-                        break;
-                    }
+                        var value = ComposeList(
+                            context,
+                            selectionSetResult,
+                            responseIndex,
+                            selection,
+                            data,
+                            selectionType);
 
-                    result.Set(responseName, value, nullable);
+                        if (value is null && !nullable)
+                        {
+                            PropagateNonNullError(selectionSetResult);
+                            break;
+                        }
+
+                        result.Set(responseName, value, nullable);
+                    }
                 }
             }
             else if ((selection.CustomOptions & _typeNameFlag) == _typeNameFlag)
