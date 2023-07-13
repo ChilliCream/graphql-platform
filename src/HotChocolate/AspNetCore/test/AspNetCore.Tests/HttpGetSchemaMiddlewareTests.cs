@@ -156,7 +156,8 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
-                    EnableSchemaRequests = false
+                    EnableSchemaRequests = false,
+                    Tool = { Enable = false }
                 }));
         var url = TestServerExtensions.CreateUrl("/graphql?sdl");
         var request = new HttpRequestMessage(HttpMethod.Get, url);
