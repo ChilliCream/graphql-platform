@@ -418,8 +418,10 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static GraphQLEndpointConventionBuilder WithOptions(
         this GraphQLEndpointConventionBuilder builder,
-        GraphQLServerOptions serverOptions) =>
-        builder.WithMetadata(serverOptions).WithMetadata(ToBcpOptions(serverOptions.Tool));
+        GraphQLServerOptions serverOptions) 
+        => builder
+            .WithMetadata(serverOptions)
+            .WithMetadata(serverOptions.Tool.ToBcpOptions());
 
     /// <summary>
     /// Specifies the GraphQL HTTP request options.
