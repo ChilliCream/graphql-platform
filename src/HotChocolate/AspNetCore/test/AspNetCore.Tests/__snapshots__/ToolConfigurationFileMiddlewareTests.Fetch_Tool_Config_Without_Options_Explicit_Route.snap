@@ -1,5 +1,5 @@
 {
-  "Content": "{\"useBrowserUrlAsEndpoint\":true,\"useGet\":false}",
+  "Content": "{\"useBrowserUrlAsEndpoint\":true,\"endpoint\":\"..\",\"useGet\":false}",
   "ContentType": {
     "CharSet": "utf-8",
     "Parameters": [

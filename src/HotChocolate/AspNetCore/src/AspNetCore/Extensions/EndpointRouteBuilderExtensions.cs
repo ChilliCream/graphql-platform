@@ -463,22 +463,7 @@ public static class EndpointRouteBuilderExtensions
         this BananaCakePopEndpointConventionBuilder builder,
         GraphQLToolOptions toolOptions)
     {
-        builder.Add(convention =>
-        {
-            // we remove the previous options because we want to replace them
-            var previousOptions = convention.Metadata.OfType<BananaCakePopOptions>().First();
-            convention.Metadata.Remove(previousOptions);
-
-            var newOptions = toolOptions.ToBcpOptions();
-
-            // we override the GraphQLEndpoint in case it was set through
-            // GraphQLEndpointOptions
-            if (newOptions.GraphQLEndpoint is null)
-            {
-                newOptions.GraphQLEndpoint = previousOptions.GraphQLEndpoint;
-            }
-        });
-
+        builder.Add(c => c.Metadata.Add(toolOptions.ToBcpOptions()));
         return builder;
     }
 
