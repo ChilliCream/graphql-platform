@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
@@ -465,6 +466,10 @@ public static class TagDirectiveExtensions
                 extend.Definition.AddDirective(
                     new Tag(name), 
                     extend.Context.TypeInspector);
+                extend.Definition.Dependencies.Add(
+                    new TypeDependency(
+                        extend.Context.TypeInspector.GetTypeRef(typeof(Tag)),
+                        TypeDependencyFulfilled.Completed));
                 break;
 
             case IEnumValueDescriptor desc:

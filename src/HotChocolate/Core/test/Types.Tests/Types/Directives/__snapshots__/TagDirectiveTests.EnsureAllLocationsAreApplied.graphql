@@ -1,4 +1,4 @@
-schema {
+schema @tag(name: "OnSchema") {
   query: Query
 }
 
@@ -23,5 +23,7 @@ enum FooEnum @tag(name: "OnEnum") {
   FOO @tag(name: "OnEnumValue")
   BAR
 }
+
+directive @foo(arg: String @tag(name: "OnDirectiveArgument")) on QUERY
 
 directive @tag(name: String) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

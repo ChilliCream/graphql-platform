@@ -15,6 +15,8 @@ public class TagDirectiveTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddObjectType<Foo>()
+                .AddType<FooDirective>()
+                .SetSchema(d => d.Tag("OnSchema"))
                 .BuildSchemaAsync();
         
         schema.MatchSnapshot();
@@ -54,5 +56,12 @@ public class TagDirectiveTests
     {
         [Tag("OnInputObjectField")]
         public string Bar { get; set; }
+    }
+
+    [DirectiveType(DirectiveLocation.Query)]
+    public class FooDirective
+    {
+        [Tag("OnDirectiveArgument")]
+        public string Arg { get; set; }
     }
 }
