@@ -1,12 +1,12 @@
 using System.Buffers;
 using System.Net.WebSockets;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Transport.Abstractions;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using static System.Net.WebSockets.WebSocketMessageType;
-using static HotChocolate.Transport.Sockets.SocketDefaults;
 using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -104,7 +104,7 @@ internal sealed class WebSocketConnection : ISocketConnection
                     break;
                 }
 
-                var memory = writer.GetMemory(BufferSize);
+                var memory = writer.GetMemory(TransportDefaults.BufferSize);
                 socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
                 writer.Advance(socketResult.Count);
                 size += socketResult.Count;

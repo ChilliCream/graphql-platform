@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Transport.Abstractions;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
@@ -92,7 +93,7 @@ public static class WebSocketExtensions
         bool largeMessage = false,
         CancellationToken cancellationToken = default)
     {
-        var buffer = new byte[SocketDefaults.BufferSize];
+        var buffer = new byte[TransportDefaults.BufferSize];
 
         await using var stream = message.CreateMessageStream(largeMessage);
         int read;
@@ -108,7 +109,7 @@ public static class WebSocketExtensions
                 WebSocketMessageType.Text,
                 isEndOfMessage,
                 cancellationToken);
-        } while (read == SocketDefaults.BufferSize);
+        } while (read == TransportDefaults.BufferSize);
     }
 
     private static Stream CreateMessageStream(this OperationMessage message, bool largeMessage)
@@ -152,7 +153,7 @@ public static class WebSocketExtensions
     {
         await using var stream = new MemoryStream();
         WebSocketReceiveResult result;
-        var buffer = new byte[SocketDefaults.BufferSize];
+        var buffer = new byte[TransportDefaults.BufferSize];
         bool skipped;
 
         do

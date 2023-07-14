@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
+    <ProjectReference Include="..\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
     <ProjectReference Include="..\Transport.Sockets\HotChocolate.Transport.Sockets.csproj" />
   </ItemGroup>
 

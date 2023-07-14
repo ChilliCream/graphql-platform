@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
   </ItemGroup>
 
 

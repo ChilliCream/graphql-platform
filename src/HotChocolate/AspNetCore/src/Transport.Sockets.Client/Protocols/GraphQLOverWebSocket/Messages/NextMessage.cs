@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 using HotChocolate.Transport.Abstractions;
-using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
+using HotChocolate.Transport.Abstractions.Helpers;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 
@@ -22,14 +22,14 @@ internal sealed class NextMessage : IDataMessage
     public static NextMessage From(JsonDocument document)
     {
         var root = document.RootElement;
-        var id = root.GetProperty(IdProp).GetString()!;
+        var id = root.GetProperty(Utf8MessageProperties.IdProp).GetString()!;
 
-        var payload = root.GetProperty(PayloadProp);
+        var payload = root.GetProperty(Utf8MessageProperties.PayloadProp);
         var result = new OperationResult(
             document,
-            TryGetProperty(payload, DataProp),
-            TryGetProperty(payload, ErrorsProp),
-            TryGetProperty(payload, ExtensionsProp));
+            TryGetProperty(payload, Utf8MessageProperties.DataProp),
+            TryGetProperty(payload, Utf8MessageProperties.ErrorsProp),
+            TryGetProperty(payload, Utf8MessageProperties.ExtensionsProp));
 
         return new NextMessage(id, result);
     }

@@ -16,6 +16,8 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Transport.Http" />
+    <InternalsVisibleTo Include="HotChocolate.Transport.Sockets.Client" />
   </ItemGroup>
 
   <ItemGroup>

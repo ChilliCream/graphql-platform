@@ -1,8 +1,8 @@
 using System;
 
-namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Abstractions.Helpers;
 
-internal static class Utf8MessageProperties
+public static class Utf8MessageProperties
 {
 
     // This uses C# compiler's ability to refer to static data directly.

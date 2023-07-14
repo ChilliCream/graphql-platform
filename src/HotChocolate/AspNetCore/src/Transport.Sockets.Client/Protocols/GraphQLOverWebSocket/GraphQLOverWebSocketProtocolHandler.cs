@@ -5,8 +5,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Transport.Abstractions;
+using HotChocolate.Transport.Abstractions.Helpers;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
-using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
@@ -65,7 +65,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             document = JsonDocument.Parse(message);
             var root = document.RootElement;
 
-            if (root.TryGetProperty(TypeProp, out var typeProp))
+            if (root.TryGetProperty(Utf8MessageProperties.TypeProp, out var typeProp))
             {
                 if (typeProp.ValueEquals(Utf8Messages.Ping))
                 {

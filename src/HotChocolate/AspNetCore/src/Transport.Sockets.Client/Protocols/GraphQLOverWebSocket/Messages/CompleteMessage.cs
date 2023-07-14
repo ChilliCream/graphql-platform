@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Transport.Abstractions.Helpers;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 

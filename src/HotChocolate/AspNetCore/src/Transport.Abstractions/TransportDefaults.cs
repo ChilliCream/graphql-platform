@@ -1,9 +1,9 @@
-namespace HotChocolate.Transport.Sockets;
+namespace HotChocolate.Transport.Abstractions;
 
 /// <summary>
 /// Socket default setting values.
 /// </summary>
-public static class SocketDefaults
+public static class TransportDefaults
 {
     /// <summary>
     /// The default buffer size.

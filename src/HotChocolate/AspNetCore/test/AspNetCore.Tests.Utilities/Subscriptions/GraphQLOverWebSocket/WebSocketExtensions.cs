@@ -2,6 +2,7 @@ using System.Net.WebSockets;
 using System.Text;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Transport.Abstractions;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
@@ -123,7 +124,7 @@ public static class WebSocketExtensions
     {
         await using var stream = new MemoryStream();
         WebSocketReceiveResult result;
-        var buffer = new byte[SocketDefaults.BufferSize];
+        var buffer = new byte[TransportDefaults.BufferSize];
 
         do
         {
