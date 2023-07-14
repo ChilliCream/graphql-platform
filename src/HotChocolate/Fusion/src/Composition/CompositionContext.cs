@@ -21,16 +21,21 @@ internal sealed class CompositionContext
     /// <param name="fusionTypeSelf">
     /// Defines if the fusion types should be prefixed with the subgraph name.
     /// </param>
+    /// <param name="features">
+    /// The composition features.
+    /// </param>
     /// <param name="log">
     /// The composition log.
     /// </param>
     public CompositionContext(
         IReadOnlyList<SubgraphConfiguration> configurations,
+        FusionFeatureCollection features,
         ICompositionLog log,
         string? fusionTypePrefix = null,
         bool fusionTypeSelf = false)
     {
         Configurations = configurations;
+        Features = features;
         FusionGraph = new();
         FusionTypes = new FusionTypes(FusionGraph, fusionTypePrefix, fusionTypeSelf);
         Log = log;
@@ -40,6 +45,11 @@ internal sealed class CompositionContext
     /// Gets the subgraph configurations.
     /// </summary>
     public IReadOnlyList<SubgraphConfiguration> Configurations { get; }
+    
+    /// <summary>
+    /// Gets the composition features.
+    /// </summary>
+    public FusionFeatureCollection Features { get; }
 
     /// <summary>
     /// Gets the subgraph schemas.
@@ -60,11 +70,6 @@ internal sealed class CompositionContext
     /// Gets the fusion types.
     /// </summary>
     public FusionTypes FusionTypes { get; }
-
-    /// <summary>
-    /// Gets or sets the composition feature flags.
-    /// </summary>
-    public FusionFeatureFlags Features { get; set; }
 
     /// <summary>
     /// Gets or sets a cancellation token that can be used to abort composition.
@@ -117,4 +122,16 @@ internal sealed class CompositionContext
         [NotNullWhen(true)] out T? member)
         where T : ITypeSystemMember
         => GetSubgraphSchema(subgraphName).TryGetMember(coordinate, out member);
+    
+    public IEnumerable<T> GetSubgraphMembers<T>(SchemaCoordinate coordinate)
+        where T : ITypeSystemMember
+    {
+        foreach (var subgraph in Subgraphs)
+        {
+            if (subgraph.TryGetMember(coordinate, out var result))
+            {
+                yield return (T)result;
+            }
+        }
+    }
 }

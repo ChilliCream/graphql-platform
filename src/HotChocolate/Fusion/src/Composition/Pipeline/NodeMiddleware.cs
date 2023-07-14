@@ -11,7 +11,7 @@ internal sealed class NodeMiddleware : IMergeMiddleware
         var fusionTypes = context.FusionTypes;
 
         if (fusionGraph.QueryType is not null &&
-            (context.Features & FusionFeatureFlags.NodeField) == FusionFeatureFlags.NodeField &&
+            context.Features.IsNodeFieldSupported() &&
             fusionGraph.QueryType.Fields.TryGetField("node", out var nodeField))
         {
             fusionGraph.QueryType.Fields.TryGetField("nodes", out var nodesField);
