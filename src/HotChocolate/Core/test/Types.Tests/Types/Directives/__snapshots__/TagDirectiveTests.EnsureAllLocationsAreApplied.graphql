@@ -1,0 +1,27 @@
+schema {
+  query: Query
+}
+
+interface IFoo @tag(name: "OnInterface") {
+  bar(baz: String @tag(name: "OnInterfaceFieldArg")): String @tag(name: "OnInterfaceField")
+}
+
+type Foo implements IFoo {
+  bar(baz: String): String
+}
+
+type Query @tag(name: "OnObjectType") {
+  foo(a: String @tag(name: "OnObjectFieldArg")): IFoo @tag(name: "OnObjectField")
+  fooEnum(input: FooInput): FooEnum!
+}
+
+input FooInput @tag(name: "OnInputObjectType") {
+  bar: String @tag(name: "OnInputObjectField")
+}
+
+enum FooEnum @tag(name: "OnEnum") {
+  FOO @tag(name: "OnEnumValue")
+  BAR
+}
+
+directive @tag(name: String) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
