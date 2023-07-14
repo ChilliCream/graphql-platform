@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Composition.Pipeline;
 using HotChocolate.Skimmed;
 
@@ -70,6 +71,7 @@ public sealed class FusionGraphComposer
                 .Use<MergeQueryAndMutationTypeMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()
                 .Use<NodeMiddleware>()
+                .Use<ApplyTagDirectiveMiddleware>()
                 .Use<RemoveFusionTypesMiddleware>()
                 .Build();
         _logFactory = logFactory;
@@ -93,7 +95,7 @@ public sealed class FusionGraphComposer
     /// <returns>The fusion gateway configuration.</returns>
     public async ValueTask<Schema> ComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
-        FusionFeatureFlags features = FusionFeatureFlags.None,
+        FusionFeatureCollection? features = null,
         CancellationToken cancellationToken = default)
     {
         var log = new DefaultCompositionLog(_logFactory?.Invoke());
@@ -102,11 +104,11 @@ public sealed class FusionGraphComposer
         // fusion type prefix, and fusion type self option.
         var context = new CompositionContext(
             configurations.ToArray(),
+            features ?? FusionFeatureCollection.Empty,
             log,
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Features = features,
             Abort = cancellationToken
         };
 
@@ -139,7 +141,7 @@ public sealed class FusionGraphComposer
     /// <returns>The fusion gateway configuration.</returns>
     public async ValueTask<Schema?> TryComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
-        FusionFeatureFlags features = FusionFeatureFlags.None,
+        FusionFeatureCollection? features = null,
         CancellationToken cancellationToken = default)
     {
         var log = new DefaultCompositionLog(_logFactory?.Invoke());
@@ -148,11 +150,11 @@ public sealed class FusionGraphComposer
         // fusion type prefix, and fusion type self option.
         var context = new CompositionContext(
             configurations.ToArray(),
+            features ?? FusionFeatureCollection.Empty,
             log,
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Features = features,
             Abort = cancellationToken
         };
 

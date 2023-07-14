@@ -1,4 +1,6 @@
 using System.CommandLine;
+using System.CommandLine.Binding;
+using System.CommandLine.Invocation;
 using HotChocolate.Fusion.CommandLine.Helpers;
 using HotChocolate.Fusion.CommandLine.Options;
 using HotChocolate.Fusion.Composition;
@@ -21,23 +23,10 @@ internal sealed class ComposeCommand : Command
         subgraphPackageFile.AddAlias("--subgraph");
         subgraphPackageFile.AddAlias("-s");
 
-        var enableNodes = new Option<bool>("--enable-nodes");
-        enableNodes.Arity = ArgumentArity.Zero;
-
-        var fusionPrefix = new Option<string?>("--fusion-prefix");
-        fusionPrefix.AddAlias("--prefix");
-
-        var fusionPrefixSelf = new Option<bool>("--fusion-prefix-self");
-        fusionPrefixSelf.AddAlias("--prefix-self");
-        fusionPrefixSelf.Arity = ArgumentArity.Zero;
-
         var workingDirectory = new WorkingDirectoryOption();
 
         AddOption(fusionPackageFile);
         AddOption(subgraphPackageFile);
-        AddOption(enableNodes);
-        AddOption(fusionPrefix);
-        AddOption(fusionPrefixSelf);
         AddOption(workingDirectory);
 
         this.SetHandler(
@@ -45,9 +34,6 @@ internal sealed class ComposeCommand : Command
             Bind.FromServiceProvider<IConsole>(),
             fusionPackageFile,
             subgraphPackageFile,
-            enableNodes,
-            fusionPrefix,
-            fusionPrefixSelf,
             workingDirectory,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -56,9 +42,6 @@ internal sealed class ComposeCommand : Command
         IConsole console,
         FileInfo packageFile,
         List<FileInfo>? subgraphPackageFiles,
-        bool enableNodes,
-        string? prefix,
-        bool prefixSelf,
         DirectoryInfo workingDirectory,
         CancellationToken cancellationToken)
     {
@@ -126,14 +109,7 @@ internal sealed class ComposeCommand : Command
                 cancellationToken);
             configs[config.Name] = config;
         }
-
-        var flags = FusionFeatureFlags.None;
-
-        if (enableNodes)
-        {
-            flags |= FusionFeatureFlags.NodeField;
-        }
-
+        
         var composer = new FusionGraphComposer(prefix, prefixSelf, () => new ConsoleLog(console));
         var fusionGraph = await composer.TryComposeAsync(configs.Values, flags, cancellationToken);
 

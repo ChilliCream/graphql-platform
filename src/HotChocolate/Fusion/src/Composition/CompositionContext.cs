@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 
@@ -85,6 +86,11 @@ internal sealed class CompositionContext
     /// Gets a set that can be used to calculate subgraph support of a component.
     /// </summary>
     public HashSet<string> SupportedBy { get; } = new(StringComparer.OrdinalIgnoreCase);
+    
+    /// <summary>
+    /// Gets a map that can be used to store custom context data.
+    /// </summary>
+    public Dictionary<string, object?> ContextData { get; } = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Gets the subgraph schema by its name.

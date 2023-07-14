@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
@@ -10,7 +11,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
         var skipOnQuery = new HashSet<string>(StringComparer.Ordinal);
         var skipOnMutation = new HashSet<string>(StringComparer.Ordinal);
 
-        if ((context.Features & FusionFeatureFlags.NodeField) != FusionFeatureFlags.NodeField)
+        if (!context.Features.IsNodeFieldSupported())
         {
             skipOnQuery.Add("node");
             skipOnQuery.Add("nodes");
@@ -99,7 +100,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
     }
 }
 
-static file class MergeQueryTypeMiddlewareExtensions
+file static class MergeQueryTypeMiddlewareExtensions
 {
     public static void ApplyResolvers(
         this CompositionContext context,
