@@ -8,7 +8,7 @@ namespace HotChocolate.Types;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
 public sealed class DirectiveTypeAttribute
     : DirectiveTypeDescriptorAttribute
-        , ITypeAttribute
+    , ITypeAttribute
 {
     public DirectiveTypeAttribute(DirectiveLocation location)
     {
