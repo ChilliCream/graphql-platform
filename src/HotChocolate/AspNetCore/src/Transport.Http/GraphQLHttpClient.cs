@@ -40,7 +40,8 @@ public class GraphQLHttpClient : IGraphQLHttpClient
     {
         var requestMessage = new HttpRequestMessage
         {
-            Method = HttpMethod.Post
+            Method = HttpMethod.Post,
+            RequestUri = _httpClient.BaseAddress
         };
         requestMessage
             .AddDefaultAcceptHeaders()
