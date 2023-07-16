@@ -112,14 +112,12 @@ public class IsolatedProcessEndToEndTests
         var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
 
         // Build an HttpRequestData that is valid for the Isolated Process to execute with...
-        var httpRequestData =
-            TestHttpRequestDataHelper.NewBcpHttpRequestData(host.Services, "index.html");
+        var httpRequestData = TestHttpRequestDataHelper.NewBcpHttpRequestData(host.Services, "index.html");
 
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute
         // via HttpRequestData...
-        var httpResponseData =
-            await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
+        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
 
         // Read, Parse & Validate the response...
         var resultContent = await ReadResponseAsStringAsync(httpResponseData).ConfigureAwait(false);

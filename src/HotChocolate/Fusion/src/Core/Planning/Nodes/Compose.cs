@@ -24,7 +24,7 @@ internal sealed class Compose : QueryPlanNode
             throw new ArgumentNullException(nameof(selectionSets));
         }
 
-        _selectionSets = selectionSets.Distinct().ToArray();
+        _selectionSets = selectionSets.Distinct().OrderBy(t => t.Id).ToArray();
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Compose;
