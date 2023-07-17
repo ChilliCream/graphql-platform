@@ -2,6 +2,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Composition;
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
@@ -386,7 +387,7 @@ public class DemoIntegrationTests
                         demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
                     },
-                    FusionFeatureFlags.NodeField);
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -436,7 +437,7 @@ public class DemoIntegrationTests
                         demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
                     },
-                    FusionFeatureFlags.ReEncodeAllIds);
+                    new FusionFeatureCollection(FusionFeatures.ReEncodeIds));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -486,7 +487,7 @@ public class DemoIntegrationTests
                         demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
                     },
-                    FusionFeatureFlags.NodeField);
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -744,7 +745,7 @@ public class DemoIntegrationTests
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -797,7 +798,7 @@ public class DemoIntegrationTests
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -850,7 +851,7 @@ public class DemoIntegrationTests
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -901,7 +902,7 @@ public class DemoIntegrationTests
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -953,7 +954,7 @@ public class DemoIntegrationTests
             await new FusionGraphComposer(logFactory: _logFactory)
                 .ComposeAsync(
                     new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl), },
-                    FusionFeatureFlags.NodeField);
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var config = new HotReloadConfiguration(
             new GatewayConfiguration(
@@ -999,7 +1000,7 @@ public class DemoIntegrationTests
                         demoProject.Reviews2.ToConfiguration(AccountsExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                     },
-                    FusionFeatureFlags.NodeField);
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
         config.SetConfiguration(
             new GatewayConfiguration(
                 SchemaFormatter.FormatAsDocument(fusionGraph)));
@@ -1074,7 +1075,7 @@ public class DemoIntegrationTests
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -1127,7 +1128,7 @@ public class DemoIntegrationTests
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -1182,7 +1183,7 @@ public class DemoIntegrationTests
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -1240,7 +1241,7 @@ public class DemoIntegrationTests
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -1301,7 +1302,7 @@ public class DemoIntegrationTests
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -1361,7 +1362,7 @@ public class DemoIntegrationTests
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)

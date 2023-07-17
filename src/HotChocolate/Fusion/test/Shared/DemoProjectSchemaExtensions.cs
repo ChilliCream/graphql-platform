@@ -9,6 +9,19 @@ public static class DemoProjectSchemaExtensions
           usersById(ids: [ID!]! @is(field: "id")): [User!]!
         }
         """;
+    
+    public const string AccountsExtensionWithTagSdl =
+        """
+        extend type Query {
+          userById(id: ID! @is(field: "id")): User!
+          usersById(ids: [ID!]! @is(field: "id")): [User!]!
+          someTypeById(id: ID! @is(field: "id")): SomeType!
+        }
+
+        type SomeType @tag(name: "internal") {
+          id: ID!
+        }
+        """;
 
     public const string ReviewsExtensionSdl =
         """

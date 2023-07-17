@@ -189,9 +189,16 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
         }
 
-        if (!_package.RelationshipExists(FusionId))
+        if (!_package.RelationshipExists(FusionSettingsId))
         {
-            throw new FusionGraphPackageException(FusionGraphPackage_NoFusionGraphDoc);
+            return Task.FromResult(
+                JsonDocument.Parse(
+                    """
+                    { 
+                      "fusionTypePrefix" : null,
+                      "fusionTypeSelf": true
+                    }
+                    """));
         }
 
         var relationship = _package.GetRelationship(FusionSettingsId);
@@ -215,7 +222,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 
         if (_package.RelationshipExists(FusionId))
         {
-            var relationship = _package.GetRelationship(FusionId);
+            var relationship = _package.GetRelationship(FusionSettingsId);
             _package.DeletePart(relationship.TargetUri);
             _package.DeleteRelationship(relationship.Id);
         }

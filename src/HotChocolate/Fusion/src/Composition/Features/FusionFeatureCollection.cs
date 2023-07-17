@@ -6,6 +6,19 @@ public sealed class FusionFeatureCollection : IReadOnlyList<IFusionFeature>
 {
     private readonly Dictionary<Type, IFusionFeature> _features = new();
 
+    public FusionFeatureCollection(params IFusionFeature[] features)
+    {
+        if (features == null)
+        {
+            throw new ArgumentNullException(nameof(features));
+        }
+
+        foreach (var feature in features)
+        {
+            _features[feature.GetType()] = feature;
+        }
+    }
+
     public FusionFeatureCollection(IEnumerable<IFusionFeature> features)
     {
         if (features == null)

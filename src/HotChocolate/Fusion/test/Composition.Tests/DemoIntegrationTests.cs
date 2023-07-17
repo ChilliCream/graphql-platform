@@ -1,4 +1,5 @@
 using CookieCrumble;
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
@@ -71,7 +72,7 @@ public sealed class DemoIntegrationTests
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
@@ -93,7 +94,7 @@ public sealed class DemoIntegrationTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
