@@ -19,5 +19,3 @@ internal sealed class RootCommand : Command
         AddCommand(new SubgraphCommand());
     }
 }
-
-// fusion compose --package --subgraph --subgraph
