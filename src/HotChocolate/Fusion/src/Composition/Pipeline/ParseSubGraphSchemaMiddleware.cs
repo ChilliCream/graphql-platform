@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Composition.Features;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
 using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
@@ -8,11 +10,12 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
+        var excludedTags = context.Features.GetExcludedTags();
+
         foreach (var config in context.Configurations)
         {
             var schema = SchemaParser.Parse(config.Schema);
             schema.Name = config.Name;
-            context.Subgraphs.Add(schema);
 
             foreach (var sourceText in config.Extensions)
             {
@@ -21,9 +24,33 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
                 MergeTypes(context, schema, extension);
                 MergeDirectives(extension, schema, schema);
             }
+
+            if (IsIncluded(schema, excludedTags))
+            {
+                context.Subgraphs.Add(schema);
+            }
         }
 
         await next(context).ConfigureAwait(false);
+    }
+
+    private static bool IsIncluded(Schema schema, IReadOnlySet<string> excludedTags)
+    {
+        if(schema.Directives.Count == 0)
+        {
+            return true;
+        }
+        
+        foreach (var directive in schema.Directives[WellKnownDirectives.Tag])
+        {
+            if (directive.Arguments[0] is { Name: WellKnownDirectives.Name, Value: StringValueNode name } &&
+                excludedTags.Contains(name.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static void CreateMissingTypes(

@@ -7,17 +7,17 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public sealed class DemoIntegrationTests
+public class TagTests
 {
     private readonly Func<ICompositionLog> _logFactory;
 
-    public DemoIntegrationTests(ITestOutputHelper output)
+    public TagTests(ITestOutputHelper output)
     {
         _logFactory = () => new TestCompositionLog(output);
     }
-
+    
     [Fact]
-    public async Task Accounts_And_Reviews()
+    public async Task Do_Not_Expose_Tags_On_Public_Schema()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -27,52 +27,10 @@ public sealed class DemoIntegrationTests
         var fusionConfig = await composer.ComposeAsync(
             new[]
             {
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionWithTagSdl),
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-            });
-
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
-    }
-
-    [Fact]
-    public async Task Accounts_And_Reviews_Products()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        var composer = new FusionGraphComposer(logFactory: _logFactory);
-
-        var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-            });
-
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
-    }
-
-    [Fact]
-    public async Task Accounts_And_Reviews_Products_With_Nodes()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        var composer = new FusionGraphComposer(logFactory: _logFactory);
-
-        var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
-            new FusionFeatureCollection(FusionFeatures.NodeField));
+            FusionFeatureCollection.Empty);
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
@@ -80,7 +38,7 @@ public sealed class DemoIntegrationTests
     }
 
     [Fact]
-    public async Task Accounts_And_Reviews2_Products_With_Nodes()
+    public async Task Expose_Tags_On_Public_Schema()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -90,19 +48,18 @@ public sealed class DemoIntegrationTests
         var fusionConfig = await composer.ComposeAsync(
             new[]
             {
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionWithTagSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
             },
-            new FusionFeatureCollection(FusionFeatures.NodeField));
+            new FusionFeatureCollection(FusionFeatures.TagDirective(makeTagsPublic: true)));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
-
+    
     [Fact]
-    public async Task Accounts_And_Reviews_Products_AutoCompose_With_Node()
+    public async Task Exclude_Subgraphs_With_Review_Tag()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -112,10 +69,35 @@ public sealed class DemoIntegrationTests
         var fusionConfig = await composer.ComposeAsync(
             new[]
             {
-                demoProject.Accounts.ToConfiguration(),
-                demoProject.Reviews.ToConfiguration(),
-                demoProject.Products.ToConfiguration(),
-            });
+                demoProject.Accounts.ToConfiguration(AccountsExtensionWithTagSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionWithTagSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.TagDirective(
+                makeTagsPublic: true, 
+                exclude: new[] {"review"})));
+
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
+    
+    [Fact]
+    public async Task Exclude_Type_System_Members_With_Internal_Tag()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionWithTagSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionWithTagSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.TagDirective(
+                makeTagsPublic: true, 
+                exclude: new[] {"internal"})));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)

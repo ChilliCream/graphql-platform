@@ -3,6 +3,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Composition;
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
@@ -543,7 +544,7 @@ public class RequestPlannerTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -577,7 +578,7 @@ public class RequestPlannerTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -614,7 +615,7 @@ public class RequestPlannerTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -692,7 +693,7 @@ public class RequestPlannerTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -737,7 +738,7 @@ public class RequestPlannerTests
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -827,7 +828,7 @@ public class RequestPlannerTests
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -868,7 +869,7 @@ public class RequestPlannerTests
             {
                 demoProject.Appointment.ToConfiguration(),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -904,7 +905,7 @@ public class RequestPlannerTests
                 demoProject.Appointment.ToConfiguration(),
                 demoProject.Patient1.ToConfiguration(),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -945,7 +946,7 @@ public class RequestPlannerTests
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(

@@ -26,7 +26,15 @@ public sealed class DirectiveTypeAttribute
     /// </summary>
     public string? Name { get; set; }
 
+    /// <summary>
+    /// Gets the GraphQL directive location.
+    /// </summary>
     public DirectiveLocation Location { get; }
+
+    /// <summary>
+    /// Defines if the directive can be declared multiple times at a single location.
+    /// </summary>
+    public bool IsRepeatable { get; set; }
 
     public bool Inherited { get; set; }
 
@@ -45,6 +53,12 @@ public sealed class DirectiveTypeAttribute
         }
 
         descriptor.Location(Location);
+
+        if (IsRepeatable)
+        {
+            descriptor.Repeatable();
+        }
+
         descriptor.Extend().Definition.Arguments.BindingBehavior = BindingBehavior.Implicit;
     }
 }

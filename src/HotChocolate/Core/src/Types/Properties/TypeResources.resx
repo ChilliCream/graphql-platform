@@ -1092,4 +1092,10 @@ Type: `{0}`</value>
   <data name="ThrowHelper_OutputTypeExpected_Message" xml:space="preserve">
     <value>The specified type `{0}` is expected to be an output type.</value>
   </data>
+  <data name="TagDirective_Name_NotValid" xml:space="preserve">
+    <value>The tag name must follow the GraphQL type name rules.</value>
+  </data>
+  <data name="TagDirective_Descriptor_NotSupported" xml:space="preserve">
+    <value>Tag is not supported on the specified descriptor.</value>
+  </data>
 </root>
