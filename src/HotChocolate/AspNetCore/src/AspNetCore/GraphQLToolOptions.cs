@@ -7,6 +7,9 @@ namespace HotChocolate.AspNetCore;
 /// </summary>
 public sealed class GraphQLToolOptions
 {
+    /// <inheritdoc cref="GraphQLToolServeMode"/>
+    public GraphQLToolServeMode ServeMode { get; set; } = GraphQLToolServeMode.Latest;
+
     /// <summary>
     /// Gets or sets the website title.
     /// </summary>

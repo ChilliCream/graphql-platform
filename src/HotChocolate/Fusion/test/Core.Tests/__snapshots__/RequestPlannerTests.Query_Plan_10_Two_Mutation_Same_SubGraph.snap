@@ -77,8 +77,8 @@ QueryPlan
       {
         "type": "Compose",
         "selectionSetIds": [
-          6,
-          3
+          3,
+          6
         ]
       }
     ]

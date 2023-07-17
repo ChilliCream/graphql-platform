@@ -228,7 +228,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     }
 
     private static BatchWorkItem[] CreateBatchWorkItem(
-        IReadOnlyList<WorkItem> workItems,
+        IReadOnlyList<SelectionSetState> workItems,
         IReadOnlyList<string> requirements)
     {
         var batchWorkItems = new BatchWorkItem[workItems.Count];
@@ -360,14 +360,12 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     {
         public BatchWorkItem(
             string batchKey,
-            WorkItem workItem)
+            SelectionSetState selectionSetState)
         {
             Key = batchKey;
-            VariableValues = workItem.VariableValues;
-            ExportKeys = workItem.ExportKeys;
-            SelectionSet = workItem.SelectionSet;
-            SelectionResults = workItem.SelectionSetData;
-            Result = workItem.SelectionSetResult;
+            VariableValues = selectionSetState.VariableValues;
+            ExportKeys = selectionSetState.ExportKeys;
+            SelectionResults = selectionSetState.SelectionSetData;
         }
 
         public string Key { get; }
@@ -376,10 +374,6 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         public IReadOnlyList<string> ExportKeys { get; }
 
-        public ISelectionSet SelectionSet { get; }
-
         public SelectionData[] SelectionResults { get; }
-
-        public ObjectResult Result { get; }
     }
 }

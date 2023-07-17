@@ -12,9 +12,7 @@ namespace HotChocolate.AspNetCore;
 public class HttpGetMiddlewareTests : ServerTestBase
 {
     public HttpGetMiddlewareTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
+        : base(serverFactory) { }
 
     [Fact]
     public async Task Simple_IsAlive_Test()
@@ -82,15 +80,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         hero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -104,15 +103,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         HERO: hero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -126,15 +126,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object?> { { "d", 1.539 } }
-            },
-            "/arguments");
+                    Variables = new Dictionary<string, object?> { { "d", 1.539 } }
+                },
+                "/arguments");
 
         // assert
         result.MatchSnapshot();
@@ -148,15 +149,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
-            },
-            "/arguments");
+                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
+                },
+                "/arguments");
 
         // assert
         new
@@ -174,15 +176,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
-            },
-            "/arguments");
+                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
+                },
+                "/arguments");
 
         // assert
         new
@@ -200,15 +203,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
-            },
-            "/arguments");
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
+                },
+                "/arguments");
 
         // assert
         new
@@ -226,15 +230,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
-            },
-            "/arguments");
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
+                },
+                "/arguments");
 
         // assert
         new
@@ -252,19 +257,20 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     query ($episode: Episode!) {
                         hero(episode: $episode) {
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
+                    Variables = new Dictionary<string, object?>
+                    {
                         { "episode", "NEW_HOPE" }
-                }
-            });
+                    }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -278,19 +284,20 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     query h($id: String!) {
                         human(id: $id) {
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
+                    Variables = new Dictionary<string, object?>
+                    {
                         { "id", "1000" }
-                }
-            });
+                    }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -309,9 +316,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     mutation CreateReviewForEpisode(
                         $ep: Episode!
                         $review: ReviewInput!) {
@@ -320,8 +328,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
+                    Variables = new Dictionary<string, object?>
+                    {
                         { "ep", "EMPIRE" },
                         {
                             "review",
@@ -331,8 +339,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 { "commentary", "This is a great movie!" },
                             }
                         }
-                }
-            });
+                    }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -351,9 +359,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     mutation CreateReviewForEpisode(
                         $ep: Episode!
                         $review: ReviewInput!) {
@@ -362,18 +371,18 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
+                    Variables = new Dictionary<string, object?>
                     {
-                        "review",
-                        new Dictionary<string, object?>
                         {
-                            { "stars", 5 },
-                            { "commentary", "This is a great movie!" },
+                            "review",
+                            new Dictionary<string, object?>
+                            {
+                                { "stars", 5 },
+                                { "commentary", "This is a great movie!" },
+                            }
                         }
                     }
-                }
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -392,9 +401,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     mutation CreateReviewForEpisode(
                         $ep: Episode!
                         $stars: Int!
@@ -407,13 +417,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
+                    Variables = new Dictionary<string, object?>
+                    {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
                         { "commentary", "This is a great movie!" }
-                }
-            });
+                    }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -427,9 +437,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     mutation CreateReviewForEpisode(
                         $ep: Episode!
                         $stars: Int!
@@ -443,13 +454,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
+                    Variables = new Dictionary<string, object?>
+                    {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
                         { "commentary", "This is a great movie!" }
-                }
-            });
+                    }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -465,9 +476,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     query a {
                         a: hero {
                             name
@@ -479,8 +491,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                OperationName = operationName
-            });
+                    OperationName = operationName
+                });
 
         // assert
         result.MatchSnapshot(operationName);
@@ -494,16 +506,17 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         hero(episode: $episode) {
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
-            });
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -517,15 +530,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         ähero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -539,9 +553,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                         mutation CreateReviewForEpisode(
                             $ep: Episode!
                             $review: ReviewInput!) {
@@ -550,19 +565,19 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 commentary
                             }
                         }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "ep", "EMPIRE" },
+                    Variables = new Dictionary<string, object?>
                     {
-                        "review",
-                        new Dictionary<string, object?>
+                        { "ep", "EMPIRE" },
                         {
-                            { "stars", 5 },
-                            { "commentary", "This is a great movie!" },
+                            "review",
+                            new Dictionary<string, object?>
+                            {
+                                { "stars", 5 },
+                                { "commentary", "This is a great movie!" },
+                            }
                         }
                     }
-                }
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -581,9 +596,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                         mutation CreateReviewForEpisode(
                             $ep: Episode!
                             $review: ReviewInput!) {
@@ -592,19 +608,19 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 commentary
                             }
                         }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "ep", "EMPIRE" },
+                    Variables = new Dictionary<string, object?>
                     {
-                        "review",
-                        new Dictionary<string, object?>
+                        { "ep", "EMPIRE" },
                         {
-                            { "stars", 5 },
-                            { "commentary", "This is a great movie!" },
+                            "review",
+                            new Dictionary<string, object?>
+                            {
+                                { "stars", 5 },
+                                { "commentary", "This is a great movie!" },
+                            }
                         }
                     }
-                }
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -618,20 +634,22 @@ public class HttpGetMiddlewareTests : ServerTestBase
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
-                    EnableGetRequests = false
+                    EnableGetRequests = false,
+                    Tool = { Enable = false }
                 }));
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         hero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -688,10 +706,11 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetActivePersistedQueryAsync("md5Hash", hash);
 
         // assert
-        new[] {
-                resultA,
-                resultB
-            }.MatchSnapshot();
+        new[]
+        {
+            resultA,
+            resultB
+        }.MatchSnapshot();
     }
 
     [Fact]
@@ -728,15 +747,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.GetAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.GetAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         hero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
