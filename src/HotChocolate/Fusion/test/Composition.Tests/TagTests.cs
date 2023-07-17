@@ -58,4 +58,50 @@ public class TagTests
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
+    
+    [Fact]
+    public async Task Exclude_Subgraphs_With_Review_Tag()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionWithTagSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionWithTagSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.TagDirective(
+                makeTagsPublic: true, 
+                exclude: new[] {"review"})));
+
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
+    
+    [Fact]
+    public async Task Exclude_Type_System_Members_With_Internal_Tag()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionWithTagSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionWithTagSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.TagDirective(
+                makeTagsPublic: true, 
+                exclude: new[] {"internal"})));
+
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
 }

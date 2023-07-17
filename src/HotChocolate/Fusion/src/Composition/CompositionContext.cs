@@ -10,6 +10,10 @@ namespace HotChocolate.Fusion.Composition;
 /// </summary>
 internal sealed class CompositionContext
 {
+    private static readonly HashSet<SchemaCoordinate> _empty = new();
+    private readonly Dictionary<string, HashSet<SchemaCoordinate>> _taggedTypes =
+        new(StringComparer.Ordinal);
+
     /// <summary>
     /// Initializes a new instance of <see cref="CompositionContext"/>.
     /// </summary>

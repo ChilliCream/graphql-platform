@@ -6,11 +6,14 @@ public sealed class TagDirectiveFeature : IFusionFeature
         IEnumerable<string>? exclude = null,
         bool makeTagsPublic = false)
     {
-        Tags = new HashSet<string>(exclude ?? Enumerable.Empty<string>());
+        Excluded = new HashSet<string>(exclude ?? Enumerable.Empty<string>());
         MakeTagsPublic = makeTagsPublic;
     }
 
-    public IReadOnlySet<string> Tags { get; }
+    /// <summary>
+    /// Gets the tags that shall be excluded from the public schema.
+    /// </summary>
+    public IReadOnlySet<string> Excluded { get; }
 
     /// <summary>
     /// Defines if the tag directives should be exported to the public schema.

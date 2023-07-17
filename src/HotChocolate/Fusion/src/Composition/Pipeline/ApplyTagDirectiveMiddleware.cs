@@ -8,8 +8,6 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 
 internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 {
-    private const string _hasTags = "ApplyTagDirective.HasTags";
-
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         if (context.Features.MakeTagsPublic())
@@ -17,14 +15,17 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
             Rewrite(context);
         }
 
-        await next(context);
+        if (!context.Log.HasErrors)
+        {
+            await next(context);
+        }
     }
 
     private static void Rewrite(
         CompositionContext context)
     {
         var needsDirectiveType = false;
-        
+
         if (!context.FusionGraph.DirectiveTypes.TryGetDirective(WellKnownDirectives.Tag, out var tagDirectiveType))
         {
             tagDirectiveType = new DirectiveType(WellKnownDirectives.Tag)
@@ -54,8 +55,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 
         var tags = new HashSet<string>();
         Rewrite(context, tagDirectiveType, tags);
-        
-        if(context.ContextData.ContainsKey(_hasTags) && needsDirectiveType)
+
+        if (context.GetTagContext().HasTags && needsDirectiveType)
         {
             context.FusionGraph.DirectiveTypes.Add(tagDirectiveType);
         }
@@ -66,34 +67,36 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         DirectiveType tagDirectiveType,
         HashSet<string> tags)
     {
-        ApplyDirectives(context, context.FusionGraph, context.Subgraphs, tagDirectiveType, tags);
+        var tagContext = context.GetTagContext();
         
+        ApplyDirectives(tagContext, context.FusionGraph, context.Subgraphs, tagDirectiveType, tags);
+
         foreach (var type in context.FusionGraph.Types)
         {
             switch (type)
             {
                 case ObjectType objectType:
-                    Rewrite(context, objectType, tagDirectiveType, tags);
+                    Rewrite(context, tagContext, objectType, tagDirectiveType, tags);
                     break;
 
                 case InterfaceType interfaceType:
-                    Rewrite(context, interfaceType, tagDirectiveType, tags);
+                    Rewrite(context, tagContext, interfaceType, tagDirectiveType, tags);
                     break;
 
                 case UnionType unionType:
-                    Rewrite(context, unionType, tagDirectiveType, tags);
+                    Rewrite(context, tagContext, unionType, tagDirectiveType, tags);
                     break;
 
                 case InputObjectType inputObjectType:
-                    Rewrite(context, inputObjectType, tagDirectiveType, tags);
+                    Rewrite(context, tagContext, inputObjectType, tagDirectiveType, tags);
                     break;
 
                 case EnumType enumType:
-                    Rewrite(context, enumType, tagDirectiveType, tags);
+                    Rewrite(context, tagContext, enumType, tagDirectiveType, tags);
                     break;
 
                 case ScalarType scalarType:
-                    Rewrite(context, scalarType, tagDirectiveType, tags);
+                    Rewrite(context, tagContext, scalarType, tagDirectiveType, tags);
                     break;
 
                 default:
@@ -103,74 +106,80 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 
         foreach (var directiveType in context.FusionGraph.DirectiveTypes)
         {
-            Rewrite(context, directiveType, tagDirectiveType, tags);
+            Rewrite(context, tagContext, directiveType, tagDirectiveType, tags);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         ComplexType type,
         DirectiveType tagDirectiveType,
         HashSet<string> tags)
     {
         var coordinate = new SchemaCoordinate(type.Name);
 
-        ApplyDirectives(context, type, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags);
 
         foreach (var field in type.Fields)
         {
-            Rewrite(context, field, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         UnionType type,
         DirectiveType tagDirectiveType,
         HashSet<string> tags)
-        => ApplyDirectives(context, type, new SchemaCoordinate(type.Name), tagDirectiveType, tags);
+        => ApplyDirectives(context, tagContext, type, new SchemaCoordinate(type.Name), tagDirectiveType, tags);
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         InputObjectType type,
         DirectiveType tagDirectiveType,
         HashSet<string> tags)
     {
         var coordinate = new SchemaCoordinate(type.Name);
 
-        ApplyDirectives(context, type, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags);
 
         foreach (var field in type.Fields)
         {
-            Rewrite(context, field, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         EnumType type,
         DirectiveType tagDirectiveType,
         HashSet<string> tags)
     {
         var coordinate = new SchemaCoordinate(type.Name);
 
-        ApplyDirectives(context, type, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, type, coordinate, tagDirectiveType, tags);
 
         foreach (var field in type.Values)
         {
-            Rewrite(context, field, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         ScalarType type,
         DirectiveType tagDirectiveType,
         HashSet<string> tags)
-        => ApplyDirectives(context, type, new SchemaCoordinate(type.Name), tagDirectiveType, tags);
+        => ApplyDirectives(context, tagContext, type, new SchemaCoordinate(type.Name), tagDirectiveType, tags);
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         DirectiveType type,
         DirectiveType tagDirectiveType,
         HashSet<string> tags)
@@ -179,12 +188,13 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 
         foreach (var field in type.Arguments)
         {
-            Rewrite(context, field, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, field, coordinate, tagDirectiveType, tags);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         OutputField field,
         SchemaCoordinate parent,
         DirectiveType tagDirectiveType,
@@ -192,16 +202,17 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     {
         var coordinate = new SchemaCoordinate(parent.Name, field.Name);
 
-        ApplyDirectives(context, field, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, field, coordinate, tagDirectiveType, tags);
 
         foreach (var argument in field.Arguments)
         {
-            Rewrite(context, argument, coordinate, tagDirectiveType, tags);
+            Rewrite(context, tagContext, argument, coordinate, tagDirectiveType, tags);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         InputField field,
         SchemaCoordinate parent,
         DirectiveType tagDirectiveType,
@@ -214,19 +225,27 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
             { MemberName: not null } => new SchemaCoordinate(parent.Name, parent.MemberName, field.Name),
         };
 
-        ApplyDirectives(context, field, coordinate, tagDirectiveType, tags);
+        ApplyDirectives(context, tagContext, field, coordinate, tagDirectiveType, tags);
     }
 
     private static void Rewrite(
         CompositionContext context,
+        TagContext tagContext,
         EnumValue value,
         SchemaCoordinate parent,
         DirectiveType tagDirectiveType,
         HashSet<string> tags)
-        => ApplyDirectives(context, value, new SchemaCoordinate(parent.Name, value.Name), tagDirectiveType, tags);
+        => ApplyDirectives(
+            context,
+            tagContext,
+            value,
+            new SchemaCoordinate(parent.Name, value.Name),
+            tagDirectiveType,
+            tags);
 
     private static void ApplyDirectives<T>(
         CompositionContext context,
+        TagContext tagContext,
         T merged,
         SchemaCoordinate coordinate,
         DirectiveType tagDirectiveType,
@@ -234,11 +253,16 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         where T : ITypeSystemMember, IHasDirectives
     {
         var parts = context.GetSubgraphMembers<T>(coordinate);
-        ApplyDirectives(context, merged, parts, tagDirectiveType, tags);
+        ApplyDirectives(tagContext, merged, parts, tagDirectiveType, tags);
+
+        foreach (var tag in tags)
+        {
+            tagContext.RegisterTagCoordinate(tag, coordinate);
+        }
     }
 
     private static void ApplyDirectives<T>(
-        CompositionContext context,
+        TagContext tagContext,
         T merged,
         IEnumerable<T> parts,
         DirectiveType tagDirectiveType,
@@ -268,7 +292,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                         new Directive(
                             tagDirectiveType,
                             new Argument(WellKnownDirectives.Name, name)));
-                    context.ContextData.TryAdd(_hasTags, 1);
+                    tagContext.HasTags = true;
                 }
             }
         }
