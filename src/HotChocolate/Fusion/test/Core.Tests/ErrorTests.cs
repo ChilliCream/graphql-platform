@@ -2,6 +2,7 @@ using System.Net;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Utilities;
@@ -37,7 +38,7 @@ public class ErrorTests
                         demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
                     },
-                    FusionFeatureFlags.NodeField);
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton<IHttpClientFactory>(
@@ -87,7 +88,7 @@ public class ErrorTests
                         demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
                     },
-                    FusionFeatureFlags.NodeField);
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton<IHttpClientFactory>(
@@ -137,7 +138,7 @@ public class ErrorTests
                         demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                         demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
                     },
-                    FusionFeatureFlags.NodeField);
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
             .AddSingleton<IHttpClientFactory>(
