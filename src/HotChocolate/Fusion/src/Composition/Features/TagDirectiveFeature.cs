@@ -1,5 +1,8 @@
 namespace HotChocolate.Fusion.Composition.Features;
 
+/// <summary>
+/// Specifies behavior of the @tag directive.
+/// </summary>
 public sealed class TagDirectiveFeature : IFusionFeature
 {
     public TagDirectiveFeature(
