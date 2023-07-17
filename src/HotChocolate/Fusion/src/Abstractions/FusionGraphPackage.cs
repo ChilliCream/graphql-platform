@@ -196,7 +196,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
                     """
                     { 
                       "fusionTypePrefix" : null,
-                      "fusionTypeSelf": true
+                      "fusionTypeSelf": false
                     }
                     """));
         }
@@ -220,7 +220,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             throw new FusionGraphPackageException(FusionGraphPackage_CannotWrite);
         }
 
-        if (_package.RelationshipExists(FusionId))
+        if (_package.RelationshipExists(FusionSettingsId))
         {
             var relationship = _package.GetRelationship(FusionSettingsId);
             _package.DeletePart(relationship.TargetUri);

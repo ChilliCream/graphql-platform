@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using HotChocolate.Fusion.CommandLine.Helpers;
 using HotChocolate.Fusion.CommandLine.Options;
 using HotChocolate.Fusion.Composition;
@@ -7,6 +8,7 @@ using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Utilities;
+using static System.Text.Json.JsonSerializerDefaults;
 using static HotChocolate.Fusion.CommandLine.Helpers.PackageHelper;
 
 namespace HotChocolate.Fusion.CommandLine.Commands;
@@ -28,10 +30,14 @@ internal sealed class ComposeCommand : Command
         fusionPackageSettingsFile.AddAlias("--settings");
 
         var workingDirectory = new WorkingDirectoryOption();
+        
+        var enableNodes = new Option<bool?>("--enable-nodes");
+        enableNodes.Arity = ArgumentArity.Zero;
 
         AddOption(fusionPackageFile);
         AddOption(subgraphPackageFile);
         AddOption(workingDirectory);
+        AddOption(enableNodes);
 
         this.SetHandler(
             ExecuteAsync,
@@ -40,6 +46,7 @@ internal sealed class ComposeCommand : Command
             subgraphPackageFile,
             fusionPackageSettingsFile,
             workingDirectory,
+            enableNodes,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -49,6 +56,7 @@ internal sealed class ComposeCommand : Command
         List<FileInfo>? subgraphPackageFiles,
         FileInfo? settingsFile,
         DirectoryInfo workingDirectory,
+        bool? enableNodes,
         CancellationToken cancellationToken)
     {
         // create directory for package file.
@@ -66,7 +74,7 @@ internal sealed class ComposeCommand : Command
 
         if (settingsFile is null)
         {
-            var settingsFileName = packageFile.Name + "-settings.json";
+            var settingsFileName = System.IO.Path.GetFileNameWithoutExtension(packageFile.FullName) + "-settings.json";
 
             if (packageFile.DirectoryName is not null)
             {
@@ -156,6 +164,11 @@ internal sealed class ComposeCommand : Command
             return;
         }
         
+        if(enableNodes.HasValue && enableNodes.Value)
+        {
+            settings.NodeField.Enabled = true;
+        }
+
         var features = CreateFeatures(settings);
 
         var composer = new FusionGraphComposer(
@@ -175,8 +188,10 @@ internal sealed class ComposeCommand : Command
         var typeNames = FusionTypeNames.From(fusionGraphDoc);
         var rewriter = new Metadata.FusionGraphConfigurationToSchemaRewriter();
         var schemaDoc = (DocumentNode) rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
+        using var updateSettingsJson = JsonSerializer.SerializeToDocument(settings, new JsonSerializerOptions(Web));
 
         await package.SetFusionGraphAsync(fusionGraphDoc, cancellationToken);
+        await package.SetFusionGraphSettingsAsync(updateSettingsJson, cancellationToken);
         await package.SetSchemaAsync(schemaDoc, cancellationToken);
 
         foreach (var config in configs.Values)
@@ -206,7 +221,7 @@ internal sealed class ComposeCommand : Command
         {
             features.Add(
                 FusionFeatures.TagDirective(
-                    settings.TagDirective.Exclude, 
+                    settings.TagDirective.Exclude,
                     settings.TagDirective.MakePublic));
         }
 
@@ -248,26 +263,64 @@ internal sealed class ComposeCommand : Command
 
     private class PackageSettings
     {
+        private Feature? _reEncodeIds;
+        private Feature? _nodeField;
+        private TagDirective? _tagDirective;
+
+        [JsonPropertyName("fusionTypePrefix")]
+        [JsonPropertyOrder(10)]
         public string? FusionTypePrefix { get; set; }
 
+        [JsonPropertyName("fusionTypeSelf")]
+        [JsonPropertyOrder(11)]
         public bool FusionTypeSelf { get; set; }
 
-        public Feature NodeField { get; set; } = new();
+        [JsonPropertyName("nodeField")]
+        [JsonPropertyOrder(12)]
+        public Feature NodeField
+        {
+            get => _nodeField ??= new();
+            set => _nodeField = value;
+        }
 
-        public Feature ReEncodeIds { get; set; } = new();
+        [JsonPropertyName("reEncodeIds")]
+        [JsonPropertyOrder(13)]
+        public Feature ReEncodeIds
+        {
+            get => _reEncodeIds ??= new();
+            set => _reEncodeIds = value;
+        }
 
-        public TagDirective TagDirective { get; set; } = new();
+        [JsonPropertyName("tagDirective")]
+        [JsonPropertyOrder(14)]
+        public TagDirective TagDirective
+        {
+            get => _tagDirective ??= new();
+            set => _tagDirective = value;
+        }
     }
 
     private class Feature
     {
-        public bool Enabled { get; set; } = false;
+        [JsonPropertyName("enabled")]
+        [JsonPropertyOrder(10)]
+        public bool Enabled { get; set; }
     }
 
     private sealed class TagDirective : Feature
     {
-        public bool MakePublic { get; set; } = false;
+        private string[]? _exclude;
 
-        public string[] Exclude { get; set; } = Array.Empty<string>();
+        [JsonPropertyName("makePublic")]
+        [JsonPropertyOrder(100)]
+        public bool MakePublic { get; set; }
+
+        [JsonPropertyName("exclude")]
+        [JsonPropertyOrder(101)]
+        public string[] Exclude
+        {
+            get => _exclude ?? Array.Empty<string>();
+            set => _exclude = value;
+        }
     }
 }
