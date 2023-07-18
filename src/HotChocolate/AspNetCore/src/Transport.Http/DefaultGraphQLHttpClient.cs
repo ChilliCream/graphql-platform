@@ -81,7 +81,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         Uri requestUri)
     {
         var method = request.Method;
-        
+
         var message = new HttpRequestMessage
         {
             Method = method,
@@ -95,7 +95,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
             }
         };
 
-        if(method == GraphQLHttpMethod.Post)
+        if (method == GraphQLHttpMethod.Post)
         {
             message.Content = CreatePostContent(request.Body);
         }
@@ -107,7 +107,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         {
             throw new NotSupportedException($"The HTTP method `{method}` is not supported.");
         }
-        
+
         request.OnMessageCreated?.Invoke(request, message);
 
         return message;
@@ -120,7 +120,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.WriteTo(jsonWriter);
         jsonWriter.Flush();
-        
+
         var content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
 #if NET7_0_OR_GREATER
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
@@ -201,12 +201,16 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
     private static string FormatDocumentAsJson(ObjectValueNode obj)
     {
         using var arrayWriter = new ArrayWriter();
-        
+
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         Utf8JsonWriterHelper.WriteFieldValue(jsonWriter, obj);
         jsonWriter.Flush();
-        
+
+#if NET6_0_OR_GREATER
+        return Encoding.UTF8.GetString(arrayWriter.GetWrittenSpan());
+#else
         return Encoding.UTF8.GetString(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
+#endif
     }
 
     public void Dispose() => _httpClient.Dispose();
