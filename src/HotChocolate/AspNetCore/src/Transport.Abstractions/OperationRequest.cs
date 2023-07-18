@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using HotChocolate.Language;
-using static HotChocolate.Transport.Sockets.Client.Properties.SocketClientResources;
+using HotChocolate.Transport.Serialization;
+using static HotChocolate.Transport.Properties.TransportAbstractionResoucrces;
 
-namespace HotChocolate.Transport.Sockets.Client;
+namespace HotChocolate.Transport;
 
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket connection.
@@ -32,20 +34,20 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
     /// Thrown if the query, ID, and extensions parameters are all null.
     /// </exception>
     public OperationRequest(
-        DocumentNode? query,
+        string? query,
         string? id,
         string? operationName,
         ObjectValueNode? variables,
         ObjectValueNode? extensions)
     {
-        if (query is null && id is null && extensions is null)
+        if (string.IsNullOrWhiteSpace(query) && id is null && extensions is null)
         {
             throw new ArgumentException(
                 OperationRequest_QueryOrPersistedQueryId,
                 nameof(query));
         }
 
-        Query = query?.ToString(false);
+        Query = query;
         Id = id;
         OperationName = operationName;
         VariablesNode = variables;
@@ -80,7 +82,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
         IReadOnlyDictionary<string, object?>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
-        if (query is null && id is null && extensions is null)
+        if (string.IsNullOrWhiteSpace(query) && id is null && extensions is null)
         {
             throw new ArgumentException(
                 OperationRequest_QueryOrPersistedQueryId,
@@ -130,6 +132,22 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
     /// operation.
     /// </summary>
     public ObjectValueNode? ExtensionsNode { get; }
+
+    /// <summary>
+    /// Writes a serialized version of this request to a <see cref="Utf8JsonWriter"/>.
+    /// </summary>
+    /// <param name="writer">
+    /// The JSON writer.
+    /// </param>
+    public void WriteTo(Utf8JsonWriter writer)
+    {
+        if (writer == null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+        
+        Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
+    }
 
     /// <summary>
     /// Determines whether this <see cref="OperationRequest"/> object is equal to another object.

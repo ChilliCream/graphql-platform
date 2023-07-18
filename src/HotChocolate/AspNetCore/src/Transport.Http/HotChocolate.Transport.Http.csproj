@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Transport.Http</PackageId>
+    <AssemblyName>HotChocolate.Transport.Http</AssemblyName>
+    <RootNamespace>HotChocolate.Transport.Http</RootNamespace>
+    <Description>This package contains a graphql over http client.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="HttpResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>HttpResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="HttpResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>HttpResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+
+</Project>

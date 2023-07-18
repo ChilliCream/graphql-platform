@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Language;
-using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -48,7 +47,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
         : base(id)
     {
         SubgraphName = subgraphName;
-        Document = document;
+        Document = document.ToString(false);
         SelectionSet = (SelectionSet)selectionSet;
         Requires = requires;
         Path = path;
@@ -63,7 +62,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     /// <summary>
     /// Gets the GraphQL request document.
     /// </summary>
-    public DocumentNode Document { get; }
+    public string Document { get; }
 
     /// <summary>
     /// Gets the selection set for which this request provides a patch.
@@ -96,7 +95,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     /// </param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    protected GraphQLRequest CreateRequest(
+    protected SubgraphGraphQLRequest CreateRequest(
         IVariableValueCollection variables,
         IReadOnlyDictionary<string, IValueNode> requirementValues)
     {
@@ -130,7 +129,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
             vars ??= new ObjectValueNode(fields);
         }
 
-        return new GraphQLRequest(SubgraphName, Document, vars, null);
+        return new SubgraphGraphQLRequest(SubgraphName, Document, vars, null);
     }
 
     /// <summary>
@@ -179,7 +178,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
         writer.WriteString("subgraph", SubgraphName);
-        writer.WriteString("document", Document.ToString(false));
+        writer.WriteString("document", Document);
         writer.WriteNumber("selectionSetId", SelectionSet.Id);
 
         if (Path.Count > 0)

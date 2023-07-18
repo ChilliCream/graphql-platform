@@ -272,7 +272,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
         writer.WriteString("subgraph", SubgraphName);
-        writer.WriteString("document", Document.ToString(false));
+        writer.WriteString("document", Document);
         writer.WriteNumber("selectionSetId", SelectionSet.Id);
 
         if (ArgumentTypes.Count > 0)

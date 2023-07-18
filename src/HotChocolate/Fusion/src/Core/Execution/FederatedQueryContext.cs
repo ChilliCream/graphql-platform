@@ -101,7 +101,7 @@ internal sealed class FusionExecutionContext : IDisposable
 
     public async Task<GraphQLResponse> ExecuteAsync(
         string subgraphName,
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         CancellationToken cancellationToken)
     {
         await using var client = _clientFactory.CreateClient(subgraphName);
@@ -110,7 +110,7 @@ internal sealed class FusionExecutionContext : IDisposable
 
     public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
         string subgraphName,
-        IReadOnlyList<GraphQLRequest> requests,
+        IReadOnlyList<SubgraphGraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
         if(requests.Count == 1)
@@ -131,7 +131,7 @@ internal sealed class FusionExecutionContext : IDisposable
 
     public async IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
         string subgraphName,
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await using var client = _clientFactory.CreateSubscriptionClient(subgraphName);
