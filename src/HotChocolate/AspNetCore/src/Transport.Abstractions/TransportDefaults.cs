@@ -1,4 +1,4 @@
-namespace HotChocolate.Transport.Abstractions;
+namespace HotChocolate.Transport;
 
 /// <summary>
 /// Socket default setting values.

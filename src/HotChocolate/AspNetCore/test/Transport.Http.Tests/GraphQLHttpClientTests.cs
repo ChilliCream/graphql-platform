@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
-using HotChocolate.Transport.Abstractions;
 using Snapshooter.Xunit;
 
 namespace HotChocolate.Transport.Http.Tests;

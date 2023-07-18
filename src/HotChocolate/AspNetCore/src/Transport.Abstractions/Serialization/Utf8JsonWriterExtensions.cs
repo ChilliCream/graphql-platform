@@ -4,54 +4,53 @@ using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Language;
 
-namespace HotChocolate.Transport.Abstractions.Helpers;
+namespace HotChocolate.Transport.Serialization;
 
-public static class Utf8JsonWriterExtensions
+internal static class Utf8JsonWriterExtensions
 {
-    public static Utf8JsonWriter WriteOperationRequest(this Utf8JsonWriter jsonWriter,
-        OperationRequest request)
+    public static Utf8JsonWriter WriteOperationRequest(Utf8JsonWriter writer, OperationRequest request)
     {
-        jsonWriter.WriteStartObject();
+        writer.WriteStartObject();
 
         if(request.Id is not null)
         {
-            jsonWriter.WriteString(Utf8MessageProperties.IdProp, request.Id);
+            writer.WriteString(Utf8MessageProperties.IdProp, request.Id);
         }
 
         if(request.Query is not null)
         {
-            jsonWriter.WriteString(Utf8MessageProperties.QueryProp, request.Query);
+            writer.WriteString(Utf8MessageProperties.QueryProp, request.Query);
         }
 
         if(request.OperationName is not null)
         {
-            jsonWriter.WriteString(Utf8MessageProperties.OperationNameProp, request.OperationName);
+            writer.WriteString(Utf8MessageProperties.OperationNameProp, request.OperationName);
         }
 
         if (request.ExtensionsNode is not null)
         {
-            jsonWriter.WritePropertyName(Utf8MessageProperties.ExtensionsProp);
-            WriteFieldValue(jsonWriter, request.ExtensionsNode);
+            writer.WritePropertyName(Utf8MessageProperties.ExtensionsProp);
+            WriteFieldValue(writer, request.ExtensionsNode);
         }
         else if (request.Extensions is not null)
         {
-            jsonWriter.WritePropertyName(Utf8MessageProperties.ExtensionsProp);
-            WriteFieldValue(jsonWriter, request.Extensions);
+            writer.WritePropertyName(Utf8MessageProperties.ExtensionsProp);
+            WriteFieldValue(writer, request.Extensions);
         }
 
         if (request.VariablesNode is not null)
         {
-            jsonWriter.WritePropertyName(Utf8MessageProperties.VariablesProp);
-            WriteFieldValue(jsonWriter, request.VariablesNode);
+            writer.WritePropertyName(Utf8MessageProperties.VariablesProp);
+            WriteFieldValue(writer, request.VariablesNode);
         }
         else if (request.Variables is not null)
         {
-            jsonWriter.WritePropertyName(Utf8MessageProperties.VariablesProp);
-            WriteFieldValue(jsonWriter, request.Variables);
+            writer.WritePropertyName(Utf8MessageProperties.VariablesProp);
+            WriteFieldValue(writer, request.Variables);
         }
 
-        jsonWriter.WriteEndObject();
-        return jsonWriter;
+        writer.WriteEndObject();
+        return writer;
     }
 
     private static void WriteFieldValue(

@@ -3,11 +3,10 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Transport.Abstractions;
 using HotChocolate.Transport.Sockets.Client.Helpers;
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
-using static HotChocolate.Transport.Abstractions.TransportDefaults;
+using static HotChocolate.Transport.TransportDefaults;
 
 namespace HotChocolate.Transport.Sockets.Client;
 

@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Net.WebSockets;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
-using HotChocolate.Transport.Abstractions;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;

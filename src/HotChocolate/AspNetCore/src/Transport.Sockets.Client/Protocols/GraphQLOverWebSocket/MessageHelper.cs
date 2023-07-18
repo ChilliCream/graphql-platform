@@ -2,8 +2,7 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Transport.Abstractions;
-using HotChocolate.Transport.Abstractions.Helpers;
+using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
 using static System.Net.WebSockets.WebSocketMessageType;
 
@@ -51,7 +50,7 @@ internal static class MessageHelper
         jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.Subscribe);
         jsonWriter.WritePropertyName(Utf8MessageProperties.PayloadProp);
 
-        jsonWriter.WriteOperationRequest(request);
+        request.WriteTo(jsonWriter);
 
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);

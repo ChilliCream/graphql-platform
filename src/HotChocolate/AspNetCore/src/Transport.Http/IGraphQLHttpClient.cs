@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Transport.Abstractions;
 
 namespace HotChocolate.Transport.Http;
 

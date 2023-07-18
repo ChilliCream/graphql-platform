@@ -1,5 +1,4 @@
 using System.Text.Json;
-using HotChocolate.Transport.Abstractions;
 using HotChocolate.Transport.Sockets.Client;
 
 namespace HotChocolate.Fusion.Clients;

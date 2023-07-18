@@ -1,10 +1,9 @@
 using System;
 
-namespace HotChocolate.Transport.Abstractions.Helpers;
+namespace HotChocolate.Transport.Serialization;
 
 public static class Utf8MessageProperties
 {
-
     // This uses C# compiler's ability to refer to static data directly.
     // For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
     public static ReadOnlySpan<byte> IdProp => "id"u8;

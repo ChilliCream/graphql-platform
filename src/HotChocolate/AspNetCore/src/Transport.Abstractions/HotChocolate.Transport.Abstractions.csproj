@@ -7,14 +7,14 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Transport.Abstractions</PackageId>
     <AssemblyName>HotChocolate.Transport.Abstractions</AssemblyName>
-    <RootNamespace>HotChocolate.Transport.Abstractions</RootNamespace>
+    <RootNamespace>HotChocolate.Transport</RootNamespace>
     <Description>This package contains common abstractions and base classes for transport.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.7" />

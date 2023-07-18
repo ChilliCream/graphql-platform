@@ -1,8 +1,7 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using HotChocolate.Transport.Abstractions;
-using HotChocolate.Transport.Abstractions.Helpers;
+using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http.Helper;
@@ -26,7 +25,7 @@ internal static class HttpMessageHelper
         using var arrayWriter= new ArrayWriter();
 
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
-        jsonWriter.WriteOperationRequest(request);
+        request.WriteTo(jsonWriter);
         jsonWriter.Flush();
         requestMessage.Content =  new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
         requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(_jsonMediaType);

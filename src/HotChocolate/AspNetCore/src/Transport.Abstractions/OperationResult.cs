@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 
-namespace HotChocolate.Transport.Abstractions;
+namespace HotChocolate.Transport;
 
 /// <summary>
 /// Represents the result of a GraphQL operation.

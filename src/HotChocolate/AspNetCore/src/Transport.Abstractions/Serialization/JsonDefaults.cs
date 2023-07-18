@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace HotChocolate.Transport.Abstractions.Helpers;
+namespace HotChocolate.Transport.Serialization;
 
 public static class JsonDefaults
 {

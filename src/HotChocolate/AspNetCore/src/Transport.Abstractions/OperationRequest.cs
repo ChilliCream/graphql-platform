@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using HotChocolate.Language;
-using static HotChocolate.Transport.Abstractions.Properties.TransportAbstractionResoucrces;
+using HotChocolate.Transport.Serialization;
+using static HotChocolate.Transport.Properties.TransportAbstractionResoucrces;
 
-namespace HotChocolate.Transport.Abstractions;
+namespace HotChocolate.Transport;
 
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket connection.
@@ -130,6 +132,9 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
     /// operation.
     /// </summary>
     public ObjectValueNode? ExtensionsNode { get; }
+
+    public void WriteTo(Utf8JsonWriter writer)
+        => Utf8JsonWriterExtensions.WriteOperationRequest(writer, this);
 
     /// <summary>
     /// Determines whether this <see cref="OperationRequest"/> object is equal to another object.
