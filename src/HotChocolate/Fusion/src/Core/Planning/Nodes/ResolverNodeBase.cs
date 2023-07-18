@@ -47,8 +47,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
         : base(id)
     {
         SubgraphName = subgraphName;
-        Document = document;
-        DocumentString = document.ToString(false);
+        Document = document.ToString(false);
         SelectionSet = (SelectionSet)selectionSet;
         Requires = requires;
         Path = path;
@@ -63,12 +62,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     /// <summary>
     /// Gets the GraphQL request document.
     /// </summary>
-    public DocumentNode Document { get; }
-    
-    /// <summary>
-    /// Gets the GraphQL request document as string.
-    /// </summary>
-    public string DocumentString { get; }
+    public string Document { get; }
 
     /// <summary>
     /// Gets the selection set for which this request provides a patch.
@@ -135,7 +129,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
             vars ??= new ObjectValueNode(fields);
         }
 
-        return new SubgraphGraphQLRequest(SubgraphName, DocumentString, vars, null);
+        return new SubgraphGraphQLRequest(SubgraphName, Document, vars, null);
     }
 
     /// <summary>
@@ -184,7 +178,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
         writer.WriteString("subgraph", SubgraphName);
-        writer.WriteString("document", Document.ToString(false));
+        writer.WriteString("document", Document);
         writer.WriteNumber("selectionSetId", SelectionSet.Id);
 
         if (Path.Count > 0)
