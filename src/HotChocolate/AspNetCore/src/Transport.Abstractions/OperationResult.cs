@@ -82,3 +82,4 @@ public sealed class OperationResult : IDisposable
             root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default);
     }
 }
+
