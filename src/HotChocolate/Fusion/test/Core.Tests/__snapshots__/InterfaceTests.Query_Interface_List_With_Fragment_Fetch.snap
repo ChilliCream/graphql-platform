@@ -90,7 +90,7 @@ Result
 
 Fusion Graph
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Appointment", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Appointment", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Patient1", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Patient1", baseAddress: "ws:\/\/localhost:5000\/graphql") @node(subgraph: "Appointment", types: [ "Appointment" ]) @node(subgraph: "Patient1", types: [ "Patient1" ]) {
+schema @fusion(version: 1) @httpClient(subgraph: "Appointment", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Appointment", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Patient1", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Patient1", baseAddress: "ws:\/\/localhost:5000\/graphql") @node(subgraph: "Appointment", types: [ "Patient1", "Appointment" ]) @node(subgraph: "Patient1", types: [ "Patient1" ]) {
   query: Query
 }
 
@@ -101,6 +101,7 @@ type Query {
   node("ID of the object." id: ID!): Node @variable(subgraph: "Appointment", name: "id", argument: "id") @resolver(subgraph: "Appointment", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ]) @variable(subgraph: "Patient1", name: "id", argument: "id") @resolver(subgraph: "Patient1", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @variable(subgraph: "Appointment", name: "ids", argument: "ids") @resolver(subgraph: "Appointment", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ]) @variable(subgraph: "Patient1", name: "ids", argument: "ids") @resolver(subgraph: "Patient1", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+  patient(id: ID!): Patient1 @variable(subgraph: "Appointment", name: "id", argument: "id") @resolver(subgraph: "Appointment", select: "{ patient(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   patientById(patientId: ID!): Patient1! @variable(subgraph: "Patient1", name: "patientId", argument: "patientId") @resolver(subgraph: "Patient1", select: "{ patientById(patientId: $patientId) }", arguments: [ { name: "patientId", type: "ID!" } ])
 }
 
@@ -139,7 +140,8 @@ type PageInfo {
   startCursor: String @source(subgraph: "Appointment")
 }
 
-type Patient1 implements IPatient & Node @variable(subgraph: "Appointment", name: "Patient1_id", select: "id") @variable(subgraph: "Patient1", name: "Patient1_id", select: "id") @resolver(subgraph: "Patient1", select: "{ node(id: $Patient1_id) { ... on Patient1 { ... Patient1 } } }", arguments: [ { name: "Patient1_id", type: "ID!" } ]) @resolver(subgraph: "Patient1", select: "{ nodes(ids: $Patient1_id) { ... on Patient1 { ... Patient1 } } }", arguments: [ { name: "Patient1_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+type Patient1 implements IPatient & Node @variable(subgraph: "Appointment", name: "Patient1_id", select: "id") @variable(subgraph: "Patient1", name: "Patient1_id", select: "id") @resolver(subgraph: "Appointment", select: "{ node(id: $Patient1_id) { ... on Patient1 { ... Patient1 } } }", arguments: [ { name: "Patient1_id", type: "ID!" } ]) @resolver(subgraph: "Appointment", select: "{ nodes(ids: $Patient1_id) { ... on Patient1 { ... Patient1 } } }", arguments: [ { name: "Patient1_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") @resolver(subgraph: "Patient1", select: "{ node(id: $Patient1_id) { ... on Patient1 { ... Patient1 } } }", arguments: [ { name: "Patient1_id", type: "ID!" } ]) @resolver(subgraph: "Patient1", select: "{ nodes(ids: $Patient1_id) { ... on Patient1 { ... Patient1 } } }", arguments: [ { name: "Patient1_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  appointments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): AppointmentsConnection @source(subgraph: "Appointment") @variable(subgraph: "Appointment", name: "after", argument: "after") @variable(subgraph: "Appointment", name: "before", argument: "before") @variable(subgraph: "Appointment", name: "first", argument: "first") @variable(subgraph: "Appointment", name: "last", argument: "last")
   id: ID! @source(subgraph: "Appointment") @source(subgraph: "Patient1")
   name: String! @source(subgraph: "Patient1")
 }
