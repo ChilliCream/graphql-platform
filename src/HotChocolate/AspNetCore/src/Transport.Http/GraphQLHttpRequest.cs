@@ -4,6 +4,16 @@ namespace HotChocolate.Transport.Http;
 
 public sealed class GraphQLHttpRequest
 {
+    public GraphQLHttpRequest(string query)
+    {
+        if (string.IsNullOrEmpty(query))
+        {
+            throw new ArgumentException("TODO: RESOURCES", nameof(query));
+        }
+
+        Body = new OperationRequest(query);
+    }
+    
     public GraphQLHttpRequest(OperationRequest body)
     {
         if (string.IsNullOrEmpty(body.Id) &&
