@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HotChocolate.Transport.Sockets.Client.Helpers;
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Utilities;
 using static HotChocolate.Transport.TransportDefaults;
 
 namespace HotChocolate.Transport.Sockets.Client;

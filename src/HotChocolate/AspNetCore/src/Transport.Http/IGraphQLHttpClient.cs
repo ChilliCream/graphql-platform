@@ -1,27 +1,22 @@
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Transport.Http;
 
-/// <summary>
-/// A GraphQL over http client
-/// </summary>
 public interface IGraphQLHttpClient
 {
-    /// <summary>
-    /// Sends an <see cref="OperationRequest"/> via GET to the GraphQL server
-    /// Only operations of type query are allowed
-    /// </summary>
-    /// <param name="request">The request to send</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns>An operation result</returns>
-    public Task<OperationResult> ExecuteGetAsync(OperationRequest request, CancellationToken cancellationToken);
+    public Task<OperationResult> GetAsync(
+        OperationRequest request,
+        OnHttpRequestMessageCreated? onMessageCreated = null,
+        CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Sends an <see cref="OperationRequest"/> via POST to the GraphQL server
-    /// </summary>
-    /// <param name="request">The request to send</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns>An operation result</returns>
-    public Task<OperationResult> ExecutePostAsync(OperationRequest request, CancellationToken cancellationToken);
+    public Task<OperationResult> PostAsync(
+        OperationRequest request,
+        OnHttpRequestMessageCreated? onMessageCreated = null,
+        CancellationToken cancellationToken = default);
 }
+
+public delegate void OnHttpRequestMessageCreated(
+    OperationRequest request, 
+    HttpRequestMessage requestMessage);
