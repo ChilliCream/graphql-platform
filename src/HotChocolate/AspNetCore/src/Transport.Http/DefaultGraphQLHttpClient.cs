@@ -108,7 +108,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
             throw new NotSupportedException($"The HTTP method `{method}` is not supported.");
         }
         
-        request.OnMessageCreated?.Invoke(request.Body, message);
+        request.OnMessageCreated?.Invoke(request, message);
 
         return message;
     }
