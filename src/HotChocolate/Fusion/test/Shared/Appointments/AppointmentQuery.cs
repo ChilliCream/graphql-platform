@@ -29,4 +29,26 @@ public class AppointmentQuery
             return null;
         }
     }
+
+    [NodeResolver]
+    public Patient1? GetPatient(int id)
+    {
+        if (id == 1)
+        {
+            return new Patient1()
+            {
+                Id = 1
+            };
+        }
+        if (id == 2)
+        {
+            return new Patient1()
+            {
+                Id = 2
+            };
+        }
+
+        return null;
+
+    }
 }

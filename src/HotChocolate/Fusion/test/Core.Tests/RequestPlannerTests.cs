@@ -931,7 +931,7 @@ public class RequestPlannerTests
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
         await snapshot.MatchAsync();
     }
-    
+
     [Fact]
     public async Task Query_Plan_24_Field_Requirement_And_Fields_In_Context()
     {
@@ -968,6 +968,44 @@ public class RequestPlannerTests
                     }
                   }
                 }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+
+    [Fact]
+    public async Task Query_Plan_25_Variables_Are_Passed_Through()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Appointment.ToConfiguration(),
+                demoProject.Patient1.ToConfiguration(),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Appointments($first: Int!) {
+              patientById(patientId: 1) {
+                name
+                appointments(first: $first) {
+                    nodes {
+                        id
+                    }
+                }
+              }
             }
             """);
 
