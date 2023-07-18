@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
@@ -96,6 +97,21 @@ internal abstract class RequestDocumentFormatter
                         executionStep,
                         rootSelection.Selection,
                         field);
+                
+                if (!rootSelection.Selection.Arguments.IsFullyCoercedNoErrors)
+                {
+                    foreach (var argument in rootSelection.Selection.Arguments)
+                    {
+                        if (!argument.IsFullyCoerced)
+                        {
+                            TryForwardVariable(
+                                context,
+                                null,
+                                argument,
+                                argument.Name);
+                        }
+                    }
+                }
             }
             else
             {
