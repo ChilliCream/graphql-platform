@@ -156,6 +156,12 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         EnsureBufferCapacity(size);
         return _buffer.AsSpan().Slice(_start, size);
     }
+    
+    /// <summary>
+    /// Gets the buffer as an <see cref="ArraySegment{T}"/>
+    /// </summary>
+    /// <returns></returns>
+    public ArraySegment<byte> ToArraySegment() => new(_buffer, 0, _start);
 
     /// <summary>
     /// Ensures that the internal buffer has the needed capacity.
