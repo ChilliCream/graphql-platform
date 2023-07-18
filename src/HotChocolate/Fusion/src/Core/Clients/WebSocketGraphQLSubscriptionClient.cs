@@ -23,7 +23,7 @@ public abstract class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
     public string SubgraphName => _configuration.SubgraphName;
 
     public IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         CancellationToken cancellationToken)
     {
         if (request is null)
@@ -35,7 +35,7 @@ public abstract class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
     }
 
     private async IAsyncEnumerable<GraphQLResponse> SubscribeInternalAsync(
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         [EnumeratorCancellation] CancellationToken ct)
     {
         using var socket = await _connection.ConnectAsync(
@@ -83,7 +83,7 @@ public abstract class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
     }
 
     protected virtual ValueTask<SocketClient> ConnectAsync(
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         WebSocket webSocket,
         CancellationToken cancellationToken)
         => SocketClient.ConnectAsync(webSocket, cancellationToken);

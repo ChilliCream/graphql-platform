@@ -7,7 +7,7 @@ namespace HotChocolate.Transport.Http;
 /// <summary>
 /// The interface for GraphQL over HTTP client implementations.
 /// </summary>
-public interface IGraphQLHttpClient
+public interface IGraphQLHttpClient : IDisposable
 {
     /// <summary>
     /// Sends the GraphQL request to the specified GraphQL request <see cref="Uri"/>.

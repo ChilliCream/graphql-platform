@@ -14,10 +14,13 @@ public sealed class GraphQLHttpRequest
     /// <param name="query">
     /// The GraphQL query string.
     /// </param>
+    /// <param name="requestUri">
+    /// The GraphQL request URI.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// <paramref name="query"/> is <see langword="null"/> or whitespace.
     /// </exception>
-    public GraphQLHttpRequest(string query)
+    public GraphQLHttpRequest(string query, Uri? requestUri = null)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -27,19 +30,23 @@ public sealed class GraphQLHttpRequest
         }
 
         Body = new OperationRequest(query);
+        Uri = requestUri;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="GraphQLHttpRequest"/>.
     /// </summary>
     /// <param name="body">
     /// The GraphQL request body.
     /// </param>
+    /// <param name="requestUri">
+    /// The GraphQL request URI.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// <paramref name="body"/> has no <see cref="OperationRequest.Id"/>, <see cref="OperationRequest.Query"/>,
     /// <see cref="OperationRequest.Extensions"/> or <see cref="OperationRequest.ExtensionsNode"/>.
     /// </exception>
-    public GraphQLHttpRequest(OperationRequest body)
+    public GraphQLHttpRequest(OperationRequest body, Uri? requestUri = null)
     {
         if (string.IsNullOrEmpty(body.Id) &&
             string.IsNullOrEmpty(body.Query) &&
@@ -52,6 +59,7 @@ public sealed class GraphQLHttpRequest
         }
 
         Body = body;
+        Uri = requestUri;
     }
 
     /// <summary>

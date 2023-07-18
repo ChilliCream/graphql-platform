@@ -23,7 +23,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest("query { hero(episode: JEDI) { name } }");
             
         // act
-        using var response = await client.ExecuteAsync(request, cts.Token);
+        using var response = await client.SendAsync(request, cts.Token);
 
         // assert
         using var body = await response.ReadAsResultAsync(cts.Token);
@@ -46,7 +46,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         };
             
         // act
-        var response = await client.ExecuteAsync(request, cts.Token);
+        var response = await client.SendAsync(request, cts.Token);
 
         // assert
         using var body = await response.ReadAsResultAsync(cts.Token);
@@ -74,7 +74,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         };
             
         // act
-        var response = await client.ExecuteAsync(request, cts.Token);
+        var response = await client.SendAsync(request, cts.Token);
 
         // assert
         using var body = await response.ReadAsResultAsync(cts.Token);
@@ -94,7 +94,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             new OperationRequest("subscription { onReview(episode: JEDI) { stars } }"));
             
         // act
-        var response = await client.ExecuteAsync(request, cts.Token);
+        var response = await client.SendAsync(request, cts.Token);
 
         // assert
         await foreach (var result in response.ReadAsResultStreamAsync(cts.Token).WithCancellation(cts.Token))

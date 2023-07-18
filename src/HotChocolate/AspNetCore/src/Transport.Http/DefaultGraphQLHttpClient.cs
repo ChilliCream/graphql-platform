@@ -208,4 +208,6 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         
         return Encoding.UTF8.GetString(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
     }
+
+    public void Dispose() => _httpClient.Dispose();
 }

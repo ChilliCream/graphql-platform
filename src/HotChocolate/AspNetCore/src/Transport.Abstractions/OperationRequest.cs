@@ -34,20 +34,20 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
     /// Thrown if the query, ID, and extensions parameters are all null.
     /// </exception>
     public OperationRequest(
-        DocumentNode? query,
+        string? query,
         string? id,
         string? operationName,
         ObjectValueNode? variables,
         ObjectValueNode? extensions)
     {
-        if (query is null && id is null && extensions is null)
+        if (string.IsNullOrWhiteSpace(query) && id is null && extensions is null)
         {
             throw new ArgumentException(
                 OperationRequest_QueryOrPersistedQueryId,
                 nameof(query));
         }
 
-        Query = query?.ToString(false);
+        Query = query;
         Id = id;
         OperationName = operationName;
         VariablesNode = variables;
@@ -82,7 +82,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
         IReadOnlyDictionary<string, object?>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
-        if (query is null && id is null && extensions is null)
+        if (string.IsNullOrWhiteSpace(query) && id is null && extensions is null)
         {
             throw new ArgumentException(
                 OperationRequest_QueryOrPersistedQueryId,
