@@ -87,12 +87,6 @@ namespace HotChocolate.Fusion {
             }
         }
         
-        internal static string GraphQLHttpClient_InvalidContentType {
-            get {
-                return ResourceManager.GetString("GraphQLHttpClient_InvalidContentType", resourceCulture);
-            }
-        }
-        
         internal static string FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue {
             get {
                 return ResourceManager.GetString("FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue", resourceCulture);
@@ -126,6 +120,24 @@ namespace HotChocolate.Fusion {
         internal static string CreateSelection_MustBePlaceholderOrSelectExpression {
             get {
                 return ResourceManager.GetString("CreateSelection_MustBePlaceholderOrSelectExpression", resourceCulture);
+            }
+        }
+        
+        internal static string GatewayConfigurationFileObserver_FileNameNullOrEmpty {
+            get {
+                return ResourceManager.GetString("GatewayConfigurationFileObserver_FileNameNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string FileConfigurationSession_MustContainPath {
+            get {
+                return ResourceManager.GetString("FileConfigurationSession_MustContainPath", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionState_RegisterState_StateImmutable {
+            get {
+                return ResourceManager.GetString("ExecutionState_RegisterState_StateImmutable", resourceCulture);
             }
         }
     }

@@ -3,7 +3,7 @@ User Request
 query Appointments {
   appointments {
     nodes {
-      patientId {
+      patient {
         id
       }
     }
@@ -14,7 +14,7 @@ query Appointments {
 QueryPlan
 ---------------
 {
-  "document": "query Appointments { appointments { nodes { patientId { id } } } }",
+  "document": "query Appointments { appointments { nodes { patient { id } } } }",
   "operation": "Appointments",
   "rootNode": {
     "type": "Sequence",
@@ -22,7 +22,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Appointment",
-        "document": "query Appointments_1 { appointments(after: null, before: null, first: null, last: null) { nodes { patientId { __typename ... on PatientCH { id } ... on PatientDE { id } } } } }",
+        "document": "query Appointments_1 { appointments(after: null, before: null, first: null, last: null) { nodes { patient { __typename ... on Patient1 { id } ... on Patient2 { id } } } } }",
         "selectionSetId": 0
       },
       {
@@ -43,13 +43,13 @@ Result
     "appointments": {
       "nodes": [
         {
-          "patientId": {
-            "id": "UGF0aWVudERFCmkx"
+          "patient": {
+            "id": "UGF0aWVudDEKaTE="
           }
         },
         {
-          "patientId": {
-            "id": "UGF0aWVudENICmky"
+          "patient": {
+            "id": "UGF0aWVudDIKaTI="
           }
         }
       ]
@@ -75,7 +75,7 @@ type Query {
 
 type Appointment implements Node @variable(subgraph: "Appointment", name: "Appointment_id", select: "id") @resolver(subgraph: "Appointment", select: "{ node(id: $Appointment_id) { ... on Appointment { ... Appointment } } }", arguments: [ { name: "Appointment_id", type: "ID!" } ]) @resolver(subgraph: "Appointment", select: "{ nodes(ids: $Appointment_id) { ... on Appointment { ... Appointment } } }", arguments: [ { name: "Appointment_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
   id: ID! @source(subgraph: "Appointment")
-  patientId: IPatient! @source(subgraph: "Appointment")
+  patient: IPatient! @source(subgraph: "Appointment")
 }
 
 "A connection to a list of items."
@@ -108,11 +108,11 @@ type PageInfo {
   startCursor: String @source(subgraph: "Appointment")
 }
 
-type PatientCH implements IPatient {
+type Patient1 implements IPatient {
   id: ID! @source(subgraph: "Appointment")
 }
 
-type PatientDE implements IPatient {
+type Patient2 implements IPatient {
   id: ID! @source(subgraph: "Appointment")
 }
 

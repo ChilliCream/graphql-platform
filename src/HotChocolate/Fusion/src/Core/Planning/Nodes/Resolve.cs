@@ -1,8 +1,8 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
-using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -72,7 +72,7 @@ internal sealed class Resolve : ResolverNodeBase
         if (state.TryGetState(SelectionSet, out var workItems))
         {
             var schemaName = SubgraphName;
-            var requests = new GraphQLRequest[workItems.Count];
+            var requests = new SubgraphGraphQLRequest[workItems.Count];
 
             // first we will create a request for all of our work items.
             for (var i = 0; i < workItems.Count; i++)
@@ -118,12 +118,11 @@ internal sealed class Resolve : ResolverNodeBase
                 var exportKeys = workItem.ExportKeys;
                 var variableValues = workItem.VariableValues;
 
+                ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
+
                 // we extract the selection data from the request and add it to the
                 // workItem results.
                 ExtractSelectionResults(SelectionSet, schemaName, data, selectionResults);
-
-                // TODO : only show debug info if we pass it into the context.
-                ExtractErrors(context.Result, response.Errors, addDebugInfo: true);
 
                 // next we need to extract any variables that we need for followup requests.
                 ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);

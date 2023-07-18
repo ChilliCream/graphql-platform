@@ -74,6 +74,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     return default!;
                 });
 
+            ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
             var result = UnwrapResult(response, Requires);
 
             for (var i = 0; i < workItems.Length; i++)
@@ -154,9 +155,19 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     {
         var data = response.Data;
 
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return new Dictionary<string, JsonElement>();
+        }
+
         if (_path.Count > 0)
         {
             data = LiftData();
+        }
+
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return new Dictionary<string, JsonElement>();
         }
 
         var result = new Dictionary<string, JsonElement>();
@@ -217,7 +228,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     }
 
     private static BatchWorkItem[] CreateBatchWorkItem(
-        IReadOnlyList<WorkItem> workItems,
+        IReadOnlyList<SelectionSetState> workItems,
         IReadOnlyList<string> requirements)
     {
         var batchWorkItems = new BatchWorkItem[workItems.Count];
@@ -261,7 +272,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
         writer.WriteString("subgraph", SubgraphName);
-        writer.WriteString("document", Document.ToString(false));
+        writer.WriteString("document", Document);
         writer.WriteNumber("selectionSetId", SelectionSet.Id);
 
         if (ArgumentTypes.Count > 0)
@@ -349,14 +360,12 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     {
         public BatchWorkItem(
             string batchKey,
-            WorkItem workItem)
+            SelectionSetState selectionSetState)
         {
             Key = batchKey;
-            VariableValues = workItem.VariableValues;
-            ExportKeys = workItem.ExportKeys;
-            SelectionSet = workItem.SelectionSet;
-            SelectionResults = workItem.SelectionSetData;
-            Result = workItem.SelectionSetResult;
+            VariableValues = selectionSetState.VariableValues;
+            ExportKeys = selectionSetState.ExportKeys;
+            SelectionResults = selectionSetState.SelectionSetData;
         }
 
         public string Key { get; }
@@ -365,10 +374,6 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         public IReadOnlyList<string> ExportKeys { get; }
 
-        public ISelectionSet SelectionSet { get; }
-
         public SelectionData[] SelectionResults { get; }
-
-        public ObjectResult Result { get; }
     }
 }

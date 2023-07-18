@@ -12,14 +12,10 @@ internal sealed class Compose : QueryPlanNode
     private readonly ISelectionSet[] _selectionSets;
 
     public Compose(int id, Resolve resolve)
-        : this(id, new[] { resolve.SelectionSet })
-    {
-    }
+        : this(id, new[] { resolve.SelectionSet }) { }
 
     public Compose(int id, ISelectionSet selectionSet)
-        : this(id, new[] { selectionSet })
-    {
-    }
+        : this(id, new[] { selectionSet }) { }
 
     public Compose(int id, IReadOnlyList<ISelectionSet> selectionSets) : base(id)
     {
@@ -28,7 +24,7 @@ internal sealed class Compose : QueryPlanNode
             throw new ArgumentNullException(nameof(selectionSets));
         }
 
-        _selectionSets = selectionSets.Distinct().ToArray();
+        _selectionSets = selectionSets.Distinct().OrderBy(t => t.Id).ToArray();
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Compose;

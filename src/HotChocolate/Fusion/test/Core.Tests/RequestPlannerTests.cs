@@ -3,6 +3,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Composition;
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
@@ -543,7 +544,7 @@ public class RequestPlannerTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -577,7 +578,7 @@ public class RequestPlannerTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -614,7 +615,7 @@ public class RequestPlannerTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -692,7 +693,7 @@ public class RequestPlannerTests
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -737,7 +738,7 @@ public class RequestPlannerTests
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -827,7 +828,7 @@ public class RequestPlannerTests
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -868,7 +869,7 @@ public class RequestPlannerTests
             {
                 demoProject.Appointment.ToConfiguration(),
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -877,7 +878,7 @@ public class RequestPlannerTests
             query Appointments {
               appointments {
                 nodes {
-                  patientId {
+                  patient {
                     id
                   }
                 }
@@ -892,6 +893,90 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task Query_Plan_23_Interfaces_Merge()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Appointment.ToConfiguration(),
+                demoProject.Patient1.ToConfiguration(),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Appointments {
+              appointments {
+                nodes {
+                  patient {
+                    id
+                    ... on Patient1 {
+                        name
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+    
+    [Fact]
+    public async Task Query_Plan_24_Field_Requirement_And_Fields_In_Context()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                reviews {
+                  body
+                  author {
+                    name
+                    birthdate
+                  }
+                  product {
+                    id
+                    name
+                    deliveryEstimate(zip: "12345") {
+                      min
+                      max
+                    }
+                  }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
 
     private static async Task<(DocumentNode UserRequest, QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,

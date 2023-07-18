@@ -1,5 +1,3 @@
-using HotChocolate.Fusion.Metadata;
-
 namespace HotChocolate.Fusion.Clients;
 
 /// <summary>
@@ -25,19 +23,6 @@ public interface IGraphQLClient : IAsyncDisposable
     /// A task representing the asynchronous operation, which returns the GraphQL response.
     /// </returns>
     Task<GraphQLResponse> ExecuteAsync(
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         CancellationToken cancellationToken);
-}
-
-/// <summary>
-/// Represents a factory for creating <see cref="IGraphQLClient"/> instances.
-/// </summary>
-public interface IGraphQLClientFactory
-{
-    /// <summary>
-    /// Creates a new <see cref="IGraphQLClient"/> instance.
-    /// </summary>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
-    IGraphQLClient CreateClient(HttpClientConfiguration configuration);
 }

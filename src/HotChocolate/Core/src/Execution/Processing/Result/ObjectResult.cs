@@ -165,6 +165,9 @@ public sealed class ObjectResult
         }
 
         _capacity = 0;
+        IsInvalidated = false;
+        ParentIndex = 0;
+        Parent = null;
     }
 
     object? IReadOnlyDictionary<string, object?>.this[string key]
