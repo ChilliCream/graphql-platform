@@ -56,17 +56,6 @@ internal abstract class RequestDocumentFormatter
 
             rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
             path = p;
-
-            var variables =
-                context.Operation.Definition.VariableDefinitions.ToImmutableDictionary(v => v.Variable.Name.Value);
-            var variablesToForward = ExtractVariablesToForward(variables, rootSelectionSetNode.Selections)
-                .Distinct()
-                .Where(v => !context.ForwardedVariables.Contains(v))
-                .ToArray();
-            foreach (var variable in variablesToForward)
-            {
-                context.ForwardedVariables.Add(variable);
-            }
         }
 
         var operationDefinitionNode = new OperationDefinitionNode(
@@ -83,42 +72,6 @@ internal abstract class RequestDocumentFormatter
         return new RequestDocument(
             new DocumentNode(new[] { operationDefinitionNode }),
             path);
-    }
-
-    protected static IEnumerable<VariableDefinitionNode> ExtractVariablesToForward(
-        IReadOnlyDictionary<string, VariableDefinitionNode> globalVariables,
-        IEnumerable<ISelectionNode> selections)
-    {
-        foreach (var selection in selections)
-        {
-            if (selection is FieldNode fieldNode)
-            {
-                foreach (var toForward in fieldNode.Arguments.Where(a => globalVariables.ContainsKey(a.Name.Value)))
-                {
-                    var definition = globalVariables[toForward.Name.Value];
-                    yield return definition;
-                }
-
-                if (fieldNode.SelectionSet == null) continue;
-
-                foreach (var toForward in ExtractVariablesToForward(globalVariables,
-                             fieldNode.SelectionSet.Selections))
-                {
-                    yield return toForward;
-                }
-            }
-
-            if (selection is InlineFragmentNode inlineFragment)
-            {
-                if (inlineFragment.SelectionSet == null) continue;
-
-                foreach (var toForward in ExtractVariablesToForward(globalVariables,
-                             inlineFragment.SelectionSet.Selections))
-                {
-                    yield return toForward;
-                }
-            }
-        }
     }
 
     protected virtual SelectionSetNode CreateRootSelectionSetNode(
@@ -144,6 +97,21 @@ internal abstract class RequestDocumentFormatter
                         executionStep,
                         rootSelection.Selection,
                         field);
+                
+                if (!rootSelection.Selection.Arguments.IsFullyCoercedNoErrors)
+                {
+                    foreach (var argument in rootSelection.Selection.Arguments)
+                    {
+                        if (!argument.IsFullyCoerced)
+                        {
+                            TryForwardVariable(
+                                context,
+                                null,
+                                argument,
+                                argument.Name);
+                        }
+                    }
+                }
             }
             else
             {
