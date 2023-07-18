@@ -12,6 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Transport.Http" />
+    <InternalsVisibleTo Include="HotChocolate.Transport.Sockets" />
+    <InternalsVisibleTo Include="HotChocolate.Transport.Sockets.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
   </ItemGroup>
 

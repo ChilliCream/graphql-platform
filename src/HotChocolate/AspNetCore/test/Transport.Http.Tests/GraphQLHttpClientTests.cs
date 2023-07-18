@@ -64,7 +64,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var client = new DefaultGraphQLHttpClient(httpClient);
         var request = new GraphQLHttpRequest(
             new OperationRequest(
-                "query { hero(episode: $episode) { name } }",
+                "query($episode: Episode!) { hero(episode: $episode) { name } }",
                 variables: new Dictionary<string, object?>()
                 {
                     {"episode", "JEDI"}

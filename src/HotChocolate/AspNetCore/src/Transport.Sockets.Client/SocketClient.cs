@@ -7,7 +7,7 @@ using HotChocolate.Transport.Sockets.Client.Helpers;
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Utilities;
-using static HotChocolate.Transport.TransportDefaults;
+using static HotChocolate.Transport.Sockets.TransportDefaults;
 
 namespace HotChocolate.Transport.Sockets.Client;
 

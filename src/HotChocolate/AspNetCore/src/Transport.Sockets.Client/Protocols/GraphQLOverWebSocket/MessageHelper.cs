@@ -16,14 +16,14 @@ internal static class MessageHelper
         CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.ConnectionInitialize);
 
         if (payload is not null)
         {
             jsonWriter.WritePropertyName(Utf8MessageProperties.PayloadProp);
-            JsonSerializer.Serialize(jsonWriter, payload, JsonDefaults.SerializerOptions);
+            JsonSerializer.Serialize(jsonWriter, payload, JsonOptionDefaults.SerializerOptions);
         }
 
         jsonWriter.WriteEndObject();
@@ -43,7 +43,7 @@ internal static class MessageHelper
         CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
 
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Utf8MessageProperties.IdProp, operationSessionId);
@@ -70,7 +70,7 @@ internal static class MessageHelper
         CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Utf8MessageProperties.IdProp, operationSessionId);
         jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.Complete);
@@ -89,7 +89,7 @@ internal static class MessageHelper
         CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.Pong);
         jsonWriter.WriteEndObject();

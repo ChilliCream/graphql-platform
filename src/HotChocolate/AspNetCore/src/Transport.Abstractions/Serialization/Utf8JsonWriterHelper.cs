@@ -6,54 +6,56 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Transport.Serialization;
 
-internal static class Utf8JsonWriterExtensions
+/// <summary>
+/// Helper methods for writing <see cref="OperationRequest"/> to a <see cref="Utf8JsonWriter"/>.
+/// </summary>
+internal static class Utf8JsonWriterHelper
 {
-    public static Utf8JsonWriter WriteOperationRequest(Utf8JsonWriter writer, OperationRequest request)
+    public static void WriteOperationRequest(Utf8JsonWriter writer, OperationRequest request)
     {
         writer.WriteStartObject();
 
         if(request.Id is not null)
         {
-            writer.WriteString(Utf8MessageProperties.IdProp, request.Id);
+            writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
 
         if(request.Query is not null)
         {
-            writer.WriteString(Utf8MessageProperties.QueryProp, request.Query);
+            writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
         }
 
         if(request.OperationName is not null)
         {
-            writer.WriteString(Utf8MessageProperties.OperationNameProp, request.OperationName);
+            writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
         }
 
         if (request.ExtensionsNode is not null)
         {
-            writer.WritePropertyName(Utf8MessageProperties.ExtensionsProp);
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
             WriteFieldValue(writer, request.ExtensionsNode);
         }
         else if (request.Extensions is not null)
         {
-            writer.WritePropertyName(Utf8MessageProperties.ExtensionsProp);
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
             WriteFieldValue(writer, request.Extensions);
         }
 
         if (request.VariablesNode is not null)
         {
-            writer.WritePropertyName(Utf8MessageProperties.VariablesProp);
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
             WriteFieldValue(writer, request.VariablesNode);
         }
         else if (request.Variables is not null)
         {
-            writer.WritePropertyName(Utf8MessageProperties.VariablesProp);
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
             WriteFieldValue(writer, request.Variables);
         }
 
         writer.WriteEndObject();
-        return writer;
     }
 
-    private static void WriteFieldValue(
+    internal static void WriteFieldValue(
         Utf8JsonWriter writer,
         object? value)
     {

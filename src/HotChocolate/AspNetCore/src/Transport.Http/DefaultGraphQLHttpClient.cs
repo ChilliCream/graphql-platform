@@ -5,21 +5,48 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Http;
 
+/// <summary>
+/// A default implementation of <see cref="IGraphQLHttpClient"/> that supports the GraphQL over HTTP spec draft.
+/// </summary>
 public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 {
     private readonly HttpClient _httpClient;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DefaultGraphQLHttpClient"/>.
+    /// </summary>
+    /// <param name="httpClient">
+    /// The underlying HTTP client that is used to send the GraphQL request.
+    /// </param>
     public DefaultGraphQLHttpClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
-    public Task<GraphQLHttpResponse> ExecuteAsync(
+    /// <summary>
+    /// Sends the GraphQL request to the specified GraphQL request <see cref="Uri"/>.
+    /// </summary>
+    /// <param name="request">
+    /// The GraphQL over HTTP request.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the HTTP request.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="request"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="request"/> has no <see cref="GraphQLHttpRequest.Uri"/> and the underlying
+    /// HTTP client has no <see cref="HttpClient.BaseAddress"/>.
+    /// </exception>
+    public Task<GraphQLHttpResponse> SendAsync(
         GraphQLHttpRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -30,9 +57,8 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
         if (request.Uri is null && _httpClient.BaseAddress is null)
         {
-            // TODO: resources
             throw new ArgumentException(
-                "The request URI is not set and the underlying HTTP client has no base address.",
+                HttpResources.DefaultGraphQLHttpClient_SendAsync_RequestUriIsNull,
                 nameof(request));
         }
 
@@ -91,7 +117,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
     {
         using var arrayWriter = new ArrayWriter();
 
-        using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.WriteTo(jsonWriter);
         jsonWriter.Flush();
         
@@ -116,29 +142,28 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("id=");
-            sb.Append(Uri.EscapeDataString(request.Id));
+            sb.Append(Uri.EscapeDataString(request.Id!));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Query))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("query=");
-            sb.Append(Uri.EscapeDataString(request.Query));
+            sb.Append(Uri.EscapeDataString(request.Query!));
         }
 
         if (!string.IsNullOrWhiteSpace(request.OperationName))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("operationName=");
-            sb.Append(Uri.EscapeDataString(request.OperationName));
+            sb.Append(Uri.EscapeDataString(request.OperationName!));
         }
 
         if (request.VariablesNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            // TODO : implement
-            throw new NotImplementedException();
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(request.VariablesNode)));
         }
         else if (request.Variables is not null)
         {
@@ -149,8 +174,9 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
         if (request.ExtensionsNode is not null)
         {
-            // TODO : implement
-            throw new NotImplementedException();
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("extensions=");
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(request.ExtensionsNode)));
         }
         else if (request.Extensions is not null)
         {
@@ -170,5 +196,16 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
             appendAmpersand = true;
         }
+    }
+
+    private static string FormatDocumentAsJson(ObjectValueNode obj)
+    {
+        using var arrayWriter = new ArrayWriter();
+        
+        using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        Utf8JsonWriterHelper.WriteFieldValue(jsonWriter, obj);
+        jsonWriter.Flush();
+        
+        return Encoding.UTF8.GetString(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
     }
 }

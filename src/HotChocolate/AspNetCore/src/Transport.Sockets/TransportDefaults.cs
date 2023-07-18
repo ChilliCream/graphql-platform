@@ -1,4 +1,4 @@
-namespace HotChocolate.Transport;
+namespace HotChocolate.Transport.Sockets;
 
 /// <summary>
 /// Socket default setting values.

@@ -133,8 +133,21 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
     /// </summary>
     public ObjectValueNode? ExtensionsNode { get; }
 
+    /// <summary>
+    /// Writes a serialized version of this request to a <see cref="Utf8JsonWriter"/>.
+    /// </summary>
+    /// <param name="writer">
+    /// The JSON writer.
+    /// </param>
     public void WriteTo(Utf8JsonWriter writer)
-        => Utf8JsonWriterExtensions.WriteOperationRequest(writer, this);
+    {
+        if (writer == null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+        
+        Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
+    }
 
     /// <summary>
     /// Determines whether this <see cref="OperationRequest"/> object is equal to another object.
