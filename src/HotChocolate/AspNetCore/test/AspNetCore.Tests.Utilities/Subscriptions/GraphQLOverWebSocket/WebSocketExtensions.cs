@@ -124,7 +124,7 @@ public static class WebSocketExtensions
     {
         await using var stream = new MemoryStream();
         WebSocketReceiveResult result;
-        var buffer = new byte[TransportDefaults.BufferSize];
+        var buffer = new byte[SocketDefaults.BufferSize];
 
         do
         {

@@ -93,7 +93,7 @@ public static class WebSocketExtensions
         bool largeMessage = false,
         CancellationToken cancellationToken = default)
     {
-        var buffer = new byte[TransportDefaults.BufferSize];
+        var buffer = new byte[SocketDefaults.BufferSize];
 
         await using var stream = message.CreateMessageStream(largeMessage);
         int read;
@@ -109,7 +109,7 @@ public static class WebSocketExtensions
                 WebSocketMessageType.Text,
                 isEndOfMessage,
                 cancellationToken);
-        } while (read == TransportDefaults.BufferSize);
+        } while (read == SocketDefaults.BufferSize);
     }
 
     private static Stream CreateMessageStream(this OperationMessage message, bool largeMessage)
@@ -153,7 +153,7 @@ public static class WebSocketExtensions
     {
         await using var stream = new MemoryStream();
         WebSocketReceiveResult result;
-        var buffer = new byte[TransportDefaults.BufferSize];
+        var buffer = new byte[SocketDefaults.BufferSize];
         bool skipped;
 
         do

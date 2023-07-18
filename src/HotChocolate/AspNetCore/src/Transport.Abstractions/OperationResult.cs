@@ -74,7 +74,7 @@ public sealed class OperationResult : IDisposable
         }
         
         var root = document.RootElement;
-        
+
         return new OperationResult(
             document,
             root.TryGetProperty(DataProp, out var data) ? data : default,

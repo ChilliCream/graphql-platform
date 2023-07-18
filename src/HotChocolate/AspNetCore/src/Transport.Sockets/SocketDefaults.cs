@@ -3,7 +3,7 @@ namespace HotChocolate.Transport.Sockets;
 /// <summary>
 /// Socket default setting values.
 /// </summary>
-public static class TransportDefaults
+public static class SocketDefaults
 {
     /// <summary>
     /// The default buffer size.
