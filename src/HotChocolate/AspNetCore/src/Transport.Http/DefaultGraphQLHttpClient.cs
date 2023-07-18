@@ -24,9 +24,12 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
     /// <param name="httpClient">
     /// The underlying HTTP client that is used to send the GraphQL request.
     /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="httpClient"/> is <see langword="null"/>.
+    /// </exception>
     public DefaultGraphQLHttpClient(HttpClient httpClient)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
     /// <summary>
@@ -71,12 +74,18 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         Uri requestUri,
         CancellationToken ct)
     {
-        using var requestMessage = CreateRequestMessage(request, requestUri);
+        // The array writer is needed for formatting the request.
+        // We keep it up here so that the associated memory is being
+        // kept until the request is done.
+        // DO NOT move the writer out of this method.
+        using var arrayWriter = new ArrayWriter();
+        using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
         var responseMessage = await _httpClient.SendAsync(requestMessage, ct).ConfigureAwait(false);
         return new GraphQLHttpResponse(responseMessage);
     }
 
     private static HttpRequestMessage CreateRequestMessage(
+        ArrayWriter arrayWriter,
         GraphQLHttpRequest request,
         Uri requestUri)
     {
@@ -97,11 +106,11 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
         if (method == GraphQLHttpMethod.Post)
         {
-            message.Content = CreatePostContent(request.Body);
+            message.Content = CreatePostContent(arrayWriter, request.Body);
         }
         else if (method == GraphQLHttpMethod.Get)
         {
-            message.RequestUri = CreateGetRequestUri(requestUri, request.Body);
+            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Body);
         }
         else
         {
@@ -113,10 +122,8 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         return message;
     }
 
-    private static HttpContent CreatePostContent(OperationRequest request)
+    private static HttpContent CreatePostContent(ArrayWriter arrayWriter, OperationRequest request)
     {
-        using var arrayWriter = new ArrayWriter();
-
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.WriteTo(jsonWriter);
         jsonWriter.Flush();
@@ -130,7 +137,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         return content;
     }
 
-    private static Uri CreateGetRequestUri(Uri baseAddress, OperationRequest request)
+    private static Uri CreateGetRequestUri(ArrayWriter arrayWriter, Uri baseAddress, OperationRequest request)
     {
         var sb = new StringBuilder();
         var appendAmpersand = false;
@@ -163,7 +170,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(request.VariablesNode)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.VariablesNode)));
         }
         else if (request.Variables is not null)
         {
@@ -176,7 +183,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("extensions=");
-            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(request.ExtensionsNode)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.ExtensionsNode)));
         }
         else if (request.Extensions is not null)
         {
@@ -198,10 +205,8 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         }
     }
 
-    private static string FormatDocumentAsJson(ObjectValueNode obj)
+    private static string FormatDocumentAsJson(ArrayWriter arrayWriter, ObjectValueNode obj)
     {
-        using var arrayWriter = new ArrayWriter();
-
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         Utf8JsonWriterHelper.WriteFieldValue(jsonWriter, obj);
         jsonWriter.Flush();
