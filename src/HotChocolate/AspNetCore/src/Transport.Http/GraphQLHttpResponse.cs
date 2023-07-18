@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+#if NET6_0_OR_GREATER
 using System.Diagnostics;
 using System.IO;
+#endif
 using System.Net.Http;
+#if NET6_0_OR_GREATER
 using System.Text;
+#endif
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,7 +37,11 @@ public sealed class GraphQLHttpResponse : IDisposable
         // to use status codes.
         if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
         {
+#if NET6_0_OR_GREATER
             return ReadAsResultInternalAsync(contentType.CharSet, cancellationToken);
+#else
+            return ReadAsResultInternalAsync(cancellationToken);
+#endif
         }
 
         // The server supports the older application/json media type and the status code
@@ -41,20 +49,28 @@ public sealed class GraphQLHttpResponse : IDisposable
         if (contentType?.MediaType.EqualsOrdinal(ContentType.Json) ?? false)
         {
             _message.EnsureSuccessStatusCode();
+#if NET6_0_OR_GREATER
             return ReadAsResultInternalAsync(contentType.CharSet, cancellationToken);
+#else
+            return ReadAsResultInternalAsync(cancellationToken);
+#endif
         }
 
         // if the media type is anything else we will return a transport error.
         return new ValueTask<OperationResult>(_transportError);
     }
-    
+
+#if NET6_0_OR_GREATER
     private async ValueTask<OperationResult> ReadAsResultInternalAsync(string? charSet, CancellationToken ct)
+#else
+    private async ValueTask<OperationResult> ReadAsResultInternalAsync(CancellationToken ct)
+#endif
     {
 #if NET6_0_OR_GREATER
         await using var contentStream = await _message.Content.ReadAsStreamAsync(ct)
             .ConfigureAwait(false);
 #else
-        using var contentStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var contentStream = await _message.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
         
         var stream = contentStream;

@@ -94,9 +94,13 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
         request.WriteTo(jsonWriter);
         jsonWriter.Flush();
-
+        
         var content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
+#if NET7_0_OR_GREATER
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
+#else
+        content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+#endif
         return content;
     }
 
