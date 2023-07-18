@@ -1,6 +1,5 @@
 using System;
 using System.Text.Unicode;
-using HotChocolate.Transport.Sockets.Client.Helpers;
 
 namespace HotChocolate.Transport.Serialization;
 

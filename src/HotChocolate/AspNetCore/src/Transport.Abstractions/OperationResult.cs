@@ -1,6 +1,6 @@
 using System;
 using System.Text.Json;
-using static HotChocolate.Transport.Sockets.Client.Helpers.Utf8GraphQLResultProperties;
+using static HotChocolate.Transport.Serialization.Utf8GraphQLResultProperties;
 
 namespace HotChocolate.Transport;
 

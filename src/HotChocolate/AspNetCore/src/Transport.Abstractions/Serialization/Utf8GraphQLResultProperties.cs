@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Transport.Sockets.Client.Helpers;
+namespace HotChocolate.Transport.Serialization;
 
 /// <summary>
 /// This helper class contains the default property names for the GraphQL result object.
