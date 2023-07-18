@@ -1,12 +1,13 @@
 using HotChocolate.Language;
+using HotChocolate.Transport;
 
 namespace HotChocolate.Fusion.Clients;
 
-public sealed class GraphQLRequest
+public sealed class SubgraphGraphQLRequest
 {
-    public GraphQLRequest(
+    public SubgraphGraphQLRequest(
         string subgraph,
-        DocumentNode document,
+        string document,
         ObjectValueNode? variableValues,
         ObjectValueNode? extensions)
     {
@@ -18,9 +19,12 @@ public sealed class GraphQLRequest
 
     public string Subgraph { get; }
 
-    public DocumentNode Document { get; }
+    public string Document { get; }
 
     public ObjectValueNode? VariableValues { get; }
 
     public ObjectValueNode? Extensions { get; }
+    
+    public static implicit operator OperationRequest(SubgraphGraphQLRequest method) 
+        => new(method.Document, null, null, method.VariableValues, method.Extensions);
 }

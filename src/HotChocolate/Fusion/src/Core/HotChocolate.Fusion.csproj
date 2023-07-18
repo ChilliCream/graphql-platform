@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\HotChocolate.Transport.Sockets.Client.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Fusion.Abstractions.csproj" />

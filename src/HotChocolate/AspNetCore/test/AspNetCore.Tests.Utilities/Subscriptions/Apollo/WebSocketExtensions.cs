@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
