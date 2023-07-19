@@ -107,6 +107,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         if (method == GraphQLHttpMethod.Post)
         {
             message.Content = CreatePostContent(arrayWriter, request.Body);
+            message.RequestUri = requestUri;
         }
         else if (method == GraphQLHttpMethod.Get)
         {
