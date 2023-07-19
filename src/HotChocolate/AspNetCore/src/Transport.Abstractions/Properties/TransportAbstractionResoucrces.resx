@@ -24,4 +24,7 @@
   <data name="OperationResult_Parse_JsonDataIsEmpty" xml:space="preserve">
     <value>The JSON document is empty.</value>
   </data>
+  <data name="FileReference_FileName_NullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or whitespace.</value>
+  </data>
 </root>

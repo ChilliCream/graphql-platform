@@ -56,5 +56,11 @@ namespace HotChocolate.Transport.Properties {
                 return ResourceManager.GetString("OperationResult_Parse_JsonDataIsEmpty", resourceCulture);
             }
         }
+        
+        internal static string FileReference_FileName_NullOrEmpty {
+            get {
+                return ResourceManager.GetString("FileReference_FileName_NullOrEmpty", resourceCulture);
+            }
+        }
     }
 }
