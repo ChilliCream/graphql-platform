@@ -8,8 +8,7 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Transport.Http;
 
 /// <summary>
-/// This file literal is used in order to allow for
-/// an optimized path through the execution engine.
+/// This file literal is used in order to allow for file references in <see cref="ObjectValueNode"/>.
 /// </summary>
 public sealed class FileReferenceNode
     : IValueNode<FileReference>
@@ -51,16 +50,32 @@ public sealed class FileReferenceNode
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
+    /// <summary>
+    /// Returns the <see cref="SyntaxKind"/> of the node.
+    /// </summary>
     public SyntaxKind Kind => SyntaxKind.StringValue;
 
+    /// <summary>
+    /// Gets a <see cref="Location"/> of this node in the parsed source text 
+    /// if available the parser provided this information.
+    /// </summary>
     public Location? Location => null;
 
+    /// <summary>
+    /// Gets the actual file reference.
+    /// </summary>
     public FileReference Value { get; }
 
     object? IValueNode.Value => Value;
 
     string IValueNode<string>.Value => Value.FileName;
 
+    /// <summary>
+    /// Gets the children of this node.
+    /// </summary>
+    /// <returns>
+    /// Returns the children of this node..
+    /// </returns>
     public IEnumerable<ISyntaxNode> GetNodes()
         => Enumerable.Empty<ISyntaxNode>();
 
@@ -169,9 +184,26 @@ public sealed class FileReferenceNode
         }
     }
 
+    /// <summary>
+    /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+    /// </returns>
     public override string ToString()
         => ToString(true);
 
+    /// <summary>
+    /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+    /// </summary>
+    /// <param name="indented">
+    /// A value that indicates whether the GraphQL output should be formatted,
+    /// which includes indenting nested GraphQL tokens, adding
+    /// new lines, and adding white space between property names and values.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+    /// </returns>
     public string ToString(bool indented)
         => SyntaxPrinter.Print(this, indented);
 }
