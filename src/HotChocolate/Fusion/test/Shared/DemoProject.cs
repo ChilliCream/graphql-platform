@@ -142,7 +142,10 @@ public sealed class DemoProject : IDisposable
                 .AddSingleton<ProductRepository>()
                 .AddGraphQLServer()
                 .AddQueryType<ProductQuery>()
+                .AddMutationType<ProductMutation>()
                 .AddGlobalObjectIdentification()
+                .AddMutationConventions()
+                .AddUploadType()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseRouting()
