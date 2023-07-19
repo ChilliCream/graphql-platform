@@ -242,14 +242,15 @@ internal static class Utf8JsonWriterHelper
                     fileInfos.Add(new FileUploadInfo(item.Key, name));
 
                     writer.WritePropertyName(name);
-
+                    writer.WriteStartArray();
+                    
                     foreach (var path in item.Value)
                     {
-                        writer.WriteStartArray();
-                        writer.WriteStringValue(path.ToString());
-                        writer.WriteEndArray();
+                        writer.WriteStringValue(path.ToString(operation));
                     }
 
+                    writer.WriteEndArray();
+                    
                     index++;
                 }
 
@@ -277,13 +278,14 @@ internal static class Utf8JsonWriterHelper
                     fileInfos.Add(new FileUploadInfo(item.Key, name));
 
                     writer.WritePropertyName(name);
-
+                    writer.WriteStartArray();
+                    
                     foreach (var path in item.Value)
                     {
-                        writer.WriteStartArray();
-                        writer.WriteStringValue(path.ToString());
-                        writer.WriteEndArray();
+                        writer.WriteStringValue(path.ToString(operation));
                     }
+
+                    writer.WriteEndArray();
 
                     index++;
                 }
@@ -442,6 +444,9 @@ internal static class Utf8JsonWriterHelper
         public static RootFilePath Root { get; } = new();
 
         public override string ToString()
+            => ToString(null);
+        
+        public string ToString(int? operation)
         {
             var sb = new StringBuilder();
             var current = this;
@@ -471,6 +476,15 @@ internal static class Utf8JsonWriterHelper
 
                 first = false;
                 current = current.Parent;
+            }
+
+            sb.Insert(0, "variables.");
+
+            if (operation.HasValue)
+            {
+                var indexString = operation.Value.ToString();
+                sb.Insert(0, indexString);
+                sb.Insert(indexString.Length, '.');
             }
 
             return sb.ToString();

@@ -1,3 +1,4 @@
+using System.Text;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
@@ -617,5 +618,48 @@ public class GraphQLHttpClientTests : ServerTestBase
                 """);
             cts.Cancel();
         }
+    }
+    
+    [Fact]
+    public async Task Post_GraphQL_FileUpload()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5000));
+        using var testServer = CreateStarWarsServer();
+        var httpClient = testServer.CreateClient();
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        var stream = new MemoryStream("abc"u8.ToArray());
+
+        var operation = new OperationRequest(
+            """
+            query ($upload: Upload!) {
+              singleUpload(file: $upload)
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["upload"] = new FileUpload(() => stream, "test.txt")
+            });
+
+        var requestUri = new Uri(CreateUrl("/upload"));
+
+        var request = new GraphQLHttpRequest(operation, requestUri)
+        {
+            Method = GraphQLHttpMethod.Post,
+            AllowFileUploads = true,
+            OnMessageCreated = (_, m) => m.Headers.AddGraphQLPreflight()
+        };
+
+        // act
+        var response = await client.SendAsync(request, cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            Data:
+            {"singleUpload":"abc"}
+            """);
     }
 }

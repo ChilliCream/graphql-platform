@@ -109,9 +109,9 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
         if (method == GraphQLHttpMethod.Post)
         {
-            message.Content = !request.AllowFileUploads
-                ? CreatePostContent(arrayWriter, request.Operation)
-                : CreateMultipartContent(arrayWriter, request.Operation);
+            message.Content = request.AllowFileUploads
+                ? CreateMultipartContent(arrayWriter, request)
+                : CreatePostContent(arrayWriter, request);
             message.RequestUri = requestUri;
         }
         else if (method == GraphQLHttpMethod.Get)
@@ -159,7 +159,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
         var form = new MultipartFormDataContent();
         
-        var operation = new ByteArrayContent(buffer, start, arrayWriter.Length);
+        var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
 #if NET7_0_OR_GREATER
         operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
@@ -173,7 +173,9 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 #else
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
 #endif
-        form.Add(operation, "map");
+        form.Add(fileMap, "map");
+
+        string a = Encoding.UTF8.GetString(buffer, 0, start);
 
         foreach (var fileInfo in fileInfos)
         {
