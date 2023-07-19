@@ -18,10 +18,9 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         using var testServer = CreateStarWarsServer();
         var httpClient = testServer.CreateClient();
-        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
         var client = new DefaultGraphQLHttpClient(httpClient);
-        var request = new GraphQLHttpRequest("query { hero(episode: JEDI) { name } }");
-            
+        var request = new GraphQLHttpRequest("query { hero(episode: JEDI) { name } }", new Uri(CreateUrl("/graphql")));
+
         // act
         using var response = await client.SendAsync(request, cts.Token);
 
@@ -37,14 +36,14 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         using var testServer = CreateStarWarsServer();
         var httpClient = testServer.CreateClient();
-        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
         var client = new DefaultGraphQLHttpClient(httpClient);
         var request = new GraphQLHttpRequest(
-            new OperationRequest("query { hero(episode: JEDI) { name } }"))
+            new OperationRequest("query { hero(episode: JEDI) { name } }"),
+            new Uri(CreateUrl("/graphql")))
         {
             Method = GraphQLHttpMethod.Get
         };
-            
+
         // act
         var response = await client.SendAsync(request, cts.Token);
 
@@ -60,7 +59,6 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         using var testServer = CreateStarWarsServer();
         var httpClient = testServer.CreateClient();
-        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
         var client = new DefaultGraphQLHttpClient(httpClient);
         var request = new GraphQLHttpRequest(
             new OperationRequest(
@@ -68,11 +66,11 @@ public class GraphQLHttpClientTests : ServerTestBase
                 variables: new Dictionary<string, object?>()
                 {
                     {"episode", "JEDI"}
-                }))
+                }), new Uri(CreateUrl("/graphql")))
         {
             Method = GraphQLHttpMethod.Get
         };
-            
+
         // act
         var response = await client.SendAsync(request, cts.Token);
 
@@ -80,7 +78,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Execute_Subscription_Over_SSE()
     {
@@ -131,7 +129,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         // assert
         await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
         {
-            result.MatchSnapshot();    
+            result.MatchSnapshot();
             cts.Cancel();
         }
     }
