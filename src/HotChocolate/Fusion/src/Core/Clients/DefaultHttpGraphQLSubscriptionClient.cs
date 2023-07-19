@@ -4,7 +4,7 @@ using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion.Clients;
 
-internal class DefaultHttpGraphQLSubscriptionClient : IGraphQLSubscriptionClient
+internal sealed class DefaultHttpGraphQLSubscriptionClient : IGraphQLSubscriptionClient
 {
     private readonly HttpClientConfiguration _config;
     private readonly DefaultGraphQLHttpClient _client;
