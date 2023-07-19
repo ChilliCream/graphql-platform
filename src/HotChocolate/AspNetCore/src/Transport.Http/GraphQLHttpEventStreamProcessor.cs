@@ -116,6 +116,7 @@ internal static class GraphQLHttpEventStreamProcessor
                             yield break;
                         }
                         
+                        message.Reset();
                         yield return operationResult;
                     }
 

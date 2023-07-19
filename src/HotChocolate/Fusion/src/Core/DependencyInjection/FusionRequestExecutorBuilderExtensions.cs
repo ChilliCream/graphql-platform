@@ -47,6 +47,7 @@ public static class FusionRequestExecutorBuilderExtensions
                 sp.GetRequiredService<IHttpClientFactory>()));
         services.TryAddSingleton<IGraphQLSubscriptionClientFactory>(
             sp => new DefaultWebSocketGraphQLSubscriptionClientFactory(
+                sp.GetRequiredService<IHttpClientFactory>(),
                 sp.GetRequiredService<IWebSocketConnectionFactory>()));
 
         var builder = services
@@ -384,6 +385,14 @@ public static class FusionRequestExecutorBuilderExtensions
             foreach (var config in fusionGraphConfig.WebSocketClients)
             {
                 map2.Add(config.SubgraphName, () => Create(config));
+            }
+            
+            foreach (var config in fusionGraphConfig.HttpClients)
+            {
+                if (!map2.ContainsKey(config.SubgraphName))
+                {
+                    map2.Add(config.SubgraphName, () => Create(config));
+                }
             }
         }
 
