@@ -1,5 +1,7 @@
 using System;
+using System.Buffers;
 using System.Text.Json;
+using static HotChocolate.Transport.Properties.TransportAbstractionResoucrces;
 using static HotChocolate.Transport.Serialization.Utf8GraphQLResultProperties;
 
 namespace HotChocolate.Transport;
@@ -77,6 +79,25 @@ public sealed class OperationResult : IDisposable
 
         return new OperationResult(
             document,
+            root.TryGetProperty(DataProp, out var data) ? data : default,
+            root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
+            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default);
+    }
+    
+    public static OperationResult Parse(ReadOnlySpan<byte> span)
+    {
+        if (span.Length == 0)
+        {
+            throw new ArgumentException(
+                OperationResult_Parse_JsonDataIsEmpty, 
+                nameof(span));
+        }
+        
+        var reader = new Utf8JsonReader(span, true, default);
+        var root = JsonElement.ParseValue(ref reader);
+
+        return new OperationResult(
+            null,
             root.TryGetProperty(DataProp, out var data) ? data : default,
             root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
             root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default);

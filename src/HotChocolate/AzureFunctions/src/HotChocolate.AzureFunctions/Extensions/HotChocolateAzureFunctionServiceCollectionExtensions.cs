@@ -97,12 +97,12 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
             var pipeline = new PipelineBuilder()
-                    .UseMiddleware<WebSocketSubscriptionMiddleware>()
-                    .UseMiddleware<HttpPostMiddleware>()
-                    .UseMiddleware<HttpMultipartMiddleware>()
-                    .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
+                    .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
                     .UseBananaCakePop(path)
-                    .UseMiddleware<HttpGetSchemaMiddleware>()
+                    .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
                     .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);

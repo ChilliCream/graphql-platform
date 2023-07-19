@@ -83,7 +83,7 @@ public static class EndpointRouteBuilderExtensions
             .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
+            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Integrated)
             .UseBananaCakePop(path)
             .Use(_ => context =>
@@ -164,7 +164,7 @@ public static class EndpointRouteBuilderExtensions
             .UseCancellation()
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, default(PathString))
+            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;

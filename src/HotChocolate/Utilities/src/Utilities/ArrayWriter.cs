@@ -204,6 +204,8 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         }
     }
 
+    public void Reset() => _start = 0;
+
     /// <inheritdoc/>
     public void Dispose()
     {

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 using HotChocolate.Utilities;
+using static System.Net.Http.HttpCompletionOption;
 
 namespace HotChocolate.Transport.Http;
 
@@ -16,7 +17,7 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 {
-    private readonly HttpClient _httpClient;
+    private readonly HttpClient _http;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultGraphQLHttpClient"/>.
@@ -29,7 +30,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
     /// </exception>
     public DefaultGraphQLHttpClient(HttpClient httpClient)
     {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
     /// <summary>
@@ -58,14 +59,14 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
             throw new ArgumentNullException(nameof(request));
         }
 
-        if (request.Uri is null && _httpClient.BaseAddress is null)
+        if (request.Uri is null && _http.BaseAddress is null)
         {
             throw new ArgumentException(
                 HttpResources.DefaultGraphQLHttpClient_SendAsync_RequestUriIsNull,
                 nameof(request));
         }
 
-        var requestUri = request.Uri ?? _httpClient.BaseAddress!;
+        var requestUri = request.Uri ?? _http.BaseAddress!;
         return ExecuteInternalAsync(request, requestUri, cancellationToken);
     }
 
@@ -80,7 +81,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         // DO NOT move the writer out of this method.
         using var arrayWriter = new ArrayWriter();
         using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
-        var responseMessage = await _httpClient.SendAsync(requestMessage, ct).ConfigureAwait(false);
+        var responseMessage = await _http.SendAsync(requestMessage, ResponseHeadersRead, ct).ConfigureAwait(false);
         return new GraphQLHttpResponse(responseMessage);
     }
 
@@ -99,19 +100,20 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
                 Accept =
                 {
                     new MediaTypeWithQualityHeaderValue(ContentType.GraphQL),
-                    new MediaTypeWithQualityHeaderValue(ContentType.Json)
+                    new MediaTypeWithQualityHeaderValue(ContentType.Json),
+                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream)
                 }
             }
         };
 
         if (method == GraphQLHttpMethod.Post)
         {
-            message.Content = CreatePostContent(arrayWriter, request.Body);
+            message.Content = CreatePostContent(arrayWriter, request.Operation);
             message.RequestUri = requestUri;
         }
         else if (method == GraphQLHttpMethod.Get)
         {
-            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Body);
+            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Operation);
         }
         else
         {
@@ -219,5 +221,5 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 #endif
     }
 
-    public void Dispose() => _httpClient.Dispose();
+    public void Dispose() => _http.Dispose();
 }

@@ -502,7 +502,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             {
                 // if the result is a subscription we consider this a perfect match and
                 // will use this format.
-                if (resultKind is ResultKind.Stream)
+                if (resultKind is ResultKind.Subscription or ResultKind.Stream)
                 {
                     possibleFormat = _eventStreamFormat;
                 }
