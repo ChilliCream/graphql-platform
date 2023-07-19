@@ -61,7 +61,7 @@ internal static class Utf8JsonWriterHelper
         Utf8JsonWriter writer,
         object? value)
     {
-        if (value is null or FileReference or FileReferenceNode)
+        if (value is null or NullValueNode or FileReference or FileReferenceNode)
         {
             writer.WriteNullValue();
             return;
@@ -69,10 +69,6 @@ internal static class Utf8JsonWriterHelper
 
         switch (value)
         {
-            case NullValueNode nullValueNode:
-              WriteFieldValue(writer, nullValueNode.Value);
-              break;
-
             case ObjectValueNode objectValue:
                 writer.WriteStartObject();
 
