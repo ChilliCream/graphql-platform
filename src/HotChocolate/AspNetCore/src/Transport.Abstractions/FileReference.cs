@@ -5,7 +5,8 @@ using static HotChocolate.Transport.Properties.TransportAbstractionResoucrces;
 namespace HotChocolate.Transport.Http;
 
 /// <summary>
-/// A file reference can be used to use the GraphQL file upload protocol.
+/// A file reference can be used to upload a file with the
+/// GraphQL multipart request protocol.
 /// </summary>
 public sealed class FileReference
 {
