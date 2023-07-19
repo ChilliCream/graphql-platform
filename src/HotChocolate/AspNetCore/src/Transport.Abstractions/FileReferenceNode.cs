@@ -7,24 +7,58 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Transport.Http;
 
-public class FileUploadNode 
-    : IValueNode<FileUpload>
+/// <summary>
+/// This file literal is used in order to allow for
+/// an optimized path through the execution engine.
+/// </summary>
+public sealed class FileReferenceNode
+    : IValueNode<FileReference>
     , IValueNode<string>
-    , IEquatable<FileUploadNode>
+    , IEquatable<FileReferenceNode>
 {
-    public FileUploadNode(FileUpload value)
+    /// <summary>
+    /// Creates a new instance of <see cref="FileReferenceNode" />
+    /// </summary>
+    /// <param name="stream">
+    /// The file stream.
+    /// </param>
+    /// <param name="fileName">
+    /// The file name.
+    /// </param>
+    public FileReferenceNode(Stream stream, string fileName)
+        : this(new FileReference(() => stream, fileName)) { }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="FileReferenceNode" />
+    /// </summary>
+    /// <param name="openRead">
+    /// The stream factory.
+    /// </param>
+    /// <param name="fileName">
+    /// The file name.
+    /// </param>
+    public FileReferenceNode(Func<Stream> openRead, string fileName)
+        : this(new FileReference(openRead, fileName)) { }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="FileReferenceNode" />
+    /// </summary>
+    /// <param name="value">
+    /// The file Reference.
+    /// </param>
+    public FileReferenceNode(FileReference value)
     {
-        Value = value;
+        Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     public SyntaxKind Kind => SyntaxKind.StringValue;
 
     public Location? Location => null;
-    
-    public FileUpload Value { get; }
+
+    public FileReference Value { get; }
 
     object? IValueNode.Value => Value;
-    
+
     string IValueNode<string>.Value => Value.FileName;
 
     public IEnumerable<ISyntaxNode> GetNodes()
@@ -32,18 +66,18 @@ public class FileUploadNode
 
     /// <summary>
     /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="FileUploadNode"/>.
+    /// to the current <see cref="FileReferenceNode"/>.
     /// </summary>
     /// <param name="other">
     /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="FileUploadNode"/>.
+    /// <see cref="FileReferenceNode"/>.
     /// </param>
     /// <returns>
     /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="FileUploadNode"/>;
+    /// to the current <see cref="FileReferenceNode"/>;
     /// otherwise, <c>false</c>.
     /// </returns>
-    public bool Equals(FileUploadNode other)
+    public bool Equals(FileReferenceNode? other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -58,18 +92,18 @@ public class FileUploadNode
 
         return false;
     }
-    
+
     /// <summary>
     /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="FileUploadNode"/>.
+    /// to the current <see cref="FileReferenceNode"/>.
     /// </summary>
     /// <param name="other">
     /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="FileUploadNode"/>.
+    /// <see cref="FileReferenceNode"/>.
     /// </param>
     /// <returns>
     /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="FileUploadNode"/>;
+    /// to the current <see cref="FileReferenceNode"/>;
     /// otherwise, <c>false</c>.
     /// </returns>
     public bool Equals(IValueNode? other)
@@ -84,7 +118,7 @@ public class FileUploadNode
             return true;
         }
 
-        if (other is FileUploadNode file)
+        if (other is FileReferenceNode file)
         {
             return Equals(file);
         }
@@ -94,15 +128,15 @@ public class FileUploadNode
 
     /// <summary>
     /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="FileUploadNode"/>.
+    /// the current <see cref="FileReferenceNode"/>.
     /// </summary>
     /// <param name="obj">
     /// The <see cref="object"/> to compare with the current
-    /// <see cref="FileUploadNode"/>.
+    /// <see cref="FileReferenceNode"/>.
     /// </param>
     /// <returns>
     /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="FileUploadNode"/>; otherwise, <c>false</c>.
+    /// current <see cref="FileReferenceNode"/>; otherwise, <c>false</c>.
     /// </returns>
     public override bool Equals(object? obj)
     {
@@ -116,11 +150,11 @@ public class FileUploadNode
             return true;
         }
 
-        return Equals(obj as FileUploadNode);
+        return Equals(obj as FileReferenceNode);
     }
-    
+
     /// <summary>
-    /// Serves as a hash function for a <see cref="FileUploadNode"/>
+    /// Serves as a hash function for a <see cref="FileReferenceNode"/>
     /// object.
     /// </summary>
     /// <returns>
@@ -131,47 +165,13 @@ public class FileUploadNode
     {
         unchecked
         {
-            return (Kind.GetHashCode() * 397)
-                ^ (Value.GetHashCode() * 97);
+            return (Kind.GetHashCode() * 397) ^ (Value.GetHashCode() * 97);
         }
     }
 
-    public override string ToString() 
+    public override string ToString()
         => ToString(true);
 
     public string ToString(bool indented)
         => SyntaxPrinter.Print(this, indented);
-}
-
-public sealed class FileUpload
-{
-    private readonly Func<Stream> _openRead;
-
-    public FileUpload(Func<Stream> openRead, string fileName)
-    {
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(fileName));
-        }
-        
-        _openRead = openRead ?? throw new ArgumentNullException(nameof(openRead));
-        FileName = fileName;
-    }
-
-    public string FileName { get; }
-    
-    public Stream OpenRead() => _openRead();
-}
-
-public sealed class FileUploadInfo
-{
-    internal FileUploadInfo(FileUpload file, string name)
-    {
-        Name = name;
-        File = file;
-    }
-
-    public string Name { get; }
-    
-    public FileUpload File { get; }
 }

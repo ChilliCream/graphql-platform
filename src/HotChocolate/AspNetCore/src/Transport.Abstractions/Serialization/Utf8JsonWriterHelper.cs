@@ -61,7 +61,7 @@ internal static class Utf8JsonWriterHelper
         Utf8JsonWriter writer,
         object? value)
     {
-        if (value is null or FileUpload or FileUploadNode)
+        if (value is null or FileReference or FileReferenceNode)
         {
             writer.WriteNullValue();
             return;
@@ -219,19 +219,19 @@ internal static class Utf8JsonWriterHelper
         writer.WriteEndArray();
     }
 
-    internal static IReadOnlyList<FileUploadInfo> WriteFilesMap(
+    internal static IReadOnlyList<FileReferenceInfo> WriteFilesMap(
         Utf8JsonWriter writer,
         OperationRequest operationRequest,
         int? operation = null)
     {
         if (operationRequest.VariablesNode is not null)
         {
-            Dictionary<FileUpload, FilePath[]>? files = null;
+            Dictionary<FileReference, FilePath[]>? files = null;
             CollectFiles(operationRequest.VariablesNode, FilePath.Root, ref files);
 
             if (files is not null)
             {
-                var fileInfos = new List<FileUploadInfo>();
+                var fileInfos = new List<FileReferenceInfo>();
                 var index = 0;
 
                 writer.WriteStartObject();
@@ -239,7 +239,7 @@ internal static class Utf8JsonWriterHelper
                 foreach (var item in files)
                 {
                     var name = index.ToString();
-                    fileInfos.Add(new FileUploadInfo(item.Key, name));
+                    fileInfos.Add(new FileReferenceInfo(item.Key, name));
 
                     writer.WritePropertyName(name);
                     writer.WriteStartArray();
@@ -262,12 +262,12 @@ internal static class Utf8JsonWriterHelper
         
         if (operationRequest.Variables is not null)
         {
-            Dictionary<FileUpload, FilePath[]>? files = null;
+            Dictionary<FileReference, FilePath[]>? files = null;
             CollectFiles(operationRequest.Variables, FilePath.Root, ref files);
 
             if (files is not null)
             {
-                var fileInfos = new List<FileUploadInfo>();
+                var fileInfos = new List<FileReferenceInfo>();
                 var index = 0;
 
                 writer.WriteStartObject();
@@ -275,7 +275,7 @@ internal static class Utf8JsonWriterHelper
                 foreach (var item in files)
                 {
                     var name = index.ToString();
-                    fileInfos.Add(new FileUploadInfo(item.Key, name));
+                    fileInfos.Add(new FileReferenceInfo(item.Key, name));
 
                     writer.WritePropertyName(name);
                     writer.WriteStartArray();
@@ -296,13 +296,13 @@ internal static class Utf8JsonWriterHelper
             }
         }
 
-        return Array.Empty<FileUploadInfo>();
+        return Array.Empty<FileReferenceInfo>();
     }
 
     private static void CollectFiles(
         object? obj,
         FilePath path,
-        ref Dictionary<FileUpload, FilePath[]>? files)
+        ref Dictionary<FileReference, FilePath[]>? files)
     {
         if (obj is null)
         {
@@ -311,11 +311,11 @@ internal static class Utf8JsonWriterHelper
 
         switch (obj)
         {
-            case FileUploadNode fileUpload:
+            case FileReferenceNode fileUpload:
                 CollectFile(fileUpload.Value, path, ref files);
                 break;
 
-            case FileUpload fileUpload:
+            case FileReference fileUpload:
                 CollectFile(fileUpload, path, ref files);
                 break;
 
@@ -340,7 +340,7 @@ internal static class Utf8JsonWriterHelper
     private static void CollectFiles(
         Dictionary<string, object?> dict,
         FilePath path,
-        ref Dictionary<FileUpload, FilePath[]>? files)
+        ref Dictionary<FileReference, FilePath[]>? files)
     {
         foreach (var item in dict)
         {
@@ -357,7 +357,7 @@ internal static class Utf8JsonWriterHelper
     private static void CollectFiles(
         IList list,
         FilePath path,
-        ref Dictionary<FileUpload, FilePath[]>? files)
+        ref Dictionary<FileReference, FilePath[]>? files)
     {
         for (var i = 0; i < list.Count; i++)
         {
@@ -376,7 +376,7 @@ internal static class Utf8JsonWriterHelper
     private static void CollectFiles(
         ObjectValueNode obj,
         FilePath path,
-        ref Dictionary<FileUpload, FilePath[]>? files)
+        ref Dictionary<FileReference, FilePath[]>? files)
     {
         foreach (var item in obj.Fields)
         {
@@ -393,7 +393,7 @@ internal static class Utf8JsonWriterHelper
     private static void CollectFiles(
         ListValueNode obj,
         FilePath path,
-        ref Dictionary<FileUpload, FilePath[]>? files)
+        ref Dictionary<FileReference, FilePath[]>? files)
     {
         for (var i = 0; i < obj.Items.Count; i++)
         {
@@ -410,11 +410,11 @@ internal static class Utf8JsonWriterHelper
     }
 
     private static void CollectFile(
-        FileUpload file,
+        FileReference file,
         FilePath path,
-        ref Dictionary<FileUpload, FilePath[]>? files)
+        ref Dictionary<FileReference, FilePath[]>? files)
     {
-        files ??= new Dictionary<FileUpload, FilePath[]>();
+        files ??= new Dictionary<FileReference, FilePath[]>();
 
         if (files.TryGetValue(file, out var list))
         {

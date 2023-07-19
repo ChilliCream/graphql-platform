@@ -1,6 +1,6 @@
-using System.Text;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Language;
 using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
 
 namespace HotChocolate.Transport.Http.Tests;
@@ -639,8 +639,54 @@ public class GraphQLHttpClientTests : ServerTestBase
             """,
             variables: new Dictionary<string, object?>
             {
-                ["upload"] = new FileUpload(() => stream, "test.txt")
+                ["upload"] = new FileReference(() => stream, "test.txt")
             });
+
+        var requestUri = new Uri(CreateUrl("/upload"));
+
+        var request = new GraphQLHttpRequest(operation, requestUri)
+        {
+            Method = GraphQLHttpMethod.Post,
+            AllowFileUploads = true,
+            OnMessageCreated = (_, m) => m.Headers.AddGraphQLPreflight()
+        };
+
+        // act
+        var response = await client.SendAsync(request, cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            Data:
+            {"singleUpload":"abc"}
+            """);
+    }
+    
+    [Fact]
+    public async Task Post_GraphQL_FileUpload_With_ObjectValueNode()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5000));
+        using var testServer = CreateStarWarsServer();
+        var httpClient = testServer.CreateClient();
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        var stream = new MemoryStream("abc"u8.ToArray());
+
+        var operation = new OperationRequest(
+            """
+            query ($upload: Upload!) {
+              singleUpload(file: $upload)
+            }
+            """,
+            null,
+            null,
+            variables: new ObjectValueNode(
+                new ObjectFieldNode(
+                    "upload", 
+                    new FileReferenceNode(() => stream, "test.txt"))),
+            extensions: null);
 
         var requestUri = new Uri(CreateUrl("/upload"));
 

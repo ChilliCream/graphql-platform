@@ -174,9 +174,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
 #endif
         form.Add(fileMap, "map");
-
-        string a = Encoding.UTF8.GetString(buffer, 0, start);
-
+        
         foreach (var fileInfo in fileInfos)
         {
             var file = new StreamContent(fileInfo.File.OpenRead());
@@ -192,7 +190,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         request.Operation.WriteTo(jsonWriter);
     }
 
-    private static IReadOnlyList<FileUploadInfo> WriteFileMapJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    private static IReadOnlyList<FileReferenceInfo> WriteFileMapJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         return Utf8JsonWriterHelper.WriteFilesMap(jsonWriter, request.Operation);
