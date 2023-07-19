@@ -67,6 +67,10 @@ internal static class Utf8JsonWriterHelper
 
         switch (value)
         {
+            case NullValueNode nullValueNode:
+              WriteFieldValue(writer, nullValueNode.Value);
+              break;
+
             case ObjectValueNode objectValue:
                 writer.WriteStartObject();
 
