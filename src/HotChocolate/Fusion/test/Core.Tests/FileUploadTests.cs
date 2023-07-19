@@ -26,7 +26,7 @@ public class FileUploadTests
     {
         _logFactory = () => new TestCompositionLog(output);
     }
-    
+
     [Fact]
     public async Task AutoCompose()
     {
@@ -45,7 +45,7 @@ public class FileUploadTests
 
         // assert
         SchemaFormatter
-            .FormatAsDocument(fusionGraph)
+            .FormatAsString(fusionGraph)
             .MatchSnapshot(extension: ".graphql");
     }
 
@@ -85,7 +85,7 @@ public class FileUploadTests
                 }
             }
             """);
-        
+
         var stream = new MemoryStream("abc"u8.ToArray());
 
         // act
@@ -102,7 +102,7 @@ public class FileUploadTests
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync(cts.Token);
     }
-    
+
     private sealed class NoWebSockets : IWebSocketConnectionFactory
     {
         public IWebSocketConnection CreateConnection(string name)

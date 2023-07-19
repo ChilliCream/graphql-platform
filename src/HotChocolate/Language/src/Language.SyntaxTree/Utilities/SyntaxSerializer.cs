@@ -6,10 +6,12 @@ namespace HotChocolate.Language.Utilities;
 public sealed partial class SyntaxSerializer
 {
     private readonly bool _indented;
+    private readonly DirectiveIndentationOptions? _directiveIndentationOptions;
 
     public SyntaxSerializer(SyntaxSerializerOptions options = default)
     {
-        _indented = options.Indented;
+        _indented = options.Indentation is not null;
+        _directiveIndentationOptions = options.Indentation?.Directives;
     }
 
     public void Serialize(ISyntaxNode node, ISyntaxWriter writer)

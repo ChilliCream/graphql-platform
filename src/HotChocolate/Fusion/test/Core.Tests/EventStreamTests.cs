@@ -75,7 +75,7 @@ public class EventStreamTests
         await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
         await snapshot.MatchAsync(cts.Token);
     }
-    
+
     private sealed class NoWebSockets : IWebSocketConnectionFactory
     {
         public IWebSocketConnection CreateConnection(string name)

@@ -38,7 +38,7 @@ public class DemoIntegrationTests
 
         // assert
         SchemaFormatter
-            .FormatAsDocument(fusionGraph)
+            .FormatAsString(fusionGraph)
             .MatchSnapshot(extension: ".graphql");
     }
 
@@ -59,7 +59,7 @@ public class DemoIntegrationTests
 
         // assert
         SchemaFormatter
-            .FormatAsDocument(fusionGraph)
+            .FormatAsString(fusionGraph)
             .MatchSnapshot(extension: ".graphql");
     }
 
