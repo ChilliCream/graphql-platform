@@ -14,7 +14,6 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 {
     private readonly IHttpRequestParser _requestParser;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
-    private readonly PathString _matchUrl;
 
     public HttpGetMiddleware(
         HttpRequestDelegate next,
@@ -22,7 +21,6 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
-        PathString matchUrl,
         string schemaName)
         : base(next, executorResolver, responseFormatter, schemaName)
     {
@@ -30,7 +28,6 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             throw new ArgumentNullException(nameof(requestParser));
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
-        _matchUrl = matchUrl;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -170,9 +167,31 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             }
             else
             {
-                requestFlags = (requestFlags & AllowStreams) == AllowStreams
-                    ? AllowQuery | AllowMutation | AllowStreams
-                    : AllowQuery | AllowMutation;
+                var flags = options.AllowedGetOperations;
+                var newRequestFlags = GraphQLRequestFlags.None;
+                
+                if ((flags & AllowedGetOperations.Query) == AllowedGetOperations.Query)
+                {
+                    newRequestFlags |= AllowQuery;
+                }
+                
+                if ((flags & AllowedGetOperations.Mutation) == AllowedGetOperations.Mutation)
+                {
+                    newRequestFlags |= AllowMutation;
+                }
+                
+                if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription &&
+                    (requestFlags & AllowSubscription) == AllowSubscription)
+                {
+                    newRequestFlags |= AllowSubscription;
+                }
+                
+                if((requestFlags & AllowStreams) == AllowStreams)
+                {
+                    newRequestFlags |= AllowStreams;
+                }
+
+                requestFlags = newRequestFlags;
             }
 
             result = await ExecuteSingleAsync(

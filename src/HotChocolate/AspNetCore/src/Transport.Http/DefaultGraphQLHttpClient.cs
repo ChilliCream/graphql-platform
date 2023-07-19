@@ -108,12 +108,12 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
         if (method == GraphQLHttpMethod.Post)
         {
-            message.Content = CreatePostContent(arrayWriter, request.Body);
+            message.Content = CreatePostContent(arrayWriter, request.Operation);
             message.RequestUri = requestUri;
         }
         else if (method == GraphQLHttpMethod.Get)
         {
-            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Body);
+            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Operation);
         }
         else
         {

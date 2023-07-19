@@ -13,7 +13,6 @@ internal sealed class OperationResultSnapshotValueFormatter : SnapshotValueForma
             snapshot.Append("Data:");
             snapshot.AppendLine();
             snapshot.Append(value.Data.ToString());
-            snapshot.AppendLine();
         }
         
         if (value.Errors.ValueKind is JsonValueKind.Array)
@@ -21,7 +20,6 @@ internal sealed class OperationResultSnapshotValueFormatter : SnapshotValueForma
             snapshot.Append("Errors:");
             snapshot.AppendLine();
             snapshot.Append(value.Errors.ToString());
-            snapshot.AppendLine();
         }
         
         if (value.Extensions.ValueKind is JsonValueKind.Object)
@@ -29,7 +27,6 @@ internal sealed class OperationResultSnapshotValueFormatter : SnapshotValueForma
             snapshot.Append("Extensions:");
             snapshot.AppendLine();
             snapshot.Append(value.Extensions.ToString());
-            snapshot.AppendLine();
         }
     }
 }
