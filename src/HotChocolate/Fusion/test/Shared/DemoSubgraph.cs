@@ -31,25 +31,45 @@ public sealed class DemoSubgraph
     public TestServer Server { get; }
 
     public SubgraphConfiguration ToConfiguration(
-        string extensions)
-        => new SubgraphConfiguration(
-            Name,
-            Schema.ToString(),
-            extensions,
-            new IClientConfiguration[]
-            {
-                new HttpClientConfiguration(HttpEndpointUri),
-                new WebSocketClientConfiguration(WebSocketEndpointUri)
-            });
+        string extensions, 
+        bool onlyHttp = false)
+        => onlyHttp
+            ? new SubgraphConfiguration(
+                Name,
+                Schema.ToString(),
+                extensions,
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri)
+                })
+            : new SubgraphConfiguration(
+                Name,
+                Schema.ToString(),
+                extensions,
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri),
+                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                });
 
-     public SubgraphConfiguration ToConfiguration()
-        => new SubgraphConfiguration(
-            Name,
-            Schema.ToString(),
-            Array.Empty<string>(),
-            new IClientConfiguration[]
-            {
-                new HttpClientConfiguration(HttpEndpointUri),
-                new WebSocketClientConfiguration(WebSocketEndpointUri)
-            });
+     public SubgraphConfiguration ToConfiguration(
+         bool onlyHttp = false)
+        => onlyHttp 
+            ? new SubgraphConfiguration(
+                Name,
+                Schema.ToString(),
+                Array.Empty<string>(),
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri)
+                })
+            : new SubgraphConfiguration(
+                Name,
+                Schema.ToString(),
+                Array.Empty<string>(),
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri),
+                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                });
 }
