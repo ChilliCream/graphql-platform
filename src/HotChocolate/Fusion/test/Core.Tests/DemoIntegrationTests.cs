@@ -1343,7 +1343,7 @@ public class DemoIntegrationTests
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
-    
+
     [Fact]
     public async Task Require_Data_In_Context_3()
     {
@@ -1400,6 +1400,53 @@ public class DemoIntegrationTests
                 .SetQuery(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task GetFirstPage_With_After_Null()
+    {
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Appointment.ToConfiguration()
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query AfterNull($after: String) {
+                appointments(after: $after) {
+                   nodes {
+                        id
+                   }
+                }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("after", null)
                 .Create());
 
         // assert
