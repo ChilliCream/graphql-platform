@@ -32,6 +32,9 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         const int bufferSize = 64;
         var buffer = new byte[bufferSize];
+#if NET6_0_OR_GREATER
+        var bufferMemory = new Memory<byte>(buffer);
+#endif
 
         try
         {
@@ -39,7 +42,11 @@ internal static class GraphQLHttpEventStreamProcessor
             {
                 try
                 {
+#if NET6_0_OR_GREATER
+                    var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
+#else
                     var bytesRead = await stream.ReadAsync(buffer, 0, bufferSize, ct).ConfigureAwait(false);
+#endif
 
                     if (bytesRead == 0)
                     {

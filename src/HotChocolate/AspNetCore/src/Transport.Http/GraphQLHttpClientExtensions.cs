@@ -7,100 +7,131 @@ namespace HotChocolate.Transport.Http;
 
 public static class GraphQLHttpClientExtensions
 {
-    public static async Task<GraphQLHttpResponse> GetAsync(
+    /// <summary>
+    /// Sends a GraphQL GET request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         string query,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query);
-        return await GetAsync(client, operation, cancellationToken).ConfigureAwait(false);
+        return GetAsync(client, operation, cancellationToken);
     }
-    
-    public static async Task<GraphQLHttpResponse> GetAsync(
+
+    /// <summary>
+    /// Sends a GraphQL GET request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="variables">
+    /// The GraphQL variables.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables,
         CancellationToken cancellationToken = default)
     {
         var operation = new OperationRequest(query, variables: variables);
-        return await GetAsync(client, operation, cancellationToken).ConfigureAwait(false);
+        return GetAsync(client, operation, cancellationToken);
     }
-    
-    public static async Task<GraphQLHttpResponse> GetAsync(
+
+    /// <summary>
+    /// Sends a GraphQL GET request to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="variables">
+    /// The GraphQL variables.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables = default,
         Uri? uri = default,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-        
         var operation = new OperationRequest(query, variables: variables);
 
         return uri is null
-            ? await GetAsync(client, operation, cancellationToken).ConfigureAwait(false)
-            : await GetAsync(client, operation, uri, cancellationToken).ConfigureAwait(false);
+            ? GetAsync(client, operation, cancellationToken)
+            : GetAsync(client, operation, uri, cancellationToken);
     }
     
-    public static async Task<GraphQLHttpResponse> GetAsync(
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables = default,
         string? uri = default,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-        
         var operation = new OperationRequest(query, variables: variables);
-
         return uri is null
-            ? await GetAsync(client, operation, cancellationToken).ConfigureAwait(false)
-            : await GetAsync(client, operation, uri, cancellationToken).ConfigureAwait(false);
+            ? GetAsync(client, operation, cancellationToken)
+            : GetAsync(client, operation, uri, cancellationToken);
     }
     
-    public static async Task<GraphQLHttpResponse> GetAsync(
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         string query,
         Uri? uri = default,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-        
         var operation = new OperationRequest(query);
-
         return uri is null
-            ? await GetAsync(client, operation, cancellationToken).ConfigureAwait(false)
-            : await GetAsync(client, operation, uri, cancellationToken).ConfigureAwait(false);
+            ? GetAsync(client, operation, cancellationToken)
+            : GetAsync(client, operation, uri, cancellationToken);
     }
     
-    public static async Task<GraphQLHttpResponse> GetAsync(
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         string query,
         string? uri = default,
         CancellationToken cancellationToken = default)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
-        
         var operation = new OperationRequest(query);
-
         return uri is null
-            ? await GetAsync(client, operation, cancellationToken).ConfigureAwait(false)
-            : await GetAsync(client, operation, uri, cancellationToken).ConfigureAwait(false);
+            ? GetAsync(client, operation, cancellationToken)
+            : GetAsync(client, operation, uri, cancellationToken);
     }
     
-    public static async Task<GraphQLHttpResponse> GetAsync(
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         OperationRequest operation,
         CancellationToken cancellationToken = default)
@@ -110,11 +141,17 @@ public static class GraphQLHttpClientExtensions
             throw new ArgumentNullException(nameof(client));
         }
         
-        var request = new GraphQLHttpRequest(operation) { Method = GraphQLHttpMethod.Get };
-        return await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var request = new GraphQLHttpRequest(operation)
+        {
+            Method = GraphQLHttpMethod.Get
+        };
+        
+        return client.SendAsync(request, cancellationToken);
     } 
     
-    public static async Task<GraphQLHttpResponse> GetAsync(
+    
+    
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         OperationRequest operation,
         string uri,
@@ -130,11 +167,15 @@ public static class GraphQLHttpClientExtensions
             throw new ArgumentNullException(nameof(uri));
         }
         
-        var request = new GraphQLHttpRequest(operation, new Uri(uri)) { Method = GraphQLHttpMethod.Get };
-        return await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-    } 
-    
-    public static async Task<GraphQLHttpResponse> GetAsync(
+        var request = new GraphQLHttpRequest(operation, new Uri(uri))
+        {
+            Method = GraphQLHttpMethod.Get
+        };
+        
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    public static Task<GraphQLHttpResponse> GetAsync(
         this IGraphQLHttpClient client,
         OperationRequest operation,
         Uri uri,
@@ -150,10 +191,14 @@ public static class GraphQLHttpClientExtensions
             throw new ArgumentNullException(nameof(uri));
         }
         
-        var request = new GraphQLHttpRequest(operation, uri) { Method = GraphQLHttpMethod.Get };
-        return await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var request = new GraphQLHttpRequest(operation, uri)
+        {
+            Method = GraphQLHttpMethod.Get
+        };
+        
+        return client.SendAsync(request, cancellationToken);
     }
-    
+
     public static async Task<GraphQLHttpResponse> PostAsync(
         this IGraphQLHttpClient client,
         string query,
