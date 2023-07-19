@@ -81,23 +81,55 @@ public class GraphQLHttpClientTests : ServerTestBase
         body.MatchSnapshot();
     }
     
-    [Fact(Skip = "Needs to be implemented.")]
+    [Fact]
     public async Task Execute_Subscription_Over_SSE()
     {
         // arrange
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(50000));
         using var testServer = CreateStarWarsServer();
         var httpClient = testServer.CreateClient();
         httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+
+        var subscriptionRequest = new GraphQLHttpRequest(
+            """
+            subscription { 
+              onReview(episode: JEDI) { 
+                stars 
+              } 
+            }
+            """);
+        
+        var mutationRequest = new GraphQLHttpRequest(
+            new OperationRequest(
+                """
+                mutation CreateReviewForEpisode(
+                    $ep: Episode!, $review: ReviewInput!) {
+                    createReview(episode: $ep, review: $review) {
+                        stars
+                        commentary
+                    }
+                }
+                """,
+                variables: new Dictionary<string, object?>
+                {
+                    ["ep"] = "JEDI",
+                    ["review"] = new Dictionary<string, object?>
+                    {
+                        ["stars"] = 5,
+                        ["commentary"] = "This is a great movie!"
+                    }
+                }));
+        
         var client = new DefaultGraphQLHttpClient(httpClient);
-        var request = new GraphQLHttpRequest(
-            new OperationRequest("subscription { onReview(episode: JEDI) { stars } }"));
             
         // act
-        var response = await client.SendAsync(request, cts.Token);
+        var subscriptionResponse = await client.SendAsync(subscriptionRequest, cts.Token);
+        var mutationResponse = await client.SendAsync(mutationRequest, cts.Token);
+        
+        mutationResponse.EnsureSuccessStatusCode();
 
         // assert
-        await foreach (var result in response.ReadAsResultStreamAsync(cts.Token).WithCancellation(cts.Token))
+        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
         {
             result.MatchSnapshot();    
             cts.Cancel();

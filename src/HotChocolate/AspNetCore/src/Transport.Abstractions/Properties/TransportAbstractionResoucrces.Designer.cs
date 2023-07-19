@@ -8,6 +8,9 @@
 //------------------------------------------------------------------------------
 
 namespace HotChocolate.Transport.Properties {
+    using System;
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -25,7 +28,7 @@ namespace HotChocolate.Transport.Properties {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Transport.Abstractions.Properties.TransportAbstractionResoucrces", typeof(TransportAbstractionResoucrces).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Transport.Properties.TransportAbstractionResoucrces", typeof(TransportAbstractionResoucrces).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -45,6 +48,12 @@ namespace HotChocolate.Transport.Properties {
         internal static string OperationRequest_QueryOrPersistedQueryId {
             get {
                 return ResourceManager.GetString("OperationRequest_QueryOrPersistedQueryId", resourceCulture);
+            }
+        }
+        
+        internal static string OperationResult_Parse_JsonDataIsEmpty {
+            get {
+                return ResourceManager.GetString("OperationResult_Parse_JsonDataIsEmpty", resourceCulture);
             }
         }
     }

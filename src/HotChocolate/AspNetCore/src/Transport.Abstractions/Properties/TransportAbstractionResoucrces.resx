@@ -21,4 +21,7 @@
   <data name="OperationRequest_QueryOrPersistedQueryId" xml:space="preserve">
     <value>Either a query needs to be provided or a persisted query id.</value>
   </data>
+  <data name="OperationResult_Parse_JsonDataIsEmpty" xml:space="preserve">
+    <value>The JSON document is empty.</value>
+  </data>
 </root>

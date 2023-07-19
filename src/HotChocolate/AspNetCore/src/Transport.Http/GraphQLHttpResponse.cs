@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 #if NET6_0_OR_GREATER
 using System.Diagnostics;
 using System.IO;
 #endif
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 #if NET6_0_OR_GREATER
 using System.Text;
 #endif
@@ -40,6 +42,21 @@ public sealed class GraphQLHttpResponse : IDisposable
     {
         _message = message ?? throw new ArgumentNullException(nameof(message));
     }
+    
+    /// <summary>
+    /// Gets the HTTP response status code.
+    /// </summary>
+    public HttpStatusCode StatusCode => _message.StatusCode;
+    
+    /// <summary>
+    /// Specifies whether the HTTP response was successful.
+    /// </summary>
+    public bool IsSuccessStatusCode => _message.IsSuccessStatusCode;
+    
+    /// <summary>
+    /// Throws an exception if the HTTP response was unsuccessful.
+    /// </summary>
+    public void EnsureSuccessStatusCode() => _message.EnsureSuccessStatusCode();
 
     /// <summary>
     /// Reads the GraphQL response as a <see cref="OperationResult"/>.
@@ -129,14 +146,82 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// read operation to read the stream of <see cref="OperationResult"/>s from the underlying
     /// <see cref="HttpResponseMessage"/>.
     /// </returns>
-    /// <exception cref="NotSupportedException">
-    /// This method is not yet supported.
-    /// </exception>
     public IAsyncEnumerable<OperationResult> ReadAsResultStreamAsync(CancellationToken cancellationToken = default)
     {
-        throw new NotSupportedException();
+        var contentType = _message.Content.Headers.ContentType;
+        
+        if (contentType?.MediaType.EqualsOrdinal(ContentType.EventStream) ?? false)
+        {
+#if NET6_0_OR_GREATER
+            return ReadAsResultStreamInternalAsync(contentType.CharSet, cancellationToken);
+#else
+            return ReadAsResultStreamInternalAsync(cancellationToken);
+#endif
+        }
+        
+        // The server supports the newer graphql-response+json media type and users are free
+        // to use status codes.
+        if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
+        {
+#if NET6_0_OR_GREATER
+            return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
+#else
+            return SingleResult(ReadAsResultInternalAsync(cancellationToken));
+#endif
+        }
+
+        // The server supports the older application/json media type and the status code
+        // is expected to be a 2xx for a valid GraphQL response.
+        if (contentType?.MediaType.EqualsOrdinal(ContentType.Json) ?? false)
+        {
+            _message.EnsureSuccessStatusCode();
+#if NET6_0_OR_GREATER
+            return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
+#else
+            return SingleResult(ReadAsResultInternalAsync(cancellationToken));
+#endif
+        }
+
+        return SingleResult(new ValueTask<OperationResult>(_transportError));
     }
-    
+
+#if NET6_0_OR_GREATER
+    private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
+        string? charSet, 
+        [EnumeratorCancellation] CancellationToken ct)
+#else
+    private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
+        [EnumeratorCancellation] CancellationToken ct)
+#endif
+    {
+#if NET6_0_OR_GREATER
+        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct)
+            .ConfigureAwait(false);
+#else
+        using var contentStream = await _message.Content.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
+        
+        var stream = contentStream;
+
+#if NET6_0_OR_GREATER
+        var sourceEncoding = GetEncoding(charSet);
+        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
+        {
+            stream = GetTranscodingStream(contentStream, sourceEncoding);
+        }
+#endif
+
+        await foreach (var item in GraphQLHttpEventStreamProcessor.ReadStream(stream, ct).ConfigureAwait(false))
+        {
+            yield return item;
+        }
+    }
+
+    private static async IAsyncEnumerable<OperationResult> SingleResult(ValueTask<OperationResult> result)
+    {
+        yield return await result.ConfigureAwait(false);
+    }
+
 #if NET6_0_OR_GREATER
     private static Encoding? GetEncoding(string? charset)
     {
