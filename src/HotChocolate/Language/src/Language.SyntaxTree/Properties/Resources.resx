@@ -122,4 +122,7 @@
   <data name="NameNode_Name_CannnotBeNullOrEmpty" xml:space="preserve">
     <value>The value of a name node cannot be null or empty.</value>
   </data>
+	<data name="SyntaxWriterExtensions_WriteValue_ValueNodeNotSupported" xml:space="preserve">
+		<value>The value node `{0}` is not supported.</value>
+	</data>
 </root>

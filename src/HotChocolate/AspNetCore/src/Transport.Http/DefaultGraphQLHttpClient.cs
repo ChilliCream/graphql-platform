@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -108,7 +109,9 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
         if (method == GraphQLHttpMethod.Post)
         {
-            message.Content = CreatePostContent(arrayWriter, request.Operation);
+            message.Content = !request.AllowFileUploads
+                ? CreatePostContent(arrayWriter, request.Operation)
+                : CreateMultipartContent(arrayWriter, request.Operation);
             message.RequestUri = requestUri;
         }
         else if (method == GraphQLHttpMethod.Get)
@@ -125,10 +128,10 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         return message;
     }
 
-    private static HttpContent CreatePostContent(ArrayWriter arrayWriter, OperationRequest request)
+    private static HttpContent CreatePostContent(ArrayWriter arrayWriter, GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
-        request.WriteTo(jsonWriter);
+        request.Operation.WriteTo(jsonWriter);
         jsonWriter.Flush();
 
         var content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
@@ -139,6 +142,60 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 #endif
         return content;
     }
+
+    private static HttpContent CreateMultipartContent(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    {
+        var fileInfos = WriteFileMapJson(arrayWriter, request);
+
+        if (fileInfos.Count == 0)
+        {
+            arrayWriter.Reset();
+            return CreatePostContent(arrayWriter, request);    
+        }
+        
+        var start = arrayWriter.Length;
+        WriteOperationJson(arrayWriter, request);
+        var buffer = arrayWriter.GetInternalBuffer();
+
+        var form = new MultipartFormDataContent();
+        
+        var operation = new ByteArrayContent(buffer, start, arrayWriter.Length);
+#if NET7_0_OR_GREATER
+        operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
+#else
+        operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+#endif
+        form.Add(operation, "operations");
+        
+        var fileMap = new ByteArrayContent(buffer, 0, start);
+#if NET7_0_OR_GREATER
+        fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
+#else
+        fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+#endif
+        form.Add(operation, "map");
+
+        foreach (var fileInfo in fileInfos)
+        {
+            var file = new StreamContent(fileInfo.File.OpenRead());
+            form.Add(file, fileInfo.Name, fileInfo.File.FileName);
+        }
+        
+        return form;
+    }
+
+    private static void WriteOperationJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    {
+        using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        request.Operation.WriteTo(jsonWriter);
+    }
+
+    private static IReadOnlyList<FileUploadInfo> WriteFileMapJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    {
+        using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        return Utf8JsonWriterHelper.WriteFilesMap(jsonWriter, request.Operation);
+    }
+
 
     private static Uri CreateGetRequestUri(ArrayWriter arrayWriter, Uri baseAddress, OperationRequest request)
     {

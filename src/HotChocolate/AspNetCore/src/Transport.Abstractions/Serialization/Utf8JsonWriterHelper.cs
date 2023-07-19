@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Transport.Serialization;
 
@@ -15,17 +17,17 @@ internal static class Utf8JsonWriterHelper
     {
         writer.WriteStartObject();
 
-        if(request.Id is not null)
+        if (request.Id is not null)
         {
             writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
 
-        if(request.Query is not null)
+        if (request.Query is not null)
         {
             writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
         }
 
-        if(request.OperationName is not null)
+        if (request.OperationName is not null)
         {
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
         }
@@ -59,7 +61,7 @@ internal static class Utf8JsonWriterHelper
         Utf8JsonWriter writer,
         object? value)
     {
-        if (value is null)
+        if (value is null or FileUpload or FileUploadNode)
         {
             writer.WriteNullValue();
             return;
@@ -215,5 +217,288 @@ internal static class Utf8JsonWriterHelper
         }
 
         writer.WriteEndArray();
+    }
+
+    internal static IReadOnlyList<FileUploadInfo> WriteFilesMap(
+        Utf8JsonWriter writer,
+        OperationRequest operationRequest,
+        int? operation = null)
+    {
+        if (operationRequest.VariablesNode is not null)
+        {
+            Dictionary<FileUpload, FilePath[]>? files = null;
+            CollectFiles(operationRequest.VariablesNode, FilePath.Root, ref files);
+
+            if (files is not null)
+            {
+                var fileInfos = new List<FileUploadInfo>();
+                var index = 0;
+
+                writer.WriteStartObject();
+
+                foreach (var item in files)
+                {
+                    var name = index.ToString();
+                    fileInfos.Add(new FileUploadInfo(item.Key, name));
+
+                    writer.WritePropertyName(name);
+
+                    foreach (var path in item.Value)
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteStringValue(path.ToString());
+                        writer.WriteEndArray();
+                    }
+
+                    index++;
+                }
+
+                writer.WriteEndObject();
+
+                return fileInfos;
+            }
+        }
+        
+        if (operationRequest.Variables is not null)
+        {
+            Dictionary<FileUpload, FilePath[]>? files = null;
+            CollectFiles(operationRequest.Variables, FilePath.Root, ref files);
+
+            if (files is not null)
+            {
+                var fileInfos = new List<FileUploadInfo>();
+                var index = 0;
+
+                writer.WriteStartObject();
+
+                foreach (var item in files)
+                {
+                    var name = index.ToString();
+                    fileInfos.Add(new FileUploadInfo(item.Key, name));
+
+                    writer.WritePropertyName(name);
+
+                    foreach (var path in item.Value)
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteStringValue(path.ToString());
+                        writer.WriteEndArray();
+                    }
+
+                    index++;
+                }
+
+                writer.WriteEndObject();
+
+                return fileInfos;
+            }
+        }
+
+        return Array.Empty<FileUploadInfo>();
+    }
+
+    private static void CollectFiles(
+        object? obj,
+        FilePath path,
+        ref Dictionary<FileUpload, FilePath[]>? files)
+    {
+        if (obj is null)
+        {
+            return;
+        }
+
+        switch (obj)
+        {
+            case FileUploadNode fileUpload:
+                CollectFile(fileUpload.Value, path, ref files);
+                break;
+
+            case FileUpload fileUpload:
+                CollectFile(fileUpload, path, ref files);
+                break;
+
+            case ObjectValueNode objectValue:
+                CollectFiles(objectValue, path, ref files);
+                break;
+
+            case ListValueNode listValue:
+                CollectFiles(listValue, path, ref files);
+                break;
+
+            case Dictionary<string, object?> dict:
+                CollectFiles(dict, path, ref files);
+                break;
+
+            case IList list:
+                CollectFiles(list, path, ref files);
+                break;
+        }
+    }
+
+    private static void CollectFiles(
+        Dictionary<string, object?> dict,
+        FilePath path,
+        ref Dictionary<FileUpload, FilePath[]>? files)
+    {
+        foreach (var item in dict)
+        {
+            if (item.Value is null)
+            {
+                continue;
+            }
+
+            var current = path.Append(item.Key);
+            CollectFiles(item.Value, current, ref files);
+        }
+    }
+
+    private static void CollectFiles(
+        IList list,
+        FilePath path,
+        ref Dictionary<FileUpload, FilePath[]>? files)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            var item = list[i];
+
+            if (item is null)
+            {
+                continue;
+            }
+
+            var current = path.Append(i);
+            CollectFiles(item, current, ref files);
+        }
+    }
+
+    private static void CollectFiles(
+        ObjectValueNode obj,
+        FilePath path,
+        ref Dictionary<FileUpload, FilePath[]>? files)
+    {
+        foreach (var item in obj.Fields)
+        {
+            if (item.Value.Kind == SyntaxKind.NullValue)
+            {
+                continue;
+            }
+
+            var current = path.Append(item.Name.Value);
+            CollectFiles(item.Value, current, ref files);
+        }
+    }
+
+    private static void CollectFiles(
+        ListValueNode obj,
+        FilePath path,
+        ref Dictionary<FileUpload, FilePath[]>? files)
+    {
+        for (var i = 0; i < obj.Items.Count; i++)
+        {
+            var item = obj.Items[i];
+
+            if (item.Kind == SyntaxKind.NullValue)
+            {
+                continue;
+            }
+
+            var current = path.Append(i);
+            CollectFiles(item.Value, current, ref files);
+        }
+    }
+
+    private static void CollectFile(
+        FileUpload file,
+        FilePath path,
+        ref Dictionary<FileUpload, FilePath[]>? files)
+    {
+        files ??= new Dictionary<FileUpload, FilePath[]>();
+
+        if (files.TryGetValue(file, out var list))
+        {
+            Array.Resize(ref list, list.Length + 1);
+            list[list.Length - 1] = path;
+        }
+        else
+        {
+            list = new[] { path };
+            files.Add(file, list);
+        }
+    }
+
+    private abstract class FilePath
+    {
+        protected FilePath(FilePath? parent)
+        {
+            Parent = parent;
+        }
+
+        public FilePath? Parent { get; }
+
+        public FilePath Append(string name) => new NameFilePath(this, name);
+
+        public FilePath Append(int index) => new IndexFilePath(this, index);
+
+        public static RootFilePath Root { get; } = new();
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            var current = this;
+            var first = true;
+
+            while (current is not RootFilePath)
+            {
+                if (current is NameFilePath name)
+                {
+                    sb.Insert(0, name.Name);
+
+                    if (!first)
+                    {
+                        sb.Insert(name.Name.Length, '.');
+                    }
+                }
+                else if (current is IndexFilePath index)
+                {
+                    var indexString = index.Index.ToString();
+                    sb.Insert(0, indexString);
+
+                    if (!first)
+                    {
+                        sb.Insert(indexString.Length, '.');
+                    }
+                }
+
+                first = false;
+                current = current.Parent;
+            }
+
+            return sb.ToString();
+        }
+    }
+
+    private sealed class RootFilePath : FilePath
+    {
+        public RootFilePath() : base(null) { }
+    }
+
+    private sealed class NameFilePath : FilePath
+    {
+        public NameFilePath(FilePath? parent, string name) : base(parent)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
+    }
+
+    private sealed class IndexFilePath : FilePath
+    {
+        public IndexFilePath(FilePath? parent, int index) : base(parent)
+        {
+            Index = index;
+        }
+
+        public int Index { get; }
     }
 }
