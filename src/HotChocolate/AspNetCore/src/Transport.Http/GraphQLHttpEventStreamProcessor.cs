@@ -307,19 +307,6 @@ internal static class GraphQLHttpEventStreamProcessor
         return false;
     }
 
-    private static bool ExpectNewLine(ref ReadOnlySpan<byte> span)
-    {
-        SkipWhitespaces(ref span);
-        
-        if(span[0] == (byte)'\n')
-        {
-            span = span.Slice(1);
-            return true;
-        }
-
-        return false;
-    }
-
     private static ReadOnlySpan<byte> ReadData(ref ReadOnlySpan<byte> span)
     {
         var linebreak = span.IndexOf((byte) '\n');
