@@ -85,7 +85,7 @@ public sealed class GraphQLHttpRequest
     /// <summary>
     /// Specifies if files shall be uploaded using the multipart request spec.
     /// </summary>
-    public bool AllowFileUploads { get; set; }
+    public bool EnableFileUploads { get; set; }
 
     public static implicit operator GraphQLHttpRequest(OperationRequest method) => new(method);
 }

@@ -647,7 +647,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
             Method = GraphQLHttpMethod.Post,
-            AllowFileUploads = true,
+            EnableFileUploads = true,
             OnMessageCreated = (_, m) => m.Headers.AddGraphQLPreflight()
         };
 
@@ -693,7 +693,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
             Method = GraphQLHttpMethod.Post,
-            AllowFileUploads = true,
+            EnableFileUploads = true,
             OnMessageCreated = (_, m) => m.Headers.AddGraphQLPreflight()
         };
 

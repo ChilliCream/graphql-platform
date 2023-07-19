@@ -109,7 +109,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 
         if (method == GraphQLHttpMethod.Post)
         {
-            message.Content = request.AllowFileUploads
+            message.Content = request.EnableFileUploads
                 ? CreateMultipartContent(arrayWriter, request)
                 : CreatePostContent(arrayWriter, request);
             message.RequestUri = requestUri;
