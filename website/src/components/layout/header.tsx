@@ -1,3 +1,4 @@
+import { useDocSearchKeyboardEvents } from "@docsearch/react";
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, {
@@ -10,12 +11,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled from "styled-components";
 import { useSelector } from "react-redux";
+import styled from "styled-components";
 
-import { State, WorkshopsState } from "@/state";
-import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
 import { WorkshopNdcCopenhagen } from "@/components/images/workshop-ndc-copenhagen";
+import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -28,7 +28,7 @@ import {
   SiteSiteMetadataTools,
 } from "@/graphql-types";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
-import { useObservable } from "@/state";
+import { State, WorkshopsState, useObservable } from "@/state";
 
 // Brands
 import GithubIconSvg from "@/images/brands/github.svg";
@@ -143,6 +143,12 @@ export const Header: FC = () => {
       subscription.unsubscribe();
     };
   }, [showShadow$]);
+
+  useDocSearchKeyboardEvents({
+    isOpen: searchOpen,
+    onOpen: handleSearchOpen,
+    onClose: handleSearchClose,
+  });
 
   return (
     <Container ref={containerRef}>
