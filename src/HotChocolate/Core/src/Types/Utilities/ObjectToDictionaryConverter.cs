@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Reflection;
 
 namespace HotChocolate.Utilities;
@@ -20,8 +21,8 @@ internal class ObjectToDictionaryConverter(ITypeConverter converter)
         }
 
         object value = null;
-        void setValue(object v) => value = v;
-        VisitValue(obj, setValue, new HashSet<object>());
+        void SetValue(object v) => value = v;
+        VisitValue(obj, SetValue, new HashSet<object>());
         return value;
     }
 
@@ -87,31 +88,39 @@ internal class ObjectToDictionaryConverter(ITypeConverter converter)
             {
                 foreach (var item in dict1)
                 {
-                    void setField(object v) => current[item.Key] = v;
-                    VisitValue(item.Value, setField, processed);
+                    void SetField(object v) => current[item.Key] = v;
+                    VisitValue(item.Value, SetField, processed);
                 }
             }
-            else if (obj is IReadOnlyDictionary<string, object> dict2)
+            else if (obj is IDictionary<string, object> dict2)
             {
                 foreach (var item in dict2)
                 {
-                    void setField(object v) => current[item.Key] = v;
-                    VisitValue(item.Value, setField, processed);
+                    void SetField(object v) => current[item.Key] = v;
+                    VisitValue(item.Value, SetField, processed);
                 }
             }
-            else if (obj is IDictionary dict3)
+            else if (obj is IReadOnlyDictionary<string, object> dict3)
             {
                 foreach (var item in dict3)
                 {
+                    void SetField(object v) => current[item.Key] = v;
+                    VisitValue(item.Value, SetField, processed);
+                }
+            }
+            else if (obj is IDictionary dict4)
+            {
+                foreach (var item in dict4)
+                {
                     if (item is DictionaryEntry entry)
                     {
-                        void setField(object v) => current[entry.Key.ToString()!] = v;
-                        VisitValue(entry.Value, setField, processed);
+                        void SetField(object v) => current[entry.Key.ToString()!] = v;
+                        VisitValue(entry.Value, SetField, processed);
                     }
                     else if (item is KeyValuePair<string, object> pair)
                     {
-                        void setField(object v) => current[pair.Key] = v;
-                        VisitValue(pair.Value, setField, processed);
+                        void SetField(object v) => current[pair.Key] = v;
+                        VisitValue(pair.Value, SetField, processed);
                     }
                     else
                     {
@@ -126,8 +135,8 @@ internal class ObjectToDictionaryConverter(ITypeConverter converter)
                 {
                     var name = property.GetGraphQLName();
                     var value = property.GetValue(obj);
-                    void setField(object v) => current[name] = v;
-                    VisitValue(value, setField, processed);
+                    void SetField(object v) => current[name] = v;
+                    VisitValue(value, SetField, processed);
                 }
             }
         }
@@ -141,11 +150,11 @@ internal class ObjectToDictionaryConverter(ITypeConverter converter)
         var valueList = new List<object>();
         setValue(valueList);
 
-        void addItem(object item) => valueList.Add(item);
+        void AddItem(object item) => valueList.Add(item);
 
         foreach (var element in list)
         {
-            VisitValue(element, addItem, processed);
+            VisitValue(element, AddItem, processed);
         }
     }
 

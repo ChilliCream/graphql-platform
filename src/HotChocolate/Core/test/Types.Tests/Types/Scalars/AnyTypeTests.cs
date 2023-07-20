@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types;
@@ -1096,8 +1096,8 @@ public class AnyTypeTests
         // assert
         Assert.Collection(
             Assert.IsType<object[]>(value)!,
-            x => Assert.Equal("Foo",x),
-            x => Assert.Equal("Bar",x));
+            x => Assert.Equal("Foo", x),
+            x => Assert.Equal("Bar", x));
     }
 
     [Fact]
@@ -1108,6 +1108,27 @@ public class AnyTypeTests
                 "{ someObject }",
                 configure: c => c.AddQueryType<QueryWithDictionary>())
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task UseExpandoObjectWithAny()
+    {
+        Snapshot.FullName();
+        await ExpectValid(
+                "{ something }",
+                configure: c => c.AddQueryType<SomeQuery>())
+            .MatchSnapshotAsync();
+    }
+
+    public class SomeQuery
+    {
+        [GraphQLType<AnyType>]
+        public object GetSomething()
+        {
+            dynamic obj = new ExpandoObject();
+            obj.a = "Foo";
+            return obj;
+        }
     }
 
     public class Foo
