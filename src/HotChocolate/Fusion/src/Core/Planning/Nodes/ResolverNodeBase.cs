@@ -3,6 +3,9 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -110,6 +113,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
                 if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
                     value is not null)
                 {
+                    value = ReformatVariableRewriter.Rewrite(value);
                     fields.Add(new ObjectFieldNode(forwardedVariable, value));
                 }
             }
@@ -220,5 +224,32 @@ internal abstract class ResolverNodeBase : QueryPlanNode
             }
             writer.WriteEndArray();
         }
+    }
+}
+
+internal sealed class ReformatVariableRewriter : SyntaxRewriter<ReformatVariableRewriter>, ISyntaxVisitorContext
+{
+    private static readonly ReformatVariableRewriter _instance = new();
+    
+    public static IValueNode Rewrite(IValueNode node)
+    {
+        if(_instance.Rewrite(node, _instance) is IValueNode rewritten)
+        {
+            return rewritten;
+        }
+        
+        return NullValueNode.Default;
+    }
+
+    protected override IValueNode? RewriteCustomValue(IValueNode node, ReformatVariableRewriter context)
+    {
+        if(node is FileValueNode fileValueNode)
+        {
+            return new FileReferenceNode(
+                fileValueNode.Value.OpenReadStream, 
+                fileValueNode.Value.Name);
+        }
+
+        return node;
     }
 }

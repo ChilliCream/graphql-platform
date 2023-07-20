@@ -467,12 +467,14 @@ public class InputParser
 
             return null;
         }
+        
+        if(type.Kind == TypeKind.NonNull)
+        {
+            type = ((NonNullType)type).Type;
+        }
 
         switch (type.Kind)
         {
-            case TypeKind.NonNull:
-                return Deserialize(resultValue, ((NonNullType)type).Type, path, field);
-
             case TypeKind.List:
                 return DeserializeList(resultValue, (ListType)type, path, field);
 
