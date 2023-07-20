@@ -11,26 +11,6 @@ stages:
         displayName: "Pack"
         dependsOn: []
         steps:
-          - task: DeleteFiles@1
-            displayName: "Clean AspNetCore resources"
-            inputs:
-              SourceFolder: './src/HotChocolate/AspNetCore/src/AspNetCore/Resources'
-              Contents: '**/*'
-              RemoveDotFiles: true
-          - task: DownloadPipelineArtifact@2
-            displayName: "Integrate Banana Cake pop"
-            inputs:
-              buildType: 'specific'
-              project: 'aefb2b59-b7d8-48cf-8cb0-30fdea720770'
-              definition: '84'
-              buildVersionToDownload: 'latest'
-              artifactName: 'WebApp'
-              targetPath: './src/HotChocolate/AspNetCore/src/AspNetCore/Resources'
-          - task: PublishBuildArtifacts@1
-            displayName: "Upload AspNetCore Code"
-            inputs:
-              artifactName: aspnetcore
-              pathtoPublish: "./src/HotChocolate/AspNetCore/src/AspNetCore"
           - task: CmdLine@2
             displayName: "Create Packages"
             inputs:

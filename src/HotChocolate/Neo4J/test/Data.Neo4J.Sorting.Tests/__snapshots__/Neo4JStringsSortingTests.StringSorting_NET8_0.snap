@@ -1,0 +1,41 @@
+StringSorting_ASC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+StringSorting_ASC Query:
+---------------
+MATCH (fooString:FooString) RETURN fooString ORDER BY fooString.Bar ASC
+---------------
+
+StringSorting_DESC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+StringSorting_DESC Query:
+---------------
+MATCH (fooString:FooString) RETURN fooString ORDER BY fooString.Bar DESC
+---------------

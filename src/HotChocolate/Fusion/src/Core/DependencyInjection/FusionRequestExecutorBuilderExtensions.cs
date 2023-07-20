@@ -20,7 +20,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// Adds a Fusion GraphQL Gateway to the service collection.
     /// </summary>
     /// <param name="services">
-    /// The service collection.
+    /// The service collection.1
     /// </param>
     /// <param name="graphName">
     /// The name of the fusion graph.
@@ -386,7 +386,7 @@ public static class FusionRequestExecutorBuilderExtensions
             {
                 map2.Add(config.SubgraphName, () => Create(config));
             }
-            
+
             foreach (var config in fusionGraphConfig.HttpClients)
             {
                 if (!map2.ContainsKey(config.SubgraphName))
