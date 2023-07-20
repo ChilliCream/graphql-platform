@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Dynamic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -1119,6 +1120,16 @@ public class AnyTypeTests
                 configure: c => c.AddQueryType<SomeQuery>())
             .MatchSnapshotAsync();
     }
+    
+    [Fact]
+    public async Task UseImmutableDictWithAny()
+    {
+        Snapshot.FullName();
+        await ExpectValid(
+                "{ somethingImmutable }",
+                configure: c => c.AddQueryType<SomeQuery>())
+            .MatchSnapshotAsync();
+    }
 
     public class SomeQuery
     {
@@ -1128,6 +1139,12 @@ public class AnyTypeTests
             dynamic obj = new ExpandoObject();
             obj.a = "Foo";
             return obj;
+        }
+        
+        [GraphQLType<AnyType>]
+        public ImmutableDictionary<string, object> GetSomethingImmutable()
+        {
+            return ImmutableDictionary<string, object>.Empty.Add("a", "Foo");
         }
     }
 
