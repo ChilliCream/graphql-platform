@@ -9,12 +9,14 @@ public sealed class SubgraphGraphQLRequest
         string subgraph,
         string document,
         ObjectValueNode? variableValues,
-        ObjectValueNode? extensions)
+        ObjectValueNode? extensions,
+        TransportFeatures requiredTransportFeatures = TransportFeatures.Standard)
     {
         Subgraph = subgraph;
         Document = document;
         VariableValues = variableValues;
         Extensions = extensions;
+        RequiredTransportFeatures = requiredTransportFeatures;
     }
 
     public string Subgraph { get; }
@@ -25,6 +27,27 @@ public sealed class SubgraphGraphQLRequest
 
     public ObjectValueNode? Extensions { get; }
     
+    public TransportFeatures RequiredTransportFeatures { get; }
+
     public static implicit operator OperationRequest(SubgraphGraphQLRequest method) 
         => new(method.Document, null, null, method.VariableValues, method.Extensions);
+}
+
+[Flags]
+public enum TransportFeatures
+{
+    /// <summary>
+    /// Standard GraphQL over HTTP POST request.
+    /// </summary>
+    Standard = 0,
+    
+    /// <summary>
+    /// GraphQL multipart request.
+    /// </summary>
+    FileUpload = 1,
+    
+    /// <summary>
+    /// All Features.
+    /// </summary>
+    All = Standard | FileUpload
 }

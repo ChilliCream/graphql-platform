@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,6 +42,9 @@ internal sealed class Subscribe : ResolverNodeBase
     /// <param name="forwardedVariables">
     /// The variables that this request handler forwards to the subgraph.
     /// </param>
+    /// <param name="transportFeatures">
+    /// The transport features that are required by this node.
+    /// </param>
     public Subscribe(
         int id,
         string subgraphName,
@@ -48,8 +52,9 @@ internal sealed class Subscribe : ResolverNodeBase
         ISelectionSet selectionSet,
         IReadOnlyList<string> requires,
         IReadOnlyList<string> path,
-        IReadOnlyList<string> forwardedVariables)
-        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables)
+        IReadOnlyList<string> forwardedVariables,
+        TransportFeatures transportFeatures)
+        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables, transportFeatures)
     {
     }
 

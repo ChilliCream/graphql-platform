@@ -35,6 +35,9 @@ internal sealed class Resolve : ResolverNodeBase
     /// <param name="forwardedVariables">
     /// The variables that this request handler forwards to the subgraph.
     /// </param>
+    /// <param name="transportFeatures">
+    /// The transport features that are required by this node.
+    /// </param>
     public Resolve(
         int id,
         string subgraphName,
@@ -42,8 +45,9 @@ internal sealed class Resolve : ResolverNodeBase
         ISelectionSet selectionSet,
         IReadOnlyList<string> requires,
         IReadOnlyList<string> path,
-        IReadOnlyList<string> forwardedVariables)
-        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables)
+        IReadOnlyList<string> forwardedVariables,
+        TransportFeatures transportFeatures)
+        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables, transportFeatures)
     {
     }
 
