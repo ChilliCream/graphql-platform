@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;

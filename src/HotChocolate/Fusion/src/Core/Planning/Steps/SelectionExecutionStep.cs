@@ -14,8 +14,8 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     public SelectionExecutionStep(
         string subgraphName,
         IObjectType selectionSet,
-        ObjectTypeInfo selectionSetTypeInfo)
-        : this(subgraphName, null, selectionSet, selectionSetTypeInfo)
+        ObjectTypeMetadata selectionSetTypeMetadata)
+        : this(subgraphName, null, selectionSet, selectionSetTypeMetadata)
     {
     }
 
@@ -23,8 +23,8 @@ internal sealed class SelectionExecutionStep : ExecutionStep
         string subgraphName,
         ISelection? parentSelection,
         IObjectType selectionSet,
-        ObjectTypeInfo selectionSetTypeInfo)
-        : base(parentSelection, selectionSet, selectionSetTypeInfo)
+        ObjectTypeMetadata selectionSetTypeMetadata)
+        : base(parentSelection, selectionSet, selectionSetTypeMetadata)
     {
         SubgraphName = subgraphName;
     }

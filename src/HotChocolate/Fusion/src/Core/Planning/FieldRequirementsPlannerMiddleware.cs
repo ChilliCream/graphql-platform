@@ -70,7 +70,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                     siblingExecutionStep);
             }
 
-            if (_config.TryGetType<ObjectTypeInfo>(declaringType.Name, out var typeInfo) &&
+            if (_config.TryGetType<ObjectTypeMetadata>(declaringType.Name, out var typeInfo) &&
                 typeInfo.Fields.TryGetField(field.Name, out var fieldInfo))
             {
                 ResolveVariablesInContext(
@@ -100,7 +100,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         FieldContext fieldContext,
         SelectionExecutionStep currentStep,
         ISelection selection,
-        ObjectTypeInfo typeInfo,
+        ObjectTypeMetadata typeMetadata,
         ObjectFieldInfo fieldInfo)
     {
         fieldContext.Variables.AddRange(
@@ -119,7 +119,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
 
             if (fieldContext.Variables.Count > 1)
             {
-                DeterminePossibleSubgraphs(first, typeInfo, fieldContext.AllSubgraphs);
+                DeterminePossibleSubgraphs(first, typeMetadata, fieldContext.AllSubgraphs);
                 GroupVariables(fieldContext);
             }
 
@@ -128,7 +128,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
                 fieldContext,
                 currentStep,
                 selection,
-                typeInfo,
+                typeMetadata,
                 fieldContext.AllSubgraphs.First());
 
             foreach (var item in fieldContext.Selected)
@@ -140,14 +140,14 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
 
     private static void DeterminePossibleSubgraphs(
         IGrouping<string, VariableInfo> variable,
-        ObjectTypeInfo typeInfo,
+        ObjectTypeMetadata typeMetadata,
         HashSet<string> allSubgraphs)
     {
         allSubgraphs.Clear();
 
         foreach (var item in variable)
         {
-            if (typeInfo.Resolvers.ContainsResolvers(item.SubgraphName))
+            if (typeMetadata.Resolvers.ContainsResolvers(item.SubgraphName))
             {
                 allSubgraphs.Add(item.SubgraphName);
             }
@@ -187,7 +187,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         FieldContext fieldContext,
         SelectionExecutionStep currentStep,
         ISelection selection,
-        ObjectTypeInfo typeInfo,
+        ObjectTypeMetadata typeMetadata,
         string subgraph)
     {
         context.ParentSelections.TryGetValue(selection, out var parentSelection);
@@ -196,13 +196,13 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(parentSelection, selection.DeclaringType);
 
-        var resolver = SelectResolver(fieldContext, typeInfo, subgraph);
+        var resolver = SelectResolver(fieldContext, typeMetadata, subgraph);
 
         var requirementStep = new SelectionExecutionStep(
             subgraph,
             parentSelection,
             selection.DeclaringType,
-            typeInfo);
+            typeMetadata);
 
         foreach (var requirement in resolver.Requires)
         {
@@ -227,17 +227,17 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
 
     private static ResolverDefinition SelectResolver(
         FieldContext fieldContext,
-        ObjectTypeInfo typeInfo,
+        ObjectTypeMetadata typeMetadata,
         string subgraph)
     {
         fieldContext.VariablesInContext.Clear();
 
-        foreach (var variable in typeInfo.Variables)
+        foreach (var variable in typeMetadata.Variables)
         {
             fieldContext.VariablesInContext.Add(variable.Name);
         }
 
-        if (!typeInfo.Resolvers.TryGetValue(subgraph, out var resolvers))
+        if (!typeMetadata.Resolvers.TryGetValue(subgraph, out var resolvers))
         {
             throw ThrowHelper.NoResolverInContext();
         }

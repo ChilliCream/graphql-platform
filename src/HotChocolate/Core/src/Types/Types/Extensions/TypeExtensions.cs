@@ -272,7 +272,7 @@ public static class TypeExtensions
             throw InputTypeExpected(type);
         }
 
-        return (IInputType)type;
+        return (IInputType) type;
     }
 
     public static bool IsOutputType(this IType type)
@@ -297,7 +297,7 @@ public static class TypeExtensions
             throw OutputTypeExpected(type);
         }
 
-        return (IOutputType)type;
+        return (IOutputType) type;
     }
 
     public static bool IsUnionType(this IType type)
@@ -345,7 +345,7 @@ public static class TypeExtensions
             return true;
         }
 
-        if (type.Kind == TypeKind.NonNull && ((NonNullType)type).Type.Kind == kind)
+        if (type.Kind == TypeKind.NonNull && ((NonNullType) type).Type.Kind == kind)
         {
             return true;
         }
@@ -363,7 +363,8 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            var innerKind = ((NonNullType)type).Type.Kind;
+            var innerKind = ((NonNullType) type).Type.Kind;
+
             if (innerKind == kind1 || innerKind == kind2)
             {
                 return true;
@@ -383,7 +384,8 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            var innerKind = ((NonNullType)type).Type.Kind;
+            var innerKind = ((NonNullType) type).Type.Kind;
+
             if (innerKind == kind1 || innerKind == kind2 || type.Kind == kind3)
             {
                 return true;
@@ -402,12 +404,12 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            return ((NonNullType)type).Type;
+            return ((NonNullType) type).Type;
         }
 
         if (type.Kind == TypeKind.List)
         {
-            return ((ListType)type).ElementType;
+            return ((ListType) type).ElementType;
         }
 
         return type;
@@ -422,7 +424,7 @@ public static class TypeExtensions
 
         return type.Kind != TypeKind.NonNull
             ? type
-            : ((NonNullType)type).Type;
+            : ((NonNullType) type).Type;
     }
 
     public static string TypeName(this IType type)
@@ -444,16 +446,16 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.List)
         {
-            return (ListType)type;
+            return (ListType) type;
         }
 
         if (type.Kind == TypeKind.NonNull)
         {
-            var innerType = ((NonNullType)type).Type;
+            var innerType = ((NonNullType) type).Type;
 
             if (innerType.Kind == TypeKind.List)
             {
-                return (ListType)innerType;
+                return (ListType) innerType;
             }
         }
 
@@ -471,7 +473,7 @@ public static class TypeExtensions
 
         if (IsNamed(current))
         {
-            return (INamedType)current;
+            return (INamedType) current;
         }
 
         for (var i = 0; i < 6; i++)
@@ -480,7 +482,7 @@ public static class TypeExtensions
 
             if (IsNamed(current))
             {
-                return (INamedType)current;
+                return (INamedType) current;
             }
         }
 
@@ -648,6 +650,15 @@ public static class TypeExtensions
             TypeResources.TypeExtensions_KindIsNotSupported);
     }
 
+    public static ITypeNode RenameName(this ITypeNode typeNode, string name)
+        => typeNode switch
+        {
+            NonNullTypeNode nonNull => new NonNullTypeNode((INullableTypeNode)RenameName(nonNull.Type, name)),
+            ListTypeNode list => new ListTypeNode(RenameName(list.Type, name)),
+            NamedTypeNode named => named.WithName(named.Name.WithValue(name)),
+            _ => throw new NotSupportedException(TypeResources.TypeExtensions_KindIsNotSupported)
+        };
+
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
     {
         while (true)
@@ -670,14 +681,14 @@ public static class TypeExtensions
             switch (type.Kind)
             {
                 case TypeKind.NonNull:
-                    type = (IInputType)((NonNullType)type).Type;
+                    type = (IInputType) ((NonNullType) type).Type;
                     continue;
 
                 case TypeKind.List:
                 {
                     if (literal.Kind is SyntaxKind.ListValue)
                     {
-                        var list = (ListValueNode)literal;
+                        var list = (ListValueNode) literal;
 
                         if (list.Items.Count == 0)
                         {
@@ -687,7 +698,7 @@ public static class TypeExtensions
                         literal = list.Items[0];
                     }
 
-                    type = (IInputType)((ListType)type).ElementType;
+                    type = (IInputType) ((ListType) type).ElementType;
                     continue;
                 }
 
@@ -695,7 +706,7 @@ public static class TypeExtensions
                     return literal.Kind == SyntaxKind.ObjectValue;
 
                 default:
-                    return ((ILeafType)type).IsInstanceOfType(literal);
+                    return ((ILeafType) type).IsInstanceOfType(literal);
             }
         }
     }

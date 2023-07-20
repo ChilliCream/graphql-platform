@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
@@ -80,7 +79,7 @@ internal abstract class RequestDocumentFormatter
     {
         var selectionNodes = new List<ISelectionNode>();
         var selectionSet = context.Operation.GetSelectionSet(executionStep);
-        var selectionSetType = executionStep.SelectionSetTypeInfo;
+        var selectionSetType = executionStep.SelectionSetTypeMetadata;
         Debug.Assert(selectionSet is not null);
 
         // create
@@ -97,7 +96,7 @@ internal abstract class RequestDocumentFormatter
                         executionStep,
                         rootSelection.Selection,
                         field);
-                
+
                 if (!rootSelection.Selection.Arguments.IsFullyCoercedNoErrors)
                 {
                     foreach (var argument in rootSelection.Selection.Arguments)
@@ -106,6 +105,7 @@ internal abstract class RequestDocumentFormatter
                         {
                             TryForwardVariable(
                                 context,
+                                executionStep.SubgraphName,
                                 null,
                                 argument,
                                 argument.Name);
@@ -264,7 +264,7 @@ internal abstract class RequestDocumentFormatter
         IObjectType possibleType,
         List<ISelectionNode> selectionNodes)
     {
-        var typeContext = _config.GetType<ObjectTypeInfo>(possibleType.Name);
+        var typeContext = _config.GetType<ObjectTypeMetadata>(possibleType.Name);
         var selectionSet = context.Operation.GetSelectionSet(parentSelection, possibleType);
 
         foreach (var selection in selectionSet.Selections)
@@ -287,6 +287,7 @@ internal abstract class RequestDocumentFormatter
                         {
                             TryForwardVariable(
                                 context,
+                                executionStep.SubgraphName,
                                 null,
                                 argument,
                                 argument.Name);
@@ -316,7 +317,7 @@ internal abstract class RequestDocumentFormatter
     {
         context.VariableValues.Clear();
 
-        var parentDeclaringType = _config.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
+        var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
         foreach (var variable in parentField.Variables)
@@ -348,14 +349,14 @@ internal abstract class RequestDocumentFormatter
     protected void ResolveRequirements(
         QueryPlanContext context,
         ISelection selection,
-        ObjectTypeInfo declaringTypeInfo,
+        ObjectTypeMetadata declaringTypeMetadata,
         ISelection? parent,
         ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
 
-        var field = declaringTypeInfo.Fields[selection.Field.Name];
+        var field = declaringTypeMetadata.Fields[selection.Field.Name];
 
         foreach (var variable in field.Variables)
         {
@@ -369,13 +370,18 @@ internal abstract class RequestDocumentFormatter
 
                 var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
-                TryForwardVariable(context, resolver, argumentValue, argumentVariable.ArgumentName);
+                TryForwardVariable(
+                    context, 
+                    resolver.SubgraphName, 
+                    resolver, 
+                    argumentValue,
+                    argumentVariable.ArgumentName);
             }
         }
 
         if (parent is not null)
         {
-            var parentDeclaringType = _config.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
+            var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
             foreach (var variable in parentField.Variables)
@@ -393,7 +399,12 @@ internal abstract class RequestDocumentFormatter
 
                 var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
-                TryForwardVariable(context, resolver, argumentValue, argumentVariable.ArgumentName);
+                TryForwardVariable(
+                    context, 
+                    resolver.SubgraphName,
+                    resolver, 
+                    argumentValue, 
+                    argumentVariable.ArgumentName);
             }
         }
 
@@ -407,8 +418,9 @@ internal abstract class RequestDocumentFormatter
         }
     }
 
-    protected static void TryForwardVariable(
+    protected void TryForwardVariable(
         QueryPlanContext context,
+        string subgraphName,
         ResolverDefinition? resolver,
         ArgumentValue argumentValue,
         string argumentName)
@@ -418,8 +430,7 @@ internal abstract class RequestDocumentFormatter
             var originalVarDef = context.Operation.Definition.VariableDefinitions
                 .First(t => t.Variable.Equals(variableValue, SyntaxComparison.Syntax));
 
-            if (resolver is null ||
-                !resolver.ArgumentTypes.TryGetValue(argumentName, out var type))
+            if (resolver is null || !resolver.ArgumentTypes.TryGetValue(argumentName, out var type))
             {
                 type = originalVarDef.Type;
             }
@@ -439,17 +450,20 @@ internal abstract class RequestDocumentFormatter
                 var originalVarDef = context.Operation.Definition.VariableDefinitions
                     .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
 
-                if (resolver is null ||
-                    !resolver.ArgumentTypes.TryGetValue(argumentName, out var type))
+                var typeNode = originalVarDef.Type;
+                var originalTypeName = typeNode.Name();
+                var subgraphTypeName = _config.GetSubgraphTypeName(subgraphName, originalTypeName);
+
+                if (!subgraphTypeName.EqualsOrdinal(originalTypeName))
                 {
-                    type = originalVarDef.Type;
+                    typeNode = typeNode.RenameName(subgraphTypeName);
                 }
 
                 context.ForwardedVariables.Add(
                     new VariableDefinitionNode(
                         null,
                         variable,
-                        type,
+                        typeNode,
                         originalVarDef.DefaultValue,
                         Array.Empty<DirectiveNode>()));
             }

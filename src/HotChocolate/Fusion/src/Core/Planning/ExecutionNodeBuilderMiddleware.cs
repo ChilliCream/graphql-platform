@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Fusion.FusionResources;
 using static HotChocolate.Fusion.Metadata.ResolverKind;
 
 namespace HotChocolate.Fusion.Planning;
@@ -207,7 +208,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var (requestDocument, path) = _nodeRequestFormatter.CreateRequestDocument(
             context,
             executionStep.SelectEntityStep,
-            executionStep.SelectionSetTypeInfo.Name);
+            executionStep.SelectionSetTypeMetadata.Name);
 
         context.RegisterSelectionSet(selectionSet);
 
@@ -245,8 +246,8 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                     out var stateKey,
                     out _))
                 {
-                    // TODO : Exception
-                    throw new InvalidOperationException("The state is inconsistent.");
+                    throw new InvalidOperationException(
+                        ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent);
                 }
 
                 temp.Add(stateKey, argument.Value);
@@ -298,5 +299,5 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
-                _schema.GetType<ObjectType>(executionStep.SelectionSetTypeInfo.Name));
+                _schema.GetType<ObjectType>(executionStep.SelectionSetTypeMetadata.Name));
 }

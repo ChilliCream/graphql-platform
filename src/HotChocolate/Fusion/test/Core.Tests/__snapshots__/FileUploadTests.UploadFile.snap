@@ -18,7 +18,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Products",
-        "document": "mutation Upload_1($file: UploadProductPictureInput!) { uploadProductPicture(input: { productId: 1, file: $file }) { boolean } }",
+        "document": "mutation Upload_1($file: Upload!) { uploadProductPicture(input: { productId: 1, file: $file }) { boolean } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
@@ -40,26 +40,11 @@ QueryPlan
 Result
 ---------------
 {
-  "errors": [
-    {
-      "message": "The variable \u0060file\u0060 is not compatible with the type of the current location.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 106
-        }
-      ],
-      "extensions": {
-        "variable": "file",
-        "variableType": "UploadProductPictureInput!",
-        "locationType": "Upload!",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed",
-        "remotePath": [
-          "uploadProductPicture"
-        ]
-      }
+  "data": {
+    "uploadProductPicture": {
+      "boolean": true
     }
-  ]
+  }
 }
 ---------------
 

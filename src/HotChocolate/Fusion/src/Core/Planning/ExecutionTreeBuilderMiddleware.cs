@@ -50,7 +50,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             // that mutation fields are executed serially.
             if (next.Batch.Length == 1 ||
                 (_schema.MutationType?.Name.EqualsOrdinal(
-                        next.Batch[0].Step.SelectionSetTypeInfo.Name) ??
+                        next.Batch[0].Step.SelectionSetTypeMetadata.Name) ??
                     false))
             {
                 var single = next.Batch[0];
@@ -254,7 +254,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
-                _schema.GetType<Types.ObjectType>(executionStep.SelectionSetTypeInfo.Name));
+                _schema.GetType<Types.ObjectType>(executionStep.SelectionSetTypeMetadata.Name));
 
     private readonly record struct BacklogItem(NodeAndStep[] Batch, Sequence Parent);
 }

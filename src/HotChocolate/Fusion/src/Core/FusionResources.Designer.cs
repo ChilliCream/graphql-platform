@@ -140,5 +140,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("ExecutionState_RegisterState_StateImmutable", resourceCulture);
             }
         }
+        
+        internal static string ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent {
+            get {
+                return ResourceManager.GetString("ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent", resourceCulture);
+            }
+        }
     }
 }
