@@ -42,7 +42,7 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
         {
             var request = new GraphQLHttpRequest(subgraphRequest, _config.EndpointUri);
 
-            if((subgraphRequest.RequiredTransportFeatures & FileUpload) == FileUpload)
+            if((subgraphRequest.TransportFeatures & FileUpload) == FileUpload)
             {
                 request.EnableFileUploads = true;
             }

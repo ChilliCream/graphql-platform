@@ -3,51 +3,77 @@ using HotChocolate.Transport;
 
 namespace HotChocolate.Fusion.Clients;
 
+/// <summary>
+/// Represents a GraphQL request that is sent to a subgraph.
+/// </summary>
 public sealed class SubgraphGraphQLRequest
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="SubgraphGraphQLRequest"/>.
+    /// </summary>
+    /// <param name="subgraph">
+    /// The name of the subgraph.
+    /// </param>
+    /// <param name="document">
+    /// A GraphQL document string.
+    /// </param>
+    /// <param name="variableValues">
+    /// The variable values.
+    /// </param>
+    /// <param name="extensions">
+    /// The extensions.
+    /// </param>
+    /// <param name="transportFeatures">
+    /// The transport features that are needed for this GraphQL request.
+    /// </param>
     public SubgraphGraphQLRequest(
         string subgraph,
         string document,
         ObjectValueNode? variableValues,
         ObjectValueNode? extensions,
-        TransportFeatures requiredTransportFeatures = TransportFeatures.Standard)
+        TransportFeatures transportFeatures = TransportFeatures.Standard)
     {
         Subgraph = subgraph;
         Document = document;
         VariableValues = variableValues;
         Extensions = extensions;
-        RequiredTransportFeatures = requiredTransportFeatures;
+        TransportFeatures = transportFeatures;
     }
 
+    /// <summary>
+    /// Gets the name of the subgraph.
+    /// </summary>
     public string Subgraph { get; }
 
+    /// <summary>
+    /// Gets a GraphQL document string.
+    /// </summary>
     public string Document { get; }
 
+    /// <summary>
+    /// Gets the variable values.
+    /// </summary>
     public ObjectValueNode? VariableValues { get; }
 
+    /// <summary>
+    /// Gets the extensions.
+    /// </summary>
     public ObjectValueNode? Extensions { get; }
     
-    public TransportFeatures RequiredTransportFeatures { get; }
+    /// <summary>
+    /// Gets the transport features that are needed for this GraphQL request.
+    /// </summary>
+    public TransportFeatures TransportFeatures { get; }
 
-    public static implicit operator OperationRequest(SubgraphGraphQLRequest method) 
-        => new(method.Document, null, null, method.VariableValues, method.Extensions);
-}
-
-[Flags]
-public enum TransportFeatures
-{
     /// <summary>
-    /// Standard GraphQL over HTTP POST request.
+    /// Implicitly converts <see cref="SubgraphGraphQLRequest"/>s to <see cref="OperationRequest"/>s.  
     /// </summary>
-    Standard = 0,
-    
-    /// <summary>
-    /// GraphQL multipart request.
-    /// </summary>
-    FileUpload = 1,
-    
-    /// <summary>
-    /// All Features.
-    /// </summary>
-    All = Standard | FileUpload
+    /// <param name="request">
+    /// The <see cref="SubgraphGraphQLRequest"/> to convert.
+    /// </param>
+    /// <returns>
+    /// The converted <see cref="OperationRequest"/>.
+    /// </returns>
+    public static implicit operator OperationRequest(SubgraphGraphQLRequest request) 
+        => new(request.Document, null, null, request.VariableValues, request.Extensions);
 }
