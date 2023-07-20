@@ -4,6 +4,8 @@ using HotChocolate.Fusion;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Definitions;
 using static System.Threading.Tasks.TaskCreationOptions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -78,5 +80,10 @@ internal sealed class GatewayConfigurationTypeModule : TypeModule
         schemaBuilder
             .AddDocument(schemaDoc)
             .SetFusionGraphConfig(fusionGraphConfig);
+
+        if (schemaDoc.Definitions.Any(t => t is ScalarTypeDefinitionNode { Name.Value: "Upload" }))
+        {
+            schemaBuilder.AddType<UploadType>();
+        }
     }
 }

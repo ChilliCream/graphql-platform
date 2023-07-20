@@ -73,8 +73,6 @@ public class FileUploadTests
             .AddSingleton<IWebSocketConnectionFactory>(new NoWebSockets())
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .CoreBuilder
-            .AddUploadType()
             .BuildRequestExecutorAsync(cancellationToken: cts.Token);
 
         var request = Parse(
