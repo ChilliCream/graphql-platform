@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nanoid" Version="2.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Update="Properties\CompositionResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CompositionResources.Designer.cs</LastGenOutput>
