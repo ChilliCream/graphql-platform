@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <Warn>0</Warn>
+    <NoWarn>AD0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

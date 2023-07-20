@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Subscriptions.Nats.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.Nats</RootNamespace>
-    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -12,7 +11,7 @@
     <ProjectReference Include="..\Subscriptions.Tests\HotChocolate.Subscriptions.Tests.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -21,7 +20,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Squadron.Nats" Version="0.18.0-preview.6" />
   </ItemGroup>

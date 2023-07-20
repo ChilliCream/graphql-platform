@@ -25,5 +25,10 @@ public static class TestEnvironment
     /// The target framework identifier.
     /// </summary>
     public const string TargetFramework = "NET7_0";
+#elif NET8_0
+    /// <summary>
+    /// The target framework identifier.
+    /// </summary>
+    public const string TargetFramework = "NET8_0";
 #endif
 }
