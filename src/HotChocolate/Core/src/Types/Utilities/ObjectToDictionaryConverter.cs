@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -6,26 +7,20 @@ using System.Reflection;
 
 namespace HotChocolate.Utilities;
 
-internal class ObjectToDictionaryConverter
+internal class ObjectToDictionaryConverter(ITypeConverter converter)
 {
-    private readonly ITypeConverter _converter;
-    private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _properties = new();
-
-    public ObjectToDictionaryConverter(ITypeConverter converter)
-    {
-        _converter = converter
-            ?? throw new ArgumentNullException(nameof(converter));
-    }
+    private readonly ITypeConverter _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+    private readonly ConcurrentDictionary<Type, PropertyInfo[]> _properties = new();
 
     public object Convert(object obj)
     {
-        if (obj is null)
+        if(obj is null)
         {
             throw new ArgumentNullException(nameof(obj));
         }
 
         object value = null;
-        Action<object> setValue = v => value = v;
+        void setValue(object v) => value = v;
         VisitValue(obj, setValue, new HashSet<object>());
         return value;
     }
@@ -33,7 +28,7 @@ internal class ObjectToDictionaryConverter
     private void VisitValue(
         object obj,
         Action<object> setValue,
-        ISet<object> processed)
+        HashSet<object> processed)
     {
         if (obj is null)
         {
@@ -81,19 +76,48 @@ internal class ObjectToDictionaryConverter
     private void VisitObject(
         object obj,
         Action<object> setValue,
-        ISet<object> processed)
+        HashSet<object> processed)
     {
         if (processed.Add(obj))
         {
-            var dict = new Dictionary<string, object>();
-            setValue(dict);
+            var current = new Dictionary<string, object>();
+            setValue(current);
 
-            if (obj is IReadOnlyDictionary<string, object> d)
+            if (obj is Dictionary<string, object> dict1)
             {
-                foreach (var item in d)
+                foreach (var item in dict1)
                 {
-                    Action<object> setField = v => dict[item.Key] = v;
+                    void setField(object v) => current[item.Key] = v;
                     VisitValue(item.Value, setField, processed);
+                }
+            }
+            else if (obj is IReadOnlyDictionary<string, object> dict2)
+            {
+                foreach (var item in dict2)
+                {
+                    void setField(object v) => current[item.Key] = v;
+                    VisitValue(item.Value, setField, processed);
+                }
+            }
+            else if (obj is IDictionary dict3)
+            {
+                foreach (var item in dict3)
+                {
+                    if (item is DictionaryEntry entry)
+                    {
+                        void setField(object v) => current[entry.Key.ToString()!] = v;
+                        VisitValue(entry.Value, setField, processed);
+                    }
+                    else if (item is KeyValuePair<string, object> pair)
+                    {
+                        void setField(object v) => current[pair.Key] = v;
+                        VisitValue(pair.Value, setField, processed);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException(
+                            $"The dictionary entry type `{item.GetType().FullName}` is not supported.");
+                    }
                 }
             }
             else
@@ -102,7 +126,7 @@ internal class ObjectToDictionaryConverter
                 {
                     var name = property.GetGraphQLName();
                     var value = property.GetValue(obj);
-                    Action<object> setField = v => dict[name] = v;
+                    void setField(object v) => current[name] = v;
                     VisitValue(value, setField, processed);
                 }
             }
@@ -112,12 +136,12 @@ internal class ObjectToDictionaryConverter
     private void VisitList(
         ICollection list,
         Action<object> setValue,
-        ISet<object> processed)
+        HashSet<object> processed)
     {
         var valueList = new List<object>();
         setValue(valueList);
 
-        Action<object> addItem = item => valueList.Add(item);
+        void addItem(object item) => valueList.Add(item);
 
         foreach (var element in list)
         {
@@ -125,15 +149,16 @@ internal class ObjectToDictionaryConverter
         }
     }
 
-    private IReadOnlyList<PropertyInfo> GetProperties(object value)
+    private ReadOnlySpan<PropertyInfo> GetProperties(object value)
     {
         var type = value.GetType();
+
         if (!_properties.TryGetValue(type, out var properties))
         {
-            properties = new List<PropertyInfo>(
-                ReflectionUtils.GetProperties(type).Values);
+            properties = ReflectionUtils.GetProperties(type).Values.ToArray();
             _properties.TryAdd(type, properties);
         }
+
         return properties;
     }
 }
