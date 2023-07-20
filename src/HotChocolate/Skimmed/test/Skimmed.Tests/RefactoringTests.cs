@@ -172,7 +172,8 @@ public class RefactoringTests
             .FormatAsString(schema)
             .MatchInlineSnapshot(
                 """
-                type Bar @source(name: "abc") {
+                type Bar
+                  @source(name: "abc") {
                   field: String
                 }
 
@@ -222,7 +223,8 @@ public class RefactoringTests
             .MatchInlineSnapshot(
                 """
                 type Bar {
-                  field: String @source(name: "abc")
+                  field: String
+                    @source(name: "abc")
                 }
 
                 type Foo {

@@ -1,3 +1,4 @@
+using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Shared.Products;
@@ -15,4 +16,13 @@ public sealed class ProductQuery
         int id,
         [Service] ProductRepository repository)
         => repository.GetProductById(id);
+}
+
+[GraphQLName("Mutation")]
+public sealed class ProductMutation
+{
+    public bool UploadProductPicture(
+        int productId,
+        IFile file)
+        => true;
 }

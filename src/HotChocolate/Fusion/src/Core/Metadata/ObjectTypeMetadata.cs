@@ -3,17 +3,17 @@ namespace HotChocolate.Fusion.Metadata;
 /// <summary>
 /// Represents metadata about an object type for the purpose of query planning.
 /// </summary>
-internal sealed class ObjectTypeInfo : IType
+internal sealed class ObjectTypeMetadata : INamedTypeMetadata
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ObjectTypeInfo"/> class.
+    /// Initializes a new instance of the <see cref="ObjectTypeMetadata"/> class.
     /// </summary>
     /// <param name="name">The name of the object type.</param>
     /// <param name="bindings">The collection of member bindings for the object type.</param>
     /// <param name="variables">The collection of variable definitions for the object type.</param>
     /// <param name="resolvers">The collection of resolver definitions for the object type.</param>
     /// <param name="fields">The collection of fields for the object type.</param>
-    public ObjectTypeInfo(
+    public ObjectTypeMetadata(
         string name,
         MemberBindingCollection bindings,
         VariableDefinitionCollection variables,

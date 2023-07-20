@@ -55,7 +55,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
     {
         var selectionNodes = new List<ISelectionNode>();
         var selectionSet = context.Operation.GetSelectionSet(executionStep);
-        var selectionSetType = executionStep.SelectionSetTypeInfo;
+        var selectionSetType = executionStep.SelectionSetTypeMetadata;
         var nodeSelection = executionStep.RootSelections[0];
         Debug.Assert(selectionSet is not null);
         Debug.Assert(executionStep.RootSelections.Count == 1);
@@ -168,9 +168,9 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         IObjectType possibleType,
         List<ISelectionNode> selectionNodes)
     {
-        var typeContext = Configuration.GetType<ObjectTypeInfo>(possibleType.Name);
+        var typeContext = Configuration.GetType<ObjectTypeMetadata>(possibleType.Name);
         var selectionSet = context.Operation.GetSelectionSet(parentSelection, possibleType);
-
+        
         foreach (var selection in selectionSet.Selections)
         {
             if (executionStep.AllSelections.Contains(selection) ||
@@ -191,6 +191,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
                         {
                             TryForwardVariable(
                                 context,
+                                executionStep.SubgraphName,
                                 null,
                                 argument,
                                 argument.Name);

@@ -303,7 +303,7 @@ internal static class ExecutorUtils
         else
         {
             var typeInfo = selectionData.GetTypeName();
-            var typeMetadata = context.Configuration.GetType<ObjectTypeInfo>(typeInfo);
+            var typeMetadata = context.Configuration.GetType<ObjectTypeMetadata>(typeInfo);
             type = context.Schema.GetType<ObjectType>(typeMetadata.Name);
         }
 

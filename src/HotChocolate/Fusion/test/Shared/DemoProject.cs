@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Shared.Patients;
 using HotChocolate.Fusion.Shared.Products;
 using HotChocolate.Fusion.Shared.Reviews;
 using HotChocolate.Fusion.Shared.Shipping;
+using HotChocolate.Transport.Http;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.AspNetCore.Builder;
@@ -142,7 +143,10 @@ public sealed class DemoProject : IDisposable
                 .AddSingleton<ProductRepository>()
                 .AddGraphQLServer()
                 .AddQueryType<ProductQuery>()
+                .AddMutationType<ProductMutation>()
                 .AddGlobalObjectIdentification()
+                .AddMutationConventions()
+                .AddUploadType()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseRouting()
@@ -219,6 +223,7 @@ public sealed class DemoProject : IDisposable
                     // ReSharper disable once AccessToDisposedClosure
                     var httpClient = reviews.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
                     return httpClient;
                 }
             },
@@ -228,6 +233,7 @@ public sealed class DemoProject : IDisposable
                     // ReSharper disable once AccessToDisposedClosure
                     var httpClient = reviews2.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
                     return httpClient;
                 }
             },
@@ -237,6 +243,7 @@ public sealed class DemoProject : IDisposable
                     // ReSharper disable once AccessToDisposedClosure
                     var httpClient = accounts.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
                     return httpClient;
                 }
             },
@@ -246,6 +253,7 @@ public sealed class DemoProject : IDisposable
                     // ReSharper disable once AccessToDisposedClosure
                     var httpClient = products.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
                     return httpClient;
                 }
             },
@@ -255,6 +263,7 @@ public sealed class DemoProject : IDisposable
                     // ReSharper disable once AccessToDisposedClosure
                     var httpClient = shipping.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
                     return httpClient;
                 }
             },
@@ -264,6 +273,7 @@ public sealed class DemoProject : IDisposable
                     // ReSharper disable once AccessToDisposedClosure
                     var httpClient = appointment.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
                     return httpClient;
                 }
             },
@@ -273,6 +283,7 @@ public sealed class DemoProject : IDisposable
                     // ReSharper disable once AccessToDisposedClosure
                     var httpClient = patient1.CreateClient();
                     httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
                     return httpClient;
                 }
             },

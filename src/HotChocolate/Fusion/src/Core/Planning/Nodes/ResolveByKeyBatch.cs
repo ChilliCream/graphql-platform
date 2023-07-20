@@ -20,8 +20,9 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         IReadOnlyList<string> requires,
         IReadOnlyList<string> path,
         IReadOnlyDictionary<string, ITypeNode> argumentTypes,
-        IReadOnlyList<string> forwardedVariables)
-        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables)
+        IReadOnlyList<string> forwardedVariables,
+        TransportFeatures transportFeatures)
+        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables, transportFeatures)
     {
         ArgumentTypes = argumentTypes;
         _path = path;

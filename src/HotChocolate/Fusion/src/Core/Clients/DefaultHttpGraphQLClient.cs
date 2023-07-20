@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Transport.Http;
+using static HotChocolate.Fusion.Clients.TransportFeatures;
 
 namespace HotChocolate.Fusion.Clients;
 
@@ -40,6 +41,12 @@ internal sealed class DefaultHttpGraphQLClient : IGraphQLClient
         try
         {
             var request = new GraphQLHttpRequest(subgraphRequest, _config.EndpointUri);
+
+            if((subgraphRequest.TransportFeatures & FileUpload) == FileUpload)
+            {
+                request.EnableFileUploads = true;
+            }
+            
             using var response = await _client.SendAsync(request, ct).ConfigureAwait(false);
             var result = await response.ReadAsResultAsync(ct).ConfigureAwait(false);
             return new GraphQLResponse(result);

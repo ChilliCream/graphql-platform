@@ -1,6 +1,10 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Utilities;
+using static HotChocolate.Fusion.FusionResources;
 using static HotChocolate.Fusion.Metadata.ResolverKind;
 
 namespace HotChocolate.Fusion.Planning;
@@ -138,7 +142,62 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             selectionSet,
             executionStep.Variables.Values.ToArray(),
             request.Path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
+            DetermineTransportFeatures(context));
+    }
+
+    private TransportFeatures DetermineTransportFeatures(
+        QueryPlanContext context)
+    {
+        if (context.ForwardedVariables.Count == 0 || 
+            !_schema.TryGetType<UploadType>("Upload", out _))
+        {
+            return TransportFeatures.Standard;
+        }
+
+        HashSet<InputObjectType>? processed = null;
+        Stack<InputObjectType>? next = null;
+
+        foreach (var variable in context.ForwardedVariables)
+        {
+            var typeName = variable.Type.NamedType().Name.Value;
+            
+            if (typeName.EqualsOrdinal("Upload"))
+            {
+                return TransportFeatures.All;
+            }
+            
+            if (_schema.TryGetType<InputObjectType>(typeName, out var inputObjectType))
+            {
+                processed ??= new HashSet<InputObjectType>();
+                next ??= new Stack<InputObjectType>();
+                
+                processed.Add(inputObjectType);
+                next.Push(inputObjectType);
+
+                while (next.TryPop(out var current))
+                {
+                    foreach (var field in current.Fields)
+                    {
+                        var fieldType = field.Type.NamedType();
+
+                        if (fieldType is UploadType)
+                        {
+                            return TransportFeatures.All;
+                        }
+                        
+                        if(fieldType is InputObjectType nextInputObjectType &&
+                            processed.Add(nextInputObjectType))
+                        {
+                            next.Push(nextInputObjectType);
+                        }
+                    }
+                }
+            }
+        }
+        
+        processed?.Clear();
+        return TransportFeatures.Standard;
     }
 
     private Resolve CreateResolveNodeNode(
@@ -149,7 +208,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var (requestDocument, path) = _nodeRequestFormatter.CreateRequestDocument(
             context,
             executionStep.SelectEntityStep,
-            executionStep.SelectionSetTypeInfo.Name);
+            executionStep.SelectionSetTypeMetadata.Name);
 
         context.RegisterSelectionSet(selectionSet);
 
@@ -160,7 +219,8 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             selectionSet,
             executionStep.SelectEntityStep.Variables.Values.ToArray(),
             path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
+            DetermineTransportFeatures(context));
     }
 
     private ResolveByKeyBatch CreateResolveByKeyBatchNode(
@@ -186,8 +246,8 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                     out var stateKey,
                     out _))
                 {
-                    // TODO : Exception
-                    throw new InvalidOperationException("The state is inconsistent.");
+                    throw new InvalidOperationException(
+                        ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent);
                 }
 
                 temp.Add(stateKey, argument.Value);
@@ -204,7 +264,8 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             executionStep.Variables.Values.ToArray(),
             request.Path,
             argumentTypes,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
+            DetermineTransportFeatures(context));
     }
 
     private Subscribe CreateSubscribeNode(
@@ -227,7 +288,8 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             selectionSet,
             executionStep.Variables.Values.ToArray(),
             request.Path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray());
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
+            DetermineTransportFeatures(context));
     }
 
     private ISelectionSet ResolveSelectionSet(
@@ -237,5 +299,5 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
-                _schema.GetType<Types.ObjectType>(executionStep.SelectionSetTypeInfo.Name));
+                _schema.GetType<ObjectType>(executionStep.SelectionSetTypeMetadata.Name));
 }

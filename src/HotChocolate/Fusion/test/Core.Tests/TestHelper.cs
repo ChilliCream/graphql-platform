@@ -24,7 +24,7 @@ internal static class TestHelper
         }
 
         snapshot.Add(result, "Result");
-        snapshot.Add(SchemaFormatter.FormatAsDocument(fusionGraph), "Fusion Graph");
+        snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
     }
 
     public static async Task CollectStreamSnapshotData(
@@ -50,6 +50,6 @@ internal static class TestHelper
             snapshot.Add(item, $"Result {++i}");
         }
 
-        snapshot.Add(SchemaFormatter.FormatAsDocument(fusionGraph), "Fusion Graph");
+        snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
     }
 }

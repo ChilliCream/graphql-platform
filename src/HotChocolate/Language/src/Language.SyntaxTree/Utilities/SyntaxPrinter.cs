@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static HotChocolate.Language.Utilities.IndentationOptions;
 
 namespace HotChocolate.Language.Utilities;
 
@@ -13,9 +14,9 @@ namespace HotChocolate.Language.Utilities;
 public static class SyntaxPrinter
 {
     private static readonly SyntaxSerializer _serializer =
-        new(new SyntaxSerializerOptions { Indented = true });
+        new(new SyntaxSerializerOptions { Indentation = Default});
     private static readonly SyntaxSerializer _serializerNoIndent =
-        new(new SyntaxSerializerOptions { Indented = false });
+        new(new SyntaxSerializerOptions { Indentation = None });
 
     /// <summary>
     /// Prints a GraphQL syntax node`s string representation.

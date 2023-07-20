@@ -66,4 +66,7 @@
   <data name="ExecutionState_RegisterState_StateImmutable" xml:space="preserve">
     <value>The state for the selection set `{0}` is immutable.</value>
   </data>
+  <data name="ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent" xml:space="preserve">
+    <value>The state is inconsistent.</value>
+  </data>
 </root>

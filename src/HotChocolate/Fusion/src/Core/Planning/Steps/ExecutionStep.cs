@@ -19,19 +19,19 @@ internal abstract class ExecutionStep
     /// <param name="selectionSetType">
     /// The declaring type of the selection set of this execution step.
     /// </param>
-    /// <param name="selectionSetTypeInfo">
+    /// <param name="selectionSetTypeMetadata">
     /// The declaring type of the selection set of this execution step.
     /// </param>
     protected ExecutionStep(
         ISelection? parentSelection,
         IObjectType selectionSetType,
-        ObjectTypeInfo selectionSetTypeInfo)
+        ObjectTypeMetadata selectionSetTypeMetadata)
     {
         ParentSelection = parentSelection;
         SelectionSetType = selectionSetType  ??
             throw new ArgumentNullException(nameof(selectionSetType));
-        SelectionSetTypeInfo = selectionSetTypeInfo ??
-            throw new ArgumentNullException(nameof(selectionSetTypeInfo));
+        SelectionSetTypeMetadata = selectionSetTypeMetadata ??
+            throw new ArgumentNullException(nameof(selectionSetTypeMetadata));
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ internal abstract class ExecutionStep
     /// <summary>
     /// Gets the declaring type of the selection set of this execution step.
     /// </summary>
-    public ObjectTypeInfo SelectionSetTypeInfo { get; }
+    public ObjectTypeMetadata SelectionSetTypeMetadata { get; }
 
     /// <summary>
     /// Gets the declaring type of the selection set of this execution step.

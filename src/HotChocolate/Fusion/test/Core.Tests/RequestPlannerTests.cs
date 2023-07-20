@@ -1025,12 +1025,17 @@ public class RequestPlannerTests
         var rewriter = new FusionGraphConfigurationToSchemaRewriter();
         var rewritten = rewriter.Rewrite(document, new(context))!;
 
-        var schema = await new ServiceCollection()
+        var services = new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(rewritten.ToString())
-            .UseField(n => n)
-            .BuildSchemaAsync();
+            .UseField(n => n);
 
+        if (document.Definitions.Any(d => d is ScalarTypeDefinitionNode { Name.Value: "Upload" }))
+        {
+            services.AddUploadType();
+        }
+
+        var schema = await services.BuildSchemaAsync();
         var serviceConfig = FusionGraphConfiguration.Load(document);
 
         var request = Parse(query);

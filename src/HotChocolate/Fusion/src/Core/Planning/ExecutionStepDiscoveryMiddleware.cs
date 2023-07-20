@@ -50,7 +50,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     /// </param>
     public void Invoke(QueryPlanContext context, QueryPlanDelegate next)
     {
-        var selectionSetType = _config.GetType<ObjectTypeInfo>(context.Operation.RootType.Name);
+        var selectionSetType = _config.GetType<ObjectTypeMetadata>(context.Operation.RootType.Name);
         var selections = context.Operation.RootSelectionSet.Selections;
         var backlog = new Queue<BacklogItem>();
 
@@ -67,7 +67,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             CreateExecutionSteps(
                 context,
                 backlog,
-                item.DeclaringTypeInfo,
+                item.DeclaringTypeMetadata,
                 item.Selections,
                 item.ParentSelection,
                 item.PreferBatching);
@@ -79,7 +79,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     private void CreateExecutionSteps(
         QueryPlanContext context,
         Queue<BacklogItem> backlog,
-        ObjectTypeInfo selectionSetTypeInfo,
+        ObjectTypeMetadata selectionSetTypeMetadata,
         IReadOnlyList<ISelection> selections,
         ISelection? parentSelection,
         bool preferBatching)
@@ -96,7 +96,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 context,
                 operation,
                 ref selections,
-                selectionSetTypeInfo,
+                selectionSetTypeMetadata,
                 backlog);
             context.HasHandledSpecialQueryFields = true;
 
@@ -112,19 +112,19 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             var subgraph = _config.GetBestMatchingSubgraph(
                 operation,
                 current,
-                selectionSetTypeInfo);
+                selectionSetTypeMetadata);
             var executionStep = new SelectionExecutionStep(
                 subgraph,
                 parentSelection,
-                _schema.GetType<IObjectType>(selectionSetTypeInfo.Name),
-                selectionSetTypeInfo);
+                _schema.GetType<IObjectType>(selectionSetTypeMetadata.Name),
+                selectionSetTypeMetadata);
             leftovers = null;
 
             // we will first try to resolve and set an entity resolver.
             // The entity resolver is like a patch fetch from a subgraph where
             // the resulting data is merged into the current selection set.
             TrySetEntityResolver(
-                selectionSetTypeInfo,
+                selectionSetTypeMetadata,
                 parentSelection,
                 preferBatching,
                 variablesInContext,
@@ -134,7 +134,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             foreach (var selection in current)
             {
                 var field = selection.Field;
-                var fieldInfo = selectionSetTypeInfo.Fields[field.Name];
+                var fieldInfo = selectionSetTypeMetadata.Fields[field.Name];
 
                 if (!fieldInfo.Bindings.ContainsSubgraph(subgraph))
                 {
@@ -146,7 +146,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
                 GatherVariablesInContext(
                     selection,
-                    selectionSetTypeInfo,
+                    selectionSetTypeMetadata,
                     parentSelection,
                     variablesInContext);
 
@@ -170,7 +170,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
                     DetermineRequiredVariables(
                         selection,
-                        selectionSetTypeInfo,
+                        selectionSetTypeMetadata,
                         parentSelection,
                         resolver,
                         executionStep.Requires);
@@ -204,7 +204,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         QueryPlanContext context,
         IOperation operation,
         ref IReadOnlyList<ISelection> selections,
-        ObjectTypeInfo selectionSetTypeInfo,
+        ObjectTypeMetadata selectionSetTypeMetadata,
         Queue<BacklogItem> backlog)
     {
         if (operation.Type is OperationType.Query)
@@ -222,7 +222,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                         context,
                         field,
                         operation.RootType,
-                        selectionSetTypeInfo);
+                        selectionSetTypeMetadata);
                     (processed ??= new()).Add(i);
                     continue;
                 }
@@ -233,7 +233,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                         context,
                         backlog,
                         selection,
-                        selectionSetTypeInfo,
+                        selectionSetTypeMetadata,
                         context.ParentSelections);
                     (processed ??= new()).Add(i);
                 }
@@ -288,7 +288,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         bool preferBatching,
         Dictionary<ISelection, ISelection> parentSelectionLookup)
     {
-        var declaringType = _config.GetType<ObjectTypeInfo>(possibleType.Name);
+        var declaringType = _config.GetType<ObjectTypeMetadata>(possibleType.Name);
         var selectionSet = operation.GetSelectionSet(parentSelection, possibleType);
         List<ISelection>? leftovers = null;
 
@@ -371,14 +371,14 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         QueryPlanContext context,
         IObjectField field,
         IObjectType queryType,
-        ObjectTypeInfo queryTypeInfo)
+        ObjectTypeMetadata queryTypeMetadata)
     {
         if (!context.HasIntrospectionSelections &&
             (field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
                 field.Name.EqualsOrdinal(IntrospectionFields.Type) ||
                 field.Name.EqualsOrdinal(IntrospectionFields.TypeName)))
         {
-            context.Steps.Add(new IntrospectionExecutionStep(queryType, queryTypeInfo));
+            context.Steps.Add(new IntrospectionExecutionStep(queryType, queryTypeMetadata));
             context.HasIntrospectionSelections = true;
         }
     }
@@ -387,17 +387,17 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         QueryPlanContext context,
         Queue<BacklogItem> backlog,
         ISelection nodeSelection,
-        ObjectTypeInfo queryTypeInfo,
+        ObjectTypeMetadata queryTypeMetadata,
         Dictionary<ISelection, ISelection> parentSelectionLookup)
     {
         var operation = context.Operation;
         var queryType = operation.RootType;
-        var nodeExecutionStep = new NodeExecutionStep(nodeSelection, queryType, queryTypeInfo);
+        var nodeExecutionStep = new NodeExecutionStep(nodeSelection, queryType, queryTypeMetadata);
         context.Steps.Add(nodeExecutionStep);
 
         foreach (var entityType in operation.GetPossibleTypes(nodeSelection))
         {
-            var entityTypeInfo = _config.GetType<ObjectTypeInfo>(entityType.Name);
+            var entityTypeInfo = _config.GetType<ObjectTypeMetadata>(entityType.Name);
             var selectionSet = operation.GetSelectionSet(nodeSelection, entityType);
 
             var selectionExecutionStep =
@@ -405,7 +405,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     context,
                     backlog,
                     nodeSelection,
-                    queryTypeInfo,
+                    queryTypeMetadata,
                     entityType,
                     entityTypeInfo,
                     selectionSet,
@@ -433,9 +433,9 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         QueryPlanContext context,
         Queue<BacklogItem> backlog,
         ISelection nodeSelection,
-        ObjectTypeInfo queryTypeInfo,
+        ObjectTypeMetadata queryTypeMetadata,
         IObjectType entityType,
-        ObjectTypeInfo entityTypeInfo,
+        ObjectTypeMetadata entityTypeMetadata,
         ISelectionSet entityTypeSelectionSet,
         bool preferBatching,
         Dictionary<ISelection, ISelection> parentSelectionLookup)
@@ -446,7 +446,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         // we will first determine from which subgraph we can
         // fetch an entity through the node resolver.
-        var availableSubgraphs = _config.GetAvailableSubgraphs(entityTypeInfo.Name);
+        var availableSubgraphs = _config.GetAvailableSubgraphs(entityTypeMetadata.Name);
 
         // next we determine the best subgraph to fetch from.
         var subgraph =
@@ -455,16 +455,16 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 : _config.GetBestMatchingSubgraph(
                     operation,
                     entityTypeSelectionSet.Selections,
-                    entityTypeInfo,
+                    entityTypeMetadata,
                     availableSubgraphs);
 
 
         var field = nodeSelection.Field;
-        var fieldInfo = queryTypeInfo.Fields[field.Name];
-        var executionStep = new SelectionExecutionStep(subgraph, queryType, queryTypeInfo);
+        var fieldInfo = queryTypeMetadata.Fields[field.Name];
+        var executionStep = new SelectionExecutionStep(subgraph, queryType, queryTypeMetadata);
 
         var preference = ChoosePreferredResolverKind(operation, null, preferBatching);
-        GatherVariablesInContext(nodeSelection, queryTypeInfo, null, variablesInContext);
+        GatherVariablesInContext(nodeSelection, queryTypeMetadata, null, variablesInContext);
 
         if (!TryGetResolver(fieldInfo, subgraph, variablesInContext, preference, out var resolver))
         {
@@ -475,7 +475,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         DetermineRequiredVariables(
             nodeSelection,
-            queryTypeInfo,
+            queryTypeMetadata,
             null,
             resolver,
             executionStep.Requires);
@@ -495,22 +495,22 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     }
 
     private void TrySetEntityResolver(
-        ObjectTypeInfo selectionSetTypeInfo,
+        ObjectTypeMetadata selectionSetTypeMetadata,
         ISelection? parentSelection,
         bool preferBatching,
         HashSet<string> variablesInContext,
         string subgraph,
         SelectionExecutionStep executionStep)
     {
-        if (parentSelection is null || !selectionSetTypeInfo.Resolvers.ContainsResolvers(subgraph))
+        if (parentSelection is null || !selectionSetTypeMetadata.Resolvers.ContainsResolvers(subgraph))
         {
             return;
         }
 
-        GatherVariablesInContext(selectionSetTypeInfo, parentSelection, variablesInContext);
+        GatherVariablesInContext(selectionSetTypeMetadata, parentSelection, variablesInContext);
 
         if (TryGetResolver(
-            selectionSetTypeInfo,
+            selectionSetTypeMetadata,
             subgraph,
             variablesInContext,
             preferBatching,
@@ -547,13 +547,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             out resolver);
 
     private static bool TryGetResolver(
-        ObjectTypeInfo declaringTypeInfo,
+        ObjectTypeMetadata declaringTypeMetadata,
         string schemaName,
         HashSet<string> variablesInContext,
         bool preferBatching,
         [NotNullWhen(true)] out ResolverDefinition? resolver)
         => TryGetResolver(
-            declaringTypeInfo.Resolvers,
+            declaringTypeMetadata.Resolvers,
             schemaName,
             variablesInContext,
             preferBatching
@@ -634,7 +634,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
     private void GatherVariablesInContext(
         ISelection selection,
-        ObjectTypeInfo declaringTypeInfo,
+        ObjectTypeMetadata declaringTypeMetadata,
         ISelection? parent,
         HashSet<string> variablesInContext)
     {
@@ -642,7 +642,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
         if (parent is not null)
         {
-            var parentDeclaringType = _config.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
+            var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
             foreach (var variable in parentField.Variables)
@@ -651,12 +651,12 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             }
         }
 
-        foreach (var variable in declaringTypeInfo.Variables)
+        foreach (var variable in declaringTypeMetadata.Variables)
         {
             variablesInContext.Add(variable.Name);
         }
 
-        var field = declaringTypeInfo.Fields[selection.Field.Name];
+        var field = declaringTypeMetadata.Fields[selection.Field.Name];
 
         foreach (var variable in field.Variables)
         {
@@ -665,13 +665,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     }
 
     private void GatherVariablesInContext(
-        ObjectTypeInfo declaringTypeInfo,
+        ObjectTypeMetadata declaringTypeMetadata,
         ISelection parent,
         HashSet<string> variablesInContext)
     {
         variablesInContext.Clear();
 
-        var parentDeclaringType = _config.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
+        var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
         foreach (var variable in parentField.Variables)
@@ -679,7 +679,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             variablesInContext.Add(variable.Name);
         }
 
-        foreach (var variable in declaringTypeInfo.Variables)
+        foreach (var variable in declaringTypeMetadata.Variables)
         {
             variablesInContext.Add(variable.Name);
         }
@@ -687,17 +687,17 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
     private void DetermineRequiredVariables(
         ISelection selection,
-        ObjectTypeInfo declaringTypeInfo,
+        ObjectTypeMetadata declaringTypeMetadata,
         ISelection? parent,
         ResolverDefinition resolver,
         HashSet<string> requirements)
     {
-        var field = declaringTypeInfo.Fields[selection.Field.Name];
+        var field = declaringTypeMetadata.Fields[selection.Field.Name];
         var inContext = field.Variables.OfType<ArgumentVariableDefinition>().Select(t => t.Name);
 
         if (parent is not null)
         {
-            var parentDeclaringType = _config.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
+            var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
             inContext = inContext.Concat(parentField.Variables.Select(t => t.Name));
         }
@@ -713,7 +713,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
         ResolverDefinition resolver,
         HashSet<string> requirements)
     {
-        var parentDeclaringType = _config.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
+        var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
         var parentState = parentField.Variables.Select(t => t.Name);
 
@@ -733,19 +733,19 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     {
         public BacklogItem(
             ISelection parentSelection,
-            ObjectTypeInfo declaringTypeInfo,
+            ObjectTypeMetadata declaringTypeMetadata,
             IReadOnlyList<ISelection> selections,
             bool preferBatching)
         {
             ParentSelection = parentSelection;
-            DeclaringTypeInfo = declaringTypeInfo;
+            DeclaringTypeMetadata = declaringTypeMetadata;
             Selections = selections;
             PreferBatching = preferBatching;
         }
 
         public ISelection ParentSelection { get; }
 
-        public ObjectTypeInfo DeclaringTypeInfo { get; }
+        public ObjectTypeMetadata DeclaringTypeMetadata { get; }
 
         public IReadOnlyList<ISelection> Selections { get; }
 

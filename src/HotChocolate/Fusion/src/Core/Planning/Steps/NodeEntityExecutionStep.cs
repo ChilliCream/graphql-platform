@@ -7,9 +7,9 @@ internal sealed class NodeEntityExecutionStep : ExecutionStep
 {
     public NodeEntityExecutionStep(
         IObjectType entityType,
-        ObjectTypeInfo entityTypeInfo,
+        ObjectTypeMetadata entityTypeMetadata,
         SelectionExecutionStep selectEntityStep)
-        : base(null, entityType, entityTypeInfo)
+        : base(null, entityType, entityTypeMetadata)
     {
         SelectEntityStep = selectEntityStep;
     }
@@ -17,7 +17,7 @@ internal sealed class NodeEntityExecutionStep : ExecutionStep
     /// <summary>
     /// Gets the name of the entity type.
     /// </summary>
-    public string TypeName => SelectionSetTypeInfo.Name;
+    public string TypeName => SelectionSetTypeMetadata.Name;
 
     /// <summary>
     /// Gets the data selection step.

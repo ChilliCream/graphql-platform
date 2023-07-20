@@ -14,7 +14,7 @@ internal sealed class FieldFlagsOptimizer : ISelectionSetOptimizer
 
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {
-        if (!_config.TryGetType<ObjectTypeInfo>(context.Type.Name, out var typeInfo))
+        if (!_config.TryGetType<ObjectTypeMetadata>(context.Type.Name, out var typeInfo))
         {
             return;
         }
