@@ -51,7 +51,6 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v1.9.0
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
