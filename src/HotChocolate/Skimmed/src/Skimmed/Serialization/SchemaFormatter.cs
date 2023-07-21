@@ -6,11 +6,13 @@ namespace HotChocolate.Skimmed.Serialization;
 public static class SchemaFormatter
 {
     private static readonly SchemaFormatterVisitor _visitor = new();
-    private static readonly SyntaxSerializerOptions _options = new()
-    {
-        Indentation = new IndentationOptions(new DirectiveIndentationOptions(0))
-    };
-
+    private static readonly SyntaxSerializerOptions _options =
+        new()
+        {
+            Indented = true, 
+            MaxDirectivesPerLine = 0
+        };
+    
     public static string FormatAsString(Schema schema, bool indented = true)
     {
         var context = new VisitorContext();

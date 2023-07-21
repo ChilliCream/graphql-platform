@@ -310,11 +310,17 @@ public sealed class FusionTypes
         return directiveType;
     }
 
-    public Directive CreateHttpDirective(string subgraphName, Uri baseAddress)
-        => new Directive(
-            HttpClient,
-            new Argument(SubgraphArg, subgraphName),
-            new Argument(BaseAddressArg, baseAddress.ToString()));
+    public Directive CreateHttpDirective(string subgraphName, string? clientName, Uri baseAddress)
+        =>  clientName is null 
+            ? new Directive(
+                HttpClient,
+                new Argument(SubgraphArg, subgraphName),
+                new Argument(BaseAddressArg, baseAddress.ToString()))
+            : new Directive(
+                HttpClient,
+                new Argument(SubgraphArg, subgraphName),
+                new Argument(ClientNameArg, clientName),
+                new Argument(BaseAddressArg, baseAddress.ToString()));
 
     private DirectiveType RegisterHttpDirectiveType(
         string name,
@@ -324,17 +330,24 @@ public sealed class FusionTypes
         var directiveType = new DirectiveType(name);
         directiveType.Locations = DirectiveLocation.FieldDefinition;
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(ClientNameArg, typeName));
         directiveType.Arguments.Add(new InputField(BaseAddressArg, uri));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
-    public Directive CreateWebSocketDirective(string subgraphName, Uri baseAddress)
-        => new Directive(
-            WebSocketClient,
-            new Argument(SubgraphArg, subgraphName),
-            new Argument(BaseAddressArg, baseAddress.ToString()));
+    public Directive CreateWebSocketDirective(string subgraphName, string? clientName, Uri baseAddress)
+        =>  clientName is null 
+            ? new Directive(
+                WebSocketClient,
+                new Argument(SubgraphArg, subgraphName),
+                new Argument(BaseAddressArg, baseAddress.ToString()))
+            : new Directive(
+                WebSocketClient,
+                new Argument(SubgraphArg, subgraphName),
+                new Argument(ClientNameArg, clientName),
+                new Argument(BaseAddressArg, baseAddress.ToString()));
 
     private DirectiveType RegisterWebSocketDirectiveType(
         string name,
@@ -344,6 +357,7 @@ public sealed class FusionTypes
         var directiveType = new DirectiveType(name);
         directiveType.Locations = DirectiveLocation.FieldDefinition;
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputField(ClientNameArg, typeName));
         directiveType.Arguments.Add(new InputField(BaseAddressArg, uri));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);

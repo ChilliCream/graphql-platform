@@ -80,7 +80,7 @@ scalar DateTime
 
 Fusion Graph Document
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+schema @fusion(version: 1) @httpClient(subgraph: "Accounts", clientName: "Fusion", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", clientName: "Fusion", baseAddress: "ws:\/\/localhost:5000\/graphql") @httpClient(subgraph: "Reviews2", clientName: "Fusion", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Reviews2", clientName: "Fusion", baseAddress: "ws:\/\/localhost:5000\/graphql") {
   query: Query
   mutation: Mutation
   subscription: Subscription
@@ -164,7 +164,7 @@ Accounts Subgraph Configuration
   "Name": "Accounts",
   "Schema": "schema {\n  query: Query\n  mutation: Mutation\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  users: [User!]!\n  userById(id: ID!): User\n  usersById(ids: [ID!]!): [User!]!\n}\n\ntype Mutation {\n  addUser(input: AddUserInput!): AddUserPayload!\n}\n\ntype User implements Node {\n  id: ID!\n  name: String!\n  birthdate: Date!\n  username: String!\n}\n\n\"The `DateTime` scalar represents an ISO-8601 compliant date time type.\"\nscalar DateTime\n\n\"The `Date` scalar represents an ISO-8601 compliant date type.\"\nscalar Date\n\ninput AddUserInput {\n  name: String!\n  username: String!\n  birthdate: DateTime!\n}\n\ntype AddUserPayload {\n  user: User\n}",
   "Extensions": [
-    "extend type Query {\n  userById(id: ID! @is(field: \"id\")): User!\n  usersById(ids: [ID!]! @is(field: \"id\")): [User!]!\n}"
+    "extend type Query {\n  userById(id: ID!\n    @is(field: \"id\")): User!\n  usersById(ids: [ID!]!\n    @is(field: \"id\")): [User!]!\n}"
   ],
   "Clients": [
     {
@@ -185,7 +185,7 @@ Reviews2 Subgraph Configuration
   "Name": "Reviews2",
   "Schema": "schema {\n  query: Query\n  mutation: ReviewsMutation\n  subscription: ReviewsSubscription\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  reviews: [Review!]!\n  reviewById(id: ID!): Review\n  authorById(id: ID!): User\n  productById(id: ID!): Product\n  reviewOrAuthor: ReviewOrAuthor!\n}\n\ntype ReviewsMutation {\n  addReview(input: AddReviewInput!): AddReviewPayload!\n}\n\ntype ReviewsSubscription {\n  onNewReview: Review!\n}\n\ntype User implements Node {\n  reviews: [Review!]!\n  id: ID!\n  name: String!\n}\n\ntype Review implements Node {\n  id: ID!\n  author: User!\n  product: Product!\n  body: String!\n}\n\ntype Product {\n  reviews: [Review!]!\n  id: ID!\n}\n\nunion ReviewOrAuthor = User | Review\n\ninput AddReviewInput {\n  body: String!\n  authorId: Int!\n  upc: Int!\n}\n\ntype AddReviewPayload {\n  review: Review\n}",
   "Extensions": [
-    "extend type Query {\n  authorById(id: ID! @is(field: \"id\")): Author\n  productById(id: ID! @is(field: \"id\")): Product\n}\n\nschema @rename(coordinate: \"Query.authorById\", newName: \"userById\") @rename(coordinate: \"Author\", newName: \"User\") {\n\n}"
+    "extend type Query {\n  authorById(id: ID!\n    @is(field: \"id\")): Author\n  productById(id: ID!\n    @is(field: \"id\")): Product\n}\n\nschema\n  @rename(coordinate: \"Query.authorById\", newName: \"userById\")\n  @rename(coordinate: \"Author\", newName: \"User\") {\n\n}"
   ],
   "Clients": [
     {

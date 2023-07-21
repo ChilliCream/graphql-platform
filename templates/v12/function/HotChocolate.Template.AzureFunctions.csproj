@@ -16,8 +16,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-    <PackageReference Include="HotChocolate.AzureFunctions" Version="14.0.0-preview.build.0" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="14.0.0-preview.build.0">
+    <PackageReference Include="HotChocolate.AzureFunctions" Version="11.1.0" />
+    <PackageReference Include="HotChocolate.Types.Analyzers" Version="11.1.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

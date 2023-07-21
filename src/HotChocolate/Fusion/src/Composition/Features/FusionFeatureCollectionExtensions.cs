@@ -45,4 +45,19 @@ public static class FusionFeatureCollectionExtensions
         => features.TryGetFeature<TagDirectiveFeature>(out var feature)
             ? feature.Excluded
             : _empty;
+    
+    /// <summary>
+    /// Gets the default client configuration name that shall be used for
+    /// transport clients if no client name was specified.
+    /// </summary>
+    /// <param name="features">
+    /// The feature collection.
+    /// </param>
+    /// <returns>
+    /// The default client configuration name.
+    /// </returns>
+    public static string? GetDefaultClientName(this FusionFeatureCollection features)
+        => features.TryGetFeature<TransportFeature>(out var feature)
+            ? feature.DefaultClientName
+            : null;
 }
