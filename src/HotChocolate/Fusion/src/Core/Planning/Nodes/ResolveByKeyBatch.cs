@@ -121,9 +121,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         foreach (var key in workItems[0].VariableValues.Keys)
         {
-            var expectedType = ArgumentTypes[key];
-
-            if (expectedType.IsListType())
+            if (ArgumentTypes.ContainsKey(key) && ArgumentTypes[key].IsListType())
             {
                 var list = new List<IValueNode>();
 
