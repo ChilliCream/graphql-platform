@@ -48,11 +48,11 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         _transportFeatures = config.TransportFeatures;
         _hasDependencies = _requires.Length > 0 || _forwardedVariables.Length > 0;
     }
-    
+
     protected string SubgraphName => _subgraphName;
-    
+
     protected internal SelectionSet SelectionSet => _selectionSet;
-    
+
     protected string[] Requires => _requires;
 
     protected string[] Path => _path;
@@ -92,7 +92,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
                         fields.Add(new ObjectFieldNode(forwardedVariable, value));
                     }
 
-                    forwardedVariable = ref Unsafe.Add(ref forwardedVariable, 1);
+                    forwardedVariable = ref Unsafe.Add(ref forwardedVariable, 1)!;
                 }
             }
 
@@ -111,11 +111,11 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
                     {
                         throw ThrowHelper.Requirement_Is_Missing(requirement, nameof(requirementValues));
                     }
-                    
-                    requirement = ref Unsafe.Add(ref requirement, 1);
+
+                    requirement = ref Unsafe.Add(ref requirement, 1)!;
                 }
             }
-            
+
             vars = new ObjectValueNode(fields);
         }
 
@@ -141,7 +141,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         if (response.Data.ValueKind is not JsonValueKind.Undefined and not JsonValueKind.Null)
         {
             var current = response.Data;
-            
+
             ref var segment = ref MemoryMarshal.GetArrayDataReference(_path);
             ref var end = ref Unsafe.Add(ref segment, _path.Length);
 
@@ -154,7 +154,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
 
                 current.TryGetProperty(segment, out var propertyValue);
                 current = propertyValue;
-                segment = ref Unsafe.Add(ref segment, 1);
+                segment = ref Unsafe.Add(ref segment, 1)!;
             }
 
             return current;
@@ -179,16 +179,16 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         {
             writer.WritePropertyName(PathProp);
             writer.WriteStartArray();
-            
+
             ref var segment = ref MemoryMarshal.GetArrayDataReference(_path);
             ref var end = ref Unsafe.Add(ref segment, _path.Length);
 
             while (Unsafe.IsAddressLessThan(ref segment, ref end))
             {
                 writer.WriteStringValue(segment);
-                segment = ref Unsafe.Add(ref segment, 1);
+                segment = ref Unsafe.Add(ref segment, 1)!;
             }
-            
+
             writer.WriteEndArray();
         }
 
@@ -196,7 +196,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         {
             writer.WritePropertyName(ProvidesProp);
             writer.WriteStartArray();
-            
+
             ref var export = ref MemoryMarshal.GetArrayDataReference(_provides);
             ref var end = ref Unsafe.Add(ref export, _provides.Length);
 
@@ -205,10 +205,10 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
                 writer.WriteStartObject();
                 writer.WriteString(VariableProp, export);
                 writer.WriteEndObject();
-                
-                export = ref Unsafe.Add(ref export, 1);
+
+                export = ref Unsafe.Add(ref export, 1)!;
             }
-            
+
             writer.WriteEndArray();
         }
 
@@ -216,7 +216,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         {
             writer.WritePropertyName(RequiresProp);
             writer.WriteStartArray();
-            
+
             ref var requirement = ref MemoryMarshal.GetArrayDataReference(_requires);
             ref var end = ref Unsafe.Add(ref requirement, _requires.Length);
 
@@ -226,7 +226,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
                 writer.WriteString(VariableProp, requirement);
                 writer.WriteEndObject();
             }
-            
+
             writer.WriteEndArray();
         }
 
@@ -253,7 +253,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         response.Dispose();
         return default;
     }
-    
+
     protected static ValueTask ReturnResults(GraphQLResponse[] responses)
     {
         ref var response = ref MemoryMarshal.GetArrayDataReference(responses);
@@ -262,9 +262,9 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         while (Unsafe.IsAddressLessThan(ref response, ref end))
         {
             response.Dispose();
-            response = ref Unsafe.Add(ref response, 1);
+            response = ref Unsafe.Add(ref response, 1)!;
         }
-        
+
         return default;
     }
 }

@@ -151,7 +151,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
     private TransportFeatures DetermineTransportFeatures(
         QueryPlanContext context)
     {
-        if (context.ForwardedVariables.Count == 0 || 
+        if (context.ForwardedVariables.Count == 0 ||
             !_schema.TryGetType<UploadType>("Upload", out _))
         {
             return TransportFeatures.Standard;
@@ -163,17 +163,17 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         foreach (var variable in context.ForwardedVariables)
         {
             var typeName = variable.Type.NamedType().Name.Value;
-            
+
             if (typeName.EqualsOrdinal("Upload"))
             {
                 return TransportFeatures.All;
             }
-            
+
             if (_schema.TryGetType<InputObjectType>(typeName, out var inputObjectType))
             {
                 processed ??= new HashSet<InputObjectType>();
                 next ??= new Stack<InputObjectType>();
-                
+
                 processed.Add(inputObjectType);
                 next.Push(inputObjectType);
 
@@ -187,7 +187,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                         {
                             return TransportFeatures.All;
                         }
-                        
+
                         if(fieldType is InputObjectType nextInputObjectType &&
                             processed.Add(nextInputObjectType))
                         {
@@ -197,7 +197,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 }
             }
         }
-        
+
         processed?.Clear();
         return TransportFeatures.Standard;
     }
@@ -213,7 +213,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             executionStep.SelectionSetTypeMetadata.Name);
 
         context.RegisterSelectionSet(selectionSet);
-        
+
         var config = new ResolverNodeBase.Config(
             executionStep.SelectEntityStep.SubgraphName,
             requestDocument,
@@ -259,7 +259,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
             argumentTypes = temp;
         }
-        
+
         var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,

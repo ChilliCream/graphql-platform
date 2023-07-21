@@ -322,7 +322,7 @@ internal abstract class RequestDocumentFormatter
             }
 
             NEXT:
-            selection = ref Unsafe.Add(ref selection, 1);
+            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         // append exports that were required by other execution steps.

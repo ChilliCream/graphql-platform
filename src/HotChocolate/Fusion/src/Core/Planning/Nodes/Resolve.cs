@@ -61,7 +61,7 @@ internal sealed class Resolve : ResolverNodeBase
             // Since we are not fully deserializing the responses we cannot release the memory here
             // but need to wait until the transport layer is finished and disposes the result.
             context.Result.RegisterForCleanup(responses, ReturnResults);
-            
+
             ProcessResponses(context, executionState, requests, responses, SubgraphName);
         }
     }
@@ -90,27 +90,27 @@ internal sealed class Resolve : ResolverNodeBase
     }
 
     private void InitializeRequests(
-        FusionExecutionContext context, 
-        List<ExecutionState> executionState, 
+        FusionExecutionContext context,
+        List<ExecutionState> executionState,
         SubgraphGraphQLRequest[] requests)
     {
         ref var state = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(executionState));
         ref var request = ref MemoryMarshal.GetArrayDataReference(requests);
-        ref var end = ref Unsafe.Add(ref state, executionState.Count);            
-        
+        ref var end = ref Unsafe.Add(ref state, executionState.Count);
+
         while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
             TryInitializeExecutionState(context.QueryPlan, state);
             request = CreateRequest(context.OperationContext.Variables, state.VariableValues);
 
-            state = ref Unsafe.Add(ref state, 1);
-            request = ref Unsafe.Add(ref request, 1);
+            state = ref Unsafe.Add(ref state, 1)!;
+            request = ref Unsafe.Add(ref request, 1)!;
         }
     }
 
     private void ProcessResponses(
         FusionExecutionContext context,
-        List<ExecutionState> executionStates, 
+        List<ExecutionState> executionStates,
         SubgraphGraphQLRequest[] requests,
         GraphQLResponse[] responses,
         string subgraphName)
@@ -136,10 +136,10 @@ internal sealed class Resolve : ResolverNodeBase
 
             // next we need to extract any variables that we need for followup requests.
             ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);
-            
-            state = ref Unsafe.Add(ref state, 1);
-            request = ref Unsafe.Add(ref request, 1);
-            response = ref Unsafe.Add(ref response, 1);
+
+            state = ref Unsafe.Add(ref state, 1)!;
+            request = ref Unsafe.Add(ref request, 1)!;
+            response = ref Unsafe.Add(ref response, 1)!;
         }
     }
 }
