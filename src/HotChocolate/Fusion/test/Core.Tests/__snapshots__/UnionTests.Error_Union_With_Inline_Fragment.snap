@@ -1,8 +1,14 @@
 User Request
 ---------------
-mutation Upload($file: Upload!) {
-  uploadProductPicture(input: { productId: 1, file: $file }) {
+mutation Upload($input: UploadProductPictureInput!) {
+  uploadProductPicture(input: $input) {
     boolean
+    errors {
+      __typename
+      ... on ProductNotFoundError {
+        productId
+      }
+    }
   }
 }
 ---------------
@@ -10,7 +16,7 @@ mutation Upload($file: Upload!) {
 QueryPlan
 ---------------
 {
-  "document": "mutation Upload($file: Upload!) { uploadProductPicture(input: { productId: 1, file: $file }) { boolean } }",
+  "document": "mutation Upload($input: UploadProductPictureInput!) { uploadProductPicture(input: $input) { boolean errors { __typename ... on ProductNotFoundError { productId } } } }",
   "operation": "Upload",
   "rootNode": {
     "type": "Sequence",
@@ -18,11 +24,11 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Products",
-        "document": "mutation Upload_1($file: Upload!) { uploadProductPicture(input: { productId: 1, file: $file }) { boolean } }",
+        "document": "mutation Upload_1($input: UploadProductPictureInput!) { uploadProductPicture(input: $input) { boolean errors { __typename ... on ProductNotFoundError { __typename productId } } } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
-            "variable": "file"
+            "variable": "input"
           }
         ]
       },
@@ -42,7 +48,8 @@ Result
 {
   "data": {
     "uploadProductPicture": {
-      "boolean": true
+      "boolean": true,
+      "errors": null
     }
   }
 }

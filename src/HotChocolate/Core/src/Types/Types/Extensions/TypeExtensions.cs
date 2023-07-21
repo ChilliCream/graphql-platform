@@ -386,7 +386,7 @@ public static class TypeExtensions
         {
             var innerKind = ((NonNullType) type).Type.Kind;
 
-            if (innerKind == kind1 || innerKind == kind2 || type.Kind == kind3)
+            if (innerKind == kind1 || innerKind == kind2 || innerKind == kind3)
             {
                 return true;
             }

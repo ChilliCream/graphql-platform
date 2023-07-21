@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
@@ -201,21 +202,25 @@ internal abstract class RequestDocumentFormatter
         var selectionNodes = new List<ISelectionNode>();
         var typeSelectionNodes = selectionNodes;
         var possibleTypes = context.Operation.GetPossibleTypes(parentSelection);
+        var parentType = parentSelection.Type.NamedType();
 
         using var typeEnumerator = possibleTypes.GetEnumerator();
         var next = typeEnumerator.MoveNext();
         var needsTypeNameField = true;
+        var isAbstractType = parentType.Kind is TypeKind.Interface or TypeKind.Union;
 
         while (next)
         {
             var possibleType = typeEnumerator.Current;
+            var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(parentSelection, possibleType);
 
-            CreateSelectionNodes(
-                context,
-                executionStep,
-                parentSelection,
-                possibleType,
-                typeSelectionNodes);
+            var onlyIntrospection =
+                CreateSelectionNodes(
+                    context,
+                    executionStep,
+                    possibleType,
+                    selectionSet,
+                    typeSelectionNodes);
 
             next = typeEnumerator.MoveNext();
 
@@ -225,6 +230,14 @@ internal abstract class RequestDocumentFormatter
             {
                 selectionNodes = new List<ISelectionNode>();
                 single = false;
+            }
+            else if (isAbstractType && !ReferenceEquals(parentType, possibleType))
+            {
+                if (!onlyIntrospection)
+                {
+                    selectionNodes = new List<ISelectionNode>();
+                    single = false;
+                }
             }
 
             if (!single)
@@ -257,44 +270,57 @@ internal abstract class RequestDocumentFormatter
         }
     }
 
-    protected virtual void CreateSelectionNodes(
+    protected virtual bool CreateSelectionNodes(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
-        ISelection parentSelection,
         IObjectType possibleType,
+        SelectionSet selectionSet,
         List<ISelectionNode> selectionNodes)
     {
+        var onlyIntrospection = true;
         var typeContext = _config.GetType<ObjectTypeMetadata>(possibleType.Name);
-        var selectionSet = context.Operation.GetSelectionSet(parentSelection, possibleType);
 
-        foreach (var selection in selectionSet.Selections)
+        ref var selection = ref selectionSet.GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
+
+        while(Unsafe.IsAddressLessThan(ref selection, ref end))
         {
-            if (executionStep.AllSelections.Contains(selection) ||
-                selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
+            if (!executionStep.AllSelections.Contains(selection) &&
+                !selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
             {
-                selectionNodes.Add(
-                    CreateSelectionNode(
-                        context,
-                        executionStep,
-                        selection,
-                        typeContext.Fields[selection.Field.Name]));
+                goto NEXT;
+            }
 
-                if (!selection.Arguments.IsFullyCoercedNoErrors)
+            if (onlyIntrospection && !selection.Field.IsIntrospectionField)
+            {
+                onlyIntrospection = false;
+            }
+
+            selectionNodes.Add(
+                CreateSelectionNode(
+                    context,
+                    executionStep,
+                    selection,
+                    typeContext.Fields[selection.Field.Name]));
+
+            if (!selection.Arguments.IsFullyCoercedNoErrors)
+            {
+                foreach (var argument in selection.Arguments)
                 {
-                    foreach (var argument in selection.Arguments)
+                    if (!argument.IsFullyCoerced)
                     {
-                        if (!argument.IsFullyCoerced)
-                        {
-                            TryForwardVariable(
-                                context,
-                                executionStep.SubgraphName,
-                                null,
-                                argument,
-                                argument.Name);
-                        }
+                        TryForwardVariable(
+                            context,
+                            executionStep.SubgraphName,
+                            null,
+                            argument,
+                            argument.Name);
                     }
                 }
             }
+
+            NEXT:
+            selection = ref Unsafe.Add(ref selection, 1);
         }
 
         // append exports that were required by other execution steps.
@@ -307,6 +333,8 @@ internal abstract class RequestDocumentFormatter
         {
             throw ThrowHelper.RequestFormatter_SelectionSetEmpty();
         }
+
+        return onlyIntrospection;
     }
 
     protected void ResolveRequirements(

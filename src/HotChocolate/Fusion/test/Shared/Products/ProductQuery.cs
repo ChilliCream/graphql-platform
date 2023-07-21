@@ -21,8 +21,15 @@ public sealed class ProductQuery
 [GraphQLName("Mutation")]
 public sealed class ProductMutation
 {
-    public bool UploadProductPicture(
-        int productId,
-        IFile file)
-        => true;
+    public MutationResult<bool, ProductNotFoundError> UploadProductPicture(int productId, IFile file)
+    {
+        if (productId is 0)
+        {
+            return new ProductNotFoundError(0, "broken");
+        }
+        
+        return true;
+    }
 }
+
+public sealed record ProductNotFoundError(int ProductId, string Message);
