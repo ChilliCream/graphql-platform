@@ -1457,6 +1457,63 @@ public class DemoIntegrationTests
         Assert.Null(result.ExpectQueryResult().Errors);
     }
 
+    [Fact]
+    public async Task QueryType_Parallel_Multiple_SubGraphs_WithArguments()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query TopProducts {
+              topProducts(first: 5) {
+                weight
+                deliveryEstimate(zip: "12345") {
+                  min
+                  max
+                }
+                reviews {
+                    body
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("first", 1)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;
