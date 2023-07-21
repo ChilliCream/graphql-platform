@@ -158,6 +158,13 @@ type ProductDimension {
     @source(subgraph: "Products")
 }
 
+type ProductNotFoundError implements Error {
+  message: String!
+    @source(subgraph: "Products")
+  productId: Int!
+    @source(subgraph: "Products")
+}
+
 type Review implements Node
   @variable(subgraph: "Reviews2", name: "Review_id", select: "id")
   @resolver(subgraph: "Reviews2", select: "{ node(id: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "ID!" } ])
@@ -181,6 +188,8 @@ type SomeData {
 
 type UploadProductPicturePayload {
   boolean: Boolean
+    @source(subgraph: "Products")
+  errors: [UploadProductPictureError!]
     @source(subgraph: "Products")
 }
 
@@ -208,11 +217,17 @@ type User implements Node
     @source(subgraph: "Accounts")
 }
 
+interface Error {
+  message: String!
+}
+
 interface Node {
   id: ID!
 }
 
 union ReviewOrAuthor = User | Review
+
+union UploadProductPictureError = ProductNotFoundError
 
 input AddReviewInput {
   authorId: Int!

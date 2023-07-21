@@ -231,7 +231,7 @@ internal abstract class RequestDocumentFormatter
                 selectionNodes = new List<ISelectionNode>();
                 single = false;
             }
-            else if (isAbstractType && !ReferenceEquals(parentType, possibleType))
+            else if (single && isAbstractType && !ReferenceEquals(parentType, possibleType))
             {
                 if (!onlyIntrospection)
                 {
