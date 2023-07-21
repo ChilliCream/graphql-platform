@@ -2,6 +2,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 using static HotChocolate.Fusion.FusionResources;
 using static HotChocolate.Fusion.ThrowHelper;

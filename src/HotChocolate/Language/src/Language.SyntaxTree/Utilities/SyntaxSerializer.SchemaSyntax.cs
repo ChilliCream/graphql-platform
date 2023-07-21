@@ -441,7 +441,7 @@ public sealed partial class SyntaxSerializer
         IReadOnlyList<DirectiveNode> directives,
         ISyntaxWriter writer)
     {
-        if (_directiveIndentationOptions?.NewLineCount < directives.Count)
+        if (_maxDirectivesPerLine < directives.Count)
         {
             writer.WriteLine();
             writer.Indent();

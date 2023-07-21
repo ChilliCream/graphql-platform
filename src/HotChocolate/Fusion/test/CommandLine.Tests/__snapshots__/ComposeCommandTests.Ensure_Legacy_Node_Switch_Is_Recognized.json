@@ -1,4 +1,7 @@
 {
+  "transport": {
+    "defaultClientName": "Fusion"
+  },
   "fusionTypePrefix": null,
   "fusionTypeSelf": false,
   "nodeField": {

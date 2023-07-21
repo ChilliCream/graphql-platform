@@ -207,6 +207,11 @@ internal sealed class ComposeCommand : Command
     {
         var features = new List<IFusionFeature>();
 
+        features.Add(new TransportFeature
+        {
+            DefaultClientName = settings.Transport.DefaultClientName
+        });
+
         if (settings.NodeField.Enabled)
         {
             features.Add(FusionFeatures.NodeField);
@@ -266,6 +271,7 @@ internal sealed class ComposeCommand : Command
         private Feature? _reEncodeIds;
         private Feature? _nodeField;
         private TagDirective? _tagDirective;
+        private Transport? _transport;
 
         [JsonPropertyName("fusionTypePrefix")]
         [JsonPropertyOrder(10)]
@@ -274,6 +280,12 @@ internal sealed class ComposeCommand : Command
         [JsonPropertyName("fusionTypeSelf")]
         [JsonPropertyOrder(11)]
         public bool FusionTypeSelf { get; set; }
+
+        public Transport Transport
+        {
+            get => _transport ??= new();
+            set => _transport = value;
+        }
 
         [JsonPropertyName("nodeField")]
         [JsonPropertyOrder(12)]
@@ -322,5 +334,12 @@ internal sealed class ComposeCommand : Command
             get => _exclude ?? Array.Empty<string>();
             set => _exclude = value;
         }
+    }
+
+    public sealed class Transport
+    {
+        [JsonPropertyName("defaultClientName")]
+        [JsonPropertyOrder(10)]
+        public string? DefaultClientName { get; set; } = "Fusion";
     }
 }
