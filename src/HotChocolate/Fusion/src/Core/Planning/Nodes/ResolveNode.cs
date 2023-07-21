@@ -23,7 +23,7 @@ internal sealed class ResolveNode : QueryPlanNode
 
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        ExecutionState state,
+        RequestState state,
         CancellationToken cancellationToken)
     {
         var variables = context.OperationContext.Variables;

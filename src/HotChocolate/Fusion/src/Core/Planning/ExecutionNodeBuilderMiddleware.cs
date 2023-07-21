@@ -135,15 +135,17 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
         context.RegisterSelectionSet(selectionSet);
 
-        return new Resolve(
-            context.NextNodeId(),
+        var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
             selectionSet,
-            executionStep.Variables.Values.ToArray(),
+            context.Exports.GetExportKeys(executionStep),
+            executionStep.Variables.Values,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value),
             request.Path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
             DetermineTransportFeatures(context));
+
+        return new Resolve(context.NextNodeId(), config);
     }
 
     private TransportFeatures DetermineTransportFeatures(
@@ -211,16 +213,18 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             executionStep.SelectionSetTypeMetadata.Name);
 
         context.RegisterSelectionSet(selectionSet);
-
-        return new Resolve(
-            context.NextNodeId(),
+        
+        var config = new ResolverNodeBase.Config(
             executionStep.SelectEntityStep.SubgraphName,
             requestDocument,
             selectionSet,
-            executionStep.SelectEntityStep.Variables.Values.ToArray(),
+            context.Exports.GetExportKeys(executionStep),
+            executionStep.SelectEntityStep.Variables.Values,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value),
             path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
             DetermineTransportFeatures(context));
+
+        return new Resolve(context.NextNodeId(), config);
     }
 
     private ResolveByKeyBatch CreateResolveByKeyBatchNode(
@@ -255,17 +259,18 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
             argumentTypes = temp;
         }
-
-        return new ResolveByKeyBatch(
-            context.NextNodeId(),
+        
+        var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
             selectionSet,
-            executionStep.Variables.Values.ToArray(),
+            context.Exports.GetExportKeys(executionStep),
+            executionStep.Variables.Values,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value),
             request.Path,
-            argumentTypes,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
             DetermineTransportFeatures(context));
+
+        return new ResolveByKeyBatch(context.NextNodeId(), config, argumentTypes);
     }
 
     private Subscribe CreateSubscribeNode(

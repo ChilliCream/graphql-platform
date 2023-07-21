@@ -1,11 +1,11 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
-using HotChocolate.Transport.Http;
-using HotChocolate.Types;
+using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -13,86 +13,49 @@ namespace HotChocolate.Fusion.Planning;
 /// The resolver node is responsible for executing a GraphQL request on a subgraph.
 /// This represents the base class for various resolver node implementations.
 /// </summary>
-internal abstract class ResolverNodeBase : QueryPlanNode
+internal abstract partial class ResolverNodeBase : QueryPlanNode
 {
+    private readonly string _subgraphName;
+    private readonly string _document;
+    private readonly SelectionSet _selectionSet;
+    private readonly string[] _provides;
+    private readonly string[] _requires;
+    private readonly string[] _forwardedVariables;
+    private readonly string[] _path;
+    private readonly TransportFeatures _transportFeatures;
+    private readonly bool _hasDependencies;
+
     /// <summary>
     /// Initializes a new instance of <see cref="ResolverNodeBase"/>.
     /// </summary>
     /// <param name="id">
     /// The unique id of this node.
     /// </param>
-    /// <param name="subgraphName">
-    /// The name of the subgraph on which this request handler executes.
+    /// <param name="config">
+    /// Gets the resolver configuration.
     /// </param>
-    /// <param name="document">
-    /// The GraphQL request document.
-    /// </param>
-    /// <param name="selectionSet">
-    /// The selection set for which this request provides a patch.
-    /// </param>
-    /// <param name="requires">
-    /// The variables that this request handler requires to create a request.
-    /// </param>
-    /// <param name="path">
-    /// The path to the data that this request handler needs to extract.
-    /// </param>
-    /// <param name="forwardedVariables">
-    /// The variables that this request handler forwards to the subgraph.
-    /// </param>
-    /// <param name="transportFeatures">
-    /// The transport features that are required by this node.
-    /// </param>
-    protected ResolverNodeBase(
-        int id,
-        string subgraphName,
-        DocumentNode document,
-        ISelectionSet selectionSet,
-        IReadOnlyList<string> requires,
-        IReadOnlyList<string> path,
-        IReadOnlyList<string> forwardedVariables,
-        TransportFeatures transportFeatures)
+    protected ResolverNodeBase(int id, Config config)
         : base(id)
     {
-        SubgraphName = subgraphName;
-        Document = document.ToString(false);
-        SelectionSet = (SelectionSet)selectionSet;
-        Requires = requires;
-        Path = path;
-        ForwardedVariables = forwardedVariables;
-        TransportFeatures = transportFeatures;
+        config.ThrowIfNotInitialized();
+        _subgraphName = config.SubgraphName;
+        _document = config.Document;
+        _selectionSet = config.SelectionSet;
+        _provides = config.Provides;
+        _requires = config.Requires;
+        _forwardedVariables = config.ForwardedVariables;
+        _path = config.Path;
+        _transportFeatures = config.TransportFeatures;
+        _hasDependencies = _requires.Length > 0 || _forwardedVariables.Length > 0;
     }
+    
+    protected string SubgraphName => _subgraphName;
+    
+    protected internal SelectionSet SelectionSet => _selectionSet;
+    
+    protected string[] Requires => _requires;
 
-    /// <summary>
-    /// Gets the schema name on which this request handler executes.
-    /// </summary>
-    public string SubgraphName { get; }
-
-    /// <summary>
-    /// Gets the GraphQL request document.
-    /// </summary>
-    public string Document { get; }
-
-    /// <summary>
-    /// Gets the selection set for which this request provides a patch.
-    /// </summary>
-    public SelectionSet SelectionSet { get; }
-
-    /// <summary>
-    /// Gets the variables that this request handler requires to create a request.
-    /// </summary>
-    public IReadOnlyList<string> Requires { get; }
-
-    /// <summary>
-    /// Gets the variables that this request handler forwards to the subgraph.
-    /// </summary>
-    public IReadOnlyList<string> ForwardedVariables { get; }
-
-    public TransportFeatures TransportFeatures { get; }
-
-    /// <summary>
-    /// Gets the path to the data that this request handler needs to extract.
-    /// </summary>
-    public IReadOnlyList<string> Path { get; }
+    protected string[] Path => _path;
 
     /// <summary>
     /// Creates a GraphQL request with the specified variable values.
@@ -111,36 +74,52 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     {
         ObjectValueNode? vars = null;
 
-        if (Requires.Count > 0 || ForwardedVariables.Count > 0)
+        if (_hasDependencies)
         {
             var fields = new List<ObjectFieldNode>();
 
-            foreach (var forwardedVariable in ForwardedVariables)
+            if (_forwardedVariables.Length > 0)
             {
-                if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
-                    value is not null)
+                ref var forwardedVariable = ref MemoryMarshal.GetArrayDataReference(_forwardedVariables);
+                ref var end = ref Unsafe.Add(ref forwardedVariable, _forwardedVariables.Length);
+
+                while (Unsafe.IsAddressLessThan(ref forwardedVariable, ref end))
                 {
-                    value = ReformatVariableRewriter.Rewrite(value);
-                    fields.Add(new ObjectFieldNode(forwardedVariable, value));
+                    if (variables.TryGetVariable<IValueNode>(forwardedVariable, out var value) &&
+                        value is not null)
+                    {
+                        value = ReformatVariableRewriter.Rewrite(value);
+                        fields.Add(new ObjectFieldNode(forwardedVariable, value));
+                    }
+
+                    forwardedVariable = ref Unsafe.Add(ref forwardedVariable, 1);
                 }
             }
 
-            foreach (var requirement in Requires)
+            if (_requires.Length > 0)
             {
-                if (requirementValues.TryGetValue(requirement, out var value))
+                ref var requirement = ref MemoryMarshal.GetArrayDataReference(_requires);
+                ref var end = ref Unsafe.Add(ref requirement, _requires.Length);
+
+                while (Unsafe.IsAddressLessThan(ref requirement, ref end))
                 {
-                    fields.Add(new ObjectFieldNode(requirement, value));
-                }
-                else
-                {
-                    throw ThrowHelper.Requirement_Is_Missing(requirement, nameof(requirementValues));
+                    if (requirementValues.TryGetValue(requirement, out var value))
+                    {
+                        fields.Add(new ObjectFieldNode(requirement, value));
+                    }
+                    else
+                    {
+                        throw ThrowHelper.Requirement_Is_Missing(requirement, nameof(requirementValues));
+                    }
+                    
+                    requirement = ref Unsafe.Add(ref requirement, 1);
                 }
             }
-
-            vars ??= new ObjectValueNode(fields);
+            
+            vars = new ObjectValueNode(fields);
         }
 
-        return new SubgraphGraphQLRequest(SubgraphName, Document, vars, null, TransportFeatures);
+        return new SubgraphGraphQLRequest(_subgraphName, _document, vars, null, _transportFeatures);
     }
 
     /// <summary>
@@ -154,7 +133,7 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     /// </returns>
     protected JsonElement UnwrapResult(GraphQLResponse response)
     {
-        if (Path.Count == 0)
+        if (_path.Length == 0)
         {
             return response.Data;
         }
@@ -162,16 +141,20 @@ internal abstract class ResolverNodeBase : QueryPlanNode
         if (response.Data.ValueKind is not JsonValueKind.Undefined and not JsonValueKind.Null)
         {
             var current = response.Data;
+            
+            ref var segment = ref MemoryMarshal.GetArrayDataReference(_path);
+            ref var end = ref Unsafe.Add(ref segment, _path.Length);
 
-            for (var i = 0; i < Path.Count; i++)
+            while (Unsafe.IsAddressLessThan(ref segment, ref end))
             {
                 if (current.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
                 {
                     return current;
                 }
 
-                current.TryGetProperty(Path[i], out var propertyValue);
+                current.TryGetProperty(segment, out var propertyValue);
                 current = propertyValue;
+                segment = ref Unsafe.Add(ref segment, 1);
             }
 
             return current;
@@ -188,75 +171,100 @@ internal abstract class ResolverNodeBase : QueryPlanNode
     /// </param>
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
-        writer.WriteString("subgraph", SubgraphName);
-        writer.WriteString("document", Document);
-        writer.WriteNumber("selectionSetId", SelectionSet.Id);
+        writer.WriteString(SubgraphProp, SubgraphName);
+        writer.WriteString(DocumentProp, DocumentProp);
+        writer.WriteNumber(SelectionSetIdProp, SelectionSet.Id);
 
-        if (Path.Count > 0)
+        if (_path.Length > 0)
         {
-            writer.WritePropertyName("path");
+            writer.WritePropertyName(PathProp);
             writer.WriteStartArray();
+            
+            ref var segment = ref MemoryMarshal.GetArrayDataReference(_path);
+            ref var end = ref Unsafe.Add(ref segment, _path.Length);
 
-            foreach (var path in Path)
+            while (Unsafe.IsAddressLessThan(ref segment, ref end))
             {
-                writer.WriteStringValue(path);
+                writer.WriteStringValue(segment);
+                segment = ref Unsafe.Add(ref segment, 1);
             }
+            
             writer.WriteEndArray();
         }
 
-        if (Requires.Count > 0)
+        if (_provides.Length > 0)
         {
-            writer.WritePropertyName("requires");
+            writer.WritePropertyName(ProvidesProp);
             writer.WriteStartArray();
+            
+            ref var export = ref MemoryMarshal.GetArrayDataReference(_provides);
+            ref var end = ref Unsafe.Add(ref export, _provides.Length);
 
-            foreach (var requirement in Requires)
+            while (Unsafe.IsAddressLessThan(ref export, ref end))
             {
                 writer.WriteStartObject();
-                writer.WriteString("variable", requirement);
+                writer.WriteString(VariableProp, export);
+                writer.WriteEndObject();
+                
+                export = ref Unsafe.Add(ref export, 1);
+            }
+            
+            writer.WriteEndArray();
+        }
+
+        if (_requires.Length > 0)
+        {
+            writer.WritePropertyName(RequiresProp);
+            writer.WriteStartArray();
+            
+            ref var requirement = ref MemoryMarshal.GetArrayDataReference(_requires);
+            ref var end = ref Unsafe.Add(ref requirement, _requires.Length);
+
+            while (Unsafe.IsAddressLessThan(ref requirement, ref end))
+            {
+                writer.WriteStartObject();
+                writer.WriteString(VariableProp, requirement);
                 writer.WriteEndObject();
             }
+            
             writer.WriteEndArray();
         }
 
-        if (ForwardedVariables.Count > 0)
+        if (_forwardedVariables.Length > 0)
         {
-            writer.WritePropertyName("forwardedVariables");
+            writer.WritePropertyName(ForwardedVariablesProp);
             writer.WriteStartArray();
 
-            foreach (var variable in ForwardedVariables)
+            ref var variable = ref MemoryMarshal.GetArrayDataReference(_forwardedVariables);
+            ref var end = ref Unsafe.Add(ref variable, _forwardedVariables.Length);
+
+            while (Unsafe.IsAddressLessThan(ref variable, ref end))
             {
                 writer.WriteStartObject();
-                writer.WriteString("variable", variable);
+                writer.WriteString(VariableProp, variable);
                 writer.WriteEndObject();
             }
             writer.WriteEndArray();
         }
     }
-}
 
-internal sealed class ReformatVariableRewriter : SyntaxRewriter<ReformatVariableRewriter>, ISyntaxVisitorContext
-{
-    private static readonly ReformatVariableRewriter _instance = new();
-    
-    public static IValueNode Rewrite(IValueNode node)
+    protected static ValueTask ReturnResult(GraphQLResponse response)
     {
-        if(_instance.Rewrite(node, _instance) is IValueNode rewritten)
+        response.Dispose();
+        return default;
+    }
+    
+    protected static ValueTask ReturnResults(GraphQLResponse[] responses)
+    {
+        ref var response = ref MemoryMarshal.GetArrayDataReference(responses);
+        ref var end = ref Unsafe.Add(ref response, responses.Length);
+
+        while (Unsafe.IsAddressLessThan(ref response, ref end))
         {
-            return rewritten;
+            response.Dispose();
+            response = ref Unsafe.Add(ref response, 1);
         }
         
-        return NullValueNode.Default;
-    }
-
-    protected override IValueNode? RewriteCustomValue(IValueNode node, ReformatVariableRewriter context)
-    {
-        if(node is FileValueNode fileValueNode)
-        {
-            return new FileReferenceNode(
-                fileValueNode.Value.OpenReadStream, 
-                fileValueNode.Value.Name);
-        }
-
-        return node;
+        return default;
     }
 }

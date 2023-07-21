@@ -50,6 +50,9 @@
     <Compile Update="Metadata\ResolverDefinition.ResolverRewriter.cs">
       <DependentUpon>ResolverDefinition.cs</DependentUpon>
     </Compile>
+    <Compile Update="Planning\Nodes\ResolverNodeBase.Config.cs">
+      <DependentUpon>ResolverNodeBase.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

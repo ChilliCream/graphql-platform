@@ -23,7 +23,7 @@ internal sealed class ExportDefinitionRegistry
         FieldVariableDefinition variableDefinition,
         ExecutionStep providingExecutionStep)
     {
-        if(_stateKeyLookup.TryGetValue((selectionSet, variableDefinition.Name), out var stateKey))
+        if (_stateKeyLookup.TryGetValue((selectionSet, variableDefinition.Name), out var stateKey))
         {
             return stateKey;
         }
@@ -120,6 +120,17 @@ internal sealed class ExportDefinitionRegistry
                 var selection = exportDefinition.VariableDefinition.Select;
                 var stateKey = exportDefinition.StateKey;
                 yield return selection.WithAlias(new NameNode(stateKey));
+            }
+        }
+    }
+
+    public IEnumerable<string> GetExportKeys(ExecutionStep executionStep)
+    {
+        foreach (var exportDefinition in _exports)
+        {
+            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep))
+            {
+                yield return exportDefinition.StateKey;
             }
         }
     }

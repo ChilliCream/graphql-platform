@@ -55,7 +55,7 @@ internal sealed class FusionExecutionContext : IDisposable
     /// <summary>
     /// Gets the execution state.
     /// </summary>
-    public ExecutionState State { get; } = new();
+    public RequestState State { get; } = new();
 
     /// <summary>
     /// Gets access to the underlying operation context.
@@ -108,7 +108,7 @@ internal sealed class FusionExecutionContext : IDisposable
         return await client.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
+    public async Task<GraphQLResponse[]> ExecuteAsync(
         string subgraphName,
         IReadOnlyList<SubgraphGraphQLRequest> requests,
         CancellationToken cancellationToken)

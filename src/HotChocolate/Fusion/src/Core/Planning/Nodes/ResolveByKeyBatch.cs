@@ -1,4 +1,7 @@
+using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
@@ -10,89 +13,46 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class ResolveByKeyBatch : ResolverNodeBase
 {
-    private readonly IReadOnlyList<string> _path;
+    private readonly Dictionary<string, ITypeNode> _argumentTypes;
 
-    public ResolveByKeyBatch(
-        int id,
-        string subgraphName,
-        DocumentNode document,
-        ISelectionSet selectionSet,
-        IReadOnlyList<string> requires,
-        IReadOnlyList<string> path,
-        IReadOnlyDictionary<string, ITypeNode> argumentTypes,
-        IReadOnlyList<string> forwardedVariables,
-        TransportFeatures transportFeatures)
-        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables, transportFeatures)
+    public ResolveByKeyBatch(int id, Config config, IReadOnlyDictionary<string, ITypeNode> argumentTypes)
+        : base(id, config)
     {
-        ArgumentTypes = argumentTypes;
-        _path = path;
+        _argumentTypes = new Dictionary<string, ITypeNode>(argumentTypes, StringComparer.Ordinal);
     }
 
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.ResolveByKeyBatch;
-
-    /// <summary>
-    /// Gets the type lookup of resolver arguments.
-    /// </summary>
-    public IReadOnlyDictionary<string, ITypeNode> ArgumentTypes { get; }
-
+    
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
-        ExecutionState state,
+        RequestState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var originalWorkItems))
+        if (state.TryGetState(SelectionSet, out var executionState))
         {
-            for (var i = 0; i < originalWorkItems.Count; i++)
-            {
-                TryInitializeWorkItem(context.QueryPlan, originalWorkItems[i]);
-            }
+            InitializeRequests(context, executionState);
 
-            var workItems = CreateBatchWorkItem(originalWorkItems, Requires);
-            var subgraphName = SubgraphName;
-            var firstWorkItem = workItems[0];
+            var batchExecutionState = CreateBatchBatchState(executionState, Requires);
 
             // Create the batch subgraph request.
-            var variableValues = BuildVariables(workItems);
-            var request = CreateRequest(
-                context.OperationContext.Variables,
-                variableValues);
+            var variableValues = BuildVariables(batchExecutionState);
+            var request = CreateRequest(context.OperationContext.Variables, variableValues);
 
             // Once we have the batch request, we will enqueue it for execution with
             // the execution engine.
-            var response = await context.ExecuteAsync(
-                    subgraphName,
-                    request,
-                    cancellationToken)
-                .ConfigureAwait(false);
+            var response = await context.ExecuteAsync(SubgraphName, request, cancellationToken).ConfigureAwait(false);
 
             // Before we extract the data from the responses we will enqueue the responses
             // for cleanup so that the memory can be released at the end of the execution.
-            context.Result.RegisterForCleanup(
-                response,
-                r =>
-                {
-                    r.Dispose();
-                    return default!;
-                });
+            context.Result.RegisterForCleanup(response, ReturnResult);
 
-            ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
-            var result = UnwrapResult(response, Requires);
-
-            for (var i = 0; i < workItems.Length; i++)
-            {
-                var workItem = workItems[i];
-                if (result.TryGetValue(workItem.Key, out var workItemData))
-                {
-                    ExtractSelectionResults(SelectionSet, subgraphName, workItemData, workItem.SelectionResults);
-                    ExtractVariables(workItemData, context.QueryPlan, SelectionSet, firstWorkItem.ExportKeys, workItem.VariableValues);
-                }
-            }
+            ProcessResult(context, response, batchExecutionState);
         }
     }
 
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        ExecutionState state,
+        RequestState state,
         CancellationToken cancellationToken)
     {
         if (state.ContainsState(SelectionSet))
@@ -100,19 +60,57 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             await base.OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
         }
     }
-
-    private Dictionary<string, IValueNode> BuildVariables(BatchWorkItem[] workItems)
+    
+    private static void InitializeRequests(FusionExecutionContext context, List<ExecutionState> executionState)
     {
-        if (workItems.Length == 1)
+        ref var state = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(executionState));
+        ref var end = ref Unsafe.Add(ref state, executionState.Count);            
+        
+        while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
-            return workItems[0].VariableValues;
+            TryInitializeExecutionState(context.QueryPlan, state);
+        }
+    }
+
+    private void ProcessResult(
+        FusionExecutionContext context, 
+        GraphQLResponse response, 
+        BatchExecutionState[] batchExecutionState)
+    {
+        var first = batchExecutionState[0];
+        
+        ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
+        var result = UnwrapResult(response, Requires);
+        
+        ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
+        ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
+
+        while (Unsafe.IsAddressLessThan(ref batchState, ref end))
+        {
+            if (result.TryGetValue(batchState.Key, out var workItemData))
+            {
+                ExtractSelectionResults(SelectionSet, SubgraphName, workItemData, batchState.SelectionResults);
+                ExtractVariables(workItemData, context.QueryPlan, SelectionSet, first.ExportKeys, first.VariableValues);
+            }
+
+            batchState = ref Unsafe.Add(ref batchState, 1);
+        }
+    }
+
+    private static Dictionary<string, IValueNode> BuildVariables(
+        BatchExecutionState[] batchExecutionState,
+        Dictionary<string, ITypeNode> argumentTypes)
+    {
+        if (batchExecutionState.Length == 1)
+        {
+            return batchExecutionState[0].VariableValues;
         }
 
         var variableValues = new Dictionary<string, IValueNode>();
-        var uniqueWorkItems = new List<BatchWorkItem>();
+        var uniqueWorkItems = new List<BatchExecutionState>();
         var processed = new HashSet<string>();
 
-        foreach (var workItem in workItems)
+        foreach (var workItem in batchExecutionState)
         {
             if (processed.Add(workItem.Key))
             {
@@ -120,9 +118,9 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             }
         }
 
-        foreach (var key in workItems[0].VariableValues.Keys)
+        foreach (var key in batchExecutionState[0].VariableValues.Keys)
         {
-            var expectedType = ArgumentTypes[key];
+            var expectedType = argumentTypes[key];
 
             if (expectedType.IsListType())
             {
@@ -140,7 +138,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             }
             else
             {
-                if (workItems[0].VariableValues.TryGetValue(key, out var variableValue))
+                if (batchExecutionState[0].VariableValues.TryGetValue(key, out var variableValue))
                 {
                     variableValues.Add(key, variableValue);
                 }
@@ -155,13 +153,14 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         IReadOnlyList<string> exportKeys)
     {
         var data = response.Data;
+        var path = Path;
 
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
         {
             return new Dictionary<string, JsonElement>();
         }
 
-        if (_path.Count > 0)
+        if (path.Length > 0)
         {
             data = LiftData();
         }
@@ -228,108 +227,48 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         }
     }
 
-    private static BatchWorkItem[] CreateBatchWorkItem(
-        IReadOnlyList<SelectionSetState> workItems,
-        IReadOnlyList<string> requirements)
+    private static BatchExecutionState[] CreateBatchBatchState(List<ExecutionState> executionState, string[] requires)
     {
-        var batchWorkItems = new BatchWorkItem[workItems.Count];
+        var batchExecutionState = new BatchExecutionState[executionState.Count];
+        
+        ref var state = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(executionState));
+        ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
+        ref var end = ref Unsafe.Add(ref state, executionState.Count);
 
-        if (requirements.Count == 1)
+        if (requires.Length == 1)
         {
-            for (var i = 0; i < workItems.Count; i++)
+            while (Unsafe.IsAddressLessThan(ref state, ref end))
             {
-                var workItem = workItems[i];
-                var key = FormatKeyValue(workItem.VariableValues[requirements[0]]);
-                batchWorkItems[i] = new BatchWorkItem(key, workItem);
+                var key = FormatKeyValue(state.VariableValues[requires[0]]);
+                batchState = new BatchExecutionState(key, state);
+
+                state = ref Unsafe.Add(ref state, 1);
+                batchState = ref Unsafe.Add(ref batchState, 1);
             }
         }
         else
         {
-            for (var i = 0; i < workItems.Count; i++)
+            var keyBuilder = new StringBuilder();
+            
+            while (Unsafe.IsAddressLessThan(ref state, ref end))
             {
-                var workItem = workItems[i];
-                var key = string.Empty;
+                ref var key = ref MemoryMarshal.GetArrayDataReference(requires);
+                ref var keyEnd = ref Unsafe.Add(ref key, requires.Length);
 
-                for (var j = 0; j < requirements.Count; j++)
+                while (Unsafe.IsAddressLessThan(ref key, ref keyEnd))
                 {
-                    var requirement = requirements[j];
-                    var value = FormatKeyValue(workItem.VariableValues[requirement]);
-                    key += value;
+                    keyBuilder.Append(FormatKeyValue(state.VariableValues[key]));
+                    key = ref Unsafe.Add(ref key, 1);
                 }
 
-                batchWorkItems[i] = new BatchWorkItem(key, workItem);
+                batchState = new BatchExecutionState(key, state);
+
+                state = ref Unsafe.Add(ref state, 1);
+                batchState = ref Unsafe.Add(ref batchState, 1);
             }
         }
 
-        return batchWorkItems;
-    }
-
-    /// <summary>
-    /// Formats the properties of this query plan node in order to create a JSON representation.
-    /// </summary>
-    /// <param name="writer">
-    /// The writer that is used to write the JSON representation.
-    /// </param>
-    protected override void FormatProperties(Utf8JsonWriter writer)
-    {
-        writer.WriteString("subgraph", SubgraphName);
-        writer.WriteString("document", Document);
-        writer.WriteNumber("selectionSetId", SelectionSet.Id);
-
-        if (ArgumentTypes.Count > 0)
-        {
-            writer.WritePropertyName("argumentTypes");
-            writer.WriteStartArray();
-
-            foreach (var (argument, type) in ArgumentTypes)
-            {
-                writer.WriteStartObject();
-                writer.WriteString("argument", argument);
-                writer.WriteString("type", type.ToString(false));
-                writer.WriteEndObject();
-            }
-            writer.WriteEndArray();
-        }
-
-        if (Path.Count > 0)
-        {
-            writer.WritePropertyName("path");
-            writer.WriteStartArray();
-
-            foreach (var path in Path)
-            {
-                writer.WriteStringValue(path);
-            }
-            writer.WriteEndArray();
-        }
-
-        if (Requires.Count > 0)
-        {
-            writer.WritePropertyName("requires");
-            writer.WriteStartArray();
-
-            foreach (var requirement in Requires)
-            {
-                writer.WriteStartObject();
-                writer.WriteString("variable", requirement);
-                writer.WriteEndObject();
-            }
-            writer.WriteEndArray();
-        }
-
-        if (ForwardedVariables.Count > 0)
-        {
-            writer.WritePropertyName("forwardedVariables");
-            writer.WriteStartArray();
-
-            foreach (var variable in ForwardedVariables)
-            {
-                writer.WriteStartObject();
-                writer.WriteString("variable", variable);
-                writer.WriteEndObject();
-            }
-            writer.WriteEndArray();
-        }
+        return batchExecutionState;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -357,16 +296,16 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             _ => throw new NotSupportedException(),
         };
 
-    private readonly struct BatchWorkItem
+    private readonly struct BatchExecutionState
     {
-        public BatchWorkItem(
+        public BatchExecutionState(
             string batchKey,
-            SelectionSetState selectionSetState)
+            ExecutionState executionState)
         {
             Key = batchKey;
-            VariableValues = selectionSetState.VariableValues;
-            ExportKeys = selectionSetState.ExportKeys;
-            SelectionResults = selectionSetState.SelectionSetData;
+            VariableValues = executionState.VariableValues;
+            ExportKeys = executionState.ExportKeys;
+            SelectionResults = executionState.SelectionSetData;
         }
 
         public string Key { get; }

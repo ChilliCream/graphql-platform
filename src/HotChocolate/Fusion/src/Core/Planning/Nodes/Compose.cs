@@ -4,26 +4,23 @@ using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
+using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class Compose : QueryPlanNode
 {
-    private readonly ISelectionSet[] _selectionSets;
+    private readonly SelectionSet[] _selectionSets;
 
     public Compose(int id, Resolve resolve)
         : this(id, new[] { resolve.SelectionSet }) { }
 
-    public Compose(int id, ISelectionSet selectionSet)
+    public Compose(int id, SelectionSet selectionSet)
         : this(id, new[] { selectionSet }) { }
 
-    public Compose(int id, IReadOnlyList<ISelectionSet> selectionSets) : base(id)
+    public Compose(int id, IReadOnlyList<SelectionSet> selectionSets) : base(id)
     {
-        if (selectionSets is null)
-        {
-            throw new ArgumentNullException(nameof(selectionSets));
-        }
-
+        ArgumentNullException.ThrowIfNull(selectionSets);
         _selectionSets = selectionSets.Distinct().OrderBy(t => t.Id).ToArray();
     }
 
@@ -31,7 +28,7 @@ internal sealed class Compose : QueryPlanNode
 
     protected override Task OnExecuteAsync(
         FusionExecutionContext context,
-        ExecutionState state,
+        RequestState state,
         CancellationToken cancellationToken)
     {
         if (_selectionSets.Length == 1)
@@ -68,7 +65,7 @@ internal sealed class Compose : QueryPlanNode
 
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        ExecutionState state,
+        RequestState state,
         CancellationToken cancellationToken)
     {
         if (_selectionSets.Length == 1)
@@ -89,7 +86,7 @@ internal sealed class Compose : QueryPlanNode
 
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
-        writer.WritePropertyName("selectionSetIds");
+        writer.WritePropertyName(SelectionSetIdsProp);
         writer.WriteStartArray();
 
         foreach (var selectionSet in _selectionSets)

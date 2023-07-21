@@ -100,7 +100,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
             foreach (var type in possibleTypes)
             {
-                var selectionSet = (SelectionSet)operation.GetSelectionSet(selection, type);
+                var selectionSet = Unsafe.As<SelectionSet>(operation.GetSelectionSet(selection, type));
                 var length = selectionSet.Selections.Count;
                 ref var start = ref selectionSet.GetSelectionsReference();
 

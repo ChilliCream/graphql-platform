@@ -37,13 +37,13 @@ internal abstract class QueryPlanNode
 
     protected virtual Task OnExecuteAsync(
         FusionExecutionContext context,
-        ExecutionState state,
+        RequestState state,
         CancellationToken cancellationToken)
         => Task.CompletedTask;
 
     protected virtual async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        ExecutionState state,
+        RequestState state,
         CancellationToken cancellationToken)
     {
         for (var i = 0; i < _nodes.Count; i++)

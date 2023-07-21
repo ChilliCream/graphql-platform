@@ -16,7 +16,7 @@ internal sealed class If : QueryPlanNode
 
     protected override Task OnExecuteNodesAsync(
         FusionExecutionContext context,
-        ExecutionState state,
+        RequestState state,
         CancellationToken cancellationToken)
     {
         var contextData = (ConcurrentDictionary<string, object?>)context.OperationContext.ContextData;

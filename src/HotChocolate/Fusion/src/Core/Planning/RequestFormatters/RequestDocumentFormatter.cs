@@ -1,3 +1,4 @@
+using Internal.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
@@ -212,7 +213,8 @@ internal abstract class RequestDocumentFormatter
         while (next)
         {
             var possibleType = typeEnumerator.Current;
-            var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(parentSelection, possibleType);
+            var selectionSet = Unsafe.As<SelectionSet>(
+                context.Operation.GetSelectionSet(parentSelection, possibleType));
 
             var onlyIntrospection =
                 CreateSelectionNodes(
@@ -399,9 +401,9 @@ internal abstract class RequestDocumentFormatter
                 var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
                 TryForwardVariable(
-                    context, 
-                    resolver.SubgraphName, 
-                    resolver, 
+                    context,
+                    resolver.SubgraphName,
+                    resolver,
                     argumentValue,
                     argumentVariable.ArgumentName);
             }
@@ -428,10 +430,10 @@ internal abstract class RequestDocumentFormatter
                 var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
                 TryForwardVariable(
-                    context, 
+                    context,
                     resolver.SubgraphName,
-                    resolver, 
-                    argumentValue, 
+                    resolver,
+                    argumentValue,
                     argumentVariable.ArgumentName);
             }
         }
