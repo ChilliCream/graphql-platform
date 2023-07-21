@@ -285,16 +285,18 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 OperationType.Subscription);
 
         context.RegisterSelectionSet(selectionSet);
-
-        return new Subscribe(
-            context.NextNodeId(),
+        
+        var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
             selectionSet,
-            executionStep.Variables.Values.ToArray(),
+            context.Exports.GetExportKeys(executionStep),
+            executionStep.Variables.Values,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value),
             request.Path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
             DetermineTransportFeatures(context));
+
+        return new Subscribe(context.NextNodeId(), config);
     }
 
     private ISelectionSet ResolveSelectionSet(

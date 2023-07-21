@@ -24,37 +24,11 @@ internal sealed class Subscribe : ResolverNodeBase
     /// <param name="id">
     /// The unique id of this node.
     /// </param>
-    /// <param name="subgraphName">
-    /// The name of the subgraph on which this request handler executes.
+    /// <param name="config">
+    /// Gets the resolver configuration.
     /// </param>
-    /// <param name="document">
-    /// The GraphQL request document.
-    /// </param>
-    /// <param name="selectionSet">
-    /// The selection set for which this request provides a patch.
-    /// </param>
-    /// <param name="requires">
-    /// The variables that this request handler requires to create a request.
-    /// </param>
-    /// <param name="path">
-    /// The path to the data that this request handler needs to extract.
-    /// </param>
-    /// <param name="forwardedVariables">
-    /// The variables that this request handler forwards to the subgraph.
-    /// </param>
-    /// <param name="transportFeatures">
-    /// The transport features that are required by this node.
-    /// </param>
-    public Subscribe(
-        int id,
-        string subgraphName,
-        DocumentNode document,
-        ISelectionSet selectionSet,
-        IReadOnlyList<string> requires,
-        IReadOnlyList<string> path,
-        IReadOnlyList<string> forwardedVariables,
-        TransportFeatures transportFeatures)
-        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables, transportFeatures)
+    public Subscribe(int id, Config config)
+        : base(id, config)
     {
     }
 
@@ -160,7 +134,7 @@ internal sealed class Subscribe : ResolverNodeBase
     }
 }
 
-static file class SubscriptionNodeExtensions
+file static class SubscriptionNodeExtensions
 {
     public static FusionExecutionContext Clone(this FusionExecutionContext context)
     {

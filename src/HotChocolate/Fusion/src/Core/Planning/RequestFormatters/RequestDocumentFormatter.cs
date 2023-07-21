@@ -1,4 +1,3 @@
-using Internal.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;

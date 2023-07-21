@@ -3,16 +3,20 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Reflection;
 
 namespace HotChocolate.Utilities;
 
-internal class ObjectToDictionaryConverter(ITypeConverter converter)
+internal class ObjectToDictionaryConverter
 {
-    private readonly ITypeConverter _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+    private readonly ITypeConverter _converter;
     private readonly ConcurrentDictionary<Type, PropertyInfo[]> _properties = new();
 
+    public ObjectToDictionaryConverter(ITypeConverter converter)
+    {
+        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+    }
+    
     public object Convert(object obj)
     {
         if(obj is null)

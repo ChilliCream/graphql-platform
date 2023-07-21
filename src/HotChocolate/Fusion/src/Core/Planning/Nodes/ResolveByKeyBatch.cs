@@ -1,9 +1,7 @@
-using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
@@ -35,7 +33,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             var batchExecutionState = CreateBatchBatchState(executionState, Requires);
 
             // Create the batch subgraph request.
-            var variableValues = BuildVariables(batchExecutionState);
+            var variableValues = BuildVariables(batchExecutionState, _argumentTypes);
             var request = CreateRequest(context.OperationContext.Variables, variableValues);
 
             // Once we have the batch request, we will enqueue it for execution with
@@ -152,7 +150,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         GraphQLResponse response,
         IReadOnlyList<string> exportKeys)
     {
-        var data = response.Data;
+        JsonElement data = response.Data;
         var path = Path;
 
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
@@ -162,7 +160,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         if (path.Length > 0)
         {
-            data = LiftData();
+            data = LiftData(data, Path);
         }
 
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
@@ -202,31 +200,36 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         }
 
         return result;
-
-        JsonElement LiftData()
+    }
+    
+    private static JsonElement LiftData(JsonElement data, string[] path)
+    {
+        if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
         {
-            if (data.ValueKind is not JsonValueKind.Undefined and not JsonValueKind.Null)
+            return data;
+        }
+        
+        var current = data;
+            
+        ref var segment = ref MemoryMarshal.GetArrayDataReference(path);
+        ref var end = ref Unsafe.Add(ref segment, path.Length);
+
+        while(Unsafe.IsAddressLessThan(ref segment, ref end))
+        {
+            if (current.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
             {
-                var current = data;
-
-                for (var i = 0; i < _path.Count; i++)
-                {
-                    if (current.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
-                    {
-                        return current;
-                    }
-
-                    current.TryGetProperty(_path[i], out var propertyValue);
-                    current = propertyValue;
-                }
-
                 return current;
             }
 
-            return data;
+            current.TryGetProperty(segment, out var propertyValue);
+            current = propertyValue;
+                
+            segment = ref Unsafe.Add(ref segment, 1)!;
         }
-    }
 
+        return current;
+    }
+    
     private static BatchExecutionState[] CreateBatchBatchState(List<ExecutionState> executionState, string[] requires)
     {
         var batchExecutionState = new BatchExecutionState[executionState.Count];
