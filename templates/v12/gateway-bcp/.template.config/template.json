@@ -4,9 +4,9 @@
   "classifications": ["Web", "GraphQL"],
   "identity": "HotChocolate.Template.Gateway.Managed",
   "sourceName": "HotChocolate.Template.Gateway.Managed",
-  "name": "HotChocolate Managed GraphQL Gateway",
+  "name": "GraphQL Gateway Managed",
   "shortName": "graphql-gateway-managed",
-  "defaultName": "Managed GraphQL Gateway",
+  "defaultName": "GraphQL Gateway Managed",
   "description": "",
   "preferNameDirectory": true,
   "tags": {
