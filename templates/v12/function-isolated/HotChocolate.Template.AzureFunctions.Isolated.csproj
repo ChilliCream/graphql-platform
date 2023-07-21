@@ -18,8 +18,8 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.6.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.12" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.3.0" />
-    <PackageReference Include="HotChocolate.AzureFunctions.IsolatedProcess" Version="14.0.0-preview.build.0" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="14.0.0-preview.build.0">
+    <PackageReference Include="HotChocolate.AzureFunctions.IsolatedProcess" Version="11.1.0" />
+    <PackageReference Include="HotChocolate.Types.Analyzers" Version="11.1.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

@@ -65,6 +65,9 @@ partial class Build
             projFile = File.ReadAllText(Gateway13Proj);
             File.WriteAllText(Gateway13Proj, projFile.Replace("11.1.0", SemVersion));
 
+            projFile = File.ReadAllText(GatewayManaged13Proj);
+            File.WriteAllText(GatewayManaged13Proj, projFile.Replace("11.1.0", SemVersion));
+
             DotNetBuildSonarSolution(
                 PackSolutionFile,
                 include: file =>

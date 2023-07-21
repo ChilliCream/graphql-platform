@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using static System.IO.Packaging.PackUriHelper;
 using static System.IO.Path;
 using static System.UriKind;
@@ -18,6 +19,13 @@ internal static class PackageHelper
     private const string _schemaExtensionKind = "urn:graphql:schema-extensions";
     private const string _subgraphConfigKind = "urn:hotchocolate:fusion:subgraph-config";
     private const string _subgraphConfigId = "subgraph-config";
+    
+    private static readonly SyntaxSerializerOptions _serializerOptions =
+        new()
+        {
+            Indented = true, 
+            MaxDirectivesPerLine = 0
+        };
 
     public static async Task CreateSubgraphPackageAsync(
         string packageFile,
@@ -98,8 +106,8 @@ internal static class PackageHelper
 
         return new SubgraphConfiguration(
             subgraphConfig.Name,
-            schema.ToString(true),
-            extensions.Select(t => t.ToString(true)).ToArray(),
+            schema.ToString(_serializerOptions),
+            extensions.Select(t => t.ToString(_serializerOptions)).ToArray(),
             subgraphConfig.Clients);
     }
 
@@ -281,7 +289,7 @@ internal static class PackageHelper
 
         await using var stream = part.GetStream(FileMode.Create);
         await using var writer = new StreamWriter(stream, Encoding.UTF8);
-        await writer.WriteAsync(schema.ToString(true));
+        await writer.WriteAsync(schema.ToString(_serializerOptions));
 
         package.CreateRelationship(part.Uri, TargetMode.Internal, _schemaKind, _schemaId);
     }
@@ -311,7 +319,7 @@ internal static class PackageHelper
 
             await using var stream = part.GetStream(FileMode.Create);
             await using var writer = new StreamWriter(stream, Encoding.UTF8);
-            await writer.WriteAsync(extension.ToString(true));
+            await writer.WriteAsync(extension.ToString(_serializerOptions));
 
             package.CreateRelationship(part.Uri, TargetMode.Internal, _schemaExtensionKind);
         }

@@ -1,10 +1,7 @@
-using System;
-using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static HotChocolate.Language.Utilities.IndentationOptions;
 
 namespace HotChocolate.Language.Utilities;
 
@@ -13,10 +10,8 @@ namespace HotChocolate.Language.Utilities;
 /// </summary>
 public static class SyntaxPrinter
 {
-    private static readonly SyntaxSerializer _serializer =
-        new(new SyntaxSerializerOptions { Indentation = Default});
-    private static readonly SyntaxSerializer _serializerNoIndent =
-        new(new SyntaxSerializerOptions { Indentation = None });
+    private static readonly SyntaxSerializer _serializer = new(new() { Indented = true });
+    private static readonly SyntaxSerializer _serializerNoIndent = new(new() { Indented = false});
 
     /// <summary>
     /// Prints a GraphQL syntax node`s string representation.
