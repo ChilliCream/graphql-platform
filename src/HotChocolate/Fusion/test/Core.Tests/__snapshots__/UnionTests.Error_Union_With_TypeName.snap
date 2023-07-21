@@ -1,8 +1,11 @@
 User Request
 ---------------
-query TopProducts($first: Int!) {
-  topProducts(first: $first) {
-    id
+mutation Upload($input: UploadProductPictureInput!) {
+  uploadProductPicture(input: $input) {
+    boolean
+    errors {
+      __typename
+    }
   }
 }
 ---------------
@@ -10,19 +13,19 @@ query TopProducts($first: Int!) {
 QueryPlan
 ---------------
 {
-  "document": "query TopProducts($first: Int!) { topProducts(first: $first) { id } }",
-  "operation": "TopProducts",
+  "document": "mutation Upload($input: UploadProductPictureInput!) { uploadProductPicture(input: $input) { boolean errors { __typename } } }",
+  "operation": "Upload",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
         "subgraph": "Products",
-        "document": "query TopProducts_1($first: Int!) { topProducts(first: $first) { id } }",
+        "document": "mutation Upload_1($input: UploadProductPictureInput!) { uploadProductPicture(input: $input) { boolean errors { __typename } } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
-            "variable": "first"
+            "variable": "input"
           }
         ]
       },
@@ -41,14 +44,10 @@ Result
 ---------------
 {
   "data": {
-    "topProducts": [
-      {
-        "id": "UHJvZHVjdAppMQ=="
-      },
-      {
-        "id": "UHJvZHVjdAppMg=="
-      }
-    ]
+    "uploadProductPicture": {
+      "boolean": true,
+      "errors": null
+    }
   }
 }
 ---------------
@@ -58,11 +57,9 @@ Fusion Graph
 schema
   @fusion(version: 1)
   @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql")
   @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql")
   @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Products", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+  @httpClient(subgraph: "Shipping", baseAddress: "http:\/\/localhost:5000\/graphql") {
   query: Query
   mutation: Mutation
   subscription: Subscription
@@ -74,6 +71,8 @@ type Query {
     @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Products", name: "id", argument: "id")
     @resolver(subgraph: "Products", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+    @variable(subgraph: "Shipping", name: "id", argument: "id")
+    @resolver(subgraph: "Shipping", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewById(id: ID!): Review
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -123,18 +122,34 @@ type AddUserPayload {
     @source(subgraph: "Accounts")
 }
 
+type DeliveryEstimate {
+  max: Int!
+    @source(subgraph: "Shipping")
+  min: Int!
+    @source(subgraph: "Shipping")
+}
+
 type Product implements Node
   @variable(subgraph: "Reviews2", name: "Product_id", select: "id")
   @variable(subgraph: "Products", name: "Product_id", select: "id")
+  @variable(subgraph: "Shipping", name: "Product_id", select: "id")
   @resolver(subgraph: "Reviews2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
+  @resolver(subgraph: "Shipping", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ node(id: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  deliveryEstimate(zip: String!): DeliveryEstimate!
+    @source(subgraph: "Shipping")
+    @variable(subgraph: "Shipping", name: "zip", argument: "zip")
+    @variable(subgraph: "Products", name: "Product_dimension_size", select: "dimension { size }")
+    @variable(subgraph: "Products", name: "Product_dimension_weight", select: "dimension { weight }")
+    @resolver(subgraph: "Shipping", select: "{ deliveryEstimate(size: $Product_dimension_size, weight: $Product_dimension_weight, zip: $zip) }", arguments: [ { name: "Product_dimension_size", type: "Int!" }, { name: "Product_dimension_weight", type: "Int!" }, { name: "zip", type: "String!" } ])
   dimension: ProductDimension!
     @source(subgraph: "Products")
   id: ID!
     @source(subgraph: "Reviews2")
     @source(subgraph: "Products")
+    @source(subgraph: "Shipping")
   name: String!
     @source(subgraph: "Products")
   price: Int!

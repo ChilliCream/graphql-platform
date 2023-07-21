@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
@@ -113,12 +114,13 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         var selectionNodes = new List<ISelectionNode>();
         var typeSelectionNodes = new List<ISelectionNode>();
         var entityType = _schema.GetType<ObjectType>(entityTypeName);
+        var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(parentSelection, entityType);
 
         CreateSelectionNodes(
             context,
             executionStep,
-            parentSelection,
             entityType,
+            selectionSet,
             typeSelectionNodes);
 
         AddInlineFragment(entityType);
@@ -161,44 +163,57 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         }
     }
 
-    protected override void CreateSelectionNodes(
+    protected override bool CreateSelectionNodes(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
-        ISelection parentSelection,
         IObjectType possibleType,
+        SelectionSet selectionSet,
         List<ISelectionNode> selectionNodes)
     {
+        var onlyIntrospection = true;
         var typeContext = Configuration.GetType<ObjectTypeMetadata>(possibleType.Name);
-        var selectionSet = context.Operation.GetSelectionSet(parentSelection, possibleType);
-        
-        foreach (var selection in selectionSet.Selections)
-        {
-            if (executionStep.AllSelections.Contains(selection) ||
-                selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
-            {
-                selectionNodes.Add(
-                    CreateSelectionNode(
-                        context,
-                        executionStep,
-                        selection,
-                        typeContext.Fields[selection.Field.Name]));
 
-                if (!selection.Arguments.IsFullyCoercedNoErrors)
+        ref var selection = ref selectionSet.GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
+
+        while(Unsafe.IsAddressLessThan(ref selection, ref end))
+        {
+            if (!executionStep.AllSelections.Contains(selection) &&
+                !selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
+            {
+                goto NEXT;
+            }
+            
+            if (onlyIntrospection && !selection.Field.IsIntrospectionField)
+            {
+                onlyIntrospection = false;
+            }
+            
+            selectionNodes.Add(
+                CreateSelectionNode(
+                    context,
+                    executionStep,
+                    selection,
+                    typeContext.Fields[selection.Field.Name]));
+
+            if (!selection.Arguments.IsFullyCoercedNoErrors)
+            {
+                foreach (var argument in selection.Arguments)
                 {
-                    foreach (var argument in selection.Arguments)
+                    if (!argument.IsFullyCoerced)
                     {
-                        if (!argument.IsFullyCoerced)
-                        {
-                            TryForwardVariable(
-                                context,
-                                executionStep.SubgraphName,
-                                null,
-                                argument,
-                                argument.Name);
-                        }
+                        TryForwardVariable(
+                            context,
+                            executionStep.SubgraphName,
+                            null,
+                            argument,
+                            argument.Name);
                     }
                 }
             }
+            
+            NEXT:
+            selection = ref Unsafe.Add(ref selection, 1);
         }
 
         if (selectionSet.Selections.Count == 0 && selectionNodes.Count == 0)
@@ -219,5 +234,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         {
             throw ThrowHelper.RequestFormatter_SelectionSetEmpty();
         }
+
+        return onlyIntrospection;
     }
 }
