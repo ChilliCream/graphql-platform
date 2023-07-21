@@ -32,5 +32,5 @@ partial class Build
     AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "v12" / "function" / "HotChocolate.Template.AzureFunctions.csproj";
     AbsolutePath EmptyAzfUp12Proj => RootDirectory / "templates" / "v12" / "function-isolated" / "HotChocolate.Template.AzureFunctions.Isolated.csproj";
     AbsolutePath Gateway13Proj => RootDirectory / "templates" / "v12" / "gateway" / "HotChocolate.Template.Gateway.csproj";
-    AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "v12" / "gateway-bcp" / "HotChocolate.Template.Gateway.csproj";
+    AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "v12" / "gateway-bcp" / "HotChocolate.Template.Gateway.Managed.csproj";
 }
