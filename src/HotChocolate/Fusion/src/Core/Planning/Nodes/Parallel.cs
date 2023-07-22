@@ -43,8 +43,8 @@ internal sealed class Parallel : QueryPlanNode
         while (Unsafe.IsAddressLessThan(ref node, ref end))
         {
             task = node.ExecuteAsync(context, cancellationToken);
-            node = ref Unsafe.Add(ref node, 1);
-            task = ref Unsafe.Add(ref task, 1);
+            node = ref Unsafe.Add(ref node, 1)!;
+            task = ref Unsafe.Add(ref task, 1)!;
         }
     }
 }

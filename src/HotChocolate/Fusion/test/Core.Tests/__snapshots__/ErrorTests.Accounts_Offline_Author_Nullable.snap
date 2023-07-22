@@ -56,7 +56,13 @@ QueryPlan
         ]
       }
     ]
-  }
+  },
+  "state": [
+    {
+      "variable": "__fusion_exports__1",
+      "name": "User_id"
+    }
+  ]
 }
 ---------------
 

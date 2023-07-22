@@ -82,7 +82,7 @@ Result
 {
   "errors": [
     {
-      "message": "The id is invalid 3!",
+      "message": "The id value has an invalid format.",
       "locations": [
         {
           "line": 2,

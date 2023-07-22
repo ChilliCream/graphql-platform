@@ -150,7 +150,29 @@ QueryPlan
         ]
       }
     ]
-  }
+  },
+  "state": [
+    {
+      "variable": "__fusion_exports__1",
+      "name": "Product_dimension_size"
+    },
+    {
+      "variable": "__fusion_exports__2",
+      "name": "Product_dimension_weight"
+    },
+    {
+      "variable": "__fusion_exports__3",
+      "name": "User_id"
+    },
+    {
+      "variable": "__fusion_exports__4",
+      "name": "User_id"
+    },
+    {
+      "variable": "__fusion_exports__5",
+      "name": "Product_id"
+    }
+  ]
 }
 ---------------
 
