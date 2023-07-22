@@ -2,11 +2,12 @@ using System.Text.Json;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Fusion.FusionResources;
-using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
+using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 using static HotChocolate.Fusion.Utilities.ErrorHelper;
 
 namespace HotChocolate.Fusion.Planning;

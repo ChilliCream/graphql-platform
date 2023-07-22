@@ -4,7 +4,7 @@ using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
-using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
+using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 

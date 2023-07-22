@@ -1,8 +1,7 @@
-using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.FusionResources;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Utilities;
 
 internal static class ThrowHelper
 {

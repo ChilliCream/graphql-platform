@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 using static HotChocolate.Fusion.FusionResources;
-using static HotChocolate.Fusion.ThrowHelper;
+using static HotChocolate.Fusion.Utilities.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Metadata;

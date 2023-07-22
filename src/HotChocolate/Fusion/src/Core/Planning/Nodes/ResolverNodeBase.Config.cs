@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;

@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Utilities;
 
 internal static class CollectionUtils
 {

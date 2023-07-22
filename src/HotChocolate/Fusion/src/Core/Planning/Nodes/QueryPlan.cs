@@ -8,7 +8,8 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
+using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
+using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 

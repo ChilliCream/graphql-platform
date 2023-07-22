@@ -1,7 +1,8 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution;
-using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
+using HotChocolate.Fusion.Utilities;
+using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 

@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Utilities;
 
 internal static class Utf8QueryPlanPropertyNames
 {
