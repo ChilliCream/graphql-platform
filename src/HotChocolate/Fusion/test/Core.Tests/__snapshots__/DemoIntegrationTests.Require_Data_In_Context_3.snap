@@ -58,9 +58,6 @@ QueryPlan
         ],
         "provides": [
           {
-            "variable": "__fusion_exports__3"
-          },
-          {
             "variable": "__fusion_exports__4"
           },
           {
@@ -90,11 +87,6 @@ QueryPlan
             "path": [
               "nodes"
             ],
-            "provides": [
-              {
-                "variable": "__fusion_exports__4"
-              }
-            ],
             "requires": [
               {
                 "variable": "__fusion_exports__4"
@@ -115,9 +107,6 @@ QueryPlan
               },
               {
                 "variable": "__fusion_exports__2"
-              },
-              {
-                "variable": "__fusion_exports__5"
               }
             ],
             "requires": [

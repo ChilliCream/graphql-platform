@@ -46,11 +46,6 @@ QueryPlan
         "path": [
           "nodes"
         ],
-        "provides": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ],
         "requires": [
           {
             "variable": "__fusion_exports__1"

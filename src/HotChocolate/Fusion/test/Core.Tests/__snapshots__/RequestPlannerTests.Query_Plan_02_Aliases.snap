@@ -61,11 +61,6 @@ QueryPlan
             "path": [
               "nodes"
             ],
-            "provides": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ],
             "requires": [
               {
                 "variable": "__fusion_exports__1"
@@ -79,11 +74,6 @@ QueryPlan
             "selectionSetId": 1,
             "path": [
               "nodes"
-            ],
-            "provides": [
-              {
-                "variable": "__fusion_exports__2"
-              }
             ],
             "requires": [
               {
