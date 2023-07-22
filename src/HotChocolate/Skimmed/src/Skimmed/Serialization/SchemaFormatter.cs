@@ -17,6 +17,12 @@ public static class SchemaFormatter
     {
         var context = new VisitorContext();
         _visitor.VisitSchema(schema, context);
+
+        if (!indented)
+        {
+            ((DocumentNode) context.Result!).ToString(false);
+        }
+        
         return ((DocumentNode)context.Result!).ToString(_options);
     }
 

@@ -76,13 +76,13 @@ internal sealed class Subscribe : ResolverNodeBase
                     var bufferWriter = new ArrayBufferWriter<byte>();
                     context.QueryPlan.Format(bufferWriter);
                     operationContext.Result.SetExtension(
-                        FusionContextDataKeys.QueryPlan,
+                        FusionContextDataKeys.QueryPlanProp,
                         new RawJsonValue(bufferWriter.WrittenMemory));
                 }
 
                 // We store the query plan on the result for unit tests and other inspection.
                 operationContext.Result.SetContextData(
-                    FusionContextDataKeys.QueryPlan,
+                    FusionContextDataKeys.QueryPlanProp,
                     context.QueryPlan);
             }
             initialResponse = false;

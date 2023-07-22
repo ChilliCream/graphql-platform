@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -8,6 +9,8 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Utilities;
+using static HotChocolate.Fusion.FusionContextDataKeys;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
@@ -23,6 +26,7 @@ internal sealed class QueryPlan
     private readonly Dictionary<(ISelectionSet, string), string[]> _exportPathsLookup = new();
     private readonly (string Key, string DisplayName)[] _exportKeyToVariableName;
     private readonly IReadOnlySet<ISelectionSet> _selectionSets;
+    private string? _hash;
 
     /// <summary>
     /// Initializes a new instance of <see cref="QueryPlan"/>.
@@ -81,6 +85,22 @@ internal sealed class QueryPlan
         else
         {
             _exportKeyToVariableName = Array.Empty<(string, string)>();
+        }
+    }
+
+    public string Hash
+    {
+        get
+        {
+            if (_hash is not null)
+            {
+                return _hash;
+            }
+            
+            using var bufferWriter = new ArrayWriter();
+            Format(bufferWriter);
+            _hash = ComputeHash(bufferWriter.GetSpan());
+            return _hash;
         }
     }
 
@@ -149,13 +169,15 @@ internal sealed class QueryPlan
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             context.QueryPlan.Format(bufferWriter);
-            operationContext.Result.SetExtension(
-                "queryPlan",
-                new RawJsonValue(bufferWriter.WrittenMemory));
+
+            var memory = bufferWriter.WrittenMemory;
+            _hash ??= ComputeHash(memory.Span);
+            operationContext.Result.SetExtension(QueryPlanProp, new RawJsonValue(memory));
+            operationContext.Result.SetExtension(QueryPlanHashProp, _hash);
         }
 
         // we store the context on the result for unit tests.
-        operationContext.Result.SetContextData("queryPlan", context.QueryPlan);
+        operationContext.Result.SetContextData(QueryPlanProp, context.QueryPlan);
 
         // Enqueue root node to initiate the execution process.
         var rootSelectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
@@ -196,12 +218,7 @@ internal sealed class QueryPlan
             }
         }
 
-        context.Result.RegisterForCleanup(
-            () =>
-            {
-                context.Dispose();
-                return default;
-            });
+        context.Result.RegisterForCleanup(context);
 
         return context.Result.BuildResult();
     }
@@ -240,12 +257,7 @@ internal sealed class QueryPlan
             () => subscriptionNode.SubscribeAsync(context, cancellationToken),
             kind: ExecutionResultKind.SubscriptionResult);
 
-        result.RegisterForCleanup(
-            () =>
-            {
-                context.Dispose();
-                return default;
-            });
+        result.RegisterForCleanup(context);
 
         return Task.FromResult<IResponseStream>(result);
     }
@@ -261,7 +273,6 @@ internal sealed class QueryPlan
     public void Format(Utf8JsonWriter writer)
     {
         writer.WriteStartObject();
-
         writer.WriteString(DocumentProp, _operation.Document.ToString(false));
 
         if (!string.IsNullOrEmpty(_operation.Name))
@@ -302,6 +313,21 @@ internal sealed class QueryPlan
         jsonWriter.Flush();
 
         return Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
+    }
+
+    private static unsafe string ComputeHash(ReadOnlySpan<byte> document)
+    {
+        Span<byte> hash = stackalloc byte[SHA1.HashSizeInBytes];
+        ComputeHash(ref hash, document);
+        return Convert.ToHexString(hash);
+    } 
+    
+    private static void ComputeHash(ref Span<byte> hash, ReadOnlySpan<byte> document)
+    {
+        if (SHA1.TryHashData(document, hash, out var bytesWritten))
+        {
+            hash = hash[..bytesWritten];
+        }
     }
 
     private sealed class ExportPathVisitor : SyntaxWalker<ExportPathVisitorContext>

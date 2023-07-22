@@ -22,6 +22,7 @@ internal static class TestHelper
             value is QueryPlan queryPlan)
         {
             snapshot.Add(queryPlan, "QueryPlan");
+            snapshot.Add(queryPlan.Hash, "QueryPlan Hash");
         }
 
         snapshot.Add(result, "Result");
@@ -46,6 +47,7 @@ internal static class TestHelper
                 value is QueryPlan queryPlan)
             {
                 snapshot.Add(queryPlan, "QueryPlan");
+                snapshot.Add(queryPlan.Hash, "QueryPlan Hash");
             }
 
             snapshot.Add(item, $"Result {++i}");

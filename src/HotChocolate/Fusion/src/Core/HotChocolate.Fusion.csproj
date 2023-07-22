@@ -5,6 +5,7 @@
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <!--EnableTrimAnalyzer>true</EnableTrimAnalyzer-->
