@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Threading.Channels;
 using HotChocolate.Subscriptions.Diagnostics;
 using StackExchange.Redis;
 using static HotChocolate.Subscriptions.Redis.Properties.Resources;
@@ -34,35 +33,28 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
         var subscriber = _connection.GetSubscriber();
         var messageQueue = await subscriber.SubscribeAsync(Name).ConfigureAwait(false);
         DiagnosticEvents.ProviderTopicInfo(Name, RedisTopic_SubscribedToRedis);
-
-        messageQueue.OnMessage(
-            async redisMessage =>
-            {
-                await DispatchAsync(redisMessage.Message.ToString(), cancellationToken)
-                    .ConfigureAwait(false);
-            });
-
+        messageQueue.OnMessage(redisMessage => Dispatch(redisMessage.Message.ToString()));
         return new Session(Name, _connection, DiagnosticEvents);
     }
 
-    private async ValueTask DispatchAsync(
-        string? serializedMessage,
-        CancellationToken cancellationToken)
+    private void Dispatch(string? serializedMessage)
     {
         // we ensure that if there is noise on the channel we filter it out.
-        if (!string.IsNullOrEmpty(serializedMessage))
+        if (string.IsNullOrEmpty(serializedMessage))
         {
-            DiagnosticEvents.Received(Name, serializedMessage);
-            var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
+            return;
+        }
+        
+        DiagnosticEvents.Received(Name, serializedMessage);
+        var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
 
-            if (envelope.Kind is MessageKind.Completed)
-            {
-                TryComplete();
-            }
-            else if (envelope.Body is { } body)
-            {
-                await PublishAsync(body, cancellationToken).ConfigureAwait(false);
-            }
+        if (envelope.Kind is MessageKind.Completed)
+        {
+            Complete();
+        }
+        else if (envelope.Body is { } body)
+        {
+            Publish(body);
         }
     }
 

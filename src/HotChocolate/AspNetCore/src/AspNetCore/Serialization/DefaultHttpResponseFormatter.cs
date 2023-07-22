@@ -47,8 +47,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         : this(
             new HttpResponseFormatterOptions
             {
-                Json = new JsonResultFormatterOptions { Indented = indented, Encoder = encoder }
-            }) { }
+                Json = new JsonResultFormatterOptions
+                {
+                    Indented = indented, 
+                    Encoder = encoder
+                }
+            })
+    {
+    }
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -168,7 +174,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 #if NET6_0_OR_GREATER
                 response.Headers.CacheControl = cacheControlHeaderValue;
 #else
-                response.Headers.Add(HeaderNames.CacheControl, cacheControlHeaderValue);
+                response.Headers[HttpHeaderKeys.CacheControl] = cacheControlHeaderValue;
 #endif
             }
 
@@ -183,8 +189,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
-
-            response.Headers.Add(HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
+            
+#if NET6_0_OR_GREATER
+            response.Headers.CacheControl = HttpHeaderValues.NoCache;
+#else
+            response.Headers[HttpHeaderKeys.CacheControl] = HttpHeaderValues.NoCache;
+#endif
+            
             OnWriteResponseHeaders(responseStream, format, response.Headers);
 
             await response.Body.FlushAsync(cancellationToken);

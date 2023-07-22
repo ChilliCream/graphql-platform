@@ -31,9 +31,7 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         Debug.Assert(_connection != null, "_serializer != null");
 
         var natsSession = await _connection
-            .SubscribeAsync(
-                Name,
-                async (string? m) => await Dispatch(m, cancellationToken).ConfigureAwait(false))
+            .SubscribeAsync(Name, (string? m) => Dispatch(m))
             .ConfigureAwait(false);
 
         DiagnosticEvents.ProviderTopicInfo(Name, NatsTopic_ConnectAsync_SubscribedToNats);
@@ -41,24 +39,24 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         return new Session(Name, natsSession, DiagnosticEvents);
     }
 
-    private async ValueTask Dispatch(
-        string? serializedMessage,
-        CancellationToken cancellationToken)
+    private void Dispatch(string? serializedMessage)
     {
         // we ensure that if there is noise on the channel we filter it out.
-        if (!string.IsNullOrEmpty(serializedMessage))
+        if (string.IsNullOrEmpty(serializedMessage))
         {
-            DiagnosticEvents.Received(Name, serializedMessage);
-            var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
+            return;
+        }
+        
+        DiagnosticEvents.Received(Name, serializedMessage);
+        var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
 
-            if (envelope.Kind is MessageKind.Completed)
-            {
-                TryComplete();
-            }
-            else if(envelope.Body is { } body)
-            {
-                await PublishAsync(body, cancellationToken);
-            }
+        if (envelope.Kind is MessageKind.Completed)
+        {
+            Complete();
+        }
+        else if(envelope.Body is { } body)
+        {
+            Publish(body);
         }
     }
 
