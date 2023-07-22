@@ -76,4 +76,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage("Unable to load the Fusion gateway configuration.")
                 .Build());
+    
+    public static InvalidOperationException Node_ReadOnly()
+        => new("The execution node is read-only.");
 }

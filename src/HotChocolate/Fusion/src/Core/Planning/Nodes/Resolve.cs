@@ -7,7 +7,7 @@ using static HotChocolate.Fusion.Execution.ExecutorUtils;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// The resolver node is responsible for executing a GraphQL request on a subgraph.
+/// The resolver node is responsible for fetching data from a subgraph.
 /// </summary>
 internal sealed class Resolve : ResolverNodeBase
 {

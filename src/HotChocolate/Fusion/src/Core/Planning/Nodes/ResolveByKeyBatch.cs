@@ -9,18 +9,48 @@ using static HotChocolate.Fusion.Execution.ExecutorUtils;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// The resolver node is responsible for batch fetching data from a subgraph.
+/// </summary>
 internal sealed class ResolveByKeyBatch : ResolverNodeBase
 {
     private readonly Dictionary<string, ITypeNode> _argumentTypes;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ResolveByKeyBatch"/>.
+    /// </summary>
+    /// <param name="id">
+    /// The unique id of this node.
+    /// </param>
+    /// <param name="config">
+    /// Gets the resolver configuration.
+    /// </param>
+    /// <param name="argumentTypes">
+    /// The argument types that are required to build the batch request.
+    /// </param>
     public ResolveByKeyBatch(int id, Config config, IReadOnlyDictionary<string, ITypeNode> argumentTypes)
         : base(id, config)
     {
         _argumentTypes = new Dictionary<string, ITypeNode>(argumentTypes, StringComparer.Ordinal);
     }
 
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.ResolveByKeyBatch;
     
+    /// <summary>
+    /// Executes this resolver node.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="state">
+    /// The execution state.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     protected override async Task OnExecuteAsync(
         FusionExecutionContext context,
         RequestState state,
@@ -47,7 +77,19 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             ProcessResult(context, response, batchExecutionState);
         }
     }
-
+    
+    /// <summary>
+    /// Executes this resolver node.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="state">
+    /// The execution state.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
         RequestState state,

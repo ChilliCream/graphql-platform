@@ -17,6 +17,7 @@ internal sealed class QueryPlan
     private readonly IOperation _operation;
     private readonly Dictionary<ISelectionSet, string[]> _exportKeysLookup = new();
     private readonly Dictionary<(ISelectionSet, string), string[]> _exportPathsLookup = new();
+    private readonly (string Key, string DisplayName)[] _exportKeyToVariableName;
     private readonly IReadOnlySet<ISelectionSet> _selectionSets;
 
     public QueryPlan(
@@ -44,6 +45,18 @@ internal sealed class QueryPlan
                     _exportPathsLookup.Add((exportGroup.Key, export.StateKey), context.Path.ToArray());
                 }
             }
+
+            var index = 0;
+            _exportKeyToVariableName = new (string, string)[exports.Count];
+
+            foreach (var export in exports)
+            {
+                _exportKeyToVariableName[index++] = (export.StateKey, export.VariableDefinition.Name);
+            }
+        }
+        else
+        {
+            _exportKeyToVariableName = Array.Empty<(string, string)>();
         }
     }
 
@@ -189,6 +202,23 @@ internal sealed class QueryPlan
 
         writer.WritePropertyName(RootNodeProp);
         RootNode.Format(writer);
+
+        if (_exportKeyToVariableName.Length > 0)
+        {
+            writer.WritePropertyName(StateProp);
+
+            writer.WriteStartArray();
+
+            foreach (var (key, displayName) in _exportKeyToVariableName)
+            {
+                writer.WriteStartObject();
+                writer.WriteString(VariableProp, key);
+                writer.WriteString(NameProp, displayName);
+                writer.WriteEndObject();
+            }
+            
+            writer.WriteEndArray();
+        }
 
         writer.WriteEndObject();
     }

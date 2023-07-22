@@ -5,22 +5,51 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using static HotChocolate.Fusion.FusionResources;
+using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
+using static HotChocolate.Fusion.Utilities.ErrorHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// The resolver node is responsible for fetching nodes from subgraphs.
+/// </summary>
 internal sealed class ResolveNode : QueryPlanNode
 {
     private readonly Dictionary<string, QueryPlanNode> _fetchNodes = new(StringComparer.Ordinal);
+    private readonly Selection _selection;
 
-    public ResolveNode(int id, ISelection selection) : base(id)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ResolveNode"/>.
+    /// </summary>
+    /// <param name="id">
+    /// The unique id of this node.
+    /// </param>
+    /// <param name="selection">
+    /// The selection that shall be resolved.
+    /// </param>
+    public ResolveNode(int id, Selection selection) : base(id)
     {
-        Selection = selection;
+        _selection = selection;
     }
 
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.ResolveNode;
 
-    public ISelection Selection { get; }
-
+    /// <summary>
+    /// Executes this resolver node.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="state">
+    /// The execution state.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     protected override async Task OnExecuteNodesAsync(
         FusionExecutionContext context,
         RequestState state,
@@ -29,19 +58,13 @@ internal sealed class ResolveNode : QueryPlanNode
         var variables = context.OperationContext.Variables;
         var coercedArguments = new Dictionary<string, ArgumentValue>();
 
-        Selection.Arguments.CoerceArguments(variables, coercedArguments);
+        _selection.Arguments.CoerceArguments(variables, coercedArguments);
 
         var idArgument = coercedArguments["id"];
 
         if (idArgument.ValueLiteral is not StringValueNode formattedId)
         {
-            // TODO : ERROR HELPER
-            context.Result.AddError(
-                ErrorBuilder.New()
-                    .SetMessage("Node id format is invalid!")
-                    .AddLocation(Selection.SyntaxNode)
-                    .Build(),
-                Selection);
+            context.Result.AddError(InvalidNodeFormat(_selection), _selection);
             return;
         }
 
@@ -53,38 +76,42 @@ internal sealed class ResolveNode : QueryPlanNode
         }
         catch (IdSerializationException ex)
         {
-            // TODO : ERROR HELPER
-            context.Result.AddError(
-                ErrorBuilder.New()
-                    .SetMessage("Node id format is invalid 2!")
-                    .AddLocation(Selection.SyntaxNode)
-                    .SetException(ex)
-                    .Build(),
-                Selection);
+            context.Result.AddError(InvalidNodeFormat(_selection, ex), _selection);
             return;
         }
 
         if(!_fetchNodes.TryGetValue(idValue.TypeName, out var fetchNode))
         {
-            // TODO : ERROR HELPER
-            context.Result.AddError(
-                ErrorBuilder.New()
-                    .SetMessage("The id is invalid 3!")
-                    .AddLocation(Selection.SyntaxNode)
-                    .Build(),
-                Selection);
+            context.Result.AddError(InvalidNodeFormat(_selection), _selection);
             return;
         }
 
         await fetchNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Registers an entity resolver.
+    /// </summary>
+    /// <param name="typeName">
+    /// The name of the entity type for which the resolver shall be registered.
+    /// </param>
+    /// <param name="resolveEntity">
+    /// The resolver that shall be registered.
+    /// </param>
+    /// <exception cref="InvalidOperationException">
+    /// The node is read-only.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="typeName"/> or <paramref name="resolveEntity"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// A resolver for the specified <paramref name="typeName"/> is already registered.
+    /// </exception>
     public void AddEntityResolver(string typeName, Resolve resolveEntity)
     {
         if(IsReadOnly)
         {
-            // TODO : ERROR HELPER
-            throw new InvalidOperationException("The execution node is read-only.");
+            throw ThrowHelper.Node_ReadOnly();
         }
 
         if (typeName is null)
@@ -99,23 +126,22 @@ internal sealed class ResolveNode : QueryPlanNode
 
         if (_fetchNodes.ContainsKey(typeName))
         {
-            // TODO : ERROR HELPER
             throw new ArgumentException(
-                "A fetch node for this entity type already exists.",
+                ResolveNode_EntityResolver_Already_Registered,
                 paramName: nameof(typeName));
         }
 
         _fetchNodes.Add(typeName, resolveEntity);
         base.AddNode(resolveEntity);
     }
-
+    
     internal override void AddNode(QueryPlanNode node)
         => throw new NotSupportedException();
 
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
-        writer.WriteNumber("selectionId", Selection.Id);
-        writer.WriteString("responseName", Selection.ResponseName);
+        writer.WriteNumber(SelectionIdProp, _selection.Id);
+        writer.WriteString(ResponseNameProp, _selection.ResponseName);
         base.FormatProperties(writer);
     }
 
@@ -123,15 +149,14 @@ internal sealed class ResolveNode : QueryPlanNode
     {
         if (_fetchNodes.Count > 0)
         {
-            writer.WritePropertyName("branches");
-
+            writer.WritePropertyName(BranchesProp);
             writer.WriteStartArray();
 
             foreach (var (type, node) in _fetchNodes)
             {
                 writer.WriteStartObject();
-                writer.WriteString("type", type);
-                writer.WritePropertyName("node");
+                writer.WriteString(TypeProp, type);
+                writer.WritePropertyName(NodeProp);
                 node.Format(writer);
                 writer.WriteEndObject();
             }

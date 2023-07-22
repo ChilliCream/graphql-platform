@@ -79,7 +79,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 {
                     var nodeResolverNode = new ResolveNode(
                         context.NextNodeId(),
-                        nodeStep.NodeSelection);
+                        Unsafe.As<Selection>(nodeStep.NodeSelection));
                     context.RegisterNode(nodeResolverNode, nodeStep);
                     context.RegisterSelectionSet(context.Operation.RootSelectionSet);
                     handled.Add(nodeStep);

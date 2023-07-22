@@ -23,4 +23,18 @@ internal static class Utf8QueryPlanPropertyNames
     public static ReadOnlySpan<byte> VariableProp => "variable"u8;
 
     public static ReadOnlySpan<byte> ForwardedVariablesProp => "forwardedVariables"u8;
+    
+    public static ReadOnlySpan<byte> StateProp => "state"u8;
+    
+    public static ReadOnlySpan<byte> NameProp => "name"u8;
+    
+    public static ReadOnlySpan<byte> BranchesProp => "branches"u8;
+
+    public static ReadOnlySpan<byte> TypeProp => "type"u8;
+    
+    public static ReadOnlySpan<byte> NodeProp => "node"u8;
+    
+    public static ReadOnlySpan<byte> SelectionIdProp => "selectionId"u8;
+    
+    public static ReadOnlySpan<byte> ResponseNameProp => "responseName"u8;
 }

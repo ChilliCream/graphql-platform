@@ -1,11 +1,25 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// The <see cref="Parallel"/> node executes its child nodes in parallel.
+/// </summary>
 internal sealed class Parallel : QueryPlanNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="Parallel"/>.
+    /// </summary>
+    /// <param name="id">
+    /// The unique id of this node.
+    /// </param>
     public Parallel(int id) : base(id) { }
 
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.Parallel;
 
     protected override async Task OnExecuteNodesAsync(
@@ -13,13 +27,24 @@ internal sealed class Parallel : QueryPlanNode
         RequestState state,
         CancellationToken cancellationToken)
     {
-        var tasks = new Task[Nodes.Count];
-
-        for (var i = 0; i < Nodes.Count; i++)
-        {
-            tasks[i] = Nodes[i].ExecuteAsync(context, cancellationToken);
-        }
-
+        InitializeNodes(context, cancellationToken, out var tasks);
         await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
+    private void InitializeNodes(FusionExecutionContext context, CancellationToken cancellationToken, out Task[] tasks)
+    {
+        var nodes = Unsafe.As<List<QueryPlanNode>>(Nodes);
+        tasks = new Task[nodes.Count];
+        
+        ref var node = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(nodes));
+        ref var task = ref MemoryMarshal.GetArrayDataReference(tasks);
+        ref var end = ref Unsafe.Add(ref node, nodes.Count);
+
+        while (Unsafe.IsAddressLessThan(ref node, ref end))
+        {
+            task = node.ExecuteAsync(context, cancellationToken);
+            node = ref Unsafe.Add(ref node, 1);
+            task = ref Unsafe.Add(ref task, 1);
+        }
     }
 }
