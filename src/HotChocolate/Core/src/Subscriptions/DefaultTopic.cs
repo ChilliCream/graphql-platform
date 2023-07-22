@@ -143,7 +143,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private ISourceStream<TMessage> SubscribeUnsafe()
+    private DefaultSourceStream<TMessage> SubscribeUnsafe()
     {
         var channel = CreateBounded<TMessage>(_channelOptions);
         var stream = new DefaultSourceStream<TMessage>(this, channel);
