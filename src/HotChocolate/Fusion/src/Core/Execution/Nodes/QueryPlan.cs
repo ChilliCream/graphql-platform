@@ -21,6 +21,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 internal sealed class QueryPlan
 {
+    private static readonly JsonWriterOptions _jsonOptions = new() { Indented = true };
     private readonly IOperation _operation;
     private readonly Dictionary<ISelectionSet, string[]> _exportKeysLookup = new();
     private readonly Dictionary<(ISelectionSet, string), string[]> _exportPathsLookup = new();
@@ -53,7 +54,7 @@ internal sealed class QueryPlan
         {
             throw new ArgumentNullException(nameof(exports));
         }
-        
+
         _operation = operation ?? throw new ArgumentNullException(nameof(operation));
         RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
         _selectionSets = selectionSets ?? throw new ArgumentNullException(nameof(selectionSets));
@@ -99,7 +100,7 @@ internal sealed class QueryPlan
             
             using var bufferWriter = new ArrayWriter();
             Format(bufferWriter);
-            _hash = ComputeHash(bufferWriter.GetSpan());
+            _hash = ComputeHash(bufferWriter.GetWrittenSpan());
             return _hash;
         }
     }
@@ -122,7 +123,7 @@ internal sealed class QueryPlan
     /// </returns>
     public bool HasNodesFor(ISelectionSet selectionSet)
         => _selectionSets.Contains(selectionSet);
-    
+
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
         => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
             ? keys
@@ -264,8 +265,7 @@ internal sealed class QueryPlan
 
     public void Format(IBufferWriter<byte> writer)
     {
-        var jsonOptions = new JsonWriterOptions { Indented = true };
-        using var jsonWriter = new Utf8JsonWriter(writer, jsonOptions);
+        using var jsonWriter = new Utf8JsonWriter(writer, _jsonOptions);
         Format(jsonWriter);
         jsonWriter.Flush();
     }
@@ -296,7 +296,7 @@ internal sealed class QueryPlan
                 writer.WriteString(NameProp, displayName);
                 writer.WriteEndObject();
             }
-            
+
             writer.WriteEndArray();
         }
 
@@ -306,8 +306,7 @@ internal sealed class QueryPlan
     public override string ToString()
     {
         var bufferWriter = new ArrayBufferWriter<byte>();
-        var jsonOptions = new JsonWriterOptions { Indented = true };
-        using var jsonWriter = new Utf8JsonWriter(bufferWriter, jsonOptions);
+        using var jsonWriter = new Utf8JsonWriter(bufferWriter, _jsonOptions);
 
         Format(jsonWriter);
         jsonWriter.Flush();
@@ -320,8 +319,8 @@ internal sealed class QueryPlan
         Span<byte> hash = stackalloc byte[SHA1.HashSizeInBytes];
         ComputeHash(ref hash, document);
         return Convert.ToHexString(hash);
-    } 
-    
+    }
+
     private static void ComputeHash(ref Span<byte> hash, ReadOnlySpan<byte> document)
     {
         if (SHA1.TryHashData(document, hash, out var bytesWritten))
