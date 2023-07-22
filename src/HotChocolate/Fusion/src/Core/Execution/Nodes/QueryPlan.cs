@@ -1,31 +1,63 @@
 using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
-using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Utilities;
+using static HotChocolate.Fusion.FusionContextDataKeys;
+using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
+using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
+/// <summary>
+/// Represents a query plan that describes how a GraphQL request shall be executed.
+/// </summary>
 internal sealed class QueryPlan
 {
+    private static readonly JsonWriterOptions _jsonOptions = new() { Indented = true };
     private readonly IOperation _operation;
     private readonly Dictionary<ISelectionSet, string[]> _exportKeysLookup = new();
     private readonly Dictionary<(ISelectionSet, string), string[]> _exportPathsLookup = new();
+    private readonly (string Key, string DisplayName)[] _exportKeyToVariableName;
     private readonly IReadOnlySet<ISelectionSet> _selectionSets;
+    private string? _hash;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="QueryPlan"/>.
+    /// </summary>
+    /// <param name="operation">
+    /// The operation for which the query plan was created.
+    /// </param>
+    /// <param name="rootNode">
+    /// The root node of the query plan.
+    /// </param>
+    /// <param name="selectionSets">
+    /// The selection sets that are part of the query plan.
+    /// </param>
+    /// <param name="exports">
+    /// The exports that are part of the query plan.
+    /// </param>
     public QueryPlan(
         IOperation operation,
         QueryPlanNode rootNode,
         IReadOnlySet<ISelectionSet> selectionSets,
         IReadOnlyCollection<ExportDefinition> exports)
     {
-        _operation = operation;
-        RootNode = rootNode;
-        _selectionSets = selectionSets;
+        if (exports == null)
+        {
+            throw new ArgumentNullException(nameof(exports));
+        }
+
+        _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
+        _selectionSets = selectionSets ?? throw new ArgumentNullException(nameof(selectionSets));
 
         if (exports.Count > 0)
         {
@@ -42,9 +74,40 @@ internal sealed class QueryPlan
                     _exportPathsLookup.Add((exportGroup.Key, export.StateKey), context.Path.ToArray());
                 }
             }
+
+            var index = 0;
+            _exportKeyToVariableName = new (string, string)[exports.Count];
+
+            foreach (var export in exports)
+            {
+                _exportKeyToVariableName[index++] = (export.StateKey, export.VariableDefinition.Name);
+            }
+        }
+        else
+        {
+            _exportKeyToVariableName = Array.Empty<(string, string)>();
         }
     }
 
+    public string Hash
+    {
+        get
+        {
+            if (_hash is not null)
+            {
+                return _hash;
+            }
+            
+            using var bufferWriter = new ArrayWriter();
+            Format(bufferWriter);
+            _hash = ComputeHash(bufferWriter.GetWrittenSpan());
+            return _hash;
+        }
+    }
+
+    /// <summary>
+    /// Gets the root node of the query plan.
+    /// </summary>
     public QueryPlanNode RootNode { get; }
 
     /// <summary>
@@ -71,10 +134,31 @@ internal sealed class QueryPlan
             ? path
             : Array.Empty<string>();
 
+    /// <summary>
+    /// Executes the query plan.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the query result.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// The query plan represents a subscription request
+    /// and cannot be executed but must be subscribed to.
+    /// </exception>
     public async Task<IQueryResult> ExecuteAsync(
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
         if (RootNode is Subscribe)
         {
             throw ThrowHelper.SubscriptionsMustSubscribe();
@@ -86,16 +170,18 @@ internal sealed class QueryPlan
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             context.QueryPlan.Format(bufferWriter);
-            operationContext.Result.SetExtension(
-                "queryPlan",
-                new RawJsonValue(bufferWriter.WrittenMemory));
+
+            var memory = bufferWriter.WrittenMemory;
+            _hash ??= ComputeHash(memory.Span);
+            operationContext.Result.SetExtension(QueryPlanProp, new RawJsonValue(memory));
+            operationContext.Result.SetExtension(QueryPlanHashProp, _hash);
         }
 
         // we store the context on the result for unit tests.
-        operationContext.Result.SetContextData("queryPlan", context.QueryPlan);
+        operationContext.Result.SetContextData(QueryPlanProp, context.QueryPlan);
 
         // Enqueue root node to initiate the execution process.
-        var rootSelectionSet = context.Operation.RootSelectionSet;
+        var rootSelectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
         var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
 
         context.Result.SetData(rootResult);
@@ -133,20 +219,36 @@ internal sealed class QueryPlan
             }
         }
 
-        context.Result.RegisterForCleanup(
-            () =>
-            {
-                context.Dispose();
-                return default;
-            });
+        context.Result.RegisterForCleanup(context);
 
         return context.Result.BuildResult();
     }
 
+    /// <summary>
+    /// Executes a subscription query plan.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns a response stream that represents the subscription result.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// The query plan represents a query or mutation request
+    /// and cannot be subscribed to but must be executed.
+    /// </exception>
     public Task<IResponseStream> SubscribeAsync(
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
         if (RootNode is not Subscribe subscriptionNode)
         {
             throw ThrowHelper.QueryAndMutationMustExecute();
@@ -156,20 +258,14 @@ internal sealed class QueryPlan
             () => subscriptionNode.SubscribeAsync(context, cancellationToken),
             kind: ExecutionResultKind.SubscriptionResult);
 
-        result.RegisterForCleanup(
-            () =>
-            {
-                context.Dispose();
-                return default;
-            });
+        result.RegisterForCleanup(context);
 
         return Task.FromResult<IResponseStream>(result);
     }
 
     public void Format(IBufferWriter<byte> writer)
     {
-        var jsonOptions = new JsonWriterOptions { Indented = true };
-        using var jsonWriter = new Utf8JsonWriter(writer, jsonOptions);
+        using var jsonWriter = new Utf8JsonWriter(writer, _jsonOptions);
         Format(jsonWriter);
         jsonWriter.Flush();
     }
@@ -177,16 +273,32 @@ internal sealed class QueryPlan
     public void Format(Utf8JsonWriter writer)
     {
         writer.WriteStartObject();
-
-        writer.WriteString("document", _operation.Document.ToString(false));
+        writer.WriteString(DocumentProp, _operation.Document.ToString(false));
 
         if (!string.IsNullOrEmpty(_operation.Name))
         {
-            writer.WriteString("operation", _operation.Name);
+            writer.WriteString(OperationProp, _operation.Name);
         }
 
-        writer.WritePropertyName("rootNode");
+        writer.WritePropertyName(RootNodeProp);
         RootNode.Format(writer);
+
+        if (_exportKeyToVariableName.Length > 0)
+        {
+            writer.WritePropertyName(StateProp);
+
+            writer.WriteStartArray();
+
+            foreach (var (key, displayName) in _exportKeyToVariableName)
+            {
+                writer.WriteStartObject();
+                writer.WriteString(VariableProp, key);
+                writer.WriteString(NameProp, displayName);
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndArray();
+        }
 
         writer.WriteEndObject();
     }
@@ -194,13 +306,27 @@ internal sealed class QueryPlan
     public override string ToString()
     {
         var bufferWriter = new ArrayBufferWriter<byte>();
-        var jsonOptions = new JsonWriterOptions { Indented = true };
-        using var jsonWriter = new Utf8JsonWriter(bufferWriter, jsonOptions);
+        using var jsonWriter = new Utf8JsonWriter(bufferWriter, _jsonOptions);
 
         Format(jsonWriter);
         jsonWriter.Flush();
 
         return Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
+    }
+
+    private static unsafe string ComputeHash(ReadOnlySpan<byte> document)
+    {
+        Span<byte> hash = stackalloc byte[SHA1.HashSizeInBytes];
+        ComputeHash(ref hash, document);
+        return Convert.ToHexString(hash);
+    }
+
+    private static void ComputeHash(ref Span<byte> hash, ReadOnlySpan<byte> document)
+    {
+        if (SHA1.TryHashData(document, hash, out var bytesWritten))
+        {
+            hash = hash[..bytesWritten];
+        }
     }
 
     private sealed class ExportPathVisitor : SyntaxWalker<ExportPathVisitorContext>

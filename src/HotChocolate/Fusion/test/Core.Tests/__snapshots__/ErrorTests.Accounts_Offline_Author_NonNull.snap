@@ -22,7 +22,12 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Reviews",
         "document": "query ReformatIds_1 { reviews { body author! { __fusion_exports__1: id } } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -35,12 +40,6 @@ QueryPlan
         "subgraph": "Accounts",
         "document": "query ReformatIds_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { birthdate __fusion_exports__1: id } } }",
         "selectionSetId": 2,
-        "argumentTypes": [
-          {
-            "argument": "__fusion_exports__1",
-            "type": "[ID!]!"
-          }
-        ],
         "path": [
           "nodes"
         ],
@@ -57,8 +56,19 @@ QueryPlan
         ]
       }
     ]
-  }
+  },
+  "state": [
+    {
+      "variable": "__fusion_exports__1",
+      "name": "User_id"
+    }
+  ]
 }
+---------------
+
+QueryPlan Hash
+---------------
+E66032C9090CEF0A5BAA67C81A653C72E1C5DF85
 ---------------
 
 Result

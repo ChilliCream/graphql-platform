@@ -146,5 +146,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent", resourceCulture);
             }
         }
+        
+        internal static string ResolveNode_EntityResolver_Already_Registered {
+            get {
+                return ResourceManager.GetString("ResolveNode_EntityResolver_Already_Registered", resourceCulture);
+            }
+        }
     }
 }

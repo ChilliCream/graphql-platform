@@ -28,7 +28,7 @@ internal class MergeEntityMiddleware : IMergeMiddleware
     }
 }
 
-static file class MergeEntitiesMiddlewareExtensions
+file static class MergeEntitiesMiddlewareExtensions
 {
     public static void Merge(this CompositionContext context, EntityPart source, ObjectType target)
     {

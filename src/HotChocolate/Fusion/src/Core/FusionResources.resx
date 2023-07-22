@@ -69,4 +69,7 @@
   <data name="ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent" xml:space="preserve">
     <value>The state is inconsistent.</value>
   </data>
+  <data name="ResolveNode_EntityResolver_Already_Registered" xml:space="preserve">
+    <value>The entity resolver for the specified type name was already registered.</value>
+  </data>
 </root>

@@ -1,8 +1,8 @@
-using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.FusionResources;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Utilities;
 
 internal static class ThrowHelper
 {
@@ -76,4 +76,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage("Unable to load the Fusion gateway configuration.")
                 .Build());
+    
+    public static InvalidOperationException Node_ReadOnly()
+        => new("The execution node is read-only.");
 }

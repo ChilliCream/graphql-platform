@@ -9,7 +9,7 @@ using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using static HotChocolate.Fusion.ThrowHelper;
+using static HotChocolate.Fusion.Utilities.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;

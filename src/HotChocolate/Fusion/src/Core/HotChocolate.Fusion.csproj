@@ -5,6 +5,11 @@
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <!--EnableTrimAnalyzer>true</EnableTrimAnalyzer-->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,6 +54,9 @@
     </Compile>
     <Compile Update="Metadata\ResolverDefinition.ResolverRewriter.cs">
       <DependentUpon>ResolverDefinition.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Planning\Nodes\ResolverNodeBase.Config.cs">
+      <DependentUpon>ResolverNodeBase.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

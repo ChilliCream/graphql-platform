@@ -2,7 +2,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Composition;
-using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;

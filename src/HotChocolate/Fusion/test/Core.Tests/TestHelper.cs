@@ -1,5 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
@@ -21,6 +22,7 @@ internal static class TestHelper
             value is QueryPlan queryPlan)
         {
             snapshot.Add(queryPlan, "QueryPlan");
+            snapshot.Add(queryPlan.Hash, "QueryPlan Hash");
         }
 
         snapshot.Add(result, "Result");
@@ -45,6 +47,7 @@ internal static class TestHelper
                 value is QueryPlan queryPlan)
             {
                 snapshot.Add(queryPlan, "QueryPlan");
+                snapshot.Add(queryPlan.Hash, "QueryPlan Hash");
             }
 
             snapshot.Add(item, $"Result {++i}");

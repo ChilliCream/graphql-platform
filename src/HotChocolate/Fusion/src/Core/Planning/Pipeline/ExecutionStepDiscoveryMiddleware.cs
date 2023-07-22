@@ -2,12 +2,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Pipeline;
 
 /// <summary>
 /// The request planer will rewrite the <see cref="IOperation"/> into

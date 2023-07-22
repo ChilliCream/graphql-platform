@@ -1,5 +1,7 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -7,7 +9,7 @@ using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionResources;
 using static HotChocolate.Fusion.Metadata.ResolverKind;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Pipeline;
 
 internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 {
@@ -78,7 +80,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 {
                     var nodeResolverNode = new ResolveNode(
                         context.NextNodeId(),
-                        nodeStep.NodeSelection);
+                        Unsafe.As<Selection>(nodeStep.NodeSelection));
                     context.RegisterNode(nodeResolverNode, nodeStep);
                     context.RegisterSelectionSet(context.Operation.RootSelectionSet);
                     handled.Add(nodeStep);
@@ -100,7 +102,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 {
                     var introspectionNode = new Introspect(
                         context.NextNodeId(),
-                        context.Operation.RootSelectionSet);
+                        Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet));
                     context.RegisterNode(introspectionNode, executionStep);
                     context.RegisterSelectionSet(context.Operation.RootSelectionSet);
                     handled.Add(executionStep);
@@ -135,21 +137,23 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
         context.RegisterSelectionSet(selectionSet);
 
-        return new Resolve(
-            context.NextNodeId(),
+        var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
             selectionSet,
-            executionStep.Variables.Values.ToArray(),
+            context.Exports.GetExportKeys(executionStep),
+            executionStep.Variables.Values,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value),
             request.Path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
             DetermineTransportFeatures(context));
+
+        return new Resolve(context.NextNodeId(), config);
     }
 
     private TransportFeatures DetermineTransportFeatures(
         QueryPlanContext context)
     {
-        if (context.ForwardedVariables.Count == 0 || 
+        if (context.ForwardedVariables.Count == 0 ||
             !_schema.TryGetType<UploadType>("Upload", out _))
         {
             return TransportFeatures.Standard;
@@ -161,17 +165,17 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         foreach (var variable in context.ForwardedVariables)
         {
             var typeName = variable.Type.NamedType().Name.Value;
-            
+
             if (typeName.EqualsOrdinal("Upload"))
             {
                 return TransportFeatures.All;
             }
-            
+
             if (_schema.TryGetType<InputObjectType>(typeName, out var inputObjectType))
             {
                 processed ??= new HashSet<InputObjectType>();
                 next ??= new Stack<InputObjectType>();
-                
+
                 processed.Add(inputObjectType);
                 next.Push(inputObjectType);
 
@@ -185,7 +189,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                         {
                             return TransportFeatures.All;
                         }
-                        
+
                         if(fieldType is InputObjectType nextInputObjectType &&
                             processed.Add(nextInputObjectType))
                         {
@@ -195,7 +199,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 }
             }
         }
-        
+
         processed?.Clear();
         return TransportFeatures.Standard;
     }
@@ -212,15 +216,17 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
         context.RegisterSelectionSet(selectionSet);
 
-        return new Resolve(
-            context.NextNodeId(),
+        var config = new ResolverNodeBase.Config(
             executionStep.SelectEntityStep.SubgraphName,
             requestDocument,
             selectionSet,
-            executionStep.SelectEntityStep.Variables.Values.ToArray(),
+            context.Exports.GetExportKeys(executionStep),
+            executionStep.SelectEntityStep.Variables.Values,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value),
             path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
             DetermineTransportFeatures(context));
+
+        return new Resolve(context.NextNodeId(), config);
     }
 
     private ResolveByKeyBatch CreateResolveByKeyBatchNode(
@@ -256,16 +262,17 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
             argumentTypes = temp;
         }
 
-        return new ResolveByKeyBatch(
-            context.NextNodeId(),
+        var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
             selectionSet,
-            executionStep.Variables.Values.ToArray(),
+            context.Exports.GetExportKeys(executionStep),
+            executionStep.Variables.Values,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value),
             request.Path,
-            argumentTypes,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
             DetermineTransportFeatures(context));
+
+        return new ResolveByKeyBatch(context.NextNodeId(), config, argumentTypes);
     }
 
     private Subscribe CreateSubscribeNode(
@@ -280,16 +287,18 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 OperationType.Subscription);
 
         context.RegisterSelectionSet(selectionSet);
-
-        return new Subscribe(
-            context.NextNodeId(),
+        
+        var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
             selectionSet,
-            executionStep.Variables.Values.ToArray(),
+            context.Exports.GetExportKeys(executionStep),
+            executionStep.Variables.Values,
+            context.ForwardedVariables.Select(t => t.Variable.Name.Value),
             request.Path,
-            context.ForwardedVariables.Select(t => t.Variable.Name.Value).ToArray(),
             DetermineTransportFeatures(context));
+
+        return new Subscribe(context.NextNodeId(), config);
     }
 
     private ISelectionSet ResolveSelectionSet(

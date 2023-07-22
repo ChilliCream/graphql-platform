@@ -33,7 +33,12 @@ QueryPlan
             "type": "Resolve",
             "subgraph": "Products",
             "document": "query TopProducts_1 { topProducts(first: 2) { __typename __fusion_exports__1: id } }",
-            "selectionSetId": 0
+            "selectionSetId": 0,
+            "provides": [
+              {
+                "variable": "__fusion_exports__1"
+              }
+            ]
           }
         ]
       },
@@ -64,8 +69,19 @@ QueryPlan
         ]
       }
     ]
-  }
+  },
+  "state": [
+    {
+      "variable": "__fusion_exports__1",
+      "name": "Product_id"
+    }
+  ]
 }
+---------------
+
+QueryPlan Hash
+---------------
+E4B2B0C3E838D31C20FF059EF4CBACA3E72DE42B
 ---------------
 
 Result

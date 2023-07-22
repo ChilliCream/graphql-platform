@@ -46,7 +46,12 @@ QueryPlan
             "type": "Resolve",
             "subgraph": "Accounts",
             "document": "query GetUser_2 { users { name __fusion_exports__1: id } }",
-            "selectionSetId": 0
+            "selectionSetId": 0,
+            "provides": [
+              {
+                "variable": "__fusion_exports__1"
+              }
+            ]
           }
         ]
       },
@@ -61,12 +66,6 @@ QueryPlan
         "subgraph": "Reviews2",
         "document": "query GetUser_3($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name } } __fusion_exports__1: id } } }",
         "selectionSetId": 1,
-        "argumentTypes": [
-          {
-            "argument": "__fusion_exports__1",
-            "type": "[ID!]!"
-          }
-        ],
         "path": [
           "nodes"
         ],
@@ -83,8 +82,19 @@ QueryPlan
         ]
       }
     ]
-  }
+  },
+  "state": [
+    {
+      "variable": "__fusion_exports__1",
+      "name": "User_id"
+    }
+  ]
 }
+---------------
+
+QueryPlan Hash
+---------------
+0063E44988E01990A3C87BFCB7119F223B2801A5
 ---------------
 
 Result

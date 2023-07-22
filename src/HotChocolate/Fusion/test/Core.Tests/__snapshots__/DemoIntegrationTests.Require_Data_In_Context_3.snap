@@ -35,7 +35,12 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query Large_1 { users { id name birthdate __fusion_exports__3: id } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__3"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -48,14 +53,16 @@ QueryPlan
         "subgraph": "Reviews2",
         "document": "query Large_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { reviews { body author { name __fusion_exports__4: id } product { id __fusion_exports__5: id } } __fusion_exports__3: id } } }",
         "selectionSetId": 1,
-        "argumentTypes": [
-          {
-            "argument": "__fusion_exports__3",
-            "type": "[ID!]!"
-          }
-        ],
         "path": [
           "nodes"
+        ],
+        "provides": [
+          {
+            "variable": "__fusion_exports__4"
+          },
+          {
+            "variable": "__fusion_exports__5"
+          }
         ],
         "requires": [
           {
@@ -77,12 +84,6 @@ QueryPlan
             "subgraph": "Accounts",
             "document": "query Large_3($__fusion_exports__4: [ID!]!) { nodes(ids: $__fusion_exports__4) { ... on User { birthdate __fusion_exports__4: id } } }",
             "selectionSetId": 5,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__4",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
             ],
@@ -97,14 +98,16 @@ QueryPlan
             "subgraph": "Products",
             "document": "query Large_5($__fusion_exports__5: [ID!]!) { nodes(ids: $__fusion_exports__5) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__5: id } } }",
             "selectionSetId": 3,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__5",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
+            ],
+            "provides": [
+              {
+                "variable": "__fusion_exports__1"
+              },
+              {
+                "variable": "__fusion_exports__2"
+              }
             ],
             "requires": [
               {
@@ -147,8 +150,35 @@ QueryPlan
         ]
       }
     ]
-  }
+  },
+  "state": [
+    {
+      "variable": "__fusion_exports__1",
+      "name": "Product_dimension_size"
+    },
+    {
+      "variable": "__fusion_exports__2",
+      "name": "Product_dimension_weight"
+    },
+    {
+      "variable": "__fusion_exports__3",
+      "name": "User_id"
+    },
+    {
+      "variable": "__fusion_exports__4",
+      "name": "User_id"
+    },
+    {
+      "variable": "__fusion_exports__5",
+      "name": "Product_id"
+    }
+  ]
 }
+---------------
+
+QueryPlan Hash
+---------------
+5C57D69756182D7C8B6A6610E6082C0C5E5A63BD
 ---------------
 
 Result

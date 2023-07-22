@@ -1,10 +1,10 @@
-using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Utilities;
 using static System.StringComparer;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Pipeline;
 
 internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
 {

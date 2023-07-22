@@ -4,14 +4,12 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
-using HotChocolate.Fusion.Clients;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
 using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// A subscribe represents a subscription operation that is executed on a subgraph.
@@ -24,37 +22,11 @@ internal sealed class Subscribe : ResolverNodeBase
     /// <param name="id">
     /// The unique id of this node.
     /// </param>
-    /// <param name="subgraphName">
-    /// The name of the subgraph on which this request handler executes.
+    /// <param name="config">
+    /// Gets the resolver configuration.
     /// </param>
-    /// <param name="document">
-    /// The GraphQL request document.
-    /// </param>
-    /// <param name="selectionSet">
-    /// The selection set for which this request provides a patch.
-    /// </param>
-    /// <param name="requires">
-    /// The variables that this request handler requires to create a request.
-    /// </param>
-    /// <param name="path">
-    /// The path to the data that this request handler needs to extract.
-    /// </param>
-    /// <param name="forwardedVariables">
-    /// The variables that this request handler forwards to the subgraph.
-    /// </param>
-    /// <param name="transportFeatures">
-    /// The transport features that are required by this node.
-    /// </param>
-    public Subscribe(
-        int id,
-        string subgraphName,
-        DocumentNode document,
-        ISelectionSet selectionSet,
-        IReadOnlyList<string> requires,
-        IReadOnlyList<string> path,
-        IReadOnlyList<string> forwardedVariables,
-        TransportFeatures transportFeatures)
-        : base(id, subgraphName, document, selectionSet, requires, path, forwardedVariables, transportFeatures)
+    public Subscribe(int id, Config config)
+        : base(id, config)
     {
     }
 
@@ -104,19 +76,19 @@ internal sealed class Subscribe : ResolverNodeBase
                     var bufferWriter = new ArrayBufferWriter<byte>();
                     context.QueryPlan.Format(bufferWriter);
                     operationContext.Result.SetExtension(
-                        FusionContextDataKeys.QueryPlan,
+                        FusionContextDataKeys.QueryPlanProp,
                         new RawJsonValue(bufferWriter.WrittenMemory));
                 }
 
                 // We store the query plan on the result for unit tests and other inspection.
                 operationContext.Result.SetContextData(
-                    FusionContextDataKeys.QueryPlan,
+                    FusionContextDataKeys.QueryPlanProp,
                     context.QueryPlan);
             }
             initialResponse = false;
 
             // Before we can start building requests we need to rent state for the execution result.
-            var rootSelectionSet = context.Operation.RootSelectionSet;
+            var rootSelectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
             var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
 
             // by registering the state we will get a work item which represents the state for
@@ -132,7 +104,7 @@ internal sealed class Subscribe : ResolverNodeBase
             // So we skip execution and just unwrap the result and extract the selection data.
             var data = UnwrapResult(response);
             var selectionResults = workItem.SelectionSetData;
-            var exportKeys = workItem.ExportKeys;
+            var exportKeys = workItem.Provides;
             variableValues = workItem.VariableValues;
 
             // we extract the selection data from the request and add it to the workItem results.
@@ -160,7 +132,7 @@ internal sealed class Subscribe : ResolverNodeBase
     }
 }
 
-static file class SubscriptionNodeExtensions
+file static class SubscriptionNodeExtensions
 {
     public static FusionExecutionContext Clone(this FusionExecutionContext context)
     {

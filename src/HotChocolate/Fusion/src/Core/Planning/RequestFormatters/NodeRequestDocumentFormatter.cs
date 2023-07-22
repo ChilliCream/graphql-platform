@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
@@ -213,7 +214,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
             }
             
             NEXT:
-            selection = ref Unsafe.Add(ref selection, 1);
+            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         if (selectionSet.Selections.Count == 0 && selectionNodes.Count == 0)

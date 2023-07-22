@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
@@ -212,7 +213,8 @@ internal abstract class RequestDocumentFormatter
         while (next)
         {
             var possibleType = typeEnumerator.Current;
-            var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(parentSelection, possibleType);
+            var selectionSet = Unsafe.As<SelectionSet>(
+                context.Operation.GetSelectionSet(parentSelection, possibleType));
 
             var onlyIntrospection =
                 CreateSelectionNodes(
@@ -320,7 +322,7 @@ internal abstract class RequestDocumentFormatter
             }
 
             NEXT:
-            selection = ref Unsafe.Add(ref selection, 1);
+            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         // append exports that were required by other execution steps.
@@ -399,9 +401,9 @@ internal abstract class RequestDocumentFormatter
                 var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
                 TryForwardVariable(
-                    context, 
-                    resolver.SubgraphName, 
-                    resolver, 
+                    context,
+                    resolver.SubgraphName,
+                    resolver,
                     argumentValue,
                     argumentVariable.ArgumentName);
             }
@@ -428,10 +430,10 @@ internal abstract class RequestDocumentFormatter
                 var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
                 TryForwardVariable(
-                    context, 
+                    context,
                     resolver.SubgraphName,
-                    resolver, 
-                    argumentValue, 
+                    resolver,
+                    argumentValue,
                     argumentVariable.ArgumentName);
             }
         }

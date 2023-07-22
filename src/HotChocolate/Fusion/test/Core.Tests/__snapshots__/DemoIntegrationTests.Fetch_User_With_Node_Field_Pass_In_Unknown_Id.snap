@@ -77,12 +77,17 @@ QueryPlan
 }
 ---------------
 
+QueryPlan Hash
+---------------
+1A21CA422439C6540C53FC5028089D965C5F8A03
+---------------
+
 Result
 ---------------
 {
   "errors": [
     {
-      "message": "The id is invalid 3!",
+      "message": "The id value has an invalid format.",
       "locations": [
         {
           "line": 2,

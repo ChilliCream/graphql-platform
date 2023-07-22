@@ -33,7 +33,12 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query GetUser_1 { users { name __fusion_exports__1: id } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -46,14 +51,16 @@ QueryPlan
         "subgraph": "Reviews",
         "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name reviews { body author { name __fusion_exports__2: id } } __fusion_exports__3: id } } __fusion_exports__1: id } } }",
         "selectionSetId": 1,
-        "argumentTypes": [
-          {
-            "argument": "__fusion_exports__1",
-            "type": "[ID!]!"
-          }
-        ],
         "path": [
           "nodes"
+        ],
+        "provides": [
+          {
+            "variable": "__fusion_exports__2"
+          },
+          {
+            "variable": "__fusion_exports__3"
+          }
         ],
         "requires": [
           {
@@ -75,12 +82,6 @@ QueryPlan
             "subgraph": "Accounts",
             "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { nodes(ids: $__fusion_exports__2) { ... on User { birthdate __fusion_exports__2: id } } }",
             "selectionSetId": 5,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__2",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
             ],
@@ -95,12 +96,6 @@ QueryPlan
             "subgraph": "Accounts",
             "document": "query GetUser_4($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { birthdate __fusion_exports__3: id } } }",
             "selectionSetId": 3,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__3",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
             ],
@@ -120,6 +115,20 @@ QueryPlan
         ]
       }
     ]
-  }
+  },
+  "state": [
+    {
+      "variable": "__fusion_exports__1",
+      "name": "User_id"
+    },
+    {
+      "variable": "__fusion_exports__2",
+      "name": "User_id"
+    },
+    {
+      "variable": "__fusion_exports__3",
+      "name": "User_id"
+    }
+  ]
 }
 ---------------

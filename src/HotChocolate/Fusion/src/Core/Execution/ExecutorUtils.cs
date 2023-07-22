@@ -3,8 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -24,12 +24,12 @@ internal static class ExecutorUtils
 
     public static void ComposeResult(
         FusionExecutionContext context,
-        SelectionSetState selectionSetState)
+        ExecutionState executionState)
         => ComposeResult(
             context,
-            (SelectionSet)selectionSetState.SelectionSet,
-            selectionSetState.SelectionSetData,
-            selectionSetState.SelectionSetResult);
+            executionState.SelectionSet,
+            executionState.SelectionSetData,
+            executionState.SelectionSetResult);
 
     private static void ComposeResult(
         FusionExecutionContext context,
@@ -307,7 +307,7 @@ internal static class ExecutorUtils
             type = context.Schema.GetType<ObjectType>(typeMetadata.Name);
         }
 
-        var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(selection, type);
+        var selectionSet = Unsafe.As<SelectionSet>(context.Operation.GetSelectionSet(selection, type));
         var selectionCount = selectionSet.Selections.Count;
         var result = context.Result.RentObject(selectionCount);
 
@@ -446,39 +446,39 @@ internal static class ExecutorUtils
         }
     }
 
-    public static void TryInitializeWorkItem(QueryPlan queryPlan, SelectionSetState selectionSetState)
+    public static void TryInitializeExecutionState(QueryPlan queryPlan, ExecutionState executionState)
     {
-        if (selectionSetState.IsInitialized)
+        if (executionState.IsInitialized)
         {
             return;
         }
 
         // capture the partial result available
-        var partialResult = selectionSetState.SelectionSetData[0];
+        var partialResult = executionState.SelectionSetData[0];
 
         // if we have a partial result available lets unwrap it.
         if (partialResult.HasValue)
         {
             // first we need to erase the partial result from the array so that its not
             // combined into the result creation.
-            selectionSetState.SelectionSetData[0] = default;
+            executionState.SelectionSetData[0] = default;
 
             // next we will unwrap the results.
             ExtractSelectionResults(
                 partialResult,
-                (SelectionSet)selectionSetState.SelectionSet,
-                selectionSetState.SelectionSetData);
+                (SelectionSet)executionState.SelectionSet,
+                executionState.SelectionSetData);
 
             // last we will check if there are any exports for this selection-set.
             ExtractVariables(
                 partialResult,
                 queryPlan,
-                selectionSetState.SelectionSet,
-                selectionSetState.ExportKeys,
-                selectionSetState.VariableValues);
+                executionState.SelectionSet,
+                executionState.Provides,
+                executionState.VariableValues);
         }
 
-        selectionSetState.IsInitialized = true;
+        executionState.IsInitialized = true;
     }
 
     public static void ExtractErrors(

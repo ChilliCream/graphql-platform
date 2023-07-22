@@ -1016,7 +1016,7 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
-    private static async Task<(DocumentNode UserRequest, QueryPlan QueryPlan)> CreateQueryPlanAsync(
+    private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)
     {

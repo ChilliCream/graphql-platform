@@ -1,8 +1,11 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Parallel = HotChocolate.Fusion.Execution.Nodes.Parallel;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Pipeline;
 
 internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 {
@@ -56,7 +59,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
                 var single = next.Batch[0];
                 next.Parent.AddNode(single.Node);
 
-                var selectionSet = ResolveSelectionSet(context, single.Step);
+                var selectionSet = Unsafe.As<SelectionSet>(ResolveSelectionSet(context, single.Step));
 
                 if (NeedsComposition(single.Step, selectionSet))
                 {
@@ -72,11 +75,11 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             else
             {
                 var parallel = new Parallel(context.NextNodeId());
-                var selectionSets = new List<ISelectionSet>();
+                var selectionSets = new List<SelectionSet>();
 
                 foreach (var item in next.Batch)
                 {
-                    var selectionSet = ResolveSelectionSet(context, item.Step);
+                    var selectionSet = Unsafe.As<SelectionSet>(ResolveSelectionSet(context, item.Step));
 
                     if (NeedsComposition(item.Step, selectionSet))
                     {
@@ -106,7 +109,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             }
         }
 
-        bool NeedsComposition(ExecutionStep step, ISelectionSet selectionSet)
+        bool NeedsComposition(ExecutionStep step, SelectionSet selectionSet)
         {
             var steps = lookup[selectionSet];
             steps.Remove(step);
@@ -193,7 +196,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         var parent = new Sequence(context.NextNodeId());
         root.AddNode(parent);
 
-        var selectionSet = ResolveSelectionSet(context, step);
+        var selectionSet = Unsafe.As<SelectionSet>(ResolveSelectionSet(context, step));
         var compose = new Compose(context.NextNodeId(), selectionSet);
         parent.AddNode(compose);
         context.Complete(step);
