@@ -95,7 +95,7 @@ internal sealed class Introspect : QueryPlanNode
                 rootSelectionNodes.Add(selection.SyntaxNode);
             }
             
-            selection = ref Unsafe.Add(ref selection, 1);
+            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         var selectionSetNode = new SelectionSetNode(null, rootSelectionNodes);
