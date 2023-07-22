@@ -1,17 +1,30 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution;
+using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// The <see cref="If"/> node is responsible for executing a node based on a state.
+/// </summary>
 internal sealed class If : QueryPlanNode
 {
     private readonly List<Branch> _branches = new();
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="If"/>.
+    /// </summary>
+    /// <param name="id">
+    /// The unique id of this node.
+    /// </param>
     public If(int id) : base(id)
     {
     }
 
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.If;
 
     protected override Task OnExecuteNodesAsync(
@@ -49,8 +62,7 @@ internal sealed class If : QueryPlanNode
     {
         if (IsReadOnly)
         {
-            // TODO : error helper
-            throw new InvalidOperationException("The execution node is read-only.");
+            throw ThrowHelper.Node_ReadOnly();
         }
 
         if (key is null)
@@ -70,13 +82,11 @@ internal sealed class If : QueryPlanNode
     internal override void AddNode(QueryPlanNode node)
         => throw new NotSupportedException();
 
-    public readonly record struct Branch(string Key, object Value, QueryPlanNode Node);
-
     protected override void FormatNodesProperty(Utf8JsonWriter writer)
     {
         if (_branches.Count > 0)
         {
-            writer.WritePropertyName("branches");
+            writer.WritePropertyName(BranchesProp);
 
             writer.WriteStartArray();
 
@@ -93,4 +103,6 @@ internal sealed class If : QueryPlanNode
             writer.WriteEndArray();
         }
     }
+    
+    private readonly record struct Branch(string Key, object Value, QueryPlanNode Node);
 }

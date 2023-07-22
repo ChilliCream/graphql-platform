@@ -12,6 +12,9 @@ using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// Represents a query plan that describes how a GraphQL request shall be executed.
+/// </summary>
 internal sealed class QueryPlan
 {
     private readonly IOperation _operation;
@@ -20,15 +23,35 @@ internal sealed class QueryPlan
     private readonly (string Key, string DisplayName)[] _exportKeyToVariableName;
     private readonly IReadOnlySet<ISelectionSet> _selectionSets;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="QueryPlan"/>.
+    /// </summary>
+    /// <param name="operation">
+    /// The operation for which the query plan was created.
+    /// </param>
+    /// <param name="rootNode">
+    /// The root node of the query plan.
+    /// </param>
+    /// <param name="selectionSets">
+    /// The selection sets that are part of the query plan.
+    /// </param>
+    /// <param name="exports">
+    /// The exports that are part of the query plan.
+    /// </param>
     public QueryPlan(
         IOperation operation,
         QueryPlanNode rootNode,
         IReadOnlySet<ISelectionSet> selectionSets,
         IReadOnlyCollection<ExportDefinition> exports)
     {
-        _operation = operation;
-        RootNode = rootNode;
-        _selectionSets = selectionSets;
+        if (exports == null)
+        {
+            throw new ArgumentNullException(nameof(exports));
+        }
+        
+        _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
+        _selectionSets = selectionSets ?? throw new ArgumentNullException(nameof(selectionSets));
 
         if (exports.Count > 0)
         {
@@ -60,6 +83,9 @@ internal sealed class QueryPlan
         }
     }
 
+    /// <summary>
+    /// Gets the root node of the query plan.
+    /// </summary>
     public QueryPlanNode RootNode { get; }
 
     /// <summary>
@@ -75,7 +101,7 @@ internal sealed class QueryPlan
     /// </returns>
     public bool HasNodesFor(ISelectionSet selectionSet)
         => _selectionSets.Contains(selectionSet);
-
+    
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
         => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
             ? keys
@@ -86,10 +112,31 @@ internal sealed class QueryPlan
             ? path
             : Array.Empty<string>();
 
+    /// <summary>
+    /// Executes the query plan.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the query result.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// The query plan represents a subscription request
+    /// and cannot be executed but must be subscribed to.
+    /// </exception>
     public async Task<IQueryResult> ExecuteAsync(
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
         if (RootNode is Subscribe)
         {
             throw ThrowHelper.SubscriptionsMustSubscribe();
@@ -158,10 +205,31 @@ internal sealed class QueryPlan
         return context.Result.BuildResult();
     }
 
+    /// <summary>
+    /// Executes a subscription query plan.
+    /// </summary>
+    /// <param name="context">
+    /// The execution context.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns a response stream that represents the subscription result.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// The query plan represents a query or mutation request
+    /// and cannot be subscribed to but must be executed.
+    /// </exception>
     public Task<IResponseStream> SubscribeAsync(
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
         if (RootNode is not Subscribe subscriptionNode)
         {
             throw ThrowHelper.QueryAndMutationMustExecute();

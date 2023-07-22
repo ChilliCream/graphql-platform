@@ -1,24 +1,47 @@
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution;
+using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// The base class for all query plan nodes.
+/// </summary>
 internal abstract class QueryPlanNode
 {
     private readonly List<QueryPlanNode> _nodes = new();
     private bool _isReadOnly;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="QueryPlanNode"/>.
+    /// </summary>
+    /// <param name="id">
+    /// The unique id of this node.
+    /// </param>
     protected QueryPlanNode(int id)
     {
         Id = id;
     }
 
+    /// <summary>
+    /// Gets the unique id of this node.
+    /// </summary>
     public int Id { get; }
 
+    /// <summary>
+    /// Gets the kind of this node.
+    /// </summary>
     public abstract QueryPlanNodeKind Kind { get; }
 
+    /// <summary>
+    /// Gets the child nodes of this node.
+    /// </summary>
     public IReadOnlyList<QueryPlanNode> Nodes => _nodes;
 
+    /// <summary>
+    /// Gets a value indicating whether this node is read-only.
+    /// </summary>
     private protected bool IsReadOnly => _isReadOnly;
 
     internal async Task ExecuteAsync(
@@ -67,11 +90,19 @@ internal abstract class QueryPlanNode
 
     internal void Seal()
     {
-        if (!_isReadOnly)
+        if (_isReadOnly)
         {
-            OnSeal();
-            _isReadOnly = true;
+            return;
         }
+        
+        OnSeal();
+
+        foreach (var node in Nodes)
+        {
+            node.Seal();
+        }
+            
+        _isReadOnly = true;
     }
 
     protected virtual void OnSeal() { }
@@ -79,7 +110,7 @@ internal abstract class QueryPlanNode
     internal void Format(Utf8JsonWriter writer)
     {
         writer.WriteStartObject();
-        writer.WriteString("type", Kind.ToString());
+        writer.WriteString(TypeProp, Kind.ToString());
         FormatProperties(writer);
         FormatNodesProperty(writer);
         writer.WriteEndObject();
@@ -91,18 +122,22 @@ internal abstract class QueryPlanNode
 
     protected virtual void FormatNodesProperty(Utf8JsonWriter writer)
     {
-        if (_nodes.Count > 0)
+        if (_nodes.Count <= 0)
         {
-            writer.WritePropertyName("nodes");
-
-            writer.WriteStartArray();
-
-            foreach (var node in _nodes)
-            {
-                node.Format(writer);
-            }
-
-            writer.WriteEndArray();
+            return;
         }
+        
+        writer.WritePropertyName(NodesProp);
+        writer.WriteStartArray();
+
+        foreach (var node in _nodes)
+        {
+            node.Format(writer);
+        }
+
+        writer.WriteEndArray();
     }
+
+    protected ReadOnlySpan<QueryPlanNode> GetNodesSpan() 
+        => CollectionsMarshal.AsSpan(_nodes);
 }

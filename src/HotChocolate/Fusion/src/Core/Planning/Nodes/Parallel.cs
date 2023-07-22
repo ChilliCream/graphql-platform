@@ -33,12 +33,12 @@ internal sealed class Parallel : QueryPlanNode
 
     private void InitializeNodes(FusionExecutionContext context, CancellationToken cancellationToken, out Task[] tasks)
     {
-        var nodes = Unsafe.As<List<QueryPlanNode>>(Nodes);
-        tasks = new Task[nodes.Count];
+        var nodes = GetNodesSpan();
+        tasks = new Task[nodes.Length];
         
-        ref var node = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(nodes));
+        ref var node = ref MemoryMarshal.GetReference(nodes);
         ref var task = ref MemoryMarshal.GetArrayDataReference(tasks);
-        ref var end = ref Unsafe.Add(ref node, nodes.Count);
+        ref var end = ref Unsafe.Add(ref node, nodes.Length);
 
         while (Unsafe.IsAddressLessThan(ref node, ref end))
         {

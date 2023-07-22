@@ -34,6 +34,8 @@ internal static class Utf8QueryPlanPropertyNames
     
     public static ReadOnlySpan<byte> NodeProp => "node"u8;
     
+    public static ReadOnlySpan<byte> NodesProp => "nodes"u8;
+    
     public static ReadOnlySpan<byte> SelectionIdProp => "selectionId"u8;
     
     public static ReadOnlySpan<byte> ResponseNameProp => "responseName"u8;

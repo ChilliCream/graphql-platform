@@ -190,7 +190,8 @@ internal sealed class QueryPlanContext
             throw new InvalidOperationException(
                 "In order to build a query plan a root node must be set.");
         }
-
+        
+        _rootNode.Seal();
         return new QueryPlan(Operation, _rootNode, _selectionSets, Exports.All);
     }
 }
