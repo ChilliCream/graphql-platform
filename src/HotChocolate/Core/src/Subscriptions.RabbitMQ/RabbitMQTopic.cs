@@ -75,7 +75,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         
         DiagnosticEvents.Received(Name, serializedMessage);
 
-        var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
+        var envelope = DeserializeMessage(serializedMessage);
 
         if (envelope.Kind is MessageKind.Completed)
         {
@@ -84,6 +84,19 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         else if (envelope.Body is { } body)
         {
             Publish(body);
+        }
+    }
+    
+    private MessageEnvelope<TMessage> DeserializeMessage(string serializedMessage)
+    {
+        try
+        {
+            return _serializer.Deserialize<TMessage>(serializedMessage);
+        }
+        catch(Exception ex)
+        {
+            DiagnosticEvents.MessageProcessingError(Name, ex);
+            throw;
         }
     }
 

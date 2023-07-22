@@ -194,7 +194,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
 
     private void BeginProcessing(IDisposable session)
         => Task.Factory.StartNew(
-            async s => await ProcessMessagesSessionAsync((IDisposable) s!).ConfigureAwait(false),
+            async s => await ProcessMessagesSessionAsync((IDisposable)s!).ConfigureAwait(false),
             session);
 
     private async Task ProcessMessagesSessionAsync(IDisposable session)
@@ -272,7 +272,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private void Close()
+    protected void Close()
     {
         if (_disposed)
         {
