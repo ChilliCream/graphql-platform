@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -7,6 +8,7 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -95,7 +97,7 @@ internal sealed class QueryPlan
         operationContext.Result.SetContextData("queryPlan", context.QueryPlan);
 
         // Enqueue root node to initiate the execution process.
-        var rootSelectionSet = context.Operation.RootSelectionSet;
+        var rootSelectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
         var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
 
         context.Result.SetData(rootResult);
@@ -178,14 +180,14 @@ internal sealed class QueryPlan
     {
         writer.WriteStartObject();
 
-        writer.WriteString("document", _operation.Document.ToString(false));
+        writer.WriteString(DocumentProp, _operation.Document.ToString(false));
 
         if (!string.IsNullOrEmpty(_operation.Name))
         {
-            writer.WriteString("operation", _operation.Name);
+            writer.WriteString(OperationProp, _operation.Name);
         }
 
-        writer.WritePropertyName("rootNode");
+        writer.WritePropertyName(RootNodeProp);
         RootNode.Format(writer);
 
         writer.WriteEndObject();

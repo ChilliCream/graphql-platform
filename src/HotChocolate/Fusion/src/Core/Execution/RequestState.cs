@@ -8,10 +8,10 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class RequestState
 {
-    private readonly Dictionary<ISelectionSet, List<ExecutionState>> _map = new();
-    private readonly HashSet<ISelectionSet> _immutable = new();
+    private readonly Dictionary<SelectionSet, List<ExecutionState>> _map = new();
+    private readonly HashSet<SelectionSet> _immutable = new();
 
-    public bool ContainsState(ISelectionSet selectionSet)
+    public bool ContainsState(SelectionSet selectionSet)
     {
         var taken = false;
         Monitor.Enter(_map, ref taken);
@@ -61,7 +61,7 @@ internal sealed class RequestState
     }
 
     public bool TryGetState(
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         [NotNullWhen(true)] out List<ExecutionState>? values)
     {
         var taken = false;
@@ -99,7 +99,7 @@ internal sealed class RequestState
     }
 
     public void TryRegisterState(
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         ObjectResult result,
         IReadOnlyList<string> exportKeys,
         SelectionData parentData)

@@ -90,7 +90,7 @@ internal sealed class Subscribe : ResolverNodeBase
             initialResponse = false;
 
             // Before we can start building requests we need to rent state for the execution result.
-            var rootSelectionSet = context.Operation.RootSelectionSet;
+            var rootSelectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
             var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
 
             // by registering the state we will get a work item which represents the state for
@@ -106,7 +106,7 @@ internal sealed class Subscribe : ResolverNodeBase
             // So we skip execution and just unwrap the result and extract the selection data.
             var data = UnwrapResult(response);
             var selectionResults = workItem.SelectionSetData;
-            var exportKeys = workItem.ExportKeys;
+            var exportKeys = workItem.Provides;
             variableValues = workItem.VariableValues;
 
             // we extract the selection data from the request and add it to the workItem results.

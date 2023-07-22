@@ -168,11 +168,6 @@ QueryPlan
 Result
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
-    }
-  ],
   "data": {
     "users": [
       {
@@ -187,7 +182,11 @@ Result
               "birthdate": "1815-12-10"
             },
             "product": {
-              "id": "UHJvZHVjdAppMQ=="
+              "id": "UHJvZHVjdAppMQ==",
+              "name": "Table",
+              "deliveryEstimate": {
+                "max": 800
+              }
             }
           },
           {
@@ -197,7 +196,11 @@ Result
               "birthdate": "1815-12-10"
             },
             "product": {
-              "id": "UHJvZHVjdAppMw=="
+              "id": "UHJvZHVjdAppMw==",
+              "name": "Chair",
+              "deliveryEstimate": {
+                "max": 90
+              }
             }
           }
         ]
@@ -214,7 +217,11 @@ Result
               "birthdate": "1912-06-23"
             },
             "product": {
-              "id": "UHJvZHVjdAppMg=="
+              "id": "UHJvZHVjdAppMg==",
+              "name": "Couch",
+              "deliveryEstimate": {
+                "max": 5300
+              }
             }
           },
           {
@@ -224,7 +231,11 @@ Result
               "birthdate": "1912-06-23"
             },
             "product": {
-              "id": "UHJvZHVjdAppMQ=="
+              "id": "UHJvZHVjdAppMQ==",
+              "name": "Table",
+              "deliveryEstimate": {
+                "max": 800
+              }
             }
           }
         ]

@@ -134,11 +134,6 @@ QueryPlan
 Result
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
-    }
-  ],
   "data": {
     "reviews": [
       {
@@ -147,7 +142,12 @@ Result
           "name": "@ada",
           "birthdate": "1815-12-10"
         },
-        "product": {}
+        "product": {
+          "deliveryEstimate": {
+            "min": 400,
+            "max": 800
+          }
+        }
       },
       {
         "body": "Too expensive.",
@@ -155,7 +155,12 @@ Result
           "name": "@alan",
           "birthdate": "1912-06-23"
         },
-        "product": {}
+        "product": {
+          "deliveryEstimate": {
+            "min": 2650,
+            "max": 5300
+          }
+        }
       },
       {
         "body": "Could be better.",
@@ -163,7 +168,12 @@ Result
           "name": "@ada",
           "birthdate": "1815-12-10"
         },
-        "product": {}
+        "product": {
+          "deliveryEstimate": {
+            "min": 45,
+            "max": 90
+          }
+        }
       },
       {
         "body": "Prefer something else.",
@@ -171,7 +181,12 @@ Result
           "name": "@alan",
           "birthdate": "1912-06-23"
         },
-        "product": {}
+        "product": {
+          "deliveryEstimate": {
+            "min": 400,
+            "max": 800
+          }
+        }
       }
     ]
   }

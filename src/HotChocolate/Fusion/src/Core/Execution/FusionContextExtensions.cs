@@ -6,7 +6,7 @@ internal static class FusionContextExtensions
 {
     public static ExecutionState RegisterState(
         this FusionExecutionContext context,
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         ObjectResult result,
         SelectionData parentData = default)
     {
@@ -24,7 +24,7 @@ internal static class FusionContextExtensions
 
     public static void TryRegisterState(
         this FusionExecutionContext context,
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         ObjectResult result,
         SelectionData parentData = default)
     {

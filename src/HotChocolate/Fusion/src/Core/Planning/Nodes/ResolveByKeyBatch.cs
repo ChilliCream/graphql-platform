@@ -76,8 +76,6 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         GraphQLResponse response, 
         BatchExecutionState[] batchExecutionState)
     {
-        var first = batchExecutionState[0];
-        
         ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
         var result = UnwrapResult(response, Requires);
         
@@ -86,10 +84,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
-            if (result.TryGetValue(batchState.Key, out var workItemData))
+            if (result.TryGetValue(batchState.Key, out var data))
             {
-                ExtractSelectionResults(SelectionSet, SubgraphName, workItemData, batchState.SelectionResults);
-                ExtractVariables(workItemData, context.QueryPlan, SelectionSet, first.ExportKeys, first.VariableValues);
+                ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionResults);
+                ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Provides, batchState.VariableValues);
             }
 
             batchState = ref Unsafe.Add(ref batchState, 1);
@@ -100,9 +98,11 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         BatchExecutionState[] batchExecutionState,
         Dictionary<string, ITypeNode> argumentTypes)
     {
+        var first = batchExecutionState[0];
+        
         if (batchExecutionState.Length == 1)
         {
-            return batchExecutionState[0].VariableValues;
+            return first.VariableValues;
         }
 
         var variableValues = new Dictionary<string, IValueNode>();
@@ -122,7 +122,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             batchState = ref Unsafe.Add(ref batchState, 1);
         }
 
-        foreach (var key in batchExecutionState[0].VariableValues.Keys)
+        foreach (var key in first.VariableValues.Keys)
         {
             var expectedType = argumentTypes[key];
 
@@ -313,7 +313,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         {
             Key = batchKey;
             VariableValues = executionState.VariableValues;
-            ExportKeys = executionState.ExportKeys;
+            Provides = executionState.Provides;
             SelectionResults = executionState.SelectionSetData;
         }
 
@@ -321,7 +321,12 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         public Dictionary<string, IValueNode> VariableValues { get; }
 
-        public IReadOnlyList<string> ExportKeys { get; }
+        /// <summary>
+        /// Gets a list of keys representing the state that is being
+        /// provided after the associated <see cref="SelectionSet"/>
+        /// has been executed.
+        /// </summary>
+        public IReadOnlyList<string> Provides { get; }
 
         public SelectionData[] SelectionResults { get; }
     }

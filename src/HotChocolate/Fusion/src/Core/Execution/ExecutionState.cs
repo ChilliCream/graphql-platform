@@ -10,14 +10,14 @@ namespace HotChocolate.Fusion.Execution;
 internal sealed class ExecutionState
 {
     public ExecutionState(
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         ObjectResult selectionSetResult,
-        IReadOnlyList<string> exportKeys)
+        IReadOnlyList<string> provides)
     {
         SelectionSet = selectionSet;
         SelectionSetResult = selectionSetResult;
         SelectionSetData = new SelectionData[selectionSet.Selections.Count];
-        ExportKeys = exportKeys;
+        Provides = provides;
     }
 
     /// <summary>
@@ -28,14 +28,15 @@ internal sealed class ExecutionState
 
     /// <summary>
     /// Gets a list of keys representing the state that is being
-    /// exported while processing this work item.
+    /// provided after the associated <see cref="SelectionSet"/>
+    /// has been executed.
     /// </summary>
-    public IReadOnlyList<string> ExportKeys { get; }
+    public IReadOnlyList<string> Provides { get; }
 
     /// <summary>
     /// Gets the selection set that is being executed.
     /// </summary>
-    public ISelectionSet SelectionSet { get; }
+    public SelectionSet SelectionSet { get; }
 
     /// <summary>
     /// Gets the selection set data that was collected during execution.
@@ -50,6 +51,5 @@ internal sealed class ExecutionState
     /// <summary>
     /// Gets a flag that indicates if the work item has been initialized.
     /// </summary>
-    /// <value></value>
     public bool IsInitialized { get; set; }
 }

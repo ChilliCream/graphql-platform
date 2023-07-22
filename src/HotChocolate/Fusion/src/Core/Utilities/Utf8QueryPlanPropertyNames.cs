@@ -9,6 +9,10 @@ internal static class Utf8QueryPlanPropertyNames
     public static ReadOnlySpan<byte> SubgraphProp => "subgraph"u8;
 
     public static ReadOnlySpan<byte> DocumentProp => "document"u8;
+    
+    public static ReadOnlySpan<byte> OperationProp => "operation"u8;
+    
+    public static ReadOnlySpan<byte> RootNodeProp => "rootNode"u8;
 
     public static ReadOnlySpan<byte> SelectionSetIdProp => "selectionSetId"u8;
 

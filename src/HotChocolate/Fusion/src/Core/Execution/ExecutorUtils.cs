@@ -474,7 +474,7 @@ internal static class ExecutorUtils
                 partialResult,
                 queryPlan,
                 executionState.SelectionSet,
-                executionState.ExportKeys,
+                executionState.Provides,
                 executionState.VariableValues);
         }
 

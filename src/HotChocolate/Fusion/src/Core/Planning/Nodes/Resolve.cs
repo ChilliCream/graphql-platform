@@ -125,7 +125,7 @@ internal sealed class Resolve : ResolverNodeBase
             var data = UnwrapResult(response);
             var selectionSet = state.SelectionSet;
             var selectionResults = state.SelectionSetData;
-            var exportKeys = state.ExportKeys;
+            var exportKeys = state.Provides;
             var variableValues = state.VariableValues;
 
             ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);

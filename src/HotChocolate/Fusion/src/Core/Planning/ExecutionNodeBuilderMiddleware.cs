@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
@@ -100,7 +101,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 {
                     var introspectionNode = new Introspect(
                         context.NextNodeId(),
-                        context.Operation.RootSelectionSet);
+                        Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet));
                     context.RegisterNode(introspectionNode, executionStep);
                     context.RegisterSelectionSet(context.Operation.RootSelectionSet);
                     handled.Add(executionStep);

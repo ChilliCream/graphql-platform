@@ -3,16 +3,15 @@ using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Planning.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class Introspect : QueryPlanNode
 {
-    private readonly ISelectionSet _selectionSet;
+    private readonly SelectionSet _selectionSet;
 
-    public Introspect(int id, ISelectionSet selectionSet) : base(id)
+    public Introspect(int id, SelectionSet selectionSet) : base(id)
     {
         _selectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
     }
@@ -66,6 +65,6 @@ internal sealed class Introspect : QueryPlanNode
         }
 
         var selectionSetNode = new SelectionSetNode(null, rootSelectionNodes);
-        writer.WriteString("document", selectionSetNode.ToString(false));
+        writer.WriteString(DocumentProp, selectionSetNode.ToString(false));
     }
 }
