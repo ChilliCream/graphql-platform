@@ -26,7 +26,12 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Appointment",
         "document": "query Appointments_1 { appointments(after: null, before: null, first: null, last: null) { nodes { patient { __typename ... on Patient1 { id __fusion_exports__1: id } ... on Patient2 { id } } } } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -39,14 +44,13 @@ QueryPlan
         "subgraph": "Patient1",
         "document": "query Appointments_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on Patient1 { name __fusion_exports__1: id } } }",
         "selectionSetId": 3,
-        "argumentTypes": [
-          {
-            "argument": "__fusion_exports__1",
-            "type": "[ID!]!"
-          }
-        ],
         "path": [
           "nodes"
+        ],
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          }
         ],
         "requires": [
           {

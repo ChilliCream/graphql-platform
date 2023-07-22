@@ -30,7 +30,15 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Reviews2",
         "document": "query Requires_1 { reviews { body author { name __fusion_exports__3: id } product { __fusion_exports__4: id } } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__3"
+          },
+          {
+            "variable": "__fusion_exports__4"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -46,14 +54,13 @@ QueryPlan
             "subgraph": "Accounts",
             "document": "query Requires_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { birthdate __fusion_exports__3: id } } }",
             "selectionSetId": 4,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__3",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
+            ],
+            "provides": [
+              {
+                "variable": "__fusion_exports__3"
+              }
             ],
             "requires": [
               {
@@ -66,14 +73,19 @@ QueryPlan
             "subgraph": "Products",
             "document": "query Requires_4($__fusion_exports__4: [ID!]!) { nodes(ids: $__fusion_exports__4) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__4: id } } }",
             "selectionSetId": 2,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__4",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
+            ],
+            "provides": [
+              {
+                "variable": "__fusion_exports__1"
+              },
+              {
+                "variable": "__fusion_exports__2"
+              },
+              {
+                "variable": "__fusion_exports__4"
+              }
             ],
             "requires": [
               {

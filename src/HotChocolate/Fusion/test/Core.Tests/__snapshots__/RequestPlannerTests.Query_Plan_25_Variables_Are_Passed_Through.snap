@@ -24,7 +24,12 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Patient1",
         "document": "query Appointments_1 { patientById(patientId: 1) { name __fusion_exports__1: id } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
       },
       {
         "type": "Compose",

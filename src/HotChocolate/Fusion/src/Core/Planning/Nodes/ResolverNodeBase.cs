@@ -171,8 +171,8 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
     /// </param>
     protected override void FormatProperties(Utf8JsonWriter writer)
     {
-        writer.WriteString(SubgraphProp, SubgraphName);
-        writer.WriteString(DocumentProp, DocumentProp);
+        writer.WriteString(SubgraphProp, _subgraphName);
+        writer.WriteString(DocumentProp, _document);
         writer.WriteNumber(SelectionSetIdProp, SelectionSet.Id);
 
         if (_path.Length > 0)
@@ -225,6 +225,8 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
                 writer.WriteStartObject();
                 writer.WriteString(VariableProp, requirement);
                 writer.WriteEndObject();
+
+                requirement = ref Unsafe.Add(ref requirement, 1)!;
             }
 
             writer.WriteEndArray();
@@ -243,6 +245,8 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
                 writer.WriteStartObject();
                 writer.WriteString(VariableProp, variable);
                 writer.WriteEndObject();
+                
+                variable = ref Unsafe.Add(ref variable, 1)!;
             }
             writer.WriteEndArray();
         }

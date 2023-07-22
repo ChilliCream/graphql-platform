@@ -29,7 +29,15 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Reviews2",
         "document": "query Requires_1 { reviews { body author { name __fusion_exports__3: id } product { __fusion_exports__4: id } } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__3"
+          },
+          {
+            "variable": "__fusion_exports__4"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -45,14 +53,13 @@ QueryPlan
             "subgraph": "Accounts",
             "document": "query Requires_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { birthdate __fusion_exports__3: id } } }",
             "selectionSetId": 4,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__3",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
+            ],
+            "provides": [
+              {
+                "variable": "__fusion_exports__3"
+              }
             ],
             "requires": [
               {
@@ -65,14 +72,19 @@ QueryPlan
             "subgraph": "Products",
             "document": "query Requires_4($__fusion_exports__4: [ID!]!) { nodes(ids: $__fusion_exports__4) { ... on Product { __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__4: id } } }",
             "selectionSetId": 2,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__4",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
+            ],
+            "provides": [
+              {
+                "variable": "__fusion_exports__1"
+              },
+              {
+                "variable": "__fusion_exports__2"
+              },
+              {
+                "variable": "__fusion_exports__4"
+              }
             ],
             "requires": [
               {
@@ -122,6 +134,11 @@ QueryPlan
 Result
 ---------------
 {
+  "errors": [
+    {
+      "message": "Unexpected Execution Error"
+    }
+  ],
   "data": {
     "reviews": [
       {
@@ -130,12 +147,7 @@ Result
           "name": "@ada",
           "birthdate": "1815-12-10"
         },
-        "product": {
-          "deliveryEstimate": {
-            "min": 400,
-            "max": 800
-          }
-        }
+        "product": {}
       },
       {
         "body": "Too expensive.",
@@ -143,12 +155,7 @@ Result
           "name": "@alan",
           "birthdate": "1912-06-23"
         },
-        "product": {
-          "deliveryEstimate": {
-            "min": 2650,
-            "max": 5300
-          }
-        }
+        "product": {}
       },
       {
         "body": "Could be better.",
@@ -156,12 +163,7 @@ Result
           "name": "@ada",
           "birthdate": "1815-12-10"
         },
-        "product": {
-          "deliveryEstimate": {
-            "min": 45,
-            "max": 90
-          }
-        }
+        "product": {}
       },
       {
         "body": "Prefer something else.",
@@ -169,12 +171,7 @@ Result
           "name": "@alan",
           "birthdate": "1912-06-23"
         },
-        "product": {
-          "deliveryEstimate": {
-            "min": 400,
-            "max": 800
-          }
-        }
+        "product": {}
       }
     ]
   }

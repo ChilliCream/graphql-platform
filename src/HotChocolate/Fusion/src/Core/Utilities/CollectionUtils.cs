@@ -41,12 +41,13 @@ internal static class CollectionUtils
 
         while (next)
         {
-            if (capacity <= buffer.Length)
+            if (capacity <= index)
             {
                 var temp = ArrayPool<string>.Shared.Rent(capacity * 2);
-                Buffer.BlockCopy(buffer, 0, temp, 0, index);
+                buffer.AsSpan(0, index).CopyTo(temp);
                 ArrayPool<string>.Shared.Return(buffer, true);
                 buffer = temp;
+                capacity = buffer.Length;
             }
 
             buffer[index++] = enumerator.Current;
@@ -54,14 +55,14 @@ internal static class CollectionUtils
         }
 
         // now lets copy the stuff into its array
-        var array = new string[buffer.Length];
-        Buffer.BlockCopy(buffer, 0, array, 0, index);
+        var array = new string[index];
+        buffer.AsSpan(0, index).CopyTo(array);
 
         if (array.Length > usedBufferCapacity)
         {
             usedBufferCapacity = array.Length;
         }
-
+    
         return array;
     }
 }

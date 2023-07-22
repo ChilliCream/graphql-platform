@@ -67,6 +67,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
             TryInitializeExecutionState(context.QueryPlan, state);
+            state = ref Unsafe.Add(ref state, 1)!;
         }
     }
 
@@ -105,15 +106,20 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         }
 
         var variableValues = new Dictionary<string, IValueNode>();
-        var uniqueWorkItems = new List<BatchExecutionState>();
+        var uniqueState = new List<BatchExecutionState>();
         var processed = new HashSet<string>();
 
-        foreach (var workItem in batchExecutionState)
+        ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
+        ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
+
+        while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
-            if (processed.Add(workItem.Key))
+            if (processed.Add(batchState.Key))
             {
-                uniqueWorkItems.Add(workItem);
+                uniqueState.Add(batchState);
             }
+
+            batchState = ref Unsafe.Add(ref batchState, 1);
         }
 
         foreach (var key in batchExecutionState[0].VariableValues.Keys)
@@ -124,7 +130,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             {
                 var list = new List<IValueNode>();
 
-                foreach (var value in uniqueWorkItems)
+                foreach (var value in uniqueState)
                 {
                     if (value.VariableValues.TryGetValue(key, out var variableValue))
                     {
@@ -245,8 +251,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 var key = FormatKeyValue(state.VariableValues[requires[0]]);
                 batchState = new BatchExecutionState(key, state);
 
-                state = ref Unsafe.Add(ref state, 1);
-                batchState = ref Unsafe.Add(ref batchState, 1);
+                state = ref Unsafe.Add(ref state, 1)!;
+                batchState = ref Unsafe.Add(ref batchState, 1)!;
             }
         }
         else
@@ -261,13 +267,13 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 while (Unsafe.IsAddressLessThan(ref key, ref keyEnd))
                 {
                     keyBuilder.Append(FormatKeyValue(state.VariableValues[key]));
-                    key = ref Unsafe.Add(ref key, 1);
+                    key = ref Unsafe.Add(ref key, 1)!;
                 }
 
                 batchState = new BatchExecutionState(key, state);
 
-                state = ref Unsafe.Add(ref state, 1);
-                batchState = ref Unsafe.Add(ref batchState, 1);
+                state = ref Unsafe.Add(ref state, 1)!;
+                batchState = ref Unsafe.Add(ref batchState, 1)!;
             }
         }
 

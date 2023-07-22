@@ -213,7 +213,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
             }
             
             NEXT:
-            selection = ref Unsafe.Add(ref selection, 1);
+            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         if (selectionSet.Selections.Count == 0 && selectionNodes.Count == 0)
