@@ -246,7 +246,14 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                var diagnostics = new SubscriptionTestDiagnostics();
+                using var testServer = CreateStarWarsServer(
+                    configureServices: c =>
+                    {
+                        c.AddGraphQL()
+                            .AddDiagnosticEventListener(_ => diagnostics);
+                    },
+                    output: _output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -257,18 +264,25 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 // act
                 await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
 
+                while (diagnostics.Subscribed is not 1)
+                {
+                    await Task.Delay(10, ct);
+                }
+
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
-                        mutation {
-                            createReview(episode: NEW_HOPE review: {
-                                commentary: ""foo""
-                                stars: 5
-                            }) {
-                                stars
+                        Query = 
+                            """
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    commentary: "foo"
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
                             }
-                        }"
+                            """
                     });
 
                 // assert
