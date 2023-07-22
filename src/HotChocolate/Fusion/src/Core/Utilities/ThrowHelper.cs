@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.FusionResources;
 

@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Configuration;
+namespace HotChocolate.Fusion.Metadata;
 
 /// <summary>
 /// This interface allows to rewrite the gateway configuration before it is applied.

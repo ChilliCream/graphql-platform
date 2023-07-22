@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Metadata;
 
 [Serializable]
 public class ServiceConfigurationException : Exception
