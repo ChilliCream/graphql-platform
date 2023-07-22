@@ -8,7 +8,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Pipeline;
 
 /// <summary>
 /// The request planer will rewrite the <see cref="IOperation"/> into

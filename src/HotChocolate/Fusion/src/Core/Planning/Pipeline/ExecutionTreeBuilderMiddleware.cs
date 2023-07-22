@@ -5,7 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Parallel = HotChocolate.Fusion.Execution.Nodes.Parallel;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Pipeline;
 
 internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
 {

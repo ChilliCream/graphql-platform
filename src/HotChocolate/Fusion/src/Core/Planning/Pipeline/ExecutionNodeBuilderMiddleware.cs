@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionResources;
 using static HotChocolate.Fusion.Metadata.ResolverKind;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Pipeline;
 
 internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 {

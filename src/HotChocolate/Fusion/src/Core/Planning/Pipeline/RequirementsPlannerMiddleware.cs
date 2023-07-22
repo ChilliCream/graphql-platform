@@ -2,7 +2,7 @@ using HotChocolate.Fusion.Metadata;
 using HotChocolate.Utilities;
 using static System.StringComparer;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Pipeline;
 
 /// <summary>
 /// The requirements planer will analyze the requirements for each

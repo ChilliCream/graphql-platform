@@ -1,6 +1,7 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Planning.Pipeline;
 
 namespace HotChocolate.Fusion.Planning;
 
