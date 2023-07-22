@@ -2,11 +2,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Execution;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The <see cref="Compose"/> node composes the results of multiple selection sets.

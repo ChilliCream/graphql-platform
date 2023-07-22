@@ -1,8 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using HotChocolate.Fusion.Execution;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The <see cref="Parallel"/> node executes its child nodes in parallel.

@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The sequence node is responsible for executing

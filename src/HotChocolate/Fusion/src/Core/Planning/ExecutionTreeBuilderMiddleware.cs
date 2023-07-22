@@ -1,7 +1,9 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Parallel = HotChocolate.Fusion.Execution.Nodes.Parallel;
 
 namespace HotChocolate.Fusion.Planning;
 

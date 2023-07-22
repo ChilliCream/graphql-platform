@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;

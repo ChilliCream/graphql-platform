@@ -1,9 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using HotChocolate.Fusion.Execution;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The base class for all query plan nodes.

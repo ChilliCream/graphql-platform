@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 
 namespace HotChocolate.Fusion.Planning;

@@ -8,7 +8,7 @@ using HotChocolate.Language;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The resolver node is responsible for executing a GraphQL request on a subgraph.

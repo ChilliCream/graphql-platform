@@ -1,7 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -10,7 +9,7 @@ using static HotChocolate.Fusion.FusionResources;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 using static HotChocolate.Fusion.Utilities.ErrorHelper;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The resolver node is responsible for fetching nodes from subgraphs.

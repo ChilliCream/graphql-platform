@@ -3,7 +3,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 internal sealed class ReformatVariableRewriter : SyntaxRewriter<ReformatVariableRewriter>, ISyntaxVisitorContext
 {

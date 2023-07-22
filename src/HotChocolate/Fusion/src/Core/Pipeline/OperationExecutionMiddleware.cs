@@ -4,6 +4,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;

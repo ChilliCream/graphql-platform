@@ -5,7 +5,7 @@ using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 internal abstract partial class ResolverNodeBase
 {

@@ -2,11 +2,10 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The <see cref="Introspect"/> node is responsible for executing introspection selection of the GraphQL request.

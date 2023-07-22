@@ -4,13 +4,12 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
 using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// A subscribe represents a subscription operation that is executed on a subgraph.

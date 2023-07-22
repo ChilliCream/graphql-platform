@@ -1,10 +1,9 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Clients;
-using HotChocolate.Fusion.Execution;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The resolver node is responsible for fetching data from a subgraph.

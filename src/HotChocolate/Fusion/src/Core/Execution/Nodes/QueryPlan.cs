@@ -5,13 +5,13 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
-using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// Represents a query plan that describes how a GraphQL request shall be executed.

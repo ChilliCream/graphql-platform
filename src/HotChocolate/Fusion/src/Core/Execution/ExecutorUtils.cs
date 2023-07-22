@@ -3,8 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -27,7 +27,7 @@ internal static class ExecutorUtils
         ExecutionState executionState)
         => ComposeResult(
             context,
-            (SelectionSet)executionState.SelectionSet,
+            executionState.SelectionSet,
             executionState.SelectionSetData,
             executionState.SelectionSetResult);
 

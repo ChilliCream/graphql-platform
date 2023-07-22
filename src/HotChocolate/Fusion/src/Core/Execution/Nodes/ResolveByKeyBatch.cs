@@ -3,11 +3,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Clients;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The resolver node is responsible for batch fetching data from a subgraph.

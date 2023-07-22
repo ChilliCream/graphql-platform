@@ -1,10 +1,9 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Utilities;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The <see cref="If"/> node is responsible for executing a node based on a state.
