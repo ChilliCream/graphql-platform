@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Planning;
@@ -14,12 +13,6 @@ internal sealed class Parallel : QueryPlanNode
         RequestState state,
         CancellationToken cancellationToken)
     {
-        if (Debugger.IsAttached)
-        {
-            await base.OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
-            return;
-        }
-        
         var tasks = new Task[Nodes.Count];
 
         for (var i = 0; i < Nodes.Count; i++)
