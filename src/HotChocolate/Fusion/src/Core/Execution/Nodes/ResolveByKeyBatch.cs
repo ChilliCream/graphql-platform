@@ -364,7 +364,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         /// <summary>
         /// Gets a list of keys representing the state that is being
-        /// provided after the associated <see cref="SelectionSet"/>
+        /// provided after the associated <see cref="ResolverNodeBase.SelectionSet"/>
         /// has been executed.
         /// </summary>
         public IReadOnlyList<string> Provides { get; }
