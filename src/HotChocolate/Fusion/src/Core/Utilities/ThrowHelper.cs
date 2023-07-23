@@ -54,29 +54,35 @@ internal static class ThrowHelper
         => new(ThrowHelper_NoResolverInContext);
 
     public static NotSupportedException RequestFormatter_ArgumentVariableExpected()
-        => new("The variable must be an argument variable.");
+        => new(ThrowHelper_RequestFormatter_ArgumentVariableExpected_Message);
 
     public static InvalidOperationException RequestFormatter_SelectionSetEmpty()
-        => new("A selection set must not be empty.");
+        => new(ThrowHelper_RequestFormatter_SelectionSetEmpty_Message);
 
     public static InvalidOperationException SubscriptionsMustSubscribe()
-        => new("A subscription execution plan can not be executed as a query.");
+        => new(ThrowHelper_SubscriptionsMustSubscribe_Message);
 
     public static InvalidOperationException QueryAndMutationMustExecute()
-        => new("A query or mutation execution plan can not be executed as a subscription.");
+        => new(ThrowHelper_QueryAndMutationMustExecute_Message);
 
     public static SchemaException NoConfigurationProvider()
         => new SchemaException(
             SchemaErrorBuilder.New()
-                .SetMessage("No configuration provider registered.")
+                .SetMessage(ThrowHelper_NoConfigurationProvider_Message)
                 .Build());
 
     public static SchemaException UnableToLoadConfiguration()
         => new SchemaException(
             SchemaErrorBuilder.New()
-                .SetMessage("Unable to load the Fusion gateway configuration.")
+                .SetMessage(ThrowHelper_UnableToLoadConfiguration_Message)
                 .Build());
-    
+
     public static InvalidOperationException Node_ReadOnly()
-        => new("The execution node is read-only.");
+        => new(ThrowHelper_Node_ReadOnly_Message);
+
+    public static InvalidOperationException UnableToCreateQueryPlan()
+        => new(ThrowHelper_UnableToCreateQueryPlan_Message);
+
+    public static InvalidOperationException NoRootNode()
+        => new(ThrowHelper_NoRootNode_Message);
 }

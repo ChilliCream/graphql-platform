@@ -152,5 +152,59 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("ResolveNode_EntityResolver_Already_Registered", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_UnableToCreateQueryPlan_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnableToCreateQueryPlan_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NoRootNode_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NoRootNode_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Node_ReadOnly_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Node_ReadOnly_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnableToLoadConfiguration_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnableToLoadConfiguration_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NoConfigurationProvider_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NoConfigurationProvider_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_QueryAndMutationMustExecute_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_QueryAndMutationMustExecute_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SubscriptionsMustSubscribe_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SubscriptionsMustSubscribe_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_RequestFormatter_SelectionSetEmpty_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_RequestFormatter_SelectionSetEmpty_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_RequestFormatter_ArgumentVariableExpected_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_RequestFormatter_ArgumentVariableExpected_Message", resourceCulture);
+            }
+        }
     }
 }

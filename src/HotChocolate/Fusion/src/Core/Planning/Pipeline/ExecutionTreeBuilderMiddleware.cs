@@ -30,6 +30,9 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
             ProcessBacklog(context, backlog);
         }
 
+        // We fail if we were unable to include all execution steps into the query plan.
+        context.EnsureAllStepsAreCompleted();
+
         next(context);
     }
 

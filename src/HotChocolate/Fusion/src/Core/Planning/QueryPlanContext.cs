@@ -1,7 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -164,12 +166,20 @@ internal sealed class QueryPlanContext(IOperation operation)
         }
     }
 
+    public void EnsureAllStepsAreCompleted()
+    {
+        if (_stepToNode.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "It seems as if the query plan builder was not able to create a query plan for the specified quey as not all execution steps have been completed.");
+        }
+    }
+
     public QueryPlan BuildQueryPlan()
     {
         if (_rootNode is null)
         {
-            throw new InvalidOperationException(
-                "In order to build a query plan a root node must be set.");
+            throw ThrowHelper.NoRootNode();
         }
 
         _rootNode.Seal();
