@@ -17,14 +17,9 @@ using static HotChocolate.Fusion.TestHelper;
 
 namespace HotChocolate.Fusion;
 
-public class EventStreamTests
+public class EventStreamTests(ITestOutputHelper output)
 {
-    private readonly Func<ICompositionLog> _logFactory;
-
-    public EventStreamTests(ITestOutputHelper output)
-    {
-        _logFactory = () => new TestCompositionLog(output);
-    }
+    private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
     public async Task Authors_And_Reviews_Subscription_OnNewReview()

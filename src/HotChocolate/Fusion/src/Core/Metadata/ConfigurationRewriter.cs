@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 
 namespace HotChocolate.Fusion.Metadata;
 
@@ -23,10 +24,7 @@ public abstract class ConfigurationRewriter : IConfigurationRewriter
         DocumentNode configuration,
         CancellationToken cancellationToken = default)
     {
-        if (configuration == null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
 
         var config = FusionGraphConfiguration.Load(configuration);
 
@@ -40,9 +38,9 @@ public abstract class ConfigurationRewriter : IConfigurationRewriter
             if (!ReferenceEquals(rewritten, client))
             {
                 var arguments = new List<ArgumentNode>();
-                arguments.Add(new ArgumentNode(FusionDirectiveArgumentNames.ClientNameArg, rewritten.ClientName));
-                arguments.Add(new ArgumentNode(FusionDirectiveArgumentNames.SubgraphArg, rewritten.SubgraphName));
-                arguments.Add(new ArgumentNode(FusionDirectiveArgumentNames.BaseAddressArg, rewritten.EndpointUri.ToString()));
+                arguments.Add(new ArgumentNode(ClientNameArg, rewritten.ClientName));
+                arguments.Add(new ArgumentNode(SubgraphArg, rewritten.SubgraphName));
+                arguments.Add(new ArgumentNode(BaseAddressArg, rewritten.EndpointUri.ToString()));
                 Replace(client.SyntaxNode!, client.SyntaxNode!.WithArguments(arguments));
             }
         }
@@ -54,9 +52,9 @@ public abstract class ConfigurationRewriter : IConfigurationRewriter
             if (!ReferenceEquals(rewritten, client))
             {
                 var arguments = new List<ArgumentNode>();
-                arguments.Add(new ArgumentNode(FusionDirectiveArgumentNames.ClientNameArg, rewritten.ClientName));
-                arguments.Add(new ArgumentNode(FusionDirectiveArgumentNames.SubgraphArg, rewritten.SubgraphName));
-                arguments.Add(new ArgumentNode(FusionDirectiveArgumentNames.BaseAddressArg, rewritten.EndpointUri.ToString()));
+                arguments.Add(new ArgumentNode(ClientNameArg, rewritten.ClientName));
+                arguments.Add(new ArgumentNode(SubgraphArg, rewritten.SubgraphName));
+                arguments.Add(new ArgumentNode(BaseAddressArg, rewritten.EndpointUri.ToString()));
                 Replace(client.SyntaxNode!, client.SyntaxNode!.WithArguments(arguments));
             }
         }
@@ -67,10 +65,7 @@ public abstract class ConfigurationRewriter : IConfigurationRewriter
         {
             if (schemaDirectives is null)
             {
-                if (schemaDefinitionNode is null)
-                {
-                    schemaDefinitionNode = configuration.Definitions.OfType<SchemaDefinitionNode>().First();
-                }
+                schemaDefinitionNode ??= configuration.Definitions.OfType<SchemaDefinitionNode>().First();
 
                 var definitions = configuration.Definitions.ToList();
                 schemaDirectives = schemaDefinitionNode.Directives.ToList();

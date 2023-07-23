@@ -1,24 +1,13 @@
 User Request
 ---------------
-query Large {
-  users {
+query($id: ID!, $first: Int!) {
+  a: productById(id: $id) {
     id
-    name
-    birthdate
-    reviews {
-      body
-      author {
-        name
-        birthdate
-      }
-      product {
-        id
-        name
-        deliveryEstimate(zip: "abc") {
-          max
-        }
-      }
-    }
+    repeat(num: $first)
+  }
+  b: productById(id: $id) {
+    id
+    repeat(num: $first)
   }
 }
 ---------------
@@ -26,19 +15,21 @@ query Large {
 QueryPlan
 ---------------
 {
-  "document": "query Large { users { id name birthdate reviews { body author { name birthdate } product { id name deliveryEstimate(zip: \u0022abc\u0022) { max } } } } }",
-  "operation": "Large",
+  "document": "query($id: ID!, $first: Int!) { a: productById(id: $id) { id repeat(num: $first) } b: productById(id: $id) { id repeat(num: $first) } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
-        "subgraph": "Accounts",
-        "document": "query Large_1 { users { id name birthdate __fusion_exports__3: id } }",
+        "subgraph": "Products",
+        "document": "query Fetch_a_b_1($first: Int!, $id: ID!) { a: productById(id: $id) { id repeat(num: $first) } b: productById(id: $id) { id repeat(num: $first) } }",
         "selectionSetId": 0,
-        "provides": [
+        "forwardedVariables": [
           {
-            "variable": "__fusion_exports__3"
+            "variable": "first"
+          },
+          {
+            "variable": "id"
           }
         ]
       },
@@ -47,183 +38,29 @@ QueryPlan
         "selectionSetIds": [
           0
         ]
-      },
-      {
-        "type": "ResolveByKeyBatch",
-        "subgraph": "Reviews2",
-        "document": "query Large_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { reviews { body author { name __fusion_exports__4: id } product { id } } __fusion_exports__3: id } } }",
-        "selectionSetId": 1,
-        "path": [
-          "nodes"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__3"
-          }
-        ],
-        "provides": [
-          {
-            "variable": "__fusion_exports__4"
-          }
-        ]
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          1
-        ]
-      },
-      {
-        "type": "Parallel",
-        "nodes": [
-          {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Accounts",
-            "document": "query Large_3($__fusion_exports__4: [ID!]!) { nodes(ids: $__fusion_exports__4) { ... on User { birthdate __fusion_exports__4: id } } }",
-            "selectionSetId": 5,
-            "path": [
-              "nodes"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__4"
-              }
-            ]
-          },
-          {
-            "type": "ResolveByKeyBatch",
-            "subgraph": "Products",
-            "document": "query Large_5($__fusion_exports__5: [ID!]!) { nodes(ids: $__fusion_exports__5) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__5: id __fusion_exports__5: id } } }",
-            "selectionSetId": 3,
-            "path": [
-              "nodes"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__5"
-              }
-            ],
-            "provides": [
-              {
-                "variable": "__fusion_exports__1"
-              },
-              {
-                "variable": "__fusion_exports__2"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          5
-        ]
-      },
-      {
-        "type": "Resolve",
-        "subgraph": "Shipping",
-        "document": "query Large_4($__fusion_exports__1: Int!, $__fusion_exports__2: Int!, $__fusion_exports__5: ID!) { productById(id: $__fusion_exports__5) { deliveryEstimate(size: $__fusion_exports__1, weight: $__fusion_exports__2, zip: \u0022abc\u0022) { max } } }",
-        "selectionSetId": 3,
-        "path": [
-          "productById"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          },
-          {
-            "variable": "__fusion_exports__2"
-          },
-          {
-            "variable": "__fusion_exports__5"
-          }
-        ]
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          3
-        ]
       }
     ]
-  },
-  "state": {
-    "__fusion_exports__1": "Product_dimension_size",
-    "__fusion_exports__2": "Product_dimension_weight",
-    "__fusion_exports__3": "User_id",
-    "__fusion_exports__4": "User_id",
-    "__fusion_exports__5": "Product_id"
   }
 }
 ---------------
 
 QueryPlan Hash
 ---------------
-EB3B76B3D95A368210FA674E1F1B5A62863BF3DD
+8E82B6AB23160BEE6023655E741703002D4EAA36
 ---------------
 
 Result
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
-    }
-  ],
   "data": {
-    "users": [
-      {
-        "id": "VXNlcgppMQ==",
-        "name": "Ada Lovelace",
-        "birthdate": "1815-12-10",
-        "reviews": [
-          {
-            "body": "Love it!",
-            "author": {
-              "name": "@ada"
-            },
-            "product": {
-              "id": "UHJvZHVjdAppMQ=="
-            }
-          },
-          {
-            "body": "Could be better.",
-            "author": {
-              "name": "@ada"
-            },
-            "product": {
-              "id": "UHJvZHVjdAppMw=="
-            }
-          }
-        ]
-      },
-      {
-        "id": "VXNlcgppMg==",
-        "name": "Alan Turing",
-        "birthdate": "1912-06-23",
-        "reviews": [
-          {
-            "body": "Too expensive.",
-            "author": {
-              "name": "@alan"
-            },
-            "product": {
-              "id": "UHJvZHVjdAppMg=="
-            }
-          },
-          {
-            "body": "Prefer something else.",
-            "author": {
-              "name": "@alan"
-            },
-            "product": {
-              "id": "UHJvZHVjdAppMQ=="
-            }
-          }
-        ]
-      }
-    ]
+    "a": {
+      "id": "UHJvZHVjdAppMQ==",
+      "repeat": 1
+    },
+    "b": {
+      "id": "UHJvZHVjdAppMQ==",
+      "repeat": 1
+    }
   }
 }
 ---------------
@@ -238,8 +75,6 @@ schema
   @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql")
   @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql")
   @webSocketClient(subgraph: "Products", baseAddress: "ws:\/\/localhost:5000\/graphql")
-  @httpClient(subgraph: "Shipping", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Shipping", baseAddress: "ws:\/\/localhost:5000\/graphql")
   @node(subgraph: "Reviews2", types: [ "User", "Review" ])
   @node(subgraph: "Accounts", types: [ "User" ])
   @node(subgraph: "Products", types: [ "Product" ]) {
@@ -270,8 +105,6 @@ type Query {
     @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Products", name: "id", argument: "id")
     @resolver(subgraph: "Products", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
-    @variable(subgraph: "Shipping", name: "id", argument: "id")
-    @resolver(subgraph: "Shipping", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewById(id: ID!): Review
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -321,34 +154,18 @@ type AddUserPayload {
     @source(subgraph: "Accounts")
 }
 
-type DeliveryEstimate {
-  max: Int!
-    @source(subgraph: "Shipping")
-  min: Int!
-    @source(subgraph: "Shipping")
-}
-
 type Product implements Node
   @variable(subgraph: "Reviews2", name: "Product_id", select: "id")
   @variable(subgraph: "Products", name: "Product_id", select: "id")
-  @variable(subgraph: "Shipping", name: "Product_id", select: "id")
   @resolver(subgraph: "Reviews2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
-  @resolver(subgraph: "Shipping", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ node(id: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
-  deliveryEstimate(zip: String!): DeliveryEstimate!
-    @source(subgraph: "Shipping")
-    @variable(subgraph: "Shipping", name: "zip", argument: "zip")
-    @variable(subgraph: "Products", name: "Product_dimension_size", select: "dimension { size }")
-    @variable(subgraph: "Products", name: "Product_dimension_weight", select: "dimension { weight }")
-    @resolver(subgraph: "Shipping", select: "{ deliveryEstimate(size: $Product_dimension_size, weight: $Product_dimension_weight, zip: $zip) }", arguments: [ { name: "Product_dimension_size", type: "Int!" }, { name: "Product_dimension_weight", type: "Int!" }, { name: "zip", type: "String!" } ])
   dimension: ProductDimension!
     @source(subgraph: "Products")
   id: ID!
     @source(subgraph: "Reviews2")
     @source(subgraph: "Products")
-    @source(subgraph: "Shipping")
   name: String!
     @source(subgraph: "Products")
   price: Int!

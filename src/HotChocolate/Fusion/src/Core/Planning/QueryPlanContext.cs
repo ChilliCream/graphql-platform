@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -12,7 +13,7 @@ internal sealed class QueryPlanContext(IOperation operation)
     private readonly Dictionary<object, SelectionExecutionStep> _selectionLookup = new();
     private readonly HashSet<ISelectionSet> _selectionSets = new();
     private readonly HashSet<ExecutionStep> _completed = new();
-    private readonly string _opName = operation.Name ?? "Remote_" + Guid.NewGuid().ToString("N");
+    private readonly string _opName = operation.Name ?? CreateOperationName(operation);
     private QueryPlanNode? _rootNode;
     private int _opId;
     private int _stepId;
@@ -36,7 +37,9 @@ internal sealed class QueryPlanContext(IOperation operation)
     public bool HasHandledSpecialQueryFields { get; set; }
 
     public NameNode CreateRemoteOperationName()
-        => new($"{_opName}_{++_opId}");
+    {
+        return new($"{_opName}_{++_opId}");
+    }
 
     public int NextStepId() => ++_stepId;
 
@@ -171,5 +174,25 @@ internal sealed class QueryPlanContext(IOperation operation)
 
         _rootNode.Seal();
         return new QueryPlan(Operation, _rootNode, _selectionSets, Exports.All);
+    }
+
+    private static string CreateOperationName(IOperation operation)
+    {
+        const string prefix = "Fetch";
+
+        if (operation.RootSelectionSet.Selections.Count == 1)
+        {
+            return $"{prefix}_{operation.RootSelectionSet.Selections[0].ResponseName}";
+        }
+
+        var sb = new StringBuilder(prefix);
+
+        foreach (var selection in operation.RootSelectionSet.Selections)
+        {
+            sb.Append('_');
+            sb.Append(selection.ResponseName);
+        }
+
+        return sb.ToString();
     }
 }

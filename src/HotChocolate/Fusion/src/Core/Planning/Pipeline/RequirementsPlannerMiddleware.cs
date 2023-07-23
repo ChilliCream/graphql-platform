@@ -21,9 +21,9 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
     {
         context.ReBuildSelectionLookup();
 
-        var siblingsToRemove = new List<SelectionExecutionStep>();
         var schemas = new Dictionary<string, SelectionExecutionStep>(Ordinal);
         var requires = new HashSet<string>(Ordinal);
+        var siblingsToRemove = new List<SelectionExecutionStep>();
         var roots = new HashSet<string>(Ordinal);
 
         foreach (var step in context.Steps)
@@ -33,6 +33,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 currentStep.Resolver is not null)
             {
                 siblingsToRemove.Clear();
+                roots.Clear();
 
                 var declaringType = currentStep.SelectionSetType;
                 var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
