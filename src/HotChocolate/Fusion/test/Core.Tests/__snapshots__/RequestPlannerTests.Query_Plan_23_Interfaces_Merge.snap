@@ -61,11 +61,8 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "Patient1_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "Patient1_id"
+  }
 }
 ---------------

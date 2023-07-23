@@ -71,17 +71,17 @@ QueryPlan
             "path": [
               "nodes"
             ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__4"
+              }
+            ],
             "provides": [
               {
                 "variable": "__fusion_exports__1"
               },
               {
                 "variable": "__fusion_exports__2"
-              }
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__4"
               }
             ]
           }
@@ -121,30 +121,18 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "Product_dimension_size"
-    },
-    {
-      "variable": "__fusion_exports__2",
-      "name": "Product_dimension_weight"
-    },
-    {
-      "variable": "__fusion_exports__3",
-      "name": "User_id"
-    },
-    {
-      "variable": "__fusion_exports__4",
-      "name": "Product_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "Product_dimension_size",
+    "__fusion_exports__2": "Product_dimension_weight",
+    "__fusion_exports__3": "User_id",
+    "__fusion_exports__4": "Product_id"
+  }
 }
 ---------------
 
 QueryPlan Hash
 ---------------
-FA17FCF617B8DC60AF20B5A25813C8D10A148E63
+A4C48141281228CD6A7C783CAF20E87CFAA7D0A1
 ---------------
 
 Result

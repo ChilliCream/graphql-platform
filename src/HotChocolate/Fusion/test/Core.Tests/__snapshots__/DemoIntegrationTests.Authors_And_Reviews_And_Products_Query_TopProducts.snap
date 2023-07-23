@@ -60,18 +60,15 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "Product_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "Product_id"
+  }
 }
 ---------------
 
 QueryPlan Hash
 ---------------
-9CF1B1E2CA1A4C1F4E9FC40EC599B21F31DB2437
+C5341AF7D1F79A5A4C17FED3BE9B194FBF30C918
 ---------------
 
 Result

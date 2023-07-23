@@ -1,16 +1,12 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 
-namespace HotChocolate.Fusion.Pipeline;
+namespace HotChocolate.Fusion.Execution.Pipeline;
 
-internal sealed class FieldFlagsOptimizer : ISelectionSetOptimizer
+internal sealed class FieldFlagsOptimizer(FusionGraphConfiguration config) : ISelectionSetOptimizer
 {
-    private readonly FusionGraphConfiguration _config;
-
-    public FieldFlagsOptimizer(FusionGraphConfiguration config)
-    {
-        _config = config ?? throw new ArgumentNullException(nameof(config));
-    }
+    private readonly FusionGraphConfiguration _config = config
+        ?? throw new ArgumentNullException(nameof(config));
 
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {

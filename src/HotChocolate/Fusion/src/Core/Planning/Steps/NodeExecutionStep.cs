@@ -8,37 +8,36 @@ namespace HotChocolate.Fusion.Planning;
 /// Represents a execution step for a node field within
 /// the execution plan while being in the planing phase.
 /// </summary>
-internal sealed class NodeExecutionStep : ExecutionStep
+/// <remarks>
+/// Initializes a new instance of <see cref="NodeExecutionStep"/>.
+/// </remarks>
+/// <param name="id">
+/// The id of the execution step.
+/// </param>
+/// <param name="nodeSelection">
+/// The node selection.
+/// </param>
+/// <param name="queryType">
+/// The query type.
+/// </param>
+/// <param name="queryTypeMetadata">
+/// The query type metadata.
+/// </param>
+/// <exception cref="ArgumentNullException">
+/// <paramref name="nodeSelection"/> is <c>null</c>.
+/// </exception>
+internal sealed class NodeExecutionStep(
+    int id,
+    ISelection nodeSelection,
+    IObjectType queryType,
+    ObjectTypeMetadata queryTypeMetadata)
+    : ExecutionStep(id, null, queryType, queryTypeMetadata)
 {
-    /// <summary>
-    /// Initializes a new instance of <see cref="NodeExecutionStep"/>.
-    /// </summary>
-    /// <param name="nodeSelection">
-    /// The node selection.
-    /// </param>
-    /// <param name="queryType">
-    /// The query type.
-    /// </param>
-    /// <param name="queryTypeMetadata">
-    /// The query type metadata.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="nodeSelection"/> is <c>null</c>.
-    /// </exception>
-    public NodeExecutionStep(
-        ISelection nodeSelection,
-        IObjectType queryType,
-        ObjectTypeMetadata queryTypeMetadata)
-        : base(null, queryType, queryTypeMetadata)
-    {
-        NodeSelection = nodeSelection ??
-            throw new ArgumentNullException(nameof(nodeSelection));
-    }
-
     /// <summary>
     /// Gets the nodes selection.
     /// </summary>
-    public ISelection NodeSelection { get; }
+    public ISelection NodeSelection { get; } = nodeSelection
+        ?? throw new ArgumentNullException(nameof(nodeSelection));
 
     /// <summary>
     /// Gets the execution steps that handle the various entity types.

@@ -2,25 +2,21 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Clients;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
+using static HotChocolate.Fusion.Execution.Nodes.ResolverNodeBase;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The resolver node is responsible for fetching data from a subgraph.
 /// </summary>
-internal sealed class Resolve : ResolverNodeBase
+/// <param name="id">
+/// The unique id of this node.
+/// </param>
+/// <param name="config">
+/// Gets the resolver configuration.
+/// </param>
+internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, config)
 {
-    /// <summary>
-    /// Initializes a new instance of <see cref="Resolve"/>.
-    /// </summary>
-    /// <param name="id">
-    /// The unique id of this node.
-    /// </param>
-    /// <param name="config">
-    /// Gets the resolver configuration.
-    /// </param>
-    public Resolve(int id, Config config)
-        : base(id, config) { }
 
     /// <summary>
     /// Gets the kind of this node.

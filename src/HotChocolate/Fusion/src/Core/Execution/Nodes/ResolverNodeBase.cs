@@ -193,26 +193,6 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
             writer.WriteEndArray();
         }
 
-        if (_provides.Length > 0)
-        {
-            writer.WritePropertyName(ProvidesProp);
-            writer.WriteStartArray();
-
-            ref var export = ref MemoryMarshal.GetArrayDataReference(_provides);
-            ref var end = ref Unsafe.Add(ref export, _provides.Length);
-
-            while (Unsafe.IsAddressLessThan(ref export, ref end))
-            {
-                writer.WriteStartObject();
-                writer.WriteString(VariableProp, export);
-                writer.WriteEndObject();
-
-                export = ref Unsafe.Add(ref export, 1)!;
-            }
-
-            writer.WriteEndArray();
-        }
-
         if (_requires.Length > 0)
         {
             writer.WritePropertyName(RequiresProp);
@@ -233,6 +213,26 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
             writer.WriteEndArray();
         }
 
+        if (_provides.Length > 0)
+        {
+            writer.WritePropertyName(ProvidesProp);
+            writer.WriteStartArray();
+
+            ref var export = ref MemoryMarshal.GetArrayDataReference(_provides);
+            ref var end = ref Unsafe.Add(ref export, _provides.Length);
+
+            while (Unsafe.IsAddressLessThan(ref export, ref end))
+            {
+                writer.WriteStartObject();
+                writer.WriteString(VariableProp, export);
+                writer.WriteEndObject();
+
+                export = ref Unsafe.Add(ref export, 1)!;
+            }
+
+            writer.WriteEndArray();
+        }
+
         if (_forwardedVariables.Length > 0)
         {
             writer.WritePropertyName(ForwardedVariablesProp);
@@ -246,7 +246,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
                 writer.WriteStartObject();
                 writer.WriteString(VariableProp, variable);
                 writer.WriteEndObject();
-                
+
                 variable = ref Unsafe.Add(ref variable, 1)!;
             }
             writer.WriteEndArray();

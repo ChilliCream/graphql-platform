@@ -15,28 +15,27 @@ namespace HotChocolate.Fusion.Planning.Pipeline;
 /// execution steps that outline the rough structure of the execution
 /// plan.
 /// </summary>
-internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
+/// <remarks>
+/// Creates a new instance of <see cref="ExecutionStepDiscoveryMiddleware"/>.
+/// </remarks>
+/// <param name="schema">
+/// The schema.
+/// </param>
+/// <param name="configuration">
+/// The fusion gateway configuration.
+/// </param>
+/// <exception cref="ArgumentNullException">
+/// <paramref name="schema"/> is <c>null</c> or <paramref name="configuration"/> is <c>null</c>.
+/// </exception>
+internal sealed class ExecutionStepDiscoveryMiddleware(
+    ISchema schema,
+    FusionGraphConfiguration configuration)
+    : IQueryPlanMiddleware
 {
-    private readonly FusionGraphConfiguration _config;
-    private readonly ISchema _schema;
-
-    /// <summary>
-    /// Creates a new instance of <see cref="ExecutionStepDiscoveryMiddleware"/>.
-    /// </summary>
-    /// <param name="schema">
-    /// The schema.
-    /// </param>
-    /// <param name="configuration">
-    /// The fusion gateway configuration.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c> or <paramref name="configuration"/> is <c>null</c>.
-    /// </exception>
-    public ExecutionStepDiscoveryMiddleware(ISchema schema, FusionGraphConfiguration configuration)
-    {
-        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
-        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
-    }
+    private readonly FusionGraphConfiguration _config = configuration
+        ?? throw new ArgumentNullException(nameof(configuration));
+    private readonly ISchema _schema = schema
+        ?? throw new ArgumentNullException(nameof(schema));
 
     /// <summary>
     /// Rewrites the <see cref="IOperation"/> into
@@ -115,6 +114,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 current,
                 selectionSetTypeMetadata);
             var executionStep = new SelectionExecutionStep(
+                context.NextStepId(),
                 subgraph,
                 parentSelection,
                 _schema.GetType<IObjectType>(selectionSetTypeMetadata.Name),
@@ -379,7 +379,12 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                 field.Name.EqualsOrdinal(IntrospectionFields.Type) ||
                 field.Name.EqualsOrdinal(IntrospectionFields.TypeName)))
         {
-            context.Steps.Add(new IntrospectionExecutionStep(queryType, queryTypeMetadata));
+            var step = new IntrospectionExecutionStep(
+                context.NextStepId(),
+                queryType,
+                queryTypeMetadata);
+
+            context.Steps.Add(step);
             context.HasIntrospectionSelections = true;
         }
     }
@@ -393,7 +398,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
     {
         var operation = context.Operation;
         var queryType = operation.RootType;
-        var nodeExecutionStep = new NodeExecutionStep(nodeSelection, queryType, queryTypeMetadata);
+        var nodeExecutionStep = new NodeExecutionStep(
+            context.NextStepId(),
+            nodeSelection,
+            queryType,
+            queryTypeMetadata);
         context.Steps.Add(nodeExecutionStep);
 
         foreach (var entityType in operation.GetPossibleTypes(nodeSelection))
@@ -415,6 +424,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
 
             var nodeEntityExecutionStep =
                 new NodeEntityExecutionStep(
+                    context.NextStepId(),
                     entityType,
                     entityTypeInfo,
                     selectionExecutionStep);
@@ -459,10 +469,12 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
                     entityTypeMetadata,
                     availableSubgraphs);
 
-
         var field = nodeSelection.Field;
         var fieldInfo = queryTypeMetadata.Fields[field.Name];
-        var executionStep = new SelectionExecutionStep(subgraph, queryType, queryTypeMetadata);
+        var executionStep = new SelectionExecutionStep(
+            context.NextStepId(),
+            subgraph, queryType,
+            queryTypeMetadata);
 
         var preference = ChoosePreferredResolverKind(operation, null, preferBatching);
         GatherVariablesInContext(nodeSelection, queryTypeMetadata, null, variablesInContext);
@@ -730,27 +742,19 @@ internal sealed class ExecutionStepDiscoveryMiddleware : IQueryPlanMiddleware
             field.DeclaringType.Equals(operation.RootType) &&
             (field.Name.EqualsOrdinal("node") || field.Name.EqualsOrdinal("nodes"));
 
-    private readonly struct BacklogItem
+    private readonly struct BacklogItem(
+        ISelection parentSelection,
+        ObjectTypeMetadata declaringTypeMetadata,
+        IReadOnlyList<ISelection> selections,
+        bool preferBatching)
     {
-        public BacklogItem(
-            ISelection parentSelection,
-            ObjectTypeMetadata declaringTypeMetadata,
-            IReadOnlyList<ISelection> selections,
-            bool preferBatching)
-        {
-            ParentSelection = parentSelection;
-            DeclaringTypeMetadata = declaringTypeMetadata;
-            Selections = selections;
-            PreferBatching = preferBatching;
-        }
+        public ISelection ParentSelection { get; } = parentSelection;
 
-        public ISelection ParentSelection { get; }
+        public ObjectTypeMetadata DeclaringTypeMetadata { get; } = declaringTypeMetadata;
 
-        public ObjectTypeMetadata DeclaringTypeMetadata { get; }
+        public IReadOnlyList<ISelection> Selections { get; } = selections;
 
-        public IReadOnlyList<ISelection> Selections { get; }
-
-        public bool PreferBatching { get; }
+        public bool PreferBatching { get; } = preferBatching;
     }
 
     private enum PreferredResolverKind

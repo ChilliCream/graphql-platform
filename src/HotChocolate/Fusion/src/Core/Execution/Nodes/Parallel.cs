@@ -6,16 +6,11 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <summary>
 /// The <see cref="Parallel"/> node executes its child nodes in parallel.
 /// </summary>
-internal sealed class Parallel : QueryPlanNode
+/// <param name="id">
+/// The unique id of this node.
+/// </param>
+internal sealed class Parallel(int id) : QueryPlanNode(id)
 {
-    /// <summary>
-    /// Initializes a new instance of <see cref="Parallel"/>.
-    /// </summary>
-    /// <param name="id">
-    /// The unique id of this node.
-    /// </param>
-    public Parallel(int id) : base(id) { }
-
     /// <summary>
     /// Gets the kind of this node.
     /// </summary>
@@ -34,7 +29,7 @@ internal sealed class Parallel : QueryPlanNode
     {
         var nodes = GetNodesSpan();
         tasks = new Task[nodes.Length];
-        
+
         ref var node = ref MemoryMarshal.GetReference(nodes);
         ref var task = ref MemoryMarshal.GetArrayDataReference(tasks);
         ref var end = ref Unsafe.Add(ref node, nodes.Length);

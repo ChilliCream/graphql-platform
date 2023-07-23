@@ -8,19 +8,12 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <summary>
 /// The <see cref="If"/> node is responsible for executing a node based on a state.
 /// </summary>
-internal sealed class If : QueryPlanNode
+/// <param name="id">
+/// The unique id of this node.
+/// </param>
+internal sealed class If(int id) : QueryPlanNode(id)
 {
     private readonly List<Branch> _branches = new();
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="If"/>.
-    /// </summary>
-    /// <param name="id">
-    /// The unique id of this node.
-    /// </param>
-    public If(int id) : base(id)
-    {
-    }
 
     /// <summary>
     /// Gets the kind of this node.
@@ -103,6 +96,6 @@ internal sealed class If : QueryPlanNode
             writer.WriteEndArray();
         }
     }
-    
+
     private readonly record struct Branch(string Key, object Value, QueryPlanNode Node);
 }

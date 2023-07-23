@@ -97,15 +97,9 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "User_id"
-    },
-    {
-      "variable": "__fusion_exports__2",
-      "name": "User_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "User_id",
+    "__fusion_exports__2": "User_id"
+  }
 }
 ---------------

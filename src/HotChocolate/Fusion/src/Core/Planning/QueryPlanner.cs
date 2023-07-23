@@ -11,10 +11,7 @@ internal sealed class QueryPlanner
 
     public QueryPlanner(FusionGraphConfiguration configuration, ISchema schema)
     {
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
 
         _pipeline =
             QueryPlanPipelineBuilder
@@ -29,10 +26,6 @@ internal sealed class QueryPlanner
 
     public QueryPlan Plan(IOperation operation)
     {
-        if (operation is null)
-        {
-            throw new ArgumentNullException(nameof(operation));
-        }
 
         var queryPlanContext = new QueryPlanContext(operation);
         _pipeline(queryPlanContext);

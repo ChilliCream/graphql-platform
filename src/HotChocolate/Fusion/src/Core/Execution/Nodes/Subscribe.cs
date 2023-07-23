@@ -7,6 +7,7 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
+using static HotChocolate.Fusion.Execution.Nodes.ResolverNodeBase;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -14,21 +15,14 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <summary>
 /// A subscribe represents a subscription operation that is executed on a subgraph.
 /// </summary>
-internal sealed class Subscribe : ResolverNodeBase
+/// <param name="id">
+/// The unique id of this node.
+/// </param>
+/// <param name="config">
+/// Gets the resolver configuration.
+/// </param>
+internal sealed class Subscribe(int id, Config config) : ResolverNodeBase(id, config)
 {
-    /// <summary>
-    /// Initializes a new instance of <see cref="Subscribe"/>.
-    /// </summary>
-    /// <param name="id">
-    /// The unique id of this node.
-    /// </param>
-    /// <param name="config">
-    /// Gets the resolver configuration.
-    /// </param>
-    public Subscribe(int id, Config config)
-        : base(id, config)
-    {
-    }
 
     /// <summary>
     /// Gets the kind of this node.

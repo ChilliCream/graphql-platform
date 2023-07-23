@@ -2,29 +2,23 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class QueryPlanContext
+internal sealed class QueryPlanContext(IOperation operation)
 {
     private readonly Dictionary<ExecutionStep, QueryPlanNode> _stepToNode = new();
     private readonly Dictionary<QueryPlanNode, ExecutionStep> _nodeToStep = new();
     private readonly Dictionary<object, SelectionExecutionStep> _selectionLookup = new();
     private readonly HashSet<ISelectionSet> _selectionSets = new();
     private readonly HashSet<ExecutionStep> _completed = new();
-    private readonly string _opName;
+    private readonly string _opName = operation.Name ?? "Remote_" + Guid.NewGuid().ToString("N");
     private QueryPlanNode? _rootNode;
     private int _opId;
+    private int _stepId;
     private int _nodeId;
 
-    public QueryPlanContext(IOperation operation)
-    {
-        Operation = operation;
-        _opName = operation.Name ?? "Remote_" + Guid.NewGuid().ToString("N");
-    }
-
-    public IOperation Operation { get; }
+    public IOperation Operation { get; } = operation;
 
     public ExportDefinitionRegistry Exports { get; } = new();
 
@@ -43,6 +37,8 @@ internal sealed class QueryPlanContext
 
     public NameNode CreateRemoteOperationName()
         => new($"{_opName}_{++_opId}");
+
+    public int NextStepId() => ++_stepId;
 
     public int NextNodeId() => ++_nodeId;
 
@@ -73,15 +69,8 @@ internal sealed class QueryPlanContext
 
     public void RegisterNode(QueryPlanNode node, ExecutionStep step)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (step is null)
-        {
-            throw new ArgumentNullException(nameof(step));
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(step);
 
         _stepToNode.Add(step, node);
         _nodeToStep.Add(node, step);
@@ -89,10 +78,7 @@ internal sealed class QueryPlanContext
 
     public void RegisterSelectionSet(ISelectionSet selectionSet)
     {
-        if (selectionSet is null)
-        {
-            throw new ArgumentNullException(nameof(selectionSet));
-        }
+        ArgumentNullException.ThrowIfNull(selectionSet);
 
         _selectionSets.Add(selectionSet);
     }
@@ -101,10 +87,7 @@ internal sealed class QueryPlanContext
         QueryPlanNode node,
         [NotNullWhen(true)] out ExecutionStep? step)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgumentNullException.ThrowIfNull(node);
 
         return _nodeToStep.TryGetValue(node, out step);
     }
@@ -113,10 +96,7 @@ internal sealed class QueryPlanContext
         ISelection selection,
         [NotNullWhen(true)] out SelectionExecutionStep? step)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         return _selectionLookup.TryGetValue(selection, out step);
     }
@@ -125,10 +105,7 @@ internal sealed class QueryPlanContext
         ISelectionSet selectionSet,
         [NotNullWhen(true)] out SelectionExecutionStep? step)
     {
-        if (selectionSet is null)
-        {
-            throw new ArgumentNullException(nameof(selectionSet));
-        }
+        ArgumentNullException.ThrowIfNull(selectionSet);
 
         return _selectionLookup.TryGetValue(selectionSet, out step);
     }
@@ -191,7 +168,7 @@ internal sealed class QueryPlanContext
             throw new InvalidOperationException(
                 "In order to build a query plan a root node must be set.");
         }
-        
+
         _rootNode.Seal();
         return new QueryPlan(Operation, _rootNode, _selectionSets, Exports.All);
     }

@@ -37,6 +37,12 @@ QueryPlan
         "provides": [
           {
             "variable": "__fusion_exports__1"
+          },
+          {
+            "variable": "__fusion_exports__2"
+          },
+          {
+            "variable": "__fusion_exports__3"
           }
         ]
       },
@@ -47,36 +53,22 @@ QueryPlan
         ]
       },
       {
-        "type": "ResolveByKeyBatch",
-        "subgraph": "Reviews",
-        "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name reviews { body author { name __fusion_exports__2: id } } __fusion_exports__3: id } } __fusion_exports__1: id } } }",
-        "selectionSetId": 1,
-        "path": [
-          "nodes"
-        ],
-        "provides": [
-          {
-            "variable": "__fusion_exports__2"
-          },
-          {
-            "variable": "__fusion_exports__3"
-          }
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          1
-        ]
-      },
-      {
         "type": "Parallel",
         "nodes": [
+          {
+            "type": "ResolveByKeyBatch",
+            "subgraph": "Reviews",
+            "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name reviews { body author { name } } } } __fusion_exports__1: id } } }",
+            "selectionSetId": 1,
+            "path": [
+              "nodes"
+            ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__1"
+              }
+            ]
+          },
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
@@ -110,25 +102,17 @@ QueryPlan
       {
         "type": "Compose",
         "selectionSetIds": [
+          1,
           3,
           5
         ]
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "User_id"
-    },
-    {
-      "variable": "__fusion_exports__2",
-      "name": "User_id"
-    },
-    {
-      "variable": "__fusion_exports__3",
-      "name": "User_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "User_id",
+    "__fusion_exports__2": "User_id",
+    "__fusion_exports__3": "User_id"
+  }
 }
 ---------------
