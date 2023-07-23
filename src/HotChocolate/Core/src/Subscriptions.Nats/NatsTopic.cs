@@ -31,46 +31,12 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         Debug.Assert(_connection != null, "_serializer != null");
 
         var natsSession = await _connection
-            .SubscribeAsync(Name, (string? m) => Dispatch(m))
+            .SubscribeAsync(Name, (string? m) => DispatchMessage(_serializer, m))
             .ConfigureAwait(false);
 
         DiagnosticEvents.ProviderTopicInfo(Name, NatsTopic_ConnectAsync_SubscribedToNats);
 
         return new Session(Name, natsSession, DiagnosticEvents);
-    }
-
-    private void Dispatch(string? serializedMessage)
-    {
-        // we ensure that if there is noise on the channel we filter it out.
-        if (string.IsNullOrEmpty(serializedMessage))
-        {
-            return;
-        }
-        
-        DiagnosticEvents.Received(Name, serializedMessage);
-        var envelope = DeserializeMessage(serializedMessage);
-
-        if (envelope.Kind is MessageKind.Completed)
-        {
-            Complete();
-        }
-        else if(envelope.Body is { } body)
-        {
-            Publish(body);
-        }
-    }
-    
-    private MessageEnvelope<TMessage> DeserializeMessage(string serializedMessage)
-    {
-        try
-        {
-            return _serializer.Deserialize<TMessage>(serializedMessage);
-        }
-        catch(Exception ex)
-        {
-            DiagnosticEvents.MessageProcessingError(Name, ex);
-            throw;
-        }
     }
 
     private sealed class Session : IDisposable

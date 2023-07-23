@@ -92,7 +92,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             return;
         }
-        
+
         _lock.EnterWriteLock();
 
         try
@@ -278,7 +278,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             return;
         }
-        
+
         _lock.EnterWriteLock();
 
         try
@@ -290,14 +290,14 @@ public abstract class DefaultTopic<TMessage> : ITopic
             _lock.ExitWriteLock();
         }
     }
-    
+
     private void CloseUnsafe()
     {
         if (_disposed)
         {
             return;
         }
-        
+
         _incoming.Writer.TryComplete();
         _diagnosticEvents.Close(Name);
 
@@ -318,6 +318,49 @@ public abstract class DefaultTopic<TMessage> : ITopic
             RaiseClosedEvent();
             _cts.Cancel();
             _cts.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// This helper method allows to deserialize and dispatch a message.
+    /// </summary>
+    /// <param name="serializer">
+    /// The serializer that shall be used to deserialize the message.
+    /// </param>
+    /// <param name="serializedMessage">
+    /// The serialized message.
+    /// </param>
+    protected void DispatchMessage(IMessageSerializer serializer, string? serializedMessage)
+    {
+        // we ensure that if there is noise on the channel we filter it out.
+        if (string.IsNullOrEmpty(serializedMessage))
+        {
+            return;
+        }
+
+        _diagnosticEvents.Received(Name, serializedMessage);
+        var envelope = DeserializeMessage(serializer, serializedMessage);
+
+        if (envelope.Kind is MessageKind.Completed)
+        {
+            Complete();
+        }
+        else if(envelope.Body is { } body)
+        {
+            Publish(body);
+        }
+    }
+
+    private MessageEnvelope<TMessage> DeserializeMessage(IMessageSerializer serializer, string serializedMessage)
+    {
+        try
+        {
+            return serializer.Deserialize<TMessage>(serializedMessage);
+        }
+        catch(Exception ex)
+        {
+            _diagnosticEvents.MessageProcessingError(Name, ex);
+            throw;
         }
     }
 

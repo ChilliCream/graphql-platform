@@ -41,7 +41,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             try
             {
                 var serializedMessage = Encoding.UTF8.GetString(args.Body.Span);
-                Dispatch(serializedMessage);
+                DispatchMessage(_serializer, serializedMessage);
             }
             finally
             {
@@ -63,41 +63,6 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             consumer.Received -= Received;
             DiagnosticEvents.ProviderTopicInfo(Name, Subscription_UnsubscribedFromRabbitMQ);
         });
-    }
-
-    private void Dispatch(string serializedMessage)
-    {
-        // we ensure that if there is noise on the channel we filter it out.
-        if (string.IsNullOrEmpty(serializedMessage))
-        {
-            return;
-        }
-        
-        DiagnosticEvents.Received(Name, serializedMessage);
-
-        var envelope = DeserializeMessage(serializedMessage);
-
-        if (envelope.Kind is MessageKind.Completed)
-        {
-            Complete();
-        }
-        else if (envelope.Body is { } body)
-        {
-            Publish(body);
-        }
-    }
-    
-    private MessageEnvelope<TMessage> DeserializeMessage(string serializedMessage)
-    {
-        try
-        {
-            return _serializer.Deserialize<TMessage>(serializedMessage);
-        }
-        catch(Exception ex)
-        {
-            DiagnosticEvents.MessageProcessingError(Name, ex);
-            throw;
-        }
     }
 
     private AsyncEventingBasicConsumer CreateConsumer(IModel channel, string queueName)

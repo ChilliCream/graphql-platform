@@ -33,42 +33,8 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
         var subscriber = _connection.GetSubscriber();
         var messageQueue = await subscriber.SubscribeAsync(Name).ConfigureAwait(false);
         DiagnosticEvents.ProviderTopicInfo(Name, RedisTopic_SubscribedToRedis);
-        messageQueue.OnMessage(redisMessage => Dispatch(redisMessage.Message.ToString()));
+        messageQueue.OnMessage(redisMessage => DispatchMessage(_serializer, redisMessage.Message.ToString()));
         return new Session(Name, _connection, DiagnosticEvents);
-    }
-
-    private void Dispatch(string? serializedMessage)
-    {
-        // we ensure that if there is noise on the channel we filter it out.
-        if (string.IsNullOrEmpty(serializedMessage))
-        {
-            return;
-        }
-        
-        DiagnosticEvents.Received(Name, serializedMessage);
-        var envelope = DeserializeMessage(serializedMessage);
-
-        if (envelope.Kind is MessageKind.Completed)
-        {
-            Complete();
-        }
-        else if (envelope.Body is { } body)
-        {
-            Publish(body);
-        }
-    }
-
-    private MessageEnvelope<TMessage> DeserializeMessage(string serializedMessage)
-    {
-        try
-        {
-            return _serializer.Deserialize<TMessage>(serializedMessage);
-        }
-        catch(Exception ex)
-        {
-            DiagnosticEvents.MessageProcessingError(Name, ex);
-            throw;
-        }
     }
 
     private sealed class Session : IDisposable
