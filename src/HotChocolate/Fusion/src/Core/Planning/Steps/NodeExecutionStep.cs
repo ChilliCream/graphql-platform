@@ -16,8 +16,11 @@ internal sealed class NodeExecutionStep : ExecutionStep
     /// <param name="nodeSelection">
     /// The node selection.
     /// </param>
-    /// <param name="queryTypeMetadata">
+    /// <param name="queryType">
     /// The query type.
+    /// </param>
+    /// <param name="queryTypeMetadata">
+    /// The query type metadata.
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="nodeSelection"/> is <c>null</c>.
