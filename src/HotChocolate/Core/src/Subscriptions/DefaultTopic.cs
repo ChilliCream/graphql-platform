@@ -20,10 +20,9 @@ public abstract class DefaultTopic<TMessage> : ITopic
     private readonly CancellationTokenSource _cts = new();
     private readonly ReaderWriterLockSlim _lock = new();
     private readonly Channel<TMessage> _incoming;
-    private readonly List<TopicShard<TMessage>> _shards = new();
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
-    private int _subscribers;
+    private readonly List<Channel<TMessage>> _subscribers = new();
     private bool _completed;
     private bool _disposed;
 
@@ -38,13 +37,10 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode)(int)fullMode
+            FullMode = (BoundedChannelFullMode) (int) fullMode
         };
         _incoming = CreateUnbounded<TMessage>();
         _diagnosticEvents = diagnosticEvents;
-
-        // initially we will run with one shard.
-        _shards.Add(CreateShard(0));
     }
 
     protected DefaultTopic(
@@ -57,13 +53,10 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode)(int)fullMode
+            FullMode = (BoundedChannelFullMode) (int) fullMode
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
-
-        // initially we will run with one shard.
-        _shards.Add(CreateShard(0));
     }
 
     /// <summary>
@@ -87,74 +80,56 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// <param name="message">
     /// The message that shall be published.
     /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    /// <returns>
-    /// A task that represents the asynchronous publish operation.
-    /// </returns>
-    public ValueTask PublishAsync(TMessage message, CancellationToken cancellationToken = default)
+    public void Publish(TMessage message)
+        => _incoming.Writer.TryWrite(message);
+
+    /// <summary>
+    /// Completes this topic.
+    /// </summary>
+    public void Complete()
     {
         if (_completed)
         {
-            return ValueTask.CompletedTask;
+            return;
         }
-
-        return _incoming.Writer.WriteAsync(message, cancellationToken);
-    }
-
-    public void TryComplete()
-    {
-        var raiseEvent = false;
 
         _lock.EnterWriteLock();
 
         try
         {
-            if (_completed == false)
-            {
-                raiseEvent = true;
-            }
-
-            _completed = true;
             _incoming.Writer.TryComplete();
+            _completed = true;
         }
         finally
         {
             _lock.ExitWriteLock();
         }
-
-        if (raiseEvent)
-        {
-            RaiseClosedEvent();
-        }
     }
 
+    /// <summary>
+    /// Allows to subscribe to this topic. If the topic is already completed, this method will
+    /// return null.
+    /// </summary>
+    /// <returns>
+    /// Returns a source stream that allows to read messages from this topic.
+    /// </returns>
     internal ISourceStream<TMessage>? TrySubscribe()
     {
+        _lock.EnterReadLock();
+
         try
         {
-            _lock.EnterWriteLock();
-
-            try
+            if (_completed)
             {
-                if (_completed)
-                {
-                    // it could have happened that we have entered subscribe after it was
-                    // already be completed. In this case we will return null to
-                    // signal that subscribe was unsuccessful.
-                    return null;
-                }
+                // it could have happened that we have entered subscribe after it was
+                // already be completed. In this case we will return null to
+                // signal that subscribe was unsuccessful.
+                return null;
+            }
 
-                var stream = GetOptimalShard().Subscribe();
-                _subscribers++;
-                _diagnosticEvents.SubscribeSuccess(Name);
-                return stream;
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            var stream = SubscribeUnsafe();
+            _diagnosticEvents.SubscribeSuccess(Name);
+            return stream;
         }
         catch
         {
@@ -162,59 +137,44 @@ public abstract class DefaultTopic<TMessage> : ITopic
             // in this case we return null to signal that subscribe was unsuccessful.
             return null;
         }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
+    }
+
+    private DefaultSourceStream<TMessage> SubscribeUnsafe()
+    {
+        var channel = CreateBounded<TMessage>(_channelOptions);
+        var stream = new DefaultSourceStream<TMessage>(this, channel);
+        _subscribers.Add(channel);
+        return stream;
     }
 
     /// <summary>
-    /// Gets the shard that is cheapest to get and is not considered full.
-    ///
-    /// We will try to balance the shards, but shards that have less than 250 subscribers
-    /// will always be picked since such a shard already will perform optimally.
+    /// Allows the subscriber to signal that it is no longer interested in the topic.
     /// </summary>
-    private TopicShard<TMessage> GetOptimalShard()
+    /// <param name="channel">
+    /// The subscribing channel.
+    /// </param>
+    internal void Unsubscribe(Channel<TMessage> channel)
     {
-        var shards = AsSpan(_shards);
+        _lock.EnterWriteLock();
 
-        var best = shards[0];
-
-        // if the first shard has less than 250 subscribers we will just take it.
-        if (best.Subscribers < 250)
+        try
         {
-            return best;
-        }
+            _subscribers.Remove(channel);
+            _diagnosticEvents.Unsubscribe(Name, 0, 1);
 
-        if (shards.Length == 1)
-        {
-            // if the first shard has more than 250 subscribers we will scale.
-            var second = CreateShard(1);
-            _shards.Insert(0, second);
-            return second;
-        }
-
-        for (var i = 1; i < shards.Length; i++)
-        {
-            var current = shards[i];
-
-            if (best.Subscribers > current.Subscribers)
+            if (_subscribers.Count == 0)
             {
-                best = current;
-            }
-
-            if (best.Subscribers < 250)
-            {
-                return best;
+                CloseUnsafe();
             }
         }
-
-        if (best.Subscribers > 999)
+        finally
         {
-            // new shards are always inserted as the first shard
-            // so that we do not need to iterate to find it as the
-            // best shard.
-            best = CreateShard(shards.Length);
-            _shards.Insert(0, best);
+            _lock.ExitWriteLock();
         }
-
-        return best;
     }
 
     internal async ValueTask ConnectAsync(CancellationToken ct = default)
@@ -262,39 +222,46 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             while (await _incoming.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
             {
-                DispatchToShards();
+                DispatchMessages();
             }
         }
         finally
         {
-            CompleteShards();
             Dispose();
         }
     }
 
-    private void DispatchToShards()
+    private void DispatchMessages()
     {
-        var reads = 0;
         _lock.EnterReadLock();
 
         try
         {
+            var iterations = 0;
+
             while (_incoming.Reader.TryRead(out var message))
             {
-                _diagnosticEvents.Dispatch(Name, message, _subscribers);
+                var subscribersSpan = AsSpan(_subscribers);
+                ref var start = ref MemoryMarshal.GetReference(subscribersSpan);
+                ref var end = ref Unsafe.Add(ref start, subscribersSpan.Length);
 
-                var shardsSpan = AsSpan(_shards);
-                ref var start = ref MemoryMarshal.GetReference(shardsSpan);
-                ref var end = ref Unsafe.Add(ref start, shardsSpan.Length);
+                _diagnosticEvents.Dispatch(Name, message, subscribersSpan.Length);
+                var allWritesSuccessful = true;
 
                 while (Unsafe.IsAddressLessThan(ref start, ref end))
                 {
-                    start.Writer.TryWrite(message);
+                    if (!start.Writer.TryWrite(message))
+                    {
+                        allWritesSuccessful = false;
+                    }
                     start = ref Unsafe.Add(ref start, 1);
                 }
 
-                if (++reads > 5)
+                if (!allWritesSuccessful || iterations++ >= 8)
                 {
+                    // we will take a pause if we have dispatched 8 messages or if we could not dispatch all messages.
+                    // This will give time for subscribers to unsubscribe and
+                    // others to hop on.
                     break;
                 }
             }
@@ -305,27 +272,95 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private void CompleteShards()
+    protected void Close()
     {
-        _lock.EnterReadLock();
+        if (_disposed)
+        {
+            return;
+        }
 
-        _incoming.Writer.TryComplete();
+        _lock.EnterWriteLock();
 
         try
         {
-            var shardsSpan = AsSpan(_shards);
-            ref var start = ref MemoryMarshal.GetReference(shardsSpan);
-            ref var end = ref Unsafe.Add(ref start, shardsSpan.Length);
-
-            while (Unsafe.IsAddressLessThan(ref start, ref end))
-            {
-                start.Writer.Complete();
-                start = ref Unsafe.Add(ref start, 1);
-            }
+            CloseUnsafe();
         }
         finally
         {
-            _lock.ExitReadLock();
+            _lock.ExitWriteLock();
+        }
+    }
+
+    private void CloseUnsafe()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _incoming.Writer.TryComplete();
+        _diagnosticEvents.Close(Name);
+
+        try
+        {
+            foreach (var subscriber in _subscribers)
+            {
+                subscriber.Writer.TryComplete();
+            }
+
+            _diagnosticEvents.Unsubscribe(Name, 0, _subscribers.Count);
+            _subscribers.Clear();
+        }
+        finally
+        {
+            _completed = true;
+            _disposed = true;
+            RaiseClosedEvent();
+            _cts.Cancel();
+            _cts.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// This helper method allows to deserialize and dispatch a message.
+    /// </summary>
+    /// <param name="serializer">
+    /// The serializer that shall be used to deserialize the message.
+    /// </param>
+    /// <param name="serializedMessage">
+    /// The serialized message.
+    /// </param>
+    protected void DispatchMessage(IMessageSerializer serializer, string? serializedMessage)
+    {
+        // we ensure that if there is noise on the channel we filter it out.
+        if (string.IsNullOrEmpty(serializedMessage))
+        {
+            return;
+        }
+
+        _diagnosticEvents.Received(Name, serializedMessage);
+        var envelope = DeserializeMessage(serializer, serializedMessage);
+
+        if (envelope.Kind is MessageKind.Completed)
+        {
+            Complete();
+        }
+        else if(envelope.Body is { } body)
+        {
+            Publish(body);
+        }
+    }
+
+    private MessageEnvelope<TMessage> DeserializeMessage(IMessageSerializer serializer, string serializedMessage)
+    {
+        try
+        {
+            return serializer.Deserialize<TMessage>(serializedMessage);
+        }
+        catch(Exception ex)
+        {
+            _diagnosticEvents.MessageProcessingError(Name, ex);
+            throw;
         }
     }
 
@@ -342,46 +377,9 @@ public abstract class DefaultTopic<TMessage> : ITopic
         CancellationToken cancellationToken)
         => new(DefaultSession.Instance);
 
-    private TopicShard<TMessage> CreateShard(int shardId)
-    {
-        var shard = new TopicShard<TMessage>(_channelOptions, Name, shardId, DiagnosticEvents);
-
-        shard.Unsubscribed += subscribers =>
-        {
-            if (_completed)
-            {
-                return;
-            }
-
-            var raise = false;
-
-            _lock.EnterWriteLock();
-
-            try
-            {
-                _subscribers -= subscribers;
-
-                if (_subscribers == 0)
-                {
-                    _completed = true;
-                    _incoming.Writer.TryComplete();
-                    raise = true;
-                }
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-
-            if (raise)
-            {
-                RaiseClosedEvent();
-            }
-        };
-
-        return shard;
-    }
-
+    /// <summary>
+    /// Signal that this topic was closed.
+    /// </summary>
     private void RaiseClosedEvent()
         => Closed?.Invoke(this, EventArgs.Empty);
 
@@ -402,10 +400,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             if (disposing)
             {
-                _diagnosticEvents.Close(Name);
-                _cts.Cancel();
-                _cts.Dispose();
-                _shards.Clear();
+                Close();
             }
 
             _completed = true;

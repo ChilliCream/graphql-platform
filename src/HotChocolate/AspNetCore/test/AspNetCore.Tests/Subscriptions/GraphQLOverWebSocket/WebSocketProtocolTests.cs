@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -112,8 +113,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         {
                             Sockets =
                             {
-                                ConnectionInitializationTimeout =
-                                    TimeSpan.FromMilliseconds(50),
+                                ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
                                 KeepAliveInterval = TimeSpan.FromMilliseconds(150)
                             }
                         }));
@@ -246,7 +246,14 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                var diagnostics = new SubscriptionTestDiagnostics();
+                using var testServer = CreateStarWarsServer(
+                    configureServices: c =>
+                    {
+                        c.AddGraphQL()
+                            .AddDiagnosticEventListener(_ => diagnostics);
+                    },
+                    output: _output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -257,18 +264,25 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 // act
                 await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
 
+                while (diagnostics.Subscribed is not 1)
+                {
+                    await Task.Delay(10, ct);
+                }
+
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
-                        mutation {
-                            createReview(episode: NEW_HOPE review: {
-                                commentary: ""foo""
-                                stars: 5
-                            }) {
-                                stars
+                        Query = 
+                            """
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    commentary: "foo"
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
                             }
-                        }"
+                            """
                     });
 
                 // assert
@@ -506,11 +520,20 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 var payload = new SubscribePayload(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
+                var stopwatch = Stopwatch.StartNew();
+                
                 for (var i = 0; i < 600; i++)
                 {
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
-
+                
+                while(diagnostics.Subscribed < 600)
+                {
+                    await Task.Delay(10, ct);
+                }
+                
+                _output.WriteLine($"Subscribed in {stopwatch.ElapsedMilliseconds}ms");
+                
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
@@ -534,10 +557,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"
-                            mutation {
-                                complete(episode:NEW_HOPE)
-                            }"
+                        Query = @"mutation { complete(episode:NEW_HOPE) }"
                     });
 
                 // assert
@@ -936,9 +956,18 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
     public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsListener
     {
+        private int _subscribed;
+        
+        public int Subscribed => _subscribed;
+        
         public bool UnsubscribeInvoked { get; private set; }
 
         public bool CloseInvoked { get; private set; }
+
+        public override void SubscribeSuccess(string topicName)
+        {
+            Interlocked.Increment(ref _subscribed);
+        }
 
         public override void Unsubscribe(string topicName, int shard, int subscribers)
             => UnsubscribeInvoked = true;
