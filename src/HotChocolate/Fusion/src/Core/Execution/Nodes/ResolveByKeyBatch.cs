@@ -371,7 +371,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         /// <summary>
         /// Gets a list of keys representing the state that is being
-        /// required to fetch data for the associated <see cref="SelectionSet"/>.
+        /// required to fetch data for the associated <see cref="ResolverNodeBase.SelectionSet"/>.
         /// </summary>
         public IReadOnlyList<string> Requires { get; } = executionState.Requires;
 

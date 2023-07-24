@@ -15,6 +15,9 @@ internal abstract class ExecutionStep
     /// <summary>
     /// Initializes a new instance of <see cref="ExecutionStep"/>.
     /// </summary>
+    /// <param name="id">
+    /// The query plan unique id of this execution step.
+    /// </param>
     /// <param name="parentSelection">
     /// The parent selection of this execution step.
     /// </param>

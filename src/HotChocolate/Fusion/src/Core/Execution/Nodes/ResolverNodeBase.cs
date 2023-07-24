@@ -50,12 +50,24 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         _hasDependencies = _requires.Length > 0 || _forwardedVariables.Length > 0;
     }
 
+    /// <summary>
+    /// Gets the name of the subgraph that is targeted by this resolver.
+    /// </summary>
     protected string SubgraphName => _subgraphName;
 
+    /// <summary>
+    /// Gets the selection set for which data is being resolved.
+    /// </summary>
     protected internal SelectionSet SelectionSet => _selectionSet;
 
+    /// <summary>
+    /// Gets the state that is being required by this resolver to be executed.
+    /// </summary>
     protected string[] Requires => _requires;
 
+    /// <summary>
+    /// Gets the path from which the data has to be extracted.
+    /// </summary>
     protected string[] Path => _path;
 
     /// <summary>
