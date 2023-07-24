@@ -85,6 +85,23 @@ public class ComplexityAnalyzerTests
     }
 
     [Fact]
+    public async Task Alias_Explosion_Does_Not_Kill_The_Analyzer()
+    {
+        await ExpectError(
+            FileResource.Open("aliases.graphql"),
+            configure: b => b
+                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                .UseField(_ => _ => default)
+                .ConfigureSchema(s => s.AddCostDirectiveType())
+                .ModifyRequestOptions(o =>
+                {
+                    o.Complexity.Enable = true;
+                    o.Complexity.MaximumAllowed = 8;
+                })
+                .UseDefaultPipeline());
+    }
+
+    [Fact]
     public async Task MaxComplexity_Analysis_Skipped()
     {
         await ExpectValid(
