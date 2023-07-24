@@ -22,7 +22,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Products",
-        "document": "query Fetch_a_b_1($first: Int!, $id: ID!) { a: productById(id: $id) { id repeat(num: $first) } b: productById(id: $id) { id repeat(num: $first) } }",
+        "document": "query fetch_a_b_1($first: Int!, $id: ID!) { a: productById(id: $id) { id repeat(num: $first) } b: productById(id: $id) { id repeat(num: $first) } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
@@ -46,7 +46,7 @@ QueryPlan
 
 QueryPlan Hash
 ---------------
-8E82B6AB23160BEE6023655E741703002D4EAA36
+0B9DDBAE987F3EF0FF2163307F2744D756A81213
 ---------------
 
 Result

@@ -186,7 +186,7 @@ internal sealed class QueryPlanContext(IOperation operation)
 
     private static string CreateOperationName(IOperation operation)
     {
-        const string prefix = "Fetch";
+        const string prefix = "fetch";
 
         if (operation.RootSelectionSet.Selections.Count == 1)
         {
