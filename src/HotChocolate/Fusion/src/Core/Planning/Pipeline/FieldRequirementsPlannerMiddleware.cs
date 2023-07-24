@@ -1,8 +1,8 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Utilities;
 using HotChocolate.Utilities;
 using static System.StringComparer;
+using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning.Pipeline;
 
@@ -267,11 +267,11 @@ internal sealed class FieldRequirementsPlannerMiddleware(
 
         static bool FulfillsRequirements(
             ResolverDefinition resolver,
-            HashSet<string> variabesInContext)
+            HashSet<string> variablesInContext)
         {
             foreach (var requirement in resolver.Requires)
             {
-                if (!variabesInContext.Contains(requirement))
+                if (!variablesInContext.Contains(requirement))
                 {
                     return false;
                 }

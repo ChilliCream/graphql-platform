@@ -209,6 +209,11 @@ internal static class ErrorHelper
             {
                 { WellKnownContextData.ValidationErrors, true }
             });
+    
+    public static IError MaxComplexityReached() =>
+        new Error(
+            ErrorHelper_MaxComplexityReached,
+            ErrorCodes.Execution.ComplexityExceeded);
 
     public static IQueryResult StateInvalidForComplexityAnalyzer() =>
         QueryResultBuilder.CreateError(

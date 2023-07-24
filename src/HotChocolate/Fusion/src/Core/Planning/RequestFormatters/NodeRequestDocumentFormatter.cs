@@ -2,11 +2,11 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
