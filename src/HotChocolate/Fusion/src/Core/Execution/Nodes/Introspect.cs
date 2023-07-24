@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -21,8 +22,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </exception>
 internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanNode(id)
 {
-    private readonly SelectionSet _selectionSet = selectionSet
-        ?? throw new ArgumentNullException(nameof(selectionSet));
+    private readonly SelectionSet _selectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
 
     /// <summary>
     /// Gets the kind of this node.
@@ -46,30 +46,66 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
         RequestState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(_selectionSet, out var values))
+        if (state.TryGetState(_selectionSet, out List<ExecutionState>? values))
         {
             var value = values[0];
-            var operationContext = context.OperationContext;
-            var rootSelections = _selectionSet.Selections;
-
-            for (var i = 0; i < rootSelections.Count; i++)
+            List<Task>? asyncTasks = null;
+            ExecutePureFieldsAndEnqueueResolvers(context, value, cancellationToken, ref asyncTasks);
+            
+            if(asyncTasks is { Count: > 0 })
             {
-                var selection = rootSelections[i];
-
-                if (selection.Field.IsIntrospectionField)
-                {
-                    var resolverTask = operationContext.CreateResolverTask(
-                        selection,
-                        operationContext.RootValue,
-                        value.SelectionSetResult,
-                        i,
-                        operationContext.PathFactory.Append(Path.Root, selection.ResponseName),
-                        ImmutableDictionary<string, object?>.Empty);
-                    resolverTask.BeginExecute(cancellationToken);
-
-                    await resolverTask.WaitForCompletionAsync(cancellationToken);
-                }
+                await Task.WhenAll(asyncTasks).ConfigureAwait(false);
             }
+        }
+    }
+
+    private static void ExecutePureFieldsAndEnqueueResolvers(
+        FusionExecutionContext context,
+        ExecutionState value,
+        CancellationToken ct,
+        ref List<Task>? asyncTasks)
+    {
+        var operationContext = context.OperationContext;
+        var rootSelectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
+        ref var selection = ref rootSelectionSet.GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, rootSelectionSet.Selections.Count);
+        var rootTypeName = selection.DeclaringType.Name;
+        var i = 0;
+
+        while (Unsafe.IsAddressLessThan(ref selection, ref end))
+        {
+            var field = Unsafe.As<ObjectField>(selection.Field);
+            var result = value.SelectionSetResult;
+
+            if (!field.IsIntrospectionField)
+            {
+                goto NEXT;
+            }
+
+            if (field.IsTypeNameField)
+            {
+                // if the request just asks for the __typename field we immediately resolve it without
+                // going through the resolver pipeline.
+                result.SetValueUnsafe(i, selection.ResponseName, rootTypeName, false);
+                goto NEXT;
+            }
+
+            // only for proper introspection fields we will execute the resolver pipeline.
+            var resolverTask = operationContext.CreateResolverTask(
+                selection,
+                operationContext.RootValue,
+                result,
+                i,
+                operationContext.PathFactory.Append(Path.Root, selection.ResponseName),
+                ImmutableDictionary<string, object?>.Empty);
+            resolverTask.BeginExecute(ct);
+
+            asyncTasks ??= new List<Task>();
+            asyncTasks.Add(resolverTask.WaitForCompletionAsync(ct));
+
+            NEXT:
+            selection = ref Unsafe.Add(ref selection, 1)!;
+            i++;
         }
     }
 

@@ -23,6 +23,9 @@ public static class IntrospectionFields
     /// Gets the field name of the __type introspection field.
     /// </summary>
     public static string Type => "__type";
+    
+    private static readonly PureFieldDelegate _typeNameResolver =
+        ctx => ctx.ObjectType.Name;
 
     internal static ObjectFieldDefinition CreateSchemaField(IDescriptorContext context)
     {
@@ -69,10 +72,9 @@ public static class IntrospectionFields
             .Description(TypeResources.TypeNameField_Description)
             .Type<NonNullType<StringType>>();
 
-        descriptor.Extend().Definition.PureResolver = Resolve;
-
-        static string Resolve(IPureResolverContext ctx)
-            => ctx.ObjectType.Name;
+        var definition = descriptor.Extend().Definition;
+        definition.PureResolver = _typeNameResolver;
+        definition.Flags |= FieldFlags.TypeNameField;
 
         return CreateDefinition(descriptor);
     }
