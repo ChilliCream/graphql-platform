@@ -83,22 +83,56 @@ public class ComplexityAnalyzerTests
                 })
                 .UseDefaultPipeline());
     }
+    
+    [Fact]
+    public async Task Alias_Explosion_Does_Not_Kill_The_Analyzer_With_Defaults()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                .UseField(_ => _ => default)
+                .ConfigureSchema(s => s.AddCostDirectiveType())
+                .ModifyRequestOptions(
+                    o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 1000;
+                    })
+                .UseDefaultPipeline()
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(FileResource.Open("aliases.graphql"));
+        
+        result.MatchSnapshot();
+    }
 
     [Fact]
     public async Task Alias_Explosion_Does_Not_Kill_The_Analyzer()
     {
-        await ExpectError(
-            FileResource.Open("aliases.graphql"),
-            configure: b => b
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
                 .UseField(_ => _ => default)
                 .ConfigureSchema(s => s.AddCostDirectiveType())
-                .ModifyRequestOptions(o =>
-                {
-                    o.Complexity.Enable = true;
-                    o.Complexity.MaximumAllowed = 8;
-                })
-                .UseDefaultPipeline());
+                .ModifyRequestOptions(
+                    o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 1000;
+                    })
+                .ModifyParserOptions(
+                    o =>
+                    {
+                        o.MaxAllowedFields = 40000;  
+                    })
+                .UseDefaultPipeline()
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(FileResource.Open("aliases.graphql"));
+        
+        result.MatchSnapshot();
     }
 
     [Fact]
