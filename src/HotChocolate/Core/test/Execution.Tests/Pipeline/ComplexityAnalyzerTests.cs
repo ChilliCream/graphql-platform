@@ -83,7 +83,7 @@ public class ComplexityAnalyzerTests
                 })
                 .UseDefaultPipeline());
     }
-    
+
     [Fact]
     public async Task Alias_Explosion_Does_Not_Kill_The_Analyzer_With_Defaults()
     {
@@ -103,7 +103,30 @@ public class ComplexityAnalyzerTests
                 .BuildRequestExecutorAsync();
 
         var result = await executor.ExecuteAsync(FileResource.Open("aliases.graphql"));
-        
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Alias_Explosion_Does_Not_Kill_The_Analyzer_With_Defaults_2()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                .UseField(_ => _ => default)
+                .ConfigureSchema(s => s.AddCostDirectiveType())
+                .ModifyRequestOptions(
+                    o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 1000;
+                    })
+                .UseDefaultPipeline()
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(FileResource.Open("aliases_2048.graphql"));
+
         result.MatchSnapshot();
     }
 
@@ -125,13 +148,13 @@ public class ComplexityAnalyzerTests
                 .ModifyParserOptions(
                     o =>
                     {
-                        o.MaxAllowedFields = 40000;  
+                        o.MaxAllowedFields = 40000;
                     })
                 .UseDefaultPipeline()
                 .BuildRequestExecutorAsync();
 
         var result = await executor.ExecuteAsync(FileResource.Open("aliases.graphql"));
-        
+
         result.MatchSnapshot();
     }
 
