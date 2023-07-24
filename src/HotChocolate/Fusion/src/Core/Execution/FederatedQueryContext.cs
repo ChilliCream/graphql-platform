@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
@@ -72,6 +73,11 @@ internal sealed class FusionExecutionContext : IDisposable
     /// Gets the result builder that is used to build the final result.
     /// </summary>
     public ResultBuilder Result => OperationContext.Result;
+    
+    /// <summary>
+    /// Gets the diagnostic events that are used to report diagnostic information..
+    /// </summary>
+    public FusionDiagnosticEventListener DiagnosticEvents { get; }
 
     /// <summary>
     /// Defines if query plan components should emit debug infos.

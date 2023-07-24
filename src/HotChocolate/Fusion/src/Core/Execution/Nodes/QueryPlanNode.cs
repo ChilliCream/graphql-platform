@@ -47,13 +47,24 @@ internal abstract class QueryPlanNode
         FusionExecutionContext context,
         CancellationToken cancellationToken)
     {
+        var diagnosticEvents = context.DiagnosticEvents;
         var state = context.State;
+        
+        using var _ = diagnosticEvents.BeginExecuteNode(context, this);
 
-        await OnExecuteAsync(context, state, cancellationToken).ConfigureAwait(false);
-
-        if (_nodes.Count > 0)
+        try
         {
-            await OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
+            await OnExecuteAsync(context, state, cancellationToken).ConfigureAwait(false);
+
+            if (_nodes.Count > 0)
+            {
+                await OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch(Exception ex)
+        {
+            diagnosticEvents.NodeExecutionError(context, this, ex);
+            throw;
         }
     }
 
