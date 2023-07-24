@@ -243,11 +243,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
             foreach (var argument in executionStep.Resolver!.ArgumentTypes)
             {
-                if (!context.Exports.TryGetStateKey(
-                    context.Operation.GetSelectionSet(executionStep),
-                    argument.Key,
-                    out var stateKey,
-                    out _))
+                if (!executionStep.Variables.TryGetValue(argument.Key, out var stateKey))
                 {
                     throw new InvalidOperationException(
                         ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent);

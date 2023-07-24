@@ -10,15 +10,12 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
+internal sealed class NodeRequestDocumentFormatter(
+    FusionGraphConfiguration configuration,
+    ISchema schema)
+    : RequestDocumentFormatter(configuration)
 {
-    private readonly ISchema _schema;
-
-    public NodeRequestDocumentFormatter(FusionGraphConfiguration configuration, ISchema schema)
-        : base(configuration)
-    {
-        _schema = schema;
-    }
+    private readonly ISchema _schema = schema;
 
     internal RequestDocument CreateRequestDocument(
         QueryPlanContext context,
@@ -184,12 +181,12 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
             {
                 goto NEXT;
             }
-            
+
             if (onlyIntrospection && !selection.Field.IsIntrospectionField)
             {
                 onlyIntrospection = false;
             }
-            
+
             selectionNodes.Add(
                 CreateSelectionNode(
                     context,
@@ -212,7 +209,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
                     }
                 }
             }
-            
+
             NEXT:
             selection = ref Unsafe.Add(ref selection, 1)!;
         }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -22,6 +23,18 @@ internal sealed class Parallel(int id) : QueryPlanNode(id)
         CancellationToken cancellationToken)
     {
         InitializeNodes(context, cancellationToken, out var tasks);
+
+#if DISABLED_FOR_DEBUGGING
+        if(Debugger.IsAttached)
+        {
+            foreach (var task in tasks)
+            {
+                await task.ConfigureAwait(false);
+            }
+            return;
+        }
+#endif
+
         await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 

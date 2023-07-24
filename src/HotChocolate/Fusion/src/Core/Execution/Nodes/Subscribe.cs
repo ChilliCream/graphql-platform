@@ -98,7 +98,7 @@ internal sealed class Subscribe(int id, Config config) : ResolverNodeBase(id, co
             // So we skip execution and just unwrap the result and extract the selection data.
             var data = UnwrapResult(response);
             var selectionResults = workItem.SelectionSetData;
-            var exportKeys = workItem.Provides;
+            var exportKeys = workItem.Requires;
             variableValues = workItem.VariableValues;
 
             // we extract the selection data from the request and add it to the workItem results.

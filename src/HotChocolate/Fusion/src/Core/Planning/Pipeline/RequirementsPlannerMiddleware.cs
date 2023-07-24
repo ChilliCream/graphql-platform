@@ -43,10 +43,9 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 siblingExecutionSteps.Remove(currentStep);
 
                 // remove all execution steps that depend on the current execution step.
-                foreach (var subling in siblingExecutionSteps)
+                foreach (var siblingExecutionStep in siblingExecutionSteps)
                 {
-                    if (subling is SelectionExecutionStep siblingExecutionStep &&
-                        siblingExecutionStep.DependsOn.Contains(currentStep))
+                    if (siblingExecutionStep.DependsOn.Contains(currentStep))
                     {
                         siblingsToRemove.Add(siblingExecutionStep);
                     }
@@ -115,6 +114,11 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                             currentStep.DependsOn.Add(providingExecutionStep);
                             currentStep.Variables.TryAdd(variable.Name, stateKey);
                         }
+
+                        if (requires.Count == 0)
+                        {
+                            break;
+                        }
                     }
                 }
 
@@ -134,6 +138,11 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
                             currentStep.DependsOn.Add(providingExecutionStep);
                             currentStep.Variables.TryAdd(variable.Name, stateKey);
+                        }
+
+                        if (requires.Count == 0)
+                        {
+                            break;
                         }
                     }
                 }
@@ -162,16 +171,9 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                     {
                         if (currentStep.Requires.Contains(variable.Name) &&
                             currentStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
-                            context.Exports.TryGetStateKey(
-                                selectionSet,
-                                variable.Name,
-                                out var stateKey,
-                                out _))
+                            currentStep.Variables.TryGetValue(variable.Name, out var stateKey))
                         {
-                            context.Exports.RegisterAdditionExport(
-                                variable,
-                                currentStep,
-                                stateKey);
+                            context.Exports.RegisterAdditionExport(variable, currentStep, stateKey);
                         }
                     }
                 }

@@ -37,17 +37,19 @@ QueryPlan
         "provides": [
           {
             "variable": "__fusion_exports__1"
-          },
-          {
-            "variable": "__fusion_exports__2"
           }
         ]
       },
       {
         "type": "Resolve",
         "subgraph": "Accounts",
-        "document": "mutation AddReviewAndUser_2 { addUser(input: { name: \u0022foo\u0022, username: \u0022foo\u0022, birthdate: \u0022abc\u0022 }) { user { name } } }",
-        "selectionSetId": 0
+        "document": "mutation AddReviewAndUser_2 { addUser(input: { name: \u0022foo\u0022, username: \u0022foo\u0022, birthdate: \u0022abc\u0022 }) { user { name __fusion_exports__2: id } } }",
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__2"
+          }
+        ]
       },
       {
         "type": "Compose",

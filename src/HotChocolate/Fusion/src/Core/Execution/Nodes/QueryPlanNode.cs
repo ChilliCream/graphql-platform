@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
@@ -93,14 +94,14 @@ internal abstract class QueryPlanNode
         {
             return;
         }
-        
+
         OnSeal();
 
         foreach (var node in Nodes)
         {
             node.Seal();
         }
-            
+
         _isReadOnly = true;
     }
 
@@ -109,7 +110,7 @@ internal abstract class QueryPlanNode
     internal void Format(Utf8JsonWriter writer)
     {
         writer.WriteStartObject();
-        writer.WriteString(TypeProp, Kind.ToString());
+        writer.WriteString(TypeProp, Kind.Format());
         FormatProperties(writer);
         FormatNodesProperty(writer);
         writer.WriteEndObject();
@@ -125,7 +126,7 @@ internal abstract class QueryPlanNode
         {
             return;
         }
-        
+
         writer.WritePropertyName(NodesProp);
         writer.WriteStartArray();
 
@@ -137,6 +138,6 @@ internal abstract class QueryPlanNode
         writer.WriteEndArray();
     }
 
-    protected ReadOnlySpan<QueryPlanNode> GetNodesSpan() 
+    protected ReadOnlySpan<QueryPlanNode> GetNodesSpan()
         => CollectionsMarshal.AsSpan(_nodes);
 }

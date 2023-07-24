@@ -130,10 +130,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             if (result.TryGetValue(batchState.Key, out var data))
             {
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionResults);
-                ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Provides, batchState.VariableValues);
+                ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
             }
 
-            batchState = ref Unsafe.Add(ref batchState, 1);
+            batchState = ref Unsafe.Add(ref batchState, 1)!;
         }
     }
 
@@ -162,7 +162,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 uniqueState.Add(batchState);
             }
 
-            batchState = ref Unsafe.Add(ref batchState, 1);
+            batchState = ref Unsafe.Add(ref batchState, 1)!;
         }
 
         foreach (var key in first.VariableValues.Keys)
@@ -371,10 +371,9 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         /// <summary>
         /// Gets a list of keys representing the state that is being
-        /// provided after the associated <see cref="ResolverNodeBase.SelectionSet"/>
-        /// has been executed.
+        /// required to fetch data for the associated <see cref="SelectionSet"/>.
         /// </summary>
-        public IReadOnlyList<string> Provides { get; } = executionState.Provides;
+        public IReadOnlyList<string> Requires { get; } = executionState.Requires;
 
         /// <summary>
         /// Gets the selection set data.

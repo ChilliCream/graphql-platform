@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -170,8 +169,7 @@ internal sealed class QueryPlanContext(IOperation operation)
     {
         if (_stepToNode.Count > 0)
         {
-            throw new InvalidOperationException(
-                "It seems as if the query plan builder was not able to create a query plan for the specified quey as not all execution steps have been completed.");
+            throw ThrowHelper.UnableToCreateQueryPlan();
         }
     }
 

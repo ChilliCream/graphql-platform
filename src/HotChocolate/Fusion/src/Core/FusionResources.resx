@@ -73,7 +73,7 @@
     <value>The entity resolver for the specified type name was already registered.</value>
   </data>
   <data name="ThrowHelper_UnableToCreateQueryPlan_Message" xml:space="preserve">
-    <value>It seems as if the query plan builder was not able to create a query plan for the specified quey as not all execution steps have been completed.</value>
+    <value>It seems as if the query plan builder was not able to create a query plan for the specified query as not all execution steps have been completed.</value>
   </data>
   <data name="ThrowHelper_NoRootNode_Message" xml:space="preserve">
     <value>In order to build a query plan a root node must be set.</value>

@@ -51,7 +51,7 @@ QueryPlan
       {
         "type": "ResolveByKeyBatch",
         "subgraph": "Reviews2",
-        "document": "query Large_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { reviews { body author { name __fusion_exports__4: id } product { id } } __fusion_exports__3: id } } }",
+        "document": "query Large_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { reviews { body author { name __fusion_exports__4: id } product { id __fusion_exports__6: id } } __fusion_exports__3: id } } }",
         "selectionSetId": 1,
         "path": [
           "nodes"
@@ -64,6 +64,9 @@ QueryPlan
         "provides": [
           {
             "variable": "__fusion_exports__4"
+          },
+          {
+            "variable": "__fusion_exports__6"
           }
         ]
       },
@@ -93,14 +96,14 @@ QueryPlan
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Products",
-            "document": "query Large_5($__fusion_exports__5: [ID!]!) { nodes(ids: $__fusion_exports__5) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__5: id __fusion_exports__5: id } } }",
+            "document": "query Large_5($__fusion_exports__6: [ID!]!) { nodes(ids: $__fusion_exports__6) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__5: id __fusion_exports__6: id } } }",
             "selectionSetId": 3,
             "path": [
               "nodes"
             ],
             "requires": [
               {
-                "variable": "__fusion_exports__5"
+                "variable": "__fusion_exports__6"
               }
             ],
             "provides": [
@@ -109,6 +112,9 @@ QueryPlan
               },
               {
                 "variable": "__fusion_exports__2"
+              },
+              {
+                "variable": "__fusion_exports__5"
               }
             ]
           }
@@ -153,24 +159,20 @@ QueryPlan
     "__fusion_exports__2": "Product_dimension_weight",
     "__fusion_exports__3": "User_id",
     "__fusion_exports__4": "User_id",
-    "__fusion_exports__5": "Product_id"
+    "__fusion_exports__5": "Product_id",
+    "__fusion_exports__6": "Product_id"
   }
 }
 ---------------
 
 QueryPlan Hash
 ---------------
-EB3B76B3D95A368210FA674E1F1B5A62863BF3DD
+C3FC8EFFC41A8F2F0D5706ADCE4AA197855EEE2E
 ---------------
 
 Result
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
-    }
-  ],
   "data": {
     "users": [
       {
@@ -181,19 +183,29 @@ Result
           {
             "body": "Love it!",
             "author": {
-              "name": "@ada"
+              "name": "@ada",
+              "birthdate": "1815-12-10"
             },
             "product": {
-              "id": "UHJvZHVjdAppMQ=="
+              "id": "UHJvZHVjdAppMQ==",
+              "name": "Table",
+              "deliveryEstimate": {
+                "max": 800
+              }
             }
           },
           {
             "body": "Could be better.",
             "author": {
-              "name": "@ada"
+              "name": "@ada",
+              "birthdate": "1815-12-10"
             },
             "product": {
-              "id": "UHJvZHVjdAppMw=="
+              "id": "UHJvZHVjdAppMw==",
+              "name": "Chair",
+              "deliveryEstimate": {
+                "max": 90
+              }
             }
           }
         ]
@@ -206,19 +218,29 @@ Result
           {
             "body": "Too expensive.",
             "author": {
-              "name": "@alan"
+              "name": "@alan",
+              "birthdate": "1912-06-23"
             },
             "product": {
-              "id": "UHJvZHVjdAppMg=="
+              "id": "UHJvZHVjdAppMg==",
+              "name": "Couch",
+              "deliveryEstimate": {
+                "max": 5300
+              }
             }
           },
           {
             "body": "Prefer something else.",
             "author": {
-              "name": "@alan"
+              "name": "@alan",
+              "birthdate": "1912-06-23"
             },
             "product": {
-              "id": "UHJvZHVjdAppMQ=="
+              "id": "UHJvZHVjdAppMQ==",
+              "name": "Table",
+              "deliveryEstimate": {
+                "max": 800
+              }
             }
           }
         ]

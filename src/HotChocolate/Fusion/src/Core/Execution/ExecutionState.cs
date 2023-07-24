@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
@@ -7,17 +8,18 @@ namespace HotChocolate.Fusion.Execution;
 /// Represents the query plan state for a single selection set.
 /// This working state can be shared between nodes of a query plan.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 internal sealed class ExecutionState
 {
     public ExecutionState(
         SelectionSet selectionSet,
         ObjectResult selectionSetResult,
-        IReadOnlyList<string> provides)
+        IReadOnlyList<string> requires)
     {
         SelectionSet = selectionSet;
         SelectionSetResult = selectionSetResult;
         SelectionSetData = new SelectionData[selectionSet.Selections.Count];
-        Provides = provides;
+        Requires = requires;
     }
 
     /// <summary>
@@ -28,10 +30,9 @@ internal sealed class ExecutionState
 
     /// <summary>
     /// Gets a list of keys representing the state that is being
-    /// provided after the associated <see cref="SelectionSet"/>
-    /// has been executed.
+    /// required to fetch data for the associated <see cref="SelectionSet"/>.
     /// </summary>
-    public IReadOnlyList<string> Provides { get; }
+    public IReadOnlyList<string> Requires { get; }
 
     /// <summary>
     /// Gets the selection set that is being executed.
@@ -52,4 +53,16 @@ internal sealed class ExecutionState
     /// Gets a flag that indicates if the work item has been initialized.
     /// </summary>
     public bool IsInitialized { get; set; }
+
+    private string GetDebuggerDisplay()
+    {
+        var displayName = $"State {SelectionSet.Id}";
+
+        if (Requires.Count > 0)
+        {
+            displayName = $"{displayName} requires: {string.Join(", ", Requires)}";
+        }
+
+        return displayName;
+    }
 }

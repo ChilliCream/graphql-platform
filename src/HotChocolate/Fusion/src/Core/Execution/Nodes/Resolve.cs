@@ -120,7 +120,7 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             var data = UnwrapResult(response);
             var selectionSet = state.SelectionSet;
             var selectionResults = state.SelectionSetData;
-            var exportKeys = state.Provides;
+            var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
             ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
