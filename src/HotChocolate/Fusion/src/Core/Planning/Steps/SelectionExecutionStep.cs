@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
@@ -9,22 +10,58 @@ namespace HotChocolate.Fusion.Planning;
 /// Represents the default execution step within the execution plan while
 /// being in the planing phase.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 internal sealed class SelectionExecutionStep : ExecutionStep
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="SelectionExecutionStep"/>.
+    /// </summary>
+    /// <param name="id">
+    /// The id of the execution step.
+    /// </param>
+    /// <param name="subgraphName">
+    /// The name of the subgraph from which this execution step will fetch data.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The selection set that is part of this execution step.
+    /// </param>
+    /// <param name="selectionSetTypeMetadata">
+    /// The type metadata of the selection set.
+    /// </param>
     public SelectionExecutionStep(
+        int id,
         string subgraphName,
         IObjectType selectionSet,
         ObjectTypeMetadata selectionSetTypeMetadata)
-        : this(subgraphName, null, selectionSet, selectionSetTypeMetadata)
+        : this(id, subgraphName, null, selectionSet, selectionSetTypeMetadata)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="SelectionExecutionStep"/>.
+    /// </summary>
+    /// <param name="id">
+    /// The id of the execution step.
+    /// </param>
+    /// <param name="subgraphName">
+    /// The name of the subgraph from which this execution step will fetch data.
+    /// </param>
+    /// <param name="parentSelection">
+    /// The parent selection of this execution step.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The selection set that is part of this execution step.
+    /// </param>
+    /// <param name="selectionSetTypeMetadata">
+    /// The type metadata of the selection set.
+    /// </param>
     public SelectionExecutionStep(
+        int id,
         string subgraphName,
         ISelection? parentSelection,
         IObjectType selectionSet,
         ObjectTypeMetadata selectionSetTypeMetadata)
-        : base(parentSelection, selectionSet, selectionSetTypeMetadata)
+        : base(id, parentSelection, selectionSet, selectionSetTypeMetadata)
     {
         SubgraphName = subgraphName;
     }
@@ -74,4 +111,22 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     /// The variable requirements by this task.
     /// </summary>
     public HashSet<string> Requires { get; } = new();
+
+    private string GetDebuggerDisplay()
+    {
+        var displayName = $"{Id} {SubgraphName}.{SelectionSetType.Name}";
+
+        if (DependsOn.Count > 0)
+        {
+            displayName = $"{displayName} dependsOn: {string.Join(", ", DependsOn.Select(t => t.Id))}";
+        }
+
+        if(RootSelections.Count > 0)
+        {
+            var rootSelections = string.Join(", ", RootSelections.Select(t => t.Selection.ResponseName));
+            displayName = $"{displayName} roots: {rootSelections}";
+        }
+
+        return displayName;
+    }
 }

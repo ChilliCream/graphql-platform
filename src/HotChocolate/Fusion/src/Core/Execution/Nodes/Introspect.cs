@@ -10,26 +10,19 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <summary>
 /// The <see cref="Introspect"/> node is responsible for executing introspection selection of the GraphQL request.
 /// </summary>
-internal sealed class Introspect : QueryPlanNode
+/// <param name="id">
+/// The unique id of this node.
+/// </param>
+/// <param name="selectionSet">
+/// The selection set for which the results shall be composed.
+/// </param>
+/// <exception cref="ArgumentNullException">
+/// <paramref name="selectionSet"/> is <c>null</c>.
+/// </exception>
+internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanNode(id)
 {
-    private readonly SelectionSet _selectionSet;
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="Introspect"/>.
-    /// </summary>
-    /// <param name="id">
-    /// The unique id of this node.
-    /// </param>
-    /// <param name="selectionSet">
-    /// The selection set for which the results shall be composed.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="selectionSet"/> is <c>null</c>.
-    /// </exception>
-    public Introspect(int id, SelectionSet selectionSet) : base(id)
-    {
-        _selectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
-    }
+    private readonly SelectionSet _selectionSet = selectionSet
+        ?? throw new ArgumentNullException(nameof(selectionSet));
 
     /// <summary>
     /// Gets the kind of this node.
@@ -93,7 +86,7 @@ internal sealed class Introspect : QueryPlanNode
             {
                 rootSelectionNodes.Add(selection.SyntaxNode);
             }
-            
+
             selection = ref Unsafe.Add(ref selection, 1)!;
         }
 

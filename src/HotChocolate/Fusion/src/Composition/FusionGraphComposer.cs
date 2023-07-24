@@ -164,4 +164,46 @@ public sealed class FusionGraphComposer
 
         return log.HasErrors ? null : context.FusionGraph;
     }
+
+    /// <summary>
+    /// Composes the subgraph schemas into a single,
+    /// merged schema representing the fusion gateway configuration.
+    /// </summary>
+    /// <param name="configurations">
+    /// The subgraph configurations to compose.
+    /// </param>
+    /// <param name="features">
+    /// The composition feature flags.
+    /// </param>
+    /// <param name="fusionTypePrefix">
+    /// The prefix that is used for the fusion types.
+    /// </param>
+    /// <param name="fusionTypeSelf">
+    /// Defines if the fusion types should be prefixed with the subgraph name.
+    /// </param>
+    /// <param name="logFactory">
+    /// A factory that creates a new composition log.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the operation.
+    /// </param>
+    /// <returns>The fusion gateway configuration.</returns>
+    public static async ValueTask<Schema> ComposeAsync(
+        IEnumerable<SubgraphConfiguration> configurations,
+        FusionFeatureCollection? features = null,
+        string? fusionTypePrefix = null,
+        bool fusionTypeSelf = false,
+        Func<ICompositionLog>? logFactory = null,
+        CancellationToken cancellationToken = default)
+    {
+        var composer = new FusionGraphComposer(
+            fusionTypePrefix,
+            fusionTypeSelf,
+            logFactory);
+
+        return await composer.ComposeAsync(
+            configurations,
+            features,
+            cancellationToken);
+    }
 }

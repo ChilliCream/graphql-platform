@@ -30,6 +30,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     public ResolveByKeyBatch(int id, Config config, IReadOnlyDictionary<string, ITypeNode> argumentTypes)
         : base(id, config)
     {
+        ArgumentNullException.ThrowIfNull(argumentTypes);
+
         _argumentTypes = new Dictionary<string, ITypeNode>(argumentTypes, StringComparer.Ordinal);
     }
 
@@ -37,7 +39,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     /// Gets the kind of this node.
     /// </summary>
     public override QueryPlanNodeKind Kind => QueryPlanNodeKind.ResolveByKeyBatch;
-    
+
     /// <summary>
     /// Executes this resolver node.
     /// </summary>
@@ -76,7 +78,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             ProcessResult(context, response, batchExecutionState);
         }
     }
-    
+
     /// <summary>
     /// Executes this resolver node.
     /// </summary>
@@ -99,12 +101,12 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             await base.OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
         }
     }
-    
+
     private static void InitializeRequests(FusionExecutionContext context, List<ExecutionState> executionState)
     {
         ref var state = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(executionState));
-        ref var end = ref Unsafe.Add(ref state, executionState.Count);            
-        
+        ref var end = ref Unsafe.Add(ref state, executionState.Count);
+
         while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
             TryInitializeExecutionState(context.QueryPlan, state);
@@ -113,13 +115,13 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     }
 
     private void ProcessResult(
-        FusionExecutionContext context, 
-        GraphQLResponse response, 
+        FusionExecutionContext context,
+        GraphQLResponse response,
         BatchExecutionState[] batchExecutionState)
     {
         ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
         var result = UnwrapResult(response, Requires);
-        
+
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
 
@@ -128,10 +130,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             if (result.TryGetValue(batchState.Key, out var data))
             {
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionResults);
-                ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Provides, batchState.VariableValues);
+                ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
             }
 
-            batchState = ref Unsafe.Add(ref batchState, 1);
+            batchState = ref Unsafe.Add(ref batchState, 1)!;
         }
     }
 
@@ -140,7 +142,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         Dictionary<string, ITypeNode> argumentTypes)
     {
         var first = batchExecutionState[0];
-        
+
         if (batchExecutionState.Length == 1)
         {
             return first.VariableValues;
@@ -160,7 +162,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 uniqueState.Add(batchState);
             }
 
-            batchState = ref Unsafe.Add(ref batchState, 1);
+            batchState = ref Unsafe.Add(ref batchState, 1)!;
         }
 
         foreach (var key in first.VariableValues.Keys)
@@ -197,7 +199,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         GraphQLResponse response,
         IReadOnlyList<string> exportKeys)
     {
-        JsonElement data = response.Data;
+        var data = response.Data;
         var path = Path;
 
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
@@ -248,20 +250,20 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         return result;
     }
-    
+
     private static JsonElement LiftData(JsonElement data, string[] path)
     {
         if (data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
         {
             return data;
         }
-        
+
         var current = data;
-            
+
         ref var segment = ref MemoryMarshal.GetArrayDataReference(path);
         ref var end = ref Unsafe.Add(ref segment, path.Length);
 
-        while(Unsafe.IsAddressLessThan(ref segment, ref end))
+        while (Unsafe.IsAddressLessThan(ref segment, ref end))
         {
             if (current.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
             {
@@ -270,17 +272,17 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
             current.TryGetProperty(segment, out var propertyValue);
             current = propertyValue;
-                
+
             segment = ref Unsafe.Add(ref segment, 1)!;
         }
 
         return current;
     }
-    
+
     private static BatchExecutionState[] CreateBatchBatchState(List<ExecutionState> executionState, string[] requires)
     {
         var batchExecutionState = new BatchExecutionState[executionState.Count];
-        
+
         ref var state = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(executionState));
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref state, executionState.Count);
@@ -299,7 +301,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         else
         {
             var keyBuilder = new StringBuilder();
-            
+
             while (Unsafe.IsAddressLessThan(ref state, ref end))
             {
                 ref var key = ref MemoryMarshal.GetArrayDataReference(requires);
@@ -346,29 +348,36 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             _ => throw new NotSupportedException(),
         };
 
-    private readonly struct BatchExecutionState
+    /// <summary>
+    /// Represents the state of a batch request.
+    /// </summary>
+    /// <param name="batchKey">
+    /// The key that represents the batch request.
+    /// </param>
+    /// <param name="executionState">
+    /// The execution state from which to build a batch request.
+    /// </param>
+    private readonly struct BatchExecutionState(string batchKey, ExecutionState executionState)
     {
-        public BatchExecutionState(
-            string batchKey,
-            ExecutionState executionState)
-        {
-            Key = batchKey;
-            VariableValues = executionState.VariableValues;
-            Provides = executionState.Provides;
-            SelectionResults = executionState.SelectionSetData;
-        }
+        /// <summary>
+        /// Gets the key that represents the batch request.
+        /// </summary>
+        public string Key { get; } = batchKey;
 
-        public string Key { get; }
-
-        public Dictionary<string, IValueNode> VariableValues { get; }
+        /// <summary>
+        /// Gets the variable values that are required to build the batch request.
+        /// </summary>
+        public Dictionary<string, IValueNode> VariableValues { get; } = executionState.VariableValues;
 
         /// <summary>
         /// Gets a list of keys representing the state that is being
-        /// provided after the associated <see cref="ResolverNodeBase.SelectionSet"/>
-        /// has been executed.
+        /// required to fetch data for the associated <see cref="SelectionSet"/>.
         /// </summary>
-        public IReadOnlyList<string> Provides { get; }
+        public IReadOnlyList<string> Requires { get; } = executionState.Requires;
 
-        public SelectionData[] SelectionResults { get; }
+        /// <summary>
+        /// Gets the selection set data.
+        /// </summary>
+        public SelectionData[] SelectionResults { get; } = executionState.SelectionSetData;
     }
 }

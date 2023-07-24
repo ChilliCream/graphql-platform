@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Pipeline;
+namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal static class PipelineProps
 {

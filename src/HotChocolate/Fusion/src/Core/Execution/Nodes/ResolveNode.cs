@@ -14,24 +14,19 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <summary>
 /// The resolver node is responsible for fetching nodes from subgraphs.
 /// </summary>
-internal sealed class ResolveNode : QueryPlanNode
+/// <param name="id">
+/// The unique id of this node.
+/// </param>
+/// <param name="selection">
+/// The selection that shall be resolved.
+/// </param>
+/// <exception cref="ArgumentNullException">
+/// <paramref name="selection"/> is <c>null</c>.
+/// </exception>
+internal sealed class ResolveNode(int id, Selection selection) : QueryPlanNode(id)
 {
     private readonly Dictionary<string, QueryPlanNode> _fetchNodes = new(StringComparer.Ordinal);
-    private readonly Selection _selection;
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="ResolveNode"/>.
-    /// </summary>
-    /// <param name="id">
-    /// The unique id of this node.
-    /// </param>
-    /// <param name="selection">
-    /// The selection that shall be resolved.
-    /// </param>
-    public ResolveNode(int id, Selection selection) : base(id)
-    {
-        _selection = selection;
-    }
+    private readonly Selection _selection = selection ?? throw new ArgumentNullException(nameof(selection));
 
     /// <summary>
     /// Gets the kind of this node.
@@ -114,15 +109,8 @@ internal sealed class ResolveNode : QueryPlanNode
             throw ThrowHelper.Node_ReadOnly();
         }
 
-        if (typeName is null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        if(resolveEntity is null)
-        {
-            throw new ArgumentNullException(nameof(resolveEntity));
-        }
+        ArgumentNullException.ThrowIfNull(typeName);
+        ArgumentNullException.ThrowIfNull(resolveEntity);
 
         if (_fetchNodes.ContainsKey(typeName))
         {
@@ -134,7 +122,7 @@ internal sealed class ResolveNode : QueryPlanNode
         _fetchNodes.Add(typeName, resolveEntity);
         base.AddNode(resolveEntity);
     }
-    
+
     internal override void AddNode(QueryPlanNode node)
         => throw new NotSupportedException();
 

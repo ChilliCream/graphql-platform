@@ -61,18 +61,15 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "Patient1_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "Patient1_id"
+  }
 }
 ---------------
 
 QueryPlan Hash
 ---------------
-A805DF9A4E82B987E447CD2E2F735DDB9DFBCFBD
+DDF0B84C2F5CAA3A32B14C08FDBE98CEAF7AB197
 ---------------
 
 Result

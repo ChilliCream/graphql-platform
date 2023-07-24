@@ -7,14 +7,10 @@ using Parallel = HotChocolate.Fusion.Execution.Nodes.Parallel;
 
 namespace HotChocolate.Fusion.Planning.Pipeline;
 
-internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
+internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPlanMiddleware
 {
-    private readonly ISchema _schema;
-
-    public ExecutionTreeBuilderMiddleware(ISchema schema)
-    {
-        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
-    }
+    private readonly ISchema _schema = schema
+        ?? throw new ArgumentNullException(nameof(schema));
 
     public void Invoke(QueryPlanContext context, QueryPlanDelegate next)
     {
@@ -33,6 +29,9 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             // processing the backlog to do so.
             ProcessBacklog(context, backlog);
         }
+
+        // We fail if we were unable to include all execution steps into the query plan.
+        context.EnsureAllStepsAreCompleted();
 
         next(context);
     }
@@ -53,8 +52,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
             // that mutation fields are executed serially.
             if (next.Batch.Length == 1 ||
                 (_schema.MutationType?.Name.EqualsOrdinal(
-                        next.Batch[0].Step.SelectionSetTypeMetadata.Name) ??
-                    false))
+                    next.Batch[0].Step.SelectionSetTypeMetadata.Name) ?? false))
             {
                 var single = next.Batch[0];
                 next.Parent.AddNode(single.Node);
@@ -178,7 +176,7 @@ internal sealed class ExecutionTreeBuilderMiddleware : IQueryPlanMiddleware
         }
     }
 
-    private static QueryPlanNode CreateDefaultRoot(
+    private static Sequence CreateDefaultRoot(
         QueryPlanContext context,
         Queue<BacklogItem> backlog)
     {

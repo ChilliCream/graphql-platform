@@ -23,6 +23,8 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
         var schemas = new Dictionary<string, SelectionExecutionStep>(Ordinal);
         var requires = new HashSet<string>(Ordinal);
+        var siblingsToRemove = new List<SelectionExecutionStep>();
+        var roots = new HashSet<string>(Ordinal);
 
         foreach (var step in context.Steps)
         {
@@ -30,6 +32,9 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 currentStep.ParentSelection is { } parent &&
                 currentStep.Resolver is not null)
             {
+                siblingsToRemove.Clear();
+                roots.Clear();
+
                 var declaringType = currentStep.SelectionSetType;
                 var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
                 var siblingExecutionSteps = context.GetSiblingExecutionSteps(selectionSet);
@@ -37,9 +42,28 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 // remove the execution step for which we try to resolve dependencies.
                 siblingExecutionSteps.Remove(currentStep);
 
+                // remove all execution steps that depend on the current execution step.
+                foreach (var siblingExecutionStep in siblingExecutionSteps)
+                {
+                    if (siblingExecutionStep.DependsOn.Contains(currentStep))
+                    {
+                        siblingsToRemove.Add(siblingExecutionStep);
+                    }
+                }
+
+                foreach (var siblingToRemove in siblingsToRemove)
+                {
+                    siblingExecutionSteps.Remove(siblingToRemove);
+                }
+
                 // clean and fill the schema execution step lookup
                 foreach (var siblingExecutionStep in siblingExecutionSteps)
                 {
+                    if (siblingExecutionStep.ParentSelection is null)
+                    {
+                        roots.Add(siblingExecutionStep.SubgraphName);
+                    }
+
                     schemas.TryAdd(siblingExecutionStep.SubgraphName, siblingExecutionStep);
                 }
 
@@ -55,7 +79,8 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                         selectionSet,
                         requirement,
                         out var stateKey,
-                        out var providingExecutionStep))
+                        out var providingExecutionStep) &&
+                        providingExecutionStep != currentStep)
                     {
                         currentStep.DependsOn.Add(providingExecutionStep);
                         currentStep.Variables.TryAdd(requirement, stateKey);
@@ -65,22 +90,60 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
                 // if we still have requirements unfulfilled, we will try to resolve them
                 // from sibling execution steps.
-                foreach (var variable in step.SelectionSetTypeMetadata.Variables)
+                // we prime the variables list with the variables from execution steps that the current step
+                // already depends on.
+                var variables = OrderByUsage(step.SelectionSetTypeMetadata.Variables, currentStep);
+
+                // if we have root steps as siblings we will prfer to fulfill the requirements
+                // from these steps.
+                if (roots.Count > 0 && requires.Count > 0)
                 {
-                    var subgraphName = variable.SubgraphName;
-
-                    if (requires.Contains(variable.Name) &&
-                        schemas.TryGetValue(subgraphName, out var providingExecutionStep))
+                    foreach (var variable in variables)
                     {
-                        requires.Remove(variable.Name);
+                        if (requires.Contains(variable.Name) &&
+                            roots.Contains(variable.SubgraphName) &&
+                            schemas.TryGetValue(variable.SubgraphName, out var providingExecutionStep))
+                        {
+                            requires.Remove(variable.Name);
 
-                        var stateKey = context.Exports.Register(
-                            selectionSet,
-                            variable,
-                            providingExecutionStep);
+                            var stateKey = context.Exports.Register(
+                                selectionSet,
+                                variable,
+                                providingExecutionStep);
 
-                        currentStep.DependsOn.Add(providingExecutionStep);
-                        currentStep.Variables.TryAdd(variable.Name, stateKey);
+                            currentStep.DependsOn.Add(providingExecutionStep);
+                            currentStep.Variables.TryAdd(variable.Name, stateKey);
+                        }
+
+                        if (requires.Count == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (requires.Count > 0)
+                {
+                    foreach (var variable in variables)
+                    {
+                        if (requires.Contains(variable.Name) &&
+                            schemas.TryGetValue(variable.SubgraphName, out var providingExecutionStep))
+                        {
+                            requires.Remove(variable.Name);
+
+                            var stateKey = context.Exports.Register(
+                                selectionSet,
+                                variable,
+                                providingExecutionStep);
+
+                            currentStep.DependsOn.Add(providingExecutionStep);
+                            currentStep.Variables.TryAdd(variable.Name, stateKey);
+                        }
+
+                        if (requires.Count == 0)
+                        {
+                            break;
+                        }
                     }
                 }
 
@@ -88,14 +151,11 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 // and that we have to introduce a fetch to another remote schema to get the
                 // required value for the current execution step. In this case we will have
                 // to evaluate the schemas that we did skip for efficiency reasons.
-                // TODO: CODE
-
                 if (requires.Count > 0)
                 {
                     // if the schema meta data are not consistent we could end up with no way to
                     // execute the current execution step. In this case we will fail here.
-                    // TODO : NEEDS A PROPER EXCEPTION
-                    throw new Exception("NEEDS A PROPER EXCEPTION");
+                    throw new InvalidOperationException("The schema metadata are not consistent.");
                 }
 
                 foreach (var (name, type) in currentStep.Resolver.ArgumentTypes)
@@ -111,16 +171,9 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                     {
                         if (currentStep.Requires.Contains(variable.Name) &&
                             currentStep.SubgraphName.EqualsOrdinal(variable.SubgraphName) &&
-                            context.Exports.TryGetStateKey(
-                                selectionSet,
-                                variable.Name,
-                                out var stateKey,
-                                out _))
+                            currentStep.Variables.TryGetValue(variable.Name, out var stateKey))
                         {
-                            context.Exports.RegisterAdditionExport(
-                                variable,
-                                currentStep,
-                                stateKey);
+                            context.Exports.RegisterAdditionExport(variable, currentStep, stateKey);
                         }
                     }
                 }
@@ -136,5 +189,25 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
         {
             set.Add(value);
         }
+    }
+
+    private static List<FieldVariableDefinition> OrderByUsage(
+        VariableDefinitionCollection variables,
+        SelectionExecutionStep executionStep)
+    {
+        var dependsOnSubgraph = new HashSet<string>(Ordinal);
+
+        foreach (var step in executionStep.DependsOn)
+        {
+            if (step is SelectionExecutionStep { SubgraphName: { } subgraphName })
+            {
+                dependsOnSubgraph.Add(subgraphName);
+            }
+        }
+
+        var comparer = new VariableUsageComparer(dependsOnSubgraph);
+        var ordered = new List<FieldVariableDefinition>(variables);
+        ordered.Sort(comparer);
+        return ordered;
     }
 }

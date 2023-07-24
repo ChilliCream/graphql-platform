@@ -6,22 +6,14 @@ using static System.StringComparer;
 
 namespace HotChocolate.Fusion.Planning.Pipeline;
 
-internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
+internal sealed class FieldRequirementsPlannerMiddleware(
+    FusionGraphConfiguration config)
+    : IQueryPlanMiddleware
 {
-    private readonly FusionGraphConfiguration _config;
-
-    public FieldRequirementsPlannerMiddleware(FusionGraphConfiguration config)
-    {
-        _config = config ?? throw new ArgumentNullException(nameof(config));
-    }
+    private readonly FusionGraphConfiguration _config = config
+        ?? throw new ArgumentNullException(nameof(config));
 
     public void Invoke(QueryPlanContext context, QueryPlanDelegate next)
-    {
-        Plan(context);
-        next(context);
-    }
-
-    private void Plan(QueryPlanContext context)
     {
         context.ReBuildSelectionLookup();
 
@@ -42,6 +34,8 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         }
 
         context.Steps.AddRange(fieldContext.RequirementSteps);
+
+        next(context);
     }
 
     private void ResolveRequirementsForSelectionResolvers(
@@ -199,6 +193,7 @@ internal sealed class FieldRequirementsPlannerMiddleware : IQueryPlanMiddleware
         var resolver = SelectResolver(fieldContext, typeMetadata, subgraph);
 
         var requirementStep = new SelectionExecutionStep(
+            context.NextStepId(),
             subgraph,
             parentSelection,
             selection.DeclaringType,

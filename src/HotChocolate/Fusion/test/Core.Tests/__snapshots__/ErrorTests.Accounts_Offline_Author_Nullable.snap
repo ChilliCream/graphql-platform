@@ -57,18 +57,15 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "User_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "User_id"
+  }
 }
 ---------------
 
 QueryPlan Hash
 ---------------
-A66357625887EC4026675084B4B19B69ED1032E2
+96C56C169D9DA81CE096109D2677D68AA009B715
 ---------------
 
 Result

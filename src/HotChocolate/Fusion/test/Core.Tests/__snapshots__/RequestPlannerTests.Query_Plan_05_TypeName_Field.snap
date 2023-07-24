@@ -70,11 +70,8 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "Product_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "Product_id"
+  }
 }
 ---------------

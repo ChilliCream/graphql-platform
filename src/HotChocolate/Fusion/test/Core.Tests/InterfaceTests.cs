@@ -28,7 +28,7 @@ public class InterfaceTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Appointment.ToConfiguration(),
@@ -77,7 +77,7 @@ public class InterfaceTests
         using var demoProject = await DemoProject.CreateAsync();
 
         // act
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Appointment.ToConfiguration(),

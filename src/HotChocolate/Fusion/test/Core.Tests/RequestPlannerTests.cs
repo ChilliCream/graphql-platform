@@ -23,7 +23,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -60,7 +60,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -106,7 +106,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -137,7 +137,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -169,7 +169,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -208,7 +208,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -250,7 +250,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -295,7 +295,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -332,7 +332,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -377,7 +377,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -423,7 +423,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -469,7 +469,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -503,7 +503,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -538,7 +538,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
@@ -572,7 +572,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
@@ -609,7 +609,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
@@ -648,7 +648,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -687,7 +687,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
@@ -730,7 +730,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
@@ -775,7 +775,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -820,7 +820,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
@@ -864,7 +864,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Appointment.ToConfiguration(),
@@ -899,7 +899,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Appointment.ToConfiguration(),
@@ -938,7 +938,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
@@ -985,7 +985,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Appointment.ToConfiguration(),
@@ -1004,6 +1004,47 @@ public class RequestPlannerTests
                     nodes {
                         id
                     }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_26_Ensure_No_Circular_Dependency_When_Requiring_Data()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query TopProducts {
+              topProducts(first: 5) {
+                weight
+                deliveryEstimate(zip: "12345") {
+                  min
+                  max
+                }
+                reviews {
+                  body
                 }
               }
             }
@@ -1041,7 +1082,7 @@ public class RequestPlannerTests
         var request = Parse(query);
 
         var operationCompiler = new OperationCompiler(new());
-        var operationDef = (OperationDefinitionNode)request.Definitions.First();
+        var operationDef = (OperationDefinitionNode)request.Definitions[0];
         var operation = operationCompiler.Compile(
             "abc",
             operationDef,

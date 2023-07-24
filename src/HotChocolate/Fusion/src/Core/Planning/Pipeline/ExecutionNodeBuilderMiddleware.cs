@@ -19,12 +19,10 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
     public ExecutionNodeBuilderMiddleware(FusionGraphConfiguration configuration, ISchema schema)
     {
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(schema);
 
-        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+        _schema = schema;
         _requestFormatter = new DefaultRequestDocumentFormatter(configuration);
         _nodeRequestFormatter = new NodeRequestDocumentFormatter(configuration, schema);
     }
@@ -100,9 +98,8 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
                 if (executionStep is IntrospectionExecutionStep)
                 {
-                    var introspectionNode = new Introspect(
-                        context.NextNodeId(),
-                        Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet));
+                    var selectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
+                    var introspectionNode = new Introspect(context.NextNodeId(), selectionSet);
                     context.RegisterNode(introspectionNode, executionStep);
                     context.RegisterSelectionSet(context.Operation.RootSelectionSet);
                     handled.Add(executionStep);
@@ -246,11 +243,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
             foreach (var argument in executionStep.Resolver!.ArgumentTypes)
             {
-                if (!context.Exports.TryGetStateKey(
-                    context.Operation.GetSelectionSet(executionStep),
-                    argument.Key,
-                    out var stateKey,
-                    out _))
+                if (!executionStep.Variables.TryGetValue(argument.Key, out var stateKey))
                 {
                     throw new InvalidOperationException(
                         ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent);
@@ -287,7 +280,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 OperationType.Subscription);
 
         context.RegisterSelectionSet(selectionSet);
-        
+
         var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,

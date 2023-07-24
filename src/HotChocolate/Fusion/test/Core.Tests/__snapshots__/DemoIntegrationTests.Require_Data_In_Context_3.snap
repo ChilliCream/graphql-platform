@@ -51,22 +51,22 @@ QueryPlan
       {
         "type": "ResolveByKeyBatch",
         "subgraph": "Reviews2",
-        "document": "query Large_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { reviews { body author { name __fusion_exports__4: id } product { id __fusion_exports__5: id } } __fusion_exports__3: id } } }",
+        "document": "query Large_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { reviews { body author { name __fusion_exports__4: id } product { id __fusion_exports__6: id } } __fusion_exports__3: id } } }",
         "selectionSetId": 1,
         "path": [
           "nodes"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__3"
+          }
         ],
         "provides": [
           {
             "variable": "__fusion_exports__4"
           },
           {
-            "variable": "__fusion_exports__5"
-          }
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__3"
+            "variable": "__fusion_exports__6"
           }
         ]
       },
@@ -96,10 +96,15 @@ QueryPlan
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Products",
-            "document": "query Large_5($__fusion_exports__5: [ID!]!) { nodes(ids: $__fusion_exports__5) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__5: id } } }",
+            "document": "query Large_5($__fusion_exports__6: [ID!]!) { nodes(ids: $__fusion_exports__6) { ... on Product { name __fusion_exports__1: dimension { size } __fusion_exports__2: dimension { weight } __fusion_exports__5: id __fusion_exports__6: id } } }",
             "selectionSetId": 3,
             "path": [
               "nodes"
+            ],
+            "requires": [
+              {
+                "variable": "__fusion_exports__6"
+              }
             ],
             "provides": [
               {
@@ -107,9 +112,7 @@ QueryPlan
               },
               {
                 "variable": "__fusion_exports__2"
-              }
-            ],
-            "requires": [
+              },
               {
                 "variable": "__fusion_exports__5"
               }
@@ -151,34 +154,20 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "Product_dimension_size"
-    },
-    {
-      "variable": "__fusion_exports__2",
-      "name": "Product_dimension_weight"
-    },
-    {
-      "variable": "__fusion_exports__3",
-      "name": "User_id"
-    },
-    {
-      "variable": "__fusion_exports__4",
-      "name": "User_id"
-    },
-    {
-      "variable": "__fusion_exports__5",
-      "name": "Product_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "Product_dimension_size",
+    "__fusion_exports__2": "Product_dimension_weight",
+    "__fusion_exports__3": "User_id",
+    "__fusion_exports__4": "User_id",
+    "__fusion_exports__5": "Product_id",
+    "__fusion_exports__6": "Product_id"
+  }
 }
 ---------------
 
 QueryPlan Hash
 ---------------
-5C57D69756182D7C8B6A6610E6082C0C5E5A63BD
+C3FC8EFFC41A8F2F0D5706ADCE4AA197855EEE2E
 ---------------
 
 Result

@@ -54,17 +54,17 @@ QueryPlan
         "path": [
           "nodes"
         ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ],
         "provides": [
           {
             "variable": "__fusion_exports__2"
           },
           {
             "variable": "__fusion_exports__3"
-          }
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
           }
         ]
       },
@@ -116,19 +116,10 @@ QueryPlan
       }
     ]
   },
-  "state": [
-    {
-      "variable": "__fusion_exports__1",
-      "name": "User_id"
-    },
-    {
-      "variable": "__fusion_exports__2",
-      "name": "User_id"
-    },
-    {
-      "variable": "__fusion_exports__3",
-      "name": "User_id"
-    }
-  ]
+  "state": {
+    "__fusion_exports__1": "User_id",
+    "__fusion_exports__2": "User_id",
+    "__fusion_exports__3": "User_id"
+  }
 }
 ---------------

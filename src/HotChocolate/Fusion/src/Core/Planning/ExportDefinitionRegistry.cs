@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Mvc;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -22,18 +21,17 @@ internal sealed class ExportDefinitionRegistry
         FieldVariableDefinition variableDefinition,
         ExecutionStep providingExecutionStep)
     {
-        if (_stateKeyLookup.TryGetValue((selectionSet, variableDefinition.Name), out var stateKey))
+        if (_stateKeyLookup.TryGetValue((selectionSet, variableDefinition.Name), out var stateKey) &&
+            _exportLookup.TryGetValue(stateKey, out var registeredExportDefinition) &&
+            ReferenceEquals(registeredExportDefinition.ExecutionStep, providingExecutionStep))
         {
             return stateKey;
         }
 
-        var exportDefinition = new ExportDefinition(
-            $"_{_groupKey}_{++_stateId}",
-            selectionSet,
-            variableDefinition,
-            providingExecutionStep);
+        var key = $"_{_groupKey}_{++_stateId}";
+        var exportDefinition = new ExportDefinition(key, selectionSet, variableDefinition, providingExecutionStep);
         _exportLookup.Add(exportDefinition.StateKey, exportDefinition);
-        _stateKeyLookup.Add((selectionSet, variableDefinition.Name), exportDefinition.StateKey);
+        _stateKeyLookup.TryAdd((selectionSet, variableDefinition.Name), exportDefinition.StateKey);
         _exports.Add(exportDefinition);
         return exportDefinition.StateKey;
     }
@@ -111,10 +109,13 @@ internal sealed class ExportDefinitionRegistry
         ExecutionStep executionStep,
         ISelectionSet selectionSet)
     {
+        _temp.Clear();
+
         foreach (var exportDefinition in _exports)
         {
             if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
-                ReferenceEquals(exportDefinition.SelectionSet, selectionSet))
+                ReferenceEquals(exportDefinition.SelectionSet, selectionSet) &&
+                _temp.Add(exportDefinition.StateKey))
             {
                 var selection = exportDefinition.VariableDefinition.Select;
                 var stateKey = exportDefinition.StateKey;
@@ -125,15 +126,18 @@ internal sealed class ExportDefinitionRegistry
 
     public IEnumerable<string> GetExportKeys(ExecutionStep executionStep)
     {
+        _temp.Clear();
+
         foreach (var exportDefinition in _exports)
         {
-            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep))
+            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
+                _temp.Add(exportDefinition.StateKey))
             {
                 yield return exportDefinition.StateKey;
             }
         }
     }
-    
+
     public IEnumerable<string> GetExportKeys(SelectionExecutionStep executionStep)
     {
         _temp.Clear();
@@ -148,7 +152,7 @@ internal sealed class ExportDefinitionRegistry
 
         foreach (var exportDefinition in _exports)
         {
-            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) && 
+            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
                 _temp.Add(exportDefinition.StateKey))
             {
                 yield return exportDefinition.StateKey;

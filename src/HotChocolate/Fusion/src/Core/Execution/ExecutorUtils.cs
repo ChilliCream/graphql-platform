@@ -466,7 +466,7 @@ internal static class ExecutorUtils
             // next we will unwrap the results.
             ExtractSelectionResults(
                 partialResult,
-                (SelectionSet)executionState.SelectionSet,
+                executionState.SelectionSet,
                 executionState.SelectionSetData);
 
             // last we will check if there are any exports for this selection-set.
@@ -474,7 +474,7 @@ internal static class ExecutorUtils
                 partialResult,
                 queryPlan,
                 executionState.SelectionSet,
-                executionState.Provides,
+                executionState.Requires,
                 executionState.VariableValues);
         }
 

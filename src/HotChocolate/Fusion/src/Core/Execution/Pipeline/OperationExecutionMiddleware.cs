@@ -3,45 +3,34 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Types.Relay;
 
-namespace HotChocolate.Fusion.Pipeline;
+namespace HotChocolate.Fusion.Execution.Pipeline;
 
-internal sealed class DistributedOperationExecutionMiddleware
+internal sealed class DistributedOperationExecutionMiddleware(
+    RequestDelegate next,
+    IFactory<OperationContextOwner> contextFactory,
+    IIdSerializer idSerializer,
+    [SchemaService] FusionGraphConfiguration serviceConfig,
+    [SchemaService] GraphQLClientFactory clientFactory)
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
     private static readonly object _subscriptionRoot = new();
 
-    private readonly RequestDelegate _next;
-    private readonly FusionGraphConfiguration _serviceConfig;
-    private readonly IFactory<OperationContextOwner> _contextFactory;
-    private readonly IIdSerializer _idSerializer;
-    private readonly GraphQLClientFactory _clientFactory;
-
-    public DistributedOperationExecutionMiddleware(
-        RequestDelegate next,
-        IFactory<OperationContextOwner> contextFactory,
-        IIdSerializer idSerializer,
-        [SchemaService] FusionGraphConfiguration serviceConfig,
-        [SchemaService] GraphQLClientFactory clientFactory)
-    {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _contextFactory = contextFactory ??
-            throw new ArgumentNullException(nameof(contextFactory));
-        _idSerializer = idSerializer ??
-            throw new ArgumentNullException(nameof(idSerializer));
-        _serviceConfig = serviceConfig ??
-            throw new ArgumentNullException(nameof(serviceConfig));
-        _clientFactory = clientFactory ??
-            throw new ArgumentNullException(nameof(clientFactory));
-    }
+    private readonly RequestDelegate _next = next
+        ?? throw new ArgumentNullException(nameof(next));
+    private readonly FusionGraphConfiguration _serviceConfig = serviceConfig
+        ?? throw new ArgumentNullException(nameof(serviceConfig));
+    private readonly IFactory<OperationContextOwner> _contextFactory = contextFactory
+        ?? throw new ArgumentNullException(nameof(contextFactory));
+    private readonly IIdSerializer _idSerializer = idSerializer
+        ?? throw new ArgumentNullException(nameof(idSerializer));
+    private readonly GraphQLClientFactory _clientFactory = clientFactory
+        ?? throw new ArgumentNullException(nameof(clientFactory));
 
     public async ValueTask InvokeAsync(
         IRequestContext context,

@@ -5,15 +5,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Represents the Fusion gateway configuration.
 /// </summary>
-public sealed class GatewayConfiguration
+public sealed class GatewayConfiguration(DocumentNode document)
 {
-    public GatewayConfiguration(DocumentNode document)
-    {
-        Document = document ?? throw new ArgumentNullException(nameof(document));
-    }
-
     /// <summary>
     /// Gets the Fusion gateway configuration document.
     /// </summary>
-    public DocumentNode Document { get; }
+    public DocumentNode Document { get; } = document
+        ?? throw new ArgumentNullException(nameof(document));
 }

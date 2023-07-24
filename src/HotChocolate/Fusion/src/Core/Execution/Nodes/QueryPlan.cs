@@ -50,14 +50,14 @@ internal sealed class QueryPlan
         IReadOnlySet<ISelectionSet> selectionSets,
         IReadOnlyCollection<ExportDefinition> exports)
     {
-        if (exports == null)
-        {
-            throw new ArgumentNullException(nameof(exports));
-        }
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(rootNode);
+        ArgumentNullException.ThrowIfNull(selectionSets);
+        ArgumentNullException.ThrowIfNull(exports);
 
-        _operation = operation ?? throw new ArgumentNullException(nameof(operation));
-        RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
-        _selectionSets = selectionSets ?? throw new ArgumentNullException(nameof(selectionSets));
+        _operation = operation;
+        RootNode = rootNode;
+        _selectionSets = selectionSets;
 
         if (exports.Count > 0)
         {
@@ -97,7 +97,7 @@ internal sealed class QueryPlan
             {
                 return _hash;
             }
-            
+
             using var bufferWriter = new ArrayWriter();
             Format(bufferWriter);
             _hash = ComputeHash(bufferWriter.GetWrittenSpan());
@@ -152,12 +152,9 @@ internal sealed class QueryPlan
     /// </exception>
     public async Task<IQueryResult> ExecuteAsync(
         FusionExecutionContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (RootNode is Subscribe)
         {
@@ -242,12 +239,9 @@ internal sealed class QueryPlan
     /// </exception>
     public Task<IResponseStream> SubscribeAsync(
         FusionExecutionContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (RootNode is not Subscribe subscriptionNode)
         {
@@ -265,6 +259,8 @@ internal sealed class QueryPlan
 
     public void Format(IBufferWriter<byte> writer)
     {
+        ArgumentNullException.ThrowIfNull(writer);
+
         using var jsonWriter = new Utf8JsonWriter(writer, _jsonOptions);
         Format(jsonWriter);
         jsonWriter.Flush();
@@ -272,6 +268,8 @@ internal sealed class QueryPlan
 
     public void Format(Utf8JsonWriter writer)
     {
+        ArgumentNullException.ThrowIfNull(writer);
+
         writer.WriteStartObject();
         writer.WriteString(DocumentProp, _operation.Document.ToString(false));
 
@@ -287,17 +285,14 @@ internal sealed class QueryPlan
         {
             writer.WritePropertyName(StateProp);
 
-            writer.WriteStartArray();
+            writer.WriteStartObject();
 
             foreach (var (key, displayName) in _exportKeyToVariableName)
             {
-                writer.WriteStartObject();
-                writer.WriteString(VariableProp, key);
-                writer.WriteString(NameProp, displayName);
-                writer.WriteEndObject();
+                writer.WriteString(key, displayName);
             }
 
-            writer.WriteEndArray();
+            writer.WriteEndObject();
         }
 
         writer.WriteEndObject();

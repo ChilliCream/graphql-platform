@@ -218,7 +218,7 @@ public sealed partial class OperationCompiler
             while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
                 variantsStart.Complete();
-                variantsStart = ref Unsafe.Add(ref variantsStart, 1);
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
 
 #if NET5_0_OR_GREATER
@@ -229,7 +229,7 @@ public sealed partial class OperationCompiler
             while (Unsafe.IsAddressLessThan(ref optStart, ref optEnd))
             {
                 optStart.OptimizeOperation(context);
-                optStart = ref Unsafe.Add(ref optStart, 1);
+                optStart = ref Unsafe.Add(ref optStart, 1)!;
             }
 #else
             for (var i = 0; i < _operationOptimizers.Count; i++)
@@ -241,13 +241,13 @@ public sealed partial class OperationCompiler
             CompleteResolvers(schema);
 
             variantsSpan = variants.AsSpan();
-            variantsStart = ref GetReference(variantsSpan);
-            variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length);
+            variantsStart = ref GetReference(variantsSpan)!;
+            variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length)!;
 
             while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
                 variantsStart.Seal();
-                variantsStart = ref Unsafe.Add(ref variantsStart, 1);
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
         }
 
