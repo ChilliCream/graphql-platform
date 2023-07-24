@@ -243,14 +243,14 @@ internal static class Utf8JsonWriterHelper
 
                     writer.WritePropertyName(name);
                     writer.WriteStartArray();
-                    
+
                     foreach (var path in item.Value)
                     {
                         writer.WriteStringValue(path.ToString(operation));
                     }
 
                     writer.WriteEndArray();
-                    
+
                     index++;
                 }
 
@@ -259,7 +259,7 @@ internal static class Utf8JsonWriterHelper
                 return fileInfos;
             }
         }
-        
+
         if (operationRequest.Variables is not null)
         {
             Dictionary<FileReference, FilePath[]>? files = null;
@@ -279,7 +279,7 @@ internal static class Utf8JsonWriterHelper
 
                     writer.WritePropertyName(name);
                     writer.WriteStartArray();
-                    
+
                     foreach (var path in item.Value)
                     {
                         writer.WriteStringValue(path.ToString(operation));
@@ -445,14 +445,14 @@ internal static class Utf8JsonWriterHelper
 
         public override string ToString()
             => ToString(null);
-        
+
         public string ToString(int? operation)
         {
             var sb = new StringBuilder();
             var current = this;
             var first = true;
 
-            while (current is not RootFilePath)
+            while (current is not RootFilePath and not null)
             {
                 if (current is NameFilePath name)
                 {
