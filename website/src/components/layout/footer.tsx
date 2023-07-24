@@ -136,7 +136,7 @@ export const Footer: FC = () => {
       </Section>
       <Section>
         <Copyright>
-          <span>© {new Date().getFullYear()} ChilliCream Solutions LLC</span>
+          <span>© {new Date().getFullYear()} ChilliCream Inc</span>
           <span>All Rights Reserved</span>
         </Copyright>
       </Section>
