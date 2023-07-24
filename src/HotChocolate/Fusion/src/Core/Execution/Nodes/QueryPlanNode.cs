@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;

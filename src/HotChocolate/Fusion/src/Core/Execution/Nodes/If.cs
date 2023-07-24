@@ -58,15 +58,8 @@ internal sealed class If(int id) : QueryPlanNode(id)
             throw ThrowHelper.Node_ReadOnly();
         }
 
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(node);
 
         _branches.Add(new Branch(key, value, node));
         base.AddNode(node);
