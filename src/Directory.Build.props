@@ -12,7 +12,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;NU5104</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
