@@ -1,15 +1,11 @@
 {
   "errors": [
     {
-      "message": "The GraphQL request document contains more than 2048 fields. Parsing aborted.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 46014
-        }
-      ],
+      "message": "The maximum allowed operation complexity was exceeded.",
       "extensions": {
-        "code": "HC0014"
+        "complexity": 2048,
+        "allowedComplexity": 1000,
+        "code": "HC0047"
       }
     }
   ]
