@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Buffers;
+using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
@@ -28,12 +29,13 @@ public class TypeModuleGenerator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(c => PostInitialization(c));
 
-        IncrementalValuesProvider<ISyntaxInfo> modulesAndTypes =
+        var modulesAndTypes =
             context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: static (s, _) => IsRelevant(s),
                     transform: TryGetModuleOrType)
-                .Where(static t => t is not null)!;
+                .Where(static t => t is not null)!
+                .WithComparer(SyntaxInfoComparer.Default);
 
         var valueProvider = context.CompilationProvider.Combine(modulesAndTypes.Collect());
 
@@ -88,46 +90,39 @@ public class TypeModuleGenerator : IIncrementalGenerator
         Compilation compilation,
         ImmutableArray<ISyntaxInfo> syntaxInfos)
     {
-        var all = syntaxInfos;
-        var batch = new HashSet<ISyntaxInfo>();
-
-        // unpack aggregates
-        for (var i = 0; i < all.Length; i++)
+        if (syntaxInfos.IsEmpty)
         {
-            var syntaxInfo = all[i];
-
-            if (syntaxInfo is AggregateInfo aggregate)
-            {
-                all = all.Remove(aggregate);
-                all = all.AddRange(aggregate.Items);
-            }
+            return;
         }
-
-        foreach (var syntaxGenerator in _generators)
+        
+        var buffer = ArrayPool<ISyntaxInfo>.Shared.Rent(syntaxInfos.Length * 2);
+        
+        // prepare context
+        for (var i = syntaxInfos.Length - 1; i >= 0; i--)
         {
+            buffer[i] = syntaxInfos[i];
+        }
+        
+        var nodes = buffer.AsSpan().Slice(0, syntaxInfos.Length);
+        var batch = buffer.AsSpan().Slice(syntaxInfos.Length, syntaxInfos.Length);
+        
+        foreach (var generator in _generators)
+        {
+            var next = 0; 
+            
             // gather infos for current generator
-            for (var i = all.Length - 1; i >= 0; i--)
+            foreach (var node in nodes)
             {
-                var syntaxInfo = all[i];
-
-                if (syntaxGenerator.Consume(syntaxInfo))
+                if (generator.Consume(node))
                 {
-                    batch.Add(syntaxInfo);
+                    batch[next++] = node;
                 }
             }
 
             // generate
-            if (batch.Count > 0)
+            if (next > 0)
             {
-                syntaxGenerator.Generate(context, compilation, batch);
-            }
-
-            // reset context
-            batch.Clear();
-
-            if (all.IsEmpty)
-            {
-                break;
+                generator.Generate(context, compilation, batch.Slice(0, next));
             }
         }
     }
