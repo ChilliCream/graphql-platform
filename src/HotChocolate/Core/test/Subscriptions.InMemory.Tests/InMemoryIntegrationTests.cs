@@ -37,6 +37,14 @@ public class InMemoryIntegrationTests : SubscriptionIntegrationTestBase
     [Fact]
     public override Task Subscribe_Topic_With_2_Arguments()
         => base.Subscribe_Topic_With_2_Arguments();
+    
+    [Fact]
+    public override Task Subscribe_And_Complete_Topic()
+        => base.Subscribe_And_Complete_Topic();
+    
+    [Fact]
+    public override Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
+        => base.Subscribe_And_Complete_Topic_With_ValueTypeMessage();
 
     [Fact]
     public virtual async Task Invalid_Message_Type()
@@ -53,7 +61,6 @@ public class InMemoryIntegrationTests : SubscriptionIntegrationTestBase
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // act
         async Task Send() => await sender.SendAsync("OnMessage2_a_b", 1, cts.Token).ConfigureAwait(false);

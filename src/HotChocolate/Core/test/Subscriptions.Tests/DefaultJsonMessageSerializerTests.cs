@@ -32,7 +32,34 @@ public class DefaultJsonMessageSerializerTests
         // assert
         Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
     }
+    
+    [Fact]
+    public void DeserializeCompleteMessage_With_Enum_Body()
+    {
+        // arrange
+        var serializer = new DefaultJsonMessageSerializer();
+        var message = "{\"kind\":1}";
 
+        // act
+        var messageEnvelope = serializer.Deserialize<Foo>(message);
+
+        // assert
+        Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
+    }
+    
+    [Fact]
+    public void DeserializeCompleteMessage_With_Int_Body()
+    {
+        // arrange
+        var serializer = new DefaultJsonMessageSerializer();
+        var message = "{\"kind\":1}";
+
+        // act
+        var messageEnvelope = serializer.Deserialize<int>(message);
+
+        // assert
+        Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
+    }
 
     [Fact]
     public void SerializeDefaultMessage()
@@ -49,5 +76,10 @@ public class DefaultJsonMessageSerializerTests
             .Create()
             .Add(serializedMessage)
             .MatchInline("{\"body\":\"abc\",\"kind\":0}");
+    }
+    
+    public enum Foo
+    {
+        Bar
     }
 }

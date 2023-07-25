@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions;
 
-public abstract  class SubscriptionIntegrationTestBase
+public abstract class SubscriptionIntegrationTestBase
 {
     private static readonly int _timeout = Debugger.IsAttached ? 1000000 : 5000;
     private readonly ITestOutputHelper _output;
@@ -298,6 +298,62 @@ public abstract  class SubscriptionIntegrationTestBase
               }
             }");
     }
+    
+    [Fact]
+    public virtual async Task Subscribe_And_Complete_Topic()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(_timeout);
+        await using var services = CreateServer<Subscription2>();
+        var sender = services.GetRequiredService<ITopicEventSender>();
+
+        // act
+        var result = await services.ExecuteRequestAsync(
+                "subscription { onMessage { bar } }",
+                cancellationToken: cts.Token)
+            .ConfigureAwait(false);
+
+        // we need to execute the read for the subscription to start receiving.
+        await using var responseStream = result.ExpectResponseStream();
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+
+        // assert
+        await Task.Delay(2000, cts.Token).ConfigureAwait(false);
+        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
+
+        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        {
+            Assert.False(true, "Should not have any messages.");
+        }
+    }
+    
+    [Fact]
+    public virtual async Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(_timeout);
+        await using var services = CreateServer<Subscription3>();
+        var sender = services.GetRequiredService<ITopicEventSender>();
+
+        // act
+        var result = await services.ExecuteRequestAsync(
+                "subscription { onMessage3 }",
+                cancellationToken: cts.Token)
+            .ConfigureAwait(false);
+
+        // we need to execute the read for the subscription to start receiving.
+        await using var responseStream = result.ExpectResponseStream();
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+
+        // assert
+        await Task.Delay(2000, cts.Token).ConfigureAwait(false);
+        await sender.CompleteAsync("OnMessage3").ConfigureAwait(false);
+
+        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        {
+            Assert.False(true, "Should not have any messages.");
+        }
+    }
 
     protected ServiceProvider CreateServer<TSubscriptionType>() where TSubscriptionType : class
         => CreateServer(builder =>
@@ -346,10 +402,20 @@ public abstract  class SubscriptionIntegrationTestBase
         [Subscribe]
         public string OnMessage2(string arg1, string arg2, [EventMessage] string message)
             => message;
+        
+        [Topic("OnMessage3")]
+        [Subscribe]
+        public FooEnum OnMessage3([EventMessage] FooEnum message)
+            => message;
     }
 
     public class Foo
     {
         public string? Bar { get; set; }
+    }
+    
+    public enum FooEnum
+    {
+        Bar
     }
 }
