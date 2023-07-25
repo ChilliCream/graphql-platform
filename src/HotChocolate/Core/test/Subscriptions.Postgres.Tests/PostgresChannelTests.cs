@@ -9,7 +9,7 @@ using Squadron;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
-public class PostgresChannelTest
+public class PostgresChannelTests
     : IClassFixture<PostgreSqlResource>
     , IAsyncLifetime
 {
@@ -17,7 +17,7 @@ public class PostgresChannelTest
     private readonly string _dbName = $"DB_{Guid.NewGuid():N}";
     private readonly string _channelName;
 
-    public PostgresChannelTest(PostgreSqlResource resource)
+    public PostgresChannelTests(PostgreSqlResource resource)
     {
         _resource = resource;
         _channelName = $"channel_{Guid.NewGuid():N}";

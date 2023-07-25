@@ -14,12 +14,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Subscriptions.Postgres.Tests"/>
+    <InternalsVisibleTo Include="HotChocolate.Subscriptions.Postgres.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj"/>
-    <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj"/>
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="7.0.4"/>
+    <PackageReference Include="Npgsql" Version="7.0.4" />
   </ItemGroup>
 
 </Project>

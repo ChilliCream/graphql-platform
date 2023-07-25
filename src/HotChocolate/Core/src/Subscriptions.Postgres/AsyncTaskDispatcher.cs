@@ -1,6 +1,6 @@
 namespace HotChocolate.Subscriptions.Postgres;
 
-internal sealed class AsyncEventHandler : IAsyncDisposable
+internal sealed class AsyncTaskDispatcher : IAsyncDisposable
 {
     private readonly TaskCompletionSource<bool> _initialize = new();
     private readonly AsyncAutoResetEvent _event = new();
@@ -11,7 +11,7 @@ internal sealed class AsyncEventHandler : IAsyncDisposable
     private bool _disposed;
     private bool _initialized;
 
-    public AsyncEventHandler(Func<CancellationToken, Task> handler)
+    public AsyncTaskDispatcher(Func<CancellationToken, Task> handler)
     {
         _handler = handler;
         _eventProcessorTask = new ContinuousTask(EventHandler);
@@ -21,7 +21,7 @@ internal sealed class AsyncEventHandler : IAsyncDisposable
     {
         if (_disposed)
         {
-            throw new ObjectDisposedException(nameof(AsyncEventHandler));
+            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
         }
 
         if (_initialized)
@@ -33,7 +33,7 @@ internal sealed class AsyncEventHandler : IAsyncDisposable
 
         if (_disposed)
         {
-            throw new ObjectDisposedException(nameof(AsyncEventHandler));
+            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
         }
 
         if (_initialized)
@@ -56,11 +56,11 @@ internal sealed class AsyncEventHandler : IAsyncDisposable
         }
     }
 
-    public void Trigger()
+    public void Dispatch()
     {
         if (_disposed)
         {
-            throw new ObjectDisposedException(nameof(AsyncEventHandler));
+            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
         }
 
         _event.Set();

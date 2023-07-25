@@ -6,11 +6,11 @@ using Squadron;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
-public class ResilientNpgsqlConnectionTest : IClassFixture<PostgreSqlResource>
+public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
 {
     private readonly PostgreSqlResource _resource;
 
-    public ResilientNpgsqlConnectionTest(PostgreSqlResource resource)
+    public ResilientNpgsqlConnectionTests(PostgreSqlResource resource)
     {
         _resource = resource;
     }

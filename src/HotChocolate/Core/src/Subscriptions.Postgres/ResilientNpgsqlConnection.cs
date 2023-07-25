@@ -10,7 +10,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
     private readonly Func<CancellationToken, ValueTask<NpgsqlConnection>> _connectionFactory;
     private readonly Func<CancellationToken, ValueTask> _onConnect;
     private readonly Func<CancellationToken, ValueTask> _onDisconnect;
-    private readonly AsyncEventHandler _asyncEventHandler;
+    private readonly AsyncTaskDispatcher _asyncTaskDispatcher;
     private readonly SemaphoreSlim _sync = new(1, 1);
 
     public ResilientNpgsqlConnection(
@@ -21,14 +21,14 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
         _connectionFactory = connectionFactory;
         _onConnect = onConnect;
         _onDisconnect = onDisconnect;
-        _asyncEventHandler = new AsyncEventHandler(OnReconnectAsync);
+        _asyncTaskDispatcher = new AsyncTaskDispatcher(OnReconnectAsync);
     }
 
     public NpgsqlConnection? Connection { get; private set; }
 
     public async Task Initialize(CancellationToken cancellationToken)
     {
-        await _asyncEventHandler.Initialize(cancellationToken);
+        await _asyncTaskDispatcher.Initialize(cancellationToken);
     }
 
     private async Task OnReconnectAsync(CancellationToken cancellationToken)
@@ -57,7 +57,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
                 // reconnection
             }
 
-            _asyncEventHandler.Trigger();
+            _asyncTaskDispatcher.Dispatch();
         }
         finally
         {
@@ -111,7 +111,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
     {
         if (e.CurrentState is ConnectionState.Broken or ConnectionState.Closed)
         {
-            _asyncEventHandler.Trigger();
+            _asyncTaskDispatcher.Dispatch();
         }
     }
 

@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
-public class AsyncEventHandlerTest
+public class AsyncTaskDispatcherTests
 {
     [Fact]
-    public async Task Trigger_Should_InvokeHandler()
+    public async Task Dispatch_Should_InvokeHandler()
     {
         // Arrange
         var wasHandlerCalled = false;
@@ -17,13 +17,13 @@ public class AsyncEventHandlerTest
             return Task.CompletedTask;
         };
 
-        var asyncEventHandler = new AsyncEventHandler(handler);
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
 
         await asyncEventHandler.Initialize(CancellationToken.None);
         wasHandlerCalled = false;
 
         // Act
-        asyncEventHandler.Trigger();
+        asyncEventHandler.Dispatch();
 
         SpinWait.SpinUntil(() => wasHandlerCalled, TimeSpan.FromSeconds(1));
 
@@ -32,29 +32,26 @@ public class AsyncEventHandlerTest
     }
 
     [Fact]
-    public async Task Trigger_Should_Throw_When_CalledAfterDispose()
+    public async Task Dispatch_Should_Throw_When_CalledAfterDispose()
     {
         // Arrange
-        var asyncEventHandler = new AsyncEventHandler(_ => Task.CompletedTask);
+        var asyncEventHandler = new AsyncTaskDispatcher(_ => Task.CompletedTask);
         await asyncEventHandler.Initialize(CancellationToken.None);
 
         // Act
         await asyncEventHandler.DisposeAsync();
 
         // Assert
-        Assert.Throws<ObjectDisposedException>(() => asyncEventHandler.Trigger());
+        Assert.Throws<ObjectDisposedException>(() => asyncEventHandler.Dispatch());
     }
 
     [Fact]
     public async Task DisposeAsync_Should_CancelAndDisposeCompletion()
     {
         // Arrange
-        Func<CancellationToken, Task> handler = _ =>
-        {
-            return Task.CompletedTask;
-        };
+        Func<CancellationToken, Task> handler = _ => Task.CompletedTask;
 
-        var asyncEventHandler = new AsyncEventHandler(handler);
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
         await asyncEventHandler.Initialize(CancellationToken.None);
 
         // Act
@@ -68,7 +65,7 @@ public class AsyncEventHandlerTest
         // Arrange
         var taskCompletionSource = new TaskCompletionSource<bool>();
         Func<CancellationToken, Task> handler = _ => taskCompletionSource.Task;
-        var asyncEventHandler = new AsyncEventHandler(handler);
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
         var handlerTask = asyncEventHandler.Initialize(CancellationToken.None);
 
         // Act
@@ -82,7 +79,7 @@ public class AsyncEventHandlerTest
     public async Task Initialize_Should_Throw_When_CalledAfterDispose()
     {
         // Arrange
-        var asyncEventHandler = new AsyncEventHandler(_ => Task.CompletedTask);
+        var asyncEventHandler = new AsyncTaskDispatcher(_ => Task.CompletedTask);
 
         // Act
         await asyncEventHandler.DisposeAsync();
@@ -103,7 +100,7 @@ public class AsyncEventHandlerTest
             return Task.CompletedTask;
         };
 
-        var asyncEventHandler = new AsyncEventHandler(handler);
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
 
         // Act
         await asyncEventHandler.Initialize(CancellationToken.None);
@@ -116,7 +113,7 @@ public class AsyncEventHandlerTest
     public async Task Initialize_Should_Throw_When_CalledAfterInitAndDispose()
     {
         // Arrange
-        var asyncEventHandler = new AsyncEventHandler(_ => Task.CompletedTask);
+        var asyncEventHandler = new AsyncTaskDispatcher(_ => Task.CompletedTask);
         await asyncEventHandler.Initialize(CancellationToken.None);
 
         // Act
@@ -132,7 +129,7 @@ public class AsyncEventHandlerTest
     {
         // Arrange
         Func<CancellationToken, Task> handler = _ => Task.CompletedTask;
-        var asyncEventHandler = new AsyncEventHandler(handler);
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
 
         // Act
         await asyncEventHandler.Initialize(CancellationToken.None);
@@ -153,7 +150,7 @@ public class AsyncEventHandlerTest
             Interlocked.Increment(ref initializeCount);
             return Task.CompletedTask;
         };
-        var asyncEventHandler = new AsyncEventHandler(handler);
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
 
         // Act
         var task1 = asyncEventHandler.Initialize(CancellationToken.None);
@@ -171,7 +168,7 @@ public class AsyncEventHandlerTest
         var neverEnding = new TaskCompletionSource();
         var cancellationTokenSource = new CancellationTokenSource();
         Func<CancellationToken, Task> handler = _ => neverEnding.Task;
-        var asyncEventHandler = new AsyncEventHandler(handler);
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
 
         // Act
         cancellationTokenSource.Cancel();
@@ -187,7 +184,7 @@ public class AsyncEventHandlerTest
         // Arrange
         var neverEnding = new TaskCompletionSource();
         Func<CancellationToken, Task> handler = _ => neverEnding.Task;
-        var asyncEventHandler = new AsyncEventHandler(handler);
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
 
         // Act
         var task = asyncEventHandler.Initialize(CancellationToken.None);
