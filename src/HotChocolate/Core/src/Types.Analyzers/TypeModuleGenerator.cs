@@ -125,5 +125,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
                 generator.Generate(context, compilation, batch.Slice(0, next));
             }
         }
+        
+        ArrayPool<ISyntaxInfo>.Shared.Return(buffer);
     }
 }
