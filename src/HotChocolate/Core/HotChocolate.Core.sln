@@ -137,6 +137,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Transport.Sock
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Transport.Sockets", "..\AspNetCore\src\Transport.Sockets\HotChocolate.Transport.Sockets.csproj", "{AD65B505-8EDE-4B54-9298-6B71D0283EB1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Subscriptions.Postgres.Tests", "test\Subscriptions.Postgres.Tests\HotChocolate.Subscriptions.Postgres.Tests.csproj", "{AA04790E-58AC-40CC-9DEC-570D78D252AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Subscriptions.Postgres", "src\Subscriptions.Postgres\HotChocolate.Subscriptions.Postgres.csproj", "{B98BC881-DDDD-4988-AC43-187C733895CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -903,6 +907,30 @@ Global
 		{AD65B505-8EDE-4B54-9298-6B71D0283EB1}.Release|x64.Build.0 = Release|Any CPU
 		{AD65B505-8EDE-4B54-9298-6B71D0283EB1}.Release|x86.ActiveCfg = Release|Any CPU
 		{AD65B505-8EDE-4B54-9298-6B71D0283EB1}.Release|x86.Build.0 = Release|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Debug|x64.Build.0 = Debug|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Debug|x86.Build.0 = Debug|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Release|x64.ActiveCfg = Release|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Release|x64.Build.0 = Release|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Release|x86.ActiveCfg = Release|Any CPU
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD}.Release|x86.Build.0 = Release|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Debug|x64.Build.0 = Debug|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Debug|x86.Build.0 = Debug|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Release|x64.ActiveCfg = Release|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Release|x64.Build.0 = Release|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Release|x86.ActiveCfg = Release|Any CPU
+		{B98BC881-DDDD-4988-AC43-187C733895CD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -971,6 +999,8 @@ Global
 		{FA37C0D9-306B-42E9-890E-73BED531C091} = {7637D30E-7339-4D4E-9424-87CF2394D234}
 		{317C2668-0920-492A-90D7-FF9670344DEE} = {7637D30E-7339-4D4E-9424-87CF2394D234}
 		{AD65B505-8EDE-4B54-9298-6B71D0283EB1} = {7637D30E-7339-4D4E-9424-87CF2394D234}
+		{AA04790E-58AC-40CC-9DEC-570D78D252AD} = {7462D089-D350-44D6-8131-896D949A65B7}
+		{B98BC881-DDDD-4988-AC43-187C733895CD} = {37B9D3B1-CA34-4720-9A0B-CFF1E64F52C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E4D94C77-6657-4630-9D42-0A9AC5153A1B}
