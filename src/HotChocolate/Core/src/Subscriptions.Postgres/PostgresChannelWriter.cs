@@ -1,22 +1,31 @@
 using System.Threading.Channels;
+using HotChocolate.Subscriptions.Diagnostics;
 using Npgsql;
+using static HotChocolate.Subscriptions.Postgres.PostgresResources;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class PostgresChannelWriter : IAsyncDisposable
 {
+    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly Channel<PostgresMessageEnvelope> _channel;
     private readonly ResilientNpgsqlConnection _connection;
     private readonly string _channelName;
     private readonly int _maxSendBatchSize;
     private ContinuousTask? _task;
 
-    public PostgresChannelWriter(PostgresSubscriptionOptions options)
+    public PostgresChannelWriter(
+        ISubscriptionDiagnosticEvents diagnosticEvents,
+        PostgresSubscriptionOptions options)
     {
+        _diagnosticEvents = diagnosticEvents;
         _maxSendBatchSize = options.MaxSendBatchSize;
         _channelName = options.ChannelName;
-
-        _connection = new ResilientNpgsqlConnection(options.ConnectionFactory, Connect, Disconnect);
+        _connection = new ResilientNpgsqlConnection(
+            _diagnosticEvents,
+            options.ConnectionFactory,
+            OnConnect,
+            Disconnect);
         _channel = Channel.CreateBounded<PostgresMessageEnvelope>(options.MaxSendQueueSize);
     }
 
@@ -30,13 +39,15 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
         await _channel.Writer.WriteAsync(message, ct);
     }
 
-    private ValueTask Connect(CancellationToken cancellationToken = default)
+    private ValueTask OnConnect(CancellationToken cancellationToken = default)
     {
         var connection = _connection.Connection ??
             throw new InvalidOperationException("Connection was not yet initialized.");
 
         // on connection we start a task that will read from the channel and send the messages
         _task = new ContinuousTask(ct => HandleMessage(connection, ct));
+
+        _diagnosticEvents.ProviderInfo(ChannelWriter_ConnectionEstablished);
 
         return ValueTask.CompletedTask;
     }
@@ -50,6 +61,8 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
         }
 
         _task = null;
+
+        _diagnosticEvents.ProviderInfo(ChannelWriter_Disconnectd);
     }
 
     private async Task HandleMessage(NpgsqlConnection connection, CancellationToken ct)
@@ -96,8 +109,11 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             await batch.PrepareAsync(ct);
             await batch.ExecuteNonQueryAsync(ct);
         }
-        catch
+        catch (Exception ex)
         {
+            var msg = string.Format(ChannelWriter_FailedToSend, messages.Count, ex.Message);
+            _diagnosticEvents.ProviderInfo(msg);
+
             // if we cannot send the message we put it back into the channel
             foreach (var message in messages)
             {

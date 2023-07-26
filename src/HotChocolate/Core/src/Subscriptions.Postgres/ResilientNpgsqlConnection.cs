@@ -1,5 +1,7 @@
 using System.Data;
+using HotChocolate.Subscriptions.Diagnostics;
 using Npgsql;
+using static HotChocolate.Subscriptions.Postgres.PostgresResources;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -7,6 +9,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
 {
     private const int _waitOnFailureinMs = 500;
 
+    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly Func<CancellationToken, ValueTask<NpgsqlConnection>> _connectionFactory;
     private readonly Func<CancellationToken, ValueTask> _onConnect;
     private readonly Func<CancellationToken, ValueTask> _onDisconnect;
@@ -14,10 +17,12 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
     private readonly SemaphoreSlim _sync = new(1, 1);
 
     public ResilientNpgsqlConnection(
+        ISubscriptionDiagnosticEvents diagnosticEvents,
         Func<CancellationToken, ValueTask<NpgsqlConnection>> connectionFactory,
         Func<CancellationToken, ValueTask> onConnect,
         Func<CancellationToken, ValueTask> onDisconnect)
     {
+        _diagnosticEvents = diagnosticEvents;
         _connectionFactory = connectionFactory;
         _onConnect = onConnect;
         _onDisconnect = onDisconnect;
@@ -39,13 +44,17 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
             await Disconnect(cancellationToken);
             await Connect(cancellationToken);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // when we fail to reconnect, it's probably because we could establish a connection to
             // the database. We need to trigger the reconnection again, so that it tries to connect
             // again.
             // To avoid uncontrolled requests to the database, we wait waitTimeInMs before we
             // trigger
+
+            var message = string
+                .Format(ResilientConnection_FailedToConnect, _waitOnFailureinMs, ex.Message);
+            _diagnosticEvents.ProviderInfo(message);
 
             try
             {
@@ -111,6 +120,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
     {
         if (e.CurrentState is ConnectionState.Broken or ConnectionState.Closed)
         {
+            _diagnosticEvents.ProviderInfo(ResilientConnection_LostConnection);
             _asyncTaskDispatcher.Dispatch();
         }
     }

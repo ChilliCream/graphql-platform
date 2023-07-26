@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace HotChocolate.Subscriptions.Postgres;
@@ -76,7 +77,10 @@ internal readonly struct PostgresMessageEnvelope
         return result;
     }
 
-    public static PostgresMessageEnvelope? Parse(string message)
+    public static bool TryParse(
+        string message,
+        [NotNullWhen(true)] out string? topic,
+        [NotNullWhen(true)] out string? payload)
     {
         var maxSize = Encoding.UTF8.GetMaxByteCount(message.Length);
 
@@ -98,19 +102,22 @@ internal readonly struct PostgresMessageEnvelope
         var indexOfColon = buffer.IndexOf(separator);
         if (indexOfColon == -1)
         {
-            return null;
+            topic = null;
+            payload = null;
+            return false;
         }
 
         var topicLengthBase64 = indexOfColon;
         Base64.DecodeFromUtf8InPlace(buffer[..topicLengthBase64], out var topicLengthUtf8);
-        var topic = Encoding.UTF8.GetString(buffer[..topicLengthUtf8]);
-        var payload = Encoding.UTF8.GetString(buffer[(indexOfColon + 1)..]);
+
+        topic = Encoding.UTF8.GetString(buffer[..topicLengthUtf8]);
+        payload = Encoding.UTF8.GetString(buffer[(indexOfColon + 1)..]);
 
         if (bufferArray is not null)
         {
             ArrayPool<byte>.Shared.Return(bufferArray);
         }
 
-        return new PostgresMessageEnvelope(topic, payload);
+        return true;
     }
 }

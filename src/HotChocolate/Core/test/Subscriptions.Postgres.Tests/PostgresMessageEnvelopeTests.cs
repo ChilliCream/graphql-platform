@@ -15,11 +15,13 @@ public class PostgresMessageEnvelopeTests
 
         // act
         var formatted = envelope.Format();
-        var parsed = PostgresMessageEnvelope.Parse(formatted);
+        var parsingResult = PostgresMessageEnvelope
+            .TryParse(formatted, out var parsedTopic, out var parsedPayload);
 
         // assert
-        Assert.Equal(topic, parsed!.Value.Topic);
-        Assert.Equal(payload, parsed.Value.Payload);
+        Assert.True(parsingResult);
+        Assert.Equal(topic, parsedTopic);
+        Assert.Equal(payload, parsedPayload);
     }
 
     [Theory]
@@ -85,11 +87,13 @@ public class PostgresMessageEnvelopeTests
 
         // act
         var formatted = envelope.Format();
-        var parsed = PostgresMessageEnvelope.Parse(formatted);
+        var parsingResult = PostgresMessageEnvelope
+            .TryParse(formatted, out var parsedTopic, out var parsedPayload);
 
         // assert
-        Assert.Equal(topic, parsed!.Value.Topic);
-        Assert.Equal(payload, parsed.Value.Payload);
+        Assert.True(parsingResult);
+        Assert.Equal(topic, parsedTopic);
+        Assert.Equal(payload, parsedPayload);
     }
 
     [Fact]
@@ -102,11 +106,13 @@ public class PostgresMessageEnvelopeTests
 
         // act
         var formatted = envelope.Format();
-        var parsed = PostgresMessageEnvelope.Parse(formatted);
+        var parsingResult = PostgresMessageEnvelope
+            .TryParse(formatted, out var parsedTopic, out var parsedPayload);
 
         // assert
-        Assert.Equal(topic, parsed!.Value.Topic);
-        Assert.Equal(payload, parsed.Value.Payload);
+        Assert.True(parsingResult);
+        Assert.Equal(topic, parsedTopic);
+        Assert.Equal(payload, parsedPayload);
     }
 
     [Fact]
@@ -119,10 +125,12 @@ public class PostgresMessageEnvelopeTests
 
         // act
         var formatted = envelope.Format();
-        var parsed = PostgresMessageEnvelope.Parse(formatted);
+        var parsingResult = PostgresMessageEnvelope
+            .TryParse(formatted, out var parsedTopic, out var parsedPayload);
 
         // assert
-        Assert.Equal(topic, parsed!.Value.Topic);
-        Assert.Equal(payload, parsed.Value.Payload);
+        Assert.True(parsingResult);
+        Assert.Equal(topic, parsedTopic);
+        Assert.Equal(payload, parsedPayload);
     }
 }

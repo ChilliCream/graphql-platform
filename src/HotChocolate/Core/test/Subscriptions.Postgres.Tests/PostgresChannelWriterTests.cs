@@ -3,8 +3,10 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Tests;
 using Npgsql;
 using Squadron;
+using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -16,9 +18,11 @@ public class PostgresChannelWriterTests
     private readonly string _dbName = $"DB_{Guid.NewGuid():N}";
     private readonly string _channelName;
     private readonly PostgresSubscriptionOptions _options;
+    private readonly SubscriptionTestDiagnostics _events;
 
-    public PostgresChannelWriterTests(PostgreSqlResource resource)
+    public PostgresChannelWriterTests(PostgreSqlResource resource, ITestOutputHelper output)
     {
+        _events = new SubscriptionTestDiagnostics(output);
         _resource = resource;
         _channelName = $"channel_{Guid.NewGuid():N}";
         _options = new PostgresSubscriptionOptions
@@ -31,7 +35,7 @@ public class PostgresChannelWriterTests
     public async Task SendAsync_Should_WriteMessageToChannel_When_CalledWithValidInput()
     {
         // Arrange
-        var postgresChannelWriter = new PostgresChannelWriter(_options);
+        var postgresChannelWriter = new PostgresChannelWriter(_events, _options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
         var message = new PostgresMessageEnvelope("test", "test");
         var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
@@ -49,7 +53,7 @@ public class PostgresChannelWriterTests
     public async Task SendAsync_Should_WriteManyMessage_When_CalledManyTimes()
     {
         // Arrange
-        var postgresChannelWriter = new PostgresChannelWriter(_options);
+        var postgresChannelWriter = new PostgresChannelWriter(_events, _options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
         var message = new PostgresMessageEnvelope("test", "test");
         var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
@@ -85,7 +89,7 @@ public class PostgresChannelWriterTests
             },
             ChannelName = _channelName
         };
-        var postgresChannelWriter = new PostgresChannelWriter(options);
+        var postgresChannelWriter = new PostgresChannelWriter(_events, options);
 
         // Act
         await postgresChannelWriter.Initialize(CancellationToken.None);
@@ -117,7 +121,7 @@ public class PostgresChannelWriterTests
             },
             ChannelName = _channelName
         };
-        var postgresChannelWriter = new PostgresChannelWriter(options);
+        var postgresChannelWriter = new PostgresChannelWriter(_events, options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
 
         // Act
@@ -142,7 +146,7 @@ public class PostgresChannelWriterTests
             },
             ChannelName = _channelName
         };
-        var postgresChannelWriter = new PostgresChannelWriter(options);
+        var postgresChannelWriter = new PostgresChannelWriter(_events, options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
 
         Assert.True(SpinWait.SpinUntil(

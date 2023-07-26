@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
+using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Subscriptions.Postgres;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -53,7 +54,8 @@ public static class PostgresSubscriptionTransportExtensions
         services.AddSingleton<PostgresChannel>(sp =>
         {
             var options = sp.GetRequiredService<PostgresSubscriptionOptions>();
-            return new PostgresChannel(options);
+            var events = sp.GetRequiredService<ISubscriptionDiagnosticEvents>();
+            return new PostgresChannel(events, options);
         });
 
         services.AddSingleton<PostgresPubSub>();

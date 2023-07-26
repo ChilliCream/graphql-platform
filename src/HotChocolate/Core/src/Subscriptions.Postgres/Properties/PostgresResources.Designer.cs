@@ -7,28 +7,28 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Subscriptions.RabbitMQ {
+namespace HotChocolate.Subscriptions.Postgres {
     using System;
     
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class RabbitMQResources {
+    internal class PostgresResources {
         
         private static System.Resources.ResourceManager resourceMan;
         
         private static System.Globalization.CultureInfo resourceCulture;
         
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal RabbitMQResources() {
+        internal PostgresResources() {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Subscriptions.RabbitMQ.Properties.RabbitMQResources", typeof(RabbitMQResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Subscriptions.Postgres.Properties.PostgresResources", typeof(PostgresResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -45,58 +45,57 @@ namespace HotChocolate.Subscriptions.RabbitMQ {
             }
         }
         
-        internal static string RabbitMQPubSubExtensions_AddRabbitMQSubscriptions_PrefixInvalid {
+        internal static string Subscription_UnsubscribedFromPostgres {
             get {
-                return ResourceManager.GetString("RabbitMQPubSubExtensions_AddRabbitMQSubscriptions_PrefixInvalid", resourceCulture);
+                return ResourceManager.GetString("Subscription_UnsubscribedFromPostgres", resourceCulture);
             }
         }
         
-        internal static string RabbitMQPubSub_RabbitMQPubSub_PrefixCannotBeNull {
+        internal static string PostgresTopic_ConnectAsync_SubscribedToPostgres {
             get {
-                return ResourceManager.GetString("RabbitMQPubSub_RabbitMQPubSub_PrefixCannotBeNull", resourceCulture);
+                return ResourceManager.GetString("PostgresTopic_ConnectAsync_SubscribedToPostgres", resourceCulture);
             }
         }
         
-        internal static string Subscription_UnsubscribedFromRabbitMQ {
+        internal static string PostgresChannel_ConnectionEstablished {
             get {
-                return ResourceManager.GetString("Subscription_UnsubscribedFromRabbitMQ", resourceCulture);
+                return ResourceManager.GetString("PostgresChannel_ConnectionEstablished", resourceCulture);
             }
         }
         
-        internal static string RabbitMQTopic_ConnectAsync_SubscribedToRabbitMQ {
+        internal static string PostgresChannel_Disconnected {
             get {
-                return ResourceManager.GetString("RabbitMQTopic_ConnectAsync_SubscribedToRabbitMQ", resourceCulture);
+                return ResourceManager.GetString("PostgresChannel_Disconnected", resourceCulture);
             }
         }
         
-        internal static string RabbitMQConnection_InitializeConnection_ConnectionSucceededButFailedUnexpectedly {
+        internal static string ResilientConnection_FailedToConnect {
             get {
-                return ResourceManager.GetString("RabbitMQConnection_InitializeConnection_ConnectionSucceededButFailedUnexpectedly", resourceCulture);
+                return ResourceManager.GetString("ResilientConnection_FailedToConnect", resourceCulture);
             }
         }
         
-        internal static string RabbitMQConnection_InitializeConnection_ConnectionAttemptFailed {
+        internal static string ResilientConnection_LostConnection {
             get {
-                return ResourceManager.GetString("RabbitMQConnection_InitializeConnection_ConnectionAttemptFailed", resourceCulture);
+                return ResourceManager.GetString("ResilientConnection_LostConnection", resourceCulture);
             }
         }
         
-        internal static string RabbitMQConnection_InitializeConnection_ConnectionFailedAfterRetry {
+        internal static string ChannelWriter_ConnectionEstablished {
             get {
-                return ResourceManager.GetString("RabbitMQConnection_InitializeConnection_ConnectionFailedAfterRetry", resourceCulture);
+                return ResourceManager.GetString("ChannelWriter_ConnectionEstablished", resourceCulture);
             }
         }
         
-        internal static string RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly {
+        internal static string ChannelWriter_Disconnectd {
             get {
-                return ResourceManager.GetString("RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly", resourceCulture);
+                return ResourceManager.GetString("ChannelWriter_Disconnectd", resourceCulture);
             }
         }
         
-        internal static string RabbitMQConnectionFailedException_RabbitMQConnectionFailedException_ConnectionFailed {
+        internal static string ChannelWriter_FailedToSend {
             get {
-                return ResourceManager.GetString("RabbitMQConnectionFailedException_RabbitMQConnectionFailedException_ConnectionFai" +
-                        "led", resourceCulture);
+                return ResourceManager.GetString("ChannelWriter_FailedToSend", resourceCulture);
             }
         }
     }

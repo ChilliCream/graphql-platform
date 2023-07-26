@@ -1,14 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Threading;
-using System.Threading.Tasks;
+using HotChocolate.Subscriptions.Diagnostics;
 using Npgsql;
+using static HotChocolate.Subscriptions.Postgres.PostgresResources;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class PostgresChannel : IAsyncDisposable
 {
+    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly string _channelName;
     private readonly ResilientNpgsqlConnection _connection;
     private readonly List<PostgresChannelObserver> _observers = new();
@@ -17,11 +15,18 @@ internal sealed class PostgresChannel : IAsyncDisposable
     private ContinuousTask? _waitOnNotificationTask;
     private ChannelSubscription? _subscription;
 
-    public PostgresChannel(PostgresSubscriptionOptions options)
+    public PostgresChannel(
+        ISubscriptionDiagnosticEvents diagnosticEvents,
+        PostgresSubscriptionOptions options)
     {
+        _diagnosticEvents = diagnosticEvents;
         _channelName = options.ChannelName;
-        _connection = new ResilientNpgsqlConnection(options.ConnectionFactory, Connect, Disconnect);
-        _writer = new PostgresChannelWriter(options);
+        _connection = new ResilientNpgsqlConnection(
+            diagnosticEvents,
+            options.ConnectionFactory,
+            OnConnect,
+            OnDisconnect);
+        _writer = new PostgresChannelWriter(diagnosticEvents, options);
     }
 
     public async ValueTask EnsureInitialized(CancellationToken cancellationToken)
@@ -38,11 +43,18 @@ internal sealed class PostgresChannel : IAsyncDisposable
     {
         _observers.Add(observer);
 
+        _diagnosticEvents
+            .ProviderTopicInfo(observer.Topic, PostgresTopic_ConnectAsync_SubscribedToPostgres);
+
         return new Unsubscriber(this, observer);
     }
 
     private void Unsubscribe(PostgresChannelObserver observer)
-        => _observers.Remove(observer);
+    {
+        _observers.Remove(observer);
+
+        _diagnosticEvents.ProviderTopicInfo(observer.Topic, Subscription_UnsubscribedFromPostgres);
+    }
 
     public async Task SendAsync(
         PostgresMessageEnvelope message,
@@ -58,7 +70,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
         await _connection.DisposeAsync();
     }
 
-    private async ValueTask Connect(CancellationToken cancellationToken = default)
+    private async ValueTask OnConnect(CancellationToken cancellationToken = default)
     {
         var connection = _connection.Connection ??
             throw new InvalidOperationException("Connection was not yet initialized.");
@@ -67,9 +79,11 @@ internal sealed class PostgresChannel : IAsyncDisposable
         await _subscription.ConnectAsync(cancellationToken);
 
         _waitOnNotificationTask = new ContinuousTask(ct => connection.WaitAsync(ct));
+
+        _diagnosticEvents.ProviderInfo(PostgresChannel_ConnectionEstablished);
     }
 
-    private async ValueTask Disconnect(CancellationToken cancellationToken = default)
+    private async ValueTask OnDisconnect(CancellationToken cancellationToken = default)
     {
         // we first stop the wait task so that the connection is free to execute the unlisten
         // command
@@ -82,6 +96,8 @@ internal sealed class PostgresChannel : IAsyncDisposable
         {
             await _subscription.DisposeAsync();
         }
+
+        _diagnosticEvents.ProviderInfo(PostgresChannel_Disconnected);
     }
 
     private void OnNotification(object sender, NpgsqlNotificationEventArgs eventArgs)
@@ -91,13 +107,16 @@ internal sealed class PostgresChannel : IAsyncDisposable
             return;
         }
 
-        var deserialized = PostgresMessageEnvelope.Parse(eventArgs.Payload);
-        if (deserialized is not null)
+        // as we only really need the topic and the payload we just output them directly instead
+        // of creating a full message envelope
+        if (PostgresMessageEnvelope.TryParse(eventArgs.Payload, out var topic, out var payload))
         {
-            foreach (var observer in _observers)
+            for (var i = 0; i < _observers.Count; i++)
             {
-                var value = deserialized.Value;
-                observer.OnNext(ref value);
+                if (_observers[i].Topic == topic)
+                {
+                    _observers[i].OnNext(payload);
+                }
             }
         }
     }

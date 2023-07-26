@@ -1,17 +1,21 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Tests;
 using Npgsql;
 using Squadron;
+using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
 public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
 {
     private readonly PostgreSqlResource _resource;
+    private readonly SubscriptionTestDiagnostics _events;
 
-    public ResilientNpgsqlConnectionTests(PostgreSqlResource resource)
+    public ResilientNpgsqlConnectionTests(PostgreSqlResource resource, ITestOutputHelper output)
     {
+        _events = new SubscriptionTestDiagnostics(output);
         _resource = resource;
     }
 
@@ -34,7 +38,7 @@ public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
         };
 
         var resilientNpgsqlConnection =
-            new ResilientNpgsqlConnection(ConnectionFactory, onConnect, onDisconnect);
+            new ResilientNpgsqlConnection(_events, ConnectionFactory, onConnect, onDisconnect);
 
         // Act
         await resilientNpgsqlConnection.Initialize(CancellationToken.None);
@@ -58,8 +62,11 @@ public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
         };
         Func<CancellationToken, ValueTask> onDisconnect = _ => ValueTask.CompletedTask;
 
-        var resilientNpgsqlConnection =
-            new ResilientNpgsqlConnection(ConnectionFactoryAlreadyOpen, onConnect, onDisconnect);
+        var resilientNpgsqlConnection = new ResilientNpgsqlConnection(
+            _events,
+            ConnectionFactoryAlreadyOpen,
+            onConnect,
+            onDisconnect);
 
         // Act
         await resilientNpgsqlConnection.Initialize(CancellationToken.None);
@@ -83,7 +90,7 @@ public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
         };
 
         var resilientNpgsqlConnection =
-            new ResilientNpgsqlConnection(ConnectionFactory, onConnect, onDisconnect);
+            new ResilientNpgsqlConnection(_events, ConnectionFactory, onConnect, onDisconnect);
 
         await resilientNpgsqlConnection.Initialize(CancellationToken.None);
 
@@ -102,7 +109,7 @@ public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
         Func<CancellationToken, ValueTask> onDisconnect = _ => ValueTask.CompletedTask;
 
         var resilientNpgsqlConnection =
-            new ResilientNpgsqlConnection(ConnectionFactory, onConnect, onDisconnect);
+            new ResilientNpgsqlConnection(_events, ConnectionFactory, onConnect, onDisconnect);
 
         await resilientNpgsqlConnection.Initialize(CancellationToken.None);
         var connection = resilientNpgsqlConnection.Connection;
@@ -136,7 +143,7 @@ public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
         };
 
         var resilientNpgsqlConnection =
-            new ResilientNpgsqlConnection(ConnectionFactory, onConnect, onDisconnect);
+            new ResilientNpgsqlConnection(_events, ConnectionFactory, onConnect, onDisconnect);
         await resilientNpgsqlConnection.Initialize(CancellationToken.None);
 
         // Act

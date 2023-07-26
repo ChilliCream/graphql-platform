@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Tests;
 using Npgsql;
 using Squadron;
+using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -16,9 +18,11 @@ public class PostgresChannelTests
     private readonly PostgreSqlResource _resource;
     private readonly string _dbName = $"DB_{Guid.NewGuid():N}";
     private readonly string _channelName;
+    private readonly SubscriptionTestDiagnostics _events;
 
-    public PostgresChannelTests(PostgreSqlResource resource)
+    public PostgresChannelTests(PostgreSqlResource resource, ITestOutputHelper output)
     {
+        _events = new SubscriptionTestDiagnostics(output);
         _resource = resource;
         _channelName = $"channel_{Guid.NewGuid():N}";
         _options = new PostgresSubscriptionOptions
@@ -34,7 +38,7 @@ public class PostgresChannelTests
     {
         // Arrange
         var topicName = "test";
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new List<string>();
@@ -56,7 +60,7 @@ public class PostgresChannelTests
     public async Task SendMessage_Should_SendMessageOverChannel()
     {
         // Arrange
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         using var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
@@ -77,7 +81,7 @@ public class PostgresChannelTests
         // Arrange
         var topicName = "test";
         const int messageCount = 20;
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
@@ -107,7 +111,7 @@ public class PostgresChannelTests
         // Arrange
         var topicName = "test";
 
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
@@ -139,7 +143,7 @@ public class PostgresChannelTests
         // Arrange
         var topicName = "test";
 
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
@@ -171,7 +175,7 @@ public class PostgresChannelTests
     {
         // Arrange
         var topicName = "test";
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
@@ -193,7 +197,7 @@ public class PostgresChannelTests
         // Arrange
         var topicName = "test";
 
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
@@ -222,7 +226,7 @@ public class PostgresChannelTests
         // Arrange
         var topicName = "test";
 
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
@@ -248,7 +252,7 @@ public class PostgresChannelTests
         // Arrange
         var topicName = "test";
 
-        var channel = new PostgresChannel(_options);
+        var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
@@ -291,7 +295,7 @@ public class PostgresChannelTests
             },
             ChannelName = _channelName
         };
-        var channel = new PostgresChannel(options);
+        var channel = new PostgresChannel(_events, options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         using var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
@@ -350,7 +354,7 @@ public class PostgresChannelTests
             },
             ChannelName = _channelName
         };
-        var channel = new PostgresChannel(options);
+        var channel = new PostgresChannel(_events, options);
         await channel.EnsureInitialized(CancellationToken.None);
 
         using var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
