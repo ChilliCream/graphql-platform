@@ -22,5 +22,5 @@
   "cSpell.words": [
     "Nats"
   ],
-  "dotnet.defaultSolution": "src/HotChocolate/Fusion/HotChocolate.Fusion.sln"
+  "dotnet.defaultSolution": "src/All.sln"
 }
