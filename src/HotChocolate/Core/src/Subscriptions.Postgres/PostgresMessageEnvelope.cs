@@ -7,6 +7,7 @@ namespace HotChocolate.Subscriptions.Postgres;
 
 internal readonly struct PostgresMessageEnvelope
 {
+    private static readonly Encoding _utf8 = Encoding.UTF8;
     private static readonly Random _random = Random.Shared;
     private const byte separator = (byte)':';
     private const byte _messageIdLength = 24;
@@ -23,8 +24,8 @@ internal readonly struct PostgresMessageEnvelope
 
     public string Format()
     {
-        var topicMaxBytesCount = Encoding.UTF8.GetMaxByteCount(Topic.Length);
-        var payloadMaxBytesCount = Encoding.UTF8.GetMaxByteCount(Payload.Length);
+        var topicMaxBytesCount = _utf8.GetMaxByteCount(Topic.Length);
+        var payloadMaxBytesCount = _utf8.GetMaxByteCount(Payload.Length);
         // we encode the topic to base64 to ensure that we do not have the separator in the topic
         var topicMaxLength = Base64.GetMaxEncodedToUtf8Length(topicMaxBytesCount);
         var maxSize = topicMaxLength + 2 + payloadMaxBytesCount + _messageIdLength;
@@ -54,7 +55,7 @@ internal readonly struct PostgresMessageEnvelope
         slicedBuffer = slicedBuffer[1..];
 
         // write topic as base64
-        var topicLengthUtf8 = Encoding.UTF8.GetBytes(Topic, slicedBuffer);
+        var topicLengthUtf8 = _utf8.GetBytes(Topic, slicedBuffer);
         Base64.EncodeToUtf8InPlace(slicedBuffer, topicLengthUtf8, out var topicLengthBase64);
         slicedBuffer = slicedBuffer[topicLengthBase64..];
 
@@ -63,11 +64,11 @@ internal readonly struct PostgresMessageEnvelope
         slicedBuffer = slicedBuffer[1..];
 
         // write payload
-        var payloadLengthUtf8 = Encoding.UTF8.GetBytes(Payload, slicedBuffer);
+        var payloadLengthUtf8 = _utf8.GetBytes(Payload, slicedBuffer);
 
         // create string
         var endOfEncodedString = topicLengthBase64 + 2 + payloadLengthUtf8 + _messageIdLength;
-        var result = Encoding.UTF8.GetString(buffer[..endOfEncodedString]);
+        var result = _utf8.GetString(buffer[..endOfEncodedString]);
 
         if (bufferArray is not null)
         {
@@ -82,7 +83,7 @@ internal readonly struct PostgresMessageEnvelope
         [NotNullWhen(true)] out string? topic,
         [NotNullWhen(true)] out string? payload)
     {
-        var maxSize = Encoding.UTF8.GetMaxByteCount(message.Length);
+        var maxSize = _utf8.GetMaxByteCount(message.Length);
 
         byte[]? bufferArray = null;
         var buffer = maxSize < 1024
@@ -90,7 +91,7 @@ internal readonly struct PostgresMessageEnvelope
             : bufferArray = ArrayPool<byte>.Shared.Rent(maxSize);
 
         // get the bytes of the message
-        var utf8ByteLength = Encoding.UTF8.GetBytes(message, buffer);
+        var utf8ByteLength = _utf8.GetBytes(message, buffer);
 
         // slice the buffer to the actual length
         buffer = buffer[..utf8ByteLength];
@@ -110,8 +111,8 @@ internal readonly struct PostgresMessageEnvelope
         var topicLengthBase64 = indexOfColon;
         Base64.DecodeFromUtf8InPlace(buffer[..topicLengthBase64], out var topicLengthUtf8);
 
-        topic = Encoding.UTF8.GetString(buffer[..topicLengthUtf8]);
-        payload = Encoding.UTF8.GetString(buffer[(indexOfColon + 1)..]);
+        topic = _utf8.GetString(buffer[..topicLengthUtf8]);
+        payload = _utf8.GetString(buffer[(indexOfColon + 1)..]);
 
         if (bufferArray is not null)
         {
