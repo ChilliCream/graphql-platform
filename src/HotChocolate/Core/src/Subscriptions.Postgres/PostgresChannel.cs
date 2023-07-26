@@ -161,7 +161,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
             _connection.Notification += _handler;
 
             await using var command = _connection.CreateCommand();
-            command.CommandText = $"LISTEN {_channelName}";
+            command.CommandText = $"""LISTEN "{_channelName}" """;
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
@@ -172,7 +172,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
                 _connection.Notification -= _handler;
 
                 await using var command = _connection.CreateCommand();
-                command.CommandText = $"UNLISTEN {_channelName}";
+                command.CommandText = $"""UNLISTEN "{_channelName}" """;
                 await command.ExecuteNonQueryAsync();
             }
             catch (Exception)
