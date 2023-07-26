@@ -15,13 +15,7 @@ builder.Services
 
 builder.Services
     .AddFusionGatewayServer()
-    .ConfigureFromCloud(
-        b =>
-        {
-            b.ApiId = config.ApiId;
-            b.ApiKey = config.ApiKey;
-            b.Stage = config.Stage;
-        });
+    .ConfigureFromCloud();
 
 var app = builder.Build();
 
