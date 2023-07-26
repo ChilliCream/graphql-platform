@@ -9,7 +9,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly string _channelName;
     private readonly ResilientNpgsqlConnection _connection;
-    private readonly List<PostgresChannelObserver> _observers = new();
+    private readonly CopyOnWriteList<PostgresChannelObserver> _observers = new();
     private readonly PostgresChannelWriter _writer;
     private bool _initialized;
     private ContinuousTask? _waitOnNotificationTask;
@@ -111,11 +111,12 @@ internal sealed class PostgresChannel : IAsyncDisposable
         // of creating a full message envelope
         if (PostgresMessageEnvelope.TryParse(eventArgs.Payload, out var topic, out var payload))
         {
-            for (var i = 0; i < _observers.Count; i++)
+            var observers = _observers.Items;
+            for (var i = 0; i < observers.Length; i++)
             {
-                if (_observers[i].Topic == topic)
+                if (observers[i].Topic == topic)
                 {
-                    _observers[i].OnNext(payload);
+                    observers[i].OnNext(payload);
                 }
             }
         }
@@ -180,4 +181,46 @@ internal sealed class PostgresChannel : IAsyncDisposable
             }
         }
     }
+}
+
+internal sealed class CopyOnWriteList<T> where T : class
+{
+    private readonly object _sync = new();
+
+    private T[] _items = Array.Empty<T>();
+
+    public void Add(T item)
+    {
+        lock (_sync)
+        {
+            var items = new T[_items.Length + 1];
+            Array.Copy(_items, items, _items.Length);
+            items[^1] = item;
+            _items = items;
+        }
+    }
+
+    public void Remove(T item)
+    {
+        lock (_sync)
+        {
+            var index = Array.IndexOf(_items, item);
+            if (index < 0)
+            {
+                // Item not found
+                return;
+            }
+
+            var items = new T[_items.Length - 1];
+            // Copy items before the one to remove
+            Array.Copy(_items, 0, items, 0, index);
+            // Copy items after the one to remove
+            Array.Copy(_items, index + 1, items, index, _items.Length - index - 1);
+            _items = items;
+        }
+    }
+
+    // we do not return a IReadOnlyList<T> because array access is faster and it's an internal
+    // collection
+    public T[] Items => _items;
 }
