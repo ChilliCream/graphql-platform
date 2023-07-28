@@ -314,11 +314,11 @@ public sealed class DelegateToRemoteSchemaMiddleware
             {
                 if (paths[i] is IndexerPathSegment index)
                 {
-                    current = PathFactory.Instance.Append(current, index.Index);
+                    current = current.Append(index.Index);
                 }
                 else if (paths[i] is NamePathSegment name)
                 {
-                    current = PathFactory.Instance.Append(current, name.Name);
+                    current = current.Append(name.Name);
                 }
             }
 

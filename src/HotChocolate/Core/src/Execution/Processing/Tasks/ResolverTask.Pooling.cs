@@ -13,7 +13,6 @@ internal sealed partial class ResolverTask
         ObjectResult parentResult,
         int responseIndex,
         object? parent,
-        Path path,
         IImmutableDictionary<string, object?> scopedContextData)
     {
         _operationContext = operationContext;
@@ -24,7 +23,6 @@ internal sealed partial class ResolverTask
             parentResult,
             responseIndex,
             parent,
-            path,
             scopedContextData);
         ParentResult = parentResult;
         IsSerial = selection.Strategy is SelectionExecutionStrategy.Serial;

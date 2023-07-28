@@ -251,7 +251,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 _parent,
                 ParentResult,
                 ResponseIndex,
-                Path,
                 ScopedContextData);
 
         // We need to manually copy the local state.

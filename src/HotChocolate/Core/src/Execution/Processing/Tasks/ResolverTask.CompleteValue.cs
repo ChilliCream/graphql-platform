@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Processing.ValueCompletion;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -13,28 +14,19 @@ internal sealed partial class ResolverTask
     /// <param name="cancellationToken">The execution cancellation token.</param>
     private void CompleteValue(bool success, CancellationToken cancellationToken)
     {
-        object? completedValue = null;
+        var responseIndex = _context.ResponseIndex;
+        var responseName = _context.ResponseName;
+        var parentResult = _context.ParentResult;
+        var result = _context.Result;
+        object? completedResult = null;
 
         try
         {
             // we will only try to complete the resolver value if there are no known errors.
             if (success)
             {
-                completedValue = ValueCompletion.Complete(
-                    _operationContext,
-                    _context,
-                    _taskBuffer,
-                    _context.Selection,
-                    _context.Path,
-                    _selection.Type,
-                    _context.ResponseName,
-                    _context.ResponseIndex,
-                    _context.Result);
-
-                if (completedValue is ResultData result)
-                {
-                    result.Parent = _context.ParentResult;
-                }
+                var completionContext = new ValueCompletionContext(_operationContext, _context, _taskBuffer);
+                completedResult = Complete(completionContext, _selection, parentResult, responseIndex, result);
             }
         }
         catch (OperationCanceledException)
@@ -52,27 +44,18 @@ internal sealed partial class ResolverTask
             if (!cancellationToken.IsCancellationRequested)
             {
                 _context.ReportError(ex);
-                completedValue = null;
+                completedResult = null;
             }
         }
 
         var isNonNullType = _selection.Type.Kind is TypeKind.NonNull;
+        _context.ParentResult.SetValueUnsafe(responseIndex, responseName, completedResult, !isNonNullType);
 
-        _context.ParentResult.SetValueUnsafe(
-            _context.ResponseIndex,
-            _context.ResponseName,
-            completedValue,
-            !isNonNullType);
-
-        if (completedValue is null && isNonNullType)
+        if (completedResult is null && isNonNullType)
         {
-            // if we detect a non-null violation we will stash it for later.
-            // the non-null propagation is delayed so that we can parallelize better.
+            PropagateNullValues(parentResult);
             _completionStatus = ExecutionTaskStatus.Faulted;
-            _operationContext.Result.AddNonNullViolation(
-                _context.Selection,
-                _context.Path,
-                _context.ParentResult);
+            _operationContext.Result.AddNonNullViolation(_selection, _context.Path);
             _taskBuffer.Clear();
         }
     }

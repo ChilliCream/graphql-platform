@@ -4,8 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>
@@ -36,7 +34,7 @@ public class Error : IError
 
         Message = message;
         Code = code;
-        Path = path?.Clone();
+        Path = path;
         Locations = locations;
         Extensions = extensions;
         Exception = exception;
@@ -72,8 +70,10 @@ public class Error : IError
 
     /// <inheritdoc />
     public Exception? Exception { get; }
-
-    /// <inheritdoc />
+    
+    /// <summary>
+    /// Gets the syntax node that caused the error.
+    /// </summary>
     public ISyntaxNode? SyntaxNode { get; }
 
     /// <inheritdoc />

@@ -183,7 +183,7 @@ internal sealed class BufferedRequest
             return inputFormatter.FormatValue(
                 value,
                 variableType,
-                PathFactory.Instance.New(variableDefinition.Variable.Name.Value));
+                Path.Root.Append(variableDefinition.Variable.Name.Value));
         }
 
         throw BufferedRequest_VariableDoesNotExist(name);

@@ -20,7 +20,6 @@ internal partial class MiddlewareContext
         ObjectResult parentResult,
         int responseIndex,
         object? parent,
-        Path path,
         IImmutableDictionary<string, object?> scopedContextData)
     {
         _operationContext = operationContext;
@@ -31,7 +30,6 @@ internal partial class MiddlewareContext
         ResponseIndex = responseIndex;
         _parent = parent;
         _parser = operationContext.InputParser;
-        Path = path;
         ScopedContextData = scopedContextData;
         LocalContextData = _emptyLocalContextData;
         Arguments = _selection.Arguments;
@@ -52,7 +50,6 @@ internal partial class MiddlewareContext
         _parser = default!;
         _operationResultBuilder.Context = default!;
 
-        Path = default!;
         ScopedContextData = default!;
         LocalContextData = default!;
         IsResultModified = false;

@@ -66,18 +66,7 @@ internal static class InternalServiceCollectionExtensions
                 sp.GetRequiredService<ObjectPool<ResolverTask>>()));
         return services;
     }
-
-    internal static IServiceCollection TryAddPathSegmentPool(
-        this IServiceCollection services,
-        int maximumRetained = 256)
-    {
-        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(
-            _ => new IndexerPathSegmentPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<NamePathSegment>>>(
-            _ => new NamePathSegmentPool(maximumRetained));
-        return services;
-    }
-
+    
     internal static IServiceCollection TryAddOperationCompilerPool(
         this IServiceCollection services)
     {

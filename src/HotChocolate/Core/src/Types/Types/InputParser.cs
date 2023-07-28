@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -36,7 +35,7 @@ public class InputParser
             throw new ArgumentNullException(nameof(field));
         }
 
-        Path path = PathFactory.Instance.New(field.Name);
+        var path = Path.Root.Append(field.Name);
         var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
         runtimeValue = FormatValue(field, runtimeValue);
 
@@ -133,7 +132,7 @@ public class InputParser
                         ParseLiteralInternal(
                             items[i],
                             elementType,
-                            PathFactory.Instance.Append(path, i),
+                            path.Append(i),
                             stack,
                             defaults,
                             field));
@@ -144,7 +143,7 @@ public class InputParser
                 for (var i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    Path itemPath = PathFactory.Instance.Append(path, i);
+                    var itemPath = path.Append(i);
 
                     if (item.Kind != SyntaxKind.ListValue)
                     {
@@ -171,7 +170,7 @@ public class InputParser
                 ParseLiteralInternal(
                     resultValue,
                     type.ElementType,
-                    PathFactory.Instance.Append(path, 0),
+                    path.Append(0),
                     stack,
                     defaults,
                     field));
@@ -229,7 +228,7 @@ public class InputParser
                     if (type.Fields.TryGetField(fieldValue.Name.Value, out var field))
                     {
                         var literal = fieldValue.Value;
-                        Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                        var fieldPath = path.Append(field.Name);
 
                         if (literal.Kind is SyntaxKind.NullValue)
                         {
@@ -281,7 +280,7 @@ public class InputParser
                         if (!processed[i])
                         {
                             var field = type.Fields[i];
-                            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                            var fieldPath = path.Append(field.Name);
                             fieldValues[i] = CreateDefaultValue(field, fieldPath, stack);
                         }
                     }
@@ -383,7 +382,7 @@ public class InputParser
                 if (type.Arguments.TryGetField(fieldValue.Name.Value, out var field))
                 {
                     var literal = fieldValue.Value;
-                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                    var fieldPath = path.Append(field.Name);
 
                     if (literal.Kind is SyntaxKind.NullValue &&
                         field.Type.Kind is TypeKind.NonNull)
@@ -429,7 +428,7 @@ public class InputParser
                     if (!processed[i])
                     {
                         var field = type.Arguments[i];
-                        Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                        var fieldPath = path.Append(field.Name);
                         fieldValues[i] = CreateDefaultValue(field, fieldPath, stack);
                     }
                 }
@@ -505,9 +504,8 @@ public class InputParser
 
             for (var i = 0; i < serializedList.Count; i++)
             {
-                Path newPath = PathFactory.Instance.Append(path, i);
-                list.Add(
-                    Deserialize(serializedList[i], type.ElementType, newPath, field));
+                var newPath = path.Append(i);
+                list.Add(Deserialize(serializedList[i], type.ElementType, newPath, field));
             }
 
             return list;
@@ -546,7 +544,7 @@ public class InputParser
 
                 if (map.TryGetValue(field.Name, out var fieldValue))
                 {
-                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                    var fieldPath = path.Append(field.Name);
 
                     if (fieldValue is null)
                     {
@@ -575,7 +573,7 @@ public class InputParser
                 }
                 else
                 {
-                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                    var fieldPath = path.Append(field.Name);
                     fieldValues[i] = CreateDefaultValue(field, fieldPath, 0);
                 }
             }

@@ -17,6 +17,10 @@ internal sealed partial class ResolverTask
         {
             using (DiagnosticEvents.ResolveFieldValue(_context))
             {
+                // we initialize the field here so we are able to propagate non-null violations
+                // through the result tree.
+                _context.ParentResult.InitValueUnsafe(_context.ResponseIndex, _context.Selection);
+                
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
 
@@ -232,7 +236,7 @@ internal sealed partial class ResolverTask
                     new DeferredStream(
                         Selection,
                         streamDirective.Label,
-                        _context.Path.Clone(),
+                        _context.Path,
                         _context.Parent<object>(),
                         count - 1,
                         enumerator,

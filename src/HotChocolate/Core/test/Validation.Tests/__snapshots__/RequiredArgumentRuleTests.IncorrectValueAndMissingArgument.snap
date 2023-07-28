@@ -5,11 +5,10 @@
     "Path": {
       "Name": "arguments",
       "Parent": {
-        "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -62,11 +61,10 @@
     "Path": {
       "Name": "arguments",
       "Parent": {
-        "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -144,11 +142,10 @@
     "Path": {
       "Name": "arguments",
       "Parent": {
-        "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [

@@ -227,7 +227,7 @@ internal static class MergeRequestHelper
         }
 
         return error.WithPath(error.Path.Length == 1
-            ? PathFactory.Instance.New(responseName)
+            ? Path.Root.Append(responseName)
             : ReplaceRoot(error.Path, responseName));
     }
 
@@ -282,17 +282,17 @@ internal static class MergeRequestHelper
 
             paths = paths.Slice(1);
 
-            current = PathFactory.Instance.New(responseName);
+            current = Path.Root.Append(responseName);
 
             for (var i = 0; i < paths.Length; i++)
             {
                 if (paths[i] is IndexerPathSegment index)
                 {
-                    current = PathFactory.Instance.Append(current, index.Index);
+                    current = current.Append(index.Index);
                 }
                 else if (paths[i] is NamePathSegment name)
                 {
-                    current = PathFactory.Instance.Append(current, name.Name);
+                    current = current.Append(name.Name);
                 }
             }
 

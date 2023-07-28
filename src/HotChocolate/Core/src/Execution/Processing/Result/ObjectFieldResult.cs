@@ -25,9 +25,10 @@ public sealed class ObjectFieldResult
 
     internal bool TrySetNull()
     {
+        _value = null;
+        
         if ((_flags & Flags.InitializedAndNullable) == Flags.InitializedAndNullable)
         {
-            _value = null;
             return true;
         }
 
