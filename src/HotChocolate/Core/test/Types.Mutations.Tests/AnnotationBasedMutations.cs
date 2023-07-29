@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace HotChocolate.Types;
 
@@ -372,6 +375,21 @@ public class AnnotationBasedMutations
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddMutationType<SimpleMutationInputOverride>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Add_Error_Via_Type_Interceptor()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationInputOverride>()
+                .TryAddTypeInterceptor<SimpleMutation_ErrorViaTypeInterceptor>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -1073,9 +1091,49 @@ public class AnnotationBasedMutations
         public string MyResult2 { get; set; } = default!;
     }
 
+    internal class SimpleMutation_ErrorViaTypeInterceptor : TypeInterceptor
+    {
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase definition)
+        {
+            if (definition is not ObjectTypeDefinition objTypeDef)
+            {
+                return;
+            }
+        }
+
+        public override void OnBeforeRegisterDependencies(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase definition)
+        {
+            if (definition is ObjectTypeDefinition objTypeDef)
+            {
+                foreach (var fieldDef in objTypeDef.Fields)
+                {
+                    if (fieldDef.Name != "doSomething")
+                    {
+                        continue;
+                    }
+
+                    foreach (var argDef in fieldDef.Arguments)
+                    {
+                        if (argDef.Name == "something")
+                        {
+                            fieldDef.AddErrorType(
+                                discoveryContext.DescriptorContext,
+                                typeof(OutOfMemoryException));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public class SimpleMutationInputOverride
     {
-        public string DoSomething(DoSomethingInput something)
+        public string DoSomething(
+            DoSomethingInput something)
         {
             throw new Exception();
         }
