@@ -1,4 +1,5 @@
-﻿using static HotChocolate.Types.ErrorContextDataKeys;
+using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.ErrorContextDataKeys;
 
 #nullable enable
 
@@ -41,8 +42,16 @@ public static class ObjectFieldDefinitionExtensions
 
         if (descriptorContext.ContextData[MutationContextDataKeys.Options] == null)
         {
-            throw new Exception("Mutation convention isn't turned on");
-            // TODO: Proper exception, or maybe we just let this through?
+            var richMessage = string.Format(
+                MutationConvention_ShouldBeEnabled_WhenAddingErrorType,
+                errorType.Name,
+                fieldDefinition.Name);
+
+            var schemaError = SchemaErrorBuilder.New()
+                .SetMessage(richMessage)
+                .Build();
+
+            throw new SchemaException(schemaError);
         }
 
         var definitions = ErrorFactoryCompiler.Compile(errorType);
