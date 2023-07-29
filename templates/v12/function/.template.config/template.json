@@ -4,9 +4,9 @@
   "classifications": ["Web", "GraphQL", "Azure"],
   "identity": "HotChocolate.Template.AzureFunctions",
   "sourceName": "HotChocolate.Template.AzureFunctions",
-  "name": "HotChocolate GraphQL Function",
+  "name": "GraphQL Function",
   "shortName": "graphql-azf",
-  "defaultName": "GraphQL AzureFunction",
+  "defaultName": "GraphQL Function",
   "description": "",
   "preferNameDirectory": true,
   "tags": {

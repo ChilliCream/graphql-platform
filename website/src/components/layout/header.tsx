@@ -1,3 +1,4 @@
+import { useDocSearchKeyboardEvents } from "@docsearch/react";
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, {
@@ -10,9 +11,11 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 
-import { WorkshopDotNetDaysLasi } from "@/components/images/workshop-dotnetdays-lasi";
+import { WorkshopNdcCopenhagen } from "@/components/images/workshop-ndc-copenhagen";
+import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -25,7 +28,7 @@ import {
   SiteSiteMetadataTools,
 } from "@/graphql-types";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
-import { useObservable } from "@/state";
+import { State, WorkshopsState, useObservable } from "@/state";
 
 // Brands
 import GithubIconSvg from "@/images/brands/github.svg";
@@ -140,6 +143,12 @@ export const Header: FC = () => {
       subscription.unsubscribe();
     };
   }, [showShadow$]);
+
+  useDocSearchKeyboardEvents({
+    isOpen: searchOpen,
+    onOpen: handleSearchOpen,
+    onClose: handleSearchClose,
+  });
 
   return (
     <Container ref={containerRef}>
@@ -427,6 +436,10 @@ interface DeveloperNavItemProps {
 }
 
 const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
+  const workshop = useSelector<State, WorkshopsState[number] | undefined>(
+    (state) => state.workshops.find(({ hero, active }) => hero && active)
+  );
+
   const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
     <>
       <SubNavMain>
@@ -487,16 +500,22 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
         </SubNavGroup>
       </SubNavMain>
       <SubNavAdditionalInfo>
-        <SubNavTitle>Upcoming Workshop</SubNavTitle>
-        <TeaserLink to="https://dotnetdays.ro/workshops/Building-Modern-Apps-with-GraphQL-and-net7">
-          <TeaserImage>
-            <WorkshopDotNetDaysLasi />
-          </TeaserImage>
-          <TeaserMetadata>20 - 21 Apr 2023 ・ dotnetdays (lasi)</TeaserMetadata>
-          <TeaserTitle>
-            Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18
-          </TeaserTitle>
-        </TeaserLink>
+        {workshop && (
+          <>
+            <SubNavTitle>Upcoming Workshop</SubNavTitle>
+            <TeaserLink to={workshop.url}>
+              <TeaserImage>
+                <WorkshopHero image={workshop.image} />
+              </TeaserImage>
+              <TeaserMetadata>
+                {`${workshop.date} ・ ${workshop.host} `}
+                <NoWrap>{workshop.place}</NoWrap>
+              </TeaserMetadata>
+              <TeaserTitle>{workshop.title}</TeaserTitle>
+              <TeaserMessage>{workshop.teaser}</TeaserMessage>
+            </TeaserLink>
+          </>
+        )}
       </SubNavAdditionalInfo>
     </>
   ));
@@ -906,6 +925,23 @@ const TeaserLink = styled(Link)`
   }
 `;
 
+interface WorkshopHeroProps {
+  readonly image: string;
+}
+
+const WorkshopHero: FC<WorkshopHeroProps> = ({ image }) => {
+  switch (image) {
+    case "ndc-oslo":
+      return <WorkshopNdcOslo />;
+
+    case "ndc-copenhagen":
+      return <WorkshopNdcCopenhagen />;
+
+    default:
+      return null;
+  }
+};
+
 const TeaserImage = styled.div`
   overflow: visible;
   max-width: 80%;
@@ -925,17 +961,30 @@ const TeaserImage = styled.div`
 const TeaserMetadata = styled.div`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   margin: 15px 0 7px;
   font-size: 0.778em;
+  line-height: 1.25;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
+`;
+
+const NoWrap = styled.span`
+  white-space: nowrap;
 `;
 
 const TeaserTitle = styled.h2`
   margin: 0;
   font-size: 1em;
   line-height: 1.5em;
+  color: ${THEME_COLORS.text};
+  transition: color 0.2s ease-in-out;
+`;
+
+const TeaserMessage = styled.div`
+  font-size: 0.778em;
+  line-height: 1.2;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
 `;

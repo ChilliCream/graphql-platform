@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
+using static HotChocolate.AspNetCore.Serialization.DefaultHttpRequestParser;
 using static HotChocolate.Execution.GraphQLRequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -13,7 +14,6 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 {
     private readonly IHttpRequestParser _requestParser;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
-    private readonly PathString _matchUrl;
 
     public HttpGetMiddleware(
         HttpRequestDelegate next,
@@ -21,7 +21,6 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
-        PathString matchUrl,
         string schemaName)
         : base(next, executorResolver, responseFormatter, schemaName)
     {
@@ -29,33 +28,49 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             throw new ArgumentNullException(nameof(requestParser));
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
-        _matchUrl = matchUrl;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (HttpMethods.IsGet(context.Request.Method) &&
-            (!_matchUrl.HasValue ||
-                (context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
-                !subPath.HasValue)) &&
-            (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
+        if (HttpMethods.IsGet(context.Request.Method))
         {
-            if (!IsDefaultSchema)
-            {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName;
-            }
+            var options = GetOptions(context);
 
-            using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
+            if (options.EnableGetRequests &&
+
+                // Verify that the request is relevant to this middleware.
+                (context.Request.Query.ContainsKey(QueryKey) ||
+                    context.Request.Query.ContainsKey(QueryIdKey) ||
+                    context.Request.Query.ContainsKey(ExtensionsKey)) &&
+
+                // Allow ALL GET requests if we do NOT enforce preflight
+                // requests on HTTP GraphQL GET requests
+                (!options.EnforceGetRequestsPreflightHeader ||
+
+                    // Allow HTTP GraphQL GET requests if the preflight header is set.
+                    context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) ||
+
+                    // Allow HTTP GraphQL GET requests if the content type is set to
+                    // application/json.
+                    ParseContentType(context) is RequestContentType.Json))
             {
-                await HandleRequestAsync(context);
+                if (!IsDefaultSchema)
+                {
+                    context.Items[WellKnownContextData.SchemaName] = SchemaName;
+                }
+
+                using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
+                {
+                    await HandleRequestAsync(context);
+                }
+
+                return;
             }
         }
-        else
-        {
-            // if the request is not a get request or if the content type is not correct
-            // we will just invoke the next middleware and do nothing.
-            await NextAsync(context);
-        }
+
+        // if the request is not a get request or if the content type is not correct
+        // we will just invoke the next middleware and do nothing.
+        await NextAsync(context);
     }
 
     private async Task HandleRequestAsync(HttpContext context)
@@ -111,6 +126,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
         // next we parse the GraphQL request.
         GraphQLRequest request;
+
         using (_diagnosticEvents.ParseHttpRequest(context))
         {
             try
@@ -141,7 +157,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         // after successfully parsing the request we now will attempt to execute the request.
         try
         {
-            var options = context.GetGraphQLServerOptions();
+            var options = GetOptions(context);
 
             if (options is null or { AllowedGetOperations: AllowedGetOperations.Query })
             {
@@ -151,9 +167,31 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             }
             else
             {
-                requestFlags = (requestFlags & AllowStreams) == AllowStreams
-                    ? AllowQuery | AllowMutation | AllowStreams
-                    : AllowQuery | AllowMutation;
+                var flags = options.AllowedGetOperations;
+                var newRequestFlags = GraphQLRequestFlags.None;
+                
+                if ((flags & AllowedGetOperations.Query) == AllowedGetOperations.Query)
+                {
+                    newRequestFlags |= AllowQuery;
+                }
+                
+                if ((flags & AllowedGetOperations.Mutation) == AllowedGetOperations.Mutation)
+                {
+                    newRequestFlags |= AllowMutation;
+                }
+                
+                if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription &&
+                    (requestFlags & AllowSubscription) == AllowSubscription)
+                {
+                    newRequestFlags |= AllowSubscription;
+                }
+                
+                if((requestFlags & AllowStreams) == AllowStreams)
+                {
+                    newRequestFlags |= AllowStreams;
+                }
+
+                requestFlags = newRequestFlags;
             }
 
             result = await ExecuteSingleAsync(

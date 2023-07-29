@@ -12,13 +12,13 @@ namespace HotChocolate.Utilities.Introspection
         public void DeserializeStarWarsIntrospectionResult()
         {
             // arrange
-            string json = FileResource.Open("StarWarsIntrospectionResult.json");
-            IntrospectionResult result = JsonSerializer.Deserialize<IntrospectionResult>(
+            var json = FileResource.Open("StarWarsIntrospectionResult.json");
+            var result = JsonSerializer.Deserialize<IntrospectionResult>(
                 json,
                 IntrospectionClient.SerializerOptions);
 
             // act
-            DocumentNode schema = IntrospectionDeserializer.Deserialize(result);
+            var schema = IntrospectionDeserializer.Deserialize(result);
 
             // assert
             schema.ToString(true).MatchSnapshot();
@@ -28,13 +28,13 @@ namespace HotChocolate.Utilities.Introspection
         public void DeserializeIntrospectionWithIntDefaultValues()
         {
             // arrange
-            string json = FileResource.Open("IntrospectionWithDefaultValues.json");
-            IntrospectionResult result = JsonSerializer.Deserialize<IntrospectionResult>(
+            var json = FileResource.Open("IntrospectionWithDefaultValues.json");
+            var result = JsonSerializer.Deserialize<IntrospectionResult>(
                 json,
                 IntrospectionClient.SerializerOptions);
 
             // act
-            DocumentNode schema = IntrospectionDeserializer.Deserialize(result);
+            var schema = IntrospectionDeserializer.Deserialize(result);
 
             // assert
             schema.ToString(true).MatchSnapshot();

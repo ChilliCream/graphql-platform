@@ -91,7 +91,8 @@ public static class RequestExecutorServiceCollectionExtensions
                 return new ParserOptions(
                     noLocations: !options.IncludeLocations,
                     maxAllowedNodes: options.MaxAllowedNodes,
-                    maxAllowedTokens: options.MaxAllowedTokens);
+                    maxAllowedTokens: options.MaxAllowedTokens,
+                    maxAllowedFields: options.MaxAllowedFields);
             });
 
         return services;

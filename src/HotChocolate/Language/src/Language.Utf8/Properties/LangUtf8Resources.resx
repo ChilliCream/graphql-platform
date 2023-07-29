@@ -201,4 +201,7 @@
   <data name="Utf8GraphQLParser_Start_MaxAllowedNodesReached" xml:space="preserve">
     <value>Document contains more than {0} nodes. Parsing aborted.</value>
   </data>
+  <data name="Utf8GraphQLParser_Start_MaxAllowedFieldsReached" xml:space="preserve">
+    <value>The GraphQL request document contains more than {0} fields. Parsing aborted.</value>
+  </data>
 </root>

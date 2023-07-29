@@ -1,3 +1,5 @@
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+
 namespace HotChocolate.Skimmed;
 
 public sealed class ObjectType : ComplexType, INamedTypeSystemMember<ObjectType>
@@ -7,6 +9,9 @@ public sealed class ObjectType : ComplexType, INamedTypeSystemMember<ObjectType>
     }
 
     public override TypeKind Kind => TypeKind.Object;
+
+    public override string ToString()
+        => RewriteObjectType(this).ToString(true);
 
     public static ObjectType Create(string name) => new(name);
 }

@@ -30,7 +30,7 @@ internal sealed partial class ResultBuilder
 
     public IReadOnlyList<IError> Errors => _errors;
 
-    public void SetData(ObjectResult data)
+    public void SetData(ObjectResult? data)
     {
         if (_items is not null)
         {
@@ -135,6 +135,18 @@ internal sealed partial class ResultBuilder
         lock (_cleanupTasks)
         {
             _cleanupTasks.Add(() => action(state));
+        }
+    }
+    
+    public void RegisterForCleanup<T>(T state) where T : IDisposable
+    {
+        lock (_cleanupTasks)
+        {
+            _cleanupTasks.Add(() =>
+            {
+                state.Dispose();
+                return default!;
+            });
         }
     }
 

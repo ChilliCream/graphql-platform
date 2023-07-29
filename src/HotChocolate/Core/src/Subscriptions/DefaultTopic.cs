@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
@@ -13,16 +15,15 @@ namespace HotChocolate.Subscriptions;
 /// <typeparam name="TMessage">
 /// The message.
 /// </typeparam>
-public abstract class DefaultTopic<TMessage> : IDisposable
+public abstract class DefaultTopic<TMessage> : ITopic
 {
     private readonly CancellationTokenSource _cts = new();
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly Channel<MessageEnvelope<TMessage>> _incoming;
-    private readonly List<TopicShard<TMessage>> _shards = new();
+    private readonly ReaderWriterLockSlim _lock = new();
+    private readonly Channel<TMessage> _incoming;
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
-    private int _subscribers;
-    private bool _closed;
+    private readonly List<Channel<TMessage>> _subscribers = new();
+    private bool _completed;
     private bool _disposed;
 
     public event EventHandler<EventArgs>? Closed;
@@ -36,13 +37,10 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode)(int)fullMode
+            FullMode = (BoundedChannelFullMode) (int) fullMode
         };
-        _incoming = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
+        _incoming = CreateUnbounded<TMessage>();
         _diagnosticEvents = diagnosticEvents;
-
-        // initially we will run with one shard.
-        _shards.Add(new TopicShard<TMessage>(_channelOptions, name, 0, diagnosticEvents));
     }
 
     protected DefaultTopic(
@@ -50,60 +48,88 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         int capacity,
         TopicBufferFullMode fullMode,
         ISubscriptionDiagnosticEvents diagnosticEvents,
-        Channel<MessageEnvelope<TMessage>> incomingMessages)
+        Channel<TMessage> incomingMessages)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode)(int)fullMode
+            FullMode = (BoundedChannelFullMode) (int) fullMode
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
-
-        // initially we will run with one shard.
-        _shards.Add(new TopicShard<TMessage>(_channelOptions, name, 0, diagnosticEvents));
     }
 
     /// <summary>
-    /// The name of this topic.
+    /// Gets the name of this topic.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// Allows to write to the incoming message channel.
+    /// Gets the message type of this topic.
     /// </summary>
-    protected ChannelWriter<MessageEnvelope<TMessage>> Incoming => _incoming;
+    public Type MessageType => typeof(TMessage);
 
     /// <summary>
     /// Allows access to the diagnostic events.
     /// </summary>
     protected ISubscriptionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
-    internal async ValueTask<ISourceStream<TMessage>?> TrySubscribeAsync(
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Publishes a new message to this topic.
+    /// </summary>
+    /// <param name="message">
+    /// The message that shall be published.
+    /// </param>
+    public void Publish(TMessage message)
+        => _incoming.Writer.TryWrite(message);
+
+    /// <summary>
+    /// Completes this topic.
+    /// </summary>
+    public void Complete()
     {
+        if (_completed)
+        {
+            return;
+        }
+
+        _lock.EnterWriteLock();
+
         try
         {
-            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            _incoming.Writer.TryComplete();
+            _completed = true;
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
 
-            try
-            {
-                if (_closed)
-                {
-                    // it could have happened that we have entered subscribe after it was
-                    // already be completed. In this case we will return null to
-                    // signal that subscribe was unsuccessful.
-                    return null;
-                }
+    /// <summary>
+    /// Allows to subscribe to this topic. If the topic is already completed, this method will
+    /// return null.
+    /// </summary>
+    /// <returns>
+    /// Returns a source stream that allows to read messages from this topic.
+    /// </returns>
+    internal ISourceStream<TMessage>? TrySubscribe()
+    {
+        _lock.EnterReadLock();
 
-                var stream = GetOptimalShard().Subscribe();
-                _diagnosticEvents.SubscribeSuccess(Name);
-                return stream;
-            }
-            finally
+        try
+        {
+            if (_completed)
             {
-                _semaphore.Release();
+                // it could have happened that we have entered subscribe after it was
+                // already be completed. In this case we will return null to
+                // signal that subscribe was unsuccessful.
+                return null;
             }
+
+            var stream = SubscribeUnsafe();
+            _diagnosticEvents.SubscribeSuccess(Name);
+            return stream;
         }
         catch
         {
@@ -111,66 +137,51 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             // in this case we return null to signal that subscribe was unsuccessful.
             return null;
         }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
+    }
+
+    private DefaultSourceStream<TMessage> SubscribeUnsafe()
+    {
+        var channel = CreateBounded<TMessage>(_channelOptions);
+        var stream = new DefaultSourceStream<TMessage>(this, channel);
+        _subscribers.Add(channel);
+        return stream;
     }
 
     /// <summary>
-    /// Gets the shard that is cheapest to get and is not considered full.
-    ///
-    /// We will try to balance the shards, but shards that have less than 250 subscribers
-    /// will always be picked since such a shard already will perform optimally.
+    /// Allows the subscriber to signal that it is no longer interested in the topic.
     /// </summary>
-    private TopicShard<TMessage> GetOptimalShard()
+    /// <param name="channel">
+    /// The subscribing channel.
+    /// </param>
+    internal void Unsubscribe(Channel<TMessage> channel)
     {
-        var shards = AsSpan(_shards);
+        _lock.EnterWriteLock();
 
-        var best = shards[0];
-
-        // if the first shard has less than 250 subscribers we will just take it.
-        if (best.Subscribers < 250)
+        try
         {
-            return best;
-        }
+            _subscribers.Remove(channel);
+            _diagnosticEvents.Unsubscribe(Name, 0, 1);
 
-        if (shards.Length == 1)
-        {
-            // if the first shard has more than 250 subscribers we will scale.
-            var second = CreateShard(1);
-            _shards.Insert(0, second);
-            return second;
-        }
-
-        for (var i = 1; i < shards.Length; i++)
-        {
-            var current = shards[i];
-
-            if (best.Subscribers > current.Subscribers)
+            if (_subscribers.Count == 0)
             {
-                best = current;
-            }
-
-            if (best.Subscribers < 250)
-            {
-                return best;
+                CloseUnsafe();
             }
         }
-
-        if (best.Subscribers > 999)
+        finally
         {
-            // new shards are always inserted as the first shard
-            // so that we do not need to iterate to find it as the
-            // best shard.
-            best = CreateShard(shards.Length);
-            _shards.Insert(0, best);
+            _lock.ExitWriteLock();
         }
-
-        return best;
     }
 
     internal async ValueTask ConnectAsync(CancellationToken ct = default)
     {
         try
         {
-            var session = await OnConnectAsync(_incoming.Writer, ct).ConfigureAwait(false);
+            var session = await OnConnectAsync(ct).ConfigureAwait(false);
             DiagnosticEvents.Connected(Name);
 
             BeginProcessing(session);
@@ -209,38 +220,153 @@ public abstract class DefaultTopic<TMessage> : IDisposable
 
         try
         {
-            var postponedMessages = new List<PostponedMessage>();
-
-            while (!_closed && !_incoming.Reader.Completion.IsCompleted)
+            while (await _incoming.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
             {
-                _diagnosticEvents.WaitForMessages(Name);
+                DispatchMessages();
+            }
+        }
+        finally
+        {
+            Dispose();
+        }
+    }
 
-                if (await _incoming.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
+    private void DispatchMessages()
+    {
+        _lock.EnterReadLock();
+
+        try
+        {
+            var iterations = 0;
+
+            while (_incoming.Reader.TryRead(out var message))
+            {
+                var subscribersSpan = AsSpan(_subscribers);
+                ref var start = ref MemoryMarshal.GetReference(subscribersSpan);
+                ref var end = ref Unsafe.Add(ref start, subscribersSpan.Length);
+
+                _diagnosticEvents.Dispatch(Name, message, subscribersSpan.Length);
+                var allWritesSuccessful = true;
+
+                while (Unsafe.IsAddressLessThan(ref start, ref end))
                 {
-                    DispatchMessagesToShards(postponedMessages, out var completed);
-
-                    if (completed)
+                    if (!start.Writer.TryWrite(message))
                     {
-                        TryClose();
+                        allWritesSuccessful = false;
                     }
+                    start = ref Unsafe.Add(ref start, 1);
+                }
 
-                    await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
+                if (!allWritesSuccessful || iterations++ >= 8)
+                {
+                    // we will take a pause if we have dispatched 8 messages or if we could not dispatch all messages.
+                    // This will give time for subscribers to unsubscribe and
+                    // others to hop on.
+                    break;
                 }
             }
         }
         finally
         {
-            TryClose();
-            Dispose();
+            _lock.ExitReadLock();
+        }
+    }
+
+    protected void Close()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _lock.EnterWriteLock();
+
+        try
+        {
+            CloseUnsafe();
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
+    private void CloseUnsafe()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _incoming.Writer.TryComplete();
+        _diagnosticEvents.Close(Name);
+
+        try
+        {
+            foreach (var subscriber in _subscribers)
+            {
+                subscriber.Writer.TryComplete();
+            }
+
+            _diagnosticEvents.Unsubscribe(Name, 0, _subscribers.Count);
+            _subscribers.Clear();
+        }
+        finally
+        {
+            _completed = true;
+            _disposed = true;
+            RaiseClosedEvent();
+            _cts.Cancel();
+            _cts.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// This helper method allows to deserialize and dispatch a message.
+    /// </summary>
+    /// <param name="serializer">
+    /// The serializer that shall be used to deserialize the message.
+    /// </param>
+    /// <param name="serializedMessage">
+    /// The serialized message.
+    /// </param>
+    protected void DispatchMessage(IMessageSerializer serializer, string? serializedMessage)
+    {
+        // we ensure that if there is noise on the channel we filter it out.
+        if (string.IsNullOrEmpty(serializedMessage))
+        {
+            return;
+        }
+
+        _diagnosticEvents.Received(Name, serializedMessage);
+        var envelope = DeserializeMessage(serializer, serializedMessage);
+
+        if (envelope.Kind is MessageKind.Completed)
+        {
+            Complete();
+        }
+        else if(envelope.Body is { } body)
+        {
+            Publish(body);
+        }
+    }
+
+    private MessageEnvelope<TMessage> DeserializeMessage(IMessageSerializer serializer, string serializedMessage)
+    {
+        try
+        {
+            return serializer.Deserialize<TMessage>(serializedMessage);
+        }
+        catch(Exception ex)
+        {
+            _diagnosticEvents.MessageProcessingError(Name, ex);
+            throw;
         }
     }
 
     /// <summary>
     /// Override this method to connect to an external pub/sub provider.
     /// </summary>
-    /// <param name="incoming">
-    /// Write incoming messages to this channel writer.
-    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -248,138 +374,12 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     /// Returns a session to dispose the subscription session.
     /// </returns>
     protected virtual ValueTask<IDisposable> OnConnectAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
         CancellationToken cancellationToken)
         => new(DefaultSession.Instance);
 
-    private void DispatchMessagesToShards(
-        List<PostponedMessage> postponedMessages,
-        out bool completed)
-    {
-        var batchSize = 4;
-        var dispatched = 0;
-        var subscribers = _subscribers;
-        completed = false;
-
-        while (!completed && _incoming.Reader.TryRead(out var message))
-        {
-            completed = message.Kind is MessageKind.Completed;
-
-            // we are not locking at this point since the only thing happening to this list
-            // is that new shards are being added. Shards are never being removed from a topic.
-            var shards = AsSpan(_shards);
-
-            _diagnosticEvents.Dispatch(Name, message, _subscribers);
-
-            for (var i = 0; i < shards.Length; i++)
-            {
-                var shard = shards[i];
-
-                if (!shard.Writer.TryWrite(message))
-                {
-                    // if we cannot write because of back pressure we will postpone
-                    // the message.
-                    postponedMessages.Add(new PostponedMessage(message, shard));
-                }
-            }
-
-            // we try to avoid full message processing cycles and keep on dispatching messages,
-            // but we will interrupt every 4 messages and allow for new subscribers
-            // to join in. Also, we will interrupt if the subscriber count has changed.
-            if (++dispatched >= batchSize || subscribers != _subscribers)
-            {
-                break;
-            }
-        }
-    }
-
-    private async ValueTask DispatchDelayedMessagesAsync(List<PostponedMessage> postponedMessages)
-    {
-        if (postponedMessages.Count > 0)
-        {
-            for (var i = 0; i < postponedMessages.Count; i++)
-            {
-                var postponedMessage = postponedMessages[i];
-                var shard = postponedMessage.Shard;
-                var message = postponedMessage.Message;
-
-                try
-                {
-                    await shard.Writer.WriteAsync(message).ConfigureAwait(false);
-                }
-                catch (ChannelClosedException)
-                {
-                    // the channel might have been closed in the meantime.
-                    // we will skip over this error.
-                    // It might signal that the shard was already disposed.
-                }
-            }
-            postponedMessages.Clear();
-        }
-    }
-
-    private void TryClose()
-    {
-        if (!_closed)
-        {
-            var raise = false;
-
-            _semaphore.Wait();
-
-            if (!_closed)
-            {
-                _closed = true;
-                raise = true;
-            }
-
-            _semaphore.Release();
-
-            if (raise)
-            {
-                RaiseClosedEvent();
-            }
-        }
-    }
-
-    private TopicShard<TMessage> CreateShard(int shardId)
-    {
-        var shard = new TopicShard<TMessage>(_channelOptions, Name, shardId, DiagnosticEvents);
-
-        shard.Unsubscribed += subscribers =>
-        {
-            if (_closed)
-            {
-                return;
-            }
-
-            var raise = false;
-
-            _semaphore.Wait();
-
-            try
-            {
-                _subscribers -= subscribers;
-
-                if (_subscribers == 0 && !_closed)
-                {
-                    _closed = true;
-                    raise = true;
-                }
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-
-            if (raise)
-            {
-                RaiseClosedEvent();
-            }
-        };
-
-        return shard;
-    }
-
+    /// <summary>
+    /// Signal that this topic was closed.
+    /// </summary>
     private void RaiseClosedEvent()
         => Closed?.Invoke(this, EventArgs.Empty);
 
@@ -400,39 +400,12 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         {
             if (disposing)
             {
-                _diagnosticEvents.Close(Name);
-                _cts.Cancel();
-
-                _incoming.Writer.TryComplete();
-
-                foreach (var shard in _shards)
-                {
-                    shard.Writer.Complete();
-                }
-
-                _semaphore.Dispose();
-                _cts.Dispose();
-                _shards.Clear();
+                Close();
             }
 
-            _closed = true;
+            _completed = true;
             _disposed = true;
         }
-    }
-
-    private sealed class PostponedMessage
-    {
-        public PostponedMessage(
-            MessageEnvelope<TMessage> message,
-            TopicShard<TMessage> shard)
-        {
-            Message = message;
-            Shard = shard;
-        }
-
-        public MessageEnvelope<TMessage> Message { get; }
-
-        public TopicShard<TMessage> Shard { get; }
     }
 
     private sealed class DefaultSession : IDisposable

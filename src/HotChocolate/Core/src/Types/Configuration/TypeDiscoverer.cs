@@ -174,6 +174,9 @@ DISCOVER:
 
                     if (unresolvedTypeRef is ExtendedTypeReference typeRef)
                     {
+                        // we normalize the type context so that we can correctly lookup
+                        // if a type is already registered.
+                        typeRef = typeRef.WithContext(schemaTypeRef.Context);
                         _typeRegistry.TryRegister(typeRef, schemaTypeRef);
                     }
                 }

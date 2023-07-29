@@ -108,6 +108,10 @@ QueryPlan
         ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id",
+    "__fusion_exports__2": "User_id"
   }
 }
 ---------------

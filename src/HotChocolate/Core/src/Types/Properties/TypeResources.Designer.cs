@@ -495,6 +495,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ObjectTypeDescriptor_ResolveWith_NonAbstract {
+            get {
+                return ResourceManager.GetString("ObjectTypeDescriptor_ResolveWith_NonAbstract", resourceCulture);
+            }
+        }
+        
         internal static string NodeDescriptor_MustBeMethod {
             get {
                 return ResourceManager.GetString("NodeDescriptor_MustBeMethod", resourceCulture);
@@ -1944,6 +1950,30 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_FetchedToManyNodesAtOnce {
             get {
                 return ResourceManager.GetString("ErrorHelper_FetchedToManyNodesAtOnce", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InputTypeExpected_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InputTypeExpected_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OutputTypeExpected_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OutputTypeExpected_Message", resourceCulture);
+            }
+        }
+        
+        internal static string TagDirective_Name_NotValid {
+            get {
+                return ResourceManager.GetString("TagDirective_Name_NotValid", resourceCulture);
+            }
+        }
+        
+        internal static string TagDirective_Descriptor_NotSupported {
+            get {
+                return ResourceManager.GetString("TagDirective_Descriptor_NotSupported", resourceCulture);
             }
         }
     }

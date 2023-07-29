@@ -37,6 +37,16 @@ public class TypeDiscoveryTests
             .MatchSnapshot();
     }
 
+    [Fact]
+    public void InferInputStructsWithNonDefaultCtor()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<QueryTypeWithInputStruct>()
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
+
     public class QueryWithDateTime
     {
         public DateTimeOffset DateTimeOffset(DateTimeOffset time) => time;
@@ -108,5 +118,18 @@ public class TypeDiscoveryTests
         public Guid ScalarGuid { get; set; }
 
         public DateTime ScalarDateTime { get; set; }
+    }
+
+    public struct InputStructWithCtor
+    {
+        public InputStructWithCtor(System.Collections.Generic.IEnumerable<int> values) =>
+            Values = System.Collections.Immutable.ImmutableArray.CreateRange(values);
+
+        public System.Collections.Immutable.ImmutableArray<int> Values { get; set; }
+    }
+
+    public class QueryTypeWithInputStruct
+    {
+        public int Foo(InputStructWithCtor arg) => default;
     }
 }

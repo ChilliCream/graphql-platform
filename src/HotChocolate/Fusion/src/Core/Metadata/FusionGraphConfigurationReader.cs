@@ -2,9 +2,10 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 using static HotChocolate.Fusion.FusionResources;
-using static HotChocolate.Fusion.ThrowHelper;
+using static HotChocolate.Fusion.Utilities.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Metadata;
@@ -38,7 +39,7 @@ internal sealed class FusionGraphConfigurationReader
             throw ServiceConfDocumentMustContainSchemaDef();
         }
 
-        var types = new List<IType>();
+        var types = new List<INamedTypeMetadata>();
         var typeNames = FusionTypeNames.From(document);
         var typeNameBindings = new Dictionary<string, MemberBinding>();
         var httpClientConfigs = ReadHttpClientConfigs(typeNames, schemaDef.Directives);
@@ -83,7 +84,7 @@ internal sealed class FusionGraphConfigurationReader
             webSocketClientConfigs);
     }
 
-    private ObjectTypeInfo ReadObjectType(
+    private ObjectTypeMetadata ReadObjectType(
         FusionTypeNames typeNames,
         ObjectTypeDefinitionNode typeDef,
         ObjectFieldInfo typeNameFieldInfo)
@@ -92,7 +93,7 @@ internal sealed class FusionGraphConfigurationReader
         var variables = ReadObjectVariableDefinitions(typeNames, typeDef.Directives);
         var resolvers = ReadResolverDefinitions(typeNames, typeDef.Directives);
         var fields = ReadObjectFields(typeNames, typeDef.Fields, typeNameFieldInfo);
-        return new ObjectTypeInfo(typeDef.Name.Value, bindings, variables, resolvers, fields);
+        return new ObjectTypeMetadata(typeDef.Name.Value, bindings, variables, resolvers, fields);
     }
 
     private ObjectFieldInfoCollection ReadObjectFields(
@@ -180,7 +181,7 @@ internal sealed class FusionGraphConfigurationReader
             name = subgraph;
         }
 
-        return new HttpClientConfiguration(name, subgraph, new Uri(baseAddress));
+        return new HttpClientConfiguration(name, subgraph, new Uri(baseAddress), directiveNode);
 
         static void OptionalArgs(HashSet<string> assert)
         {
@@ -239,7 +240,7 @@ internal sealed class FusionGraphConfigurationReader
             name = subgraph;
         }
 
-        return new WebSocketClientConfiguration(name, subgraph, new Uri(baseAddress));
+        return new WebSocketClientConfiguration(name, subgraph, new Uri(baseAddress), directiveNode);
 
         static void OptionalArgs(HashSet<string> assert)
         {

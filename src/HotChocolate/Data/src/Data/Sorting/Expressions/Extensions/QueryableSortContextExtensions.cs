@@ -64,6 +64,8 @@ public static class QueryableSortVisitorContextExtensions
             return base.Visit(node);
         }
 
+        protected override Expression VisitExtension(Expression node) => node.CanReduce ? base.VisitExtension(node) : node;
+
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             var name = node.Method.Name;

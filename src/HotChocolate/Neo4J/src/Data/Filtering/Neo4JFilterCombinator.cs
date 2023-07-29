@@ -33,7 +33,7 @@ public class Neo4JFilterCombinator
 
     private static CompoundCondition CombineWithAnd(IReadOnlyCollection<Condition> operations)
     {
-        if (operations.Count < 0)
+        if (operations.Count == 0)
         {
             throw new InvalidOperationException();
         }
@@ -49,7 +49,7 @@ public class Neo4JFilterCombinator
 
     private static Condition CombineWithOr(IReadOnlyCollection<Condition> operations)
     {
-        if (operations.Count < 0)
+        if (operations.Count == 0)
         {
             throw new InvalidOperationException();
         }

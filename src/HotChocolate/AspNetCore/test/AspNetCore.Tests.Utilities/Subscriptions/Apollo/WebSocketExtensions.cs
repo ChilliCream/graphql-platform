@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
@@ -36,7 +37,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static async Task SendTerminateConnectionAsync(
@@ -45,7 +46,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionTerminate);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static async Task SendSubscriptionStartAsync(
@@ -67,7 +68,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Stop, id: subscriptionId);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static Task SendMessageAsync(

@@ -48,5 +48,5 @@ public enum SyntaxKind
     ListNullability,
     RequiredModifier,
     OptionalModifier,
-    SchemaCoordinate,
+    SchemaCoordinate
 }

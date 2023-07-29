@@ -22,7 +22,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
     /// </exception>
     public static IObjectFieldDescriptor Authorize(
         this IObjectFieldDescriptor descriptor,
-        ApplyPolicy apply = ApplyPolicy.Validation)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
         if (descriptor == null)
         {
@@ -51,7 +51,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor Authorize(
         this IObjectFieldDescriptor descriptor,
         string policy,
-        ApplyPolicy apply = ApplyPolicy.Validation)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
         if (descriptor is null)
         {
@@ -87,5 +87,30 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         }
 
         return descriptor.Directive(new AuthorizeDirective(roles));
+    }
+
+    /// <summary>
+    /// Allows anonymous access to this field.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The field descriptor.
+    /// </param>
+    /// <returns>
+    ///  Returns the <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectFieldDescriptor AllowAnonymous(
+        this IObjectFieldDescriptor descriptor)
+    {
+        if (descriptor == null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        descriptor.Directive(AllowAnonymousDirectiveType.Names.AllowAnonymous);
+        descriptor.Extend().Definition.ContextData[WellKnownContextData.AllowAnonymous] = true;
+        return descriptor;
     }
 }

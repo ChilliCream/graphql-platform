@@ -1,3 +1,4 @@
+using System.Net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -52,7 +53,8 @@ static class Helpers
                 if (!(include?.Invoke(file) ?? true)
                     || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase))
+                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("examples", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -73,7 +75,7 @@ static class Helpers
 
         directories ??= Directories;
 
-        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories, include);
+        var projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories, include);
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 

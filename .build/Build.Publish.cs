@@ -48,19 +48,25 @@ partial class Build
         .Executes(() =>
         {
             var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyServerProj);
-            File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyServer12Proj);
-            File.WriteAllText(EmptyServer12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(EmptyServer12Proj, projFile.Replace("11.1.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyAzf12Proj);
-            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyAzfUp12Proj);
-            File.WriteAllText(EmptyAzfUp12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
+            File.WriteAllText(EmptyAzfUp12Proj, projFile.Replace("11.1.0", SemVersion));
+
+            projFile = File.ReadAllText(Gateway13Proj);
+            File.WriteAllText(Gateway13Proj, projFile.Replace("11.1.0", SemVersion));
+
+            projFile = File.ReadAllText(GatewayManaged13Proj);
+            File.WriteAllText(GatewayManaged13Proj, projFile.Replace("11.1.0", SemVersion));
 
             DotNetBuildSonarSolution(
                 PackSolutionFile,
@@ -74,10 +80,10 @@ partial class Build
                 .SetNoRestore(true)
                 .SetProjectFile(PackSolutionFile)
                 .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion));
 
             DotNetPack(c => c
                 .SetNoRestore(true)
@@ -85,13 +91,13 @@ partial class Build
                 .SetProject(PackSolutionFile)
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion));
 
             NuGetPack(c => c
-                .SetVersion(GitVersion.SemVer)
+                .SetVersion(SemVersion)
                 .SetOutputDirectory(PackageDirectory)
                 .SetConfiguration(Configuration)
                 .CombineWith(
@@ -120,6 +126,4 @@ partial class Build
                 degreeOfParallelism: 2,
                 completeOnFailure: true);
         });
-
-
 }

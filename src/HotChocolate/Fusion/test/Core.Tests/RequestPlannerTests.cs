@@ -3,6 +3,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Composition;
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
@@ -22,7 +23,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -59,7 +60,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -105,7 +106,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -136,7 +137,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -150,7 +151,7 @@ public class RequestPlannerTests
             """
             query TopProducts($first: Int!) {
                 topProducts(first: $first) {
-                    upc
+                    id
                 }
             }
             """);
@@ -168,7 +169,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -207,7 +208,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -249,7 +250,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -263,7 +264,7 @@ public class RequestPlannerTests
             """
             query TopProducts($first: Int!) {
                 topProducts(first: $first) {
-                    upc
+                    id
                 }
                 __schema {
                     types {
@@ -294,7 +295,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -331,7 +332,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -376,7 +377,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -422,7 +423,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -468,7 +469,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -502,7 +503,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -537,13 +538,13 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -571,13 +572,13 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -608,13 +609,13 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -647,7 +648,7 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
@@ -686,13 +687,13 @@ public class RequestPlannerTests
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
 
-        var fusionGraph = await new FusionGraphComposer().ComposeAsync(
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
-            FusionFeatureFlags.NodeField);
+            new FusionFeatureCollection(FusionFeatures.NodeField));
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -723,7 +724,340 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
-    private static async Task<(DocumentNode UserRequest, QueryPlan QueryPlan)> CreateQueryPlanAsync(
+    [Fact]
+    public async Task Query_Plan_19_Requires()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                reviews {
+                  body
+                  author {
+                    name
+                    birthdate
+                  }
+                  product {
+                    name
+                    deliveryEstimate(zip: "12345") {
+                      min
+                      max
+                    }
+                  }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_20_DeepQuery()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query GetUser {
+              users {
+                name
+                reviews {
+                  body
+                  author {
+                    name
+                    birthdate
+                    reviews {
+                      body
+                      author {
+                        name
+                        birthdate
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_21_Field_Requirement_Not_In_Context()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                reviews {
+                  body
+                  author {
+                    name
+                    birthdate
+                  }
+                  product {
+                    deliveryEstimate(zip: "12345") {
+                      min
+                      max
+                    }
+                  }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_22_Interfaces()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Appointment.ToConfiguration(),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Appointments {
+              appointments {
+                nodes {
+                  patient {
+                    id
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_23_Interfaces_Merge()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Appointment.ToConfiguration(),
+                demoProject.Patient1.ToConfiguration(),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Appointments {
+              appointments {
+                nodes {
+                  patient {
+                    id
+                    ... on Patient1 {
+                        name
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_24_Field_Requirement_And_Fields_In_Context()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                reviews {
+                  body
+                  author {
+                    name
+                    birthdate
+                  }
+                  product {
+                    id
+                    name
+                    deliveryEstimate(zip: "12345") {
+                      min
+                      max
+                    }
+                  }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+
+    [Fact]
+    public async Task Query_Plan_25_Variables_Are_Passed_Through()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Appointment.ToConfiguration(),
+                demoProject.Patient1.ToConfiguration(),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Appointments($first: Int!) {
+              patientById(patientId: 1) {
+                name
+                appointments(first: $first) {
+                    nodes {
+                        id
+                    }
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_26_Ensure_No_Circular_Dependency_When_Requiring_Data()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query TopProducts {
+              topProducts(first: 5) {
+                weight
+                deliveryEstimate(zip: "12345") {
+                  min
+                  max
+                }
+                reviews {
+                  body
+                }
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)
     {
@@ -732,18 +1066,23 @@ public class RequestPlannerTests
         var rewriter = new FusionGraphConfigurationToSchemaRewriter();
         var rewritten = rewriter.Rewrite(document, new(context))!;
 
-        var schema = await new ServiceCollection()
+        var services = new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(rewritten.ToString())
-            .UseField(n => n)
-            .BuildSchemaAsync();
+            .UseField(n => n);
 
+        if (document.Definitions.Any(d => d is ScalarTypeDefinitionNode { Name.Value: "Upload" }))
+        {
+            services.AddUploadType();
+        }
+
+        var schema = await services.BuildSchemaAsync();
         var serviceConfig = FusionGraphConfiguration.Load(document);
 
         var request = Parse(query);
 
         var operationCompiler = new OperationCompiler(new());
-        var operationDef = (OperationDefinitionNode)request.Definitions.First();
+        var operationDef = (OperationDefinitionNode)request.Definitions[0];
         var operation = operationCompiler.Compile(
             "abc",
             operationDef,

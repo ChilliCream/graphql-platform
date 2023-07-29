@@ -38,15 +38,11 @@ internal sealed class OperationCacheMiddleware
 
             if (operationId is null)
             {
-                operationId = CreateOperationId(
-                    context.DocumentId,
-                    context.Request.OperationName);
+                operationId = context.CreateCacheId(context.DocumentId, context.Request.OperationName);
                 context.OperationId = operationId;
             }
 
-            var cacheId = context.CreateCacheId(operationId);
-
-            if (_operationCache.TryGetOperation(cacheId, out var operation))
+            if (_operationCache.TryGetOperation(operationId, out var operation))
             {
                 context.Operation = operation;
                 addToCache = false;
@@ -61,7 +57,7 @@ internal sealed class OperationCacheMiddleware
                 context.Document is not null &&
                 context.IsValidDocument)
             {
-                _operationCache.TryAddOperation(cacheId, context.Operation);
+                _operationCache.TryAddOperation(operationId, context.Operation);
                 _diagnosticEvents.AddedOperationToCache(context);
             }
         }

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Threading.Channels;
 using HotChocolate.Subscriptions.Diagnostics;
 using StackExchange.Redis;
 using static HotChocolate.Subscriptions.Redis.Properties.Resources;
@@ -25,7 +24,6 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
     }
 
     protected override async ValueTask<IDisposable> OnConnectAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
         CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
@@ -35,28 +33,8 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
         var subscriber = _connection.GetSubscriber();
         var messageQueue = await subscriber.SubscribeAsync(Name).ConfigureAwait(false);
         DiagnosticEvents.ProviderTopicInfo(Name, RedisTopic_SubscribedToRedis);
-
-        messageQueue.OnMessage(
-            async redisMessage =>
-            {
-                await DispatchAsync(incoming, redisMessage.Message.ToString())
-                    .ConfigureAwait(false);
-            });
-
+        messageQueue.OnMessage(redisMessage => DispatchMessage(_serializer, redisMessage.Message.ToString()));
         return new Session(Name, _connection, DiagnosticEvents);
-    }
-
-    private async ValueTask DispatchAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming,
-        string? serializedMessage)
-    {
-        // we ensure that if there is noise on the channel we filter it out.
-        if (!string.IsNullOrEmpty(serializedMessage))
-        {
-            DiagnosticEvents.Received(Name, serializedMessage);
-            var envelope = _serializer.Deserialize<MessageEnvelope<TMessage>>(serializedMessage);
-            await incoming.WriteAsync(envelope).ConfigureAwait(false);
-        }
     }
 
     private sealed class Session : IDisposable

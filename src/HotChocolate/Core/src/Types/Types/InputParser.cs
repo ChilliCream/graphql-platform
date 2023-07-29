@@ -467,12 +467,14 @@ public class InputParser
 
             return null;
         }
+        
+        if(type.Kind == TypeKind.NonNull)
+        {
+            type = ((NonNullType)type).Type;
+        }
 
         switch (type.Kind)
         {
-            case TypeKind.NonNull:
-                return Deserialize(resultValue, ((NonNullType)type).Type, path, field);
-
             case TypeKind.List:
                 return DeserializeList(resultValue, (ListType)type, path, field);
 
@@ -739,7 +741,7 @@ public class InputParser
     }
 
     private static object? FormatValue(IInputFieldInfo field, object? value)
-        => field.Formatter is null || value is null
+        => value is null || field.Formatter is null
             ? value
             : field.Formatter.Format(value);
 

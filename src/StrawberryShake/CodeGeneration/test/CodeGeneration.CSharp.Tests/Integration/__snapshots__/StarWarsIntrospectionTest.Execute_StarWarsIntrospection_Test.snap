@@ -1188,6 +1188,37 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "Name": "complete",
+              "Description": null,
+              "Args": [
+                {
+                  "Name": "episode",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Enum",
+                      "Name": "Episode",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -4412,6 +4443,67 @@
                   "__typename": "__Type",
                   "Name": "Review",
                   "Kind": "Object",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "complete",
+              "Description": null,
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "episode",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Episode",
+                      "Kind": "Enum",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
                   "Description": null,
                   "Fields": null,
                   "InputFields": null,

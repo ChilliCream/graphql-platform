@@ -207,7 +207,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         _formatter.Format(result, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
     }
 
     public async ValueTask SendErrorMessageAsync(
@@ -225,7 +225,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         _formatter.FormatErrors(errors, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
     }
 
     public async ValueTask SendCompleteMessageAsync(
@@ -235,7 +235,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.Complete, id: operationSessionId);
-        await session.Connection.SendAsync(writer.Body, cancellationToken);
+        await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
     }
 
     public async ValueTask SendPingMessageAsync(
@@ -251,7 +251,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         {
             using var writer = new ArrayWriter();
             SerializeMessage(writer, Utf8Messages.Ping, payload);
-            await session.Connection.SendAsync(writer.Body, cancellationToken);
+            await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
         }
     }
 
@@ -268,7 +268,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         {
             using var writer = new ArrayWriter();
             SerializeMessage(writer, Utf8Messages.Pong, payload);
-            await session.Connection.SendAsync(writer.Body, cancellationToken);
+            await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
         }
     }
 
@@ -279,7 +279,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.ConnectionAccept, payload);
-        await session.Connection.SendAsync(writer.Body, cancellationToken);
+        await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
     }
 
     public ValueTask OnConnectionInitTimeoutAsync(

@@ -12,7 +12,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;NU5104</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,7 +20,7 @@
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream Inc.</Company>
     <Copyright>Copyright &#169; 2021 ChilliCream Inc.</Copyright>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/graphql-platform/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
@@ -38,13 +38,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LibraryTargetFrameworks>net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
-    <Library2TargetFrameworks>net7.0; net6.0</Library2TargetFrameworks>
-    <TestTargetFrameworks>net7.0; net6.0</TestTargetFrameworks>
-    <AspNetTargetFrameworks>net7.0; net6.0</AspNetTargetFrameworks>
+    <LibraryTargetFrameworks>net8.0; net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
+    <Library2TargetFrameworks>net8.0; net7.0; net6.0</Library2TargetFrameworks>
+    <Library3TargetFrameworks>net8.0; net7.0</Library3TargetFrameworks>
+    <TestTargetFrameworks>net8.0; net7.0; net6.0</TestTargetFrameworks>
+    <AspNetTargetFrameworks>net8.0; net7.0; net6.0</AspNetTargetFrameworks>
     <AzfTargetFrameworks>net7.0; net6.0</AzfTargetFrameworks>
-    <AzfIsoProcTargetFrameworks>net7.0; net6.0</AzfIsoProcTargetFrameworks>
-    <SourceGenTargetFrameworks>net7.0; net6.0; netstandard2.0</SourceGenTargetFrameworks>
+    <AzfIsoProcTargetFrameworks>net8.0; net7.0; net6.0</AzfIsoProcTargetFrameworks>
+    <SourceGenTargetFrameworks>netstandard2.0</SourceGenTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>

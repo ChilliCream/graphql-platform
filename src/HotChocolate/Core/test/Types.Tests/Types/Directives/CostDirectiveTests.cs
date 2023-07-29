@@ -6,12 +6,12 @@ namespace HotChocolate.Types.Directives;
 public class CostDirectiveTests
 {
     [Fact]
-    public void ComplexityEqualsZero()
+    public void ComplexitySmallerThanZero()
     {
         // arrange
         // act
-        void Action() => new CostDirective(0);
-        void Action1() => new CostDirective(0, "a");
+        void Action() => new CostDirective(-1);
+        void Action1() => new CostDirective(-1, "a");
 
         // assert
         Assert.Throws<ArgumentOutOfRangeException>(Action);

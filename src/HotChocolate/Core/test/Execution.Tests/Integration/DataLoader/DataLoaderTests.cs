@@ -142,10 +142,10 @@ public class DataLoaderTests
                         .LoadAsync("fooBar"))
         );
 
-        Assert.True(listener1.ExecuteBatchTouched);
-        Assert.True(listener1.BatchResultsTouched);
-        Assert.True(listener2.ExecuteBatchTouched);
-        Assert.True(listener2.BatchResultsTouched);
+        Assert.True(listener1.ExecuteBatchTouched, "listener1.ExecuteBatchTouched");
+        Assert.True(listener1.BatchResultsTouched, "listener1.BatchResultsTouched");
+        Assert.True(listener2.ExecuteBatchTouched, "listener2.ExecuteBatchTouched");
+        Assert.True(listener2.BatchResultsTouched, "listener2.BatchResultsTouched");
     }
 
     [Fact]

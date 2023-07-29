@@ -1,4 +1,4 @@
-using System.Runtime.Serialization;
+using HotChocolate.Subscriptions.Properties;
 
 namespace HotChocolate.Subscriptions;
 
@@ -9,16 +9,37 @@ namespace HotChocolate.Subscriptions;
 [Serializable]
 public class InvalidMessageTypeException : Exception
 {
-    public InvalidMessageTypeException() { }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InvalidMessageTypeException"/> class.
+    /// </summary>
+    /// <param name="topicMessageType">
+    /// The topic message type.
+    /// </param>
+    /// <param name="requestedMessageType">
+    /// The requested message type.
+    /// </param>
+    public InvalidMessageTypeException(Type topicMessageType, Type requestedMessageType)
+        : base(CreateMessage(topicMessageType, requestedMessageType))
+    {
+        TopicMessageType = topicMessageType;
+        RequestedMessageType = requestedMessageType;
+    }
 
-    public InvalidMessageTypeException(string message)
-        : base(message) { }
+    /// <summary>
+    /// Gets the topic message type.
+    /// </summary>
+    public Type TopicMessageType { get; }
 
-    public InvalidMessageTypeException(string message, Exception inner)
-        : base(message, inner) { }
+    /// <summary>
+    /// Gets the requested message type.
+    /// </summary>
+    public Type RequestedMessageType { get; }
 
-    protected InvalidMessageTypeException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context) { }
+    private static string CreateMessage(
+        Type topicMessageType,
+        Type requestedMessageType)
+        => string.Format(
+            Resources.InvalidMessageTypeException_Message,
+            topicMessageType.FullName,
+            requestedMessageType.FullName);
 }

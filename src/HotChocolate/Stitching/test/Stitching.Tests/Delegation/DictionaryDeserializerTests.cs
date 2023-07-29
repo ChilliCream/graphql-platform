@@ -169,7 +169,7 @@ public class DictionaryDeserializerTests
 
         // assert
         Assert.Collection(
-            ((IEnumerable<string>)value)!,
+            (IEnumerable<string>)value!,
             v => Assert.Equal("abc", v));
     }
 
@@ -197,7 +197,7 @@ public class DictionaryDeserializerTests
 
         // assert
         Assert.Collection(
-            ((IEnumerable<string>)value)!,
+            (IEnumerable<string>)value!,
             v => Assert.Equal("abc", v));
     }
 
