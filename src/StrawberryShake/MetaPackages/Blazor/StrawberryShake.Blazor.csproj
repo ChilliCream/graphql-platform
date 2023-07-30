@@ -26,6 +26,7 @@
     <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\global.json" Pack="true" PackagePath="build/global.json" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net6.0\**\*.*" Pack="true" PackagePath="tools/net6" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net7.0\**\*.*" Pack="true" PackagePath="tools/net7" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net8.0\**\*.*" Pack="true" PackagePath="tools/net8" Visible="false" />
   </ItemGroup>
 
 </Project>
