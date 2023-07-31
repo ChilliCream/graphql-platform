@@ -8,23 +8,20 @@ namespace HotChocolate.OpenApi;
 internal sealed class OpenApiWrapperContext
 {
     private readonly List<Action<IObjectTypeDescriptor>> _graphQLTypes = new();
+    private readonly List<Action<IInputObjectTypeDescriptor>> _graphQLInputTypes = new();
 
     public OpenApiDocument OpenApiDocument { get; }
     public OpenApiSpecVersion OpenApiSpecVersion { get; }
 
     public Action<IObjectTypeDescriptor>? Query { get; set; }
+    public Action<IObjectTypeDescriptor>? MutationType { get; set; }
 
     public Dictionary<string, Operation> Operations { get; } = new();
     public Dictionary<string, OpenApiSchema> InputTypeSchemas { get; } = new();
     public Dictionary<string, OpenApiSchema> TypeSchemas { get; } = new();
 
     public IReadOnlyList<Action<IObjectTypeDescriptor>> GraphQLTypes => _graphQLTypes;
-
-    public Dictionary<string, Operation> CallbackOperations { get; } = new();
-    public HashSet<string> UsedTpeNames { get; } = new();
-    public Dictionary<string, OpenApiSecurityScheme> Security { get; } = new();
-    public Dictionary<string, string> SanitizedMap { get; } = new();
-    public OpenApiDocument[] UsedDocuments { get; }
+    public IReadOnlyList<Action<IInputObjectTypeDescriptor>> GraphQLInputTypes => _graphQLInputTypes;
 
     public OpenApiWrapperContext(OpenApiDocument openApiDocument, OpenApiSpecVersion openApiSpecVersion)
     {
@@ -32,5 +29,9 @@ internal sealed class OpenApiWrapperContext
         OpenApiSpecVersion = openApiSpecVersion;
     }
 
-    public void AddGraphQLType(Action<IObjectTypeDescriptor> objectTypeDescriptor) => _graphQLTypes.Add(objectTypeDescriptor);
+    public void AddGraphQLType(Action<IObjectTypeDescriptor> objectTypeDescriptor) =>
+        _graphQLTypes.Add(objectTypeDescriptor);
+
+    public void AddGraphQLInputType(Action<IInputObjectTypeDescriptor> objectTypeDescriptor) =>
+        _graphQLInputTypes.Add(objectTypeDescriptor);
 }

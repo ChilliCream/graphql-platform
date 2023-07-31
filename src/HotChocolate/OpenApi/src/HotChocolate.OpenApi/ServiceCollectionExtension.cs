@@ -26,12 +26,19 @@ public static class ServiceCollectionExtension
         OpenApiDocument apiDocument,
         OpenApiSpecVersion specVersion)
     {
+        requestExecutorBuilder.AddJsonSupport();
+
         var wrapper = new OpenApiWrapper();
         var context = wrapper.Wrap(apiDocument, specVersion);
 
         if (context.Query is not null)
         {
             requestExecutorBuilder.AddQueryType(context.Query);
+        }
+
+        if (context.MutationType is not null)
+        {
+            requestExecutorBuilder.AddMutationType(context.MutationType);
         }
 
         foreach (var typeDescriptor in context.GraphQLTypes)

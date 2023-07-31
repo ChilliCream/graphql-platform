@@ -14,6 +14,8 @@ public class Operation
 
     public OpenApiOperation OpenApiOperation { get; set; }
 
+    public OpenApiRequestBody? Request { get; set; }
+
     public OpenApiResponse? Response { get; set; }
 
     public List<OpenApiParameter> Parameter { get; set; } = new();
