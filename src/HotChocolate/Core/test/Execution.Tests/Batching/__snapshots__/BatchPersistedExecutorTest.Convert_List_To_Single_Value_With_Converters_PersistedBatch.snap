@@ -1,0 +1,24 @@
+﻿[{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 2,
+          "column": 29
+        }
+      ],
+      "path": [
+        "foo"
+      ]
+    }
+  ],
+  "data": {
+    "foo": null
+  }
+},{
+  "data": {
+    "baz": null
+  }
+}
+]

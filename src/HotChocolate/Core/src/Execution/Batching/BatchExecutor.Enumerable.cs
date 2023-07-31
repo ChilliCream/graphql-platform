@@ -3,12 +3,14 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Batching;
@@ -27,25 +29,27 @@ internal partial class BatchExecutor
         private readonly CollectVariablesVisitationMap _visitationMap = new();
         private DocumentNode? _previous;
         private Dictionary<string, FragmentDefinitionNode>? _fragments;
-
+        private readonly IReadStoredQueries _readStoredQueries;
         public BatchExecutorEnumerable(
             IReadOnlyList<IQueryRequest> requestBatch,
             IRequestExecutor requestExecutor,
             IErrorHandler errorHandler,
             ITypeConverter typeConverter,
-            InputFormatter inputFormatter)
+            InputFormatter inputFormatter,
+            IReadStoredQueries readStoredQueries)
         {
             _requestBatch = requestBatch ??
-                throw new ArgumentNullException(nameof(requestBatch));
+                            throw new ArgumentNullException(nameof(requestBatch));
             _requestExecutor = requestExecutor ??
-                throw new ArgumentNullException(nameof(requestExecutor));
+                               throw new ArgumentNullException(nameof(requestExecutor));
             _errorHandler = errorHandler ??
-                throw new ArgumentNullException(nameof(errorHandler));
+                            throw new ArgumentNullException(nameof(errorHandler));
             _typeConverter = typeConverter ??
-                throw new ArgumentNullException(nameof(typeConverter));
+                             throw new ArgumentNullException(nameof(typeConverter));
             _inputFormatter = inputFormatter ??
-                throw new ArgumentNullException(nameof(inputFormatter));
+                              throw new ArgumentNullException(nameof(inputFormatter));
             _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
+            _readStoredQueries = readStoredQueries ;
         }
 
         public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
@@ -54,13 +58,13 @@ internal partial class BatchExecutor
             for (var i = 0; i < _requestBatch.Count; i++)
             {
                 var result = await ExecuteNextAsync(
-                    _requestBatch[i],
-                    cancellationToken)
+                        _requestBatch[i],
+                        cancellationToken)
                     .ConfigureAwait(false);
 
                 yield return result;
 
-                if (result.Data is null)
+                if (result.Data is null && result.Errors is null)
                 {
                     break;
                 }
@@ -73,41 +77,84 @@ internal partial class BatchExecutor
         {
             try
             {
-                var document = request.Query is QueryDocument d
-                    ? d.Document
-                    : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
-
-                var operation =
-                    document.GetOperation(request.OperationName);
-
-                if (document != _previous)
+                var originalRequestIsPersisted = request.Query == null && (request.QueryId != null || request.QueryHash != null);
+                if (originalRequestIsPersisted)
                 {
-                    _fragments = document.GetFragments();
-                    _visitationMap.Initialize(_fragments);
+
+                    var persistedQueryStore=_readStoredQueries;
+
+                    //load persisted
+                    var queryId =
+                        request.QueryId ??
+                        request.QueryHash;
+                    var queryDocument =persistedQueryStore!=null && queryId!=null?
+                       ( await persistedQueryStore.TryReadQueryAsync(
+                                queryId, cancellationToken)
+                            .ConfigureAwait(false)):null;
+                    if (queryDocument == null)
+                    {
+                        //if cant retireve persisted query, then continue with normal flow
+                        return (IQueryResult)await _requestExecutor.ExecuteAsync(
+                                request, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    //Load persisted query in request
+                    request= QueryRequestBuilder.FromWithoutQuery(request)
+                        .SetQuery(queryDocument.Document)
+                        .Create();
+
+                }
+                if (request.Query != null )
+                {
+                    var document = request.Query is QueryDocument d
+                        ? d.Document
+                        : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
+
+                    var operation =
+                        document.GetOperation(request.OperationName);
+
+                    if (document != _previous)
+                    {
+                        _fragments = document.GetFragments();
+                        _visitationMap.Initialize(_fragments);
+                    }
+
+                    operation.Accept(
+                        _visitor,
+                        _visitationMap,
+                        _ => VisitorAction.Continue);
+
+                    _previous = document;
+                    document = RewriteDocument(operation);
+                    operation = (OperationDefinitionNode)document.Definitions[0];
+                    var variableValues =
+                        MergeVariables(request.VariableValues, operation);
+                    var queryRequestBuilder = QueryRequestBuilder.From(request)
+                        .SetQuery(document)
+                        .SetVariableValues(variableValues)
+                        .AddExportedVariables(_exportedVariables);
+
+                    if (request.ContextData!=null && request.ContextData.TryGetValue(WellKnownContextData.QueryOperations,out var objectOperations) && objectOperations is IReadOnlyList<string>  )
+                    {
+                        //If batch is defined with operation batching
+                        queryRequestBuilder.SetQueryId(null)
+                            .SetQueryHash(null);
+                    }
+
+                    request = queryRequestBuilder.Create();
+
+                    return (IQueryResult)await _requestExecutor.ExecuteAsync(
+                            request, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+
+                    return QueryResultBuilder.CreateError(
+                        _errorHandler.Handle(
+                            _errorHandler.CreateUnexpectedError(new Exception("Invalid document Query")).Build()));
                 }
 
-                operation.Accept(
-                    _visitor,
-                    _visitationMap,
-                    _ => VisitorAction.Continue);
-
-                _previous = document;
-                document = RewriteDocument(operation);
-                operation = (OperationDefinitionNode)document.Definitions[0];
-                var variableValues =
-                    MergeVariables(request.VariableValues, operation);
-
-                request = QueryRequestBuilder.From(request)
-                    .SetQuery(document)
-                    .SetVariableValues(variableValues)
-                    .AddExportedVariables(_exportedVariables)
-                    .SetQueryId(null)
-                    .SetQueryHash(null)
-                    .Create();
-
-                return (IQueryResult)await _requestExecutor.ExecuteAsync(
-                    request, cancellationToken)
-                    .ConfigureAwait(false);
             }
             catch (GraphQLException ex)
             {
@@ -207,8 +254,8 @@ internal partial class BatchExecutor
         private object Serialize(ExportedVariable exported, ITypeNode type)
         {
             if (_requestExecutor.Schema.TryGetType<INamedInputType>(
-                type.NamedType().Name.Value,
-                out var inputType)
+                    type.NamedType().Name.Value,
+                    out var inputType)
                 && _typeConverter.TryConvert(
                     inputType!.RuntimeType,
                     exported.Value,
@@ -226,8 +273,8 @@ internal partial class BatchExecutor
             ICollection<object?> list)
         {
             if (_requestExecutor.Schema.TryGetType<INamedInputType>(
-                type.NamedType().Name.Value,
-                out var inputType))
+                    type.NamedType().Name.Value,
+                    out var inputType))
             {
                 SerializeListValue(exported, inputType, list);
             }

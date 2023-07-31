@@ -145,6 +145,7 @@ public class MiddlewareBase : IDisposable
             var requestBuilder = QueryRequestBuilder.From(request);
             requestBuilder.SetOperation(operationNames[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.AddGlobalState(WellKnownContextData.QueryOperations, operationNames);
 
             await requestInterceptor.OnCreateAsync(
                 context,

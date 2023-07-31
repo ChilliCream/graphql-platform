@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Batching;
 
@@ -10,11 +11,13 @@ internal partial class BatchExecutor
     private readonly IErrorHandler _errorHandler;
     private readonly ITypeConverter _typeConverter;
     private readonly InputFormatter _inputFormatter;
-
+    private readonly IReadStoredQueries _readStoredQueries;
     public BatchExecutor(
         IErrorHandler errorHandler,
         ITypeConverter typeConverter,
-        InputFormatter inputFormatter)
+        InputFormatter inputFormatter,
+        IReadStoredQueries readStoredQueries
+    )
     {
         _errorHandler = errorHandler ??
             throw new ArgumentNullException(nameof(errorHandler));
@@ -22,6 +25,8 @@ internal partial class BatchExecutor
             throw new ArgumentNullException(nameof(typeConverter));
         _inputFormatter = inputFormatter ??
             throw new ArgumentNullException(nameof(inputFormatter));
+        _readStoredQueries = readStoredQueries;
+
     }
 
     public IAsyncEnumerable<IQueryResult> ExecuteAsync(
@@ -32,5 +37,5 @@ internal partial class BatchExecutor
             requestExecutor,
             _errorHandler,
             _typeConverter,
-            _inputFormatter);
+            _inputFormatter,_readStoredQueries);
 }

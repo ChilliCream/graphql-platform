@@ -387,6 +387,22 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         return builder;
     }
 
+    public static QueryRequestBuilder FromWithoutQuery(IQueryRequest request)
+    {
+        var builder = new QueryRequestBuilder
+        {
+            _queryName = request.QueryId,
+            _queryHash = request.QueryHash,
+            _operationName = request.OperationName,
+            _readOnlyVariableValues = request.VariableValues,
+            _readOnlyContextData = request.ContextData,
+            _readOnlyExtensions = request.Extensions,
+            _services = request.Services,
+            _flags = request.Flags
+        };
+        return builder;
+    }
+
     public static QueryRequestBuilder From(GraphQLRequest request)
     {
         var builder = New();

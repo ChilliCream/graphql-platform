@@ -295,7 +295,8 @@ internal sealed partial class RequestExecutorResolver
             sp => new BatchExecutor(
                 sp.GetRequiredService<IErrorHandler>(),
                 _applicationServices.GetRequiredService<ITypeConverter>(),
-                _applicationServices.GetRequiredService<InputFormatter>()));
+                _applicationServices.GetRequiredService<InputFormatter>(),
+                sp.GetService<IReadStoredQueries>()));
 
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 

@@ -6,6 +6,10 @@ namespace HotChocolate;
 public static class WellKnownContextData
 {
     /// <summary>
+    /// The key for storing all operations defined in batch with operators parameter.
+    /// </summary>
+    public const string QueryOperations = "HotChocolate.AspNetCore.QueryOperations";
+    /// <summary>
     /// The key for storing the event message / event payload to the context data.
     /// </summary>
     public const string EventMessage = "HotChocolate.Execution.EventMessage";
