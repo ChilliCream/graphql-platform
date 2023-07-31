@@ -8,7 +8,7 @@ namespace HotChocolate.OpenApi.Tests;
 public class SchemaGenerationTests
 {
     [Fact]
-    public async Task Simple_PetStore_Generates_Correct_Schema()
+    public async Task Simple_PetStore_V3_Generates_Correct_Schema()
     {
         // Arrange
         await using var stream = File.Open(System.IO.Path.Combine("__resources__", "PetStore.yaml"), FileMode.Open);

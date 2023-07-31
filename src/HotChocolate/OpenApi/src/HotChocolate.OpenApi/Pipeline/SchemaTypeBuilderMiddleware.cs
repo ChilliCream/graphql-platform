@@ -1,6 +1,8 @@
 using HotChocolate.Language;
+using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
@@ -17,7 +19,7 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
         foreach (var responseSchemaReference in responseSchemaReferences)
         {
-            AddResponseObjectTypeDxescriptor(context, responseSchemaReference);
+            AddResponseObjectTypeDescriptor(context, responseSchemaReference);
         }
 
         AddQueryType(context);
@@ -48,7 +50,12 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                     .Type(isListType
                         ? new ListTypeNode(new NamedTypeNode(graphQLName))
                         : new NamedTypeNode(graphQLName))
-                    .Resolve(_ => new object());
+                    .Resolve(async (resolverContext, token)=>
+                    {
+                        var client = resolverContext.Services.GetRequiredService<HttpClient>();
+                        var result = await client.SendAsync(OperationHttpRequestHelper.CreateRequest(queryOperation.Value), token);
+                        return await result.Content.ReadAsStringAsync(token);
+                    });
 
                 foreach (var parameterEntry in queryOperation.Value.Parameter)
                 {
@@ -59,7 +66,7 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         };
     }
 
-    private static void AddResponseObjectTypeDxescriptor(OpenApiWrapperContext context, string schemaReference)
+    private static void AddResponseObjectTypeDescriptor(OpenApiWrapperContext context, string schemaReference)
     {
         var openApiSchema = context.GetSchema(schemaReference);
 
