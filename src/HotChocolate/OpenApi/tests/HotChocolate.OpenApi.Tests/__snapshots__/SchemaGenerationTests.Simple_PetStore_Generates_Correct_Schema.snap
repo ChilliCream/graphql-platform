@@ -1,0 +1,27 @@
+﻿schema {
+  query: Query
+}
+
+type Pet {
+  id: BigInt!
+  name: String!
+  tag: String
+}
+
+type Query {
+  "List all pets"
+  pets(
+        """How many items to return at one time (max 100)"""
+        limit: Int
+      ): [Pet]
+  "Info for a specific pet"
+  pet(
+        """The id of the pet to retrieve"""
+        petId: String!
+      ): Pet
+}
+
+"""
+The `BigInt` scalar type represents non-fractional signed whole numeric values.
+"""
+scalar BigInt
