@@ -50,11 +50,11 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                         : new NamedTypeNode(graphQLName))
                     .Resolve(_ => new object());
 
-                // foreach (var parameterEntry in queryOperation.Value.Parameter)
-                // {
-                //     fieldDescriptor.Argument(parameterEntry.Name,
-                //         argumentDescriptor => argumentDescriptor.Type(GetGraphQLTypeName(parameterEntry.Schema.Type, parameterEntry.Required)));
-                // }
+                foreach (var parameterEntry in queryOperation.Value.Parameter)
+                {
+                    fieldDescriptor.Argument(parameterEntry.Name,
+                        argumentDescriptor => argumentDescriptor.Type(GetGraphQLTypeName(parameterEntry.Schema.Type, parameterEntry.Required)));
+                }
             }
         };
     }
