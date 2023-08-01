@@ -18,4 +18,6 @@ internal sealed class Operation
     public List<Argument>? Arguments { get; set; }
 
     public OpenApiResponse? Response { get; set; }
+
+    public string GetInputTypeName() => $"{OperationId}InputType";
 }

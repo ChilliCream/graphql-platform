@@ -1,5 +1,7 @@
 using HotChocolate.Execution;
+using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Readers;
 using Snapshooter.Xunit;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,15 +22,14 @@ public class SchemaGenerationTests
     {
         // Arrange
         await using var stream = File.Open(System.IO.Path.Combine("__resources__", "PetStore.yaml"), FileMode.Open);
+        var wrapper = new OpenApiWrapper();
+        var document = new OpenApiStreamReader().Read(stream, out var diag);
 
         // Act
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .AddOpenApi(stream)
-            .BuildSchemaAsync();
+        var schema = wrapper.Wrap(document);
 
         // Assert
-        var sdl = schema.Print();
+        var sdl = SchemaFormatter.FormatAsString(schema);
         _testOutputHelper.WriteLine(sdl);
         sdl.MatchSnapshot();
 

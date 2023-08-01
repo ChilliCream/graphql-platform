@@ -33,28 +33,28 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
     private static void AddQueryType(OpenApiWrapperContext context)
     {
-        context.Query = descriptor =>
-        {
-            descriptor.Name("Query");
-
-            var queryOperations = context.Operations
-                .Where(o => o.Value.Method == HttpMethod.Get);
-
-            foreach (var operation in queryOperations)
-            {
-                var openApiSchema = operation.Value.Response?.Content.First().Value.Schema;
-
-                if (openApiSchema is null) continue;
-
-                var fieldDescriptor = descriptor
-                    .Field(GetFieldName(operation.Value.OperationId))
-                    .Description(operation.Value.Description)
-                    .Type(GetGraphQLTypeNode(openApiSchema, false))
-                    .Resolve(async (resolverContext, token)=> await ResolveByRequest(resolverContext, operation, token));
-
-                AddQueryInput(operation, fieldDescriptor);
-            }
-        };
+        // context.Query = descriptor =>
+        // {
+        //     descriptor.Name("Query");
+        //
+        //     var queryOperations = context.Operations
+        //         .Where(o => o.Value.Method == HttpMethod.Get);
+        //
+        //     foreach (var operation in queryOperations)
+        //     {
+        //         var openApiSchema = operation.Value.Response?.Content.First().Value.Schema;
+        //
+        //         if (openApiSchema is null) continue;
+        //
+        //         var fieldDescriptor = descriptor
+        //             .Field(GetFieldName(operation.Value.OperationId))
+        //             .Description(operation.Value.Description)
+        //             .Type(GetGraphQLTypeNode(openApiSchema, false))
+        //             .Resolve(async (resolverContext, token)=> await ResolveByRequest(resolverContext, operation, token));
+        //
+        //         AddQueryInput(operation, fieldDescriptor);
+        //     }
+        // };
     }
 
     private static void AddQueryInput(KeyValuePair<string, Operation> operation, IObjectFieldDescriptor fieldDescriptor)
@@ -100,24 +100,24 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
             return;
         }
 
-        context.MutationType = descriptor =>
-        {
-            descriptor.Name("Mutation");
-
-            foreach (var operation in mutationOperations)
-            {
-                var openApiSchema = operation.Value.Response?.Content.FirstOrDefault().Value?.Schema;
-
-                if (openApiSchema is null) continue;
-
-                descriptor
-                    .Field(GetFieldName(operation.Value.OperationId))
-                    .Description(operation.Value.Description)
-                    .Type(GetGraphQLTypeNode(openApiSchema, false))
-                    .Resolve(
-                        async (resolverContext, token) => await ResolveByRequest(resolverContext, operation, token));
-            }
-        };
+        // context.MutationType = descriptor =>
+        // {
+        //     descriptor.Name("Mutation");
+        //
+        //     foreach (var operation in mutationOperations)
+        //     {
+        //         var openApiSchema = operation.Value.Response?.Content.FirstOrDefault().Value?.Schema;
+        //
+        //         if (openApiSchema is null) continue;
+        //
+        //         descriptor
+        //             .Field(GetFieldName(operation.Value.OperationId))
+        //             .Description(operation.Value.Description)
+        //             .Type(GetGraphQLTypeNode(openApiSchema, false))
+        //             .Resolve(
+        //                 async (resolverContext, token) => await ResolveByRequest(resolverContext, operation, token));
+        //     }
+        // };
     }
 
     private static async Task<string> ResolveByRequest(IResolverContext resolverContext, KeyValuePair<string, Operation> queryOperation,
@@ -138,34 +138,34 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         {
             return;
         }
-
-        context.AddGraphQLType(descriptor =>
-        {
-            descriptor.Name(NameUtils.MakeValidGraphQLName(schemaReference) ?? throw new InvalidOperationException("Type name can not be null"));
-            descriptor.Description(openApiSchema.Description);
-            foreach (var keyValuePair in openApiSchema.Properties)
-            {
-                var isRequired = openApiSchema.Required.Contains(keyValuePair.Key);
-                descriptor
-                    .Field(GetFieldName(keyValuePair.Key))
-                    .Description(keyValuePair.Value.Description)
-                    .Type(GetGraphQLTypeNode(keyValuePair.Value, isRequired))
-                    .FromJson();
-            }
-            foreach (var allOf in openApiSchema.AllOf)
-            {
-                foreach (var allOfProperty in allOf.Properties)
-                {
-                    var isRequired = allOf.Required.Contains(allOfProperty.Key);
-
-                    descriptor
-                        .Field(GetFieldName(allOfProperty.Key))
-                        .Description(allOfProperty.Value.Description)
-                        .Type(GetGraphQLTypeNode(allOfProperty.Value, isRequired))
-                        .FromJson();
-                }
-            }
-        });
+        //
+        // context.AddGraphQLType(descriptor =>
+        // {
+        //     descriptor.Name(NameUtils.MakeValidGraphQLName(schemaReference) ?? throw new InvalidOperationException("Type name can not be null"));
+        //     descriptor.Description(openApiSchema.Description);
+        //     foreach (var keyValuePair in openApiSchema.Properties)
+        //     {
+        //         var isRequired = openApiSchema.Required.Contains(keyValuePair.Key);
+        //         descriptor
+        //             .Field(GetFieldName(keyValuePair.Key))
+        //             .Description(keyValuePair.Value.Description)
+        //             .Type(GetGraphQLTypeNode(keyValuePair.Value, isRequired))
+        //             .FromJson();
+        //     }
+        //     foreach (var allOf in openApiSchema.AllOf)
+        //     {
+        //         foreach (var allOfProperty in allOf.Properties)
+        //         {
+        //             var isRequired = allOf.Required.Contains(allOfProperty.Key);
+        //
+        //             descriptor
+        //                 .Field(GetFieldName(allOfProperty.Key))
+        //                 .Description(allOfProperty.Value.Description)
+        //                 .Type(GetGraphQLTypeNode(allOfProperty.Value, isRequired))
+        //                 .FromJson();
+        //         }
+        //     }
+        // });
     }
 
     private static (string Name, string? Format, bool IsListType) GetSchemaTypeInfo(OpenApiSchema schema)

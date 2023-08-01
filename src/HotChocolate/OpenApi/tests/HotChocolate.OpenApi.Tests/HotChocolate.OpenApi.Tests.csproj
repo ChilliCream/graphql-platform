@@ -24,6 +24,9 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
+    </ItemGroup>
 
     <ItemGroup>
       <None Update="Resources\PetStore.yaml">

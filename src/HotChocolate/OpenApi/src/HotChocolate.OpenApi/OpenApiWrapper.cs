@@ -1,4 +1,6 @@
+using HotChocolate.Execution.Configuration;
 using HotChocolate.OpenApi.Pipeline;
+using HotChocolate.Skimmed;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 
@@ -12,14 +14,15 @@ internal class OpenApiWrapper
     {
         _pipeline = OpenApiWrapperPipelineBuilder.New()
             .Use<OperationDiscoveryMiddleware>()
+            .Use<InputTypeBuilderMiddleware>()
             .Use<SchemaTypeBuilderMiddleware>()
             .Build();
     }
 
-    public OpenApiWrapperContext Wrap(OpenApiDocument openApi, OpenApiSpecVersion specVersion)
+    public Skimmed.Schema Wrap(OpenApiDocument openApi)
     {
-        var context = new OpenApiWrapperContext(openApi, specVersion);
+        var context = new OpenApiWrapperContext(openApi);
         _pipeline.Invoke(context);
-        return context;
+        return context.SkimmedSchema;
     }
 }
