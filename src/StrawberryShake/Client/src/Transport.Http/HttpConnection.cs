@@ -33,16 +33,18 @@ public sealed class HttpConnection : IHttpConnection
         var body = Encoding.UTF8.GetString(document.Body);
 #endif
 
+        var hasFiles = files is { Count: > 0 };
+
         variables = MapVariables(variables);
-        if (files!.Count > 0 && variables is not null)
+        if (hasFiles && variables is not null)
         {
-            variables = MapFilesToVariables(variables, files);
+            variables = MapFilesToVariables(variables, files!);
         }
 
         var operation =
             new HotChocolate.Transport.OperationRequest(body, id, name, variables, extensions);
 
-        return new GraphQLHttpRequest(operation) { EnableFileUploads = files.Count > 0 };
+        return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles };
     }
 
     /// <summary>
