@@ -14,12 +14,51 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
     /// <inheritdoc />
     public void Invoke(OpenApiWrapperContext context, OpenApiWrapperDelegate next)
     {
+        CreateQueryInputTypes(context);
+        CreateMutationInputTypes(context);
+
+        next.Invoke(context);
+    }
+
+    private static void CreateQueryInputTypes(OpenApiWrapperContext context)
+    {
+        foreach (var operation in context.GetQueryOperations())
+        {
+            if (operation.Value.Arguments == null) continue;
+            foreach (var argument in operation.Value.Arguments)
+            {
+                if (argument.Parameter is { } parameter)
+                {
+                    CreateInputTypeForNonScalar(context, parameter.Schema);
+                }
+
+                if (argument.RequestBody is { } requestBody)
+                {
+                    var schema = requestBody.Content.FirstOrDefault().Value.Schema;
+                    if (schema is null) continue;
+
+                    CreateInputTypeForNonScalar(context, schema);
+                }
+            }
+        }
+    }
+
+    private static void CreateInputTypeForNonScalar(OpenApiWrapperContext context, OpenApiSchema schema)
+    {
+        var (_, isScalar) = schema.GetPossibleGraphQLTypeInfos();
+
+        if (!isScalar)
+        {
+            CreateInputType(context, schema);
+        }
+    }
+
+    private static void CreateMutationInputTypes(OpenApiWrapperContext context)
+    {
         foreach (var operation in context.GetMutationOperations())
         {
             AddInputType(context, operation.Value);
         }
-
-        next.Invoke(context);
     }
 
     private static void AddInputType(OpenApiWrapperContext context, Operation operation)
@@ -57,13 +96,13 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         OpenApiSchema schema,
         InputObjectType inputType)
     {
-        var typeInfo = schema.GetSchemaTypeInfo();
-        var possibleGraphQLName = OpenApiSchemaHelper.GetGraphQLTypeName(typeInfo.Name, typeInfo.Format);
-        var isScalar = Scalars.IsBuiltIn(possibleGraphQLName);
+        var (possibleGraphQLName, isScalar) = schema.GetPossibleGraphQLTypeInfos();
         inputType.Fields.Add(isScalar
             ? new InputField(fieldName, new ScalarType(possibleGraphQLName))
             : new InputField(fieldName, CreateInputType(context, schema)));
     }
+
+
 
     private static IType CreateInputType(OpenApiWrapperContext context, OpenApiSchema schema)
     {

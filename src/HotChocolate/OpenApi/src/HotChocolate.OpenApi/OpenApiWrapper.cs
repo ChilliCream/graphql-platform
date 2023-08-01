@@ -15,7 +15,7 @@ internal class OpenApiWrapper
         _pipeline = OpenApiWrapperPipelineBuilder.New()
             .Use<OperationDiscoveryMiddleware>()
             .Use<InputTypeBuilderMiddleware>()
-            .Use<SchemaTypeBuilderMiddleware>()
+            .Use<QueryTypeBuilderMiddleware>()
             .Build();
     }
 
