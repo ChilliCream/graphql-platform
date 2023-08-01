@@ -1,0 +1,12 @@
+﻿From Stream 1
+{
+  "data": {
+    "onMessage": "abc"
+  }
+}
+From Stream 2
+{
+  "data": {
+    "onMessage": "abc"
+  }
+}

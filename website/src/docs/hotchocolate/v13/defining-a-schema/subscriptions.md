@@ -222,6 +222,54 @@ services
 
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
 
+## Postgres Provider
+The PostgreSQL Subscription Provider enables your GraphQL server to provide real-time updates to your clients using PostgreSQL's native `LISTEN/NOTIFY` mechanism. This provider is ideal for applications that already use PostgreSQL and want to avoid the overhead of running a separate pub/sub service.
+
+In order to use the PostgreSQL provider we have to add the `HotChocolate.Subscriptions.Postgres` package.
+```bash
+dotnet add package HotChocolate.Subscriptions.Postgres
+```
+
+To enable Postgres subscriptions with your HotChocolate server, add `AddPostgresSubscriptions` to your GraphQL server configuration:
+
+```csharp
+services
+  .AddGraphQLServer() 
+  .AddQueryType<Query>() // every GraphQL server needs a query
+  .AddSubscriptionType<Subscriptions>()
+  .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create you connection*/);
+```
+
+### Options
+
+`PostgresSubscriptionOptions` encapsulates options for configuring the Postgres subscription provider. The properties included in this class are:
+
+1. `ConnectionFactory`: A function used to create a new, long-lived connection. The connection should have the following configuration to work optimally:
+
+    - `KeepAlive=30`: Sets a keep alive interval to keep the connection alive
+    - `Pooling=false`: Disables pooling as it is not needed
+    - `Enlist=false`: Ensures subscriptions run in the background and are not enlisted into any transaction
+2. `ChannelName`: Specifies the name of the Postgres channel used to send/receive messages. The default value is "hotchocolate_subscriptions".
+3. `MaxSendBatchSize`: Sets the maximum number of messages sent in one batch. The default value is 256.
+4. `MaxSendQueueSize`: Determines the maximum number of messages that can be queued for sending. If the queue is full, the subscription will wait until there is available space. The default value is 2048.
+5. `SubscriptionOptions`: Options used to configure the subscriptions.
+
+Here's an example of creating a connection factory suitable for long-lived connections:
+
+```csharp
+var builder = new NpgsqlDataSourceBuilder(connectionString);
+
+// we do not need pooling for long running connections
+builder.ConnectionStringBuilder.Pooling = false;
+// we set the keep alive to 30 seconds
+builder.ConnectionStringBuilder.KeepAlive = 30;
+// as these tasks often run in the background we do not want to enlist them so they do not
+// interfere with the main transaction
+builder.ConnectionStringBuilder.Enlist = false;
+
+var dataSource = builder.Build();
+```
+
 # Publishing Events
 
 To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows us to seamlessly switch between subscription providers, when necessary.
