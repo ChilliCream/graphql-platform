@@ -613,7 +613,7 @@ public class BatchPersistedQueryTests : ServerTestBase
                 .AddGraphQL()
                 .ModifyRequestOptions(o => o.OnlyAllowPersistedQueries = true)
                 .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
-                );
+                .UsePersistedQueryPipeline());
 
         var query1 = @"
                     query a {
@@ -658,6 +658,7 @@ public class BatchPersistedQueryTests : ServerTestBase
                             .Build();
                 })
                 .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .UsePersistedQueryPipeline()
                 );
 
         var query1 = @"

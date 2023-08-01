@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Text;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,6 @@ public class BatchPersistedExecutorTest
 
     private sealed class QueryStorage : IReadStoredQueries
     {
-
         private readonly Dictionary<string, Task<QueryDocument?>> _cache =
             new(StringComparer.Ordinal);
 
@@ -45,14 +45,17 @@ public class BatchPersistedExecutorTest
             var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
             storage.AddQuery(hash, query);
             return new QueryRequest(
-                queryId:hash,
-                queryHash:hash,
+                queryId: hash,
+                queryHash: hash,
                 extensions: new Dictionary<string, object>()
-            {
-                { _persistedQuery, new Dictionary<string, object>() { { _sha256Hash, hash }, { __version, 1 } } }
-            });
+                {
+                    {
+                        _persistedQuery, new Dictionary<string, object>() { { _sha256Hash, hash }, { __version, 1 } }
+                    }
+                });
         });
     }
+
 
     [Fact]
     public async Task ExecuteExportScalar_PersistedBatch()
@@ -64,9 +67,10 @@ public class BatchPersistedExecutorTest
         var executor = await CreateExecutorAsync(c =>
             c.AddStarWarsTypes()
                 .AddExportDirectiveType()
-
                 .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
                 .UsePersistedQueryPipeline()
+                .Services
+                .AddStarWarsRepositories()
         );
         var query1 = @"
                         query getHero {
@@ -82,7 +86,7 @@ public class BatchPersistedExecutorTest
                         }";
 
         // act
-        var persistedBatch = await PersistAndGetAsync(storage, query1,query2);
+        var persistedBatch = await PersistAndGetAsync(storage, query1, query2);
 
         var batchResult = await executor.ExecuteBatchAsync(persistedBatch.ToList());
 
@@ -123,7 +127,7 @@ public class BatchPersistedExecutorTest
                             }
                         }";
 
-        var persistedBatch = await PersistAndGetAsync(storage, query1,query2);
+        var persistedBatch = await PersistAndGetAsync(storage, query1, query2);
 
         var batchResult = await executor.ExecuteBatchAsync(persistedBatch.ToList());
 
@@ -242,7 +246,7 @@ public class BatchPersistedExecutorTest
                 .AddExportDirectiveType()
                 .UsePersistedQueryPipeline()
                 .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
-                );
+        );
 
         // act
         var query1 = @"{
@@ -307,8 +311,7 @@ public class BatchPersistedExecutorTest
                 .AddExportDirectiveType()
                 .UsePersistedQueryPipeline()
                 .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
-
-                );
+        );
 
         // act
         var query1 = @"{
@@ -350,19 +353,48 @@ public class BatchPersistedExecutorTest
                         list.Add("789");
                         return list;
                     }))
-                .AddExportDirectiveType().UsePersistedQueryPipeline()
+                .AddExportDirectiveType()
+                .UsePersistedQueryPipeline()
                 .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
-                );
-
+        );
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
         // act
         var query1 = @"query foo1($b: [String]) {
                             foo(bar: $b) @export(as: ""b"")
-                        }";
+                        }"
+            ;
         var query2 = @"query foo2($b: [String]) {
                             foo(bar: $b)
-                        }";
+                        }"
+            ;
+        var hash1 = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query1));
+        var hash2 = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query2));
+        storage.AddQuery(hash1, query1);
+        storage.AddQuery(hash2, query2);
+        var persistedBatch = new List<QueryRequest>()
+        {
+            new(
+                queryId: hash1,
+                queryHash: hash1,
+                variableValues: new ReadOnlyDictionary<string, object>(
+                    new Dictionary<string, object>() { { "b", new[] { "123" } } }),
+                extensions: new Dictionary<string, object>()
+                {
+                    {
+                        _persistedQuery, new Dictionary<string, object>() { { _sha256Hash, hash1 }, { __version, 1 } }
+                    }
+                }),
+            new(
+                queryId: hash2,
+                queryHash: hash2,
+                extensions: new Dictionary<string, object>()
+                {
+                    {
+                        _persistedQuery, new Dictionary<string, object>() { { _sha256Hash, hash2 }, { __version, 1 } }
+                    }
+                })
+        };
 
-        var persistedBatch = await PersistAndGetAsync(storage, query1, query2);
         var batchResult = await executor.ExecuteBatchAsync(persistedBatch.ToList());
 
         // assert
@@ -396,17 +428,43 @@ public class BatchPersistedExecutorTest
             })
             .AddExportDirectiveType().UsePersistedQueryPipeline()
             .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
-            );
-
+        );
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
         // act
+
         var query1 = @"query foo1($b1: [String]) {
                             foo(bar: $b1) @export(as: ""b2"")
                         }";
         var query2 = @"query foo2($b2: String) {
                             baz(bar: $b2)
                         }";
-
-        var persistedBatch = await PersistAndGetAsync(storage, query1, query2);
+        var hash1 = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query1));
+        var hash2 = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query2));
+        storage.AddQuery(hash1, query1);
+        storage.AddQuery(hash2, query2);
+        var persistedBatch = new List<QueryRequest>()
+        {
+            new(
+                queryId: hash1,
+                queryHash: hash1,
+                variableValues: new ReadOnlyDictionary<string, object>(
+                    new Dictionary<string, object>() { { "b1", new[] { "123" } } }),
+                extensions: new Dictionary<string, object>()
+                {
+                    {
+                        _persistedQuery, new Dictionary<string, object>() { { _sha256Hash, hash1 }, { __version, 1 } }
+                    }
+                }),
+            new(
+                queryId: hash2,
+                queryHash: hash2,
+                extensions: new Dictionary<string, object>()
+                {
+                    {
+                        _persistedQuery, new Dictionary<string, object>() { { _sha256Hash, hash2 }, { __version, 1 } }
+                    }
+                })
+        };
         var batchResult = await executor.ExecuteBatchAsync(persistedBatch.ToList());
 
         // assert

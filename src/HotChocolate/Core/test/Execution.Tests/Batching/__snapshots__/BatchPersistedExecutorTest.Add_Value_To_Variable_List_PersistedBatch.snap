@@ -1,38 +1,17 @@
 ﻿[{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 2,
-          "column": 29
-        }
-      ],
-      "path": [
-        "foo"
-      ]
-    }
-  ],
   "data": {
-    "foo": null
+    "foo": [
+      "123",
+      "789"
+    ]
   }
 },{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 2,
-          "column": 29
-        }
-      ],
-      "path": [
-        "foo"
-      ]
-    }
-  ],
   "data": {
-    "foo": null
+    "foo": [
+      "123",
+      "789",
+      "789"
+    ]
   }
 }
 ]

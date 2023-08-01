@@ -1,24 +1,14 @@
 ﻿[{
-  "errors": [
-    {
-      "message": "Unable to create the operation type \u0060Query\u0060 instance. Try adding the following service: \u0060services.AddScoped\u003CHotChocolate.StarWars.Query\u003E();\u0060",
-      "extensions": {
-        "code": "HC0019",
-        "operationType": "Query",
-        "runtimeType": "HotChocolate.StarWars.Query"
-      }
+  "data": {
+    "hero": {
+      "id": "1000"
     }
-  ]
+  }
 },{
-  "errors": [
-    {
-      "message": "Unable to create the operation type \u0060Query\u0060 instance. Try adding the following service: \u0060services.AddScoped\u003CHotChocolate.StarWars.Query\u003E();\u0060",
-      "extensions": {
-        "code": "HC0019",
-        "operationType": "Query",
-        "runtimeType": "HotChocolate.StarWars.Query"
-      }
+  "data": {
+    "human": {
+      "name": "Luke Skywalker"
     }
-  ]
+  }
 }
 ]
