@@ -152,7 +152,6 @@ public sealed class HttpConnection : IHttpConnection
                 switch (currentObject)
                 {
                     case Dictionary<string, object> dictionary:
-                    {
                         if (!dictionary.TryGetValue(segment, out currentObject))
                         {
                             throw new InvalidOperationException(
@@ -160,10 +159,8 @@ public sealed class HttpConnection : IHttpConnection
                         }
 
                         break;
-                    }
 
                     case List<object> array:
-                    {
                         if (!int.TryParse(segment, out var arrayIndex))
                         {
                             throw new InvalidOperationException(
@@ -178,7 +175,6 @@ public sealed class HttpConnection : IHttpConnection
 
                         currentObject = array[arrayIndex];
                         break;
-                    }
 
                     default:
                         throw new InvalidOperationException(
@@ -196,7 +192,6 @@ public sealed class HttpConnection : IHttpConnection
                     break;
 
                 case List<object> array:
-                {
                     if (!int.TryParse(currentPath, out var arrayIndex))
                     {
                         throw new InvalidOperationException(
@@ -211,8 +206,8 @@ public sealed class HttpConnection : IHttpConnection
 
                     array[arrayIndex] =
                         new FileReference(upload.Value.Content, upload.Value.FileName);
+
                     break;
-                }
 
                 default:
                     throw new InvalidOperationException(
