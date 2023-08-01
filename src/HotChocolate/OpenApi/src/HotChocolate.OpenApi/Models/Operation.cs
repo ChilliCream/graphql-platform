@@ -2,7 +2,7 @@ using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Models;
 
-public class Operation
+internal sealed class Operation
 {
     public string OperationId { get; set; }
 
@@ -14,9 +14,8 @@ public class Operation
 
     public OpenApiOperation OpenApiOperation { get; set; }
 
-    public OpenApiRequestBody? Request { get; set; }
+
+    public List<Argument>? Arguments { get; set; }
 
     public OpenApiResponse? Response { get; set; }
-
-    public List<OpenApiParameter> Parameter { get; set; } = new();
 }

@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using HotChocolate.OpenApi.Models;
+using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
@@ -30,7 +31,7 @@ internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
                     Method = new HttpMethod(operationKeyValue.Key.ToString()),
                     OpenApiOperation = operationKeyValue.Value,
                     Response = response.Value,
-                    Parameter = operationKeyValue.Value.Parameters.ToList()
+                    Arguments = GetArguments(operationKeyValue.Value).ToList()
                 };
 
                 if (context.Operations.ContainsKey(resultOperation.OperationId)) continue;
@@ -39,5 +40,25 @@ internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
         }
 
         next.Invoke(context);
+    }
+
+    private static IEnumerable<Argument> GetArguments(OpenApiOperation openApiOperation)
+    {
+        if (openApiOperation.RequestBody is not null)
+        {
+            yield return new Argument
+            {
+                RequestBody = openApiOperation.RequestBody
+            };
+        }
+
+        if (openApiOperation.Parameters is null) yield break;
+        foreach (var parameter in openApiOperation.Parameters)
+        {
+            yield return new Argument
+            {
+                Parameter = parameter
+            };
+        }
     }
 }

@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
       <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
       <ProjectReference Include="..\..\..\Core\src\Types.Json\HotChocolate.Types.Json.csproj" />
       <ProjectReference Include="..\..\..\Core\src\Types.Scalars\HotChocolate.Types.Scalars.csproj" />

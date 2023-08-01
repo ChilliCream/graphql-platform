@@ -4,7 +4,9 @@ using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
@@ -38,31 +40,50 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
             var queryOperations = context.Operations
                 .Where(o => o.Value.Method == HttpMethod.Get);
 
-            foreach (var queryOperation in queryOperations)
+            foreach (var operation in queryOperations)
             {
-                var openApiSchema = queryOperation.Value.Response?.Content.First().Value.Schema;
+                var openApiSchema = operation.Value.Response?.Content.First().Value.Schema;
 
                 if (openApiSchema is null) continue;
 
-                var isListType = openApiSchema.Items is not null;
-
-                var typeName = isListType ? openApiSchema.Items!.Reference.Id : openApiSchema.Reference.Id;
-                var graphQLName = GetGraphQLTypeName(typeName, false);
                 var fieldDescriptor = descriptor
-                    .Field(GetFieldName(queryOperation.Value.OperationId))
-                    .Description(queryOperation.Value.Description)
-                    .Type(isListType
-                        ? new ListTypeNode(new NamedTypeNode(graphQLName))
-                        : new NamedTypeNode(graphQLName))
-                    .Resolve(async (resolverContext, token)=> await ResolveByRequest(resolverContext, queryOperation, token));
+                    .Field(GetFieldName(operation.Value.OperationId))
+                    .Description(operation.Value.Description)
+                    .Type(GetGraphQLTypeNode(openApiSchema, false))
+                    .Resolve(async (resolverContext, token)=> await ResolveByRequest(resolverContext, operation, token));
 
-                // foreach (var parameterEntry in queryOperation.Value.Parameter)
-                // {
-                //     fieldDescriptor.Argument(parameterEntry.Name,
-                //         argumentDescriptor => argumentDescriptor.Type(GetGraphQLTypeName(parameterEntry.Schema.Type, parameterEntry.Required)));
-                // }
+                AddQueryInput(operation, fieldDescriptor);
             }
         };
+    }
+
+    private static void AddQueryInput(KeyValuePair<string, Operation> operation, IObjectFieldDescriptor fieldDescriptor)
+    {
+        if (operation.Value.Arguments is null) return;
+
+        foreach (var argument in operation.Value.Arguments)
+        {
+            if (argument.Parameter is { } parameterEntry)
+            {
+                fieldDescriptor.Argument(GetFieldName(parameterEntry.Name),
+                    argumentDescriptor => SetupArgumentOfOpenApiSchema(argumentDescriptor, parameterEntry.Schema, parameterEntry.Required));
+            }
+
+            if (argument.RequestBody is { } requestBody)
+            {
+                var requestBodySchema = requestBody.Content.FirstOrDefault().Value.Schema;
+
+                if (requestBodySchema is null) continue;
+
+                fieldDescriptor.Argument(GetFieldName(requestBodySchema.Reference.Id),
+                    argumentDescriptor => SetupArgumentOfOpenApiSchema(argumentDescriptor, requestBodySchema, requestBody.Required));
+            }
+        }
+    }
+
+    private static void SetupArgumentOfOpenApiSchema(IArgumentDescriptor descriptor, OpenApiSchema schema, bool required)
+    {
+        descriptor.Type(GetGraphQLTypeNode(schema, required));
     }
 
     private static void AddMutationType(OpenApiWrapperContext context)
@@ -92,7 +113,7 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                 descriptor
                     .Field(GetFieldName(operation.Value.OperationId))
                     .Description(operation.Value.Description)
-                    .Type(GetGraphQLTypeName(openApiSchema.Reference.Id, false))
+                    .Type(GetGraphQLTypeNode(openApiSchema, false))
                     .Resolve(
                         async (resolverContext, token) => await ResolveByRequest(resolverContext, operation, token));
             }
@@ -120,7 +141,7 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
         context.AddGraphQLType(descriptor =>
         {
-            descriptor.Name(schemaReference);
+            descriptor.Name(NameUtils.MakeValidGraphQLName(schemaReference) ?? throw new InvalidOperationException("Type name can not be null"));
             descriptor.Description(openApiSchema.Description);
             foreach (var keyValuePair in openApiSchema.Properties)
             {
@@ -128,23 +149,48 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                 descriptor
                     .Field(GetFieldName(keyValuePair.Key))
                     .Description(keyValuePair.Value.Description)
-                    .Type(GetGraphQLTypeName(keyValuePair.Value.Type, isRequired))
+                    .Type(GetGraphQLTypeNode(keyValuePair.Value, isRequired))
                     .FromJson();
             }
             foreach (var allOf in openApiSchema.AllOf)
             {
                 foreach (var allOfProperty in allOf.Properties)
                 {
-
                     var isRequired = allOf.Required.Contains(allOfProperty.Key);
+
                     descriptor
                         .Field(GetFieldName(allOfProperty.Key))
                         .Description(allOfProperty.Value.Description)
-                        .Type(GetGraphQLTypeName(allOfProperty.Value.Type, isRequired))
+                        .Type(GetGraphQLTypeNode(allOfProperty.Value, isRequired))
                         .FromJson();
                 }
             }
         });
+    }
+
+    private static (string Name, string? Format, bool IsListType) GetSchemaTypeInfo(OpenApiSchema schema)
+    {
+        var isList = schema.Items is not null;
+
+        var name = isList ? schema.Items!.Type : schema.Type;
+        var format = isList ? schema.Items!.Format : schema.Format;
+
+        name ??= isList ? schema.Items!.Reference.Id : schema.Reference.Id;
+
+        return (name, format, isList);
+    }
+
+    private static ITypeNode GetGraphQLTypeNode(OpenApiSchema schema, bool required)
+    {
+        var (name, format, isListType) = GetSchemaTypeInfo(schema);
+        var graphqlName = GetGraphQLTypeName(name, format);
+        ITypeNode baseType = required
+            ? new NonNullTypeNode(new NamedTypeNode(graphqlName))
+            : new NamedTypeNode(graphqlName);
+
+        return isListType
+            ? new ListTypeNode(baseType)
+            : baseType;
     }
 
     private static string? GetSchemaReference(Operation operation)
@@ -160,21 +206,19 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
             : content.Value.Value.Schema.Items.Reference.Id;
     }
 
-    private static string GetGraphQLTypeName(string openApiSchemaTypeName, bool required)
+    private static string GetGraphQLTypeName(string openApiSchemaTypeName, string format)
     {
         var typename = openApiSchemaTypeName switch
         {
             "string" => ScalarNames.String,
-            "integer" => ScalarNames.Int,
+            "integer" => format == "int64" ? ScalarNames.Long : ScalarNames.Int,
             "boolean" => ScalarNames.Boolean,
-            _ => openApiSchemaTypeName
+            _ => NameUtils.MakeValidGraphQLName(openApiSchemaTypeName)
         };
-
-        var suffix = required ? "!" : string.Empty;
-        return $"{typename}{suffix}";
+        return typename ?? throw new InvalidOperationException();
     }
 
-    public static string GetFieldName(string input)
+    private static string GetFieldName(string input)
     {
         if (string.IsNullOrEmpty(input))
             return string.Empty;
@@ -202,7 +246,6 @@ internal sealed class SchemaTypeBuilderMiddleware : IOpenApiWrapperMiddleware
             }
         }
 
-        return sb.ToString();
+        return NameUtils.MakeValidGraphQLName(sb.ToString()) ?? throw new InvalidOperationException("Field name can not be null");
     }
-
 }
