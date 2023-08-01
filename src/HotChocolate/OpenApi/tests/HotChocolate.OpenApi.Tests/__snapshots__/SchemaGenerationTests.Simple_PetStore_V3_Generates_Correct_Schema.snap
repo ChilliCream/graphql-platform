@@ -1,11 +1,5 @@
 ﻿schema {
   query: Query
-  mutation: Mutation
-}
-
-type Mutation {
-  "Creates a new pet in the store. Duplicates are allowed"
-  addpet: Pet
 }
 
 type Pet {

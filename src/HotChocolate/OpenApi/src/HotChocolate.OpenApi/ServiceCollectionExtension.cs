@@ -46,5 +46,10 @@ public static class ServiceCollectionExtension
             requestExecutorBuilder.AddObjectType(typeDescriptor);
         }
 
+        foreach (var typeDescriptor in context.GraphQLInputTypes)
+        {
+            requestExecutorBuilder.AddInputObjectType(typeDescriptor);
+        }
+
     }
 }
