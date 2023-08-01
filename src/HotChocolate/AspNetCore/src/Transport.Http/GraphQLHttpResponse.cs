@@ -23,7 +23,7 @@ namespace HotChocolate.Transport.Http;
 public sealed class GraphQLHttpResponse : IDisposable
 {
     private static readonly OperationResult _transportError = CreateTransportError();
-    
+
 #if NET6_0_OR_GREATER
     private static readonly Encoding _utf8 = Encoding.UTF8;
 #endif
@@ -42,17 +42,23 @@ public sealed class GraphQLHttpResponse : IDisposable
     {
         _message = message ?? throw new ArgumentNullException(nameof(message));
     }
-    
+
     /// <summary>
     /// Gets the HTTP response status code.
     /// </summary>
     public HttpStatusCode StatusCode => _message.StatusCode;
-    
+
     /// <summary>
     /// Specifies whether the HTTP response was successful.
     /// </summary>
     public bool IsSuccessStatusCode => _message.IsSuccessStatusCode;
-    
+
+
+    /// <summary>
+    /// Gets the reason phrase which typically is sent by servers together with the status code.
+    /// </summary>
+    public string? ReasonPhrase => _message.ReasonPhrase;
+
     /// <summary>
     /// Throws an exception if the HTTP response was unsuccessful.
     /// </summary>
@@ -111,7 +117,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 #else
         using var contentStream = await _message.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
-        
+
         var stream = contentStream;
 
 #if NET6_0_OR_GREATER
@@ -121,7 +127,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             stream = GetTranscodingStream(contentStream, sourceEncoding);
         }
 #endif
-        
+
         var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
 
         try
@@ -149,7 +155,7 @@ public sealed class GraphQLHttpResponse : IDisposable
     public IAsyncEnumerable<OperationResult> ReadAsResultStreamAsync(CancellationToken cancellationToken = default)
     {
         var contentType = _message.Content.Headers.ContentType;
-        
+
         if (contentType?.MediaType.EqualsOrdinal(ContentType.EventStream) ?? false)
         {
 #if NET6_0_OR_GREATER
@@ -158,7 +164,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             return ReadAsResultStreamInternalAsync(cancellationToken);
 #endif
         }
-        
+
         // The server supports the newer graphql-response+json media type and users are free
         // to use status codes.
         if (contentType?.MediaType.EqualsOrdinal(ContentType.GraphQL) ?? false)
@@ -187,7 +193,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
 #if NET6_0_OR_GREATER
     private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
-        string? charSet, 
+        string? charSet,
         [EnumeratorCancellation] CancellationToken ct)
 #else
     private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
@@ -200,7 +206,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 #else
         using var contentStream = await _message.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
-        
+
         var stream = contentStream;
 
 #if NET6_0_OR_GREATER
@@ -251,14 +257,14 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         return encoding;
     }
-    
+
     private static Stream GetTranscodingStream(Stream contentStream, Encoding sourceEncoding)
         => Encoding.CreateTranscodingStream(
             contentStream,
             innerStreamEncoding: sourceEncoding,
             outerStreamEncoding: _utf8);
 #endif
-    
+
     private static OperationResult CreateTransportError()
         => new OperationResult(
             errors: JsonDocument.Parse(
