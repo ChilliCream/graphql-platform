@@ -51,6 +51,9 @@ internal static class OpenApiSchemaHelper
             : baseType;
     }
 
+    public static OpenApiSchema GetTypeSchema(this OpenApiSchema openApiSchema) =>
+        openApiSchema.Items ?? openApiSchema;
+
     public static string RemoveWhiteSpacesAndEnsureName(this string input)
     {
         if (string.IsNullOrEmpty(input))
