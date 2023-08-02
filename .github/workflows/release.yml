@@ -1,12 +1,9 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: Release
 
 on:
   push:
     tags:
-      - 13.**
+      - '13.*'
 
 jobs:
   release:
@@ -14,6 +11,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      
     - name: Install .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -21,10 +19,30 @@ jobs:
           6.x
           7.x
           8.x
+          
     - name: Get the version
       id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      
     - name: Build
       run: |
-        ./build.sh --SemVersion ${{ steps.get_version.outputs.VERSION }}
-        
+        ./build.sh --SemVersion ${{ env.VERSION }}
+
+    - name: Get release
+      id: get_release
+      run: |
+        RELEASE_ID=$(gh api repos/:owner/:repo/releases/tags/${{ env.VERSION }} --jq '.id')
+        UPLOAD_URL=$(gh api repos/:owner/:repo/releases/$RELEASE_ID --jq '.upload_url')
+        echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+        echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Release Assets
+      run: |
+        for file in ./**/*.nupkg; do
+          echo "Uploading $file"
+          gh release upload ${{ env.VERSION }} "$file" --repo :owner/:repo
+        done
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
