@@ -26,7 +26,7 @@ jobs:
       
     - name: Build Packages
       run: |
-        ./build.sh pack --SemVersion ${{ env.VERSION }}
+        ./build.sh pack --SemVersion ${{ env.VERSION }} --Configuration Release
 
     - name: Push Packages
       run: |
