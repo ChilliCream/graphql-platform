@@ -24,15 +24,21 @@ jobs:
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       
-    - name: Build
+    - name: Build Packages
       run: |
-        ./build.sh --SemVersion ${{ env.VERSION }}
+        ./build.sh pack --SemVersion ${{ env.VERSION }}
 
+    - name: Push Packages
+      run: |
+        ./build.cmd publish --skip
+      env:
+        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+    
     - name: Get release
       id: get_release
       run: |
-        RELEASE_ID=$(gh api repos/:owner/:repo/releases/tags/${{ env.VERSION }} --jq '.id')
-        UPLOAD_URL=$(gh api repos/:owner/:repo/releases/$RELEASE_ID --jq '.upload_url')
+        RELEASE_ID=$(gh api repos/your-username/your-repo/releases/tags/${{ env.VERSION }} --jq '.id')
+        UPLOAD_URL=$(gh api repos/your-username/your-repo/releases/$RELEASE_ID --jq '.upload_url')
         echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
         echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
       env:
@@ -42,7 +48,7 @@ jobs:
       run: |
         for file in ./**/*.nupkg; do
           echo "Uploading $file"
-          gh release upload ${{ env.VERSION }} "$file" --repo :owner/:repo
+          gh release upload ${{ env.VERSION }} "$file" --repo your-username/your-repo
         done
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
