@@ -14,17 +14,33 @@ namespace HotChocolate.OpenApi;
 
 public static class ServiceCollectionExtension
 {
-    public static IRequestExecutorBuilder AddOpenApi(this IRequestExecutorBuilder requestExecutorBuilder, string openApi)
+    public static IRequestExecutorBuilder AddOpenApi(
+        this IRequestExecutorBuilder requestExecutorBuilder,
+        string openApi,
+        Action<HttpClient>? configureClient = null)
     {
         var document = new OpenApiStringReader().Read(openApi, out _);
         requestExecutorBuilder.ParseAndAddTypes(document);
+        requestExecutorBuilder.AddHttpClient(configureClient);
         return requestExecutorBuilder;
     }
 
-    public static IRequestExecutorBuilder AddOpenApi(this IRequestExecutorBuilder requestExecutorBuilder, Stream openApiStream)
+    public static IRequestExecutorBuilder AddOpenApi(
+        this IRequestExecutorBuilder requestExecutorBuilder,
+        Stream openApiStream,
+        Action<HttpClient>? configureClient = null)
     {
         var document = new OpenApiStreamReader().Read(openApiStream, out _);
         requestExecutorBuilder.ParseAndAddTypes(document);
+        requestExecutorBuilder.AddHttpClient(configureClient);
+        return requestExecutorBuilder;
+    }
+
+    private static IRequestExecutorBuilder AddHttpClient(
+        this IRequestExecutorBuilder requestExecutorBuilder,
+        Action<HttpClient>? configureClient)
+    {
+        requestExecutorBuilder.Services.AddHttpClient("OpenApi", configureClient ?? (_ =>{}));
         return requestExecutorBuilder;
     }
 

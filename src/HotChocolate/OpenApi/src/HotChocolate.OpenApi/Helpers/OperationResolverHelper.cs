@@ -15,7 +15,7 @@ internal sealed class OperationResolverHelper
     {
         var httpClient = resolverContext.Services
             .GetRequiredService<IHttpClientFactory>()
-            .CreateClient();
+            .CreateClient("OpenApi");
 
         var request = CreateRequest(resolverContext, operation);
         var response = await httpClient.SendAsync(request);
@@ -25,6 +25,7 @@ internal sealed class OperationResolverHelper
     private static HttpRequestMessage CreateRequest(IResolverContext resolverContext, Operation operation)
     {
         var request = new HttpRequestMessage(operation.Method, operation.Path);
+
         return request;
     }
 }
