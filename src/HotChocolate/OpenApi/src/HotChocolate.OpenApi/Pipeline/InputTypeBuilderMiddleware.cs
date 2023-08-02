@@ -63,7 +63,6 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
     {
         var inputType = new InputObjectType(operation.GetInputTypeName());
 
-        if (operation.Arguments == null) return;
         foreach (var argument in operation.Arguments)
         {
             if (argument.Parameter is { } parameter)
