@@ -44,8 +44,8 @@ jobs:
     - name: Get release
       id: get_release
       run: |
-        RELEASE_ID=$(gh api repos/your-username/your-repo/releases/tags/${{ env.GIT_TAG }} --jq '.id')
-        UPLOAD_URL=$(gh api repos/your-username/your-repo/releases/$RELEASE_ID --jq '.upload_url')
+        RELEASE_ID=$(gh api repos/ChilliCream/graphql-platform/releases/tags/${{ env.GIT_TAG }} --jq '.id')
+        UPLOAD_URL=$(gh api repos/ChilliCream/graphql-platform/releases/$RELEASE_ID --jq '.upload_url')
         echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
         echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
       env:
@@ -55,7 +55,7 @@ jobs:
       run: |
         for file in ./**/*.nupkg; do
           echo "Uploading $file"
-          gh release upload ${{ env.GIT_TAG }} "$file" --repo your-username/your-repo
+          gh release upload ${{ env.GIT_TAG }} "$file" --repo ChilliCream/graphql-platform
         done
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
