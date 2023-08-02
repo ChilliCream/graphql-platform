@@ -20,7 +20,7 @@ jobs:
         dotnet-version: |
           6.x
           7.x
-          8.
+          8.x
     - name: Build
       run: |
         ./build.sh --SemVersion ${GITHUB_REF#refs/*/}
