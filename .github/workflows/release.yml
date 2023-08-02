@@ -37,9 +37,9 @@ jobs:
 
     - name: Push Packages
       run: |
-        ./build.cmd publish --skip
+        ./build.cmd publish --skip --NuGetApiKey ${{ env.NUGET_KEY }}
       env:
-        NuGetApiKey: ${{ secrets.NUGET_KEY }}
+        NUGET_KEY: ${{ secrets.NUGET_KEY }}
     
     - name: Get release
       id: get_release
