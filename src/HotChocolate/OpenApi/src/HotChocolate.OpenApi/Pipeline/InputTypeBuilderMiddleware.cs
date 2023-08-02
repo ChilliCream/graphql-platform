@@ -1,6 +1,5 @@
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
-using HotChocolate.Types;
 using Microsoft.OpenApi.Models;
 using InputField = HotChocolate.Skimmed.InputField;
 using InputObjectType = HotChocolate.Skimmed.InputObjectType;
@@ -24,7 +23,6 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
     {
         foreach (var operation in context.GetQueryOperations())
         {
-            if (operation.Value.Arguments == null) continue;
             foreach (var argument in operation.Value.Arguments)
             {
                 if (argument.Parameter is { } parameter)
@@ -82,6 +80,7 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
             }
         }
         AddIfNecessary(context, inputType);
+        context.OperationInputTypeLookup[operation.OperationId] = inputType;
     }
 
     private static void AddIfNecessary(OpenApiWrapperContext context, InputObjectType inputObjectType)
