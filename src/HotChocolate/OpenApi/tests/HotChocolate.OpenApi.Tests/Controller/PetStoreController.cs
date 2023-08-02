@@ -347,6 +347,20 @@ public class Error : IEquatable<Error>
 [ApiController]
 public class DefaultApiController : ControllerBase
 {
+    private static List<Pet> _pets = new()
+    {
+        new Pet
+        {
+            Id = 1,
+            Name = "Chooper"
+        },
+        new Pet
+        {
+            Id = 2,
+            Name = "Rex"
+        }
+    };
+
     /// <summary>
     ///
     /// </summary>
@@ -355,24 +369,22 @@ public class DefaultApiController : ControllerBase
     /// <response code="200">pet response</response>
     /// <response code="0">unexpected error</response>
     [HttpPost]
-    [Route("/v2/pets")]
+    [Route("/pets")]
     [ValidateModelState]
     [SwaggerOperation("AddPet")]
     [SwaggerResponse(200, type: typeof(Pet), description: "pet response")]
     [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public virtual IActionResult AddPet([FromBody] NewPet body)
     {
-        //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-        // return StatusCode(200, default(Pet));
-
-        //TODO: Uncomment the next line to return response 0 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-        // return StatusCode(0, default(Error));
-        string exampleJson = null;
+        string? exampleJson = null;
         exampleJson = "\"\"";
 
-        var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<Pet>(exampleJson)
-            : default; //TODO: Change the data returned
+        var example = JsonConvert.DeserializeObject<Pet>(exampleJson);
+
+        if (example is not null)
+        {
+            _pets.Add(example);
+        }
         return new ObjectResult(example);
     }
 
@@ -384,7 +396,7 @@ public class DefaultApiController : ControllerBase
     /// <response code="204">pet deleted</response>
     /// <response code="0">unexpected error</response>
     [HttpDelete]
-    [Route("/v2/pets/{id}")]
+    [Route("/pets/{id}")]
     [ValidateModelState]
     [SwaggerOperation("DeletePet")]
     [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
@@ -407,25 +419,14 @@ public class DefaultApiController : ControllerBase
     /// <response code="200">pet response</response>
     /// <response code="0">unexpected error</response>
     [HttpGet]
-    [Route("/v2/pets/{id}")]
+    [Route("/pets/{id}")]
     [ValidateModelState]
     [SwaggerOperation("FindPetById")]
     [SwaggerResponse(200, type: typeof(Pet), description: "pet response")]
     [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public virtual IActionResult FindPetById([FromRoute] [Required] long? id)
     {
-        //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-        // return StatusCode(200, default(Pet));
-
-        //TODO: Uncomment the next line to return response 0 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-        // return StatusCode(0, default(Error));
-        string exampleJson = null;
-        exampleJson = "\"\"";
-
-        var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<Pet>(exampleJson)
-            : default; //TODO: Change the data returned
-        return new ObjectResult(example);
+        return new ObjectResult(_pets.FirstOrDefault(p => p.Id == id));
     }
 
     /// <summary>
@@ -437,25 +438,14 @@ public class DefaultApiController : ControllerBase
     /// <response code="200">pet response</response>
     /// <response code="0">unexpected error</response>
     [HttpGet]
-    [Route("/v2/pets")]
+    [Route("/pets")]
     [ValidateModelState]
     [SwaggerOperation("FindPets")]
     [SwaggerResponse(200, type: typeof(List<Pet>), description: "pet response")]
     [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public virtual IActionResult FindPets([FromQuery] List<string> tags, [FromQuery] int? limit)
     {
-        //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-        // return StatusCode(200, default(List<Pet>));
-
-        //TODO: Uncomment the next line to return response 0 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-        // return StatusCode(0, default(Error));
-        string exampleJson = null;
-        exampleJson = "[ \"\", \"\" ]";
-
-        var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<List<Pet>>(exampleJson)
-            : default; //TODO: Change the data returned
-        return new ObjectResult(example);
+        return new ObjectResult(_pets);
     }
 }
 

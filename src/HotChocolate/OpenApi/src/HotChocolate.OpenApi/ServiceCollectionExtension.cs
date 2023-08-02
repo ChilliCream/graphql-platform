@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -9,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 using InputObjectType = HotChocolate.Skimmed.InputObjectType;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
+using TypeKind = HotChocolate.Skimmed.TypeKind;
 
 namespace HotChocolate.OpenApi;
 
@@ -86,7 +88,9 @@ public static class ServiceCollectionExtension
             {
                 var fieldDescriptor = desc.Field(field.Name)
                     .Description(field.Description)
-                    .Type(new NamedTypeNode(field.Type.NamedType().Name));
+                    .Type(field.Type.Kind == TypeKind.List
+                        ? new ListTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
+                        : new NamedTypeNode(field.Type.NamedType().Name));
 
                 foreach (var fieldArgument in field.Arguments)
                 {
@@ -97,7 +101,11 @@ public static class ServiceCollectionExtension
                 if (field.ContextData.TryGetValue("resolver", out var res) &&
                     res is Func<IResolverContext, Task<string>> resolver)
                 {
-                    fieldDescriptor.Resolve(async ctx => await resolver.Invoke(ctx));
+                    fieldDescriptor.Resolve(async ctx =>
+                    {
+                        var value = await resolver.Invoke(ctx);
+                        return JsonDocument.Parse(value).RootElement;
+                    });
                 }
                 else
                 {
@@ -116,7 +124,9 @@ public static class ServiceCollectionExtension
             {
                 desc.Field(field.Name)
                     .Description(field.Description)
-                    .Type(new NamedTypeNode(field.Type.NamedType().Name));
+                    .Type(field.Type.Kind == TypeKind.List
+                        ? new ListTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
+                        : new NamedTypeNode(field.Type.NamedType().Name));
             }
         };
 }

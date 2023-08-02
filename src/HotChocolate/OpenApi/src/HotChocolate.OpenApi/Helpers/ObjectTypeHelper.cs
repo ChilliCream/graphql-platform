@@ -31,7 +31,6 @@ internal static class ObjectTypeHelper
             type.Fields.Add(field);
         }
 
-
         foreach (var allOf in schema.AllOf)
         {
             foreach (var allOfProperty in allOf.Properties)
