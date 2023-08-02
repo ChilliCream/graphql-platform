@@ -40,7 +40,7 @@ jobs:
       run: |
         ./build.cmd publish --skip
       env:
-        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        NuGetApiKey: ${{ secrets.NUGET_KEY }}
     
     - name: Get release
       id: get_release
