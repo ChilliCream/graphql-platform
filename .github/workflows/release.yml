@@ -21,7 +21,10 @@ jobs:
           6.x
           7.x
           8.x
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
     - name: Build
       run: |
-        ./build.sh --SemVersion ${GITHUB_REF#refs/*/}
+        ./build.sh --SemVersion ${{ steps.get_version.outputs.VERSION }}
         
