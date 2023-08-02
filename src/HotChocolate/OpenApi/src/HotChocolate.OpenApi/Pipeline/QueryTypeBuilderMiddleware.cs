@@ -2,7 +2,6 @@ using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
-using Microsoft.Extensions.DependencyInjection;
 using InputField = HotChocolate.Skimmed.InputField;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
 
@@ -55,8 +54,6 @@ internal sealed class QueryTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
     private static void AddArguments(KeyValuePair<string, Operation> operation, OutputField outputField)
     {
-        if (operation.Value.Arguments == null) return;
-
         foreach (var argument in operation.Value.Arguments)
         {
             if (argument.Parameter is { } parameter)
