@@ -1,4 +1,5 @@
 using HotChocolate.OpenApi.Helpers;
+using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.OpenApi.Pipeline;
@@ -33,6 +34,12 @@ internal sealed class MutationTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                 outputField.Arguments.Add(inputField);
             }
             mutationType.Fields.Add(outputField);
+
+            outputField.ContextData["resolver"] = new Func<IResolverContext, Task<string>>(async ctx =>
+            {
+                var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
+                return await resolver.Invoke(ctx);
+            });
         }
 
         context.SkimmedSchema.MutationType = mutationType;

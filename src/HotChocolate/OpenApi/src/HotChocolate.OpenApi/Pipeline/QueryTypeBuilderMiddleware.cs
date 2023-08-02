@@ -1,6 +1,8 @@
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
+using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
+using Microsoft.Extensions.DependencyInjection;
 using InputField = HotChocolate.Skimmed.InputField;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
 
@@ -38,6 +40,12 @@ internal sealed class QueryTypeBuilderMiddleware : IOpenApiWrapperMiddleware
             queryType.Fields.Add(outputField);
 
             AddArguments(operation, outputField);
+
+            outputField.ContextData["resolver"] = new Func<IResolverContext, Task<string>>(async ctx =>
+            {
+                var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
+                return await resolver.Invoke(ctx);
+            });
         }
 
         context.SkimmedSchema.QueryType = queryType;
