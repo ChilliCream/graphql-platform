@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -99,13 +100,9 @@ public static class ServiceCollectionExtension
                 }
 
                 if (field.ContextData.TryGetValue("resolver", out var res) &&
-                    res is Func<IResolverContext, Task<string>> resolver)
+                    res is Func<IResolverContext, Task<JsonElement>> resolver)
                 {
-                    fieldDescriptor.Resolve(async ctx =>
-                    {
-                        var value = await resolver.Invoke(ctx);
-                        return JsonDocument.Parse(value).RootElement;
-                    });
+                    fieldDescriptor.Resolve(ctx => resolver.Invoke(ctx));
                 }
                 else
                 {

@@ -1,7 +1,7 @@
-using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -9,8 +9,10 @@ namespace HotChocolate.OpenApi.Tests;
 
 public class IntegrationTests
 {
-    [Fact]
-    public async Task QueryPets_Returns_Results()
+    [Theory]
+    [InlineData("findAnyPets", "query { findpets { name } }")]
+    [InlineData("findSinglePet", "query { findPetById(id: 1) { name } }")]
+    public async Task QueryPets_Returns_Results(string caseName, string query)
     {
         // Arrange
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
@@ -40,9 +42,9 @@ public class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // Act
-        var result = await schema.ExecuteAsync(QueryRequestBuilder.Create("query { findpets { name } }"));
+        var result = await schema.ExecuteAsync(QueryRequestBuilder.Create(query));
 
         // Assert
-        result.MatchSnapshot();
+        result.MatchSnapshot(SnapshotNameExtension.Create(caseName));
     }
 }

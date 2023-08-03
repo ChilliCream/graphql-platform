@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
@@ -35,7 +36,7 @@ internal sealed class MutationTypeBuilderMiddleware : IOpenApiWrapperMiddleware
             }
             mutationType.Fields.Add(outputField);
 
-            outputField.ContextData["resolver"] = new Func<IResolverContext, Task<string>>(async ctx =>
+            outputField.ContextData["resolver"] = new Func<IResolverContext, Task<JsonElement>>(async ctx =>
             {
                 var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
                 return await resolver.Invoke(ctx);

@@ -1,0 +1,16 @@
+﻿{
+  "Kind": "SingleResult",
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "findPetById": {
+      "name": "Chooper"
+    }
+  },
+  "Items": null,
+  "Errors": null,
+  "Extensions": null,
+  "Incremental": null,
+  "ContextData": null,
+  "HasNext": null
+}

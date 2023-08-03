@@ -16,7 +16,7 @@ type Pet {
 
 type Query {
   findPetById(id: Long): Pet
-  findpets(limit: Int tags: String): Pet
+  findpets(limit: Int tags: String): [Pet]
 }
 
 type addPetPayload {
