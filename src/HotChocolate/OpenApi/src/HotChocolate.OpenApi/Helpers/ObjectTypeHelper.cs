@@ -52,7 +52,7 @@ internal static class ObjectTypeHelper
     {
         var isRequired = schema.Required.Contains(property.Key);
         var fieldType = property.Value.GetGraphQLTypeNode(isRequired);
-        var field = new OutputField(property.Key)
+        var field = new OutputField(OpenApiNamingHelper.GetFieldName(property.Key))
         {
             Type = fieldType,
             Description = property.Value.Description

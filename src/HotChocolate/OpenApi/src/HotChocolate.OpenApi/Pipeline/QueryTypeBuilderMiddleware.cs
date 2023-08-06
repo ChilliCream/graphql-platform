@@ -30,7 +30,7 @@ internal sealed class QueryTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
             var type = schema.GetGraphQLTypeNode(false);
 
-            var outputField = new OutputField(operation.Value.OperationId.RemoveWhiteSpacesAndEnsureName())
+            var outputField = new OutputField(OpenApiNamingHelper.GetFieldName(operation.Value.OperationId))
             {
                 Type = type
             };

@@ -5,12 +5,12 @@
 
 type Query {
   findPetById(id: Long): Pet
-  findpets(limit: Int tags: [String]): [Pet]
+  findPets(limit: Int tags: [String]): [Pet]
 }
 
 type Mutation {
-  addpet(input: addPetInputType): addPetPayload
-  deletepet(input: deletePetInputType): deletePetPayload
+  addPet(input: AddPetInputType): addPetPayload
+  deletePet(input: DeletePetInputType): deletePetPayload
 }
 
 type addPetPayload {
@@ -29,11 +29,11 @@ type Pet {
   tag: String
 }
 
-input addPetInputType {
-  NewPet: NewPetInputType
+input AddPetInputType {
+  newPet: NewPetInputType
 }
 
-input deletePetInputType {
+input DeletePetInputType {
   id: Long
 }
 

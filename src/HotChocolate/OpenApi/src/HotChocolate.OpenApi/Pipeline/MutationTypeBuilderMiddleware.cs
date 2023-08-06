@@ -24,7 +24,7 @@ internal sealed class MutationTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
         foreach (var operation in operations)
         {
-            var outputField = new OutputField(operation.Value.OperationId.RemoveWhiteSpacesAndEnsureName())
+            var outputField = new OutputField(OpenApiNamingHelper.GetFieldName(operation.Value.OperationId))
             {
                 Type = context.OperationPayloadTypeLookup[operation.Value.OperationId]
             };

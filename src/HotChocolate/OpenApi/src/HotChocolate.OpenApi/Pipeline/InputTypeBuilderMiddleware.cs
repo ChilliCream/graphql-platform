@@ -61,7 +61,7 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
     private static void AddInputType(OpenApiWrapperContext context, Operation operation)
     {
-        var inputType = new InputObjectType(operation.GetInputTypeName());
+        var inputType = new InputObjectType(OpenApiNamingHelper.GetInputTypeName(operation.OperationId));
 
         foreach (var argument in operation.Arguments)
         {
@@ -94,17 +94,18 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         OpenApiSchema schema,
         InputObjectType inputType)
     {
+        var graphQLName = OpenApiNamingHelper.GetFieldName(fieldName);
         var (possibleGraphQLName, isScalar) = schema.GetPossibleGraphQLTypeInfos();
         inputType.Fields.Add(isScalar
-            ? new InputField(fieldName, new ScalarType(possibleGraphQLName))
-            : new InputField(fieldName, CreateInputType(context, schema)));
+            ? new InputField(graphQLName, new ScalarType(possibleGraphQLName))
+            : new InputField(graphQLName, CreateInputType(context, schema)));
     }
 
 
 
     private static IType CreateInputType(OpenApiWrapperContext context, OpenApiSchema schema)
     {
-        var inputType = new InputObjectType($"{schema.Reference.Id}InputType");
+        var inputType = new InputObjectType(OpenApiNamingHelper.GetInputTypeName(schema.Reference.Id));
         foreach (var schemaProperty in schema.Properties)
         {
             AddInputField(schemaProperty.Key, context, schemaProperty.Value, inputType);
@@ -114,7 +115,8 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         {
             foreach (var allOfProperty in allOf.Properties)
             {
-                AddInputField(allOfProperty.Key,
+                AddInputField(
+                    allOfProperty.Key,
                     context,
                     allOfProperty.Value,
                     inputType);

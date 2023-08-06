@@ -16,8 +16,6 @@ internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
             var path = openApiPath.Value;
             foreach (var operationKeyValue in path.Operations.Select(o => o))
             {
-                // Todo determine request schema
-
                 var response = operationKeyValue.Value.Responses
                     .FirstOrDefault(r => _succesfulStatusCode.IsMatch(r.Key));
 

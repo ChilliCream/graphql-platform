@@ -32,7 +32,7 @@ internal static class OpenApiSchemaHelper
             "string" => ScalarNames.String,
             "integer" => format == "int64" ? ScalarNames.Long : ScalarNames.Int,
             "boolean" => ScalarNames.Boolean,
-            _ => NameUtils.MakeValidGraphQLName(openApiSchemaTypeName)
+            _ => OpenApiNamingHelper.GetTypeName(openApiSchemaTypeName)
         };
         return typename ?? throw new InvalidOperationException();
     }
@@ -53,37 +53,6 @@ internal static class OpenApiSchemaHelper
 
     public static OpenApiSchema GetTypeSchema(this OpenApiSchema openApiSchema) =>
         openApiSchema.Items ?? openApiSchema;
-
-    public static string RemoveWhiteSpacesAndEnsureName(this string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return string.Empty;
-
-        var sb = new StringBuilder();
-        var capitalizeNext = false;
-
-        // Go through all the characters
-        foreach (var currentChar in input)
-        {
-            // Only process alphabetic characters and spaces
-            if (!char.IsLetter(currentChar) && currentChar != ' ') continue;
-            if (currentChar == ' ')
-            {
-                capitalizeNext = true; // We want to capitalize the next character
-            }
-            else if (capitalizeNext)
-            {
-                sb.Append(char.ToUpper(currentChar));
-                capitalizeNext = false; // Reset flag after capitalizing
-            }
-            else
-            {
-                sb.Append(char.ToLower(currentChar));
-            }
-        }
-
-        return NameUtils.MakeValidGraphQLName(sb.ToString()) ?? throw new InvalidOperationException("Field name can not be null");
-    }
 
     public static (string possibleGraphQLName, bool isScalar) GetPossibleGraphQLTypeInfos(this OpenApiSchema schema)
     {

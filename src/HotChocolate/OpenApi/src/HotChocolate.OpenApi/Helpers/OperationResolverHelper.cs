@@ -1,6 +1,4 @@
-using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Web;
 using HotChocolate.OpenApi.Models;
 using HotChocolate.Resolvers;
@@ -9,7 +7,7 @@ using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Helpers;
 
-internal sealed class OperationResolverHelper
+internal static class OperationResolverHelper
 {
     public static Func<IResolverContext, Task<JsonElement>> CreateResolverFunc(Operation operation)
     {
