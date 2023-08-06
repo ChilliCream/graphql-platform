@@ -9,17 +9,17 @@ type Query {
 }
 
 type Mutation {
-  addPet(input: AddPetInputType): addPetPayload
-  deletePet(input: DeletePetInputType): deletePetPayload
+  addPet(input: AddPetInput): AddPetPayload
+  deletePet(input: DeletePetInput): DeletePetPayload
 }
 
-type addPetPayload {
+type AddPetPayload {
   id: Long
   name: String
   tag: String
 }
 
-type deletePetPayload {
+type DeletePetPayload {
   success: Boolean
 }
 
@@ -29,15 +29,11 @@ type Pet {
   tag: String
 }
 
-input AddPetInputType {
-  newPet: NewPetInputType
-}
-
-input DeletePetInputType {
-  id: Long
-}
-
-input NewPetInputType {
+input AddPetInput {
   name: String
   tag: String
+}
+
+input DeletePetInput {
+  id: Long
 }

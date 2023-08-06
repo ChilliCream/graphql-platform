@@ -15,7 +15,8 @@ internal static class OpenApiNamingHelper
                                                           .EnsureStartWithUpperChar() ??
                                                        throw new InvalidOperationException("Field name cannot be null");
 
-    public static string GetInputTypeName(string value) => $"{GetTypeName(value)}InputType";
+    public static string GetInputTypeName(string value) => $"{GetTypeName(value)}Input";
+    public static string GetPayloadTypeName(string value) => $"{GetTypeName(value)}Payload";
 
     private static string EnsureStartWithLowerChar(this string text)
     {

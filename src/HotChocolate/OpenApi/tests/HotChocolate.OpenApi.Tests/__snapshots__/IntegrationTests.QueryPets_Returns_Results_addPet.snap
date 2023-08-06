@@ -1,0 +1,169 @@
+﻿{
+  "Kind": "SingleResult",
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "addPet": null
+  },
+  "Items": null,
+  "Errors": [
+    {
+      "Message": "Unexpected Execution Error",
+      "Code": null,
+      "Path": {
+        "Name": "addPet",
+        "Parent": {
+          "Parent": null,
+          "Length": -1,
+          "IsRoot": true
+        },
+        "Length": 0,
+        "IsRoot": false
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 12
+        }
+      ],
+      "Extensions": null,
+      "Exception": {
+        "ClassName": "System.InvalidOperationException",
+        "Message": "Downstream request failed",
+        "Data": null,
+        "InnerException": null,
+        "HelpURL": null,
+        "StackTraceString": "   at HotChocolate.OpenApi.Helpers.OperationResolverHelper.ResolveAsync(IResolverContext resolverContext, Operation operation) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/OpenApi/src/HotChocolate.OpenApi/Helpers/OperationResolverHelper.cs:line 29\n   at HotChocolate.OpenApi.Pipeline.MutationTypeBuilderMiddleware.<>c__DisplayClass1_0.<<CreateMutationType>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/OpenApi/src/HotChocolate.OpenApi/Pipeline/MutationTypeBuilderMiddleware.cs:line 42\n--- End of stack trace from previous location ---\n   at HotChocolate.Types.ResolveObjectFieldDescriptorExtensions.<>c__DisplayClass3_0`1.<<Resolve>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Types/Types/Extensions/ResolveObjectFieldDescriptorExtensions.cs:line 99\n--- End of stack trace from previous location ---\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 130\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 134\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 113",
+        "RemoteStackTraceString": null,
+        "RemoteStackIndex": 0,
+        "ExceptionMethod": null,
+        "HResult": -2146233079,
+        "Source": "HotChocolate.OpenApi",
+        "WatsonBuckets": null
+      },
+      "SyntaxNode": {
+        "Kind": "Field",
+        "Alias": null,
+        "Arguments": [
+          {
+            "Kind": "Argument",
+            "Location": {
+              "Start": 18,
+              "End": 42,
+              "Line": 1,
+              "Column": 19
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 18,
+                "End": 24,
+                "Line": 1,
+                "Column": 19
+              },
+              "Value": "input"
+            },
+            "Value": {
+              "Kind": "ObjectValue",
+              "Location": {
+                "Start": 25,
+                "End": 42,
+                "Line": 1,
+                "Column": 26
+              },
+              "Fields": [
+                {
+                  "Kind": "ObjectField",
+                  "Location": {
+                    "Start": 26,
+                    "End": 41,
+                    "Line": 1,
+                    "Column": 27
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 26,
+                      "End": 31,
+                      "Line": 1,
+                      "Column": 27
+                    },
+                    "Value": "name"
+                  },
+                  "Value": {
+                    "Kind": "StringValue",
+                    "Location": {
+                      "Start": 32,
+                      "End": 41,
+                      "Line": 1,
+                      "Column": 33
+                    },
+                    "Value": "Goofy",
+                    "Block": false
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Required": null,
+        "SelectionSet": {
+          "Kind": "SelectionSet",
+          "Location": {
+            "Start": 43,
+            "End": 53,
+            "Line": 1,
+            "Column": 44
+          },
+          "Selections": [
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "Required": null,
+              "SelectionSet": null,
+              "Location": {
+                "Start": 45,
+                "End": 51,
+                "Line": 1,
+                "Column": 46
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 45,
+                  "End": 51,
+                  "Line": 1,
+                  "Column": 46
+                },
+                "Value": "name"
+              },
+              "Directives": []
+            }
+          ]
+        },
+        "Location": {
+          "Start": 11,
+          "End": 53,
+          "Line": 1,
+          "Column": 12
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 11,
+            "End": 18,
+            "Line": 1,
+            "Column": 12
+          },
+          "Value": "addPet"
+        },
+        "Directives": []
+      }
+    }
+  ],
+  "Extensions": null,
+  "Incremental": null,
+  "ContextData": null,
+  "HasNext": null
+}

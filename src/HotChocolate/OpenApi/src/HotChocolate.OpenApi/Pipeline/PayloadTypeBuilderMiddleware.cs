@@ -22,7 +22,7 @@ internal sealed class PayloadTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
     private static void CreatePayloadType(OpenApiWrapperContext context, Operation operation)
     {
-        var typeName = $"{operation.OperationId}Payload";
+        var typeName = OpenApiNamingHelper.GetPayloadTypeName(operation.OperationId);
 
         var schema = operation.Response?.Content.FirstOrDefault().Value?.Schema;
         if (schema is null)
@@ -38,8 +38,8 @@ internal sealed class PayloadTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         }
         else
         {
-            var paylaodType = ObjectTypeHelper.CreateType(context, typeName, schema);
-            context.OperationPayloadTypeLookup[operation.OperationId] = paylaodType;
+            var payloaddType = ObjectTypeHelper.CreateType(context, typeName, schema);
+            context.OperationPayloadTypeLookup[operation.OperationId] = payloaddType;
         }
     }
 }

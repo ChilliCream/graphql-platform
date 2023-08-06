@@ -1,7 +1,9 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Web;
+using HotChocolate.Language;
 using HotChocolate.OpenApi.Models;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
@@ -31,7 +33,7 @@ internal static class OperationResolverHelper
     private static HttpRequestMessage CreateRequest(IResolverContext resolverContext, Operation operation)
     {
         var path = operation.Path;
-        var queryBuilder = HttpUtility.ParseQueryString(string.Empty);
+        HttpContent? content = null;
 
         foreach (var operationArgument in operation.Arguments)
         {
@@ -42,9 +44,30 @@ internal static class OperationResolverHelper
                     path = path.Replace($"{{{parameter.Name}}}", resolverContext.ArgumentValue<string>(parameter.Name));
                 }
             }
+
+            if (operationArgument.RequestBody is not null)
+            {
+                var valueNode = resolverContext.ArgumentLiteral<IValueNode>("input");
+                using var arrayWriter = new ArrayWriter();
+                using var writer = new Utf8JsonWriter(arrayWriter);
+                Utf8JsonWriterHelper.WriteValueNode(writer, valueNode);
+                writer.Flush();
+
+                content = new ByteArrayContent(arrayWriter.GetInternalBuffer(),0, arrayWriter.Length);
+#if NET7_0_OR_GREATER
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json", "utf-8");
+#else
+                fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+#endif
+            }
         }
 
         var request = new HttpRequestMessage(operation.Method, path);
+
+        if (content is not null)
+        {
+            request.Content = content;
+        }
 
         return request;
     }

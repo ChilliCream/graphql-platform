@@ -3,7 +3,7 @@
   "Label": null,
   "Path": null,
   "Data": {
-    "findpets": null
+    "findPets": null
   },
   "Items": null,
   "Errors": [
@@ -11,7 +11,7 @@
       "Message": "The type `HotChocolate.Execution.Processing.ListResult` is not supported as list value.",
       "Code": "EXEC_LIST_TYPE_NOT_SUPPORTED",
       "Path": {
-        "Name": "findpets",
+        "Name": "findPets",
         "Parent": {
           "Parent": null,
           "Length": -1,
@@ -84,7 +84,7 @@
             "Line": 1,
             "Column": 9
           },
-          "Value": "findpets"
+          "Value": "findPets"
         },
         "Directives": []
       }

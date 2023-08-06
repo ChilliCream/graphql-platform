@@ -75,7 +75,7 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                 var schema = requestBody.Content.FirstOrDefault().Value.Schema;
                 if (schema is null) continue;
 
-                AddInputField(requestBody.Content.First().Value.Schema.Reference.Id, context, schema, inputType);
+                AddFieldsToInputType(context, schema, inputType);
             }
         }
         AddIfNecessary(context, inputType);
@@ -106,6 +106,14 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
     private static IType CreateInputType(OpenApiWrapperContext context, OpenApiSchema schema)
     {
         var inputType = new InputObjectType(OpenApiNamingHelper.GetInputTypeName(schema.Reference.Id));
+        AddFieldsToInputType(context, schema, inputType);
+
+        AddIfNecessary(context, inputType);
+        return inputType;
+    }
+
+    private static void AddFieldsToInputType(OpenApiWrapperContext context, OpenApiSchema schema, InputObjectType inputType)
+    {
         foreach (var schemaProperty in schema.Properties)
         {
             AddInputField(schemaProperty.Key, context, schemaProperty.Value, inputType);
@@ -122,8 +130,5 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                     inputType);
             }
         }
-
-        AddIfNecessary(context, inputType);
-        return inputType;
     }
 }
