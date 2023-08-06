@@ -380,6 +380,7 @@ public class DefaultApiController : ControllerBase
         exampleJson = "\"\"";
 
         var example = JsonConvert.DeserializeObject<Pet>(exampleJson);
+        example.Id = _pets.Max(p => p.Id) + 1;
 
         if (example is not null)
         {

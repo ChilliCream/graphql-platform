@@ -28,17 +28,17 @@
       ],
       "Extensions": null,
       "Exception": {
-        "ClassName": "System.InvalidOperationException",
-        "Message": "Downstream request failed",
+        "ClassName": "System.NullReferenceException",
+        "Message": "Object reference not set to an instance of an object.",
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.OpenApi.Helpers.OperationResolverHelper.ResolveAsync(IResolverContext resolverContext, Operation operation) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/OpenApi/src/HotChocolate.OpenApi/Helpers/OperationResolverHelper.cs:line 29\n   at HotChocolate.OpenApi.Pipeline.MutationTypeBuilderMiddleware.<>c__DisplayClass1_0.<<CreateMutationType>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/OpenApi/src/HotChocolate.OpenApi/Pipeline/MutationTypeBuilderMiddleware.cs:line 42\n--- End of stack trace from previous location ---\n   at HotChocolate.Types.ResolveObjectFieldDescriptorExtensions.<>c__DisplayClass3_0`1.<<Resolve>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Types/Types/Extensions/ResolveObjectFieldDescriptorExtensions.cs:line 99\n--- End of stack trace from previous location ---\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 130\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 134\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 113",
+        "StackTraceString": "   at HotChocolate.OpenApi.Tests.Controller.DefaultApiController.AddPet(NewPet body) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/OpenApi/tests/HotChocolate.OpenApi.Tests/Controller/PetStoreController.cs:line 383\n   at lambda_method87(Closure, Object, Object[])\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.SyncActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeActionMethodAsync()\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeNextActionFilterAsync()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)\n   at Microsoft.AspNetCore.TestHost.HttpContextBuilder.<>c__DisplayClass23_0.<<SendAsync>g__RunRequestAsync|0>d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.TestHost.ClientHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)\n   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)\n   at HotChocolate.OpenApi.Helpers.OperationResolverHelper.ResolveAsync(IResolverContext resolverContext, Operation operation) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/OpenApi/src/HotChocolate.OpenApi/Helpers/OperationResolverHelper.cs:line 26\n   at HotChocolate.OpenApi.Pipeline.MutationTypeBuilderMiddleware.<>c__DisplayClass1_0.<<CreateMutationType>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/OpenApi/src/HotChocolate.OpenApi/Pipeline/MutationTypeBuilderMiddleware.cs:line 42\n--- End of stack trace from previous location ---\n   at HotChocolate.Types.ResolveObjectFieldDescriptorExtensions.<>c__DisplayClass3_0`1.<<Resolve>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Types/Types/Extensions/ResolveObjectFieldDescriptorExtensions.cs:line 99\n--- End of stack trace from previous location ---\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 130\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 134\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/hamannm/Repos/Github/graphql-platform/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 113",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
-        "HResult": -2146233079,
-        "Source": "HotChocolate.OpenApi",
+        "HResult": -2147467261,
+        "Source": "HotChocolate.OpenApi.Tests",
         "WatsonBuckets": null
       },
       "SyntaxNode": {
@@ -49,7 +49,7 @@
             "Kind": "Argument",
             "Location": {
               "Start": 18,
-              "End": 42,
+              "End": 57,
               "Line": 1,
               "Column": 19
             },
@@ -67,7 +67,7 @@
               "Kind": "ObjectValue",
               "Location": {
                 "Start": 25,
-                "End": 42,
+                "End": 57,
                 "Line": 1,
                 "Column": 26
               },
@@ -76,7 +76,7 @@
                   "Kind": "ObjectField",
                   "Location": {
                     "Start": 26,
-                    "End": 41,
+                    "End": 43,
                     "Line": 1,
                     "Column": 27
                   },
@@ -94,11 +94,41 @@
                     "Kind": "StringValue",
                     "Location": {
                       "Start": 32,
-                      "End": 41,
+                      "End": 43,
                       "Line": 1,
                       "Column": 33
                     },
                     "Value": "Goofy",
+                    "Block": false
+                  }
+                },
+                {
+                  "Kind": "ObjectField",
+                  "Location": {
+                    "Start": 40,
+                    "End": 56,
+                    "Line": 1,
+                    "Column": 41
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 40,
+                      "End": 44,
+                      "Line": 1,
+                      "Column": 41
+                    },
+                    "Value": "tag"
+                  },
+                  "Value": {
+                    "Kind": "StringValue",
+                    "Location": {
+                      "Start": 45,
+                      "End": 56,
+                      "Line": 1,
+                      "Column": 46
+                    },
+                    "Value": "Cartoon",
                     "Block": false
                   }
                 }
@@ -110,10 +140,10 @@
         "SelectionSet": {
           "Kind": "SelectionSet",
           "Location": {
-            "Start": 43,
-            "End": 53,
+            "Start": 58,
+            "End": 68,
             "Line": 1,
-            "Column": 44
+            "Column": 59
           },
           "Selections": [
             {
@@ -123,18 +153,18 @@
               "Required": null,
               "SelectionSet": null,
               "Location": {
-                "Start": 45,
-                "End": 51,
+                "Start": 60,
+                "End": 66,
                 "Line": 1,
-                "Column": 46
+                "Column": 61
               },
               "Name": {
                 "Kind": "Name",
                 "Location": {
-                  "Start": 45,
-                  "End": 51,
+                  "Start": 60,
+                  "End": 66,
                   "Line": 1,
-                  "Column": 46
+                  "Column": 61
                 },
                 "Value": "name"
               },
@@ -144,7 +174,7 @@
         },
         "Location": {
           "Start": 11,
-          "End": 53,
+          "End": 68,
           "Line": 1,
           "Column": 12
         },

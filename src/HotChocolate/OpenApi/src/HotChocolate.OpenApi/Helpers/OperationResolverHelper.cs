@@ -26,7 +26,7 @@ internal static class OperationResolverHelper
         var response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException("Downstream request failed");
+            throw new InvalidOperationException(await response.Content.ReadAsStringAsync());
         return JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
     }
 

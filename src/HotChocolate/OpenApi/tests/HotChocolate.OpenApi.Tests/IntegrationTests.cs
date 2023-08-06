@@ -12,7 +12,7 @@ public class IntegrationTests
     [Theory]
     [InlineData("findAnyPets", "query { findPets { name } }")]
     [InlineData("findSinglePet", "query { findPetById(id: 1) { name } }")]
-    [InlineData("addPet", """mutation { addPet(input: {name: "Goofy" }) { name } }""")]
+    [InlineData("addPet", """mutation { addPet(input: {name: "Goofy" tag: "Cartoon" }) { name } }""")]
     public async Task QueryPets_Returns_Results(string caseName, string query)
     {
         // Arrange
