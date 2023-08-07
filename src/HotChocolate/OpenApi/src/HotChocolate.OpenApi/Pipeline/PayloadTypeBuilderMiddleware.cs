@@ -1,5 +1,7 @@
+using System.Text.Json;
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
+using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
 
@@ -38,8 +40,8 @@ internal sealed class PayloadTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         }
         else
         {
-            var payloaddType = ObjectTypeHelper.CreateType(context, typeName, schema);
-            context.OperationPayloadTypeLookup[operation.OperationId] = payloaddType;
+            var payloadType = ObjectTypeHelper.CreateType(context, typeName, schema);
+            context.OperationPayloadTypeLookup[operation.OperationId] = payloadType;
         }
     }
 }

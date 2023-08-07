@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.OpenApi.Models;
@@ -53,12 +54,7 @@ internal static class OperationResolverHelper
                 Utf8JsonWriterHelper.WriteValueNode(writer, valueNode);
                 writer.Flush();
 
-                content = new ByteArrayContent(arrayWriter.GetInternalBuffer(),0, arrayWriter.Length);
-#if NET7_0_OR_GREATER
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json", "utf-8");
-#else
-                fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
-#endif
+                content = new StringContent(Encoding.UTF8.GetString(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length), Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
             }
         }
 

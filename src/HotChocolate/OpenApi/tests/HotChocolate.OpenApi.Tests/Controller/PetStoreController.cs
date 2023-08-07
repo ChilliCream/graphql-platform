@@ -376,17 +376,15 @@ public class DefaultApiController : ControllerBase
     [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public virtual IActionResult AddPet([FromBody] NewPet body)
     {
-        string? exampleJson = null;
-        exampleJson = "\"\"";
-
-        var example = JsonConvert.DeserializeObject<Pet>(exampleJson);
-        example.Id = _pets.Max(p => p.Id) + 1;
-
-        if (example is not null)
+        var newPet = new Pet
         {
-            _pets.Add(example);
-        }
-        return new ObjectResult(example);
+            Id = _pets.Max(p => p.Id) + 1,
+            Name = body.Name,
+            Tag = body.Tag
+        };
+
+        _pets.Add(newPet);
+        return new ObjectResult(newPet);
     }
 
     /// <summary>
