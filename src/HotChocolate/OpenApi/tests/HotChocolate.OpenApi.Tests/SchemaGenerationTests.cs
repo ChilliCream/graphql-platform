@@ -1,8 +1,7 @@
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Skimmed.Serialization;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Readers;
-using Snapshooter.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -31,7 +30,7 @@ public class SchemaGenerationTests
         // Assert
         var sdl = SchemaFormatter.FormatAsString(schema);
         _testOutputHelper.WriteLine(sdl);
-        sdl.MatchSnapshot();
+        Snapshot.Match(sdl, extension: ".graphql");
     }
 
     [Fact]
@@ -47,8 +46,7 @@ public class SchemaGenerationTests
             .BuildSchemaAsync();
 
         // Assert
-        var sdl = schema.Print();
-        _testOutputHelper.WriteLine(sdl);
-        sdl.MatchSnapshot();
+        _testOutputHelper.WriteLine(schema.ToString());
+        schema.MatchSnapshot();
     }
 }
