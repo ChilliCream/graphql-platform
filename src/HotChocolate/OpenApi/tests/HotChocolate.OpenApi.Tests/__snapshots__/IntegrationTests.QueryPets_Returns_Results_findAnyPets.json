@@ -1,0 +1,22 @@
+{
+  "errors": [
+    {
+      "message": "The type \u0060HotChocolate.Execution.Processing.ListResult\u0060 is not supported as list value.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 9
+        }
+      ],
+      "path": [
+        "findPets"
+      ],
+      "extensions": {
+        "code": "EXEC_LIST_TYPE_NOT_SUPPORTED"
+      }
+    }
+  ],
+  "data": {
+    "findPets": null
+  }
+}

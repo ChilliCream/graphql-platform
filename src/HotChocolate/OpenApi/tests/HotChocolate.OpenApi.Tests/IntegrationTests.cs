@@ -1,8 +1,7 @@
+using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
-using Snapshooter;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.OpenApi.Tests;
@@ -46,6 +45,6 @@ public class IntegrationTests
         var result = await schema.ExecuteAsync(QueryRequestBuilder.Create(query));
 
         // Assert
-        result.MatchSnapshot(SnapshotNameExtension.Create(caseName));
+        Snapshot.Match(result, postFix: caseName, extension: ".json");
     }
 }
