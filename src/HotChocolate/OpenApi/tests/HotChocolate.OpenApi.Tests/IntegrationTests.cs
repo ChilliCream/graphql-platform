@@ -1,5 +1,7 @@
+using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
 using Xunit;
@@ -40,6 +42,16 @@ public class IntegrationTests
             .AddSingleton(httpClientFactoryMock.Object)
             .AddGraphQL()
             .AddOpenApi(stream, client => client.BaseAddress = new Uri("http://localhost:5000"))
+            .UseField(
+                next => async context =>
+                {
+                    await next(context);
+
+                    if (context is { Result: JsonElement element, Selection.IsList: true })
+                    {
+                        context.Result = element.EnumerateArray();
+                    }
+                })
             .BuildRequestExecutorAsync();
 
         // Act

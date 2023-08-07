@@ -85,7 +85,7 @@ internal static partial class ValueCompletion
             return resultList;
         }
 
-        var error = ListValueIsNotSupported(typeof(ListResult), selection.SyntaxNode, path);
+        var error = ListValueIsNotSupported(result?.GetType() ?? typeof(ListResult), selection.SyntaxNode, path);
         operationContext.ReportError(error, resolverContext, selection);
 
         return null;

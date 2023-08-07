@@ -46,7 +46,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
         }
     }
 
-    private string? GetPropertyName(DirectiveNode directive)
+    private static string? GetPropertyName(DirectiveNode directive)
     {
         if (directive.Arguments.Count == 0)
         {

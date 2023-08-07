@@ -1,12 +1,10 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 using InputObjectType = HotChocolate.Skimmed.InputObjectType;
@@ -43,11 +41,12 @@ public static class ServiceCollectionExtension
         this IRequestExecutorBuilder requestExecutorBuilder,
         Action<HttpClient>? configureClient)
     {
-        requestExecutorBuilder.Services.AddHttpClient("OpenApi", configureClient ?? (_ =>{}));
+        requestExecutorBuilder.Services.AddHttpClient("OpenApi", configureClient ?? (_ => { }));
         return requestExecutorBuilder;
     }
 
-    private static void ParseAndAddTypes(this IRequestExecutorBuilder requestExecutorBuilder,
+    private static void ParseAndAddTypes(
+        this IRequestExecutorBuilder requestExecutorBuilder,
         OpenApiDocument apiDocument)
     {
         requestExecutorBuilder.AddJsonSupport();
@@ -95,8 +94,10 @@ public static class ServiceCollectionExtension
 
                 foreach (var fieldArgument in field.Arguments)
                 {
-                    fieldDescriptor.Argument(fieldArgument.Name, descriptor => descriptor
-                        .Type(new NamedTypeNode(fieldArgument.Type.NamedType().Name)));
+                    fieldDescriptor.Argument(
+                        fieldArgument.Name,
+                        descriptor => descriptor
+                            .Type(new NamedTypeNode(fieldArgument.Type.NamedType().Name)));
                 }
 
                 if (field.ContextData.TryGetValue("resolver", out var res) &&
