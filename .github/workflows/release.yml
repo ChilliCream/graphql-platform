@@ -53,7 +53,7 @@ jobs:
 
     - name: Upload Release Assets
       run: |
-        for file in ./**/*.nupkg; do
+        for file in ./output/packages/*.nupkg; do
           echo "Uploading $file"
           gh release upload ${{ env.GIT_TAG }} "$file" --repo ChilliCream/graphql-platform
         done
