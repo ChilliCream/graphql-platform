@@ -1,19 +1,7 @@
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 12
-        }
-      ],
-      "path": [
-        "addPet"
-      ]
-    }
-  ],
   "data": {
-    "addPet": null
+    "addPet": {
+      "name": "Goofy"
+    }
   }
 }
