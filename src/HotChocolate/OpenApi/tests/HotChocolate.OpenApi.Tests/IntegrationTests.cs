@@ -12,6 +12,7 @@ public class IntegrationTests
     [InlineData("findAnyPets", "query { findPets { name } }")]
     [InlineData("findSinglePet", "query { findPetById(id: 1) { name } }")]
     [InlineData("addPet", """mutation { addPet(input: {name: "Goofy" tag: "Cartoon" }) { name } }""")]
+    [InlineData("deletePet", """mutation { deletePet(input: { id: 1}) { success } }""")]
     public async Task QueryPets_Returns_Results(string caseName, string query)
     {
         // Arrange

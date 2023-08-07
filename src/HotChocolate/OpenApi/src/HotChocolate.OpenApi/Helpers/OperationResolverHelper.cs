@@ -28,7 +28,12 @@ internal static class OperationResolverHelper
 
         if (!response.IsSuccessStatusCode)
             throw new InvalidOperationException(await response.Content.ReadAsStringAsync());
-        return JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+        var contentBytes = await response.Content.ReadAsByteArrayAsync();
+        var isValidNullResult = contentBytes.Length == 0 &&
+                                operation.Response?.Reference is null;
+        return isValidNullResult
+            ? JsonDocument.Parse("""{"success": true}""").RootElement
+            : JsonDocument.Parse(contentBytes).RootElement;
     }
 
     private static HttpRequestMessage CreateRequest(IResolverContext resolverContext, Operation operation)
@@ -42,19 +47,18 @@ internal static class OperationResolverHelper
             {
                 if (parameter.In == ParameterLocation.Path)
                 {
-                    path = path.Replace($"{{{parameter.Name}}}", resolverContext.ArgumentValue<string>(parameter.Name));
+                    var pathValue = operation.Method == HttpMethod.Get
+                        ? resolverContext.ArgumentValue<string>(parameter.Name)
+                        : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>("input"), parameter.Name);
+                    path = path.Replace($"{{{parameter.Name}}}", pathValue );
                 }
             }
 
             if (operationArgument.RequestBody is not null)
             {
                 var valueNode = resolverContext.ArgumentLiteral<IValueNode>("input");
-                using var arrayWriter = new ArrayWriter();
-                using var writer = new Utf8JsonWriter(arrayWriter);
-                Utf8JsonWriterHelper.WriteValueNode(writer, valueNode);
-                writer.Flush();
-
-                content = new StringContent(Encoding.UTF8.GetString(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length), Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
+                var json = GetJsonValueOfInputNode(valueNode);
+                content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
             }
         }
 
@@ -66,5 +70,20 @@ internal static class OperationResolverHelper
         }
 
         return request;
+    }
+
+    private static string GetJsonValueOfInputNode(IValueNode valueNode)
+    {
+        using var arrayWriter = new ArrayWriter();
+        using var writer = new Utf8JsonWriter(arrayWriter);
+        Utf8JsonWriterHelper.WriteValueNode(writer, valueNode);
+        writer.Flush();
+        return Encoding.UTF8.GetString(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
+    }
+
+    private static string GetValueOfValueNode(IValueNode input, string fieldName)
+    {
+        var json = GetJsonValueOfInputNode(input);
+        return JsonDocument.Parse(json).RootElement.GetProperty(fieldName).GetRawText();
     }
 }

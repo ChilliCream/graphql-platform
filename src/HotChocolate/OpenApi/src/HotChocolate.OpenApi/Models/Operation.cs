@@ -14,7 +14,6 @@ internal sealed class Operation
 
     public OpenApiOperation OpenApiOperation { get; set; }
 
-
     public List<Argument> Arguments { get; set; } = new();
 
     public OpenApiResponse? Response { get; set; }

@@ -401,13 +401,15 @@ public class DefaultApiController : ControllerBase
     [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public virtual IActionResult DeletePet([FromRoute] [Required] long? id)
     {
-        //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-        // return StatusCode(204);
+        var toDelete = _pets.FirstOrDefault(p => p.Id == id);
 
-        //TODO: Uncomment the next line to return response 0 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-        // return StatusCode(0, default(Error));
+        if (toDelete is not null)
+        {
+            _pets.Remove(toDelete);
+            return Ok();
+        }
 
-        throw new NotImplementedException();
+        return BadRequest("Pet not found");
     }
 
     /// <summary>
