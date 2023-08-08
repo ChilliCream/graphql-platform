@@ -5,9 +5,11 @@ using HotChocolate.Execution.Processing;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
 using Xunit;
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace HotChocolate.OpenApi.Tests;
 
+[Collection("Open api integration tests")]
 public class IntegrationTests
 {
     [Theory]

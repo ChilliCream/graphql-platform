@@ -1,5 +1,6 @@
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
+using HotChocolate.Skimmed;
 using Microsoft.OpenApi.Models;
 using InputField = HotChocolate.Skimmed.InputField;
 using InputObjectType = HotChocolate.Skimmed.InputObjectType;
@@ -67,7 +68,7 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         {
             if (argument.Parameter is { } parameter)
             {
-                AddInputField(parameter.Name, context, parameter.Schema, inputType);
+                AddInputField(parameter.Name, parameter.Required, context, parameter.Schema, inputType);
             }
 
             if (argument.RequestBody is { } requestBody)
@@ -90,15 +91,18 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
     private static void AddInputField(
         string fieldName,
+        bool required,
         OpenApiWrapperContext context,
         OpenApiSchema schema,
         InputObjectType inputType)
     {
         var graphQLName = OpenApiNamingHelper.GetFieldName(fieldName);
         var (possibleGraphQLName, isScalar) = schema.GetPossibleGraphQLTypeInfos();
-        inputType.Fields.Add(isScalar
-            ? new InputField(graphQLName, new ScalarType(possibleGraphQLName))
-            : new InputField(graphQLName, CreateInputType(context, schema)));
+
+        var type = isScalar ? new ScalarType(possibleGraphQLName) : CreateInputType(context, schema);
+        type = required ? new NonNullType(type) : type;
+
+        inputType.Fields.Add(new InputField(graphQLName, type));
     }
 
 
@@ -116,7 +120,12 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
     {
         foreach (var schemaProperty in schema.Properties)
         {
-            AddInputField(schemaProperty.Key, context, schemaProperty.Value, inputType);
+            AddInputField(
+                schemaProperty.Key,
+                schema.Required.Contains(schemaProperty.Key),
+                context,
+                schemaProperty.Value,
+                inputType);
         }
 
         foreach (var allOf in schema.AllOf)
@@ -125,6 +134,7 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
             {
                 AddInputField(
                     allOfProperty.Key,
+                    allOf.Required.Contains(allOfProperty.Key),
                     context,
                     allOfProperty.Value,
                     inputType);

@@ -7,6 +7,7 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
+using IField = HotChocolate.Skimmed.IField;
 using InputObjectType = HotChocolate.Skimmed.InputObjectType;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
 using TypeKind = HotChocolate.Skimmed.TypeKind;
@@ -86,11 +87,8 @@ public static class ServiceCollectionExtension
 
             foreach (var field in skimmedType.Fields)
             {
-                var fieldDescriptor = desc.Field(field.Name)
-                    .Description(field.Description)
-                    .Type(field.Type.Kind == TypeKind.List
-                        ? new ListTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
-                        : new NamedTypeNode(field.Type.NamedType().Name));
+
+                var fieldDescriptor = CreateFieldDescriptor(field, desc);
 
                 foreach (var fieldArgument in field.Arguments)
                 {
@@ -112,6 +110,19 @@ public static class ServiceCollectionExtension
             }
         };
 
+    private static IObjectFieldDescriptor CreateFieldDescriptor(IField field, IObjectTypeDescriptor desc)
+    {
+        ITypeNode baseType = field.Type.Kind == TypeKind.NonNull
+            ? new NonNullTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
+            : new NamedTypeNode(field.Type.NamedType().Name);
+        var fieldDescriptor = desc.Field(field.Name)
+            .Description(field.Description)
+            .Type(field.Type.Kind == TypeKind.List
+                ? new ListTypeNode(baseType)
+                : baseType);
+        return fieldDescriptor;
+    }
+
     private static Action<IInputObjectTypeDescriptor> SetupInputType(InputObjectType skimmedType) =>
         desc =>
         {
@@ -120,11 +131,15 @@ public static class ServiceCollectionExtension
 
             foreach (var field in skimmedType.Fields)
             {
+                ITypeNode baseType = field.Type.Kind == TypeKind.NonNull
+                    ? new NonNullTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
+                    : new NamedTypeNode(field.Type.NamedType().Name);
+
                 desc.Field(field.Name)
                     .Description(field.Description)
                     .Type(field.Type.Kind == TypeKind.List
-                        ? new ListTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
-                        : new NamedTypeNode(field.Type.NamedType().Name));
+                        ? new ListTypeNode(baseType)
+                        : baseType);
             }
         };
 }
