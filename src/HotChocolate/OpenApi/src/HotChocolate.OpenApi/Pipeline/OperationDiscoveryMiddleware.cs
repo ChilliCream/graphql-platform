@@ -19,15 +19,15 @@ internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
                 var response = operationKeyValue.Value.Responses
                     .FirstOrDefault(r => _succesfulStatusCode.IsMatch(r.Key));
 
-                var resultOperation = new Operation
+                var resultOperation = new Operation(
+                    operationKeyValue.Value.OperationId,
+                    openApiPath.Key,
+                    new HttpMethod(operationKeyValue.Key.ToString()),
+                    operationKeyValue.Value)
                 {
-                    Path = openApiPath.Key,
-                    OperationId = operationKeyValue.Value.OperationId,
                     Description = string.IsNullOrEmpty(operationKeyValue.Value.Description)
                         ? operationKeyValue.Value.Summary
                         : operationKeyValue.Value.Description,
-                    Method = new HttpMethod(operationKeyValue.Key.ToString()),
-                    OpenApiOperation = operationKeyValue.Value,
                     Response = response.Value,
                     Arguments = GetArguments(operationKeyValue.Value).ToList()
                 };

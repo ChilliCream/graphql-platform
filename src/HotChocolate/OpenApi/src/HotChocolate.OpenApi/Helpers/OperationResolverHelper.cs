@@ -43,15 +43,12 @@ internal static class OperationResolverHelper
 
         foreach (var operationArgument in operation.Arguments)
         {
-            if (operationArgument.Parameter is { } parameter)
+            if (operationArgument.Parameter is {In: ParameterLocation.Path} parameter)
             {
-                if (parameter.In == ParameterLocation.Path)
-                {
-                    var pathValue = operation.Method == HttpMethod.Get
-                        ? resolverContext.ArgumentValue<string>(parameter.Name)
-                        : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>("input"), parameter.Name);
-                    path = path.Replace($"{{{parameter.Name}}}", pathValue );
-                }
+                var pathValue = operation.Method == HttpMethod.Get
+                    ? resolverContext.ArgumentValue<string>(parameter.Name)
+                    : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>("input"), parameter.Name);
+                path = path.Replace($"{{{parameter.Name}}}", pathValue );
             }
 
             if (operationArgument.RequestBody is not null)

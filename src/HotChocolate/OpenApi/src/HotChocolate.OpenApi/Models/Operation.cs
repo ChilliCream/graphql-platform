@@ -4,9 +4,17 @@ namespace HotChocolate.OpenApi.Models;
 
 internal sealed class Operation
 {
+    public Operation(string operationId, string path, HttpMethod method, OpenApiOperation openApiOperation)
+    {
+        OperationId = operationId;
+        Path = path;
+        Method = method;
+        OpenApiOperation = openApiOperation;
+    }
+
     public string OperationId { get; set; }
 
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     public string Path { get; set; }
 

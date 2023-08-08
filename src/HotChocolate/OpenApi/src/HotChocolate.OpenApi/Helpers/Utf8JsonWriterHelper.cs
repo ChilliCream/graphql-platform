@@ -111,7 +111,7 @@ internal static class Utf8JsonWriterHelper
                 break;
 
             default:
-                writer.WriteStringValue(value.ToString());
+                writer.WriteStringValue(value?.ToString() ?? string.Empty);
                 break;
         }
     }
