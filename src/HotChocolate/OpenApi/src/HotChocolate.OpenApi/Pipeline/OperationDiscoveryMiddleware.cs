@@ -29,8 +29,13 @@ internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
                         ? operationKeyValue.Value.Summary
                         : operationKeyValue.Value.Description,
                     Response = response.Value,
-                    Arguments = GetArguments(operationKeyValue.Value).ToList()
+                    RequestBody = operationKeyValue.Value.RequestBody
                 };
+
+                foreach (var openApiParameter in operationKeyValue.Value.Parameters)
+                {
+                    resultOperation.AddParameter(openApiParameter);
+                }
 
                 if (context.Operations.ContainsKey(resultOperation.OperationId)) continue;
                 context.Operations.Add(resultOperation.OperationId, resultOperation);
@@ -38,25 +43,5 @@ internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
         }
 
         next.Invoke(context);
-    }
-
-    private static IEnumerable<Argument> GetArguments(OpenApiOperation openApiOperation)
-    {
-        if (openApiOperation.RequestBody is not null)
-        {
-            yield return new Argument
-            {
-                RequestBody = openApiOperation.RequestBody
-            };
-        }
-
-        if (openApiOperation.Parameters is null) yield break;
-        foreach (var parameter in openApiOperation.Parameters)
-        {
-            yield return new Argument
-            {
-                Parameter = parameter
-            };
-        }
     }
 }

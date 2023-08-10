@@ -55,20 +55,15 @@ internal sealed class QueryTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
     private static void AddArguments(KeyValuePair<string, Operation> operation, OutputField outputField)
     {
-        foreach (var argument in operation.Value.Arguments)
+        foreach (var parameter in operation.Value.Parameters)
         {
-            if (argument.Parameter is { } parameter)
-            {
-                outputField.Arguments.Add(new InputField(parameter.Name, parameter.Schema.GetGraphQLTypeNode(false)));
-            }
+            outputField.Arguments.Add(new InputField(parameter.Name, parameter.Schema.GetGraphQLTypeNode(false)));
+        }
 
-            if (argument.RequestBody is { } requestBody)
-            {
-                var requestSchema = requestBody.Content.FirstOrDefault().Value.Schema;
-                if (requestSchema is null) continue;
-
-                outputField.Arguments.Add(new InputField("value", requestSchema.GetGraphQLTypeNode(false)));
-            }
+        if (operation.Value.RequestBody is { } requestBody &&
+            requestBody.Content.FirstOrDefault().Value.Schema is {} schema)
+        {
+            outputField.Arguments.Add(new InputField("value", schema.GetGraphQLTypeNode(false)));
         }
     }
 }

@@ -29,7 +29,7 @@ internal sealed class MutationTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                 Type = context.OperationPayloadTypeLookup[operation.Value.OperationId]
             };
 
-            if (operation.Value.Arguments.Count > 0)
+            if (operation.Value.Parameters.Count > 0 || operation.Value.RequestBody is not null)
             {
                 var inputField = new InputField("input", context.OperationInputTypeLookup[operation.Value.OperationId]);
                 outputField.Arguments.Add(inputField);

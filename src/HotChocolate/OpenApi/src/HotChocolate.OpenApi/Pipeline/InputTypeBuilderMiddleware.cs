@@ -24,20 +24,15 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
     {
         foreach (var operation in context.GetQueryOperations())
         {
-            foreach (var argument in operation.Value.Arguments)
+            foreach (var parameter in operation.Value.Parameters)
             {
-                if (argument.Parameter is { } parameter)
-                {
-                    CreateInputTypeForNonScalar(context, parameter.Schema);
-                }
+                CreateInputTypeForNonScalar(context, parameter.Schema);
+            }
 
-                if (argument.RequestBody is { } requestBody)
-                {
-                    var schema = requestBody.Content.FirstOrDefault().Value.Schema;
-                    if (schema is null) continue;
-
-                    CreateInputTypeForNonScalar(context, schema);
-                }
+            if (operation.Value.RequestBody is { } requestBody &&
+                requestBody.Content.FirstOrDefault().Value.Schema is {} schema)
+            {
+                CreateInputTypeForNonScalar(context, schema);
             }
         }
     }
@@ -64,21 +59,17 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
     {
         var inputType = new InputObjectType(OpenApiNamingHelper.GetInputTypeName(operation.OperationId));
 
-        foreach (var argument in operation.Arguments)
+        foreach (var parameter in operation.Parameters)
         {
-            if (argument.Parameter is { } parameter)
-            {
-                AddInputField(parameter.Name, parameter.Required, context, parameter.Schema, inputType);
-            }
-
-            if (argument.RequestBody is { } requestBody)
-            {
-                var schema = requestBody.Content.FirstOrDefault().Value.Schema;
-                if (schema is null) continue;
-
-                AddFieldsToInputType(context, schema, inputType);
-            }
+            AddInputField(parameter.Name, parameter.Required, context, parameter.Schema, inputType);
         }
+
+        if (operation.RequestBody is { } requestBody &&
+            requestBody.Content.FirstOrDefault().Value.Schema is {} schema)
+        {
+            AddFieldsToInputType(context, schema, inputType);
+        }
+
         AddIfNecessary(context, inputType);
         context.OperationInputTypeLookup[operation.OperationId] = inputType;
     }

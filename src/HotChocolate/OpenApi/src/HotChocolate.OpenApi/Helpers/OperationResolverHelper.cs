@@ -6,7 +6,6 @@ using HotChocolate.OpenApi.Models;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Helpers;
 
@@ -41,22 +40,19 @@ internal static class OperationResolverHelper
         var path = operation.Path;
         HttpContent? content = null;
 
-        foreach (var operationArgument in operation.Arguments)
+        foreach (var parameter in operation.Parameters)
         {
-            if (operationArgument.Parameter is {In: ParameterLocation.Path} parameter)
-            {
-                var pathValue = operation.Method == HttpMethod.Get
-                    ? resolverContext.ArgumentValue<string>(parameter.Name)
-                    : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>("input"), parameter.Name);
-                path = path.Replace($"{{{parameter.Name}}}", pathValue );
-            }
+            var pathValue = operation.Method == HttpMethod.Get
+                ? resolverContext.ArgumentValue<string>(parameter.Name)
+                : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>("input"), parameter.Name);
+            path = path.Replace($"{{{parameter.Name}}}", pathValue );
+        }
 
-            if (operationArgument.RequestBody is not null)
-            {
-                var valueNode = resolverContext.ArgumentLiteral<IValueNode>("input");
-                var json = GetJsonValueOfInputNode(valueNode);
-                content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
-            }
+        if (operation.RequestBody is not null)
+        {
+            var valueNode = resolverContext.ArgumentLiteral<IValueNode>("input");
+            var json = GetJsonValueOfInputNode(valueNode);
+            content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
         }
 
         var request = new HttpRequestMessage(operation.Method, path);
