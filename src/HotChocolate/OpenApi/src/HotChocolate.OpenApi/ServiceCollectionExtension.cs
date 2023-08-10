@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
@@ -42,7 +43,7 @@ public static class ServiceCollectionExtension
         this IRequestExecutorBuilder requestExecutorBuilder,
         Action<HttpClient>? configureClient)
     {
-        requestExecutorBuilder.Services.AddHttpClient("OpenApi", configureClient ?? (_ => { }));
+        requestExecutorBuilder.Services.AddHttpClient(OpenApiResources.HttpClientName, configureClient ?? (_ => { }));
         return requestExecutorBuilder;
     }
 

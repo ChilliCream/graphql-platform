@@ -29,4 +29,20 @@
     </ItemGroup>
 
 
+    <ItemGroup>
+      <EmbeddedResource Update="Properties\OpenApiResources.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>OpenApi.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Properties\OpenApiResources.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>OpenApiResources.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+
 </Project>

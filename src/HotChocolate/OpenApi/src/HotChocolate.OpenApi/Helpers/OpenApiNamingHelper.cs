@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.OpenApi.Exceptions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.OpenApi.Helpers;
@@ -8,15 +9,15 @@ internal static class OpenApiNamingHelper
     public static string GetFieldName(string value) => value
                                                            .RemoveWhiteSpacesAndEnsureName()
                                                            .EnsureStartWithLowerChar() ??
-                                                throw new InvalidOperationException("Field name cannot be null");
+                                                       throw new OpenApiFieldNameNull();
+
+    public static string GetInputTypeName(string value) => $"{GetTypeName(value)}Input";
+    public static string GetPayloadTypeName(string value) => $"{GetTypeName(value)}Payload";
 
     public static string GetTypeName(string value) => value
                                                           .RemoveWhiteSpacesAndEnsureName()
                                                           .EnsureStartWithUpperChar() ??
-                                                       throw new InvalidOperationException("Field name cannot be null");
-
-    public static string GetInputTypeName(string value) => $"{GetTypeName(value)}Input";
-    public static string GetPayloadTypeName(string value) => $"{GetTypeName(value)}Payload";
+                                                      throw new OpenApiFieldNameNull();
 
     private static string EnsureStartWithLowerChar(this string text)
     {
@@ -60,6 +61,6 @@ internal static class OpenApiNamingHelper
             }
         }
 
-        return NameUtils.MakeValidGraphQLName(sb.ToString()) ?? throw new InvalidOperationException("Field name can not be null");
+        return NameUtils.MakeValidGraphQLName(sb.ToString()) ?? throw new OpenApiFieldNameNull();
     }
 }

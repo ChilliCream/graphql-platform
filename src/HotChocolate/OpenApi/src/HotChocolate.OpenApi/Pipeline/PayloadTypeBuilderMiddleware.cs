@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
+using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
@@ -30,9 +31,9 @@ internal sealed class PayloadTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         if (schema is null)
         {
             var payloadType = new ObjectType(typeName);
-            var field = new OutputField("success")
+            var field = new OutputField(OpenApiResources.PayloadSuccessField)
             {
-                Type = new ObjectType("Boolean")
+                Type = new ObjectType(nameof(Boolean))
             };
             payloadType.Fields.Add(field);
             context.SkimmedSchema.Types.Add(payloadType);

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
+using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using InputField = HotChocolate.Skimmed.InputField;
@@ -19,7 +20,7 @@ internal sealed class QueryTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
     private static void CreateQueryType(OpenApiWrapperContext context)
     {
-        var queryType = new ObjectType("Query");
+        var queryType = new ObjectType(OpenApiResources.RootTypeQuery);
 
         var queryOperations = context.GetQueryOperations();
 
@@ -41,7 +42,7 @@ internal sealed class QueryTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
             AddArguments(operation, outputField);
 
-            outputField.ContextData["resolver"] = new Func<IResolverContext, Task<JsonElement>>(async ctx =>
+            outputField.ContextData[OpenApiResources.ContextResolverParameter] = new Func<IResolverContext, Task<JsonElement>>(async ctx =>
             {
                 var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
                 return await resolver.Invoke(ctx);

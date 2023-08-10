@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.OpenApi.Models;
+using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,7 @@ internal static class OperationResolverHelper
     {
         var httpClient = resolverContext.Services
             .GetRequiredService<IHttpClientFactory>()
-            .CreateClient("OpenApi");
+            .CreateClient(OpenApiResources.HttpClientName);
 
         var request = CreateRequest(resolverContext, operation);
         var response = await httpClient.SendAsync(request);
@@ -31,7 +32,7 @@ internal static class OperationResolverHelper
         var isValidNullResult = contentBytes.Length == 0 &&
                                 operation.Response?.Reference is null;
         return isValidNullResult
-            ? JsonDocument.Parse("""{"success": true}""").RootElement
+            ? JsonDocument.Parse(OpenApiResources.BoolSuccessResult).RootElement
             : JsonDocument.Parse(contentBytes).RootElement;
     }
 
@@ -44,15 +45,15 @@ internal static class OperationResolverHelper
         {
             var pathValue = operation.Method == HttpMethod.Get
                 ? resolverContext.ArgumentValue<string>(parameter.Name)
-                : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>("input"), parameter.Name);
+                : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>(OpenApiResources.InputField), parameter.Name);
             path = path.Replace($"{{{parameter.Name}}}", pathValue );
         }
 
         if (operation.RequestBody is not null)
         {
-            var valueNode = resolverContext.ArgumentLiteral<IValueNode>("input");
+            var valueNode = resolverContext.ArgumentLiteral<IValueNode>(OpenApiResources.InputField);
             var json = GetJsonValueOfInputNode(valueNode);
-            content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
+            content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue(OpenApiResources.JsonMediaType));
         }
 
         var request = new HttpRequestMessage(operation.Method, path);

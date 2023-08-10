@@ -4,9 +4,9 @@ using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
-internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
+internal partial class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
 {
-    private readonly Regex _succesfulStatusCode = new("2[0-9]{2}|2XX", RegexOptions.Compiled);
+    private readonly Regex _successfulStatusCode = SuccessfulRegex();
 
     /// <inheritdoc />
     public void Invoke(OpenApiWrapperContext context, OpenApiWrapperDelegate next)
@@ -17,7 +17,7 @@ internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
             foreach (var operationKeyValue in path.Operations.Select(o => o))
             {
                 var response = operationKeyValue.Value.Responses
-                    .FirstOrDefault(r => _succesfulStatusCode.IsMatch(r.Key));
+                    .FirstOrDefault(r => _successfulStatusCode.IsMatch(r.Key));
 
                 var resultOperation = new Operation(
                     operationKeyValue.Value.OperationId,
@@ -44,4 +44,7 @@ internal class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
 
         next.Invoke(context);
     }
+
+    [GeneratedRegex("2[0-9]{2}|2XX", RegexOptions.Compiled)]
+    private static partial Regex SuccessfulRegex();
 }
