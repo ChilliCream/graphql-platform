@@ -138,14 +138,12 @@ internal static class Utf8JsonWriterHelper
 
     private static void WriteList(
         Utf8JsonWriter writer,
-        IList list)
+        IEnumerable list)
     {
         writer.WriteStartArray();
 
-        for (var i = 0; i < list.Count; i++)
+        foreach (var element in list)
         {
-            var element = list[i];
-
             if (element is null)
             {
                 continue;

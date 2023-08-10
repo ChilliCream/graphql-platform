@@ -39,9 +39,9 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
 
     private static void CreateInputTypeForNonScalar(OpenApiWrapperContext context, OpenApiSchema schema)
     {
-        var (_, isScalar) = schema.GetPossibleGraphQLTypeInfos();
+        var typeInfo = context.GetSchemaTypeInfo(schema);
 
-        if (!isScalar)
+        if (!typeInfo.IsScalar)
         {
             CreateInputType(context, schema);
         }
@@ -88,9 +88,11 @@ internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         InputObjectType inputType)
     {
         var graphQLName = OpenApiNamingHelper.GetFieldName(fieldName);
-        var (possibleGraphQLName, isScalar) = schema.GetPossibleGraphQLTypeInfos();
+        var typeInfo = context.GetSchemaTypeInfo(schema);
 
-        var type = isScalar ? new ScalarType(possibleGraphQLName) : CreateInputType(context, schema);
+        var type = typeInfo.IsScalar
+            ? new ScalarType(typeInfo.GraphQLTypeName)
+            : CreateInputType(context, schema);
         type = required ? new NonNullType(type) : type;
 
         inputType.Fields.Add(new InputField(graphQLName, type));

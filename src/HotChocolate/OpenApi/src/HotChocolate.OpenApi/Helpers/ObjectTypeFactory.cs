@@ -6,7 +6,7 @@ using ObjectType = HotChocolate.Skimmed.ObjectType;
 
 namespace HotChocolate.OpenApi.Helpers;
 
-internal static class ObjectTypeHelper
+internal static class ObjectTypeFactory
 {
     public static INamedType CreateType(OpenApiWrapperContext context, string typeName, OpenApiSchema schema)
     {
@@ -25,9 +25,11 @@ internal static class ObjectTypeHelper
             Description = schema.Description
         };
 
+        var typeInfo = context.GetSchemaTypeInfo(schema);
+
         foreach (var property in schema.Properties)
         {
-            var field = CreateField(context, schema.GetTypeSchema(), property);
+            var field = CreateField(context, typeInfo.RootSchema, property);
             type.Fields.Add(field);
         }
 
@@ -35,7 +37,7 @@ internal static class ObjectTypeHelper
         {
             foreach (var allOfProperty in allOf.Properties)
             {
-                var field = CreateField(context, schema.GetTypeSchema(), allOfProperty);
+                var field = CreateField(context, typeInfo.RootSchema, allOfProperty);
                 type.Fields.Add(field);
             }
         }
@@ -48,10 +50,11 @@ internal static class ObjectTypeHelper
         return type;
     }
 
-    public static OutputField CreateField(OpenApiWrapperContext context, OpenApiSchema schema, KeyValuePair<string, OpenApiSchema> property)
+    private static OutputField CreateField(OpenApiWrapperContext context, OpenApiSchema schema, KeyValuePair<string, OpenApiSchema> property)
     {
+        var typeInfo = context.GetSchemaTypeInfo(schema);
         var isRequired = schema.Required.Contains(property.Key);
-        var fieldType = property.Value.GetGraphQLTypeNode(isRequired);
+        var fieldType = typeInfo.GetGraphQLTypeNode(isRequired);
         var field = new OutputField(OpenApiNamingHelper.GetFieldName(property.Key))
         {
             Type = fieldType,
