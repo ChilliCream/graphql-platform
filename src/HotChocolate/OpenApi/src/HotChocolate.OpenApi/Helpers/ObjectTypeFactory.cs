@@ -52,7 +52,7 @@ internal static class ObjectTypeFactory
 
     private static OutputField CreateField(OpenApiWrapperContext context, OpenApiSchema schema, KeyValuePair<string, OpenApiSchema> property)
     {
-        var typeInfo = context.GetSchemaTypeInfo(schema);
+        var typeInfo = context.GetSchemaTypeInfo(property.Value);
         var isRequired = schema.Required.Contains(property.Key);
         var fieldType = typeInfo.GetGraphQLTypeNode(isRequired);
         var field = new OutputField(OpenApiNamingHelper.GetFieldName(property.Key))
