@@ -61,7 +61,7 @@ internal static class ObjectTypeFactory
             Description = property.Value.Description
         };
 
-        CreateType(context, fieldType.NamedType().Name, property.Value);
+        CreateType(context, fieldType.NamedType().Name, typeInfo.RootSchema);
         return field;
     }
 }
