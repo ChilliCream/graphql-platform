@@ -21,7 +21,8 @@ type Activities {
 }
 
 type Activity {
-
+  "Unique identifier for the activity"
+  uuid: String
 }
 
 type PriceEstimate {
