@@ -7,7 +7,7 @@ namespace HotChocolate.OpenApi.Helpers;
 internal static class OpenApiNamingHelper
 {
     public static string GetFieldName(string value) => value
-                                                           .RemoveWhiteSpacesAndEnsureName()
+                                                           .RemoveCharacterAndEnsureName(' ')
                                                            .EnsureStartWithLowerChar() ??
                                                        throw new OpenApiFieldNameNull();
 
@@ -15,9 +15,13 @@ internal static class OpenApiNamingHelper
     public static string GetPayloadTypeName(string value) => $"{GetTypeName(value)}Payload";
 
     public static string GetTypeName(string value) => value
-                                                          .RemoveWhiteSpacesAndEnsureName()
+                                                          .RemoveCharacterAndEnsureName(' ')
                                                           .EnsureStartWithUpperChar() ??
                                                       throw new OpenApiFieldNameNull();
+
+    public static string GetPathAsName(string path) => path
+        .RemoveCharacterAndEnsureName('/')
+        .EnsureStartWithUpperChar();
 
     private static string EnsureStartWithLowerChar(this string text)
     {
@@ -33,7 +37,7 @@ internal static class OpenApiNamingHelper
         return char.ToUpperInvariant(text[0]) + text[1..];
     }
 
-    private static string RemoveWhiteSpacesAndEnsureName(this string input)
+    private static string RemoveCharacterAndEnsureName(this string input, char c)
     {
         if (string.IsNullOrEmpty(input))
             return string.Empty;
@@ -45,8 +49,8 @@ internal static class OpenApiNamingHelper
         foreach (var currentChar in input)
         {
             // Only process alphabetic characters and spaces
-            if (!char.IsLetter(currentChar) && currentChar != ' ') continue;
-            if (currentChar == ' ')
+            if (!char.IsLetter(currentChar) && currentChar != c) continue;
+            if (currentChar == c)
             {
                 capitalizeNext = true; // We want to capitalize the next character
             }

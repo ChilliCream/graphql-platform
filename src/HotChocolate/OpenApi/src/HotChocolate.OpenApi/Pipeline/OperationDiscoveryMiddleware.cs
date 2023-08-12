@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
 using Microsoft.OpenApi.Models;
 
@@ -20,7 +21,7 @@ internal partial class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
                     .FirstOrDefault(r => _successfulStatusCode.IsMatch(r.Key));
 
                 var resultOperation = new Operation(
-                    operationKeyValue.Value.OperationId,
+                    operationKeyValue.Value.OperationId ??  OpenApiNamingHelper.GetPathAsName(openApiPath.Key),
                     openApiPath.Key,
                     new HttpMethod(operationKeyValue.Key.ToString()),
                     operationKeyValue.Value)

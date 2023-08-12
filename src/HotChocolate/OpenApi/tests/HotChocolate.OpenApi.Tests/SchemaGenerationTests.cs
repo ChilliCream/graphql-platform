@@ -49,4 +49,22 @@ public class SchemaGenerationTests
         _testOutputHelper.WriteLine(schema.ToString());
         schema.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Uber_Generates_Correct_SkimmedSchema()
+    {
+        // Arrange
+        await using var stream = File.Open(System.IO.Path.Combine("__resources__", "Uber.json"), FileMode.Open);
+        var wrapper = new OpenApiWrapper();
+        var document = new OpenApiStreamReader().Read(stream, out var diag);
+
+        // Act
+        var schema = wrapper.Wrap(document);
+
+        // Assert
+        var sdl = SchemaFormatter.FormatAsString(schema);
+        _testOutputHelper.WriteLine(sdl);
+        Assert.NotNull(sdl);
+        Snapshot.Match(sdl, extension: ".graphql");
+    }
 }

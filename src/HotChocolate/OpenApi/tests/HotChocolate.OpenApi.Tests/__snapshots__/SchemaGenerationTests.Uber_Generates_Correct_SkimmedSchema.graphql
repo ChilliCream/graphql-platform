@@ -1,0 +1,31 @@
+schema {
+  query: Query
+}
+
+type Query {
+  estimatesPrice(end_latitude: Float end_longitude: Float start_latitude: Float start_longitude: Float): [PriceEstimate]
+  estimatesTime(customer_uuid: String product_id: String start_latitude: Float start_longitude: Float): [Product]
+  history(limit: Int offset: Int): Activities
+  me: Profile
+  products(latitude: Float longitude: Float): [Product]
+}
+
+"Position in pagination."
+type Activities {
+
+}
+
+"Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles"
+type PriceEstimate {
+
+}
+
+"Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles."
+type Product {
+
+}
+
+"First name of the Uber user."
+type Profile {
+
+}
