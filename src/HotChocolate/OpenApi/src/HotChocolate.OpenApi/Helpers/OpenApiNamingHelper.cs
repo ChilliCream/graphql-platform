@@ -9,7 +9,7 @@ internal static class OpenApiNamingHelper
     public static string GetFieldName(string value) => value
                                                            .RemoveCharacterAndEnsureName(' ')
                                                            .EnsureStartWithLowerChar() ??
-                                                       throw new OpenApiFieldNameException();
+                                                       throw new OpenApiFieldNameNullException();
 
     public static string GetInputTypeName(string value) => $"{GetTypeName(value)}Input";
     public static string GetPayloadTypeName(string value) => $"{GetTypeName(value)}Payload";
@@ -65,6 +65,6 @@ internal static class OpenApiNamingHelper
             }
         }
 
-        return NameUtils.MakeValidGraphQLName(sb.ToString()) ?? throw new OpenApiFieldNameException();
+        return NameUtils.MakeValidGraphQLName(sb.ToString()) ?? throw new OpenApiFieldNameNullException();
     }
 }
