@@ -9,7 +9,7 @@ internal static class OpenApiNamingHelper
     public static string GetFieldName(string value) => value
                                                            .RemoveCharacterAndEnsureName(' ')
                                                            .EnsureStartWithLowerChar() ??
-                                                       throw new OpenApiFieldNameNull();
+                                                       throw new OpenApiFieldNameException();
 
     public static string GetInputTypeName(string value) => $"{GetTypeName(value)}Input";
     public static string GetPayloadTypeName(string value) => $"{GetTypeName(value)}Payload";
@@ -17,7 +17,7 @@ internal static class OpenApiNamingHelper
     public static string GetTypeName(string value) => value
                                                           .RemoveCharacterAndEnsureName(' ')
                                                           .EnsureStartWithUpperChar() ??
-                                                      throw new OpenApiFieldNameNull();
+                                                      throw new OpenApiFieldNameNullException();
 
     public static string GetPathAsName(string path) => path
         .RemoveCharacterAndEnsureName('/')
@@ -65,6 +65,6 @@ internal static class OpenApiNamingHelper
             }
         }
 
-        return NameUtils.MakeValidGraphQLName(sb.ToString()) ?? throw new OpenApiFieldNameNull();
+        return NameUtils.MakeValidGraphQLName(sb.ToString()) ?? throw new OpenApiFieldNameException();
     }
 }
