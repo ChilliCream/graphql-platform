@@ -9,7 +9,11 @@ using ScalarType = HotChocolate.Skimmed.ScalarType;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
-internal sealed class InputTypeBuilderMiddleware : IOpenApiWrapperMiddleware
+
+/// <summary>
+/// Parses all operations and creates input type where it's necessary
+/// </summary>
+internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
 {
     /// <inheritdoc />
     public void Invoke(OpenApiWrapperContext context, OpenApiWrapperDelegate next)

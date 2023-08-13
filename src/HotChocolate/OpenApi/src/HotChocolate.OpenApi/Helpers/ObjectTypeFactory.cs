@@ -8,7 +8,15 @@ namespace HotChocolate.OpenApi.Helpers;
 
 internal static class ObjectTypeFactory
 {
-    public static INamedType CreateType(OpenApiWrapperContext context, string typeName, OpenApiSchema schema)
+    /// <summary>
+    /// Parses the <paramref name="schema"/> and it fields and adds new object types
+    /// to context if necessary
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="typeName"></param>
+    /// <param name="schema"></param>
+    /// <returns></returns>
+    public static INamedType ParseType(OpenApiWrapperContext context, string typeName, OpenApiSchema schema)
     {
         if (context.SkimmedSchema.Types.ContainsName(typeName))
         {
@@ -61,7 +69,7 @@ internal static class ObjectTypeFactory
             Description = property.Value.Description
         };
 
-        CreateType(context, fieldType.NamedType().Name, typeInfo.RootSchema);
+        ParseType(context, fieldType.NamedType().Name, typeInfo.RootSchema);
         return field;
     }
 }

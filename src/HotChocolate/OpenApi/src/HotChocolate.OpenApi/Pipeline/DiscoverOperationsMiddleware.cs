@@ -5,7 +5,10 @@ using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
-internal partial class OperationDiscoveryMiddleware : IOpenApiWrapperMiddleware
+/// <summary>
+/// Discovers all operations of an open api document
+/// </summary>
+internal partial class DiscoverOperationsMiddleware : IOpenApiWrapperMiddleware
 {
     private readonly Regex _successfulStatusCode = SuccessfulRegex();
 

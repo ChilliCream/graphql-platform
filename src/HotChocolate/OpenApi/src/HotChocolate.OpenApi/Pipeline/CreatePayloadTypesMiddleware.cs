@@ -1,14 +1,15 @@
-using System.Text.Json;
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Models;
 using HotChocolate.OpenApi.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
-internal sealed class PayloadTypeBuilderMiddleware : IOpenApiWrapperMiddleware
+/// <summary>
+/// Creates payload types for all mutation  operations
+/// </summary>
+internal sealed class CreatePayloadTypesMiddleware : IOpenApiWrapperMiddleware
 {
     /// <inheritdoc />
     public void Invoke(OpenApiWrapperContext context, OpenApiWrapperDelegate next)
@@ -28,7 +29,9 @@ internal sealed class PayloadTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         var typeName = OpenApiNamingHelper.GetPayloadTypeName(operation.OperationId);
 
         var schema = operation.Response?.Content.FirstOrDefault().Value?.Schema;
-        if (schema is null)
+
+        var noObjectAsResult = schema is null;
+        if (noObjectAsResult)
         {
             var payloadType = new ObjectType(typeName);
             var field = new OutputField(OpenApiResources.PayloadSuccessField)
@@ -41,7 +44,7 @@ internal sealed class PayloadTypeBuilderMiddleware : IOpenApiWrapperMiddleware
         }
         else
         {
-            var payloadType = ObjectTypeFactory.CreateType(context, typeName, schema);
+            var payloadType = ObjectTypeFactory.ParseType(context, typeName, schema);
             context.OperationPayloadTypeLookup[operation.OperationId] = payloadType;
         }
     }

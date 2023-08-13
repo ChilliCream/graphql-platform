@@ -6,7 +6,10 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
-internal sealed class MutationTypeBuilderMiddleware : IOpenApiWrapperMiddleware
+/// <summary>
+/// Creates the mutation type based on all operations
+/// </summary>
+internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
 {
     /// <inheritdoc />
     public void Invoke(OpenApiWrapperContext context, OpenApiWrapperDelegate next)

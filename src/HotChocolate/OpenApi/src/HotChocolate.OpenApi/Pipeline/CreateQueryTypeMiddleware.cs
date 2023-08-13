@@ -9,7 +9,10 @@ using ObjectType = HotChocolate.Skimmed.ObjectType;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
-internal sealed class QueryTypeBuilderMiddleware : IOpenApiWrapperMiddleware
+/// <summary>
+/// Creates a query type based on all operations
+/// </summary>
+internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
 {
     /// <inheritdoc />
     public void Invoke(OpenApiWrapperContext context, OpenApiWrapperDelegate next)
@@ -37,7 +40,7 @@ internal sealed class QueryTypeBuilderMiddleware : IOpenApiWrapperMiddleware
                 Type = type
             };
 
-            ObjectTypeFactory.CreateType(context, type.NamedType().Name, typeInfo.RootSchema);
+            ObjectTypeFactory.ParseType(context, type.NamedType().Name, typeInfo.RootSchema);
 
             queryType.Fields.Add(outputField);
 

@@ -15,7 +15,7 @@ using TypeKind = HotChocolate.Skimmed.TypeKind;
 
 namespace HotChocolate.OpenApi;
 
-public static class ServiceCollectionExtension
+public static class RequestExecutorBuilderExtension
 {
     public static IRequestExecutorBuilder AddOpenApi(
         this IRequestExecutorBuilder requestExecutorBuilder,

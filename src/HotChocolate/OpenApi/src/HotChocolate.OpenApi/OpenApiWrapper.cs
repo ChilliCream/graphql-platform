@@ -1,7 +1,4 @@
-using HotChocolate.Execution.Configuration;
 using HotChocolate.OpenApi.Pipeline;
-using HotChocolate.Skimmed;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi;
@@ -13,11 +10,11 @@ internal class OpenApiWrapper
     public OpenApiWrapper()
     {
         _pipeline = OpenApiWrapperPipelineBuilder.New()
-            .Use<OperationDiscoveryMiddleware>()
-            .Use<InputTypeBuilderMiddleware>()
-            .Use<PayloadTypeBuilderMiddleware>()
-            .Use<QueryTypeBuilderMiddleware>()
-            .Use<MutationTypeBuilderMiddleware>()
+            .Use<DiscoverOperationsMiddleware>()
+            .Use<CreateInputTypesMiddleware>()
+            .Use<CreatePayloadTypesMiddleware>()
+            .Use<CreateQueryTypeMiddleware>()
+            .Use<CreateMutationTypeMiddleware>()
             .Build();
     }
 
