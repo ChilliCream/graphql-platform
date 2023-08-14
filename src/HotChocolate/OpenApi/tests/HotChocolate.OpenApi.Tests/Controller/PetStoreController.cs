@@ -19,9 +19,6 @@ public class PetStoreController : ControllerBase
 
     [HttpPost]
     [Route("/pets")]
-    [SwaggerOperation("AddPet")]
-    [SwaggerResponse(200, type: typeof(Pet), description: "pet response")]
-    [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public IActionResult AddPet([FromBody] NewPet body)
     {
         var newPet = new Pet(body.Name, _pets.Max(p => p.Id) + 1, body.Tag);
@@ -32,8 +29,6 @@ public class PetStoreController : ControllerBase
 
     [HttpDelete]
     [Route("/pets/{id}")]
-    [SwaggerOperation("DeletePet")]
-    [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public IActionResult DeletePet([FromRoute] [Required] long? id)
     {
         var toDelete = _pets.FirstOrDefault(p => p.Id == id);
@@ -46,9 +41,6 @@ public class PetStoreController : ControllerBase
 
     [HttpGet]
     [Route("/pets/{id}")]
-    [SwaggerOperation("FindPetById")]
-    [SwaggerResponse(200, type: typeof(Pet), description: "pet response")]
-    [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public IActionResult FindPetById([FromRoute] [Required] long? id)
     {
         return new ObjectResult(_pets.FirstOrDefault(p => p.Id == id));
@@ -56,9 +48,6 @@ public class PetStoreController : ControllerBase
 
     [HttpGet]
     [Route("/pets")]
-    [SwaggerOperation("FindPets")]
-    [SwaggerResponse(200, type: typeof(List<Pet>), description: "pet response")]
-    [SwaggerResponse(0, type: typeof(Error), description: "unexpected error")]
     public IActionResult FindPets([FromQuery] List<string> tags, [FromQuery] int? limit)
     {
         return new ObjectResult(_pets);
