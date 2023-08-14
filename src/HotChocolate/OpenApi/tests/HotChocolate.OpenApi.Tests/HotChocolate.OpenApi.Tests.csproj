@@ -41,4 +41,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="__snapshots__\__MISMATCH__\IntegrationTests.QueryPets_Returns_Results_findSinglePet.json" />
+  </ItemGroup>
 </Project>
