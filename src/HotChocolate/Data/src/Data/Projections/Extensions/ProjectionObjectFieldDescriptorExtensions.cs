@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Threading;
@@ -205,8 +206,26 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 context = new MiddlewareContextProxy(context, selection, objectType);
             }
 
+            if (context.Operation.Definition.Operation == OperationType.Mutation
+                && context.Selection.Field.Type.NullableType() is ObjectType mutationPayloadType
+                && mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null) is string dataFieldName)
+            {
+                var dataField = mutationPayloadType.Fields[dataFieldName];
+
+                var selection = UnwrapMutationPayloadSelect(context, dataField);
+                context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
+            }
             return executor.Invoke(next).Invoke(context);
         };
+    }
+
+    private static ISelection UnwrapMutationPayloadSelect(IMiddlewareContext context, IObjectField field)
+    {
+        var selectionVariant =
+            context.Operation.SelectionVariants.First(sv => sv.GetPossibleTypes().Contains(field.DeclaringType));
+        var unwrap = selectionVariant.GetSelectionSet(field.DeclaringType).Selections
+            .First(s => s.Field.Name == field.Name);
+        return unwrap;
     }
 
     private sealed class MiddlewareContextProxy : IMiddlewareContext
@@ -329,7 +348,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         IResolverContext IResolverContext.Clone() => _context.Clone();
     }
 
-    private static Selection CreateProxySelection(ISelection selection, NodeFieldProxy field)
+    private static Selection CreateProxySelection(ISelection selection, IObjectField field)
     {
         var includeConditionsSource = ((Selection)selection).IncludeConditions;
         var includeConditions = new long[includeConditionsSource.Length];

@@ -280,6 +280,56 @@ public class IntegrationTests
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Mutation_Convention_Select()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>() //error thrown without query, it's not needed for the test though
+            .AddMutationType<Mutation>()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+             """
+              mutation {
+                  modify {
+                      foo {
+                          bar
+                      }
+                  }
+              }
+              """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_Select_With_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>() //error thrown without query, it's not needed for the test though
+            .AddMutationType<Mutation>()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+             """
+              mutation {
+                  modifySingleOrDefault {
+                      foo {
+                          bar
+                      }
+                  }
+              }
+              """);
+
+        result.MatchSnapshot();
+    }
 }
 
 public class Query
@@ -287,6 +337,24 @@ public class Query
     [UseProjection]
     public IQueryable<Foo> Foos
         => new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+}
+
+public class Mutation
+{
+    [UseMutationConvention]
+    [UseProjection]
+    public IQueryable<Foo> Modify()
+    {
+        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+    }
+
+    [UseMutationConvention]
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<Foo> ModifySingleOrDefault()
+    {
+        return new Foo[] { new() { Bar = "A" } }.AsQueryable();
+    }
 }
 
 [ExtendObjectType(typeof(Foo))]
