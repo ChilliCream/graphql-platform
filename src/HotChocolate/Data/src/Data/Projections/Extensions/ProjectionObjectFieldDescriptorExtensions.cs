@@ -207,7 +207,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             }
 
             if (context.Operation.Definition.Operation == OperationType.Mutation
-                && context.Selection.Field.Type.NullableType() is ObjectType mutationPayloadType
+                && context.Selection.Field.Type.NamedType() is ObjectType mutationPayloadType
                 && mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null) is string dataFieldName)
             {
                 var dataField = mutationPayloadType.Fields[dataFieldName];
