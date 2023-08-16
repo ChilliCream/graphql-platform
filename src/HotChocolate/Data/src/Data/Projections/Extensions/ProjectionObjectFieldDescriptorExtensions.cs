@@ -211,7 +211,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 && mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null) is string dataFieldName)
             {
                 var dataField = mutationPayloadType.Fields[dataFieldName];
-
                 var selection = UnwrapMutationPayloadSelect(context, dataField);
                 context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
             }
