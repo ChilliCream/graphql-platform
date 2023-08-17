@@ -13,6 +13,10 @@ partial class Build
 {
     [Parameter] readonly bool EnableCoverage;
 
+    Target TestCookieCrumble => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "CookieCrumble" / "CookieCrumble.sln"));
+
     Target TestGreenDonut => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "GreenDonut" / "GreenDonut.sln"));
@@ -36,6 +40,10 @@ partial class Build
     Target TestHotChocolateCodeGeneration => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "CodeGeneration" / "HotChocolate.CodeGeneration.sln"));
+
+    Target TestHotChocolateCaching => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Caching" / "HotChocolate.Caching.sln"));
 
     Target TestHotChocolateCore => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -61,6 +69,10 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Language" / "HotChocolate.Language.sln"));
 
+    Target TestHotChocolateMarten => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Marten" / "HotChocolate.Marten.sln"));
+
     Target TestHotChocolateMongoDb => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "MongoDb" / "HotChocolate.MongoDb.sln"));
@@ -73,6 +85,14 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "PersistedQueries" / "HotChocolate.PersistedQueries.sln"));
 
+    Target TestHotChocolateRaven => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Raven" / "HotChocolate.Raven.sln"));
+
+    Target TestHotChocolateSkimmed => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Skimmed" / "HotChocolate.Skimmed.sln"));
+
     Target TestHotChocolateSpatial => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Spatial" / "HotChocolate.Spatial.sln"));
@@ -84,10 +104,6 @@ partial class Build
     Target TestHotChocolateUtilities => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Utilities" / "HotChocolate.Utilities.sln"));
-
-    Target TestHotChocolateCaching => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Caching" / "HotChocolate.Caching.sln"));
 
     Target TestStrawberryShakeClient => _ => _
         .Produces(TestResultDirectory / "*.trx")

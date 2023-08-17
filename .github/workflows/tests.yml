@@ -46,25 +46,29 @@ jobs:
       fail-fast: false
       matrix:
         test:
+          - TestCookieCrumble
           - TestGreenDonut
           - TestHotChocolateAnalyzers
           - TestHotChocolateApolloFederation
           - TestHotChocolateAspNetCore
           - TestHotChocolateAzureFunctions
           - TestHotChocolateCodeGeneration
+          - TestHotChocolateCaching
           - TestHotChocolateCore
           - TestHotChocolateData
           - TestHotChocolateDiagnostics
           - TestHotChocolateFilters
           - TestHotChocolateFusion
           - TestHotChocolateLanguage
+          - TestHotChocolateMarten
           - TestHotChocolateMongoDb
           - TestHotChocolateNeo4J
           - TestHotChocolatePersistedQueries
+          - TestHotChocolateRaven
+          - TestHotChocolateSkimmed
           - TestHotChocolateSpatial
           - TestHotChocolateStitching
           - TestHotChocolateUtilities
-          - TestHotChocolateCaching
           - TestStrawberryShakeClient
           - TestStrawberryShakeCodeGeneration
           - TestStrawberryShakeTooling
