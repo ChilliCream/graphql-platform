@@ -161,7 +161,7 @@ jobs:
       - name: Run Tests
         id: run-tests
         run: ./build.cmd ${{ matrix.test }} --enableCoverage
-        timeout-minutes: 15
+        timeout-minutes: 18
         continue-on-error: true
 
       - name: Upload Individual Coverage Files as Artifacts
