@@ -18,6 +18,17 @@ jobs:
       with:
         node-version: '14.x'
         cache: 'yarn'
+        cache-dependency-path: 'website/yarn.lock'
+
+    - name: Cache Yarn Packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          website/.yarn/cache
+          website/.cache/yarn
+        key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
 
     - name: Install Packages
       run: yarn --immutable --network-timeout 100000
