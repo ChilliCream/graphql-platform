@@ -128,6 +128,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Run Tests
+        id: run-tests
         run: ./build.cmd ${{ matrix.test }} --enableCoverage
         timeout-minutes: 15
         continue-on-error: true
@@ -136,13 +137,13 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: coverage-${{ matrix.test }}
-          path: output/test-results/${{ matrix.test }}.coverage.opencover.xml
+          path: output/test-results/**/*.xml
 
       - name: Fail if tests failed or were cancelled
         run: exit 1
         if: |
-          steps.library-tests.outcome == 'failure' ||
-          steps.library-tests.outcome == 'cancelled'
+          steps.run-tests.outcome == 'failure' ||
+          steps.run-tests.outcome == 'cancelled'
 
   merge-coverage:
     name: Merge and Upload Coverage
@@ -177,3 +178,15 @@ jobs:
         name: graphql-platform
         flags: unittests
         fail_ci_if_error: true
+
+  ci-status-check:
+    name: "CI Status Check"
+    needs: [library-tests, website-tests]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check if Library Tests or Website Tests failed
+      run: exit 1
+      if: |
+        always() &&
+        (needs.library-tests.result == 'failure' ||
+         needs.website-tests.result == 'failure')
