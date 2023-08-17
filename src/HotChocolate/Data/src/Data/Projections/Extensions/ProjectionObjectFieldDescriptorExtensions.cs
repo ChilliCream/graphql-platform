@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -359,7 +358,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         IResolverContext IResolverContext.Clone() => _context.Clone();
     }
 
-    private static Selection CreateProxySelection(ISelection selection, IObjectField field)
+    private static Selection CreateProxySelection(ISelection selection, NodeFieldProxy field)
     {
         var includeConditionsSource = ((Selection)selection).IncludeConditions;
         var includeConditions = new long[includeConditionsSource.Length];
