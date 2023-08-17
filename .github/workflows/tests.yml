@@ -42,7 +42,6 @@ jobs:
     name: Run ${{ matrix.test }} on ubuntu-latest
     timeout-minutes: 30
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
@@ -94,26 +93,33 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
 
-      - name: Upload Test Results
+      - name: Upload Individual Coverage Files as Artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-${{ matrix.component }}
-          path: output/test-results
+          name: coverage-${{ matrix.test }}
+          path: output/test-results/${{ matrix.test }}.coverage.opencover.xml
 
-      - name: Merge Coverage Files
-        run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator "-reports:./output/test-results/**/*.coverage.opencover.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover
+  merge-coverage:
+    name: Merge and Upload Coverage
+    needs: library-tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Upload Coverage File to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          file: ./output/coverage/merged/merged.opencover.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
-          name: graphql-platform
-          flags: unittests
-          fail_ci_if_error: true
+    - name: Download all coverage artifacts
+      uses: actions/download-artifact@v2
 
-      - name: Fail if tests failed
-        run: exit 1
-        if: steps.library-tests.outcome == 'failure'
+    - name: Merge Coverage Files
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator "-reports:**/*.coverage.opencover.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover
+
+    - name: Upload Combined Coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        file: ./output/coverage/merged/merged.opencover.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        name: graphql-platform
+        flags: unittests
+        fail_ci_if_error: true
