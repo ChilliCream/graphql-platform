@@ -15,6 +15,7 @@ public static class FusionGraphPackageConstants
     /// </summary>
     public const string FusionFileName = "fusion.graphql";
     
+    /// <summary>
     /// Gets the relationship kind of the fusion graph document.
     /// </summary>
     public const string FusionSettingsKind = "urn:hotchocolate:fusion:settings";

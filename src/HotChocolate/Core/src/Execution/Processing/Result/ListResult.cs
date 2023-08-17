@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace HotChocolate.Execution.Processing;
@@ -26,55 +27,45 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     public int Count => _count;
 
     /// <inheritdoc cref="IReadOnlyList{T}.this"/>
-    public object? this[int index]
-    {
-        get
-        {
-            return _buffer[index];
-        }
-    }
+    public object? this[int index] => _buffer[index];
 
     /// <summary>
     /// Defines if the elements of this list are nullable.
     /// </summary>
     internal bool IsNullable { get; set; }
 
-    internal void AddUnsafe(object? item)
-        => _buffer[_count++] = item;
-
-    internal void AddUnsafe(ResultData? item)
+    internal int AddUnsafe(object? item)
     {
         var index = _count++;
-
-        if (item is not null)
-        {
-            item.Parent = this;
-            item.ParentIndex = index;
-        }
-
         _buffer[index] = item;
+        return index;
+    }
+
+    internal int AddUnsafe(ResultData? item)
+    {
+        var index = _count++;
+        item?.SetParent(this, index);
+        _buffer[index] = item;
+        return index;
     }
 
     internal void SetUnsafe(int index, object? item)
-        => _buffer[index] = item;
+    {
+        _buffer[index] = item;
+    }
 
     internal void SetUnsafe(int index, ResultData? item)
     {
-        if (item is not null)
-        {
-            item.Parent = this;
-            item.ParentIndex = index;
-        }
-
+        item?.SetParent(this, index);
         _buffer[index] = item;
     }
 
     internal bool TrySetNull(int index)
     {
-        if (IsNullable && _count > index)
+        if (_count > index)
         {
             _buffer[index] = null;
-            return true;
+            return IsNullable;
         }
 
         return false;
@@ -136,6 +127,8 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
         IsInvalidated = false;
         ParentIndex = 0;
         Parent = null;
+        PatchId = 0;
+        PatchPath = null;
     }
 
     internal ref object? GetReference()

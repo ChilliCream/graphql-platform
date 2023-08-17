@@ -23,7 +23,7 @@ This however has a couple of downsides:
 
 Hot Chocolate implements the [GraphQL multipart request specification](https://github.com/jaydenseric/graphql-multipart-request-spec) which adds a new `Upload` scalar and allows our GraphQL server to handle file upload streams.
 
-<Video videoId="XeF3IuGDq4A" />
+<Video videoId="XeF3IuGDq4A"></Video>
 
 > Warning: Files can not yet be uploaded through a gateway to stitched services using the `Upload` scalar.
 
@@ -160,13 +160,16 @@ If we now want to send this request to our GraphQL server, we need to do so usin
 
 ```bash
 curl localhost:5000/graphql \
+  -H "GraphQL-preflight: 1" \
   -F operations='{ "query": "mutation ($file: Upload!) { uploadFile(file: $file) { success } }", "variables": { "file": null } }' \
   -F map='{ "0": ["variables.file"] }' \
   -F 0=@file.txt
 
 ```
 
-> Note: The `$file` variable is intentionally `null`. It is filled in by Hot Chocolate on the server.
+> Note 1: The `$file` variable is intentionally `null`. It is filled in by Hot Chocolate on the server.
+
+> Note 2: HTTP Header `GraphQL-preflight: 1` is required since version 13.2 due to security reasons.
 
 [More examples can be found here](https://github.com/jaydenseric/graphql-multipart-request-spec#examples)
 

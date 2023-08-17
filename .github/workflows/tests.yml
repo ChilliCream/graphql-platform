@@ -1,0 +1,105 @@
+name: Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  website-tests:
+    name: "Website Tests"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Install Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x'
+        cache: 'yarn'
+        cache-dependency-path: 'website/yarn.lock'
+
+    - name: Cache Yarn Packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          website/.yarn/cache
+          website/.cache/yarn
+        key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+
+    - name: Install Packages
+      run: yarn --immutable --network-timeout 100000
+      working-directory: website
+
+    - name: Build Website
+      run: yarn build --prefix-paths
+      working-directory: website
+      
+  library-tests:
+    name: Run ${{ matrix.test }} on ubuntu-latest
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - TestGreenDonut
+          - TestHotChocolateAnalyzers
+          - TestHotChocolateApolloFederation
+          - TestHotChocolateAspNetCore
+          - TestHotChocolateAzureFunctions
+          - TestHotChocolateCodeGeneration
+          - TestHotChocolateCore
+          - TestHotChocolateData
+          - TestHotChocolateDiagnostics
+          - TestHotChocolateFilters
+          - TestHotChocolateFusion
+          - TestHotChocolateLanguage
+          - TestHotChocolateMongoDb
+          - TestHotChocolateNeo4J
+          - TestHotChocolatePersistedQueries
+          - TestHotChocolateSpatial
+          - TestHotChocolateStitching
+          - TestHotChocolateUtilities
+          - TestHotChocolateCaching
+          - TestStrawberryShakeClient
+          - TestStrawberryShakeCodeGeneration
+          - TestStrawberryShakeTooling
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.x
+            7.x
+            8.x
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Run Tests
+        run: ./build.cmd Test${{ matrix.component }}
+        timeout-minutes: 15
+        continue-on-error: true
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results-${{ matrix.component }}
+          path: output/test-results
+
+      - name: Fail if tests failed
+        run: exit 1
+        if: steps.library-tests.outcome == 'failure'
