@@ -56,6 +56,7 @@ jobs:
             ${{ runner.os }}-nuget-
       
       - name: Run ${{ matrix.test }}
+        timeout-minutes: 15
         run: ./build.cmd ${{ matrix.test }} --skip --test-partition $(System.JobPositionInPhase)
         
       - name: Upload Test Results
