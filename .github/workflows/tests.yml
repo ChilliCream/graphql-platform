@@ -6,8 +6,39 @@ on:
       - main
 
 jobs:
-  run_tests:
-    name: Run ${{ matrix.test }} on Ubuntu 20.04
+  website_tests:
+    name: "Website Tests"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Install Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x'
+        cache: 'yarn'
+
+    - name: Cache Yarn Packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          website/.yarn/cache
+          website/.cache/yarn
+        key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+
+    - name: Install Packages
+      run: yarn --immutable --network-timeout 100000
+      working-directory: website
+
+    - name: Build Website
+      run: yarn build --prefix-paths
+      working-directory: website
+
+  library_tests:
+    name: Run ${{ matrix.test }} on ubuntu-latest
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
