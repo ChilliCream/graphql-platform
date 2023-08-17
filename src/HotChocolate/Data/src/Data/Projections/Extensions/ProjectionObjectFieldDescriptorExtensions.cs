@@ -206,10 +206,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 context = new MiddlewareContextProxy(context, selection, objectType);
             }
             //for use case when projection is used with Mutation Conventions
-            else if (context.Operation.Definition.Operation == OperationType.Mutation
-                     && context.Selection.Field.Type.NamedType() is ObjectType mutationPayloadType
-                     && mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null) is string
-                         dataFieldName)
+            else if (context.Operation.Definition.Operation == OperationType.Mutation && 
+                context.Selection.Field.Type.NamedType() is ObjectType mutationPayloadType && 
+                mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null) is string dataFieldName)
             {
                 var dataField = mutationPayloadType.Fields[dataFieldName];
                 var selection = UnwrapMutationPayloadSelect(context, dataField);
