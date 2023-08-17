@@ -6,8 +6,39 @@ on:
       - main
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      website_changes: ${{ steps.check-website.outputs.website_changes }}
+      library_changes: ${{ steps.check-library.outputs.library_changes }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Check for changes in website directory
+      id: check-website
+      run: |
+        changes=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- ./website)
+        if [[ -n "$changes" ]]; then
+          echo "::set-output name=website_changes::true"
+        else
+          echo "::set-output name=website_changes::false"
+        fi
+
+    - name: Check for changes outside website directory
+      id: check-library
+      run: |
+        changes=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- ':!./website')
+        if [[ -n "$changes" ]]; then
+          echo "::set-output name=library_changes::true"
+        else
+          echo "::set-output name=library_changes::false"
+        fi
+
+
   website-tests:
     name: "Website Tests"
+    if: needs.check-website-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
@@ -40,6 +71,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.test }} on ubuntu-latest
+    if: needs.check-changes.outputs.library_changes == 'true'
     timeout-minutes: 30
     runs-on: ubuntu-latest
     strategy:
