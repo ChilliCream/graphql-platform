@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # This ensures a complete checkout
 
     - name: Check for changes in website directory
       id: check-website
