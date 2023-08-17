@@ -37,4 +37,5 @@ jobs:
         HC_GITHUB_PR_NR: ${{ github.event.pull_request.number }}
         HC_GITHUB_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         HC_GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
         SONARTOKEN: ${{ secrets.SONARTOKEN }}
