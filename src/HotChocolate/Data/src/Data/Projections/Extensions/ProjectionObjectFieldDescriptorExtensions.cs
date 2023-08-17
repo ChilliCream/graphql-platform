@@ -204,6 +204,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 var selection = CreateProxySelection(context.Selection, fieldProxy);
                 context = new MiddlewareContextProxy(context, selection, objectType);
             }
+            
             //for use case when projection is used with Mutation Conventions
             else if (context.Operation.Type is OperationType.Mutation && 
                 context.Selection.Type.NamedType() is ObjectType mutationPayloadType && 
@@ -211,17 +212,18 @@ public static class ProjectionObjectFieldDescriptorExtensions
                     is string dataFieldName)
             {
                 var dataField = mutationPayloadType.Fields[dataFieldName];
-                var selection = UnwrapMutationPayloadSelection(context, dataField);
+                var payloadSelectionSet = context.Operation.GetSelectionSet(context.Selection, mutationPayloadType);
+                var selection = UnwrapMutationPayloadSelection(payloadSelectionSet, dataField);
                 context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
             }
+            
             return executor.Invoke(next).Invoke(context);
         };
     }
 
-    private static Selection UnwrapMutationPayloadSelection(IMiddlewareContext context, ObjectField field)
+    private static Selection UnwrapMutationPayloadSelection(ISelectionSet selectionSet, ObjectField field)
     {
-        var selectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
-        ref var selection = ref selectionSet.GetSelectionsReference();
+        ref var selection = ref Unsafe.As<SelectionSet>(selectionSet).GetSelectionsReference();
         ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
 
         while (Unsafe.IsAddressLessThan(ref selection, ref end))
