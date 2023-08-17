@@ -37,7 +37,7 @@ jobs:
     - name: Build Website
       run: yarn build --prefix-paths
       working-directory: website
-      
+
   library-tests:
     name: Run ${{ matrix.test }} on ubuntu-latest
     timeout-minutes: 30
@@ -90,7 +90,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Run Tests
-        run: ./build.cmd Test${{ matrix.component }}
+        run: ./build.cmd Test${{ matrix.component }} --enableCoverage
         timeout-minutes: 15
         continue-on-error: true
 
@@ -99,6 +99,20 @@ jobs:
         with:
           name: test-results-${{ matrix.component }}
           path: output/test-results
+
+      - name: Merge Coverage Files
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator "-reports:./output/test-results/**/*.coverage.opencover.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover
+
+      - name: Upload Coverage File to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: ./output/coverage/merged/merged.opencover.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          name: graphql-platform
+          flags: unittests
+          fail_ci_if_error: true
 
       - name: Fail if tests failed
         run: exit 1
