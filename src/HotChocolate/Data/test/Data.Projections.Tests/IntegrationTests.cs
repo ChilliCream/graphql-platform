@@ -391,6 +391,70 @@ public class IntegrationTests
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Mutation_Convention_With_Relay_Projection_Schema()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddMutationType<Mutation>()
+            .AddQueryFieldToMutationPayloads()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_With_Relay_Projection()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddMutationType<Mutation>()
+            .AddQueryFieldToMutationPayloads()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                createRecord(input: {throwError: false}) {
+                    foo {
+                        id
+                        fieldOfFoo
+                    }
+                    errors {
+                        ... on Error {
+                            message
+                        }
+                    }
+                    query {
+                        node(id: "QmFyCmRB") {
+                            id
+                            __typename
+                            ... on Baz { fieldOfBaz }
+                            ... on Foo { fieldOfFoo }
+                            ... on Bar { fieldOfBar }
+                        }
+                    }
+                }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
 }
 
 public class Query
