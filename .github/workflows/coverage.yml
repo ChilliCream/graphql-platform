@@ -1,4 +1,4 @@
-name: Codecov
+name: Coverage
 
 on:
   pull_request:
