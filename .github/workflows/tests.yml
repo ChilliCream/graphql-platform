@@ -20,7 +20,7 @@ jobs:
     - name: Check for changes in website directory
       id: check-website
       run: |
-        changes=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- ./website)
+        changes=$(git diff --name-only origin/main ${{ github.sha }} -- ./website)
         if [[ -n "$changes" ]]; then
           echo "::set-output name=website_changes::true"
         else
@@ -30,13 +30,12 @@ jobs:
     - name: Check for changes outside website directory
       id: check-library
       run: |
-        changes=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- ':!./website')
+        changes=$(git diff --name-only origin/main ${{ github.sha }} -- ':!./website')
         if [[ -n "$changes" ]]; then
           echo "::set-output name=library_changes::true"
         else
           echo "::set-output name=library_changes::false"
         fi
-
 
   website-tests:
     name: "Website Tests"
