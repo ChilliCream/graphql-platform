@@ -38,7 +38,7 @@ jobs:
 
   website-tests:
     name: "Website Tests"
-    if: needs.check-website-changes.outputs.has_changes == 'true'
+    if: needs.check-changes.outputs.website_changes == 'true'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
