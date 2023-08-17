@@ -18,10 +18,10 @@ internal static class PathHelper
 
     private static Path CreatePath(ResultData parent, object segmentValue)
     {
-        var segments = ArrayPool<object>.Shared.Rent(64);
+        object[] segments = ArrayPool<object>.Shared.Rent(64);
         segments[0] = segmentValue;
         var length = Build(segments, parent);
-        var path = CreatePath(segments, length);
+        var path = CreatePath(parent.PatchPath, segments, length);
         ArrayPool<object>.Shared.Return(segments);
         return path;   
     }
@@ -30,14 +30,15 @@ internal static class PathHelper
     {
         var segments = ArrayPool<object>.Shared.Rent(64);
         var length = Build(segments, parent, 0);
-        var path = CreatePath(segments, length);
+        var path = CreatePath(parent.PatchPath, segments, length);
         ArrayPool<object>.Shared.Return(segments);
         return path;   
     }
 
-    private static Path CreatePath(object[] segments, int length)
+    private static Path CreatePath(Path? patchPath, object[] segments, int length)
     {
-        var path = Path.Root.Append((string) segments[length - 1]);
+        var root = patchPath ?? Path.Root;
+        var path = root.Append((string) segments[length - 1]);
 
         if (length > 1)
         {

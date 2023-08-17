@@ -167,6 +167,8 @@ public sealed class ObjectResult
         IsInvalidated = false;
         ParentIndex = 0;
         Parent = null;
+        PatchId = 0;
+        PatchPath = null;
     }
 
     object? IReadOnlyDictionary<string, object?>.this[string key]

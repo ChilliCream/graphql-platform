@@ -23,11 +23,12 @@ internal static class ResolverTaskFactory
         ISelectionSet selectionSet,
         object? parent,
         Path path,
-        IImmutableDictionary<string, object?> scopedContext)
+        IImmutableDictionary<string, object?> scopedContext,
+        ObjectResult? parentResult = null)
     {
         var selectionsCount = selectionSet.Selections.Count;
         var responseIndex = selectionsCount;
-        var parentResult = operationContext.Result.RentObject(selectionsCount);
+        parentResult ??= operationContext.Result.RentObject(selectionsCount);
         var scheduler = operationContext.Scheduler;
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
@@ -108,6 +109,7 @@ internal static class ResolverTaskFactory
         var parentResult = operationContext.Result.RentObject(1);
         var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
+        parentResult.PatchPath = path.Append(index);
 
         var resolverTask =
             operationContext.CreateResolverTask(

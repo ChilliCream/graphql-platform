@@ -34,6 +34,11 @@ public abstract class ResultData
     public uint PatchId { get; set; }
     
     /// <summary>
+    /// Gets an internal patch path that specifies from where this result was branched of.
+    /// </summary>
+    protected internal Path? PatchPath { get; set; }
+    
+    /// <summary>
     /// Connects this result to the parent result.
     /// </summary>
     /// <param name="parent">

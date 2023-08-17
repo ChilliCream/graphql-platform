@@ -127,6 +127,8 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
         IsInvalidated = false;
         ParentIndex = 0;
         Parent = null;
+        PatchId = 0;
+        PatchPath = null;
     }
 
     internal ref object? GetReference()
