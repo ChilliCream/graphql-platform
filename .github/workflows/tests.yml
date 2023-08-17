@@ -90,7 +90,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Run Tests
-        run: ./build.cmd Test${{ matrix.component }} --skip
+        run: ./build.cmd Test${{ matrix.component }}
         timeout-minutes: 15
         continue-on-error: true
 
