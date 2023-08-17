@@ -50,7 +50,7 @@ partial class Build
     Target Test => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .DependsOn(
-            TestCookieCrumble
+            TestCookieCrumble,
             TestGreenDonut,
             TestHotChocolateAnalyzers,
             TestHotChocolateApolloFederation,
