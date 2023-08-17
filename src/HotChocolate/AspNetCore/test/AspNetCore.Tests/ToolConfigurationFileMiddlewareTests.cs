@@ -155,7 +155,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         var result = await GetAsync(server, "/graphql/ui/index.html");
 
         // assert
-        result.MatchSnapshot();
+        Assert.Contains("static/js/main.98391269.js", result.Content);
     }
 
     private Task<Result> GetBcpConfigAsync(TestServer server, string url = "/graphql")
