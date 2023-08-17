@@ -159,8 +159,8 @@ jobs:
 
       - name: Run Tests
         id: run-tests
-        run: ./build.cmd ${{ matrix.test }} --enableCoverage
-        timeout-minutes: 18
+        run: dotnet test ${{ matrix.test }} --framework net7.0 --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage/results/
+        timeout-minutes: 15
         continue-on-error: true
 
       - name: Upload Individual Coverage Files as Artifacts
