@@ -256,7 +256,8 @@ internal sealed partial class SubscriptionExecutor
                     resultMap,
                     1,
                     rootValue,
-                    _scopedContextData);
+                    _scopedContextData,
+                    null);
 
                 // it is important that we correctly coerce the arguments before
                 // invoking subscribe.
