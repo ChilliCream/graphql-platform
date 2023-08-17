@@ -28,8 +28,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Run Coverage Tests
-        run: ./init.sh
+      - name: Run restore and build
+        run: | 
+          ./build.sh restore
+          dotnet build src/All.sln
 
       - name: Run tests with coverage
         run: |
