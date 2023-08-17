@@ -302,6 +302,7 @@ jobs:
   ci-status-check:
     name: "CI Status Check"
     needs: [library-tests, website-tests]
+    if: always()
     runs-on: ubuntu-latest
     steps:
     - name: Check if Library Tests or Website Tests failed
