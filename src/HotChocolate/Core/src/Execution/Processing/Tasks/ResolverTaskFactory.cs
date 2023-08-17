@@ -109,7 +109,6 @@ internal static class ResolverTaskFactory
         var parentResult = operationContext.Result.RentObject(1);
         var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
-        parentResult.PatchPath = path.Append(index);
 
         var resolverTask =
             operationContext.CreateResolverTask(
@@ -117,7 +116,8 @@ internal static class ResolverTaskFactory
                 parent,
                 parentResult,
                 0,
-                scopedContext);
+                scopedContext,
+                path.Append(index));
 
         try
         {
