@@ -93,7 +93,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Run Tests
-        run: ./build.cmd Test${{ matrix.test }} --enableCoverage
+        run: ./build.cmd ${{ matrix.test }} --enableCoverage
         timeout-minutes: 15
         continue-on-error: true
 
