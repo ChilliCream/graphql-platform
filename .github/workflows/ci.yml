@@ -15,8 +15,6 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
 
     - name: Check for changes in website directory
       id: check-website
@@ -228,19 +226,9 @@ jobs:
       contents: read
       security-events: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'csharp' ]
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
-      with:
-        languages: ${{ matrix.language }}
 
     - name: Install .NET
       uses: actions/setup-dotnet@v3
@@ -259,6 +247,11 @@ jobs:
 
     - name: Restore
       run: ./build.sh restore
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: csharp
 
     - name: Build
       run: dotnet build ./src/All.sln --no-restore
