@@ -5,49 +5,59 @@ namespace HotChocolate.Execution.Processing;
 
 internal static class PathHelper
 {
+    public static Path CreatePathFromContext(ObjectResult parent)
+        => CreatePath(parent);
+
     public static Path CreatePathFromContext(ISelection selection, ResultData parent, int index)
+        => parent switch
+        {
+            ObjectResult => CreatePath(parent, selection.ResponseName),
+            ListResult => CreatePath(parent, index),
+            _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type.")
+        };
+
+    private static Path CreatePath(ResultData parent, object segmentValue)
     {
-        if (parent is ObjectResult)
-        {
-            return CreatePath(parent, selection.ResponseName);   
-        }
-
-        if (parent is ListResult)
-        {
-            return CreatePath(parent, index);
-        }
-
-        throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type.");
-
-        static Path CreatePath(ResultData parent, object segmentValue)
-        {
-            var segments = ArrayPool<object>.Shared.Rent(64);
-            segments[0] = segmentValue;
-            
-            var length = Build(segments, parent);
-            var path = Path.Root.Append((string) segments[length - 1]);
-
-            if (length > 1)
-            {
-                for (var i = length - 2; i >= 0; i--)
-                {
-                    path = segments[i] switch
-                    {
-                        string s => path.Append(s),
-                        int n => path.Append(n),
-                        _ => path
-                    };
-                }
-            }
-            
-            ArrayPool<object>.Shared.Return(segments);
-            return path;   
-        }
+        var segments = ArrayPool<object>.Shared.Rent(64);
+        segments[0] = segmentValue;
+        var length = Build(segments, parent);
+        var path = CreatePath(segments, length);
+        ArrayPool<object>.Shared.Return(segments);
+        return path;   
+    }
+    
+    private static Path CreatePath(ResultData parent)
+    {
+        var segments = ArrayPool<object>.Shared.Rent(64);
+        var length = Build(segments, parent, 0);
+        var path = CreatePath(segments, length);
+        ArrayPool<object>.Shared.Return(segments);
+        return path;   
     }
 
-    private static int Build(object[] segments, ResultData parent)
+    private static Path CreatePath(object[] segments, int length)
     {
-        var segment = 1;
+        var path = Path.Root.Append((string) segments[length - 1]);
+
+        if (length > 1)
+        {
+            for (var i = length - 2; i >= 0; i--)
+            {
+                path = segments[i] switch
+                {
+                    string s => path.Append(s),
+                    int n => path.Append(n),
+                    _ => path
+                };
+            }
+        }
+
+        return path;
+    }
+    
+    private static int Build(object[] segments, ResultData parent, int start = 1)
+    {
+        var segment = start;
         var current = parent;
 
         while (current.Parent is not null)
@@ -80,7 +90,7 @@ internal static class PathHelper
                 }
 
                 case ListResult l:
-                    segments[i] = i;
+                    segments[segment++] = i;
                     current = l;
                     break;
 

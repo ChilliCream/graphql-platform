@@ -48,6 +48,7 @@ internal partial class MiddlewareContext
         _hasResolverResult = false;
         _result = default;
         _parser = default!;
+        _path = default;
         _operationResultBuilder.Context = default!;
 
         ScopedContextData = default!;

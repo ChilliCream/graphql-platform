@@ -105,8 +105,9 @@ internal static partial class ValueCompletion
         int parentIndex,
         object? elementResult)
     {
-        var completedElement = Complete(context, selection, elementType, list, parentIndex, elementResult);
+        // We first add a null entry so that the null-propagation has an element to traverse.
         var index = list.AddUnsafe(null);
+        var completedElement = Complete(context, selection, elementType, list, parentIndex, elementResult);
 
         if (completedElement is not null)
         {
@@ -116,7 +117,14 @@ internal static partial class ValueCompletion
             }
             else
             {
-                list.SetUnsafe(index, (ResultData)completedElement);
+                var resultData = (ResultData)completedElement;
+
+                if (resultData.IsInvalidated)
+                {
+                    return list.IsNullable;
+                }
+                
+                list.SetUnsafe(index, resultData);
             }
             return true;
         }

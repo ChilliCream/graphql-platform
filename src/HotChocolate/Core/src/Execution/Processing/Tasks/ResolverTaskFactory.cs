@@ -211,12 +211,12 @@ internal static class ResolverTaskFactory
                 operationContext,
                 selectionSet,
                 context.ResolverContext.ScopedContextData,
-                CreatePathFromContext(selection, result, responseIndex),
+                CreatePathFromContext(result),
                 parent,
                 result);
         }
 
-        return result;
+        return result.IsInvalidated ? null : result;
     }
 
     private static void ResolveAndCompleteInline(
@@ -231,6 +231,8 @@ internal static class ResolverTaskFactory
         var resolverContext = context.ResolverContext;
         var executedSuccessfully = false;
         object? resolverResult = null;
+        
+        parentResult.InitValueUnsafe(responseIndex, selection);
 
         try
         {

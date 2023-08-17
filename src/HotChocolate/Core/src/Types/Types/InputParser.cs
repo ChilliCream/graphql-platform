@@ -12,6 +12,7 @@ namespace HotChocolate.Types;
 
 public class InputParser
 {
+    private static readonly Path _root = Path.Root.Append("root");
     private readonly ITypeConverter _converter;
     private readonly DictionaryToObjectConverter _dictToObjConverter;
 
@@ -62,7 +63,7 @@ public class InputParser
             throw new ArgumentNullException(nameof(type));
         }
 
-        return ParseLiteralInternal(value, type, path ?? Path.Root, 0, true, null);
+        return ParseLiteralInternal(value, type, path ?? _root, 0, true, null);
     }
 
     private object? ParseLiteralInternal(
@@ -452,7 +453,7 @@ public class InputParser
             throw new ArgumentNullException(nameof(type));
         }
 
-        return Deserialize(resultValue, type, path ?? Path.Root, null);
+        return Deserialize(resultValue, type, path ?? _root, null);
     }
 
     private object? Deserialize(object? resultValue, IType type, Path path, IInputField? field)
