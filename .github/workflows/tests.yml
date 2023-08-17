@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  website_tests:
+  website-tests:
     name: "Website Tests"
     runs-on: ubuntu-latest
     steps:
@@ -38,7 +38,7 @@ jobs:
       run: yarn build --prefix-paths
       working-directory: website
       
-  library_tests:
+  library-tests:
     name: Run ${{ matrix.test }} on ubuntu-latest
     timeout-minutes: 30
     runs-on: ubuntu-latest
@@ -102,4 +102,4 @@ jobs:
 
       - name: Fail if tests failed
         run: exit 1
-        if: steps.run-tests.outcome == 'failure'
+        if: steps.library-tests.outcome == 'failure'
