@@ -153,7 +153,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                                 out var typeInfo))
                         {
                             throw new ArgumentException(
-                                UseProjection_CannotHandleType_,
+                                UseProjection_CannotHandleType,
                                 nameof(descriptor));
                         }
 

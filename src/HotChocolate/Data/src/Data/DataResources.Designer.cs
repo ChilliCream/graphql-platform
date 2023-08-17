@@ -471,9 +471,9 @@ namespace HotChocolate.Data {
             }
         }
         
-        internal static string UseProjection_CannotHandleType_ {
+        internal static string UseProjection_CannotHandleType {
             get {
-                return ResourceManager.GetString("UseProjection_CannotHandleType_", resourceCulture);
+                return ResourceManager.GetString("UseProjection_CannotHandleType", resourceCulture);
             }
         }
         
