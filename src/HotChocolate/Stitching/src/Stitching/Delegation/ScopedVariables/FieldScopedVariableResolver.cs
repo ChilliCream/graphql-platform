@@ -1,8 +1,6 @@
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using static HotChocolate.Execution.PathFactory;
 using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching.Delegation.ScopedVariables;
@@ -49,7 +47,7 @@ internal class FieldScopedVariableResolver
                 }
                 else if(field.Type.IsInputType() && field.Type is IInputType type)
                 {
-                    valueLiteral = formatter.FormatValue(value, type, Instance.New(field.Name));
+                    valueLiteral = formatter.FormatValue(value, type, Path.Root.Append(field.Name));
                 }
             }
 

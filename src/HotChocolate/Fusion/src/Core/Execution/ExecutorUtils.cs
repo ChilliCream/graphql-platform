@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.Selection;
+using static HotChocolate.Execution.Processing.ValueCompletion;
 using IType = HotChocolate.Types.IType;
 using ObjectType = HotChocolate.Types.ObjectType;
 
@@ -67,7 +68,7 @@ internal static class ExecutorUtils
                     {
                         if (!nullable)
                         {
-                            PropagateNonNullError(selectionSetResult);
+                            PropagateNullValues(selectionSetResult);
                             break;
                         }
 
@@ -81,7 +82,7 @@ internal static class ExecutorUtils
                     if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined &&
                         !nullable)
                     {
-                        PropagateNonNullError(selectionSetResult);
+                        PropagateNullValues(selectionSetResult);
                         break;
                     }
 
@@ -103,7 +104,7 @@ internal static class ExecutorUtils
                     if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined &&
                         !nullable)
                     {
-                        PropagateNonNullError(selectionSetResult);
+                        PropagateNullValues(selectionSetResult);
                         break;
                     }
 
@@ -122,7 +123,7 @@ internal static class ExecutorUtils
 
                         if (value is null && !nullable)
                         {
-                            PropagateNonNullError(selectionSetResult);
+                            PropagateNullValues(selectionSetResult);
                             break;
                         }
 
@@ -143,7 +144,7 @@ internal static class ExecutorUtils
 
                         if (value is null && !nullable)
                         {
-                            PropagateNonNullError(selectionSetResult);
+                            PropagateNullValues(selectionSetResult);
                             break;
                         }
 
@@ -197,8 +198,7 @@ internal static class ExecutorUtils
         var result = context.Result.RentList(json.GetArrayLength());
 
         result.IsNullable = nullable;
-        result.Parent = parent;
-        result.ParentIndex = parentIndex;
+        result.SetParent(parent, parentIndex);
 
         foreach (var item in json.EnumerateArray())
         {
@@ -216,7 +216,7 @@ internal static class ExecutorUtils
 
             if (!nullable && element is null)
             {
-                PropagateNonNullError(result);
+                PropagateNullValues(result);
                 return null;
             }
 
@@ -311,8 +311,7 @@ internal static class ExecutorUtils
         var selectionCount = selectionSet.Selections.Count;
         var result = context.Result.RentObject(selectionCount);
 
-        result.Parent = parent;
-        result.ParentIndex = parentIndex;
+        result.SetParent(parent, parentIndex);
 
         if (context.NeedsMoreData(selectionSet))
         {
@@ -633,45 +632,6 @@ internal static class ExecutorUtils
                     variableValues.TryAdd(key, JsonValueToGraphQLValueConverter.Convert(property));
                 }
             }
-        }
-    }
-
-    private static void PropagateNonNullError(ResultData data)
-    {
-        var current = data;
-
-        while (current.Parent is not null)
-        {
-            // we need to first capture the index,
-            // otherwise current will already be something different.
-            var index = current.ParentIndex;
-            current = current.Parent;
-
-            switch (current)
-            {
-                case ObjectResult result:
-                    if (result[index].TrySetNull())
-                    {
-                        return;
-                    }
-                    break;
-
-                case ListResult listResult:
-                    if (listResult.TrySetNull(index))
-                    {
-                        return;
-                    }
-                    break;
-
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(current));
-            }
-        }
-
-        if (current.Parent is null)
-        {
-            throw new NonNullPropagateException();
         }
     }
 }

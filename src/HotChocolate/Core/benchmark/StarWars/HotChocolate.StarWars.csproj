@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
-    <!--PackageReference Include="HotChocolate" Version="11.3.1" /-->
+    <!--PackageReference Include="HotChocolate" Version="13.4.0" /-->
   </ItemGroup>
 
 </Project>

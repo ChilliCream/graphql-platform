@@ -64,7 +64,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddOperationContextPool()
             .TryAddDeferredWorkStatePool()
             .TryAddDataLoaderTaskCachePool()
-            .TryAddPathSegmentPool()
             .TryAddOperationCompilerPool();
 
         // global executor services
