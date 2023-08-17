@@ -159,8 +159,7 @@ internal sealed class BufferedRequest
     {
         var variableDefinition =
             operation.VariableDefinitions.FirstOrDefault(
-                t =>
-                    string.Equals(t.Variable.Name.Value, name, StringComparison.Ordinal));
+                t => string.Equals(t.Variable.Name.Value, name, StringComparison.Ordinal));
 
         if (variableDefinition is not null &&
             schema.TryGetType<INamedInputType>(

@@ -266,7 +266,7 @@ internal static class MergeRequestHelper
 
     private static Path ReplaceRoot(Path path, string responseName)
     {
-        var depth = path.Length + 1;
+        var depth = path.Length;
         var buffer = ArrayPool<Path>.Shared.Rent(depth);
         var paths = buffer.AsSpan().Slice(0, depth);
 

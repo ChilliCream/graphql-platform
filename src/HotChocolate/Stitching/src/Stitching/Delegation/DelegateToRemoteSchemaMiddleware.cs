@@ -273,7 +273,7 @@ public sealed class DelegateToRemoteSchemaMiddleware
         Path fieldPath,
         IImmutableStack<SelectionPathComponent> fetchPath)
     {
-        var depth = errorPath.Length + 1;
+        var depth = errorPath.Length;
         var buffer = ArrayPool<Path>.Shared.Rent(depth);
         var paths = buffer.AsSpan().Slice(0, depth);
 
