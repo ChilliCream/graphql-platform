@@ -94,16 +94,18 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
-                    a: topProducts(first: 1) {
-                        upc
-                        error
-                    }
-                    b: topProducts(first: 2) {
-                        upc
-                        error
-                    }
-                }");
+            """
+            {
+                a: topProducts(first: 1) {
+                    upc
+                    error
+                }
+                b: topProducts(first: 2) {
+                    upc
+                    error
+                }
+            }
+            """);
 
         // assert
         Assert.Collection(

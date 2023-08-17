@@ -23,24 +23,16 @@ namespace Microsoft.Extensions.DependencyInjection;
 internal sealed class OperationContextFactory : IFactory<OperationContext>
 {
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
-    private readonly ObjectPool<PathSegmentBuffer<IndexerPathSegment>> _indexerPathPool;
-    private readonly ObjectPool<PathSegmentBuffer<NamePathSegment>> _namePathPool;
     private readonly ResultPool _resultPool;
     private readonly ITypeConverter _typeConverter;
 
     public OperationContextFactory(
         IFactory<ResolverTask> resolverTaskFactory,
-        ObjectPool<PathSegmentBuffer<IndexerPathSegment>> indexerPathPool,
-        ObjectPool<PathSegmentBuffer<NamePathSegment>> namePathPool,
         ResultPool resultPool,
         ITypeConverter typeConverter)
     {
         _resolverTaskFactory = resolverTaskFactory ??
             throw new ArgumentNullException(nameof(resolverTaskFactory));
-        _indexerPathPool = indexerPathPool ??
-            throw new ArgumentNullException(nameof(indexerPathPool));
-        _namePathPool = namePathPool ??
-            throw new ArgumentNullException(nameof(namePathPool));
         _resultPool = resultPool ??
             throw new ArgumentNullException(nameof(resultPool));
         _typeConverter = typeConverter ??
@@ -50,7 +42,6 @@ internal sealed class OperationContextFactory : IFactory<OperationContext>
     public OperationContext Create()
         => new OperationContext(
             _resolverTaskFactory,
-            new PooledPathFactory(_indexerPathPool, _namePathPool),
             new ResultBuilder(_resultPool),
             _typeConverter);
 }

@@ -1294,7 +1294,7 @@ public class ResolverCompilerTests
         // assert
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Path).Returns(PathFactory.Instance.New("FOO"));
+        context.SetupGet(t => t.Path).Returns(Path.Root.Append("FOO"));
 
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result);

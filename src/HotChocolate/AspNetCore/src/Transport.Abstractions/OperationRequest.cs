@@ -145,7 +145,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
         {
             throw new ArgumentNullException(nameof(writer));
         }
-        
+
         Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
     }
 

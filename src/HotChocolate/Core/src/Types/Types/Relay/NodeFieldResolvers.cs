@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -235,8 +234,5 @@ internal static class NodeFieldResolvers
     }
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
-    {
-        Path itemPath = PathFactory.Instance.Append(context.Path, item);
-        context.ReportError(ex, error => error.SetPath(itemPath));
-    }
+        => context.ReportError(ex, error => error.SetPath(context.Path.Append(item)));
 }

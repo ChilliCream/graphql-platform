@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
+    private static readonly Func<ValueTask>[] _emptyCleanupTasks = Array.Empty<Func<ValueTask>>();
     private readonly List<IError> _errors = new();
     private readonly HashSet<ISelection> _fieldErrors = new();
     private readonly List<NonNullViolation> _nonNullViolations = new();
@@ -137,16 +137,17 @@ internal sealed partial class ResultBuilder
             _cleanupTasks.Add(() => action(state));
         }
     }
-    
+
     public void RegisterForCleanup<T>(T state) where T : IDisposable
     {
         lock (_cleanupTasks)
         {
-            _cleanupTasks.Add(() =>
-            {
-                state.Dispose();
-                return default!;
-            });
+            _cleanupTasks.Add(
+                () =>
+                {
+                    state.Dispose();
+                    return default!;
+                });
         }
     }
 
@@ -164,6 +165,7 @@ internal sealed partial class ResultBuilder
         lock (_errors)
         {
             _errors.Add(error);
+
             if (selection is not null)
             {
                 _fieldErrors.Add(selection);
@@ -171,9 +173,9 @@ internal sealed partial class ResultBuilder
         }
     }
 
-    public void AddNonNullViolation(ISelection selection, Path path, ObjectResult parent)
+    public void AddNonNullViolation(ISelection selection, Path path)
     {
-        var violation = new NonNullViolation(selection, path.Clone(), parent);
+        var violation = new NonNullViolation(selection, path);
 
         lock (_errors)
         {
@@ -183,12 +185,14 @@ internal sealed partial class ResultBuilder
 
     public void AddRemovedResult(ResultData result)
     {
+        if (result.PatchId <= 0)
+        {
+            return;
+        }
+
         lock (_errors)
         {
-            if (result.PatchId > 0)
-            {
-                _removedResults.Add(result.PatchId);
-            }
+            _removedResults.Add(result.PatchId);
         }
     }
 
@@ -201,10 +205,11 @@ internal sealed partial class ResultBuilder
     }
 
     // ReSharper disable InconsistentlySynchronizedField
-    //
     public IQueryResult BuildResult()
     {
-        if (!ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors))
+        ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors);
+        
+        if (_data?.IsInvalidated == true)
         {
             // The non-null violation cased the whole result being deleted.
             _data = null;
@@ -222,12 +227,14 @@ internal sealed partial class ResultBuilder
         }
 
         _removedResults.Remove(0);
+
         if (_removedResults.Count > 0)
         {
             _contextData.Add(WellKnownContextData.RemovedResults, _removedResults.ToArray());
         }
 
         _patchIds.Remove(0);
+
         if (_patchIds.Count > 0)
         {
             _contextData.Add(WellKnownContextData.ExpectedPatches, _patchIds.ToArray());
@@ -235,9 +242,7 @@ internal sealed partial class ResultBuilder
 
         var result = new QueryResult(
             _data,
-            _errors.Count == 0
-                ? null
-                : new List<IError>(_errors),
+            _errors.Count == 0 ? null : _errors.ToArray(),
             CreateExtensionData(_extensions),
             CreateExtensionData(_contextData),
             incremental: null,
@@ -245,10 +250,9 @@ internal sealed partial class ResultBuilder
             label: _label,
             path: _path,
             hasNext: _hasNext,
-            cleanupTasks: _cleanupTasks.Count > 0
-                ? _cleanupTasks.ToArray()
-                : Array.Empty<Func<ValueTask>>()
-        );
+            cleanupTasks: _cleanupTasks.Count == 0 
+                ? _emptyCleanupTasks 
+                : _cleanupTasks.ToArray());
 
         if (_data is not null)
         {
@@ -257,19 +261,11 @@ internal sealed partial class ResultBuilder
 
         return result;
     }
+    
     // ReSharper restore InconsistentlySynchronizedField
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ImmutableDictionary<string, object?>? CreateExtensionData(
-        Dictionary<string, object?> data)
-    {
-        if (data.Count == 0)
-        {
-            return null;
-        }
-
-        return ImmutableDictionary.CreateRange(data);
-    }
+    private static Dictionary<string, object?>? CreateExtensionData(Dictionary<string, object?> data)
+        => data.Count == 0 ? null : new Dictionary<string, object?>(data);
 
     public void DiscardResult()
         => _resultOwner.Dispose();
