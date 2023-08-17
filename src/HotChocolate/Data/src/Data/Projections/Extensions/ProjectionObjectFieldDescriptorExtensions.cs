@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
@@ -13,6 +14,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 using static HotChocolate.WellKnownContextData;
@@ -152,7 +154,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                                 out var typeInfo))
                         {
                             throw new ArgumentException(
-                                DataResources.UseProjection_CannotHandleType_,
+                                UseProjection_CannotHandleType_,
                                 nameof(descriptor));
                         }
 
@@ -217,13 +219,24 @@ public static class ProjectionObjectFieldDescriptorExtensions
         };
     }
 
-    private static ISelection UnwrapMutationPayloadSelect(IMiddlewareContext context, IObjectField field)
+    private static Selection UnwrapMutationPayloadSelect(IMiddlewareContext context, ObjectField field)
     {
-        var selectionVariant =
-            context.Operation.SelectionVariants.First(sv => sv.GetPossibleTypes().Contains(field.DeclaringType));
-        var unwrap = selectionVariant.GetSelectionSet(field.DeclaringType).Selections
-            .First(s => s.Field.Name == field.Name);
-        return unwrap;
+        var selectionSet = Unsafe.As<SelectionSet>(context.Operation.RootSelectionSet);
+        ref var selection = ref selectionSet.GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
+
+        while (Unsafe.IsAddressLessThan(ref selection, ref end))
+        {
+            if (ReferenceEquals(selection.Field, field))
+            {
+                return selection;
+            }
+            
+            selection = ref Unsafe.Add(ref selection, 1)!;
+        }
+
+        throw new InvalidOperationException(
+            ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed);
     }
 
     private sealed class MiddlewareContextProxy : IMiddlewareContext

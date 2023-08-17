@@ -310,4 +310,7 @@
   <data name="NameHelpers_UppercaseFirstLetter" xml:space="preserve">
     <value>Provided string was empty.</value>
   </data>
+  <data name="ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed" xml:space="preserve">
+    <value>There is no selection that matches the specified field.</value>
+  </data>
 </root>

@@ -614,5 +614,11 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("NameHelpers_UppercaseFirstLetter", resourceCulture);
             }
         }
+        
+        internal static string ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed {
+            get {
+                return ResourceManager.GetString("ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed", resourceCulture);
+            }
+        }
     }
 }
