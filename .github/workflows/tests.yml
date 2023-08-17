@@ -15,7 +15,6 @@ jobs:
 
     - name: Install Node.js
       uses: actions/setup-node@v2
-      working-directory: website
       with:
         node-version: '14.x'
         cache: 'yarn'
