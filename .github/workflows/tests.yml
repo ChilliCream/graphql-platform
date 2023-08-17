@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         test:
           - TestGreenDonut
@@ -55,14 +56,18 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
-      
-      - name: Run ${{ matrix.test }}
+
+      - name: Run Tests
+        run: ./build.cmd Test${{ matrix.component }} --skip --test-partition ${{ matrix.component }}
         timeout-minutes: 15
         continue-on-error: true
-        run: ./build.cmd ${{ matrix.test }} --skip --test-partition $(System.JobPositionInPhase)
-        
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
+          name: test-results-${{ matrix.component }}
           path: output/test-results
+
+      - name: Fail if tests failed
+        run: exit 1
+        if: steps.run-tests.outcome == 'failure'
