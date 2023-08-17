@@ -48,8 +48,8 @@ internal sealed partial class OperationContext
         object? parent,
         ObjectResult parentResult,
         int responseIndex,
-        Path path,
-        IImmutableDictionary<string, object?> scopedContextData)
+        IImmutableDictionary<string, object?> scopedContextData,
+        Path? path = null)
     {
         AssertInitialized();
 
@@ -61,8 +61,8 @@ internal sealed partial class OperationContext
             parentResult,
             responseIndex,
             parent,
-            path,
-            scopedContextData);
+            scopedContextData,
+            path);
 
         return resolverTask;
     }

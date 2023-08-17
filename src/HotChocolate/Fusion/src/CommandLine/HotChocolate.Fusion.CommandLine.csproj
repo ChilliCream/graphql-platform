@@ -8,6 +8,11 @@
     <ToolCommandName>fusion</ToolCommandName>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!--PublishAot>true</PublishAot-->
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="HotChocolate.Fusion.CommandLine" />
     <Using Include="System.CommandLine.Parsing" />

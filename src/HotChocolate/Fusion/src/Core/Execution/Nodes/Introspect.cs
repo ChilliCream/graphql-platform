@@ -96,7 +96,6 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
                 operationContext.RootValue,
                 result,
                 i,
-                operationContext.PathFactory.Append(Path.Root, selection.ResponseName),
                 ImmutableDictionary<string, object?>.Empty);
             resolverTask.BeginExecute(ct);
 
