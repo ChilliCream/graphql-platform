@@ -1,4 +1,3 @@
-using System.Drawing;
 using System.Linq;
 using Colorful;
 using Nuke.Common;
@@ -10,6 +9,8 @@ using static Nuke.Common.ProjectModel.ProjectModelTasks;
 
 partial class Build
 {
+    [Parameter] readonly bool EnableCoverage;
+
     Target TestGreenDonut => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "GreenDonut" / "GreenDonut.sln"));
@@ -126,23 +127,30 @@ partial class Build
 
         foreach (var testProject in testProjects)
         {
-            Console.WriteLine($"║ - {RootDirectory.GetRelativePathTo( testProject.Path.Parent!)}:");
+            Console.WriteLine($"║ - {RootDirectory.GetRelativePathTo(testProject.Path.Parent!)}:");
         }
         Console.WriteLine("╬================================");
 
         try
         {
-            DotNetTest(
-                c => c
-                    .SetProjectFile(solutionFile)
-                    .SetConfiguration(Debug)
-                    .SetNoRestore(true)
-                    .SetNoBuild(true)
-                    .ResetVerbosity()
-                    .SetResultsDirectory(TestResultDirectory)
-                    .CombineWith(testProjects, (_, v) => _
-                        .SetProjectFile(v)
-                        .SetLoggers($"trx;LogFileName={v.Name}.trx")));
+            if (EnableCoverage)
+            {
+                DotNetTest(c => CoverSettings(c.SetProjectFile(solutionFile)));
+            }
+            else
+            {
+                DotNetTest(
+                    c => c
+                        .SetProjectFile(solutionFile)
+                        .SetConfiguration(Debug)
+                        .SetNoRestore(true)
+                        .SetNoBuild(true)
+                        .ResetVerbosity()
+                        .SetResultsDirectory(TestResultDirectory)
+                        .CombineWith(testProjects, (_, v) => _
+                            .SetProjectFile(v)
+                            .SetLoggers($"trx;LogFileName={v.Name}.trx")));
+            }
         }
         finally
         {
