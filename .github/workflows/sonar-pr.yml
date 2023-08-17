@@ -23,6 +23,14 @@ jobs:
         distribution: 'adopt'
         architecture: x64
 
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.x
+          7.x
+          8.x
+
     - name: Run Sonar Analysis
       run: ./build.cmd SonarPr
       env:
