@@ -1,0 +1,50 @@
+name: Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run_tests:
+    name: Run ${{ matrix.test }} on Ubuntu 20.04
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        test:
+          - TestGreenDonut
+          - TestHotChocolateAnalyzers
+          - TestHotChocolateApolloFederation
+          - TestHotChocolateAspNetCore
+          - TestHotChocolateAzureFunctions
+          - TestHotChocolateCodeGeneration
+          - TestHotChocolateCore
+          - TestHotChocolateData
+          - TestHotChocolateDiagnostics
+          - TestHotChocolateFilters
+          - TestHotChocolateFusion
+          - TestHotChocolateLanguage
+          - TestHotChocolateMongoDb
+          - TestHotChocolateNeo4J
+          - TestHotChocolatePersistedQueries
+          - TestHotChocolateSpatial
+          - TestHotChocolateStitching
+          - TestHotChocolateUtilities
+          - TestHotChocolateCaching
+          - TestStrawberryShakeClient
+          - TestStrawberryShakeCodeGeneration
+          - TestStrawberryShakeTooling
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Run ${{ matrix.test }}
+        run: ./build.cmd ${{ matrix.test }} --skip --test-partition $(System.JobPositionInPhase)
+        
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: output/test-results
