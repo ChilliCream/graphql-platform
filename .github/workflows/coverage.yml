@@ -65,7 +65,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator "-reports:./output/test-results/*.coverage.opencover.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover
+          reportgenerator "-reports:./output/test-results/**/*.coverage.opencover.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
