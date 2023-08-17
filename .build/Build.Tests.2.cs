@@ -4,6 +4,8 @@ using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
+using Nuke.Common.Tools.Coverlet;
+using Nuke.Common.Tools.ReportGenerator;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.ProjectModel.ProjectModelTasks;
 
@@ -135,7 +137,20 @@ partial class Build
         {
             if (EnableCoverage)
             {
-                DotNetTest(c => CoverSettings(c.SetProjectFile(solutionFile)));
+                DotNetTest(c => c
+                    .SetConfiguration(Debug)
+                    .SetNoRestore(true)
+                    .SetNoBuild(true)
+                    .ResetVerbosity()
+                    .SetResultsDirectory(TestResultDirectory)
+                    .EnableCollectCoverage()
+                    .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+                    .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
+                    .SetExcludeByFile("*.Generated.cs")
+                    .CombineWith(testProjects, (_, v) => _
+                        .SetProjectFile(v)
+                        .SetLoggers($"trx;LogFileName={v.Name}.trx")
+                        .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml")));
             }
             else
             {

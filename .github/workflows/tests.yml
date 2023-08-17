@@ -107,6 +107,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.x
+
     - name: Download all coverage artifacts
       uses: actions/download-artifact@v2
 
