@@ -39,6 +39,7 @@ jobs:
 
   website-tests:
     name: "Website Tests"
+    needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -72,6 +73,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.test }} on ubuntu-latest
+    needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
     timeout-minutes: 30
     runs-on: ubuntu-latest
