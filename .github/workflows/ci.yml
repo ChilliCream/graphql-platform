@@ -257,10 +257,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
 
+    - name: Restore
+      run: ./build.sh restore
+
     - name: Build
-      run: |
-        ./build.cmd restore
-        dotnet build ./src/All.sln --no-restore
+      run: dotnet build ./src/All.sln --no-restore
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
