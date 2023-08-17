@@ -52,8 +52,8 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true'
     steps:
-      - uses: actions/checkout@v2
-        name: Check out the code
+    - uses: actions/checkout@v2
+      name: Check out the code
 
     - name: Install Node.js
       uses: actions/setup-node@v2
@@ -62,11 +62,11 @@ jobs:
         cache: 'yarn'
         cache-dependency-path: 'website/yarn.lock'
 
-      - run: npm install -g cspell
-        name: Install cspell
+    - name: Install cspell
+      run: npm install -g cspell
 
-      - run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress
-        name: run cspell
+    - name: run cspell
+      run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress
 
   website-tests:
     name: "Website Tests"
