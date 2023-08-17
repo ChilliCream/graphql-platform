@@ -192,7 +192,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private static FieldMiddleware CreateMiddleware<TEntity>(IProjectionConvention convention)
     {
-        FieldMiddleware executor = convention.CreateExecutor<TEntity>();
+        var executor = convention.CreateExecutor<TEntity>();
         return next => context =>
         {
             // in case we are being called from the node/nodes field we need to enrich
