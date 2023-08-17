@@ -320,6 +320,7 @@ internal sealed partial class RequestExecutorResolver
                 sp.GetRequiredService<RequestDelegate>(),
                 sp.GetRequiredService<BatchExecutor>(),
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
+                sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));
 
         OnConfigureSchemaServices(context, serviceCollection, setup);
