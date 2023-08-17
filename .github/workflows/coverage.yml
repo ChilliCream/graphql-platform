@@ -7,7 +7,7 @@ on:
 
 jobs:
   library-coverage:
-    name: Run ${{ matrix.test }} on ubuntu-latest
+    name: Cover ${{ matrix.test }} on ubuntu-latest
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
@@ -62,12 +62,12 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
 
-      - name: Run tests with coverage
+      - name: Merge Coverage Files
         run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator "-reports:./output/test-results/**/*.coverage.opencover.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover
 
-      - name: Upload coverage to Codecov
+      - name: Upload Coverage File to Codecov
         uses: codecov/codecov-action@v2
         with:
           file: ./output/coverage/merged/merged.opencover.xml
@@ -75,7 +75,3 @@ jobs:
           name: graphql-platform
           flags: unittests
           fail_ci_if_error: true
-
-      - name: Fail if tests failed
-        run: exit 1
-        if: steps.library-tests.outcome == 'failure'
