@@ -18,7 +18,7 @@ namespace Foo.Bar
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroResult : global::System.IEquatable<GetHeroResult>, IGetHeroResult
+    internal partial class GetHeroResult : global::System.IEquatable<GetHeroResult>, IGetHeroResult
     {
         public GetHeroResult(global::Foo.Bar.IGetHero_Hero? hero)
         {
@@ -84,7 +84,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_Droid : global::System.IEquatable<GetHero_Hero_Droid>, IGetHero_Hero_Droid
+    internal partial class GetHero_Hero_Droid : global::System.IEquatable<GetHero_Hero_Droid>, IGetHero_Hero_Droid
     {
         public GetHero_Hero_Droid(global::System.String name, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn)
         {
@@ -160,7 +160,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_Human : global::System.IEquatable<GetHero_Hero_Human>, IGetHero_Hero_Human
+    internal partial class GetHero_Hero_Human : global::System.IEquatable<GetHero_Hero_Human>, IGetHero_Hero_Human
     {
         public GetHero_Hero_Human(global::System.String name, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn)
         {
@@ -236,14 +236,14 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHeroResult
+    internal partial interface IGetHeroResult
     {
         public global::Foo.Bar.IGetHero_Hero? Hero { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero
+    internal partial interface IGetHero_Hero
     {
         public global::System.String Name { get; }
 
@@ -252,19 +252,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Droid : IGetHero_Hero
+    internal partial interface IGetHero_Hero_Droid : IGetHero_Hero
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Human : IGetHero_Hero
+    internal partial interface IGetHero_Hero_Human : IGetHero_Hero
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public enum Episode
+    internal enum Episode
     {
         NewHope,
         Empire,
@@ -273,7 +273,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class EpisodeSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
+    internal partial class EpisodeSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
     {
         public global::System.String TypeName => "Episode";
         public Episode Parse(global::System.String serializedValue)
@@ -317,7 +317,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroQueryDocument : global::StrawberryShake.IDocument
+    internal partial class GetHeroQueryDocument : global::StrawberryShake.IDocument
     {
         private GetHeroQueryDocument()
         {
@@ -357,7 +357,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroQuery : global::Foo.Bar.IGetHeroQuery
+    internal partial class GetHeroQuery : global::Foo.Bar.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
         public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
@@ -414,7 +414,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
+    internal partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -442,7 +442,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IFooClient
+    internal partial interface IFooClient
     {
         global::Foo.Bar.IGetHeroQuery GetHero { get; }
     }
@@ -452,7 +452,7 @@ namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class DroidEntity
+    internal partial class DroidEntity
     {
         public DroidEntity(global::System.String name = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn = default !)
         {
@@ -467,7 +467,7 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class HumanEntity
+    internal partial class HumanEntity
     {
         public HumanEntity(global::System.String name = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn = default !)
         {
@@ -482,7 +482,7 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetHeroResult>
+    internal partial class GetHeroResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DroidEntity, GetHero_Hero_Droid> _getHero_Hero_DroidFromDroidEntityMapper;
@@ -538,7 +538,7 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroResultInfo : global::StrawberryShake.IOperationResultDataInfo
+    internal partial class GetHeroResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
@@ -561,7 +561,7 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHeroBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetHeroResult>
+    internal partial class GetHeroBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
@@ -670,7 +670,7 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DroidEntity, GetHero_Hero_Droid>
+    internal partial class GetHero_Hero_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DroidEntity, GetHero_Hero_Droid>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         public GetHero_Hero_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
@@ -691,7 +691,7 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, GetHero_Hero_Human>
+    internal partial class GetHero_Hero_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, GetHero_Hero_Human>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         public GetHero_Hero_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
@@ -712,7 +712,7 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
+    internal partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
         {Indented = false};
@@ -772,7 +772,7 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
+    internal partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
         {
@@ -784,7 +784,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class FooClientServiceCollectionExtensions
+    internal static partial class FooClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {

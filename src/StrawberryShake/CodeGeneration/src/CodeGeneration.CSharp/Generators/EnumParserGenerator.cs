@@ -23,6 +23,7 @@ public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
 
         var classBuilder = ClassBuilder
             .New(fileName)
+            .SetAccessModifier(settings.AccessModifier)
             .AddImplements(IInputValueFormatter)
             .AddImplements(ILeafValueParser.WithGeneric(String, descriptor.Name));
 
