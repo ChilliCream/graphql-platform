@@ -15,19 +15,10 @@ jobs:
 
     - name: Install Node.js
       uses: actions/setup-node@v2
+      working-directory: website
       with:
         node-version: '14.x'
         cache: 'yarn'
-
-    - name: Cache Yarn Packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          website/.yarn/cache
-          website/.cache/yarn
-        key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
 
     - name: Install Packages
       run: yarn --immutable --network-timeout 100000
@@ -89,7 +80,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Run Tests
-        run: ./build.cmd Test${{ matrix.component }} --skip --test-partition ${{ matrix.component }}
+        run: ./build.cmd Test${{ matrix.component }} --skip
         timeout-minutes: 15
         continue-on-error: true
 
