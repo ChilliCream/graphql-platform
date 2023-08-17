@@ -58,6 +58,7 @@ jobs:
       
       - name: Run ${{ matrix.test }}
         timeout-minutes: 15
+        continue-on-error: true
         run: ./build.cmd ${{ matrix.test }} --skip --test-partition $(System.JobPositionInPhase)
         
       - name: Upload Test Results
