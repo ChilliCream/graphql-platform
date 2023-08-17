@@ -135,9 +135,11 @@ jobs:
           name: coverage-${{ matrix.test }}
           path: output/test-results/${{ matrix.test }}.coverage.opencover.xml
 
-      - name: Fail if tests failed
+      - name: Fail if tests failed or were cancelled
         run: exit 1
-        if: steps.library-tests.outcome == 'failure'
+        if: |
+          steps.library-tests.outcome == 'failure' ||
+          steps.library-tests.outcome == 'cancelled'
 
   merge-coverage:
     name: Merge and Upload Coverage
