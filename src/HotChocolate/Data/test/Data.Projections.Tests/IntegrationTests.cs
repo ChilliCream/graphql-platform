@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -307,6 +308,66 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Mutation_Convention_HasError()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>() //error thrown without query, it's not needed for the test though
+            .AddMutationType<Mutation>()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                createRecord(input: {throwError: false}) {
+                    foo {
+                        bar
+                    }
+                    errors {
+                        ... on Error {
+                            message
+                        }
+                    }
+                }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_ThrowsError()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>() //error thrown without query, it's not needed for the test though
+            .AddMutationType<Mutation>()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                createRecord(input: {throwError: true}) {
+                    foo {
+                        bar
+                    }
+                    errors {
+                        ... on Error {
+                            message
+                        }
+                    }
+                }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Mutation_Convention_Select_With_SingleOrDefault()
     {
         var executor = await new ServiceCollection()
@@ -354,6 +415,23 @@ public class Mutation
     public IQueryable<Foo> ModifySingleOrDefault()
     {
         return new Foo[] { new() { Bar = "A" } }.AsQueryable();
+    }
+
+    [Error<AnError>]
+    [UseMutationConvention]
+    [UseProjection]
+    public IQueryable<Foo> CreateRecord(bool throwError)
+    {
+        if (throwError) throw new AnError("this is only a test");
+        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+    }
+
+    public class AnError : Exception
+    {
+        public AnError(string message) : base(message)
+        {
+
+        }
     }
 }
 
