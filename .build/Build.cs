@@ -90,7 +90,7 @@ partial class Build : NukeBuild
             };
 
             File.WriteAllText(
-                RootDirectory / ".github" / "matrix.json",
+                RootDirectory / "matrix.json",
                 JsonConvert.SerializeObject(matrix));
         });
 }
