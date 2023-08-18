@@ -75,8 +75,7 @@ partial class Build : NukeBuild
                 .Select(p => new TestProject
                 {
                     Name = Path.GetFileNameWithoutExtension(p.Path),
-                    Path = Path.GetRelativePath(RootDirectory, p.Path),
-                    DirectoryPath = Path.GetDirectoryName(Path.GetRelativePath(RootDirectory, p.Path))
+                    Path = Path.GetRelativePath(RootDirectory, p.Path)
                 })
                 .ToList();
 
@@ -86,7 +85,8 @@ partial class Build : NukeBuild
                 include = testProjects.Select(p => new
                 {
                     name = p.Name,
-                    path = p.Path
+                    path = p.Path,
+                    directoryPath = Path.GetDirectoryName(p.Path)
                 }).ToArray()
             };
 
@@ -102,5 +102,4 @@ public class TestProject
 {
     public string Name { get; set; }
     public string Path { get; set; }
-    public string DirectoryPath { get; set; }
 }
