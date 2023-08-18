@@ -131,8 +131,8 @@ jobs:
       run: cat .github/matrix.json
 
     - name: Set matrix data
-       id: set-matrix
-       run: echo "matrix=$(jq -c . < .github/matrix.json)" >> $GITHUB_OUTPUT
+      id: set-matrix
+      run: echo "matrix=$(jq -c . < .github/matrix.json)" >> $GITHUB_OUTPUT
 
   library-tests:
     name: Run ${{ matrix.test }} on ubuntu-latest
