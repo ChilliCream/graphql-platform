@@ -1,5 +1,13 @@
 name: main
-on: push
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   configure:
@@ -11,7 +19,7 @@ jobs:
        uses: actions/checkout@v3
      - name: Set matrix data
        id: set-matrix
-       run: echo "matrix=$(jq -c . < ./config.json)" >> $GITHUB_OUTPUT
+       run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
 
   print:
     runs-on: ubuntu-latest
