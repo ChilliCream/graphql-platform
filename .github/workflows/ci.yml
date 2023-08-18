@@ -172,7 +172,7 @@ jobs:
       - name: Copy test results
         run: |
           mkdir -p ./output/coverage
-          cp "${{ matrix.path }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
+          cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
 
       - name: Upload Individual Coverage Files as Artifacts
         uses: actions/upload-artifact@v2

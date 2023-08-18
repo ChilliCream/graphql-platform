@@ -75,7 +75,8 @@ partial class Build : NukeBuild
                 .Select(p => new TestProject
                 {
                     Name = Path.GetFileNameWithoutExtension(p.Path),
-                    Path = Path.GetRelativePath(RootDirectory, p.Path)  // Using the relative path here
+                    Path = Path.GetRelativePath(RootDirectory, p.Path),
+                    DirectoryPath = Path.GetDirectoryName(Path.GetRelativePath(RootDirectory, p.Path))
                 })
                 .ToList();
 
@@ -101,4 +102,5 @@ public class TestProject
 {
     public string Name { get; set; }
     public string Path { get; set; }
+    public string DirectoryPath { get; set; }
 }
