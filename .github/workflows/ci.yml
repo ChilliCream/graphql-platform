@@ -121,9 +121,7 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
-          6.x
           7.x
-          8.x
 
     - name: Generate Matrix
       run: dotnet run --project ./.build -- GenerateMatrix
