@@ -109,6 +109,8 @@ jobs:
   configure:
     name: Generate Test Matrix
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.library_changes == 'true'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -119,9 +121,10 @@ jobs:
        run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
 
   library-tests:
-    needs: configure
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    needs: configure
+    if: needs.check-changes.outputs.library_changes == 'true'
+    timeout-minutes: 20
 
     strategy:
       matrix: ${{ fromJson(needs.configure.outputs.matrix) }}
