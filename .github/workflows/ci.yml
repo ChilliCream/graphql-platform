@@ -114,7 +114,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-     - name: Checkout to repository
+    - name: Checkout to repository
        uses: actions/checkout@v3
 
     - name: Install .NET
