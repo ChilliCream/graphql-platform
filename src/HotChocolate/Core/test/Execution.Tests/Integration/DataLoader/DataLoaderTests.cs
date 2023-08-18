@@ -208,7 +208,7 @@ public class DataLoaderTests
         SnapshotExtension.MatchSnapshot(results);
     }
 
-    [Fact]
+    [LocalFact]
     public async Task StackedDataLoader()
     {
         // arrange

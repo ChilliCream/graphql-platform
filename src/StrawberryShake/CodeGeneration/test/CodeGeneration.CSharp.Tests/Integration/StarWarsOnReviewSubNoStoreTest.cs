@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Subscriptions;
@@ -17,7 +18,7 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
     {
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Watch_StarWarsOnReviewSubNoStore_NotifyCompletion()
     {
         // arrange
