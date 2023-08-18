@@ -146,41 +146,8 @@ jobs:
         test: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - run: echo ${{ matrix.path }}
 
-      - name: Install .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: |
-            6.x
-            7.x
-            8.x
-
-      - uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Run Tests
-        id: run-tests
-        run: dotnet test ${{ matrix.path }} --framework net7.0 --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage/results/
-        timeout-minutes: 15
-        continue-on-error: true
-
-      - name: Upload Individual Coverage Files as Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage-${{ matrix.name }}
-          path: output/test-results/**/*.xml
-
-      - name: Fail if tests failed or were cancelled
-        run: exit 1
-        if: |
-          steps.run-tests.outcome == 'failure' ||
-          steps.run-tests.outcome == 'cancelled'
 
   sonar:
     runs-on: ubuntu-latest
