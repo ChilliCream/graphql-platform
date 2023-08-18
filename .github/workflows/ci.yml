@@ -280,7 +280,7 @@ jobs:
   merge-coverage:
     name: Merge and Upload Coverage
     needs: library-tests
-    if: needs.library-tests.result != 'cancelled'
+    if: always() && needs.library-tests.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
