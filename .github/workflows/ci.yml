@@ -165,15 +165,20 @@ jobs:
 
       - name: Run Tests
         id: run-tests
-        run: dotnet test ${{ matrix.path }} --framework net7.0 --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage/results/
+        run: dotnet test ${{ matrix.path }} --framework net7.0 --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage/${{ matrix.name }}.xml
         timeout-minutes: 15
         continue-on-error: true
+
+      - name: Copy test results
+        run: |
+          mkdir -p ./output/coverage
+          cp ${{ matrix.path }}/coverage/${{ matrix.name }}.net7.0.xml ./output/coverage/
 
       - name: Upload Individual Coverage Files as Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: coverage-${{ matrix.name }}
-          path: output/test-results/**/*.xml
+          path: ./output/coverage/*.xml
 
       - name: Fail if tests failed or were cancelled
         run: exit 1
