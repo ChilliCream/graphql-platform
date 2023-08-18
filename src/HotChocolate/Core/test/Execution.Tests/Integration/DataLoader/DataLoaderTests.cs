@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
@@ -13,6 +14,7 @@ using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 
 #nullable enable
 
@@ -203,7 +205,7 @@ public class DataLoaderTests
         };
 
         // assert
-        results.MatchSnapshot();
+        SnapshotExtension.MatchSnapshot(results);
     }
 
     [Fact]
@@ -247,7 +249,7 @@ public class DataLoaderTests
                     .Create()));
 
         // assert
-        results.MatchSnapshot();
+        SnapshotExtension.MatchSnapshot(results);
     }
 
     [Fact]
@@ -300,10 +302,10 @@ public class DataLoaderTests
         };
 
         // assert
-        results.MatchSnapshot();
+        SnapshotExtension.MatchSnapshot(results);
     }
 
-    [Fact]
+    [LocalFact]
     public async Task NestedDataLoader()
     {
         using var cts = new CancellationTokenSource(2000);

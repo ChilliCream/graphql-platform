@@ -184,6 +184,8 @@ jobs:
         run: dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml
         timeout-minutes: 15
         continue-on-error: true
+        env:
+          CI_BUILD: true
 
       - name: Copy test results
         continue-on-error: true
