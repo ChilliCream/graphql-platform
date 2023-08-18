@@ -130,16 +130,13 @@ jobs:
     - name: Display Matrix File
       run: cat .github/matrix.json
 
-    - name: Set Matrix
-      id: set-matrix
-      run: |
-        matrix=$(jq '.test | map(.path)' .github/matrix.json)
-        echo "::set-output name=matrix::$matrix"
+    - name: Set matrix data
+       id: set-matrix
+       run: echo "matrix=$(jq -c . < .github/matrix.json)" >> $GITHUB_OUTPUT
 
   library-tests:
     name: Run ${{ matrix.test }} on ubuntu-latest
-    needs: [check-changes, generate-matrix]
-    if: needs.check-changes.outputs.library_changes == 'true'
+    needs: generate-matrix
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
