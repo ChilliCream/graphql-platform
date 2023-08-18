@@ -82,7 +82,7 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
