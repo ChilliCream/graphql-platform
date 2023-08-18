@@ -13,6 +13,9 @@ jobs:
   check-draft:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    steps:
+      - name: Check for changes in website directory
+        run: echo done.
 
   check-changes:
     name: Check for Changes
