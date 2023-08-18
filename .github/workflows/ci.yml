@@ -117,8 +117,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.x
+          7.x
+          8.x
+
     - name: Generate Matrix
-      run: ./build.sh GenerateMatrix
+      run: dotnet run --project ./.build -- GenerateMatrix
 
     - name: Display Matrix File
       run: cat .github/matrix.json
