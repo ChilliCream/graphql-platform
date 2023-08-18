@@ -6,7 +6,7 @@ on:
       - main
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: ci-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -165,14 +165,14 @@ jobs:
 
       - name: Run Tests
         id: run-tests
-        run: dotnet test ${{ matrix.path }} --framework net7.0 --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage/${{ matrix.name }}.xml
+        run: dotnet test ${{ matrix.path }} --framework net7.0 --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml
         timeout-minutes: 15
         continue-on-error: true
 
       - name: Copy test results
         run: |
           mkdir -p ./output/coverage
-          cp ${{ matrix.path }}/coverage/${{ matrix.name }}.net7.0.xml ./output/coverage/
+          cp ${{ matrix.path }}/.coverage/${{ matrix.name }}.net7.0.xml ./output/coverage/
 
       - name: Upload Individual Coverage Files as Artifacts
         uses: actions/upload-artifact@v2
