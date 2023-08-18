@@ -120,10 +120,13 @@ jobs:
     - name: Generate Matrix
       run: ./build.sh GenerateMatrix
 
+    - name: Display Matrix File
+      run: cat .github/matrix.json
+
     - name: Set Matrix
       id: set-matrix
       run: |
-        matrix=$(jq '.test | map(.name)' .github/matrix.json)
+        matrix=$(jq '.test | map(.path)' .github/matrix.json)
         echo "::set-output name=matrix::$matrix"
 
   library-tests:
