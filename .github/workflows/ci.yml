@@ -10,9 +10,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-draft:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
   check-changes:
     name: Check for Changes
     runs-on: ubuntu-latest
+    needs: check-draft
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
@@ -43,8 +48,9 @@ jobs:
         fi
 
   pr-labeler:
-    runs-on: ubuntu-latest
     name: Apply Labels
+    runs-on: ubuntu-latest
+    needs: check-draft
     steps:
       - uses: actions/labeler@v3
         with:
