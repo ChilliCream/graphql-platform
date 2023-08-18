@@ -1,0 +1,10 @@
+{
+  "include": [
+    {
+      "name": "Mario"
+    },
+    {
+      "name": "Luigi"
+    }
+  ]
+}
