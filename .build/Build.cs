@@ -70,15 +70,16 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
-            Solution all = ProjectModelTasks.ParseSolution(AllSolutionFile);
+            var all = ProjectModelTasks.ParseSolution(AllSolutionFile);
 
             var testProjects = all.GetProjects("*.Tests")
                 .Select(p => new TestProject
                 {
                     Name = Path.GetFileNameWithoutExtension(p.Path),
-                    Path = p.Path
+                    Path = Path.GetRelativePath(RootDirectory, p.Path)  // Using the relative path here
                 })
                 .ToList();
+
 
             var matrix = new
             {
