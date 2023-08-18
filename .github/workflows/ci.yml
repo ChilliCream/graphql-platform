@@ -174,8 +174,6 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
 
---property WarningLevel=0
-
       - name: Copy test results
         continue-on-error: true
         run: |
