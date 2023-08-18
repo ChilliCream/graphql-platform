@@ -66,7 +66,6 @@ partial class Build : NukeBuild
 
 
     Target GenerateMatrix => _ => _
-        .DependsOn(Clean, Restore)
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
