@@ -116,7 +116,18 @@ jobs:
     steps:
      - name: Checkout to repository
        uses: actions/checkout@v3
-     - name: Set matrix data
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          7.x
+          8.x
+
+    - name: Generate Test Matrix
+      run: dotnet run --project ./.build -- GenerateMatrix
+
+     - name: Export Test Matrix
        id: set-matrix
        run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
 
