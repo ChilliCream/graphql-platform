@@ -163,11 +163,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
+      - name: Run Build
+        id: run-build
+        run: dotnet build ${{ matrix.path }} --framework net7.0 --verbosity q --property WarningLevel=0
+        timeout-minutes: 5
+
       - name: Run Tests
         id: run-tests
-        run: dotnet test ${{ matrix.path }} --framework net7.0 --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml
+        run: dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml
         timeout-minutes: 15
         continue-on-error: true
+
+--property WarningLevel=0
 
       - name: Copy test results
         continue-on-error: true
