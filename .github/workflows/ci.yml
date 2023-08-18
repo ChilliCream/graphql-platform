@@ -17,6 +17,7 @@ jobs:
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
       library_changes: ${{ steps.check-library.outputs.library_changes }}
+      src_changes: ${{ steps.check-src.outputs.src_changes }}
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -41,6 +42,16 @@ jobs:
           echo "::set-output name=library_changes::true"
         else
           echo "::set-output name=library_changes::false"
+        fi
+
+    - name: Check for changes in src directory
+      id: check-src
+      run: |
+        changes=$(git diff --name-only HEAD~1 HEAD -- ./src)
+        if [[ -n "$changes" ]]; then
+          echo "::set-output name=src_changes::true"
+        else
+          echo "::set-output name=src_changes::false"
         fi
 
   pr-labeler:
@@ -238,7 +249,8 @@ jobs:
     name: CodeQL
     runs-on: ubuntu-latest
     needs: check-changes
-    if: needs.check-changes.outputs.library_changes == 'true'
+    if: needs.check-changes.outputs.src_changes == 'true'
+
     permissions:
       actions: read
       contents: read
