@@ -320,7 +320,7 @@ jobs:
     - name: Merge Coverage Files
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator "-reports:./output/download/**/*.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover
+        reportgenerator "-reports:./output/download/**/*.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover -license:$ReportGenerator_License
       env:
         ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
