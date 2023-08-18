@@ -132,7 +132,7 @@ jobs:
 
     - name: Set matrix data
       id: set-matrix
-      run: echo "matrix=$(jq -c . < .github/matrix.json)" >> $GITHUB_OUTPUT
+      run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
 
   library-tests:
     name: Run ${{ matrix.name }} on ubuntu-latest
