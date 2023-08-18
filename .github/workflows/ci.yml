@@ -329,7 +329,7 @@ jobs:
     - name: Upload Combined Coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
-        file: ./output/coverage/merged/merged.opencover.xml
+        file: ./output/coverage/merged/OpenCover.xml
         token: ${{ secrets.CODECOV_TOKEN }}
         name: graphql-platform
         flags: unittests
