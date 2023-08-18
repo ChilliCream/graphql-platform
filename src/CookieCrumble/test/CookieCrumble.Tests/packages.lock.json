@@ -2,12 +2,6 @@
   "version": 1,
   "dependencies": {
     "net6.0": {
-      "coverlet.collector": {
-        "type": "Direct",
-        "requested": "[3.1.2, )",
-        "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
-      },
       "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
@@ -1369,12 +1363,6 @@
       }
     },
     "net7.0": {
-      "coverlet.collector": {
-        "type": "Direct",
-        "requested": "[3.1.2, )",
-        "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
-      },
       "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
@@ -2814,12 +2802,6 @@
       }
     },
     "net8.0": {
-      "coverlet.collector": {
-        "type": "Direct",
-        "requested": "[3.1.2, )",
-        "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
-      },
       "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
