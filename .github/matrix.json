@@ -1,388 +1,386 @@
-{
-  "test": [
-    {
-      "name": "GreenDonut.Tests",
-      "path": "src/GreenDonut/test/Core.Tests/GreenDonut.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Analyzers.Tests",
-      "path": "src/HotChocolate/Analyzers/test/Analyzers.Tests/HotChocolate.Analyzers.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Configuration.Analyzers.Tests",
-      "path": "src/HotChocolate/Analyzers/test/Analyzers.Configuration.Tests/HotChocolate.Configuration.Analyzers.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.ApolloFederation.Tests",
-      "path": "src/HotChocolate/ApolloFederation/test/ApolloFederation.Tests/HotChocolate.ApolloFederation.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.AspNetCore.Tests",
-      "path": "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/HotChocolate.AspNetCore.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Transport.Sockets.Client.Tests",
-      "path": "src/HotChocolate/AspNetCore/test/Transport.Sockets.Client.Tests/HotChocolate.Transport.Sockets.Client.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.AspNetCore.CommandLine.Tests",
-      "path": "src/HotChocolate/AspNetCore/test/AspNetCore.CommandLine.Tests/HotChocolate.AspNetCore.CommandLine.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.AspNetCore.Authorization.Opa.Tests",
-      "path": "src/HotChocolate/AspNetCore/test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Transport.Http.Tests",
-      "path": "src/HotChocolate/AspNetCore/test/Transport.Http.Tests/HotChocolate.Transport.Http.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.AspNetCore.Authorization.Tests",
-      "path": "src/HotChocolate/AspNetCore/test/AspNetCore.Authorization.Tests/HotChocolate.AspNetCore.Authorization.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.AzureFunctions.Tests",
-      "path": "src/HotChocolate/AzureFunctions/test/HotChocolate.AzureFunctions.Tests/HotChocolate.AzureFunctions.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.AzureFunctions.IsolatedProcess.Tests",
-      "path": "src/HotChocolate/AzureFunctions/test/HotChocolate.AzureFunctions.IsolatedProcess.Tests/HotChocolate.AzureFunctions.IsolatedProcess.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Subscriptions.Tests",
-      "path": "src/HotChocolate/Core/test/Subscriptions.Tests/HotChocolate.Subscriptions.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Subscriptions.Nats.Tests",
-      "path": "src/HotChocolate/Core/test/Subscriptions.Nats.Tests/HotChocolate.Subscriptions.Nats.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Tests",
-      "path": "src/HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Records.Tests",
-      "path": "src/HotChocolate/Core/test/Types.Records.Tests/HotChocolate.Types.Records.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Subscriptions.InMemory.Tests",
-      "path": "src/HotChocolate/Core/test/Subscriptions.InMemory.Tests/HotChocolate.Subscriptions.InMemory.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.CursorPagination.Tests",
-      "path": "src/HotChocolate/Core/test/Types.CursorPagination.Tests/HotChocolate.Types.CursorPagination.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Fetching.Tests",
-      "path": "src/HotChocolate/Core/test/Fetching.Tests/HotChocolate.Fetching.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Validation.Tests",
-      "path": "src/HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Subscriptions.Redis.Tests",
-      "path": "src/HotChocolate/Core/test/Subscriptions.Redis.Tests/HotChocolate.Subscriptions.Redis.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Abstractions.Tests",
-      "path": "src/HotChocolate/Core/test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.OffsetPagination.Tests",
-      "path": "src/HotChocolate/Core/test/Types.OffsetPagination.Tests/HotChocolate.Types.OffsetPagination.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Mutations.Tests",
-      "path": "src/HotChocolate/Core/test/Types.Mutations.Tests/HotChocolate.Types.Mutations.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Json.Tests",
-      "path": "src/HotChocolate/Core/test/Types.Json.Tests/HotChocolate.Types.Json.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.NodaTime.Tests",
-      "path": "src/HotChocolate/Core/test/Types.NodaTime.Tests/HotChocolate.Types.NodaTime.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.StarWars.Tests",
-      "path": "src/HotChocolate/Core/test/StarWars/HotChocolate.StarWars.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Subscriptions.RabbitMQ.Tests",
-      "path": "src/HotChocolate/Core/test/Subscriptions.RabbitMQ.Tests/HotChocolate.Subscriptions.RabbitMQ.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Scalars.Tests",
-      "path": "src/HotChocolate/Core/test/Types.Scalars.Tests/HotChocolate.Types.Scalars.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Execution.Tests",
-      "path": "src/HotChocolate/Core/test/Execution.Tests/HotChocolate.Execution.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Analyzers.Tests",
-      "path": "src/HotChocolate/Core/test/Types.Analyzers.Tests/HotChocolate.Types.Analyzers.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Authorization.Tests",
-      "path": "src/HotChocolate/Core/test/Authorization.Tests/HotChocolate.Authorization.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Caching.Tests",
-      "path": "src/HotChocolate/Caching/test/Caching.Tests/HotChocolate.Caching.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.CodeGeneration.Neo4J.Tests",
-      "path": "src/HotChocolate/CodeGeneration/test/CodeGeneration.Neo4J.Tests/HotChocolate.CodeGeneration.Neo4J.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Diagnostics.Tests",
-      "path": "src/HotChocolate/Diagnostics/test/Diagnostics.Tests/HotChocolate.Diagnostics.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Language.SyntaxTree.Tests",
-      "path": "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/HotChocolate.Language.SyntaxTree.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Language.Web.Tests",
-      "path": "src/HotChocolate/Language/test/Language.Web.Tests/HotChocolate.Language.Web.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Language.Tests",
-      "path": "src/HotChocolate/Language/test/Language.Tests/HotChocolate.Language.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.PersistedQueries.Redis.Tests",
-      "path": "src/HotChocolate/PersistedQueries/test/PersistedQueries.Redis.Tests/HotChocolate.PersistedQueries.Redis.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.PersistedQueries.InMemory.Tests",
-      "path": "src/HotChocolate/PersistedQueries/test/PersistedQueries.InMemory.Tests/HotChocolate.PersistedQueries.InMemory.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.PersistedQueries.FileSystem.Tests",
-      "path": "src/HotChocolate/PersistedQueries/test/PersistedQueries.FileSystem.Tests/HotChocolate.PersistedQueries.FileSystem.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Utilities.Tests",
-      "path": "src/HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Utilities.Introspection.Tests",
-      "path": "src/HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.EntityFramework.Tests",
-      "path": "src/HotChocolate/Data/test/Data.EntityFramework.Tests/HotChocolate.Data.EntityFramework.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Sorting.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Sorting.Tests/HotChocolate.Data.Sorting.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Sorting.InMemory.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Sorting.InMemory.Tests/HotChocolate.Data.Sorting.InMemory.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Projections.SqlServer.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.SqlServer.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.AutoMapper.Tests",
-      "path": "src/HotChocolate/Data/test/Data.AutoMapper.Tests/HotChocolate.Data.AutoMapper.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Projections.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Projections.Tests/HotChocolate.Data.Projections.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Filters.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Filters.Tests/HotChocolate.Data.Filters.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Filters.SqlServer.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Filters.SqlServer.Tests/HotChocolate.Data.Filters.SqlServer.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Tests/HotChocolate.Data.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Filters.InMemory.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Filters.InMemory.Tests/HotChocolate.Data.Filters.InMemory.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Sorting.SqlLite.Tests",
-      "path": "src/HotChocolate/Data/test/Data.Sorting.SqlLite.Tests/HotChocolate.Data.Sorting.SqlLite.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Filters.Tests",
-      "path": "src/HotChocolate/Filters/test/Types.Filters.Tests/HotChocolate.Types.Filters.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Sorting.Mongo.Tests",
-      "path": "src/HotChocolate/Filters/test/Types.Sorting.Mongo.Tests/HotChocolate.Types.Sorting.Mongo.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Filters.Mongo.Tests",
-      "path": "src/HotChocolate/Filters/test/Types.Filters.Mongo.Tests/HotChocolate.Types.Filters.Mongo.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Sorting.Tests",
-      "path": "src/HotChocolate/Filters/test/Types.Sorting.Tests/HotChocolate.Types.Sorting.Tests.csproj"
-    },
-    {
-      "name": "Data.Marten.Sorting.Tests",
-      "path": "src/HotChocolate/Marten/test/Data.Marten.Sorting.Tests/Data.Marten.Sorting.Tests.csproj"
-    },
-    {
-      "name": "Data.Marten.Filters.Tests",
-      "path": "src/HotChocolate/Marten/test/Data.Marten.Filters.Tests/Data.Marten.Filters.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.MongoDb.Filters.Tests",
-      "path": "src/HotChocolate/MongoDb/test/Data.MongoDb.Filters.Tests/HotChocolate.Data.MongoDb.Filters.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.MongoDb.Paging.Tests",
-      "path": "src/HotChocolate/MongoDb/test/Data.MongoDb.Paging.Tests/HotChocolate.Data.MongoDb.Paging.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.MongoDb.Sorting.Tests",
-      "path": "src/HotChocolate/MongoDb/test/Data.MongoDb.Sorting.Tests/HotChocolate.Data.MongoDb.Sorting.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.MongoDb.Tests",
-      "path": "src/HotChocolate/MongoDb/test/Types.MongoDb/HotChocolate.Types.MongoDb.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.MongoDb.Projections.Tests",
-      "path": "src/HotChocolate/MongoDb/test/Data.MongoDb.Projections.Tests/HotChocolate.Data.MongoDb.Projections.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Neo4J.Language.Tests",
-      "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Language.Tests/HotChocolate.Data.Neo4J.Language.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Neo4J.Integration.Tests",
-      "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Integration.Tests/HotChocolate.Data.Neo4J.Integration.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Neo4J.Paging.Tests",
-      "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Paging.Tests/HotChocolate.Data.Neo4J.Paging.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Neo4J.Projections.Tests",
-      "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Projections.Tests/HotChocolate.Data.Neo4J.Projections.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Neo4J.Sorting.Tests",
-      "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Sorting.Tests/HotChocolate.Data.Neo4J.Sorting.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Neo4J.Filtering.Tests",
-      "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Filtering.Tests/HotChocolate.Data.Neo4J.Filtering.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Raven.Projections.Tests",
-      "path": "src/HotChocolate/Raven/test/Data.Raven.Projections.Tests/HotChocolate.Data.Raven.Projections.Tests.csproj"
-    },
-    {
-      "name": "Data.Raven.Filters.Tests",
-      "path": "src/HotChocolate/Raven/test/Data.Raven.Filters.Tests/Data.Raven.Filters.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Raven.Paging.Tests",
-      "path": "src/HotChocolate/Raven/test/Data.Raven.Paging.Tests/HotChocolate.Data.Raven.Paging.Tests.csproj"
-    },
-    {
-      "name": "Data.Raven.Tests",
-      "path": "src/HotChocolate/Raven/test/Data.Raven.Tests/Data.Raven.Tests.csproj"
-    },
-    {
-      "name": "Data.Raven.Sorting.Tests",
-      "path": "src/HotChocolate/Raven/test/Data.Raven.Sorting.Tests/Data.Raven.Sorting.Tests.csproj"
-    },
-    {
-      "name": "Skimmed.Tests",
-      "path": "src/HotChocolate/Skimmed/test/Skimmed.Tests/Skimmed.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Stitching.Tests",
-      "path": "src/HotChocolate/Stitching/test/Stitching.Tests/HotChocolate.Stitching.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Fusion.Tests",
-      "path": "src/HotChocolate/Fusion/test/Core.Tests/HotChocolate.Fusion.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Fusion.Composition.Tests",
-      "path": "src/HotChocolate/Fusion/test/Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Fusion.Abstractions.Tests",
-      "path": "src/HotChocolate/Fusion/test/Abstractions.Tests/HotChocolate.Fusion.Abstractions.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Fusion.CommandLine.Tests",
-      "path": "src/HotChocolate/Fusion/test/CommandLine.Tests/HotChocolate.Fusion.CommandLine.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Types.Spatial.Tests",
-      "path": "src/HotChocolate/Spatial/test/Types.Tests/HotChocolate.Types.Spatial.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Projections.Spatial.SqlServer.Tests",
-      "path": "src/HotChocolate/Spatial/test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.Spatial.SqlServer.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Spatial.Data.Filters.SqlServer.Tests",
-      "path": "src/HotChocolate/Spatial/test/Data.Filters.SqlServer.Tests/HotChocolate.Spatial.Data.Filters.SqlServer.Tests.csproj"
-    },
-    {
-      "name": "HotChocolate.Data.Spatial.Tests",
-      "path": "src/HotChocolate/Spatial/test/Data.Tests/HotChocolate.Data.Spatial.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.Persistence.SQLite.Tests",
-      "path": "src/StrawberryShake/Client/test/Persistence.SQLite.Tests/StrawberryShake.Persistence.SQLite.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.Transport.WebSocket.Tests",
-      "path": "src/StrawberryShake/Client/test/Transport.WebSocket.Tests/StrawberryShake.Transport.WebSocket.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.Core.Tests",
-      "path": "src/StrawberryShake/Client/test/Core.Tests/StrawberryShake.Core.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.Transport.InMemory.Tests",
-      "path": "src/StrawberryShake/Client/test/Transport.InMemory.Tests/StrawberryShake.Transport.InMemory.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.Transport.Http.Tests",
-      "path": "src/StrawberryShake/Client/test/Transport.Http.Tests/StrawberryShake.Transport.Http.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.CodeGeneration.CSharp.Tests",
-      "path": "src/StrawberryShake/CodeGeneration/test/CodeGeneration.CSharp.Tests/StrawberryShake.CodeGeneration.CSharp.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.CodeGeneration.Razor.Tests",
-      "path": "src/StrawberryShake/CodeGeneration/test/CodeGeneration.Razor.Tests/StrawberryShake.CodeGeneration.Razor.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.CodeGeneration.Tests",
-      "path": "src/StrawberryShake/CodeGeneration/test/CodeGeneration.Tests/StrawberryShake.CodeGeneration.Tests.csproj"
-    },
-    {
-      "name": "StrawberryShake.Tools.Configuration.Tests",
-      "path": "src/StrawberryShake/Tooling/test/Configuration.Tests/StrawberryShake.Tools.Configuration.Tests.csproj"
-    },
-    {
-      "name": "CookieCrumble.Tests",
-      "path": "src/CookieCrumble/test/CookieCrumble.Tests/CookieCrumble.Tests.csproj"
-    }
-  ]
-}
+[
+  {
+    "name": "GreenDonut.Tests",
+    "path": "src/GreenDonut/test/Core.Tests/GreenDonut.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Analyzers.Tests",
+    "path": "src/HotChocolate/Analyzers/test/Analyzers.Tests/HotChocolate.Analyzers.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Configuration.Analyzers.Tests",
+    "path": "src/HotChocolate/Analyzers/test/Analyzers.Configuration.Tests/HotChocolate.Configuration.Analyzers.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.ApolloFederation.Tests",
+    "path": "src/HotChocolate/ApolloFederation/test/ApolloFederation.Tests/HotChocolate.ApolloFederation.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.AspNetCore.Tests",
+    "path": "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/HotChocolate.AspNetCore.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Transport.Sockets.Client.Tests",
+    "path": "src/HotChocolate/AspNetCore/test/Transport.Sockets.Client.Tests/HotChocolate.Transport.Sockets.Client.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.AspNetCore.CommandLine.Tests",
+    "path": "src/HotChocolate/AspNetCore/test/AspNetCore.CommandLine.Tests/HotChocolate.AspNetCore.CommandLine.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.AspNetCore.Authorization.Opa.Tests",
+    "path": "src/HotChocolate/AspNetCore/test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Transport.Http.Tests",
+    "path": "src/HotChocolate/AspNetCore/test/Transport.Http.Tests/HotChocolate.Transport.Http.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.AspNetCore.Authorization.Tests",
+    "path": "src/HotChocolate/AspNetCore/test/AspNetCore.Authorization.Tests/HotChocolate.AspNetCore.Authorization.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.AzureFunctions.Tests",
+    "path": "src/HotChocolate/AzureFunctions/test/HotChocolate.AzureFunctions.Tests/HotChocolate.AzureFunctions.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.AzureFunctions.IsolatedProcess.Tests",
+    "path": "src/HotChocolate/AzureFunctions/test/HotChocolate.AzureFunctions.IsolatedProcess.Tests/HotChocolate.AzureFunctions.IsolatedProcess.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Subscriptions.Tests",
+    "path": "src/HotChocolate/Core/test/Subscriptions.Tests/HotChocolate.Subscriptions.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Subscriptions.Nats.Tests",
+    "path": "src/HotChocolate/Core/test/Subscriptions.Nats.Tests/HotChocolate.Subscriptions.Nats.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Tests",
+    "path": "src/HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Records.Tests",
+    "path": "src/HotChocolate/Core/test/Types.Records.Tests/HotChocolate.Types.Records.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Subscriptions.InMemory.Tests",
+    "path": "src/HotChocolate/Core/test/Subscriptions.InMemory.Tests/HotChocolate.Subscriptions.InMemory.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.CursorPagination.Tests",
+    "path": "src/HotChocolate/Core/test/Types.CursorPagination.Tests/HotChocolate.Types.CursorPagination.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Fetching.Tests",
+    "path": "src/HotChocolate/Core/test/Fetching.Tests/HotChocolate.Fetching.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Validation.Tests",
+    "path": "src/HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Subscriptions.Redis.Tests",
+    "path": "src/HotChocolate/Core/test/Subscriptions.Redis.Tests/HotChocolate.Subscriptions.Redis.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Abstractions.Tests",
+    "path": "src/HotChocolate/Core/test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.OffsetPagination.Tests",
+    "path": "src/HotChocolate/Core/test/Types.OffsetPagination.Tests/HotChocolate.Types.OffsetPagination.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Mutations.Tests",
+    "path": "src/HotChocolate/Core/test/Types.Mutations.Tests/HotChocolate.Types.Mutations.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Json.Tests",
+    "path": "src/HotChocolate/Core/test/Types.Json.Tests/HotChocolate.Types.Json.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.NodaTime.Tests",
+    "path": "src/HotChocolate/Core/test/Types.NodaTime.Tests/HotChocolate.Types.NodaTime.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.StarWars.Tests",
+    "path": "src/HotChocolate/Core/test/StarWars/HotChocolate.StarWars.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Subscriptions.RabbitMQ.Tests",
+    "path": "src/HotChocolate/Core/test/Subscriptions.RabbitMQ.Tests/HotChocolate.Subscriptions.RabbitMQ.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Scalars.Tests",
+    "path": "src/HotChocolate/Core/test/Types.Scalars.Tests/HotChocolate.Types.Scalars.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Execution.Tests",
+    "path": "src/HotChocolate/Core/test/Execution.Tests/HotChocolate.Execution.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Analyzers.Tests",
+    "path": "src/HotChocolate/Core/test/Types.Analyzers.Tests/HotChocolate.Types.Analyzers.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Authorization.Tests",
+    "path": "src/HotChocolate/Core/test/Authorization.Tests/HotChocolate.Authorization.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Caching.Tests",
+    "path": "src/HotChocolate/Caching/test/Caching.Tests/HotChocolate.Caching.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.CodeGeneration.Neo4J.Tests",
+    "path": "src/HotChocolate/CodeGeneration/test/CodeGeneration.Neo4J.Tests/HotChocolate.CodeGeneration.Neo4J.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Diagnostics.Tests",
+    "path": "src/HotChocolate/Diagnostics/test/Diagnostics.Tests/HotChocolate.Diagnostics.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Language.SyntaxTree.Tests",
+    "path": "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/HotChocolate.Language.SyntaxTree.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Language.Web.Tests",
+    "path": "src/HotChocolate/Language/test/Language.Web.Tests/HotChocolate.Language.Web.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Language.Tests",
+    "path": "src/HotChocolate/Language/test/Language.Tests/HotChocolate.Language.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.PersistedQueries.Redis.Tests",
+    "path": "src/HotChocolate/PersistedQueries/test/PersistedQueries.Redis.Tests/HotChocolate.PersistedQueries.Redis.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.PersistedQueries.InMemory.Tests",
+    "path": "src/HotChocolate/PersistedQueries/test/PersistedQueries.InMemory.Tests/HotChocolate.PersistedQueries.InMemory.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.PersistedQueries.FileSystem.Tests",
+    "path": "src/HotChocolate/PersistedQueries/test/PersistedQueries.FileSystem.Tests/HotChocolate.PersistedQueries.FileSystem.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Utilities.Tests",
+    "path": "src/HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Utilities.Introspection.Tests",
+    "path": "src/HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.EntityFramework.Tests",
+    "path": "src/HotChocolate/Data/test/Data.EntityFramework.Tests/HotChocolate.Data.EntityFramework.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Sorting.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Sorting.Tests/HotChocolate.Data.Sorting.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Sorting.InMemory.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Sorting.InMemory.Tests/HotChocolate.Data.Sorting.InMemory.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Projections.SqlServer.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.SqlServer.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.AutoMapper.Tests",
+    "path": "src/HotChocolate/Data/test/Data.AutoMapper.Tests/HotChocolate.Data.AutoMapper.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Projections.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Projections.Tests/HotChocolate.Data.Projections.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Filters.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Filters.Tests/HotChocolate.Data.Filters.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Filters.SqlServer.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Filters.SqlServer.Tests/HotChocolate.Data.Filters.SqlServer.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Tests/HotChocolate.Data.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Filters.InMemory.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Filters.InMemory.Tests/HotChocolate.Data.Filters.InMemory.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Sorting.SqlLite.Tests",
+    "path": "src/HotChocolate/Data/test/Data.Sorting.SqlLite.Tests/HotChocolate.Data.Sorting.SqlLite.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Filters.Tests",
+    "path": "src/HotChocolate/Filters/test/Types.Filters.Tests/HotChocolate.Types.Filters.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Sorting.Mongo.Tests",
+    "path": "src/HotChocolate/Filters/test/Types.Sorting.Mongo.Tests/HotChocolate.Types.Sorting.Mongo.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Filters.Mongo.Tests",
+    "path": "src/HotChocolate/Filters/test/Types.Filters.Mongo.Tests/HotChocolate.Types.Filters.Mongo.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Sorting.Tests",
+    "path": "src/HotChocolate/Filters/test/Types.Sorting.Tests/HotChocolate.Types.Sorting.Tests.csproj"
+  },
+  {
+    "name": "Data.Marten.Sorting.Tests",
+    "path": "src/HotChocolate/Marten/test/Data.Marten.Sorting.Tests/Data.Marten.Sorting.Tests.csproj"
+  },
+  {
+    "name": "Data.Marten.Filters.Tests",
+    "path": "src/HotChocolate/Marten/test/Data.Marten.Filters.Tests/Data.Marten.Filters.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.MongoDb.Filters.Tests",
+    "path": "src/HotChocolate/MongoDb/test/Data.MongoDb.Filters.Tests/HotChocolate.Data.MongoDb.Filters.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.MongoDb.Paging.Tests",
+    "path": "src/HotChocolate/MongoDb/test/Data.MongoDb.Paging.Tests/HotChocolate.Data.MongoDb.Paging.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.MongoDb.Sorting.Tests",
+    "path": "src/HotChocolate/MongoDb/test/Data.MongoDb.Sorting.Tests/HotChocolate.Data.MongoDb.Sorting.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.MongoDb.Tests",
+    "path": "src/HotChocolate/MongoDb/test/Types.MongoDb/HotChocolate.Types.MongoDb.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.MongoDb.Projections.Tests",
+    "path": "src/HotChocolate/MongoDb/test/Data.MongoDb.Projections.Tests/HotChocolate.Data.MongoDb.Projections.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Neo4J.Language.Tests",
+    "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Language.Tests/HotChocolate.Data.Neo4J.Language.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Neo4J.Integration.Tests",
+    "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Integration.Tests/HotChocolate.Data.Neo4J.Integration.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Neo4J.Paging.Tests",
+    "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Paging.Tests/HotChocolate.Data.Neo4J.Paging.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Neo4J.Projections.Tests",
+    "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Projections.Tests/HotChocolate.Data.Neo4J.Projections.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Neo4J.Sorting.Tests",
+    "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Sorting.Tests/HotChocolate.Data.Neo4J.Sorting.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Neo4J.Filtering.Tests",
+    "path": "src/HotChocolate/Neo4J/test/Data.Neo4J.Filtering.Tests/HotChocolate.Data.Neo4J.Filtering.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Raven.Projections.Tests",
+    "path": "src/HotChocolate/Raven/test/Data.Raven.Projections.Tests/HotChocolate.Data.Raven.Projections.Tests.csproj"
+  },
+  {
+    "name": "Data.Raven.Filters.Tests",
+    "path": "src/HotChocolate/Raven/test/Data.Raven.Filters.Tests/Data.Raven.Filters.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Raven.Paging.Tests",
+    "path": "src/HotChocolate/Raven/test/Data.Raven.Paging.Tests/HotChocolate.Data.Raven.Paging.Tests.csproj"
+  },
+  {
+    "name": "Data.Raven.Tests",
+    "path": "src/HotChocolate/Raven/test/Data.Raven.Tests/Data.Raven.Tests.csproj"
+  },
+  {
+    "name": "Data.Raven.Sorting.Tests",
+    "path": "src/HotChocolate/Raven/test/Data.Raven.Sorting.Tests/Data.Raven.Sorting.Tests.csproj"
+  },
+  {
+    "name": "Skimmed.Tests",
+    "path": "src/HotChocolate/Skimmed/test/Skimmed.Tests/Skimmed.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Stitching.Tests",
+    "path": "src/HotChocolate/Stitching/test/Stitching.Tests/HotChocolate.Stitching.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Fusion.Tests",
+    "path": "src/HotChocolate/Fusion/test/Core.Tests/HotChocolate.Fusion.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Fusion.Composition.Tests",
+    "path": "src/HotChocolate/Fusion/test/Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Fusion.Abstractions.Tests",
+    "path": "src/HotChocolate/Fusion/test/Abstractions.Tests/HotChocolate.Fusion.Abstractions.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Fusion.CommandLine.Tests",
+    "path": "src/HotChocolate/Fusion/test/CommandLine.Tests/HotChocolate.Fusion.CommandLine.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Types.Spatial.Tests",
+    "path": "src/HotChocolate/Spatial/test/Types.Tests/HotChocolate.Types.Spatial.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Projections.Spatial.SqlServer.Tests",
+    "path": "src/HotChocolate/Spatial/test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.Spatial.SqlServer.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Spatial.Data.Filters.SqlServer.Tests",
+    "path": "src/HotChocolate/Spatial/test/Data.Filters.SqlServer.Tests/HotChocolate.Spatial.Data.Filters.SqlServer.Tests.csproj"
+  },
+  {
+    "name": "HotChocolate.Data.Spatial.Tests",
+    "path": "src/HotChocolate/Spatial/test/Data.Tests/HotChocolate.Data.Spatial.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.Persistence.SQLite.Tests",
+    "path": "src/StrawberryShake/Client/test/Persistence.SQLite.Tests/StrawberryShake.Persistence.SQLite.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.Transport.WebSocket.Tests",
+    "path": "src/StrawberryShake/Client/test/Transport.WebSocket.Tests/StrawberryShake.Transport.WebSocket.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.Core.Tests",
+    "path": "src/StrawberryShake/Client/test/Core.Tests/StrawberryShake.Core.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.Transport.InMemory.Tests",
+    "path": "src/StrawberryShake/Client/test/Transport.InMemory.Tests/StrawberryShake.Transport.InMemory.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.Transport.Http.Tests",
+    "path": "src/StrawberryShake/Client/test/Transport.Http.Tests/StrawberryShake.Transport.Http.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.CodeGeneration.CSharp.Tests",
+    "path": "src/StrawberryShake/CodeGeneration/test/CodeGeneration.CSharp.Tests/StrawberryShake.CodeGeneration.CSharp.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.CodeGeneration.Razor.Tests",
+    "path": "src/StrawberryShake/CodeGeneration/test/CodeGeneration.Razor.Tests/StrawberryShake.CodeGeneration.Razor.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.CodeGeneration.Tests",
+    "path": "src/StrawberryShake/CodeGeneration/test/CodeGeneration.Tests/StrawberryShake.CodeGeneration.Tests.csproj"
+  },
+  {
+    "name": "StrawberryShake.Tools.Configuration.Tests",
+    "path": "src/StrawberryShake/Tooling/test/Configuration.Tests/StrawberryShake.Tools.Configuration.Tests.csproj"
+  },
+  {
+    "name": "CookieCrumble.Tests",
+    "path": "src/CookieCrumble/test/CookieCrumble.Tests/CookieCrumble.Tests.csproj"
+  }
+]
