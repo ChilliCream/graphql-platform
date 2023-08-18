@@ -82,7 +82,7 @@ partial class Build : NukeBuild
 
             var matrix = new
             {
-                test = testProjects.Select(p => new
+                include = testProjects.Select(p => new
                 {
                     name = p.Name,
                     path = p.Path
