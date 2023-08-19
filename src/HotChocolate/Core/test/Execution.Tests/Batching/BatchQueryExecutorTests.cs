@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 
 namespace HotChocolate.Execution.Batching;
 
@@ -54,7 +51,7 @@ public class BatchQueryExecutorTests
         await batchResult.MatchSnapshotAsync();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task ExecuteExportScalarList()
     {
         // arrange

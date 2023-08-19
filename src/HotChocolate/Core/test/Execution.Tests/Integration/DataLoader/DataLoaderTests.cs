@@ -58,7 +58,7 @@ public class DataLoaderTests
             .MatchSnapshotAsync();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task FetchDataLoader()
     {
         Snapshot.FullName();

@@ -34,7 +34,7 @@ public class MutationTests
             """);
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Ensure_Mutations_Child_Fields_Are_Scoped_To_Its_Parent()
     {
         var result =
