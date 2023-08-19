@@ -108,11 +108,13 @@ public class StreamTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 persons @stream(if: false) {
                     id
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<QueryResult>(result).MatchSnapshot();
     }
