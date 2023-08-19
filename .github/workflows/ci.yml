@@ -189,29 +189,32 @@ jobs:
       - name: Create directory for test results
         run: mkdir -p ./.test-results
 
-      - name: Run Tests
+      - name: Run tests
         id: run-tests
         timeout-minutes: 15
         continue-on-error: true
-        run: |
-          # Run the tests and save the output
-          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger trx;LogFileName=./.test-results/${{ matrix.name }}.trx
-
-          # Extract failing tests
-          grep "\[FAIL\]" test_output.txt > failing_tests.txt
-
-          # Post to PR if there are any failing tests
-          if [ -s failing_tests.txt ]; then
-              echo "Failing tests detected."
-              # Post the failing tests to the PR using GitHub CLI
-              gh pr comment "${{ github.event.pull_request.number }}" --body "$(cat failing_tests.txt)"
-          else
-              echo "All tests passed."
-          fi
-        shell: bash
+        run: dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger trx;LogFileName=./.test-results/${{ matrix.name }}.trx | tee test_output.txt
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI_BUILD: true
+
+      - name: Post test results to PR
+        if: failure()
+        run: |
+          FAILED_TESTS=$(grep -E "\[FAIL\]" test_output.txt)
+          for test in $FAILED_TESTS; do
+            TEST_NAME=$(echo $test | awk '{print $2}')
+            MISMATCH_FILE=$(find . -name "__mismatch__" -type d | xargs -I {} find {} -name "$TEST_NAME.*")
+            if [[ -f $MISMATCH_FILE ]]; then
+              CONTENT=$(cat $MISMATCH_FILE)
+              echo "${TEST_NAME} [FAIL]" >> comment.txt
+              echo "**$CONTENT**" >> comment.txt
+            else
+              echo "${TEST_NAME} [FAIL]" >> comment.txt
+            fi
+          done
+          gh pr comment "$(gh pr view --json url -q ".url")" --body-file comment.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Test Results as Artifacts
         if: always() # Ensure we always capture test results, even if the test step failed
