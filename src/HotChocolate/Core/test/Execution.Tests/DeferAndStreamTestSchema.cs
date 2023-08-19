@@ -21,7 +21,7 @@ internal static class DeferAndStreamTestSchema
                     o.EnableDefer = true;
                     o.EnableStream = true;
                 })
-            .BuildRequestExecutorAsync()
+            .BuildRequestExecutorAsync();
     }
 
     public class Query
