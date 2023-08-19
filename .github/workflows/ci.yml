@@ -191,7 +191,7 @@ jobs:
           CI_BUILD: true
 
       - name: Post test results to PR
-        if: failure()
+        if: steps.run-tests.outcome == 'failure'
         run: |
           FAILED_TESTS=$(grep -E "\[FAIL\]" test_output.txt)
           for test in $FAILED_TESTS; do
@@ -217,7 +217,7 @@ jobs:
           path: ./.test-results/*.trx
 
       - name: Upload mismatch files as Artifacts
-        if: failure()
+        if: steps.run-tests.outcome == 'failure'
         uses: actions/upload-artifact@v2
         with:
           name: mismatch-files-${{ matrix.name }}
