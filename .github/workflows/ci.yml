@@ -211,7 +211,7 @@ jobs:
           fi
 
           # Get the failed tests (or continue if no match is found)
-          FAILED_TESTS=$(grep -E "\[FAIL\]" test_output.txt || true)
+          FAILED_TESTS=$(grep "\[FAIL\]$" test_output.txt || true)
 
           # Iterate through the failed tests to prepare the comment
           for test in $FAILED_TESTS; do
