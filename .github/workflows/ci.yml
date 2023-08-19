@@ -187,7 +187,7 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
         run: |
-          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" | tee test_output.txt
+          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx"  2>&1 | tee test_output.txt
           if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             exit 1
           fi
