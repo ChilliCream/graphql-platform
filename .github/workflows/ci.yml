@@ -221,17 +221,13 @@ jobs:
             fi
           done
 
-          # Check and comment on the PR
-          PR_URL=$(gh pr view --json url -q ".url")
-          if [[ -z "$PR_URL" ]]; then
-            echo "Failed to fetch PR URL."
-            exit 1
-          fi
-          gh pr comment "$PR_URL" --body-file comment.txt
+          # Use GitHub environment variable to get the PR number
+          PR_NUMBER=${{ github.event.pull_request.number }}
+
+          # Comment on the PR using the PR number
+          gh pr comment $PR_NUMBER --body-file comment.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
 
       - name: Upload Test Results as Artifacts
         if: always()
