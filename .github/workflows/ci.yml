@@ -186,7 +186,8 @@ jobs:
         id: run-tests
         timeout-minutes: 15
         continue-on-error: true
-        run: dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger trx;LogFileName=./.test-results/${{ matrix.name }}.trx | tee test_output.txt
+        run: |
+          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" | tee test_output.txt
         env:
           CI_BUILD: true
 
@@ -209,8 +210,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+
       - name: Upload Test Results as Artifacts
-        if: always() # Ensure we always capture test results, even if the test step failed
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-results-${{ matrix.name }}
