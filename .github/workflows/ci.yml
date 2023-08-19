@@ -120,7 +120,7 @@ jobs:
 
   configure:
     name: Generate Test Matrix
-    runs-on: test-runner
+    runs-on: ubuntu-latest
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
 
@@ -147,7 +147,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: test-runner
     needs: [configure, check-changes]
     if: needs.check-changes.outputs.library_changes == 'true'
 
