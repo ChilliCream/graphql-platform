@@ -273,7 +273,7 @@ jobs:
           steps.run-tests.outcome == 'cancelled'
 
   sonar:
-    runs-on: test-runner
+    runs-on: ubuntu-latest
     name: Sonar Pull-Request
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
@@ -430,3 +430,4 @@ jobs:
         always() &&
         (needs.library-tests.result == 'failure' ||
          needs.website-tests.result == 'failure')
+
