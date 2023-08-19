@@ -1,4 +1,4 @@
-name: CI New
+name: CI
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - main
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number }}
+  group: ci-new-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
