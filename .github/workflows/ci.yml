@@ -5,9 +5,9 @@ on:
     branches:
       - main
 
-concurrency:
-  group: ci-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+#concurrency:
+#  group: ci-${{ github.event.pull_request.number }}
+#  cancel-in-progress: true
 
 jobs:
   check-changes:
@@ -365,6 +365,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install .NET
+      if: ${{ !cancelled() }}
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
@@ -373,6 +374,7 @@ jobs:
           8.x
 
     - uses: actions/cache@v3
+      if: ${{ !cancelled() }}
       with:
         path: ~/.nuget/packages
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
@@ -380,17 +382,21 @@ jobs:
           ${{ runner.os }}-nuget-
 
     - name: Create All.sln
+      if: ${{ !cancelled() }}
       run: ./build.sh CreateAllSln
 
     - name: Build
+      if: ${{ !cancelled() }}
       run: dotnet build ./src/All.sln
 
     - name: Download all coverage artifacts
+      if: ${{ !cancelled() }}
       uses: actions/download-artifact@v2
       with:
         path: ./output/download
 
     - name: Merge Coverage Files
+      if: ${{ !cancelled() }}
       timeout-minutes: 10
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
@@ -399,6 +405,7 @@ jobs:
         ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     - name: Upload Combined Coverage to Codecov
+      if: ${{ !cancelled() }}
       uses: codecov/codecov-action@v2
       timeout-minutes: 10
       with:
