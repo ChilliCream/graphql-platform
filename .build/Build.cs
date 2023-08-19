@@ -82,6 +82,7 @@ partial class Build : NukeBuild
                     Name = Path.GetFileNameWithoutExtension(p.Path),
                     Path = Path.GetRelativePath(RootDirectory, p.Path)
                 })
+                .OrderBy(p => p.Name)
                 .ToList();
 
 
