@@ -345,6 +345,13 @@ jobs:
           7.x
           8.x
 
+    - uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
     - name: Create All.sln
       run: ./build.sh CreateAllSln
 
