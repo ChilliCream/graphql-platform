@@ -194,6 +194,13 @@ jobs:
         env:
           CI_BUILD: true
 
+      - name: Upload test_output.txt for debugging
+        if: steps.run-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-output
+          path: test_output.txt
+
       - name: Post test results to PR
         if: steps.run-tests.outcome == 'failure'
         run: |
