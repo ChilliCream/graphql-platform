@@ -197,10 +197,21 @@ jobs:
       - name: Post test results to PR
         if: steps.run-tests.outcome == 'failure'
         run: |
-          FAILED_TESTS=$(grep -E "\[FAIL\]" test_output.txt)
+          # Check if test_output.txt exists
+          if [[ ! -f test_output.txt ]]; then
+            echo "test_output.txt does not exist."
+            exit 1
+          fi
+
+          # Get the failed tests (or continue if no match is found)
+          FAILED_TESTS=$(grep -E "\[FAIL\]" test_output.txt || true)
+
+          # Iterate through the failed tests to prepare the comment
           for test in $FAILED_TESTS; do
             TEST_NAME=$(echo $test | awk '{print $2}')
-            MISMATCH_FILE=$(find . -name "__mismatch__" -type d | xargs -I {} find {} -name "$TEST_NAME.*")
+
+            MISMATCH_FILE=$(find . -name "__mismatch__" -type d | xargs -I {} find {} -name "$TEST_NAME.*" || true)
+
             if [[ -f $MISMATCH_FILE ]]; then
               CONTENT=$(cat $MISMATCH_FILE)
               echo "${TEST_NAME} [FAIL]" >> comment.txt
@@ -209,9 +220,17 @@ jobs:
               echo "${TEST_NAME} [FAIL]" >> comment.txt
             fi
           done
-          gh pr comment "$(gh pr view --json url -q ".url")" --body-file comment.txt
+
+          # Check and comment on the PR
+          PR_URL=$(gh pr view --json url -q ".url")
+          if [[ -z "$PR_URL" ]]; then
+            echo "Failed to fetch PR URL."
+            exit 1
+          fi
+          gh pr comment "$PR_URL" --body-file comment.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
       - name: Upload Test Results as Artifacts
