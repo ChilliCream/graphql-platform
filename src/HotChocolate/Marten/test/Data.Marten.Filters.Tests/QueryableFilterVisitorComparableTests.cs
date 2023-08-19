@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
+[Collection(TestConstants.Sequential)]
 public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
@@ -48,15 +49,12 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "12"),
-                    res2,
-                    "13"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -85,15 +83,12 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "12"),
-                    res2,
-                    "13"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -127,18 +122,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -172,18 +163,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -218,18 +205,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -263,18 +246,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -308,18 +287,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -353,18 +328,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -399,18 +370,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -444,18 +411,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -484,15 +447,12 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "12and13"),
-                    res2,
-                    "13and14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12and13").AddResult(
+                res2,
+                "13and14").AddResult(
                 res3,
                 "nullAnd14")
             .MatchAsync();
@@ -521,15 +481,12 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "12and13"),
-                    res2,
-                    "13and14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12and13").AddResult(
+                res2,
+                "13and14").AddResult(
                 res3,
                 "nullAnd14")
             .MatchAsync();
@@ -558,15 +515,12 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "12"),
-                    res2,
-                    "13"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -595,15 +549,12 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "12"),
-                    res2,
-                    "13"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -638,18 +589,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -683,18 +630,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -729,18 +672,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -774,18 +713,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -819,18 +754,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -864,18 +795,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -910,18 +837,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -955,18 +878,14 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1,
-                            "12"),
-                        res2,
-                        "13"),
-                    res3,
-                    "14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12").AddResult(
+                res2,
+                "13").AddResult(
+                res3,
+                "14").AddResult(
                 res4,
                 "null")
             .MatchAsync();
@@ -995,15 +914,12 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "12and13"),
-                    res2,
-                    "13and14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12and13").AddResult(
+                res2,
+                "13and14").AddResult(
                 res3,
                 "13andNull")
             .MatchAsync();
@@ -1032,15 +948,12 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "12and13"),
-                    res2,
-                    "13and14"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "12and13").AddResult(
+                res2,
+                "13and14").AddResult(
                 res3,
                 "13andNull")
             .MatchAsync();

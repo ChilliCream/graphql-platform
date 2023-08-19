@@ -5,6 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
+[Collection(TestConstants.Sequential)]
 public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 {
     private static readonly BarInterface[] _barEntities =
@@ -51,15 +52,12 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "a"),
-                    res2,
-                    "ba"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "a").AddResult(
+                res2,
+                "ba").AddResult(
                 res3,
                 "null")
             .MatchAsync();

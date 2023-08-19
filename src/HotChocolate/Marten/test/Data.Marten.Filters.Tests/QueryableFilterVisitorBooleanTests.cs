@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
+[Collection(TestConstants.Sequential)]
 public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities = { new() { Bar = true }, new() { Bar = false } };
@@ -37,12 +38,10 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "true"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "true").AddResult(
                 res2,
                 "false")
             .MatchAsync();
@@ -66,12 +65,10 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "true"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "true").AddResult(
                 res2,
                 "false")
             .MatchAsync();
@@ -100,15 +97,12 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "true"),
-                    res2,
-                    "false"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "true").AddResult(
+                res2,
+                "false").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -138,15 +132,12 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "true"),
-                    res2,
-                    "false"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "true").AddResult(
+                res2,
+                "false").AddResult(
                 res3,
                 "null")
             .MatchAsync();
