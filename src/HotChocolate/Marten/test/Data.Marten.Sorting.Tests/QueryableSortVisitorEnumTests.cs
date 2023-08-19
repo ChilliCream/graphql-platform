@@ -1,9 +1,9 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
+[Collection(TestConstants.Sequential)]
 public class QueryableSortVisitorEnumTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
