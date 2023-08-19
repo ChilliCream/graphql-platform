@@ -236,12 +236,27 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Copy test results
+        continue-on-error: true
+        run: |
+          mkdir -p ./output/coverage
+          mkdir -p ./output/test-results
+          cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
+          cp "${{ matrix.directoryPath }}/.test-results/${{ matrix.name }}.net7.0.xml" ./output/test-results/
+
       - name: Upload Test Results as Artifacts
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-results-${{ matrix.name }}
-          path: ./.test-results/*.trx
+          path: ./output/test-results/*.trx
+
+      - name: Upload Coverage Files as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-${{ matrix.name }}
+          path: ./output/coverage/*.xml
 
       - name: Upload mismatch files as Artifacts
         if: steps.run-tests.outcome == 'failure'
@@ -250,18 +265,6 @@ jobs:
           name: mismatch-files-${{ matrix.name }}
           path: |
             **/__mismatch__/*
-
-      - name: Copy test results
-        continue-on-error: true
-        run: |
-          mkdir -p ./output/coverage
-          cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
-
-      - name: Upload Individual Coverage Files as Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage-${{ matrix.name }}
-          path: ./output/coverage/*.xml
 
       - name: Fail if tests failed or were cancelled
         run: exit 1
