@@ -345,11 +345,11 @@ jobs:
           7.x
           8.x
 
-    - name: Restore
-      run: ./build.sh restore
+    - name: Create All.sln
+      run: ./build.sh CreateAllSln
 
     - name: Build
-      run: dotnet build ./src/All.sln --no-restore
+      run: dotnet build ./src/All.sln
 
     - name: Download all coverage artifacts
       uses: actions/download-artifact@v2

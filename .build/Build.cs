@@ -64,6 +64,11 @@ partial class Build : NukeBuild
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
 
+    Target CreateAllSln => _ => _
+        .Executes(() =>
+        {
+            DotNetBuildSonarSolution(AllSolutionFile);
+        });
 
     Target GenerateMatrix => _ => _
         .Executes(() =>
