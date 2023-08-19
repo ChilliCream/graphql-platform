@@ -312,7 +312,7 @@ jobs:
       run: ./build.sh restore
 
     - name: Build
-      run: dotnet build ./src/All.sln --no-restore --framework net7.0
+      run: dotnet build ./src/All.sln --no-restore
 
     - name: Download all coverage artifacts
       uses: actions/download-artifact@v2
