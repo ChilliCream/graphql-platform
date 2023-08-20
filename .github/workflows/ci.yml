@@ -215,7 +215,7 @@ jobs:
 
           # Iterate through the failed tests to prepare the comment
           for test in $FAILED_TESTS; do
-            TEST_NAME=$(echo $test | awk '{print $2}')
+            TEST_NAME=$(echo $test | awk '{$NF=""; print $0}' | sed 's/ *$//' | sed 's/^\[xUnit\.net [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9][0-9]\] //')
 
             MISMATCH_FILE=$(find . -name "__mismatch__" -type d | xargs -I {} find {} -name "$TEST_NAME.*" || true)
 
