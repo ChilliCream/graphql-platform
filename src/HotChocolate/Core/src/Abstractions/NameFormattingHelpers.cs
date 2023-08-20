@@ -17,7 +17,7 @@ internal static class NameFormattingHelpers
 {
     private const string _get = "Get";
     private const string _async = "Async";
-    private const string _typePostfix = "`1";
+    private const char _genericTypeDelimiter = '`';
 
     public static string GetGraphQLName(this Type type)
     {
@@ -190,7 +190,8 @@ internal static class NameFormattingHelpers
                 .GetGenericTypeDefinition()
                 .Name;
 
-            name = name.Substring(0, name.Length - _typePostfix.Length);
+            var index = name.LastIndexOf(_genericTypeDelimiter);
+            name = name.Substring(0, index);
 
             var arguments = type
                 .GetTypeInfo().GenericTypeArguments
