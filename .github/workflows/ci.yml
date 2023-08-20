@@ -6,7 +6,7 @@ on:
       - main
 
 concurrency:
-  group: ci-new-${{ github.event.pull_request.number }}
+  group: ci-new-2-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
