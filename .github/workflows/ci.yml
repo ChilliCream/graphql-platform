@@ -12,7 +12,7 @@ concurrency:
 jobs:
   check-changes:
     name: Check for Changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
     if: github.event.pull_request.draft == false
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
@@ -56,7 +56,7 @@ jobs:
 
   pr-labeler:
     name: Apply Labels
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
     steps:
       - uses: actions/labeler@v3
         with:
@@ -120,7 +120,7 @@ jobs:
 
   configure:
     name: Generate Test Matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
 
@@ -147,7 +147,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
     needs: [configure, check-changes]
     if: needs.check-changes.outputs.library_changes == 'true'
 
