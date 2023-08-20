@@ -2,6 +2,18 @@
   query: Query
 }
 
+type BarOfInt32 {
+  test: Int!
+}
+
+type BarOfMyType {
+  test: MyType!
+}
+
+type BarOfString {
+  test: String!
+}
+
 type EightElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {
   item8: Int!
   item1: Int!
@@ -11,6 +23,10 @@ type EightElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32An
   item5: Int!
   item6: Int!
   item7: Int!
+}
+
+type MyType {
+  test: Int!
 }
 
 type NineElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {
@@ -36,6 +52,9 @@ type Query {
   eightGenericTypes: EightElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
   nineGenericTypes: NineElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
   tenGenericTypes: TenElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  intBar: BarOfInt32!
+  stringBar: BarOfString!
+  customNameBar: BarOfMyType!
 }
 
 type TenElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {

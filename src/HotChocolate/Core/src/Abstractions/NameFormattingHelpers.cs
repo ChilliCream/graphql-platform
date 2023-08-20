@@ -26,10 +26,7 @@ internal static class NameFormattingHelpers
             throw new ArgumentNullException(nameof(type));
         }
 
-        var typeInfo = type.GetTypeInfo();
-        var name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
-            ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : GetFromType(typeInfo);
+        var name = GetFromType(type);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -184,14 +181,22 @@ internal static class NameFormattingHelpers
 
     private static string GetFromType(Type type)
     {
-        if (type.GetTypeInfo().IsGenericType)
-        {
-            var name = type.GetTypeInfo()
-                .GetGenericTypeDefinition()
-                .Name;
+        var typeInfo = type.GetTypeInfo();
+        var graphQLName = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
+            ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
+            : null;
 
-            var index = name.LastIndexOf(_genericTypeDelimiter);
-            name = name.Substring(0, index);
+        if (type.IsGenericType)
+        {
+            var name = graphQLName;
+            if (name == null)
+            {
+                name = type.GetTypeInfo()
+                           .GetGenericTypeDefinition()
+                           .Name;
+                var index = name.LastIndexOf(_genericTypeDelimiter);
+                name = name.Substring(0, index);
+            }
 
             var arguments = type
                 .GetTypeInfo().GenericTypeArguments
@@ -199,7 +204,7 @@ internal static class NameFormattingHelpers
 
             return $"{name}Of{string.Join("And", arguments)}";
         }
-        return type.Name;
+        return graphQLName ?? type.Name;
     }
 
     public static unsafe string FormatFieldName(string fieldName)

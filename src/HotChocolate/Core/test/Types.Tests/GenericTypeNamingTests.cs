@@ -32,6 +32,9 @@ public class GenericTypesNamingTests
         public EightElementsTuple<int, int, int, int, int, int, int, int> EightGenericTypes => default!;
         public NineElementsTuple<int, int, int, int, int, int, int, int, int> NineGenericTypes => default!;
         public TenElementsTuple<int, int, int, int, int, int, int, int, int, int> TenGenericTypes => default!;
+        public Foo<int> IntBar => default!;
+        public Foo<string> StringBar => default!;
+        public Foo<Bar> CustomNameBar => default!;
     }
 
     public class EightElementsTuple<T1, T2, T3, T4, T5, T6, T7, T8> : Tuple<T1, T2, T3, T4, T5, T6, T7>
@@ -65,5 +68,17 @@ public class GenericTypesNamingTests
         {
             Item10 = item10;
         }
+    }
+
+    [GraphQLName("Bar")]
+    public class Foo<T>
+    {
+        public T Test { get; init; }
+    }
+
+    [GraphQLName("MyType")]
+    public class Bar
+    {
+        public int Test { get; init; }
     }
 }
