@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
@@ -181,30 +182,44 @@ internal static class NameFormattingHelpers
 
     private static string GetFromType(Type type)
     {
-        var typeInfo = type.GetTypeInfo();
-        var graphQLName = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
-            ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
+        var typeName = type.IsDefined(typeof(GraphQLNameAttribute), false)
+            ? type.GetCustomAttribute<GraphQLNameAttribute>()!.Name
             : null;
 
         if (type.IsGenericType)
         {
-            var name = graphQLName;
-            if (name == null)
+            if (typeName == null)
             {
-                name = type.GetTypeInfo()
-                           .GetGenericTypeDefinition()
-                           .Name;
-                var index = name.LastIndexOf(_genericTypeDelimiter);
-                name = name.Substring(0, index);
+                typeName = type.GetGenericTypeDefinition().Name;
+
+                var nameSpan = typeName.AsSpan();
+                var index = nameSpan.LastIndexOf(_genericTypeDelimiter);
+
+                if (index >= 0)
+                {
+                    nameSpan = nameSpan.Slice(0, index);
+                }
+
+                typeName = nameSpan.ToString();
             }
 
-            var arguments = type
-                .GetTypeInfo().GenericTypeArguments
-                .Select(GetFromType);
+            var arguments = type.GetGenericArguments();
+            var stringBuilder = new StringBuilder(typeName).Append("Of");
 
-            return $"{name}Of{string.Join("And", arguments)}";
+            for (var i = 0; i < arguments.Length; i++)
+            {
+                if (i > 0)
+                {
+                    stringBuilder.Append("And");
+                }
+
+                stringBuilder.Append(GetFromType(arguments[i]));
+            }
+
+            return stringBuilder.ToString();
         }
-        return graphQLName ?? type.Name;
+
+        return typeName ?? type.Name;
     }
 
     public static unsafe string FormatFieldName(string fieldName)
