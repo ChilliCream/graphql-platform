@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
-[Collection(TestConstants.Sequential)]
 public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 {
     private static readonly Bar[] _barEntities =

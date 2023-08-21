@@ -9,13 +9,56 @@ using Squadron;
 
 namespace HotChocolate.Data.Sorting;
 
+public sealed class ResourceContainer : IAsyncDisposable
+{
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private int _testClassInstances = 0;
+    
+    public PostgreSqlResource Resource { get; } = new(); 
+    
+    public async ValueTask InitializeAsync()
+    {
+        await _semaphore.WaitAsync();
+
+        try
+        {
+            if (_testClassInstances == 0)
+            {
+                await Resource.InitializeAsync();
+            }
+            _testClassInstances++;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    } 
+    
+    public async ValueTask DisposeAsync()
+    {
+        await _semaphore.WaitAsync();
+
+        try
+        {
+            if (--_testClassInstances == 0)
+            {
+                await Resource.DisposeAsync();
+            }
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+}
+
 public class SortVisitorTestBase : IAsyncLifetime
 {
-    protected PostgreSqlResource Resource { get; } = new();
+    protected static ResourceContainer Container { get; } = new();
 
-    public Task InitializeAsync() => Resource.InitializeAsync();
+    public async Task InitializeAsync() => await Container.InitializeAsync();
 
-    public Task DisposeAsync() => Resource.DisposeAsync();
+    public async Task DisposeAsync() => await Container.DisposeAsync();
 
     private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
         IDocumentStore store,
@@ -43,8 +86,8 @@ public class SortVisitorTestBase : IAsyncLifetime
         where T : SortInputType<TEntity>
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
-        Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
-        var store = DocumentStore.For(Resource.GetConnectionString(dbName));
+        Container.Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
+        var store = DocumentStore.For(Container.Resource.GetConnectionString(dbName));
 
         var resolver = BuildResolver(store, entities);
 

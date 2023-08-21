@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Sorting;
 
-[Collection(TestConstants.Sequential)]
 public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =

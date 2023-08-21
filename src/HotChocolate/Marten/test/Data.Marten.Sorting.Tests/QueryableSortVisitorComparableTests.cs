@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Sorting;
 
-[Collection(TestConstants.Sequential)]
 public class QueryableSortVisitorComparableTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =

@@ -5,7 +5,6 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
-[Collection(TestConstants.Sequential)]
 public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 {
     private static readonly BarInterface[] _barEntities =

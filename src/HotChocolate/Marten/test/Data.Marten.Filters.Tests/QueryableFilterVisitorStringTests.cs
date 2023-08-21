@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
-[Collection(TestConstants.Sequential)]
 public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
@@ -38,7 +37,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
                 .SetQuery(
                     """
                     {
-                      root(where: { bar: { eq: \"testatest\"}}) { 
+                      root(where: { bar: { eq: "testatest"}}) { 
                         bar
                       }
                     }
