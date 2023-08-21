@@ -16,7 +16,7 @@ public class GenericTypesNamingTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildSchemaAsync()            
+            .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
