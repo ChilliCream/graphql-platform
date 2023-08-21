@@ -122,7 +122,7 @@ public class DataLoaderTests
         Assert.True(listener.BatchResultsTouched);
     }
 
-    [Fact]
+    [LocalFact]
     public async Task AddMultipleDiagnosticEventListener()
     {
         var listener1 = new DataLoaderListener();
