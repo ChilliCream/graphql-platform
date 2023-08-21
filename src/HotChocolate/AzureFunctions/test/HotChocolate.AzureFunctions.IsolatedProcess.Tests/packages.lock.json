@@ -12,11 +12,11 @@
           "xunit": "2.3.1"
         }
       },
-      "coverlet.collector": {
+      "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
+        "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
@@ -1738,11 +1738,11 @@
           "xunit": "2.3.1"
         }
       },
-      "coverlet.collector": {
+      "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
+        "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
@@ -3464,11 +3464,11 @@
           "xunit": "2.3.1"
         }
       },
-      "coverlet.collector": {
+      "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
+        "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
