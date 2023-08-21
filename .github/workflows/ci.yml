@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
 
@@ -57,6 +57,9 @@ jobs:
   pr-labeler:
     name: Apply Labels
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/labeler@v3
         with:

@@ -4,7 +4,8 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data;
 
-public class FilteringAndPaging : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class FilteringAndPaging
 {
     private static readonly Foo[] _fooEntities = { new() { Bar = true }, new() { Bar = false } };
 
