@@ -1,7 +1,8 @@
 using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data;
 
 public class FilteringAndPaging : IClassFixture<SchemaCache>
 {
