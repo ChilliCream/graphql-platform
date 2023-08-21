@@ -1,3 +1,4 @@
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -7,7 +8,7 @@ using Marten.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data;
 
 public sealed class ResourceContainer : IAsyncDisposable
 {

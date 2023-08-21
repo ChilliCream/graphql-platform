@@ -1,9 +1,11 @@
 using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data;
 
-public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableFilterVisitorObjectTests
 {
     private static readonly Bar[] _barEntities =
     {

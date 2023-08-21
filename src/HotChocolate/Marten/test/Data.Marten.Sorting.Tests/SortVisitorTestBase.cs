@@ -1,3 +1,4 @@
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -7,7 +8,7 @@ using Marten.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
-namespace HotChocolate.Data.Sorting;
+namespace HotChocolate.Data;
 
 public sealed class ResourceContainer : IAsyncDisposable
 {
@@ -60,7 +61,7 @@ public class SortVisitorTestBase : IAsyncLifetime
 
     public async Task DisposeAsync() => await Container.DisposeAsync();
 
-    private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+    private static Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
         IDocumentStore store,
         params TResult[] results)
         where TResult : class
@@ -148,23 +149,21 @@ public class SortVisitorTestBase : IAsyncLifetime
     {
         field.Use(next => async context =>
         {
-            await using (var session = store.LightweightSession())
+            await using var session = store.LightweightSession();
+            context.LocalContextData = context.LocalContextData.SetItem("session", session);
+            await next(context);
+        });
+        
+        field.Use(next => async context =>
+        {
+            await next(context);
+
+            if (context.Result is IMartenQueryable<TEntity> queryable)
             {
-                context.LocalContextData = context.LocalContextData.SetItem("session", session);
-                await next(context);
+                context.ContextData["sql"] = queryable.ToCommand().CommandText;
+                context.Result = await queryable.ToListAsync(context.RequestAborted);
             }
         });
-        field.Use(
-            next => async context =>
-            {
-                await next(context);
-
-                if (context.Result is IMartenQueryable<TEntity> queryable)
-                {
-                    context.ContextData["sql"] = queryable.ToCommand().CommandText;
-                    context.Result = await queryable.ToListAsync(context.RequestAborted);
-                }
-            });
 
         if (withPaging)
         {

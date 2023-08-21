@@ -1,9 +1,11 @@
 using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data;
 
-public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableFilterVisitorEnumTests
 {
     private static readonly Foo[] _fooEntities =
     {
