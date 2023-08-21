@@ -1,12 +1,9 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Subscriptions;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
-using Xunit;
 using static HotChocolate.StarWars.Types.Subscriptions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore;
@@ -17,15 +14,14 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
     {
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Watch_StarWarsOnReviewSubNoStore_NotifyCompletion()
     {
         // arrange
         using var cts = new CancellationTokenSource(20_000);
+        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
         var ct = cts.Token;
-        using var host = TestServerHelper.CreateServer(
-            _ => { },
-            out var port);
+        
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddHttpClient(
             StarWarsOnReviewSubNoStoreClient.ClientName,
@@ -34,16 +30,16 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
             StarWarsOnReviewSubNoStoreClient.ClientName,
             c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
         serviceCollection.AddStarWarsOnReviewSubNoStoreClient();
-        IServiceProvider services = serviceCollection.BuildServiceProvider();
+        await using var services = serviceCollection.BuildServiceProvider();
         var client = services.GetRequiredService<StarWarsOnReviewSubNoStoreClient>();
 
         // act
         var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
-        var topic = Episode.NewHope;
+        const Episode topic = Episode.NewHope;
 
         var connectCompletionSource = new TaskCompletionSource();
         var subscribeCompletionSource = new TaskCompletionSource();
-        var session = client.OnReviewSub.Watch().Subscribe(
+        using var session = client.OnReviewSub.Watch().Subscribe(
             _ => connectCompletionSource.TrySetResult(),
             () => subscribeCompletionSource.TrySetResult());
 
@@ -52,7 +48,8 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",
-                new Review { Stars = 1, Commentary = "Commentary" }, ct);
+                new Review { Stars = 1, Commentary = "Commentary" }, 
+                ct);
             await Task.Delay(1_000, ct);
         }
 

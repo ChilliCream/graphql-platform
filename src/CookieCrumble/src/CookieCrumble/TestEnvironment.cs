@@ -31,4 +31,17 @@ public static class TestEnvironment
     /// </summary>
     public const string TargetFramework = "NET8_0";
 #endif
+
+    public static bool IsLocalEnvironment()
+    {
+        return !IsCIEnvironment();
+    }
+
+    public static bool IsCIEnvironment()
+    {
+        return bool.TryParse(
+            Environment.GetEnvironmentVariable("CI_BUILD"),
+            out var result) &&
+            result;
+    }
 }
