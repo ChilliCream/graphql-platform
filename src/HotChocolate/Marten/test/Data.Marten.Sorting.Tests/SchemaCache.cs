@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Concurrent;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Sorting;
+namespace HotChocolate.Data;
 
 public class SchemaCache : SortVisitorTestBase
 {

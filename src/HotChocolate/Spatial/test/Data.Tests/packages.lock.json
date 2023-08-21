@@ -2,11 +2,11 @@
   "version": 1,
   "dependencies": {
     "net6.0": {
-      "coverlet.collector": {
+      "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
+        "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
       "Docker.DotNet": {
         "type": "Direct",
@@ -1444,11 +1444,11 @@
       }
     },
     "net7.0": {
-      "coverlet.collector": {
+      "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
+        "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
       "Docker.DotNet": {
         "type": "Direct",
@@ -2964,11 +2964,11 @@
       }
     },
     "net8.0": {
-      "coverlet.collector": {
+      "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
-        "contentHash": "wuLDIDKD5XMt0A7lE31JPenT7QQwZPFkP5rRpdJeblyXZ9MGLI8rYjvm5fvAKln+2/X+4IxxQDxBtwdrqKNLZw=="
+        "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
       "Docker.DotNet": {
         "type": "Direct",
