@@ -7,6 +7,10 @@ on:
     paths:
       - 'src/**'
 
+concurrency:
+  group: main-coverage
+  cancel-in-progress: true
+
 jobs:
   configure:
     name: Generate Test Matrix
@@ -46,13 +50,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install GitHub CLI
-        run: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-          sudo apt-add-repository https://cli.github.com/packages
-          sudo apt update
-          sudo apt install gh
-
       - name: Install .NET
         uses: actions/setup-dotnet@v3
         with:
@@ -77,12 +74,12 @@ jobs:
         id: run-tests
         timeout-minutes: 15
         continue-on-error: true
-        run: dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger trx;LogFileName=./.test-results/${{ matrix.name }}.trx
+        run: dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**"
         env:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifacts
-        if: always() # Ensure we always capture test results, even if the test step failed
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-results-${{ matrix.name }}
@@ -131,11 +128,21 @@ jobs:
           7.x
           8.x
 
-    - name: Restore
-      run: ./build.sh restore
+    - uses: actions/cache@v3
+      if: ${{ !cancelled() }}
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Create All.sln
+      if: ${{ !cancelled() }}
+      run: ./build.sh CreateAllSln
 
     - name: Build
-      run: dotnet build ./src/All.sln --no-restore
+      if: ${{ !cancelled() }}
+      run: dotnet build ./src/All.sln
 
     - name: Download all coverage artifacts
       uses: actions/download-artifact@v2
@@ -143,6 +150,8 @@ jobs:
         path: ./output/download
 
     - name: Merge Coverage Files
+      if: ${{ !cancelled() }}
+      timeout-minutes: 10
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         reportgenerator "-reports:./output/download/**/*.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover -license:$ReportGenerator_License
@@ -150,9 +159,12 @@ jobs:
         ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
 
     - name: Upload Combined Coverage to Codecov
+      if: ${{ !cancelled() }}
       uses: codecov/codecov-action@v2
+      timeout-minutes: 10
       with:
         file: ./output/coverage/merged/OpenCover.xml
         token: ${{ secrets.CODECOV_TOKEN }}
         name: graphql-platform
         flags: unittests
+        fail_ci_if_error: true

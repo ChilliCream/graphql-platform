@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
 
@@ -57,6 +57,9 @@ jobs:
   pr-labeler:
     name: Apply Labels
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/labeler@v3
         with:
@@ -187,7 +190,7 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
         run: |
-          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx"  2>&1 | tee test_output.txt
+          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**" 2>&1 | tee test_output.txt
           if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             exit 1
           fi
