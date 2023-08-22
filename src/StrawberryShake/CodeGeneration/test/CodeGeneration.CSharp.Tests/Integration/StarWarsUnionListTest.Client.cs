@@ -1034,7 +1034,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             var searchResults = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                searchResults.Add(Update_ISearchHero_SearchEntity(session, child, entityIds));
+                global::StrawberryShake.EntityId? parsedValue = Update_ISearchHero_SearchEntity(session, child, entityIds);
+                if (parsedValue is not null)
+                {
+                    searchResults.Add(parsedValue);
+                }
             }
 
             return searchResults;
@@ -1047,7 +1051,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return null;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Starship", global::System.StringComparison.Ordinal))
             {
@@ -1130,7 +1139,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                characters.Add(Update_ISearchHero_Search_Friends_NodesEntity(session, child, entityIds));
+                global::StrawberryShake.EntityId? parsedValue = Update_ISearchHero_Search_Friends_NodesEntity(session, child, entityIds);
+                if (parsedValue is not null)
+                {
+                    characters.Add(parsedValue);
+                }
             }
 
             return characters;
@@ -1143,7 +1156,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return null;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
@@ -1374,6 +1392,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
                 "Human" => ParseHumanEntityId(obj, __typename),
                 "Droid" => ParseDroidEntityId(obj, __typename),
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)

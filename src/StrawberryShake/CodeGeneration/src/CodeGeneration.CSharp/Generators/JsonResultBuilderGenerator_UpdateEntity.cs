@@ -12,6 +12,7 @@ public partial class JsonResultBuilderGenerator
 {
     private const string _entityId = "entityId";
     private const string _entity = "entity";
+    private const string _parseSuccess = "parseSuccess";
 
     private void AddUpdateEntityMethod(
         ClassBuilder classBuilder,
@@ -22,12 +23,19 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"{TypeNames.EntityId} {_entityId}")
+                .SetLefthandSide($"{TypeNames.Boolean} {_parseSuccess}")
                 .SetRighthandSide(
                     MethodCallBuilder
                         .Inline()
-                        .SetMethodName(GetFieldName(_idSerializer), "Parse")
-                        .AddArgument($"{_obj}.Value")));
+                        .SetMethodName(GetFieldName(_idSerializer), "TryParse")
+                        .AddArgument($"{_obj}.Value")
+                        .AddArgument($"out {TypeNames.EntityId} {_entityId}")));
+
+        methodBuilder.AddCode(
+            IfBuilder
+                .New()
+                .SetCondition($"!{_parseSuccess}")
+                .AddCode("return null;"));
 
         methodBuilder.AddCode(
             MethodCallBuilder

@@ -57,6 +57,13 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
             .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement))
             .AddCode(ParseEntityIdBody(descriptor));
 
+        classBuilder.AddMethod("TryParse")
+            .SetAccessModifier(AccessModifier.Public)
+            .SetReturnType(TypeNames.Boolean)
+            .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement))
+            .AddParameter("entityId", x => x.SetType(TypeNames.EntityId).SetIsOut())
+            .AddCode(TryParseBody());
+
         classBuilder
             .AddMethod("Format")
             .SetAccessModifier(AccessModifier.Public)
@@ -187,6 +194,23 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
         return CodeBlockBuilder
             .New()
             .AddCode(typeNameSwitch);
+    }
+
+    private ICode TryParseBody()
+    {
+        var body = TryCatchBuilder
+            .New();
+
+        body.AddTryCode(CodeBlockBuilder
+                .New()
+                .AddLine("entityId = Parse(obj);")
+                .AddLine("return true;"))
+            .AddCatchBlock(CatchBlockBuilder
+                .New()
+                .AddCode(CodeBlockBuilder
+                    .New()
+                    .AddLine("return false;")));
+        return body;
     }
 
     private ICode FormatSpecificEntityIdBody(EntityIdDescriptor entity)

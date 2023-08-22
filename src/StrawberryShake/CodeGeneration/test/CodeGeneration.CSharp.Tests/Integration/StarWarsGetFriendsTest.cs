@@ -1,10 +1,12 @@
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.Transport.WebSockets;
 using Xunit;
 
@@ -165,6 +167,51 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                         error.Message);
                     Assert.IsType<HttpRequestException>(error.Exception);
                 });
+        }
+
+        [Fact]
+        public async Task Execute_StarWarsGetFriends_Test_UnknownFriendType()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IHttpClientFactory, MockClientFactory>();
+            serviceCollection.AddStarWarsGetFriendsClient();
+            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            var client =
+                services.GetRequiredService<IStarWarsGetFriendsClient>();
+
+            // act
+            var result = await client.GetHero.ExecuteAsync();
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Empty(result.Errors);
+            Assert.Equal(2, result.Data!.Hero!.Friends!.Nodes!.Count);
+        }
+
+        private class MockClientFactory : IHttpClientFactory
+        {
+            /// <inheritdoc />
+            public HttpClient CreateClient(string name)
+            {
+                return new HttpClient(new MockMessageHandler())
+                {
+                    BaseAddress = new Uri("http://test/graphql")
+                };
+            }
+        }
+
+        private class MockMessageHandler : HttpMessageHandler
+        {
+            /// <inheritdoc />
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("{\n  \"data\": {\n    \"hero\": {\n      \"__typename\": \"Droid\",\n      \"name\": \"R2-D2\",\n      \"friends\": {\n        \"__typename\": \"FriendsConnection\",\n        \"nodes\": [\n          {\n            \"__typename\": \"Human\",\n            \"name\": \"Luke Skywalker\",\n            \"id\": \"1000\"\n          },\n          {\n            \"__typename\": \"Human\",\n            \"name\": \"Han Solo\",\n            \"id\": \"1002\"\n          },\n          {\n            \"__typename\": \"Gungan\",\n            \"name\": \"Jar Jar Binks\",\n            \"id\": \"1007\"\n          }\n        ]\n      },\n      \"id\": \"2001\"\n    }\n  }\n}")
+                });
+            }
         }
     }
 }

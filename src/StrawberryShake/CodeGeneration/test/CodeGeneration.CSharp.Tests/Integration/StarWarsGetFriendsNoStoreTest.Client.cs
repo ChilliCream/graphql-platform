@@ -931,7 +931,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.ICharacterData?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                characters.Add(Deserialize_ICharacterData(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.ICharacterData? parsedValue = Deserialize_ICharacterData(child);
+                if (parsedValue is not null)
+                {
+                    characters.Add(parsedValue);
+                }
             }
 
             return characters;

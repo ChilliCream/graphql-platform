@@ -3909,7 +3909,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __Types.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Types(child);
+                if (parsedValue is not null)
+                {
+                    __Types.Add(parsedValue);
+                }
             }
 
             return __Types;
@@ -3951,7 +3955,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __Fields = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__FieldData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __Fields.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_Fields(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__FieldData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Types_Fields(child);
+                if (parsedValue is not null)
+                {
+                    __Fields.Add(parsedValue);
+                }
             }
 
             return __Fields;
@@ -3993,7 +4001,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __InputValues.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_Fields_Args(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Types_Fields_Args(child);
+                if (parsedValue is not null)
+                {
+                    __InputValues.Add(parsedValue);
+                }
             }
 
             return __InputValues;
@@ -4115,7 +4127,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __InputValues.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_InputFields(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Types_InputFields(child);
+                if (parsedValue is not null)
+                {
+                    __InputValues.Add(parsedValue);
+                }
             }
 
             return __InputValues;
@@ -4147,7 +4163,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __Types.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_Interfaces(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Types_Interfaces(child);
+                if (parsedValue is not null)
+                {
+                    __Types.Add(parsedValue);
+                }
             }
 
             return __Types;
@@ -4179,7 +4199,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __EnumValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__EnumValueData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __EnumValues.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_EnumValues(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__EnumValueData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Types_EnumValues(child);
+                if (parsedValue is not null)
+                {
+                    __EnumValues.Add(parsedValue);
+                }
             }
 
             return __EnumValues;
@@ -4211,7 +4235,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __Types.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_PossibleTypes(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Types_PossibleTypes(child);
+                if (parsedValue is not null)
+                {
+                    __Types.Add(parsedValue);
+                }
             }
 
             return __Types;
@@ -4243,7 +4271,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __Directives = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__DirectiveData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __Directives.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Directives(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__DirectiveData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Directives(child);
+                if (parsedValue is not null)
+                {
+                    __Directives.Add(parsedValue);
+                }
             }
 
             return __Directives;
@@ -4275,7 +4307,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                __InputValues.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Directives_Args(child));
+                global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData parsedValue = Deserialize_NonNullableIIntrospectionQuery___schema_Directives_Args(child);
+                if (parsedValue is not null)
+                {
+                    __InputValues.Add(parsedValue);
+                }
             }
 
             return __InputValues;
@@ -4496,6 +4532,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)

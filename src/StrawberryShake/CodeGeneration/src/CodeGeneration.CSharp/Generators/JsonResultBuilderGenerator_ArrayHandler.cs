@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 public partial class JsonResultBuilderGenerator
 {
     private const string _child = "child";
+    private const string _parsedValue = "parsedValue";
 
     private void AddArrayHandler(
         ClassBuilder classBuilder,
@@ -17,6 +18,10 @@ public partial class JsonResultBuilderGenerator
         HashSet<string> processed)
     {
         var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
+
+        var listType = listTypeDescriptor.InnerType
+            .ToStateTypeReference()
+            .SkipTrailingSpace();
 
         methodBuilder
             .AddCode(
@@ -29,10 +34,7 @@ public partial class JsonResultBuilderGenerator
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
-                            .AddCode(
-                                listTypeDescriptor.InnerType
-                                    .ToStateTypeReference()
-                                    .SkipTrailingSpace())
+                            .AddCode(listType)
                             .AddCode(">")
                             .AddCode("()")))
             .AddEmptyLine()
@@ -42,14 +44,22 @@ public partial class JsonResultBuilderGenerator
                     .SetLoopHeader(
                         $"{TypeNames.JsonElement} {_child} in {_obj}.Value.EnumerateArray()")
                     .AddCode(
-                        MethodCallBuilder
+                        CodeBlockBuilder
                             .New()
-                            .SetMethodName(listVarName, nameof(List<object>.Add))
-                            .AddArgument(
-                                BuildUpdateMethodCall(
+                            .AddCode(AssignmentBuilder
+                                .New()
+                                .SetLefthandSide($"{listType} {_parsedValue}")
+                                .SetRighthandSide(BuildUpdateMethodCall(
                                     listTypeDescriptor.InnerType,
                                     CodeInlineBuilder.From(_child),
-                                    setNullForgiving: false))))
+                                    setNullForgiving: false)))
+                            .AddCode(IfBuilder
+                                .New()
+                                .SetCondition($"{_parsedValue} is not null")
+                                .AddCode(MethodCallBuilder
+                                    .New()
+                                    .SetMethodName(listVarName, nameof(List<object>.Add))
+                                    .AddArgument($"{_parsedValue}")))))
             .AddEmptyLine()
             .AddCode($"return {listVarName};");
 

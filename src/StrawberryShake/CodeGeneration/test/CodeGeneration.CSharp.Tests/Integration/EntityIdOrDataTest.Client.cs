@@ -867,7 +867,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             var bars = new global::System.Collections.Generic.List<global::StrawberryShake.EntityIdOrData?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                bars.Add(Deserialize_IBarData(session, child, entityIds));
+                global::StrawberryShake.EntityIdOrData? parsedValue = Deserialize_IBarData(session, child, entityIds);
+                if (parsedValue is not null)
+                {
+                    bars.Add(parsedValue);
+                }
             }
 
             return bars;
@@ -1034,6 +1038,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
                 "Baz" => ParseBazEntityId(obj, __typename),
                 "Baz2" => ParseBaz2EntityId(obj, __typename),
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
