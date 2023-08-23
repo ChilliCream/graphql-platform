@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
@@ -35,8 +35,9 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                     {
                         var typeName = splits[1];
                         var fieldName = splits[3];
+                        var isList = entityResolver.Type.IsListType();
                         
-                        if (typeName.Equals(originalTypeName, OrdinalIgnoreCase))
+                        if (!isList && typeName.Equals(originalTypeName, OrdinalIgnoreCase))
                         {
                             var field = type.Fields.FirstOrDefault(f => f.Name.Equals(fieldName, OrdinalIgnoreCase));
                             if (field is not null)
@@ -44,10 +45,22 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                                 TryRegisterEntityResolver(entity, type, entityResolver, field, schema);
                             }
                         }
-                        else if (typeName.Length - 1 == originalTypeName.Length && 
-                            typeName.AsSpan()[typeName.Length - 1] == 's')
+                        else if (isList && typeName.Equals(originalTypeName, OrdinalIgnoreCase) || 
+                            (typeName.Length - 1 == originalTypeName.Length && 
+                                typeName.AsSpan()[typeName.Length - 1] == 's'))
                         {
+                            var field = type.Fields.FirstOrDefault(f => f.Name.Equals(fieldName, OrdinalIgnoreCase));
                             
+                            if (field is null)
+                            {
+                                var fieldPlural = fieldName[..^1];
+                                field = type.Fields.FirstOrDefault(f => f.Name.Equals(fieldPlural, OrdinalIgnoreCase));
+                            }
+                            
+                            if (field is not null)
+                            {
+                                TryRegisterBatchEntityResolver(entity, type, entityResolver, field, schema);
+                            }
                         }
                     }
                 }
@@ -63,12 +76,14 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         OutputField keyField,
         Schema schema)
     {
-        // Check if the query field type matches the entity type
-        // and if it has any arguments that contain the @is directive
-        if (entityResolverField.Arguments.Count == 1 && 
-            (entityResolverField.Type == entityType ||
+        if (!TryResolveKeyArgument(entityResolverField, keyField, out var keyArg))
+        {
+            return;
+        }
+        
+        if (entityResolverField.Type == entityType ||
             (entityResolverField.Type.Kind is TypeKind.NonNull &&
-                entityResolverField.Type.InnerType() == entityType)))
+                entityResolverField.Type.InnerType() == entityType))
         {
             var arguments = new List<ArgumentNode>();
 
@@ -102,59 +117,182 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null);
 
             var keyFieldDirective = new IsDirective(keyFieldNode);
-            var arg = entityResolverField.Arguments.First();
             var var = entityType.CreateVariableName(keyFieldDirective);
-            arguments.Add(new ArgumentNode(arg.Name, new VariableNode(var)));
-            resolver.Variables.Add(var, arg.CreateVariableField(keyFieldDirective, var));
+            arguments.Add(new ArgumentNode(keyArg.Name, new VariableNode(var)));
+            resolver.Variables.Add(var, keyArg.CreateVariableField(keyFieldDirective, var));
 
             // Add the new EntityResolver to the entity metadata
             entity.Metadata.EntityResolvers.Add(resolver);
         }
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsListOf(IType type, IType entityType)
+    
+    private static bool TryResolveKeyArgument(
+        OutputField entityResolverField,
+        OutputField keyField,
+        [NotNullWhen(true)] out InputField? keyArgument)
     {
-        if (type.Kind == TypeKind.NonNull)
+        if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
         {
-            type = type.InnerType();
+            return keyArgument.Type.Equals(keyField.Type, TypeComparison.Structural);
         }
 
-        if (type.Kind != TypeKind.List)
+        if (entityResolverField.Arguments.Count == 1)
         {
-            return false;
+            keyArgument = entityResolverField.Arguments.First();
+        }
+        else
+        {
+            foreach (var argument in entityResolverField.Arguments)
+            {
+                if (keyArgument is null)
+                {
+                    keyArgument = argument;
+                    continue;
+                }
+
+                if (argument.Type.Kind is not TypeKind.NonNull)
+                {
+                    continue;   
+                }
+
+                if (argument.DefaultValue is null)
+                {
+                    keyArgument = null;
+                    return false;
+                }
+            }
         }
 
-        type = type.InnerType();
-
-        if (type.Kind == TypeKind.NonNull)
-        {
-            type = type.InnerType();
-        }
-
-        return ReferenceEquals(type, entityType);
+        return keyArgument?.Type.Equals(keyField.Type, TypeComparison.Structural) ?? false;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsListOfScalar(IType type)
+    
+    private static void TryRegisterBatchEntityResolver(
+        EntityGroup entity,
+        ObjectType entityType,
+        OutputField entityResolverField,
+        OutputField keyField,
+        Schema schema)
     {
-        if (type.Kind == TypeKind.NonNull)
+        if (!TryResolveBatchKeyArgument(entityResolverField, keyField, out var keyArg))
         {
-            type = type.InnerType();
+            return;
         }
 
-        if (type.Kind != TypeKind.List)
+        var returnType = entityResolverField.Type;
+
+        if (returnType.Kind is TypeKind.NonNull)
         {
+            returnType = returnType.InnerType();
+        }
+        
+        if(returnType.Kind != TypeKind.List)
+        {
+            return;
+        }
+        
+        returnType = returnType.InnerType();
+        
+        if (returnType == entityType ||
+            (returnType.Kind is TypeKind.NonNull &&
+                returnType.InnerType() == entityType))
+        {
+            var arguments = new List<ArgumentNode>();
+
+            // Create a new FieldNode for the entity resolver
+            var selection = new FieldNode(
+                null,
+                new NameNode(entityResolverField.GetOriginalName()),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                arguments,
+                null);
+
+            // Create a new SelectionSetNode for the entity resolver
+            var selectionSet = new SelectionSetNode(new[] { selection });
+
+            // Create a new EntityResolver for the entity
+            var resolver = new EntityResolver(
+                EntityResolverKind.BatchWithKey,
+                selectionSet,
+                entityType.Name,
+                schema.Name);
+            
+            var keyFieldNode = new FieldNode(
+                null,
+                new NameNode(keyField.Name),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                null);
+
+            var keyFieldDirective = new IsDirective(keyFieldNode);
+            var var = entityType.CreateVariableName(keyFieldDirective);
+            arguments.Add(new ArgumentNode(keyArg.Name, new VariableNode(var)));
+            resolver.Variables.Add(var, keyArg.CreateVariableField(keyFieldDirective, var));
+
+            // Add the new EntityResolver to the entity metadata
+            entity.Metadata.EntityResolvers.Add(resolver);
+        }
+    }
+    
+    private static bool TryResolveBatchKeyArgument(
+        OutputField entityResolverField,
+        OutputField keyField,
+        [NotNullWhen(true)] out InputField? keyArgument)
+    {
+        if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
+        {
+            if (keyArgument.Type.IsListType())
+            {
+                return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
+            }
+            
+            keyArgument = null;
             return false;
         }
 
-        type = type.InnerType();
-
-        if (type.Kind == TypeKind.NonNull)
+        if (entityResolverField.Arguments.Count == 1)
         {
-            type = type.InnerType();
+            keyArgument = entityResolverField.Arguments.First();
+            
+            if (keyArgument.Type.IsListType())
+            {
+                return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
+            }
+
+            keyArgument = null;
+            return false;
         }
 
-        return type.Kind == TypeKind.Scalar;
+        foreach (var argument in entityResolverField.Arguments)
+        {
+            if (keyArgument is null)
+            {
+                keyArgument = argument;
+                continue;
+            }
+
+            if (argument.Type.Kind is not TypeKind.NonNull)
+            {
+                continue;   
+            }
+
+            if (argument.DefaultValue is null)
+            {
+                keyArgument = null;
+                return false;
+            }
+        }
+
+        if (keyArgument?.Type.IsListType() is true && 
+            keyArgument.Type.InnerType().Equals(keyField.Type, TypeComparison.Structural))
+        {
+            return true;
+        }
+
+        keyArgument = null;
+        return false;
     }
 }
