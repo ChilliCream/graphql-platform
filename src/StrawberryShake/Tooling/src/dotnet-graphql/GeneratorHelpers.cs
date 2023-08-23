@@ -80,7 +80,7 @@ internal static class GeneratorHelpers
     {
         if (string.IsNullOrWhiteSpace(accessModifier))
         {
-            return AccessModifier.Internal;
+            return AccessModifier.Public;
         }
 
         return accessModifier switch
