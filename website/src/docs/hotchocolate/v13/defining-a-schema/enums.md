@@ -316,7 +316,7 @@ public class UserRoleType : EnumType<UserRole>
 
 Unless specified explicitly, Hot Chocolate automatically infers the names of enums and their values. Per default the name of the enum becomes the name of the enum type. When using `EnumType<T>` in Code-first, the name of `T` is chosen as the name for the enum type.
 
-Enum values are automatically formatted to the UPPER_SNAIL_CASE according to the GraphQL specification:
+Enum values are automatically formatted to the UPPER_SNAKE_CASE according to the GraphQL specification:
 
 - `Guest` becomes `GUEST`
 - `HeadOfDepartment` becomes `HEAD_OF_DEPARTMENT`
