@@ -22,7 +22,7 @@ public class CSharpGeneratorSettings
     /// <summary>
     /// The access modifier of the client.
     /// </summary>
-    public AccessModifier AccessModifier { get; set; } = AccessModifier.Internal;
+    public AccessModifier AccessModifier { get; set; } = AccessModifier.Public;
 
     /// <summary>
     /// Defines if a schema needs to be fully valid.
