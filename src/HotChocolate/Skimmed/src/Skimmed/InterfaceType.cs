@@ -10,6 +10,9 @@ public sealed class InterfaceType : ComplexType, INamedTypeSystemMember<Interfac
 
     public override TypeKind Kind => TypeKind.Interface;
 
+    public override bool Equals(IType? other, TypeComparison comparison)
+        => other is InterfaceType otherInterface && otherInterface.Name.Equals(Name, StringComparison.Ordinal);
+
     public override string ToString()
         => RewriteInterfaceType(this).ToString(true);
 

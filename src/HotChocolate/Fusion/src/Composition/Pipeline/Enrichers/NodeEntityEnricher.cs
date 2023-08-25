@@ -105,7 +105,7 @@ internal class NodeEntityEnricher : IEntityEnricher
                 _idVariable.WithVariable(varNode)));
 
         // Add the new EntityResolver to the entity metadata
-        entity.Metadata.EntityResolvers.Add(resolver);
+        entity.Metadata.EntityResolvers.TryAdd(resolver);
     }
 
     private static void ResolveWithNodes(
@@ -159,6 +159,6 @@ internal class NodeEntityEnricher : IEntityEnricher
                 _idsVariable.WithVariable(varNode)));
 
         // Add the new EntityResolver to the entity metadata
-        entity.Metadata.EntityResolvers.Add(resolver);
+        entity.Metadata.EntityResolvers.TryAdd(resolver);
     }
 }

@@ -9,9 +9,12 @@ public sealed class ObjectType : ComplexType, INamedTypeSystemMember<ObjectType>
     }
 
     public override TypeKind Kind => TypeKind.Object;
-
+    
     public override string ToString()
         => RewriteObjectType(this).ToString(true);
-
+    
+    public override bool Equals(IType? other, TypeComparison comparison)
+        => other is ObjectType otherObject && otherObject.Name.Equals(Name, StringComparison.Ordinal);
+    
     public static ObjectType Create(string name) => new(name);
 }
