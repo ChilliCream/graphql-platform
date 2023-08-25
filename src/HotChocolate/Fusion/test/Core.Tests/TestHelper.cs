@@ -39,25 +39,19 @@ internal static class TestHelper
         snapshot.Add(request, "User Request");
 
         var i = 0;
+
         await foreach (var item in result.ExpectResponseStream()
             .ReadResultsAsync().WithCancellation(cancellationToken))
         {
-            try
+            if (item.ContextData is not null &&
+                item.ContextData.TryGetValue("queryPlan", out var value) &&
+                value is QueryPlan queryPlan)
             {
-                if (item.ContextData is not null &&
-                    item.ContextData.TryGetValue("queryPlan", out var value) &&
-                    value is QueryPlan queryPlan)
-                {
-                    snapshot.Add(queryPlan, "QueryPlan");
-                    snapshot.Add(queryPlan.Hash, "QueryPlan Hash");
-                }
+                snapshot.Add(queryPlan, "QueryPlan");
+                snapshot.Add(queryPlan.Hash, "QueryPlan Hash");
+            }
 
-                snapshot.Add(item, $"Result {++i}");
-            }
-            finally
-            {
-                await item.DisposeAsync();
-            }
+            snapshot.Add(item, $"Result {++i}");
         }
 
         snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
