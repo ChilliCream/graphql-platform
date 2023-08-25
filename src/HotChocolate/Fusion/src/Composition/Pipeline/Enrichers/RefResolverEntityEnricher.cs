@@ -72,7 +72,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                         }
 
                         // Add the new EntityResolver to the entity metadata
-                        entity.Metadata.EntityResolvers.Add(resolver);
+                        entity.Metadata.EntityResolvers.TryAdd(resolver);
                     }
                 }
             }
@@ -127,7 +127,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
             }
 
             // Add the new EntityResolver to the entity metadata
-            entity.Metadata.EntityResolvers.Add(resolver);
+            entity.Metadata.EntityResolvers.TryAdd(resolver);
         }
     }
 

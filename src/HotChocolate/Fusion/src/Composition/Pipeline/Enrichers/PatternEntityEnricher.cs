@@ -122,7 +122,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             resolver.Variables.Add(var, keyArg.CreateVariableField(keyFieldDirective, var));
 
             // Add the new EntityResolver to the entity metadata
-            entity.Metadata.EntityResolvers.Add(resolver);
+            entity.Metadata.EntityResolvers.TryAdd(resolver);
         }
     }
     
@@ -233,7 +233,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             resolver.Variables.Add(var, keyArg.CreateVariableField(keyFieldDirective, var));
 
             // Add the new EntityResolver to the entity metadata
-            entity.Metadata.EntityResolvers.Add(resolver);
+            entity.Metadata.EntityResolvers.TryAdd(resolver);
         }
     }
     

@@ -362,7 +362,7 @@ internal sealed partial class SubscriptionExecutor
 
     private sealed class SubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
     {
-        private readonly IAsyncEnumerator<object> _eventEnumerator;
+        private readonly IAsyncEnumerator<object?> _eventEnumerator;
         private readonly Func<object, Task<IQueryResult>> _onEvent;
         private readonly Subscription _subscription;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
@@ -370,7 +370,7 @@ internal sealed partial class SubscriptionExecutor
         private bool _disposed;
 
         public SubscriptionEnumerator(
-            IAsyncEnumerator<object> eventEnumerator,
+            IAsyncEnumerator<object?> eventEnumerator,
             Func<object, Task<IQueryResult>> onEvent,
             Subscription subscription,
             IExecutionDiagnosticEvents diagnosticEvents,
