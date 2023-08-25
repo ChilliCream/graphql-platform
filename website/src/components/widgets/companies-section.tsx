@@ -25,6 +25,7 @@ import E2mLogoSvg from "@/images/companies/e2m.svg";
 import ExlrtLogoSvg from "@/images/companies/exlrt.svg";
 import EzeepLogoSvg from "@/images/companies/ezeep.svg";
 import FulcrumLogoSvg from "@/images/companies/fulcrum.svg";
+import GalaxusLogoSvg from "@/images/companies/galaxus.svg";
 import GiaLogoSvg from "@/images/companies/gia.svg";
 import HiloLogoSvg from "@/images/companies/hilo.svg";
 import IncloudLogoSvg from "@/images/companies/incloud.svg";
@@ -66,6 +67,11 @@ export const CompaniesSection: FC = () => (
               <Company {...SwissLifeLogoSvg} />
             </Link>
           </SwissLifeLogo>
+          <GalaxusLogo>
+            <Link to="https://www.galaxus.ch">
+              <Company {...GalaxusLogoSvg} />
+            </Link>
+          </GalaxusLogo>
         </Carousel>
         <Ticker>
           <GenericLogo width={140}>
@@ -250,19 +256,11 @@ export const CompaniesSection: FC = () => (
 );
 
 const FADE = keyframes`
-  0% {
-    opacity: 1;
-    z-index: 1;
-  }
-  25% {
-    opacity: 1;
-  }
-  49% {
-    z-index: 1;
-  }
-  50% {
+  0%, 33% {
     opacity: 0;
-    z-index: 0;
+  }
+  8%, 24% {
+    opacity: 1;
   }
 `;
 
@@ -283,17 +281,21 @@ const Carousel = styled.div`
 
   & > * {
     position: absolute;
-    animation: 12s ${FADE} linear infinite;
+    animation: ${FADE} 15s infinite;
     opacity: 0;
     z-index: 0;
   }
 
   & > *:nth-child(1) {
-    animation-delay: 0s;
+    animation-delay: 0;
   }
 
   & > *:nth-child(2) {
-    animation-delay: 6s;
+    animation-delay: 5s;
+  }
+
+  & > *:nth-child(3) {
+    animation-delay: 10s;
   }
 `;
 
@@ -309,6 +311,15 @@ const MicrosoftLogo = styled.div`
 const SwissLifeLogo = styled.div`
   & svg {
     height: 80px;
+    margin: 20px;
+  }
+`;
+
+const GalaxusLogo = styled.div`
+  & svg {
+    min-height: 30px;
+    min-width: 150px;
+    height: 90px;
     margin: 20px;
   }
 `;
