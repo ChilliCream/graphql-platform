@@ -70,10 +70,16 @@ internal sealed class OperationSession : IOperationSession
                     break;
 
                 case IResponseStream responseStream:
-                    await foreach (var item in
-                        responseStream.ReadResultsAsync().WithCancellation(ct))
+                    await foreach (var item in responseStream.ReadResultsAsync().WithCancellation(ct))
                     {
-                        await SendResultMessageAsync(item, ct);
+                        try
+                        {
+                            await SendResultMessageAsync(item, ct);
+                        }
+                        finally
+                        {
+                            await item.DisposeAsync();
+                        }
                     }
                     break;
             }

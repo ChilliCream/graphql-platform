@@ -127,9 +127,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-        await foreach (var queryResult in responseStream.ReadResultsAsync()
-                            .WithCancellation(ct)
-                           .ConfigureAwait(false))
+        await foreach (var queryResult in responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
         {
             // we do not need try-finally here because we dispose the semaphore in the parent
             // method.
@@ -138,8 +136,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
             try
             {
-                await WriteNextMessageAsync(queryResult, outputStream, ct)
-                    .ConfigureAwait(false);
+                await WriteNextMessageAsync(queryResult, outputStream, ct).ConfigureAwait(false);
             }
             finally
             {
