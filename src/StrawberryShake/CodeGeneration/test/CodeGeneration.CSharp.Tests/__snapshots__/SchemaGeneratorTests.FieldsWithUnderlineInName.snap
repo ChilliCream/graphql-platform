@@ -3729,7 +3729,11 @@ namespace Foo.Bar.State
             var bwr_TimeSeriess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                bwr_TimeSeriess.Add(Update_IGetBwr_TimeSeries_Bwr_TimeSeries_NodesEntity(session, child, entityIds));
+                global::StrawberryShake.EntityId? parsedValue = Update_IGetBwr_TimeSeries_Bwr_TimeSeries_NodesEntity(session, child, entityIds);
+                if (parsedValue is not null)
+                {
+                    bwr_TimeSeriess.Add(parsedValue);
+                }
             }
 
             return bwr_TimeSeriess;
@@ -3742,7 +3746,12 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("bwr_TimeSeries", global::System.StringComparison.Ordinal))
             {
@@ -3814,7 +3823,12 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("bwr_ValidationCriteria", global::System.StringComparison.Ordinal))
             {
@@ -3850,7 +3864,12 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("bwr_ImportSpecification", global::System.StringComparison.Ordinal))
             {
@@ -4161,6 +4180,19 @@ namespace Foo.Bar.State
                 "bwr_ValidationCriteria" => Parsebwr_ValidationCriteriaEntityId(obj, __typename),
                 "bwr_ImportSpecification" => Parsebwr_ImportSpecificationEntityId(obj, __typename),
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)

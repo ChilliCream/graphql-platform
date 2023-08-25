@@ -561,7 +561,11 @@ namespace Foo.Bar.State
             var episodes = new global::System.Collections.Generic.List<global::Foo.Bar.Episode?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                episodes.Add(Deserialize_Episode(child));
+                global::Foo.Bar.Episode? parsedValue = Deserialize_Episode(child);
+                if (parsedValue is not null)
+                {
+                    episodes.Add(parsedValue);
+                }
             }
 
             return episodes;

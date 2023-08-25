@@ -645,7 +645,11 @@ namespace Foo.Bar.State
             var newsItems = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                newsItems.Add(Update_ISearchNewsItems_NewsItems_ItemsEntity(session, child, entityIds));
+                global::StrawberryShake.EntityId? parsedValue = Update_ISearchNewsItems_NewsItems_ItemsEntity(session, child, entityIds);
+                if (parsedValue is not null)
+                {
+                    newsItems.Add(parsedValue);
+                }
             }
 
             return newsItems;
@@ -658,7 +662,12 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("NewsItem", global::System.StringComparison.Ordinal))
             {
@@ -737,6 +746,19 @@ namespace Foo.Bar.State
             {
                 "NewsItem" => ParseNewsItemEntityId(obj, __typename),
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)

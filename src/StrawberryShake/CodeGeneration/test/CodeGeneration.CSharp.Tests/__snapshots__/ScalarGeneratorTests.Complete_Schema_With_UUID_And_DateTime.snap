@@ -750,7 +750,11 @@ namespace Foo.Bar.State
             var expenses = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                expenses.Add(Update_IAllExpenses_ExpenseEntity(session, child, entityIds));
+                global::StrawberryShake.EntityId? parsedValue = Update_IAllExpenses_ExpenseEntity(session, child, entityIds);
+                if (parsedValue is not null)
+                {
+                    expenses.Add(parsedValue);
+                }
             }
 
             return expenses;
@@ -763,7 +767,12 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Expense", global::System.StringComparison.Ordinal))
             {
@@ -852,7 +861,11 @@ namespace Foo.Bar.State
             var tags = new global::System.Collections.Generic.List<global::Foo.Bar.State.TagData?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                tags.Add(Deserialize_IAllExpenses_Expense_Tags(child));
+                global::Foo.Bar.State.TagData? parsedValue = Deserialize_IAllExpenses_Expense_Tags(child);
+                if (parsedValue is not null)
+                {
+                    tags.Add(parsedValue);
+                }
             }
 
             return tags;
@@ -960,6 +973,19 @@ namespace Foo.Bar.State
             {
                 "Expense" => ParseExpenseEntityId(obj, __typename),
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)

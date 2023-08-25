@@ -1054,7 +1054,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
             if (!parseSuccess)
             {
-                return null;
+                return default;
             }
 
             entityIds.Add(entityId);
@@ -1159,7 +1159,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
             if (!parseSuccess)
             {
-                return null;
+                return default;
             }
 
             entityIds.Add(entityId);

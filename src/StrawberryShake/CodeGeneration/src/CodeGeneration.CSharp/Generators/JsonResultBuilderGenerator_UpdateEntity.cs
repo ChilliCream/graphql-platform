@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -20,22 +21,15 @@ public partial class JsonResultBuilderGenerator
         INamedTypeDescriptor namedTypeDescriptor,
         HashSet<string> processed)
     {
-        methodBuilder.AddCode(
-            AssignmentBuilder
-                .New()
-                .SetLefthandSide($"{TypeNames.Boolean} {_parseSuccess}")
-                .SetRighthandSide(
-                    MethodCallBuilder
-                        .Inline()
-                        .SetMethodName(GetFieldName(_idSerializer), "TryParse")
-                        .AddArgument($"{_obj}.Value")
-                        .AddArgument($"out {TypeNames.EntityId} {_entityId}")));
+        if (namedTypeDescriptor.IsNonNull())
+        {
+            AddNonNullTypeBody(methodBuilder);
+        }
+        else
+        {
+            AddNullTypeBody(methodBuilder);
+        }
 
-        methodBuilder.AddCode(
-            IfBuilder
-                .New()
-                .SetCondition($"!{_parseSuccess}")
-                .AddCode("return null;"));
 
         methodBuilder.AddCode(
             MethodCallBuilder
@@ -73,6 +67,45 @@ public partial class JsonResultBuilderGenerator
         }
 
         AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder, processed);
+    }
+
+    private static void AddNullTypeBody(MethodBuilder methodBuilder)
+    {
+        methodBuilder.AddCode(
+            AssignmentBuilder
+                .New()
+                .SetLefthandSide($"{TypeNames.Boolean} {_parseSuccess}")
+                .SetRighthandSide(
+                    MethodCallBuilder
+                        .Inline()
+                        .SetMethodName(GetFieldName(_idSerializer), "TryParse")
+                        .AddArgument($"{_obj}.Value")
+                        .AddArgument($"out {TypeNames.EntityId} {_entityId}")));
+
+        methodBuilder.AddCode(
+            IfBuilder
+                .New()
+                .SetCondition($"!{_parseSuccess}")
+                .AddCode("return default;"));
+    }
+
+    private static void AddNonNullTypeBody(MethodBuilder methodBuilder)
+    {
+        methodBuilder.AddCode(
+            AssignmentBuilder
+                .New()
+                .SetLefthandSide($"{TypeNames.EntityId} {_entityId}")
+                .SetRighthandSide(
+                    MethodCallBuilder
+                        .Inline()
+                        .SetMethodName(GetFieldName(_idSerializer), "Parse")
+                        .AddArgument($"{_obj}.Value")));
+
+        methodBuilder.AddCode(
+            MethodCallBuilder
+                .New()
+                .SetMethodName(_entityIds, nameof(List<object>.Add))
+                .AddArgument(_entityId));
     }
 
     private IfBuilder CreateUpdateEntityStatement(
