@@ -40,7 +40,7 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
-        services.AddTransient<IWebSocketConnectionFactory>(
+        services.TryAddSingleton<IWebSocketConnectionFactory>(
             _ => new DefaultWebSocketConnectionFactory());
         services.TryAddSingleton<IGraphQLClientFactory>(
             sp => new DefaultHttpGraphQLClientFactory(
