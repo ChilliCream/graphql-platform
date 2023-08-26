@@ -25,6 +25,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
 
         var interfaceBuilder = InterfaceBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetComment(
                 XmlCommentBuilder
                     .New()

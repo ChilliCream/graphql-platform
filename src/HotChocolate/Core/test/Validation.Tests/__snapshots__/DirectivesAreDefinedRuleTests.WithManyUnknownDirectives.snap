@@ -5,11 +5,10 @@
     "Path": {
       "Name": "dog",
       "Parent": {
-        "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -80,11 +79,10 @@
     "Path": {
       "Name": "human",
       "Parent": {
-        "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -157,14 +155,13 @@
       "Parent": {
         "Name": "human",
         "Parent": {
-          "Parent": null,
-          "Length": -1,
+          "Length": 0,
           "IsRoot": true
         },
-        "Length": 0,
+        "Length": 1,
         "IsRoot": false
       },
-      "Length": 1,
+      "Length": 2,
       "IsRoot": false
     },
     "Locations": [

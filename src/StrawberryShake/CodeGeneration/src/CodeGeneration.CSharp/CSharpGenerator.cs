@@ -312,6 +312,7 @@ public static class CSharpGenerator
         CSharpGeneratorSettings settings)
     {
         var generatorSettings = new CSharpSyntaxGeneratorSettings(
+            settings.AccessModifier,
             settings.NoStore,
             settings.InputRecords,
             settings.EntityRecords,

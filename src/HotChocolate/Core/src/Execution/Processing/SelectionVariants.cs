@@ -25,6 +25,26 @@ internal sealed class SelectionVariants : ISelectionVariants
     public IEnumerable<IObjectType> GetPossibleTypes()
         => _map?.Keys ?? GetPossibleTypesLazy();
 
+    public bool IsPossibleType(IObjectType typeContext)
+    {
+        if(_map is not null)
+        {
+            return _map.ContainsKey(typeContext);
+        }
+        
+        if (ReferenceEquals(_firstType, typeContext))
+        {
+            return true;
+        }
+        
+        if (ReferenceEquals(_secondType, typeContext))
+        {
+            return true;
+        }
+        
+        return false;
+    }
+
     private IEnumerable<IObjectType> GetPossibleTypesLazy()
     {
         yield return _firstType!;

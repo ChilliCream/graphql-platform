@@ -39,6 +39,7 @@ internal static class TestHelper
         snapshot.Add(request, "User Request");
 
         var i = 0;
+
         await foreach (var item in result.ExpectResponseStream()
             .ReadResultsAsync().WithCancellation(cancellationToken))
         {

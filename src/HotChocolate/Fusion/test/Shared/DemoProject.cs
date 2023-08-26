@@ -295,6 +295,9 @@ public sealed class DemoProject : IDisposable
                 "Reviews", () => new MockWebSocketConnection(reviews.CreateWebSocketClient())
             },
             {
+                "Reviews2", () => new MockWebSocketConnection(reviews2.CreateWebSocketClient())
+            },
+            {
                 "Accounts", () => new MockWebSocketConnection(accounts.CreateWebSocketClient())
             },
             {

@@ -28,4 +28,8 @@ public abstract class ComplexType : INamedType
     public FieldCollection<OutputField> Fields { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public bool Equals(IType? other) => Equals(other, TypeComparison.Reference);
+
+    public abstract bool Equals(IType? other, TypeComparison comparison);
 }

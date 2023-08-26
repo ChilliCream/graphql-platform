@@ -95,7 +95,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
 
             var result = operationContext
                 .SetLabel(Label)
-                .SetPath(operationContext.PathFactory.Append(Path, Index).Clone())
+                .SetPath(Path.Append(Index))
                 .SetItems(new[] { item })
                 .SetPatchId(patchId)
                 .BuildResult();

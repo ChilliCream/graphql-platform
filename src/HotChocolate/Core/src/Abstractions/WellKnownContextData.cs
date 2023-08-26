@@ -231,6 +231,11 @@ public static class WellKnownContextData
     public const string MutationQueryField = "HotChocolate.Relay.Mutations.QueryField";
 
     /// <summary>
+    /// The key to the name of the data field when using the mutation convention.
+    /// </summary>
+    public const string MutationConventionDataField = "HotChocolate.Types.Mutations.Conventions.DataField";
+
+    /// <summary>
     /// The key to get the Cache-Control header value from the context data.
     /// </summary>
     public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";

@@ -40,7 +40,8 @@
     "cypher",
     "sublicensable",
     "meros",
-    "Structs"
+    "Structs",
+    "reencode"
   ],
   "ignoreWords": [
     "Badurina",

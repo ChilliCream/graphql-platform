@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -77,7 +76,7 @@ public class ArgumentScopedVariableResolverTests
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null));
-        context.Setup(t => t.Path).Returns(PathFactory.Instance.New("foo"));
+        context.Setup(t => t.Path).Returns(Path.Root.Append("foo"));
 
         var scopedVariable = new ScopedVariableNode(
             null,

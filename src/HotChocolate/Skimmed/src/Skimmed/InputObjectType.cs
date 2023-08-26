@@ -14,6 +14,7 @@ public sealed class InputObjectType : INamedType, INamedTypeSystemMember<InputOb
 
     public TypeKind Kind => TypeKind.InputObject;
 
+
     public string Name
     {
         get => _name;
@@ -28,6 +29,12 @@ public sealed class InputObjectType : INamedType, INamedTypeSystemMember<InputOb
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 
+    public bool Equals(IType? other)
+        => Equals(other, TypeComparison.Reference);
+    
+    public bool Equals(IType? other, TypeComparison comparison)
+        => other is InputObjectType otherInput && otherInput.Name.Equals(Name, StringComparison.Ordinal);
+    
     public override string ToString()
         => RewriteInputObjectType(this).ToString(true);
 

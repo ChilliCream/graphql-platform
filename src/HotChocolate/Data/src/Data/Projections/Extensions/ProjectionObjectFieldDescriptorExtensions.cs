@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
-using System.Security.AccessControl;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
@@ -13,6 +13,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 using static HotChocolate.WellKnownContextData;
@@ -48,8 +49,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
     {
         descriptor
             .Extend()
-            .OnBeforeCreate(
-                x => x.ContextData[ProjectionConvention.IsProjectedKey] = isProjected);
+            .OnBeforeCreate(x => x.ContextData[ProjectionConvention.IsProjectedKey] = isProjected);
 
         return descriptor;
     }
@@ -153,7 +153,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                                 out var typeInfo))
                         {
                             throw new ArgumentException(
-                                DataResources.UseProjection_CannotHandleType_,
+                                UseProjection_CannotHandleType,
                                 nameof(descriptor));
                         }
 
@@ -191,7 +191,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private static FieldMiddleware CreateMiddleware<TEntity>(IProjectionConvention convention)
     {
-        FieldMiddleware executor = convention.CreateExecutor<TEntity>();
+        var executor = convention.CreateExecutor<TEntity>();
         return next => context =>
         {
             // in case we are being called from the node/nodes field we need to enrich
@@ -204,9 +204,40 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 var selection = CreateProxySelection(context.Selection, fieldProxy);
                 context = new MiddlewareContextProxy(context, selection, objectType);
             }
-
+            
+            //for use case when projection is used with Mutation Conventions
+            else if (context.Operation.Type is OperationType.Mutation && 
+                context.Selection.Type.NamedType() is ObjectType mutationPayloadType && 
+                mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null)
+                    is string dataFieldName)
+            {
+                var dataField = mutationPayloadType.Fields[dataFieldName];
+                var payloadSelectionSet = context.Operation.GetSelectionSet(context.Selection, mutationPayloadType);
+                var selection = UnwrapMutationPayloadSelection(payloadSelectionSet, dataField);
+                context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
+            }
+            
             return executor.Invoke(next).Invoke(context);
         };
+    }
+
+    private static Selection UnwrapMutationPayloadSelection(ISelectionSet selectionSet, ObjectField field)
+    {
+        ref var selection = ref Unsafe.As<SelectionSet>(selectionSet).GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
+
+        while (Unsafe.IsAddressLessThan(ref selection, ref end))
+        {
+            if (ReferenceEquals(selection.Field, field))
+            {
+                return selection;
+            }
+            
+            selection = ref Unsafe.Add(ref selection, 1)!;
+        }
+
+        throw new InvalidOperationException(
+            ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed);
     }
 
     private sealed class MiddlewareContextProxy : IMiddlewareContext

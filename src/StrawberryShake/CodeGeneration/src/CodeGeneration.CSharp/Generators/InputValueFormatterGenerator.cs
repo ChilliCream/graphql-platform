@@ -41,6 +41,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName)
             .AddImplements(TypeNames.IInputObjectFormatter);
 

@@ -1,0 +1,9 @@
+{
+  "data": {
+    "modifySingleOrDefault": {
+      "foo": {
+        "bar": "A"
+      }
+    }
+  }
+}
