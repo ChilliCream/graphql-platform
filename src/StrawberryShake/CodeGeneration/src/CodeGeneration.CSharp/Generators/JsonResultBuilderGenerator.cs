@@ -233,9 +233,9 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
                 : CodeLineBuilder.From("return null;"));
 
-                methodBuilder
-                    .AddCode(jsonElementNullValueKindCheck)
-                    .AddEmptyLine();
+            methodBuilder
+                .AddCode(jsonElementNullValueKindCheck)
+                .AddEmptyLine();
 
             AddDeserializeMethodBody(classBuilder, methodBuilder, typeReference, processed);
         }
