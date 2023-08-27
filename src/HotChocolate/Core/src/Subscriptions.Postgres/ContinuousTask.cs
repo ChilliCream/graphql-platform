@@ -47,12 +47,20 @@ internal sealed class ContinuousTask : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (disposed)
+        if(disposed)
         {
             return;
         }
 
-        _completion.TryCancel();
+        if(!_completion.IsCancellationRequested)
+        {
+#if NET8_0_OR_GREATER
+            await _completion.CancelAsync();
+#else
+            _completion.Cancel();
+#endif
+        }
+
         _completion.Dispose();
 
         disposed = true;
