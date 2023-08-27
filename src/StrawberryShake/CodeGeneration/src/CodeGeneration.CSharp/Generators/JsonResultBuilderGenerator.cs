@@ -227,7 +227,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
             var jsonElementNullValueKindCheck = IfBuilder
                 .New()
-                .SetCondition($"{_obj}.Value.ValueKind == JsonValueKind.Null")
+                .SetCondition($"{_obj}.Value.ValueKind == System.Text.Json.JsonValueKind.Null")
                 .AddCode(
             typeReference.IsNonNull()
                 ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
