@@ -225,6 +225,18 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .AddCode(jsonElementNullCheck)
                 .AddEmptyLine();
 
+            var jsonElementNullValueKindCheck = IfBuilder
+                .New()
+                .SetCondition($"{_obj}.Value.ValueKind == JsonValueKind.Null")
+                .AddCode(
+            typeReference.IsNonNull()
+                ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
+                : CodeLineBuilder.From("return null;"));
+
+                methodBuilder
+                    .AddCode(jsonElementNullValueKindCheck)
+                    .AddEmptyLine();
+
             AddDeserializeMethodBody(classBuilder, methodBuilder, typeReference, processed);
         }
     }
