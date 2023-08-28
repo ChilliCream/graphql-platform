@@ -165,7 +165,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
                 // if we do by key batching the current execution step must
                 // re-export its requirements so we know where entities belong to.
-                if (currentStep.Resolver.Kind is ResolverKind.BatchByKey)
+                if (currentStep.Resolver.Kind is ResolverKind.Batch)
                 {
                     foreach (var variable in step.SelectionSetTypeMetadata.Variables)
                     {

@@ -602,7 +602,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 {
                     if (preference is PreferredResolverKind.Subscription)
                     {
-                        if (current.Kind is ResolverKind.Subscription)
+                        if (current.Kind is ResolverKind.Subscribe)
                         {
                             resolver = current;
                             return true;
@@ -615,15 +615,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         switch (current.Kind)
                         {
                             case ResolverKind.Batch:
-                                resolver = current;
-
-                                if (preference is PreferredResolverKind.Batch)
-                                {
-                                    return true;
-                                }
-                                break;
-
-                            case ResolverKind.BatchByKey:
                                 resolver = current;
                                 break;
 

@@ -33,6 +33,8 @@ type Query {
   usersById(ids: [ID!]!): [User!]!
     @variable(subgraph: "Accounts", name: "ids", argument: "ids")
     @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+  viewer: Viewer!
+    @resolver(subgraph: "Accounts", select: "{ viewer }")
 }
 
 type Mutation {
@@ -46,7 +48,7 @@ type Mutation {
 
 type Subscription {
   onNewReview: Review!
-    @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIPTION")
+    @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIBE")
 }
 
 type AddReviewPayload {
@@ -73,7 +75,7 @@ type Review implements Node
   @variable(subgraph: "Reviews", name: "Review_id", select: "id")
   @resolver(subgraph: "Reviews", select: "{ reviewById(id: $Review_id) }", arguments: [ { name: "Review_id", type: "ID!" } ])
   @resolver(subgraph: "Reviews", select: "{ node(id: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH") {
   author: User!
     @source(subgraph: "Reviews")
   body: String!
@@ -82,6 +84,11 @@ type Review implements Node
     @source(subgraph: "Reviews")
   product: Product!
     @source(subgraph: "Reviews")
+}
+
+type SomeData {
+  accountValue: String!
+    @source(subgraph: "Accounts")
 }
 
 type SomeType
@@ -98,13 +105,13 @@ type User implements Node
   @variable(subgraph: "Accounts", name: "User_id", select: "id")
   @variable(subgraph: "Reviews", name: "User_id", select: "id")
   @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY")
+  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
   @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Accounts", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY")
+  @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
   @resolver(subgraph: "Reviews", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
     @source(subgraph: "Accounts")
     @tag(name: "internal")
@@ -117,6 +124,13 @@ type User implements Node
   reviews: [Review!]!
     @source(subgraph: "Reviews")
   username: String!
+    @source(subgraph: "Accounts")
+}
+
+type Viewer {
+  data: SomeData!
+    @source(subgraph: "Accounts")
+  user: User
     @source(subgraph: "Accounts")
 }
 

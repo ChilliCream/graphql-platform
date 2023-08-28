@@ -453,10 +453,9 @@ internal sealed class FusionGraphConfigurationReader
                 case KindArg:
                     kind = Expect<StringValueNode>(argument.Value).Value switch
                     {
-                        FusionEnumValueNames.Query => ResolverKind.Query,
+                        FusionEnumValueNames.Fetch => ResolverKind.Query,
                         FusionEnumValueNames.Batch => ResolverKind.Batch,
-                        FusionEnumValueNames.BatchByKey => ResolverKind.BatchByKey,
-                        FusionEnumValueNames.Subscription => ResolverKind.Subscription,
+                        FusionEnumValueNames.Subscribe => ResolverKind.Subscribe,
                         _ => throw new InvalidOperationException(
                             FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue)
                     };

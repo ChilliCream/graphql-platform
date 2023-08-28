@@ -7,14 +7,9 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public sealed class DemoIntegrationTests
+public sealed class DemoIntegrationTests(ITestOutputHelper output)
 {
-    private readonly Func<ICompositionLog> _logFactory;
-
-    public DemoIntegrationTests(ITestOutputHelper output)
-    {
-        _logFactory = () => new TestCompositionLog(output);
-    }
+    private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
     public async Task Accounts_And_Reviews()

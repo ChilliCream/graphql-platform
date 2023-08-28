@@ -144,10 +144,9 @@ public sealed class FusionTypes
     private EnumType RegisterResolverKindType(string name)
     {
         var resolverKind = new EnumType(name);
-        resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Query));
+        resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Fetch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
-        resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.BatchByKey));
-        resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscription));
+        resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscribe));
         resolverKind.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.Types.Add(resolverKind);
         return resolverKind;
@@ -237,8 +236,7 @@ public sealed class FusionTypes
             var kindValue = kind switch
             {
                 EntityResolverKind.Batch => FusionEnumValueNames.Batch,
-                EntityResolverKind.BatchWithKey => FusionEnumValueNames.BatchByKey,
-                EntityResolverKind.Subscription => FusionEnumValueNames.Subscription,
+                EntityResolverKind.Subscribe => FusionEnumValueNames.Subscribe,
                 _ => throw new NotSupportedException()
             };
 
@@ -256,12 +254,11 @@ public sealed class FusionTypes
         EnumType resolverKind)
     {
         var directiveType = new DirectiveType(name);
+        directiveType.Locations |= DirectiveLocation.Object;
         directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selectionSet)));
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(
-            new InputField(ArgumentsArg, new ListType(new NonNullType(argumentDef))));
+        directiveType.Arguments.Add(new InputField(ArgumentsArg, new ListType(new NonNullType(argumentDef))));
         directiveType.Arguments.Add(new InputField(KindArg, resolverKind));
-        directiveType.Locations |= DirectiveLocation.Object;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
@@ -279,11 +276,25 @@ public sealed class FusionTypes
 
     private DirectiveType RegisterSourceDirectiveType(string name, ScalarType typeName)
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations = DirectiveLocation.FieldDefinition;
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(NameArg, typeName));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        var directiveType = new DirectiveType(name)
+        {
+            Locations = DirectiveLocation.Object |
+                DirectiveLocation.FieldDefinition |
+                DirectiveLocation.Enum |
+                DirectiveLocation.EnumValue |
+                DirectiveLocation.InputObject |
+                DirectiveLocation.InputFieldDefinition |
+                DirectiveLocation.Scalar,
+            Arguments =
+            {
+                new InputField(SubgraphArg, new NonNullType(typeName)),
+                new InputField(NameArg, typeName)
+            },
+            ContextData =
+            {
+                [WellKnownContextData.IsFusionType] = true
+            }
+        };
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
