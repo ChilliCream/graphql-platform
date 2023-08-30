@@ -63,4 +63,7 @@ Source Arguments: {2}</value>
   <data name="DirectivesHelper_GetRequireDirective_NoFieldArg" xml:space="preserve">
     <value>The require directive must have a value for the argument field.</value>
   </data>
+  <data name="LogEntryHelper_TypeNotDeclared" xml:space="preserve">
+    <value>The type `{0}` is not declared on subgraph {1}. Check the subgraph schema for consistency.</value>
+  </data>
 </root>

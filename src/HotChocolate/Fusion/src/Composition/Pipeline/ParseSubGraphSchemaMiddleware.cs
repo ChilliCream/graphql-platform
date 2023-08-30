@@ -2,6 +2,7 @@ using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
+using static HotChocolate.Fusion.Composition.LogEntryHelper;
 using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -28,6 +29,11 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
             if (IsIncluded(schema, excludedTags))
             {
                 context.Subgraphs.Add(schema);
+            }
+
+            foreach (var missingType in schema.Types.OfType<MissingType>())
+            {
+                context.Log.Write(TypeNotDeclared(missingType, schema));
             }
         }
 
@@ -112,7 +118,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
             if (targetType.Kind != sourceType.Kind)
             {
                 context.Log.Write(
-                    LogEntryHelper.MergeTypeKindDoesNotMatch(
+                    MergeTypeKindDoesNotMatch(
                         sourceType,
                         sourceType.Kind,
                         targetType.Kind));

@@ -114,6 +114,15 @@ internal static class LogEntryHelper
             code: LogEntryCodes.FieldDependencyCannotBeResolved,
             coordinate: coordinate,
             schema: schema);
+
+    public static LogEntry TypeNotDeclared(MissingType type, Schema schema)
+        => new(
+            string.Format(LogEntryHelper_TypeNotDeclared, type.Name, schema.Name),
+            LogEntryCodes.TypeNotDeclared,
+            severity: LogSeverity.Error,
+            coordinate: new SchemaCoordinate(type.Name),
+            member: type,
+            schema: schema);
 }
 
 static file class LogEntryCodes
@@ -133,4 +142,6 @@ static file class LogEntryCodes
     public const string CoordinateNotAllowedForRequirements = "HF0007";
 
     public const string FieldDependencyCannotBeResolved = "HF0008";
+    
+    public const string TypeNotDeclared = "HF0009";
 }
