@@ -5,6 +5,7 @@
     "Path": {
       "Name": "dog",
       "Parent": {
+        "Parent": null,
         "Length": 0,
         "IsRoot": true
       },
@@ -79,6 +80,7 @@
     "Path": {
       "Name": "human",
       "Parent": {
+        "Parent": null,
         "Length": 0,
         "IsRoot": true
       },
@@ -155,6 +157,7 @@
       "Parent": {
         "Name": "human",
         "Parent": {
+          "Parent": null,
           "Length": 0,
           "IsRoot": true
         },
