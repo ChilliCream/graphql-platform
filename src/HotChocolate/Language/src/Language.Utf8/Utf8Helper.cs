@@ -26,7 +26,22 @@ internal static class Utf8Helper
                 {
                     code = escapedString[++readPosition];
 
-                    if (code.IsValidEscapeCharacter())
+                    if (isBlockString && code == GraphQLConstants.Quote)
+                    {
+                        if (escapedString[readPosition + 1] == GraphQLConstants.Quote
+                            && escapedString[readPosition + 2] == GraphQLConstants.Quote)
+                        {
+                            readPosition += 2;
+                            unescapedString[writePosition++] = GraphQLConstants.Quote;
+                            unescapedString[writePosition++] = GraphQLConstants.Quote;
+                            unescapedString[writePosition++] = GraphQLConstants.Quote;
+                        }
+                        else
+                        {
+                            throw new Utf8EncodingException(Utf8Helper_InvalidQuoteEscapeCount);
+                        }
+                    }
+                    else if (code.IsValidEscapeCharacter())
                     {
                         if (code == GraphQLConstants.U)
                         {
