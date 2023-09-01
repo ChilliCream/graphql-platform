@@ -31,7 +31,7 @@ public abstract class Path : IEquatable<Path>
     /// <summary>
     /// Gets the parent path segment.
     /// </summary>
-    public Path Parent => _parent ?? throw new InvalidOperationException();
+    public Path Parent => _parent!;
 
     /// <summary>
     /// Gets the count of segments this path contains.
