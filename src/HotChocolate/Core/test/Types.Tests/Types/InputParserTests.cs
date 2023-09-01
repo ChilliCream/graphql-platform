@@ -382,8 +382,7 @@ public class InputParserTests
             new ObjectFieldNode("b", 123));
 
         // act
-        void Fail()
-            => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+        void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();

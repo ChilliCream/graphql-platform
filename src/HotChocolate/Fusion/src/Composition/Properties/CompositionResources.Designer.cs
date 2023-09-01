@@ -128,5 +128,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("DirectivesHelper_GetRequireDirective_NoFieldArg", resourceCulture);
             }
         }
+        
+        internal static string LogEntryHelper_TypeNotDeclared {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_TypeNotDeclared", resourceCulture);
+            }
+        }
     }
 }
