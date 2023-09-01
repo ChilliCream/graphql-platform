@@ -14,22 +14,24 @@ namespace HotChocolate;
 /// </summary>
 public abstract class Path : IEquatable<Path>
 {
+    private readonly Path? _parent;
+
     protected Path()
     {
-        Parent = this;
+        _parent = null;
         Length = 0;
     }
     
     protected Path(Path parent)
     {
-        Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+        _parent = parent ?? throw new ArgumentNullException(nameof(parent));
         Length = parent.Length + 1;
     }
-    
+
     /// <summary>
     /// Gets the parent path segment.
     /// </summary>
-    public Path Parent { get; }
+    public Path Parent => _parent ?? throw new InvalidOperationException();
 
     /// <summary>
     /// Gets the count of segments this path contains.
@@ -238,11 +240,7 @@ public abstract class Path : IEquatable<Path>
 
         /// <inheritdoc />
         public override int GetHashCode()
-        {
-            // ReSharper disable NonReadonlyMemberInGetHashCode
-            return HashCode.Combine(Parent, Length);
-            // ReSharper restore NonReadonlyMemberInGetHashCode
-        }
+            => 0;
 
         public static RootPathSegment Instance { get; } = new();
     }
