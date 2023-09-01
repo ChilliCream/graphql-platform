@@ -1057,6 +1057,41 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
+    [Fact(Skip = "This test currently fails during query planning")]
+    public async Task Query_Plan_27_Selection_Set_Empty()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Authors.ToConfiguration(),
+                demoProject.Books.ToConfiguration()
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                authorById(id: "1") {
+                    id,
+                    name,
+                    bio,
+                    books {
+                        id
+                        author {
+                            books {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)
