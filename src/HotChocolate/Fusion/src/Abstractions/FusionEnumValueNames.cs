@@ -16,7 +16,7 @@ internal static class FusionEnumValueNames
     public const string Batch = "BATCH";
 
     /// <summary>
-    /// Gets the name of the subscibe resolver kind.
+    /// Gets the name of the subscribe resolver kind.
     /// </summary>
     public const string Subscribe = "SUBSCRIBE";
 }
