@@ -5,6 +5,7 @@
     "Path": {
       "Name": "findDog2",
       "Parent": {
+        "Parent": null,
         "Length": 0,
         "IsRoot": true
       },

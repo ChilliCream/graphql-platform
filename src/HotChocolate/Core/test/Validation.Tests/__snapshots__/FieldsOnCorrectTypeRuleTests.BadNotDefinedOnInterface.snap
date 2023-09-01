@@ -5,6 +5,7 @@
     "Path": {
       "Name": "pet",
       "Parent": {
+        "Parent": null,
         "Length": 0,
         "IsRoot": true
       },
