@@ -1057,6 +1057,46 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task Query_Plan_27_Multiple_Require_Steps_From_Same_Subgraph()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Authors.ToConfiguration(),
+                demoProject.Books.ToConfiguration()
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                authorById(id: "1") {
+                    id,
+                    name,
+                    bio,
+                    books {
+                        id
+                        author {
+                            books {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)
