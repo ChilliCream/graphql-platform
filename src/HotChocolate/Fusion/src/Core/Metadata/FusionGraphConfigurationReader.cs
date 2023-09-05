@@ -2,7 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 using static HotChocolate.Fusion.FusionResources;
 using static HotChocolate.Fusion.Utilities.ThrowHelper;
@@ -138,31 +137,38 @@ internal sealed class FusionGraphConfigurationReader
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.HttpDirective))
+            if (!directiveNode.Name.Value.EqualsOrdinal(typeNames.TransportDirective))
             {
-                configs.Add(ReadHttpClientConfig(typeNames, directiveNode));
+                continue;
+            }
+            
+            var config = TryReadHttpClientConfig(typeNames, directiveNode);
+            if (config is not null)
+            {
+                configs.Add(config);
             }
         }
 
         return configs;
     }
 
-    private HttpClientConfiguration ReadHttpClientConfig(
+    private HttpClientConfiguration? TryReadHttpClientConfig(
         FusionTypeNames typeNames,
         DirectiveNode directiveNode)
     {
-        AssertName(directiveNode, typeNames.HttpDirective);
-        AssertArguments(directiveNode, OptionalArgs, SubgraphArg, BaseAddressArg);
+        AssertName(directiveNode, typeNames.TransportDirective);
+        AssertArguments(directiveNode, OptionalArgs, SubgraphArg, LocationArg, KindArg);
 
         string name = default!;
         string subgraph = default!;
         string baseAddress = default!;
+        string kind = default!;
 
         foreach (var argument in directiveNode.Arguments)
         {
             switch (argument.Name.Value)
             {
-                case ClientNameArg:
+                case ClientGroupArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
@@ -170,10 +176,19 @@ internal sealed class FusionGraphConfigurationReader
                     subgraph = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
-                case BaseAddressArg:
+                case LocationArg:
                     baseAddress = Expect<StringValueNode>(argument.Value).Value;
                     break;
+                
+                case KindArg:
+                    kind = Expect<StringValueNode>(argument.Value).Value;
+                    break;
             }
+        }
+        
+        if (!kind.EqualsOrdinal("HTTP"))
+        {
+            return null;
         }
 
         if (string.IsNullOrEmpty(name))
@@ -185,7 +200,7 @@ internal sealed class FusionGraphConfigurationReader
 
         static void OptionalArgs(HashSet<string> assert)
         {
-            assert.Remove(ClientNameArg);
+            assert.Remove(ClientGroupArg);
         }
     }
 
@@ -197,31 +212,38 @@ internal sealed class FusionGraphConfigurationReader
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(typeNames.WebSocketDirective))
+            if (!directiveNode.Name.Value.EqualsOrdinal(typeNames.TransportDirective))
             {
-                configs.Add(ReadWebSocketClientConfig(typeNames, directiveNode));
+                continue;
+            }
+            
+            var config = TryReadWebSocketClientConfig(typeNames, directiveNode);
+            if (config is not null)
+            {
+                configs.Add(config);
             }
         }
 
         return configs;
     }
 
-    private WebSocketClientConfiguration ReadWebSocketClientConfig(
+    private WebSocketClientConfiguration? TryReadWebSocketClientConfig(
         FusionTypeNames typeNames,
         DirectiveNode directiveNode)
     {
-        AssertName(directiveNode, typeNames.WebSocketDirective);
-        AssertArguments(directiveNode, OptionalArgs, SubgraphArg, BaseAddressArg);
+        AssertName(directiveNode, typeNames.TransportDirective);
+        AssertArguments(directiveNode, OptionalArgs, SubgraphArg, LocationArg, KindArg);
 
         string name = default!;
         string subgraph = default!;
         string baseAddress = default!;
+        string kind = default!;
 
         foreach (var argument in directiveNode.Arguments)
         {
             switch (argument.Name.Value)
             {
-                case ClientNameArg:
+                case ClientGroupArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
@@ -229,10 +251,19 @@ internal sealed class FusionGraphConfigurationReader
                     subgraph = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
-                case BaseAddressArg:
+                case LocationArg:
                     baseAddress = Expect<StringValueNode>(argument.Value).Value;
                     break;
+                
+                case KindArg:
+                    kind = Expect<StringValueNode>(argument.Value).Value;
+                    break;
             }
+        }
+
+        if (!kind.EqualsOrdinal("WebSocket"))
+        {
+            return null;
         }
 
         if (string.IsNullOrEmpty(name))
@@ -244,7 +275,7 @@ internal sealed class FusionGraphConfigurationReader
 
         static void OptionalArgs(HashSet<string> assert)
         {
-            assert.Remove(ClientNameArg);
+            assert.Remove(ClientGroupArg);
         }
     }
 
@@ -453,10 +484,9 @@ internal sealed class FusionGraphConfigurationReader
                 case KindArg:
                     kind = Expect<StringValueNode>(argument.Value).Value switch
                     {
-                        FusionEnumValueNames.Query => ResolverKind.Query,
+                        FusionEnumValueNames.Fetch => ResolverKind.Query,
                         FusionEnumValueNames.Batch => ResolverKind.Batch,
-                        FusionEnumValueNames.BatchByKey => ResolverKind.BatchByKey,
-                        FusionEnumValueNames.Subscription => ResolverKind.Subscription,
+                        FusionEnumValueNames.Subscribe => ResolverKind.Subscribe,
                         _ => throw new InvalidOperationException(
                             FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue)
                     };

@@ -7,7 +7,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionResources;
-using static HotChocolate.Fusion.Metadata.ResolverKind;
 
 namespace HotChocolate.Fusion.Planning.Pipeline;
 
@@ -42,14 +41,14 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 continue;
             }
 
-            if (selectionStep.Resolver?.Kind == BatchByKey)
+            if (selectionStep.Resolver?.Kind == ResolverKind.Batch)
             {
                 var resolve = CreateResolveByKeyBatchNode(context, selectionStep);
                 context.RegisterNode(resolve, selectionStep);
             }
             else if (selectionStep.Resolver is null &&
                 selectionStep.RootSelections.Count == 1 &&
-                selectionStep.RootSelections[0].Resolver?.Kind is Subscription)
+                selectionStep.RootSelections[0].Resolver?.Kind is ResolverKind.Subscribe)
             {
                 var resolve = CreateSubscribeNode(context, selectionStep);
                 context.RegisterNode(resolve, selectionStep);

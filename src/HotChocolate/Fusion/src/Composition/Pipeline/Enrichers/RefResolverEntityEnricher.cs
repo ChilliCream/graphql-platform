@@ -54,7 +54,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
 
                         // Create a new EntityResolver for the entity
                         var resolver = new EntityResolver(
-                            EntityResolverKind.BatchWithKey,
+                            EntityResolverKind.Batch,
                             selectionSet,
                             type.Name,
                             schema.Name);
@@ -92,6 +92,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
         if ((entityResolverField.Type == entityType ||
                 (entityResolverField.Type.Kind is TypeKind.NonNull &&
                     entityResolverField.Type.InnerType() == entityType)) &&
+            entityResolverField.Arguments.Count > 0 &&
             entityResolverField.Arguments.All(t => t.ContainsIsDirective()))
         {
             var arguments = new List<ArgumentNode>();

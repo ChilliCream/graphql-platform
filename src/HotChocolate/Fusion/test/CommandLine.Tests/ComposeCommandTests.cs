@@ -87,8 +87,7 @@ public class ComposeCommandTests : CommandTestBase
         var packageFile = CreateTempFile(Extensions.FusionPackage);
 
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(
-            new[] { "compose", "-p", packageFile, "-s", accountSubgraphPackageFile });
+        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", accountSubgraphPackageFile });
 
         // act
         app = App.CreateBuilder().Build();

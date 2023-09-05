@@ -213,7 +213,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
 
             // Create a new EntityResolver for the entity
             var resolver = new EntityResolver(
-                EntityResolverKind.BatchWithKey,
+                EntityResolverKind.Batch,
                 selectionSet,
                 entityType.Name,
                 schema.Name);
