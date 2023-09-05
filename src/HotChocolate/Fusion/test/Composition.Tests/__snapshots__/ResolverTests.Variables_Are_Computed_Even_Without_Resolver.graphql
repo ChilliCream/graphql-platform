@@ -1,9 +1,9 @@
 schema
   @fusion(version: 1)
-  @httpClient(subgraph: "Appointment", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Appointment", baseAddress: "ws:\/\/localhost:5000\/graphql")
-  @httpClient(subgraph: "Patient1", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Patient1", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+  @transport(subgraph: "Appointment", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Appointment", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
+  @transport(subgraph: "Patient1", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Patient1", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
   query: Query
 }
 

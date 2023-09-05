@@ -64,10 +64,10 @@ Fusion Graph
 ---------------
 schema
   @fusion(version: 1)
-  @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @httpClient(subgraph: "Shipping", baseAddress: "http:\/\/localhost:5000\/graphql") {
+  @transport(subgraph: "Reviews2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Products", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Shipping", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP") {
   query: Query
   mutation: Mutation
   subscription: Subscription

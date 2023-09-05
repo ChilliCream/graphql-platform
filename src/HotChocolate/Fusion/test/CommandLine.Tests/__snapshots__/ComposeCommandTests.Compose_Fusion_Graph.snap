@@ -55,7 +55,7 @@ scalar DateTime
 
 Fusion Graph Document
 ---------------
-schema @fusion(version: 1) @httpClient(subgraph: "Accounts", clientName: "Fusion", baseAddress: "http:\/\/localhost:5000\/graphql") @webSocketClient(subgraph: "Accounts", clientName: "Fusion", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+schema @fusion(version: 1) @transport(subgraph: "Accounts", group: "Fusion", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP") @transport(subgraph: "Accounts", group: "Fusion", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
   query: Query
   mutation: Mutation
 }

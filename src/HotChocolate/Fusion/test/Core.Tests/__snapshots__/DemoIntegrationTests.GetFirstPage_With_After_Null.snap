@@ -66,8 +66,8 @@ Fusion Graph
 ---------------
 schema
   @fusion(version: 1)
-  @httpClient(subgraph: "Appointment", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Appointment", baseAddress: "ws:\/\/localhost:5000\/graphql")
+  @transport(subgraph: "Appointment", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Appointment", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
   @node(subgraph: "Appointment", types: [ "Patient1", "Appointment" ]) {
   query: Query
 }

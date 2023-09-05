@@ -113,12 +113,12 @@ Fusion Graph
 ---------------
 schema
   @fusion(version: 1)
-  @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql")
-  @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql")
-  @httpClient(subgraph: "Products", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Products", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+  @transport(subgraph: "Reviews2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Reviews2", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
+  @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
+  @transport(subgraph: "Products", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Products", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
   query: Query
   mutation: Mutation
   subscription: Subscription
