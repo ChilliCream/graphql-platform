@@ -12,6 +12,7 @@ using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
+using HttpClientConfiguration = HotChocolate.Fusion.Composition.HttpClientConfiguration;
 
 namespace HotChocolate.Fusion;
 
@@ -1096,6 +1097,124 @@ public class RequestPlannerTests
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
         await snapshot.MatchAsync();
     }
+    
+    [Fact]
+    public async Task Query_Plan_28_Simple_Root_Data()
+    {
+        // arrange
+        var schemaA =
+            """
+            type Query {
+                data: Data
+            }
+            
+            type Data {
+                a: String
+            }
+            
+            schema {
+                query: Query
+            }
+            """;
+        
+        var schemaB =
+            """
+            type Query {
+                data: Data
+            }
+
+            type Data {
+                b: String
+            }
+            
+            schema {
+                query: Query
+            }
+            """;
+        
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients()),
+                new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients()),
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                data {
+                    a
+                    b
+                }
+            }
+            """);
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+    
+    [Fact]
+    public async Task Query_Plan_28_Simple_Root_List_Data()
+    {
+        // arrange
+        var schemaA =
+            """
+            type Query {
+                data: [Data]
+            }
+
+            type Data {
+                a: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+        
+        var schemaB =
+            """
+            type Query {
+                data: [Data]
+            }
+
+            type Data {
+                b: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+        
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients()),
+                new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients()),
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                data {
+                    a
+                    b
+                }
+            }
+            """);
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
 
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
@@ -1135,4 +1254,10 @@ public class RequestPlannerTests
 
         return (request, queryPlan);
     }
+
+    private static IClientConfiguration[] CreateClients()
+        => new IClientConfiguration[]
+        {
+            new HttpClientConfiguration(new Uri("http://nothing"))
+        };
 }
