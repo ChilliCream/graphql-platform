@@ -30,7 +30,7 @@ QueryPlan
           {
             "type": "Resolve",
             "subgraph": "Reviews2",
-            "document": "query GetUser_2 { reviewsValue }",
+            "document": "query GetUser_2 { viewer { data { reviewsValue } } }",
             "selectionSetId": 2
           }
         ]
