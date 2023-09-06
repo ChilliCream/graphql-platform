@@ -60,6 +60,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             selectionSetType,
             selections,
             null,
+            null,
             false);
 
         while (backlog.TryDequeue(out var item))
@@ -70,6 +71,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 item.DeclaringTypeMetadata,
                 item.Selections,
                 item.ParentSelection,
+                item.SelectionPath,
                 item.PreferBatching);
         }
 
@@ -82,12 +84,14 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         ObjectTypeMetadata selectionSetTypeMetadata,
         IReadOnlyList<ISelection> selections,
         ISelection? parentSelection,
+        SelectionPath? parentSelectionPath,
         bool preferBatching)
     {
         var variablesInContext = new HashSet<string>();
         var operation = context.Operation;
         List<ISelection>? leftovers = null;
-
+        var path = new List<ISelection>();
+        
         // if this is the root selection set of a query we will
         // look for some special selections.
         if (!context.HasHandledSpecialQueryFields && parentSelection is null)
@@ -117,6 +121,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 context.NextStepId(),
                 subgraph,
                 parentSelection,
+                parentSelectionPath,
                 _schema.GetType<IObjectType>(selectionSetTypeMetadata.Name),
                 selectionSetTypeMetadata);
             leftovers = null;
@@ -134,6 +139,9 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
             foreach (var selection in current)
             {
+                var pathIndex = path.Count;
+                path.Add(selection);
+                
                 var field = selection.Field;
                 var fieldInfo = selectionSetTypeMetadata.Fields[field.Name];
 
@@ -191,9 +199,28 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         backlog,
                         operation,
                         selection,
+                        parentSelectionPath,
+                        path,
                         executionStep,
                         preferBatching,
                         context.ParentSelections);
+                }
+                
+                path.RemoveAt(pathIndex);
+            }
+            
+            // if the current execution step has now way to resolve the data
+            // we will try to resolve it from the root.
+            if(executionStep.ParentSelection is not null && 
+                executionStep.ParentSelectionPath is not null &&
+                executionStep.Resolver is null && 
+                executionStep.SelectionResolvers.Count == 0)
+            {
+                if (!EnsureStepCanBeResolvedFromRoot(
+                    executionStep.SubgraphName,
+                    executionStep.ParentSelectionPath))
+                {
+                    throw ThrowHelper.NoResolverInContext();
                 }
             }
 
@@ -258,6 +285,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
+        SelectionPath? rootSelectionPath,
+        List<ISelection> path,
         SelectionExecutionStep executionStep,
         bool preferBatching,
         Dictionary<ISelection, ISelection> parentSelectionLookup)
@@ -273,6 +302,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 backlog,
                 operation,
                 parentSelection,
+                rootSelectionPath,
+                path,
                 executionStep,
                 possibleType,
                 preferBatching,
@@ -284,6 +315,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         Queue<BacklogItem> backlog,
         IOperation operation,
         ISelection parentSelection,
+        SelectionPath? rootSelectionPath,
+        List<ISelection> path,
         SelectionExecutionStep executionStep,
         IObjectType possibleType,
         bool preferBatching,
@@ -297,6 +330,9 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
         foreach (var selection in selectionSet.Selections)
         {
+            var pathIndex = path.Count;
+            path.Add(selection);
+            
             parentSelectionLookup.TryAdd(selection, parentSelection);
             var field = declaringType.Fields[selection.Field.Name];
 
@@ -346,6 +382,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         backlog,
                         operation,
                         selection,
+                        rootSelectionPath,
+                        path,
                         executionStep,
                         preferBatching,
                         parentSelectionLookup);
@@ -355,6 +393,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             {
                 (leftovers ??= new()).Add(selection);
             }
+            
+            path.RemoveAt(pathIndex);
         }
 
         if (leftovers is not null)
@@ -362,10 +402,25 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             backlog.Enqueue(
                 new BacklogItem(
                     parentSelection,
+                    CreateSelectionPath(rootSelectionPath, path),
                     declaringType,
                     leftovers,
                     preferBatching));
         }
+    }
+
+    private static SelectionPath? CreateSelectionPath(SelectionPath? rootPath, List<ISelection> pathSegments)
+    {
+        var parent = rootPath;
+
+        for (var i = 0; i < pathSegments.Count; i++)
+        {
+            parent = parent is null
+                ? new SelectionPath(pathSegments[i])
+                : parent.Append(pathSegments[i]);
+        }
+
+        return parent;
     }
 
     private static void AddIntrospectionStepIfNotExists(
@@ -497,6 +552,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             backlog,
             operation,
             nodeSelection,
+            null,
+            new List<ISelection>(),
             executionStep,
             entityType,
             preferBatching,
@@ -733,13 +790,37 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             field.DeclaringType.Equals(operation.RootType) &&
             (field.Name.EqualsOrdinal("node") || field.Name.EqualsOrdinal("nodes"));
 
+    private bool EnsureStepCanBeResolvedFromRoot(
+        string subgraphName,
+        SelectionPath path)
+    {
+        var current = path;
+
+        while (current is not null)
+        {
+            var typeMetadata = _config.GetType<ObjectTypeMetadata>(path.Selection.DeclaringType.Name);
+
+            if (!typeMetadata.Fields[path.Selection.Field.Name].Bindings.ContainsSubgraph(subgraphName))
+            {
+                return false;
+            }
+            
+            current = current.Parent;
+        }
+
+        return true;
+    }
+
     private readonly struct BacklogItem(
         ISelection parentSelection,
+        SelectionPath? selectionPath,
         ObjectTypeMetadata declaringTypeMetadata,
         IReadOnlyList<ISelection> selections,
         bool preferBatching)
     {
         public ISelection ParentSelection { get; } = parentSelection;
+
+        public SelectionPath? SelectionPath { get; } = selectionPath;
 
         public ObjectTypeMetadata DeclaringTypeMetadata { get; } = declaringTypeMetadata;
 

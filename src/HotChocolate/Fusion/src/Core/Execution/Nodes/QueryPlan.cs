@@ -174,7 +174,7 @@ internal sealed class QueryPlan
             operationContext.Result.SetExtension(QueryPlanHashProp, _hash);
         }
 
-        // we store the context on the result for unit tests.
+        // we store the context on the result for unit tests.x
         operationContext.Result.SetContextData(QueryPlanProp, context.QueryPlan);
 
         // Enqueue root node to initiate the execution process.
