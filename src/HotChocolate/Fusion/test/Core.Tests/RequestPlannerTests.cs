@@ -1158,7 +1158,7 @@ public class RequestPlannerTests
     }
     
     [Fact]
-    public async Task Query_Plan_28_Simple_Root_List_Data()
+    public async Task Query_Plan_29_Simple_Root_List_Data()
     {
         // arrange
         var schemaA =
@@ -1217,7 +1217,7 @@ public class RequestPlannerTests
     }
     
     [Fact]
-    public async Task Query_Plan_28_Entity_Data()
+    public async Task Query_Plan_30_Entity_Data()
     {
         // arrange
         var schemaA =
