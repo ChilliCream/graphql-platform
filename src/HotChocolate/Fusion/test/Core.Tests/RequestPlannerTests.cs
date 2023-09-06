@@ -1215,6 +1215,67 @@ public class RequestPlannerTests
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
         await snapshot.MatchAsync();
     }
+    
+    [Fact]
+    public async Task Query_Plan_28_Entity_Data()
+    {
+        // arrange
+        var schemaA =
+            """
+            type Query {
+                entity(id: ID!): Entity
+            }
+
+            type Entity {
+                id: ID!
+                a: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+        
+        var schemaB =
+            """
+            type Query {
+                entity(id: ID!): Entity
+            }
+
+            type Entity {
+                id: ID!
+                b: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+        
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients()),
+                new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients()),
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                entity(id: 123) {
+                    a
+                    b
+                }
+            }
+            """);
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
 
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
