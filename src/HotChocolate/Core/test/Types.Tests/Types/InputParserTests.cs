@@ -8,6 +8,7 @@ using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 #nullable enable
 
@@ -261,6 +262,34 @@ public class InputParserTests
 
         // assert
         Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Parse_InputObject_AllIsSet_IgnoreAdditionalInputFields()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("TestInput");
+
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field1", "abc"),
+            new ObjectFieldNode("field2", 123),
+            new ObjectFieldNode("field3", 123),
+            new ObjectFieldNode("field4", 123));
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter(), new InputParserOptions
+        {
+            IgnoreAdditionalInputFields = true
+        });
+        var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+
+        // assert
+        Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
     }
 
     [Fact]
