@@ -295,10 +295,19 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
     private ISelectionSet ResolveSelectionSet(
         QueryPlanContext context,
-        ExecutionStep executionStep)
-        => executionStep.ParentSelection is null
+        SelectionExecutionStep executionStep)
+    {
+        if (executionStep.Resolver is null &&
+            executionStep.SelectionResolvers.Count == 0 &&
+            executionStep.ParentSelectionPath is not null)
+        {
+            return context.Operation.RootSelectionSet;
+        }
+
+        return executionStep.ParentSelection is null
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
                 _schema.GetType<ObjectType>(executionStep.SelectionSetTypeMetadata.Name));
+    }
 }

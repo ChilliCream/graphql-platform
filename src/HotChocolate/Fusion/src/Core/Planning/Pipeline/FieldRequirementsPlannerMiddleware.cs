@@ -196,6 +196,7 @@ internal sealed class FieldRequirementsPlannerMiddleware(
             context.NextStepId(),
             subgraph,
             parentSelection,
+            null,
             selection.DeclaringType,
             typeMetadata);
 
