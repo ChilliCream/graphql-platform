@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.Fusion.CommandLine.Helpers;
@@ -8,6 +9,7 @@ using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Utilities;
+using IOPath = System.IO.Path;
 using static System.Text.Json.JsonSerializerDefaults;
 using static HotChocolate.Fusion.CommandLine.Helpers.PackageHelper;
 
@@ -15,13 +17,14 @@ namespace HotChocolate.Fusion.CommandLine.Commands;
 
 internal sealed class ComposeCommand : Command
 {
+    [RequiresUnreferencedCode("Calls HotChocolate.Fusion.CommandLine.Commands.ComposeCommand.ExecuteAsync(IConsole, FileInfo, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
     public ComposeCommand() : base("compose")
     {
         var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true };
         fusionPackageFile.AddAlias("--package");
         fusionPackageFile.AddAlias("-p");
 
-        var subgraphPackageFile = new Option<List<FileInfo>?>("--subgraph-package-file");
+        var subgraphPackageFile = new Option<List<string>?>("--subgraph-package-file");
         subgraphPackageFile.AddAlias("--subgraph");
         subgraphPackageFile.AddAlias("-s");
 
@@ -50,10 +53,11 @@ internal sealed class ComposeCommand : Command
             Bind.FromServiceProvider<CancellationToken>());
     }
 
+    [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.SerializeToDocument<TValue>(TValue, JsonSerializerOptions)")]
     private static async Task ExecuteAsync(
         IConsole console,
         FileInfo packageFile,
-        List<FileInfo>? subgraphPackageFiles,
+        List<string>? subgraphPackageFiles,
         FileInfo? settingsFile,
         DirectoryInfo workingDirectory,
         bool? enableNodes,
@@ -83,75 +87,12 @@ internal sealed class ComposeCommand : Command
 
             settingsFile = new FileInfo(settingsFileName);
         }
-
-        // if no subgraph packages were specified we will try to find some by their extension in the
-        // working directory.
-        if (subgraphPackageFiles is null || subgraphPackageFiles.Count == 0)
-        {
-            subgraphPackageFiles = workingDirectory.GetFiles($"*{Extensions.SubgraphPackage}").ToList();
-        }
-
-        if (subgraphPackageFiles.Count > 0)
-        {
-            List<FileInfo>? remove = null;
-
-            for (var i = 0; i < subgraphPackageFiles.Count; i++)
-            {
-                var file = subgraphPackageFiles[i];
-
-                // if the specified subgraph package path is a directory
-                // we will try to resolve the subgraph package by its extension
-                // from the specified directory.
-                if (!file.Exists && Directory.Exists(file.FullName))
-                {
-                    var firstFile = Directory
-                        .EnumerateFiles(file.FullName, $"*{Extensions.SubgraphPackage}")
-                        .FirstOrDefault();
-
-                    if (firstFile is null)
-                    {
-                        (remove ??= new()).Add(file);
-                    }
-                    else
-                    {
-                        subgraphPackageFiles[i] = new FileInfo(firstFile);
-                    }
-                }
-            }
-
-            if (remove is { Count: > 0 })
-            {
-                foreach (var fileInfo in remove)
-                {
-                    subgraphPackageFiles.Remove(fileInfo);
-                }
-            }
-        }
-
-        if (subgraphPackageFiles.Any(t => !t.Exists))
-        {
-            console.WriteLine("Some subgraph packages do not exist.");
-
-            foreach (var missingFile in subgraphPackageFiles.Where(t => !t.Exists))
-            {
-                console.WriteLine($"- {missingFile.FullName}");
-            }
-
-            return;
-        }
-
+        
+        
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
-        var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken))
-            .ToDictionary(t => t.Name);
-
-        foreach (var subgraphPackageFile in subgraphPackageFiles)
-        {
-            var config = await ReadSubgraphPackageAsync(
-                subgraphPackageFile.FullName,
-                cancellationToken);
-            configs[config.Name] = config;
-        }
+        var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
+        await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
 
         using var settingsJson = settingsFile.Exists
             ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, cancellationToken))
@@ -233,6 +174,76 @@ internal sealed class ComposeCommand : Command
         return new FusionFeatureCollection(features);
     }
 
+    private static async Task ResolveSubgraphPackagesAsync(
+        DirectoryInfo workingDirectory, 
+        IReadOnlyList<string>? subgraphPackageFiles,
+        IDictionary<string, SubgraphConfiguration> configs,
+        CancellationToken cancellationToken)
+    {
+        var temp = new List<SubgraphConfiguration>();
+        
+        // if no subgraph packages were specified we will try to find some by their extension in the
+        // working directory.
+        if (subgraphPackageFiles is null || subgraphPackageFiles.Count == 0)
+        {
+            subgraphPackageFiles = workingDirectory
+                .GetFiles($"*{Extensions.SubgraphPackage}")
+                .Select(t => t.FullName)
+                .ToList();
+        }
+
+        if (subgraphPackageFiles.Count > 0)
+        {
+            for (var i = 0; i < subgraphPackageFiles.Count; i++)
+            {
+                var file = subgraphPackageFiles[i];
+
+                // if the specified subgraph package path is a directory
+                // we will try to resolve the subgraph package by its extension
+                // from the specified directory.
+                if (!File.Exists(file) && Directory.Exists(file))
+                {
+                    var files = Directory
+                        .EnumerateFiles(file, $"*{Extensions.SubgraphPackage}")
+                        .ToList();
+
+                    if (files.Count == 0)
+                    {
+                        var configFile = IOPath.Combine(file, Defaults.ConfigFile);
+                        var schemaFile = IOPath.Combine(file, Defaults.SchemaFile);
+                        var extensionFile = IOPath.Combine(file, Defaults.ExtensionFile);
+
+                        if (File.Exists(configFile) && File.Exists(schemaFile) && File.Exists(extensionFile))
+                        {
+                            var conf = await LoadSubgraphConfigAsync(configFile, cancellationToken);
+                            var schema = await File.ReadAllTextAsync(schemaFile, cancellationToken);
+                            var extensions = await File.ReadAllTextAsync(extensionFile, cancellationToken);
+                            temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients));
+                        }
+                    }
+                    else
+                    {
+                        foreach (var packageFile in files)
+                        {
+                            var conf = await ReadSubgraphPackageAsync(packageFile, cancellationToken);
+                            temp.Add(conf);
+                        }
+                    }
+                }
+                else if (File.Exists(file))
+                {
+                    var conf = await ReadSubgraphPackageAsync(file, cancellationToken);
+                    temp.Add(conf);
+                }
+            }
+        }
+
+        foreach (var config in temp)
+        {
+            configs[config.Name] = config;
+        }
+    }
+    
     private sealed class ConsoleLog : ICompositionLog
     {
         private readonly IConsole _console;
