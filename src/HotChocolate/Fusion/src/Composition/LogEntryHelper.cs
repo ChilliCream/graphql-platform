@@ -123,6 +123,23 @@ internal static class LogEntryHelper
             coordinate: new SchemaCoordinate(type.Name),
             member: type,
             schema: schema);
+
+    public static LogEntry OutputFieldTypeMismatch(
+        SchemaCoordinate schemaCoordinate, 
+        OutputField source, 
+        IType targetType, 
+        IType sourceType)
+        => new(
+            string.Format(
+                LogEntryHelper_OutputFieldTypeMismatch,
+                schemaCoordinate,
+                targetType,
+                sourceType),
+            LogEntryCodes.TypeKindMismatch,
+            severity: LogSeverity.Error,
+            coordinate: schemaCoordinate,
+            member: source,
+            extension: new[] { targetType, sourceType });
 }
 
 static file class LogEntryCodes

@@ -66,4 +66,7 @@ Source Arguments: {2}</value>
   <data name="LogEntryHelper_TypeNotDeclared" xml:space="preserve">
     <value>The type `{0}` is not declared on subgraph {1}. Check the subgraph schema for consistency.</value>
   </data>
+  <data name="LogEntryHelper_OutputFieldTypeMismatch" xml:space="preserve">
+    <value>Unable to merge the field `{0}` because the type `{1}` does not match the type `{2}`.</value>
+  </data>
 </root>
