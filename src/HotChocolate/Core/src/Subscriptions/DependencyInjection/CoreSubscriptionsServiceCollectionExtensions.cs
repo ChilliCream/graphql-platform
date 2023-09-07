@@ -35,7 +35,18 @@ public static class CoreSubscriptionsServiceCollectionExtensions
         return builder;
     }
 
-
+    /// <summary>
+    /// Adds the subscription provider diagnostics.
+    /// </summary>
+    /// <param name="services">
+    /// The ServiceCollection.
+    /// </param>
+    /// <returns>
+    /// Returns the ServiceCollection for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="services"/> is <c>null</c>.
+    /// </exception>
     public static IServiceCollection AddSubscriptionDiagnostics(
         this IServiceCollection services)
     {
