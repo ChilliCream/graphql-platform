@@ -30,7 +30,21 @@ public static class CoreSubscriptionsServiceCollectionExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.TryAddSingleton<ISubscriptionDiagnosticEvents>(
+        builder.Services.AddSubscriptionDiagnostics();
+
+        return builder;
+    }
+
+
+    public static IServiceCollection AddSubscriptionDiagnostics(
+        this IServiceCollection services)
+    {
+        if (services is null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        services.TryAddSingleton<ISubscriptionDiagnosticEvents>(
             sp =>
             {
                 var listeners = sp.GetService<IEnumerable<ISubscriptionDiagnosticEventsListener>>();
@@ -61,6 +75,6 @@ public static class CoreSubscriptionsServiceCollectionExtensions
                 return new AggregateSubscriptionDiagnosticEventsListener(listenerArray);
             });
 
-        return builder;
+        return services;
     }
 }

@@ -40,9 +40,33 @@ public static class PostgresSubscriptionTransportExtensions
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, PostgresSubscriptionOptions> configure)
     {
-        builder.AddSubscriptionDiagnostics();
-
         var services = builder.Services;
+
+        services.AddPostgresSubscriptionPublisher(configure);
+
+        services.TryAddSingleton<ITopicEventReceiver>(
+                sp => sp.GetRequiredService<PostgresPubSub>());
+
+        return builder;
+    }
+
+
+    /// <summary>
+    /// Registers the Postgres subscription provider for use in publisher scenarios where the graphql server is
+    /// not running, but you still want to publish events via Postgres for another process to receive.
+    /// </summary>
+    /// <param name="builder">
+    /// The service collecion builder.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate that configures the Postgres subscription provider options.
+    /// </param>
+    public static IServiceCollection AddPostgresSubscriptionPublisher(
+        this IServiceCollection services,
+        Action<IServiceProvider, PostgresSubscriptionOptions> configure)
+    {
+        services.AddSubscriptionDiagnostics();
+
         services.AddSingleton(sp =>
         {
             var options = new PostgresSubscriptionOptions();
@@ -61,9 +85,7 @@ public static class PostgresSubscriptionTransportExtensions
         services.AddSingleton<PostgresPubSub>();
         services.TryAddSingleton<ITopicEventSender>(
             sp => sp.GetRequiredService<PostgresPubSub>());
-        services.TryAddSingleton<ITopicEventReceiver>(
-            sp => sp.GetRequiredService<PostgresPubSub>());
 
-        return builder;
+        return services;
     }
 }
