@@ -1,4 +1,5 @@
 using HotChocolate.Skimmed;
+using static HotChocolate.Fusion.Composition.TypeMergeExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -57,7 +58,7 @@ internal static class ComplexTypeMergeExtensions
         OutputField target,
         string typeName)
     {
-        var mergedType = MergeType(source.Type, target.Type);
+        var mergedType = MergeOutputType(source.Type, target.Type);
 
         if (mergedType is null)
         {
@@ -90,9 +91,27 @@ internal static class ComplexTypeMergeExtensions
         // in the source field.
         foreach (var targetArgument in target.Arguments)
         {
-            if (source.Arguments.ContainsName(targetArgument.Name))
+            if (source.Arguments.TryGetField(targetArgument.Name, out var sourceArgument))
             {
                 argMatchCount++;
+                
+                var mergedInputType = MergeInputType(sourceArgument.Type, targetArgument.Type);
+
+                if (mergedInputType is null)
+                {
+                    context.Log.Write(
+                        LogEntryHelper.InputFieldTypeMismatch(
+                            new SchemaCoordinate(typeName, source.Name, sourceArgument.Name),
+                            sourceArgument,
+                            target.Type,
+                            source.Type));
+                    return;
+                }
+                
+                if(!targetArgument.Type.Equals(mergedInputType, TypeComparison.Structural))
+                {
+                    targetArgument.Type = mergedInputType;
+                }
             }
         }
 
@@ -148,81 +167,5 @@ internal static class ComplexTypeMergeExtensions
                 targetArgument.DefaultValue = sourceArgument.DefaultValue;
             }
         }
-    }
-
-    private static IType? MergeType(IType source, IType target)
-    {
-        if (source.Equals(target, TypeComparison.Structural))
-        {
-            return target;
-        }
-
-        if (target.Kind is TypeKind.NonNull && source.Kind is not TypeKind.NonNull)
-        {
-            var nullableTarget = target.InnerType();
-
-            if (source.Equals(nullableTarget, TypeComparison.Structural))
-            {
-                return nullableTarget;
-            }
-
-            if (source.Kind == target.Kind && nullableTarget.Kind == TypeKind.List)
-            {
-                var rewrittenType = MergeType(source.InnerType(), nullableTarget.InnerType());
-
-                if (rewrittenType is not null)
-                {
-                    return new ListType(rewrittenType);
-                }
-            }
-
-            return null;
-        }
-
-        if (target.Kind is not TypeKind.NonNull && source.Kind is TypeKind.NonNull)
-        {
-            var nullableSource = source.InnerType();
-
-            if (nullableSource.Equals(target, TypeComparison.Structural))
-            {
-                return target;
-            }
-
-            if (nullableSource.Kind == target.Kind && target.Kind == TypeKind.List)
-            {
-                var rewrittenType = MergeType(nullableSource.InnerType(), target.InnerType());
-
-                if (rewrittenType is not null)
-                {
-                    return new ListType(rewrittenType);
-                }
-            }
-
-            return null;
-        }
-
-        if (source.Kind == target.Kind && target.IsListType() && source.IsListType())
-        {
-            if (source.Kind is TypeKind.NonNull)
-            {
-                var rewrittenType = MergeType(source.InnerType().InnerType(), target.InnerType().InnerType());
-
-                if (rewrittenType is not null)
-                {
-                    return new NonNullType(new ListType(rewrittenType));
-                }
-            }
-            else
-            {
-                var rewrittenType = MergeType(source.InnerType(), target.InnerType());
-
-                if (rewrittenType is not null)
-                {
-                    return new ListType(rewrittenType);
-                }
-            }
-        }
-
-        return null;
     }
 }

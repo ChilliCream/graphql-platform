@@ -231,7 +231,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
             {
                 if (target.Fields.TryGetField(sourceField.Name, out var targetField))
                 {
-                    context.MergeField(sourceField, targetField);
+                    context.MergeField(source, sourceField, targetField);
                 }
                 else
                 {

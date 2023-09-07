@@ -80,6 +80,26 @@ public class TypeMismatchTests(ITestOutputHelper output)
               someData1: [[String]]!
             }
             """);
+    
+    [Fact]
+    public async Task Input_Rewrite_Nullability_For_Argument_Types()
+        => await Succeed(
+            """
+            type Query {
+              someData1(a: Int!): String!
+              someData2(a: [Int!]): String!
+              someData3(a: [Int]!): String!
+              someData4(a: [Int!]!): String!
+            }
+            """,
+            """
+            type Query {
+              someData1(a: Int): String!
+              someData2(a: [Int]): String!
+              someData3(a: [Int]): String!
+              someData4(a: [Int]!): String!
+            }
+            """);
 
     private async Task Succeed(string schemaA, string schemaB)
     {

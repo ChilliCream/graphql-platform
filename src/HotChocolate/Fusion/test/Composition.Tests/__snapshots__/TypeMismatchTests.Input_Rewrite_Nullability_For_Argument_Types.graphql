@@ -1,0 +1,22 @@
+type Query {
+  someData1(a: Int!): String!
+    @source(subgraph: "A")
+    @variable(subgraph: "A", name: "a", argument: "a")
+    @source(subgraph: "B")
+    @variable(subgraph: "B", name: "a", argument: "a")
+  someData2(a: [Int!]): String!
+    @source(subgraph: "A")
+    @variable(subgraph: "A", name: "a", argument: "a")
+    @source(subgraph: "B")
+    @variable(subgraph: "B", name: "a", argument: "a")
+  someData3(a: [Int]!): String!
+    @source(subgraph: "A")
+    @variable(subgraph: "A", name: "a", argument: "a")
+    @source(subgraph: "B")
+    @variable(subgraph: "B", name: "a", argument: "a")
+  someData4(a: [Int!]!): String!
+    @source(subgraph: "A")
+    @variable(subgraph: "A", name: "a", argument: "a")
+    @source(subgraph: "B")
+    @variable(subgraph: "B", name: "a", argument: "a")
+}

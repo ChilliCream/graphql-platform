@@ -2,6 +2,7 @@
 // in a Fusion graph.
 
 using HotChocolate.Skimmed;
+using static HotChocolate.Fusion.Composition.TypeMergeExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -30,9 +31,28 @@ internal static class InputObjectMergeExtensions
     // from the source to the target.
     public static void MergeField(
         this CompositionContext context,
+        InputObjectType type,
         InputField source,
         InputField target)
     {
+        var mergedInputType = MergeInputType(source.Type, target.Type);
+
+        if (mergedInputType is null)
+        {
+            context.Log.Write(
+                LogEntryHelper.InputFieldTypeMismatch(
+                    new SchemaCoordinate(type.Name, source.Name),
+                    source,
+                    target.Type,
+                    source.Type));
+            return;
+        }
+                
+        if(!target.Type.Equals(mergedInputType, TypeComparison.Structural))
+        {
+            target.Type = mergedInputType;
+        }
+        
         if (!string.IsNullOrEmpty(source.Description) &&
             string.IsNullOrEmpty(target.Description))
         {

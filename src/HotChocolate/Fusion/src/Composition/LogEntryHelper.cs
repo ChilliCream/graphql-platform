@@ -140,6 +140,23 @@ internal static class LogEntryHelper
             coordinate: schemaCoordinate,
             member: source,
             extension: new[] { targetType, sourceType });
+    
+    public static LogEntry InputFieldTypeMismatch(
+        SchemaCoordinate schemaCoordinate, 
+        InputField source, 
+        IType targetType, 
+        IType sourceType)
+        => new(
+            string.Format(
+                LogEntryHelper_OutputFieldTypeMismatch,
+                schemaCoordinate,
+                targetType,
+                sourceType),
+            LogEntryCodes.TypeKindMismatch,
+            severity: LogSeverity.Error,
+            coordinate: schemaCoordinate,
+            member: source,
+            extension: new[] { targetType, sourceType });
 }
 
 static file class LogEntryCodes
