@@ -1,4 +1,3 @@
-var config = new Configuration();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
