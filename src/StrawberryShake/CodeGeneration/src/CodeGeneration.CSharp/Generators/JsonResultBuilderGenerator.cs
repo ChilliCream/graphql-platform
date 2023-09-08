@@ -39,6 +39,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName);
 
         var constructorBuilder = classBuilder

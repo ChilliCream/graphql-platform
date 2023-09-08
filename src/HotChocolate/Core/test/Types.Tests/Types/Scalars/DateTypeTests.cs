@@ -233,15 +233,87 @@ public class DateTypeTests
     {
         // arrange
         var dateType = new DateType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        var expectedLiteralValue = "2018-06-11";
 
         // act
-        var stringLiteral =
-            (StringValueNode)dateType.ParseValue(dateTime);
+        var literal = dateType.ParseValue(null);
 
         // assert
-        Assert.Equal(expectedLiteralValue, stringLiteral.Value);
+        Assert.Equal(NullValueNode.Default, literal);
+    }
+
+    [Fact]
+    public void ParseResult_DateTime()
+    {
+        // arrange
+        var dateType = new DateType();
+        var resultValue = new DateTime(2023, 6, 19, 11, 24, 0, DateTimeKind.Utc);
+        var expectedLiteralValue = "2023-06-19";
+
+        // act
+        var literal = dateType.ParseResult(resultValue);
+
+        // assert
+        Assert.Equal(typeof(StringValueNode), literal.GetType());
+        Assert.Equal(expectedLiteralValue, literal.Value);
+    }
+
+    [Fact]
+    public void ParseResult_DateTimeOffset()
+    {
+        // arrange
+        var dateType = new DateType();
+        var resultValue = new DateTimeOffset(2023, 6, 19, 11, 24, 0, new TimeSpan(6, 0, 0));
+        var expectedLiteralValue = "2023-06-19";
+
+        // act
+        var literal = dateType.ParseResult(resultValue);
+
+        // assert
+        Assert.Equal(typeof(StringValueNode), literal.GetType());
+        Assert.Equal(expectedLiteralValue, literal.Value);
+    }
+
+    [Fact]
+    public void ParseResult_String()
+    {
+        // arrange
+        var dateType = new DateType();
+        var resultValue = "2023-06-19";
+        var expectedLiteralValue = "2023-06-19";
+
+        // act
+        var literal = dateType.ParseResult(resultValue);
+
+        // assert
+        Assert.Equal(typeof(StringValueNode), literal.GetType());
+        Assert.Equal(expectedLiteralValue, literal.Value);
+    }
+
+    [Fact]
+    public void ParseResult_Null()
+    {
+        // arrange
+        var dateType = new DateType();
+
+        // act
+        var literal = dateType.ParseResult(null);
+
+        // assert
+        Assert.Equal(NullValueNode.Default, literal);
+    }
+
+    [Fact]
+    public void ParseResult_SerializationException()
+    {
+        // arrange
+        var dateType = new DateType();
+        var resultValue = 1;
+
+        // act
+        var exception = Record.Exception(() => dateType.ParseResult(resultValue));
+
+        // assert
+        Assert.IsType<SerializationException>(exception);
     }
 
     [Fact]

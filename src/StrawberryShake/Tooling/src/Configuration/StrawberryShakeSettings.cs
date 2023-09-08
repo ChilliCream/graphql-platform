@@ -23,6 +23,11 @@ public class StrawberryShakeSettings
     public string? Url { get; set; }
 
     /// <summary>
+    /// Gets or sets the access modifier of the client..
+    /// </summary>
+    public string? AccessModifier { get; set; }
+
+    /// <summary>
     /// Defines if the generator shall generate dependency injection code.
     /// </summary>
     public bool? DependencyInjection { get; set; }

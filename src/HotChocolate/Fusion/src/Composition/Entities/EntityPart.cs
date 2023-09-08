@@ -11,6 +11,4 @@ namespace HotChocolate.Fusion.Composition;
 /// <param name="Schema">
 /// The schema to which the <see cref="ObjectType"/> belongs.
 /// </param>
-internal sealed record EntityPart(
-    ObjectType Type,
-    Schema Schema);
+internal sealed record EntityPart(ObjectType Type, Schema Schema);

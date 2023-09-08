@@ -96,27 +96,6 @@ public partial class ExtractFieldQuerySyntaxRewriter
         FieldNode node,
         Context context)
     {
-        var directives = node.Directives;
-
-        if (directives.Count > 0)
-        {
-            List<DirectiveNode>? temp = null;
-
-            foreach (var directive in directives)
-            {
-                if (BuiltInTypes.IsBuiltInType(directive.Name.Value))
-                {
-                    temp ??= new List<DirectiveNode>(directives);
-                    temp.Remove(directive);
-                }
-            }
-
-            if (temp is not null)
-            {
-                directives = temp;
-            }
-        }
-
         if (context.TypeContext is IComplexOutputType type &&
             type.Fields.TryGetField(node.Name.Value, out var field))
         {
@@ -132,8 +111,30 @@ public partial class ExtractFieldQuerySyntaxRewriter
                 name = new NameNode(sourceDirective.Name);
             }
 
+            var directives = node.Directives;
+
+            if (directives.Count > 0)
+            {
+                List<DirectiveNode>? temp = null;
+
+                foreach (var directive in directives)
+                {
+                    if (BuiltInTypes.IsBuiltInType(directive.Name.Value))
+                    {
+                        temp ??= new List<DirectiveNode>(directives);
+                        temp.Remove(directive);
+                    }
+                }
+
+                if (temp is not null)
+                {
+                    directives = temp;
+                }
+
+                directives = RewriteList(directives, cloned);
+            }
+
             var required = RewriteNodeOrDefault(node.Required, cloned);
-            directives = RewriteList(directives, cloned);
             var arguments = RewriteList(node.Arguments, cloned);
             var selectionSet = node.SelectionSet;
 
@@ -162,11 +163,6 @@ public partial class ExtractFieldQuerySyntaxRewriter
             }
 
             return OnRewriteField(node, cloned);
-        }
-
-        if (!ReferenceEquals(directives, node.Directives))
-        {
-            return node.WithDirectives(directives);
         }
 
         return node;
@@ -222,6 +218,20 @@ public partial class ExtractFieldQuerySyntaxRewriter
         current = OnRewriteSelectionSet(current!, context);
 
         return current;
+    }
+
+    protected override DirectiveNode? RewriteDirective(DirectiveNode node, Context context)
+    {
+        if (node.Arguments.Count > 0)
+        {
+            var arguments = RewriteList(node.Arguments, context);
+            if (!ReferenceEquals(arguments, node.Arguments))
+            {
+                return node.WithArguments(arguments);
+            }
+        }
+
+        return base.RewriteDirective(node, context);
     }
 
     private SelectionSetNode OnRewriteSelectionSet(

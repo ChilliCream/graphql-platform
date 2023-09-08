@@ -6,7 +6,7 @@ namespace HotChocolate.ConferencePlanner
 {
     public class UseUpperCaseAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context, 
             IObjectFieldDescriptor descriptor, 
             MemberInfo member)

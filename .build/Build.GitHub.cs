@@ -24,7 +24,6 @@ partial class Build
     /// </summary>
     [Parameter] readonly string GitHubHeadRef = Environment.GetEnvironmentVariable("HC_GITHUB_HEAD_REF");
 
-
     /// <summary>
     /// The long-lived branch into which the PR will be merged.
     /// Default: master

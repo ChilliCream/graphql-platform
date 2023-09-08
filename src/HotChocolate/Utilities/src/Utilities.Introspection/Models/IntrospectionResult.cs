@@ -3,13 +3,12 @@
 
 using System.Collections.Generic;
 
-namespace HotChocolate.Utilities.Introspection
-{
-    internal class IntrospectionResult
-    {
-        public IntrospectionData Data { get; set; }
+namespace HotChocolate.Utilities.Introspection;
 
-        public List<IntrospectionError> Errors { get; set; }
-    }
+internal class IntrospectionResult
+{
+    public IntrospectionData Data { get; set; }
+
+    public List<IntrospectionError> Errors { get; set; }
 }
 #pragma warning restore CA1812

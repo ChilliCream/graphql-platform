@@ -1,29 +1,33 @@
-using System.Collections.Generic;
-using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
+using static HotChocolate.Execution.Processing.PathHelper;
 
 namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
     public static object? Complete(
-        OperationContext operationContext,
-        MiddlewareContext resolverContext,
-        List<ResolverTask> tasks,
+        ValueCompletionContext context,
         ISelection selection,
-        Path path,
-        IType fieldType,
-        string responseName,
-        int responseIndex,
+        ResultData parent,
+        int index,
+        object? result)
+        => Complete( context, selection, selection.Type, parent, index, result);
+    
+    public static object? Complete(
+        ValueCompletionContext context,
+        ISelection selection,
+        IType type,
+        ResultData parent,
+        int index,
         object? result)
     {
-        var typeKind = fieldType.Kind;
+        var typeKind = type.Kind;
 
         if (typeKind is TypeKind.NonNull)
         {
-            fieldType = fieldType.InnerType();
-            typeKind = fieldType.Kind;
+            type = type.InnerType();
+            typeKind = type.Kind;
         }
 
         if (result is null)
@@ -33,43 +37,22 @@ internal static partial class ValueCompletion
 
         if (typeKind is TypeKind.Scalar or TypeKind.Enum)
         {
-            return CompleteLeafValue(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType,
-                result);
+            return CompleteLeafValue(context, selection, type, parent, index, result);
         }
 
         if (typeKind is TypeKind.List)
         {
-            return CompleteListValue(
-                operationContext,
-                resolverContext,
-                tasks,
-                selection,
-                path,
-                fieldType,
-                responseName,
-                responseIndex,
-                result);
+            return CompleteListValue(context, selection, type, parent, index, result);
         }
 
         if (typeKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
         {
-            return CompleteCompositeValue(
-                operationContext,
-                resolverContext,
-                tasks,
-                selection,
-                path,
-                fieldType,
-                result);
+            return CompleteCompositeValue(context, selection, type, parent, index, result);
         }
 
-        var error = UnexpectedValueCompletionError(selection.SyntaxNode, path);
-        operationContext.ReportError(error, resolverContext, selection);
+        var errorPath = CreatePathFromContext(selection, parent, index);
+        var error = UnexpectedValueCompletionError(selection.SyntaxNode, errorPath);
+        context.OperationContext.ReportError(error, context.ResolverContext, selection);
         return null;
     }
 }

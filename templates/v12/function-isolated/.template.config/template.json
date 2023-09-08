@@ -4,9 +4,9 @@
   "classifications": ["Web", "GraphQL", "Azure"],
   "identity": "HotChocolate.Template.AzureFunctions.Isolated",
   "sourceName": "HotChocolate.Template.AzureFunctions.Isolated",
-  "name": "HotChocolate GraphQL Function Isolated",
+  "name": "GraphQL Function Isolated",
   "shortName": "graphql-azf-ip",
-  "defaultName": "GraphQL AzureFunction Isolated",
+  "defaultName": "GraphQL Function Isolated",
   "description": "",
   "preferNameDirectory": true,
   "tags": {

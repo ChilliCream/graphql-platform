@@ -8,7 +8,8 @@ using RabbitMQ.Client;
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// These helper methods allows to register the RabbitMQ subscription provider with the GraphQL configuration.
+/// These helper methods allows to register the RabbitMQ subscription provider with the GraphQL
+/// configuration.
 /// </summary>
 public static class RabbitMQPubSubExtensions
 {

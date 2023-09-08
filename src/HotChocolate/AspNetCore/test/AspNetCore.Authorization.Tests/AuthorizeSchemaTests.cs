@@ -23,7 +23,7 @@ public class AuthorizeSchemaTests
                 QueryRequestBuilder
                     .New()
                     .SetQuery("{ bar }")
-                    .AddGlobalState(nameof(ClaimsPrincipal), new ClaimsPrincipal())
+                    .SetUser(new ClaimsPrincipal())
                     .Create());
 
         result.MatchSnapshot();

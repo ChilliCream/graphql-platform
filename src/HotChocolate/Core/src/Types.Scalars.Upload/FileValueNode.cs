@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Types;
 
@@ -11,6 +12,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class FileValueNode
     : IValueNode<IFile>
+    , IValueNode<string>
     , IEquatable<FileValueNode>
 {
     /// <summary>
@@ -34,7 +36,9 @@ public class FileValueNode
     public IFile Value { get; }
 
     /// <inheritdoc />
-    object? IValueNode.Value => Value;
+    object IValueNode.Value => Value;
+
+    string IValueNode<string>.Value => Value.Name;
 
     /// <summary>
     /// Determines whether the specified <see cref="FileValueNode"/>
@@ -151,8 +155,7 @@ public class FileValueNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public override string ToString() =>
-        ToString(true);
+    public override string ToString() => ToString(true);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -165,6 +168,5 @@ public class FileValueNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public string ToString(bool indented) =>
-        $"\"{Value.Name}\"";
+    public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 }

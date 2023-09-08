@@ -66,7 +66,7 @@ public sealed partial class OperationCompiler
             ArgumentNonNullValidator.Validate(
                 argument,
                 value,
-                PathFactory.Instance.New(argument.Name));
+                Path.Root.Append(argument.Name));
 
         if (argumentValue is not null && validationResult.HasErrors)
         {
@@ -222,7 +222,4 @@ public sealed partial class OperationCompiler
     }
 }
 
-internal delegate FieldDelegate CreateFieldPipeline(
-    ISchema schema,
-    IObjectField field,
-    FieldNode selection);
+internal delegate FieldDelegate CreateFieldPipeline(ISchema schema, IObjectField field, FieldNode selection);

@@ -5,6 +5,14 @@ namespace HotChocolate.Skimmed;
 
 public static class TypeExtensions
 {
+    public static bool IsListType(this IType type)
+        => type.Kind switch
+        {
+            TypeKind.List => true,
+            TypeKind.NonNull when ((NonNullType) type).NullableType.Kind == TypeKind.List => true,
+            _ => false
+        };
+
     public static bool IsInputType(this IType type)
         => type.Kind switch
         {
@@ -27,19 +35,12 @@ public static class TypeExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IType InnerType(this IType type)
-    {
-        switch (type)
+        => type switch
         {
-            case ListType listType:
-                return listType.ElementType;
-
-            case NonNullType nonNullType:
-                return nonNullType.NullableType;
-
-            default:
-                return type;
-        }
-    }
+            ListType listType => listType.ElementType,
+            NonNullType nonNullType => nonNullType.NullableType,
+            _ => type
+        };
 
     public static INamedType NamedType(this IType type)
     {
@@ -65,38 +66,20 @@ public static class TypeExtensions
     }
 
     public static ITypeNode ToTypeNode(this IType type)
-    {
-        switch (type)
+        => type switch
         {
-            case INamedType namedType:
-                return new NamedTypeNode(namedType.Name);
-
-            case ListType listType:
-                return new ListTypeNode(ToTypeNode(listType.ElementType));
-
-            case NonNullType nonNullType:
-                return new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType));
-
-            default:
-                throw new NotSupportedException();
-        }
-    }
+            INamedType namedType => new NamedTypeNode(namedType.Name),
+            ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
+            NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode) ToTypeNode(nonNullType.NullableType)),
+            _ => throw new NotSupportedException()
+        };
 
     public static IType ReplaceNameType(this IType type, Func<string, INamedType> newNamedType)
-    {
-        switch (type)
+        => type switch
         {
-            case INamedType namedType:
-                return newNamedType(namedType.Name);
-
-            case ListType listType:
-                return new ListType(ReplaceNameType(listType.ElementType, newNamedType));
-
-            case NonNullType nonNullType:
-                return new NonNullType(ReplaceNameType(nonNullType.NullableType, newNamedType));
-
-            default:
-                throw new NotSupportedException();
-        }
-    }
+            INamedType namedType => newNamedType(namedType.Name),
+            ListType listType => new ListType(ReplaceNameType(listType.ElementType, newNamedType)),
+            NonNullType nonNullType => new NonNullType(ReplaceNameType(nonNullType.NullableType, newNamedType)),
+            _ => throw new NotSupportedException()
+        };
 }

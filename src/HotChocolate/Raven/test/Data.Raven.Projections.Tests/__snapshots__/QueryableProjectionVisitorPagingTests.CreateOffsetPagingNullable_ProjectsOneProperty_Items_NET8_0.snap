@@ -1,0 +1,23 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "baz": "a"
+        },
+        null,
+        {
+          "baz": "c"
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'FooNullables' select Baz
+---------------

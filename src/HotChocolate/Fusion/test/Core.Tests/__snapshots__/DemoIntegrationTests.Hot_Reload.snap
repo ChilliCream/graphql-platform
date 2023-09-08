@@ -18,6 +18,9 @@
         },
         {
           "name": "usersById"
+        },
+        {
+          "name": "viewer"
         }
       ]
     }
@@ -60,6 +63,9 @@
         },
         {
           "name": "usersById"
+        },
+        {
+          "name": "viewer"
         }
       ]
     }

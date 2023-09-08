@@ -23,7 +23,7 @@ public class ContextDataScopedVariableResolverTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var contextData = new Dictionary<string, object> { ["a"] = "AbcDef" };
+        var contextData = new Dictionary<string, object?> { ["a"] = "AbcDef" };
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
         context.SetupGet(t => t.ContextData).Returns(contextData);
@@ -60,7 +60,7 @@ public class ContextDataScopedVariableResolverTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var contextData = new Dictionary<string, object>();
+        var contextData = new Dictionary<string, object?>();
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
         context.SetupGet(t => t.ContextData).Returns(contextData);

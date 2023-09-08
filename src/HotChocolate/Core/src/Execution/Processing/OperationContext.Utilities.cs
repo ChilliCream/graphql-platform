@@ -35,16 +35,4 @@ internal sealed partial class OperationContext
     /// </summary>
     /// <value></value>
     public ITypeConverter Converter { get; }
-
-    /// <summary>
-    /// The factory for path <see cref="Path"/>.
-    /// </summary>
-    public PathFactory PathFactory
-    {
-        get
-        {
-            AssertInitialized();
-            return _pathFactory;
-        }
-    }
 }

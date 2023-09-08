@@ -11,9 +11,9 @@ internal static class FusionDirectiveArgumentNames
     public const string NameArg = "name";
 
     /// <summary>
-    /// Gets the name of the client name argument.
+    /// Gets the name of the client grouping argument.
     /// </summary>
-    public const string ClientNameArg = "clientName";
+    public const string ClientGroupArg = "group";
 
     /// <summary>
     /// Gets the name of the select argument.
@@ -66,7 +66,7 @@ internal static class FusionDirectiveArgumentNames
     public const string VersionArg = "version";
 
     /// <summary>
-    /// Gets the name of the base address argument.
+    /// Gets the name of the location argument.
     /// </summary>
-    public const string BaseAddressArg = "baseAddress";
+    public const string LocationArg = "location";
 }

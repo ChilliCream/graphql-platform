@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +36,8 @@ public class MutationTests
     [Fact]
     public async Task Ensure_Mutations_Child_Fields_Are_Scoped_To_Its_Parent()
     {
+        using var cts = new CancellationTokenSource(5_000);
+        
         var result =
             await new ServiceCollection()
                 .AddGraphQLServer()
@@ -48,7 +49,8 @@ public class MutationTests
                         a { a b }
                         b { a b }
                     }
-                    """);
+                    """,
+                    cancellationToken: cts.Token);
 
         result.MatchInlineSnapshot(
             """
@@ -119,7 +121,7 @@ public class MutationTests
 
         public bool IsExecutingB => _a;
 
-        public async Task<SubA> A()
+        public async Task<SubA> A(CancellationToken cancellationToken)
         {
             lock (_sync)
             {
@@ -131,12 +133,12 @@ public class MutationTests
                 _a = true;
             }
 
-            await Task.Delay(100);
+            await Task.Delay(100, cancellationToken);
             _a = false;
             return new SubA(this);
         }
 
-        public async Task<SubB> B()
+        public async Task<SubB> B(CancellationToken cancellationToken)
         {
             lock (_sync)
             {
@@ -148,7 +150,7 @@ public class MutationTests
                 _b = true;
             }
 
-            await Task.Delay(100);
+            await Task.Delay(100, cancellationToken);
             _b = false;
             return new SubB(this);
         }

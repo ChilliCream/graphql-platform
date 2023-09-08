@@ -1,7 +1,9 @@
+using BananaCakePop.Middleware;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
 using HotChocolate.Execution.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -75,31 +77,32 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutor(
         this IServiceCollection services,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
-        string? schemaName = default
-    )
+        string? schemaName = default)
     {
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
             PathString path = apiRoute.TrimEnd('/');
-            var fileProvider = CreateFileProvider();
             var options = new GraphQLServerOptions();
 
             foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
             {
                 configure(options);
             }
+
+            // We need to set the ServeMode to Embedded to ensure that the GraphQL IDE is
+            // working since the isolation mode does not allow us to take control over the response
+            // object.
+            options.Tool.ServeMode = GraphQLToolServeMode.Embedded;
+
             var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
-            var pipeline =
-                new PipelineBuilder()
-                    .UseMiddleware<WebSocketSubscriptionMiddleware>()
-                    .UseMiddleware<HttpPostMiddleware>()
-                    .UseMiddleware<HttpMultipartMiddleware>()
-                    .UseMiddleware<HttpGetSchemaMiddleware>()
-                    .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-                    .UseMiddleware<ToolOptionsFileMiddleware>(path)
-                    .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-                    .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
+            var pipeline = new PipelineBuilder()
+                    .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+                    .UseBananaCakePop(path)
+                    .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
                     .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);
@@ -138,10 +141,31 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         return builder;
     }
 
+    private static PipelineBuilder UseBananaCakePop(
+        this PipelineBuilder requestPipeline,
+        PathString path)
+    {
+        if (requestPipeline is null)
+        {
+            throw new ArgumentNullException(nameof(requestPipeline));
+        }
+
+        path = path.ToString().TrimEnd('/');
+        var fileProvider = CreateFileProvider();
+        var forwarderAccessor = new HttpForwarderAccessor();
+
+        return requestPipeline
+            .UseMiddleware<BananaCakePopOptionsFileMiddleware>(path)
+            .UseMiddleware<BananaCakePopCdnMiddleware>(path, forwarderAccessor)
+            .UseMiddleware<BananaCakePopDefaultFileMiddleware>(fileProvider, path)
+            .UseMiddleware<BananaCakePopStaticFileMiddleware>(fileProvider, path);
+    }
+
     private static IFileProvider CreateFileProvider()
     {
-        var type = typeof(HttpMultipartMiddleware);
-        var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
+        var type = typeof(BananaCakePopStaticFileMiddleware);
+        var resourceNamespace = type.Namespace + ".Resources";
+
         return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
     }
 }

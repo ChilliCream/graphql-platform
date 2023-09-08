@@ -52,6 +52,11 @@ public readonly ref struct ComplexityContext
     public FieldNode Selection { get; }
 
     /// <summary>
+    /// Gets the coerced variables of the current request.
+    /// </summary>
+    public IVariableValueCollection Variables => _valueCollection;
+
+    /// <summary>
     /// Gets the field`s base complexity.
     /// </summary>
     /// <value></value>

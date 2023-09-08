@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "Could not resolve the actual object type from \u0060HotChocolate.Types.Relay.NodeFieldSupportTests\u002BBar2\u0060 for the abstract type \u0060node\u0060.",

@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -65,7 +63,7 @@ public class InputCoercionTests
 
         // act
         var coercedValue =
-            inputParser.ParseLiteral(list, type, PathFactory.Instance.New("root"));
+            inputParser.ParseLiteral(list, type, Path.Root.Append("root"));
 
         // assert
         Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True, Assert.False);
@@ -88,7 +86,7 @@ public class InputCoercionTests
 
         // act
         var coercedValue =
-            inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
+            inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
         // assert
         coercedValue.MatchSnapshot();
@@ -109,7 +107,7 @@ public class InputCoercionTests
 
         // act
         var coercedValue =
-            inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
+            inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
         // assert
         coercedValue.MatchSnapshot();
@@ -130,7 +128,7 @@ public class InputCoercionTests
 
         // act
         var coercedValue =
-            inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
+            inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
         // assert
         Assert.Null(coercedValue);
@@ -151,7 +149,7 @@ public class InputCoercionTests
 
         // act
         void Action() =>
-            inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
+            inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Action);
@@ -167,7 +165,7 @@ public class InputCoercionTests
 
         // act
         var coercedValue =
-            inputParser.ParseLiteral(element, type, PathFactory.Instance.New("root"));
+            inputParser.ParseLiteral(element, type, Path.Root.Append("root"));
 
         // assert
         Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True);
@@ -183,7 +181,7 @@ public class InputCoercionTests
 
         // act
         void Action() =>
-            inputParser.ParseLiteral(list, type, PathFactory.Instance.New("root"));
+            inputParser.ParseLiteral(list, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Action);
@@ -199,7 +197,7 @@ public class InputCoercionTests
 
         // act
         void Action() =>
-            inputParser.ParseLiteral(element, type, PathFactory.Instance.New("root"));
+            inputParser.ParseLiteral(element, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Action);

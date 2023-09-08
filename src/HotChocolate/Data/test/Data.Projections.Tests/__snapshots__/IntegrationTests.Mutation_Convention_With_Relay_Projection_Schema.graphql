@@ -1,0 +1,71 @@
+schema {
+  query: QueryWithNodeResolvers
+  mutation: Mutation
+}
+
+interface Error {
+  message: String!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type AnError implements Error {
+  message: String!
+}
+
+type Bar implements Node {
+  id: ID!
+  fieldOfBar: String!
+}
+
+type Baz implements Node {
+  id: ID!
+  fieldOfBaz: String!
+}
+
+type CreateRecordPayload {
+  foo: [Foo!]
+  errors: [CreateRecordError!]
+  query: QueryWithNodeResolvers!
+}
+
+type Foo implements Node {
+  id: ID!
+  fieldOfFoo: String!
+}
+
+type ModifyPayload {
+  foo: [Foo!]
+  query: QueryWithNodeResolvers!
+}
+
+type ModifySingleOrDefaultPayload {
+  foo: Foo
+  query: QueryWithNodeResolvers!
+}
+
+type Mutation {
+  modify: ModifyPayload!
+  modifySingleOrDefault: ModifySingleOrDefaultPayload!
+  createRecord(input: CreateRecordInput!): CreateRecordPayload!
+}
+
+type QueryWithNodeResolvers {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  all: [Foo!]!
+  byId(id: ID!): Foo
+  bazById(id: ID!): Baz
+  barById(id: ID!): Bar!
+}
+
+union CreateRecordError = AnError
+
+input CreateRecordInput {
+  throwError: Boolean!
+}

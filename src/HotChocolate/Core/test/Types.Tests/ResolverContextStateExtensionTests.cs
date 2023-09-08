@@ -39,7 +39,7 @@ public class ResolverContextStateExtensionTests
             .ExecuteRequestAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
-                    .SetGlobalState(nameof(ClaimsPrincipal), user)
+                    .SetUser(user)
                     .Create())
             .MatchSnapshotAsync();
     }

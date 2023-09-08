@@ -1,0 +1,28 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "edges": [
+        {
+          "node": {
+            "bar": true,
+            "baz": "a"
+          }
+        },
+        {
+          "node": {
+            "bar": false,
+            "baz": "b"
+          }
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'Foos' select Bar, Baz
+---------------

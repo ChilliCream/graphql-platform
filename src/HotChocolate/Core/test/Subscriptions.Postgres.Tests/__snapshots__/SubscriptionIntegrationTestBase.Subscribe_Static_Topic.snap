@@ -1,0 +1,7 @@
+﻿{
+  "data": {
+    "onMessage": {
+      "bar": "Hello"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "nodes": [
+        {
+          "bar": true,
+          "list": null
+        },
+        {
+          "bar": false,
+          "list": null
+        }
+      ]
+    }
+  }
+}
+---------------
+
+Query:
+---------------
+find({ }, { "List.BarBaz" : 1, "Bar" : 1 })
+---------------

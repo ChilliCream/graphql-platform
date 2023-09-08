@@ -1,4 +1,5 @@
 using System;
+using System.Security.Claims;
 
 namespace HotChocolate.Execution;
 
@@ -83,6 +84,14 @@ public static class QueryRequestBuilderExtensions
         this IQueryRequestBuilder builder,
         int maximumAllowedDepth) =>
         builder.SetGlobalState(WellKnownContextData.MaxAllowedExecutionDepth, maximumAllowedDepth);
+
+    /// <summary>
+    /// Sets the user for this request.
+    /// </summary>
+    public static IQueryRequestBuilder SetUser(
+        this IQueryRequestBuilder builder,
+        ClaimsPrincipal claimsPrincipal) =>
+        builder.SetGlobalState(nameof(ClaimsPrincipal), claimsPrincipal);
 
     /// <summary>
     /// Registers a cleanup task for execution resources with the <see cref="IQueryResultBuilder"/>.

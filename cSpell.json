@@ -39,9 +39,13 @@
     "NATS",
     "cypher",
     "sublicensable",
-    "meros"
+    "meros",
+    "Structs",
+    "reencode"
   ],
   "ignoreWords": [
+    "Badurina",
+    "enisdenjo",
     "Specwise",
     "strawberryshake",
     "refactorings",
@@ -66,6 +70,7 @@
     "Rgba",
     "Postgraphile",
     "Normen",
+    "typeof",
     // youtube
     "Ufjn",
     "Wguo",
@@ -79,7 +84,11 @@
     "Mihsg",
     "Eciou",
     "cfnm",
-    "UHVQ"
+    "UHVQ",
+    "PKCE",
+    "URQL",
+    "unpublish",
+    "elete"
   ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links

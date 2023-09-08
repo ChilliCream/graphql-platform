@@ -11,18 +11,8 @@ internal static class HttpContextExtensions
                 ? options
                 : null);
 
-    public static GraphQLToolOptions? GetGraphQLToolOptions(this HttpContext context)
-        => GetGraphQLServerOptions(context)?.Tool;
-
     public static GraphQLSocketOptions? GetGraphQLSocketOptions(this HttpContext context)
         => GetGraphQLServerOptions(context)?.Sockets;
-
-    public static GraphQLEndpointOptions? GetGraphQLEndpointOptions(this HttpContext context)
-        => context.GetEndpoint()?.Metadata.GetMetadata<GraphQLEndpointOptions>() ??
-           (context.Items.TryGetValue(nameof(GraphQLEndpointOptions), out var o) &&
-            o is GraphQLEndpointOptions options
-               ? options
-               : null);
 
     public static bool IsTracingEnabled(this HttpContext context)
     {

@@ -1,4 +1,4 @@
-query introspection_phase_2 {
+query IntrospectionQuery {
   schema: __schema {
     queryType {
       name

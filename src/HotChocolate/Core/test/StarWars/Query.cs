@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
+using HotChocolate.Subscriptions;
 
 namespace HotChocolate.StarWars;
 
@@ -12,8 +13,7 @@ public class Query
 
     public Query(CharacterRepository repository)
     {
-        _repository = repository
-            ?? throw new ArgumentNullException(nameof(repository));
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public class Query
     /// </summary>
     /// <param name="episode">The episode to look up by.</param>
     /// <returns>The character.</returns>
-    public IReadOnlyList< ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
+    public IReadOnlyList<ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
     {
         var list = new List<ICharacter>();
 
@@ -68,6 +68,7 @@ public class Query
         foreach (var characterId in characterIds)
         {
             ICharacter character = _repository.GetCharacter(characterId);
+
             if (character is null)
             {
                 context.ReportError(

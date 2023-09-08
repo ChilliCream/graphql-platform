@@ -330,4 +330,7 @@
   <data name="SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame" xml:space="preserve">
     <value>The provided response name must be the same as on the selection.</value>
   </data>
+  <data name="ComplexityAnalyzerCompiler_Enter_OnlyOperations" xml:space="preserve">
+    <value>We only compile operations.</value>
+  </data>
 </root>

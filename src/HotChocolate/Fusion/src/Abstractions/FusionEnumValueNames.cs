@@ -6,9 +6,9 @@ namespace HotChocolate.Fusion;
 internal static class FusionEnumValueNames
 {
     /// <summary>
-    /// Gets the name of the query resolver kind.
+    /// Gets the name of the fetch resolver kind.
     /// </summary>
-    public const string Query = "QUERY";
+    public const string Fetch = "FETCH";
 
     /// <summary>
     /// Gets the name of the batch resolver kind.
@@ -16,12 +16,7 @@ internal static class FusionEnumValueNames
     public const string Batch = "BATCH";
 
     /// <summary>
-    /// Gets the name of the batch by key resolver kind.
+    /// Gets the name of the subscribe resolver kind.
     /// </summary>
-    public const string BatchByKey = "BATCH_BY_KEY";
-
-    /// <summary>
-    /// Gets the name of the subscription resolver kind.
-    /// </summary>
-    public const string Subscription = "SUBSCRIPTION";
+    public const string Subscribe = "SUBSCRIBE";
 }

@@ -38,6 +38,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .AddImplements(
                 IEntityMapper.WithGeneric(
                     descriptor.ExtractType().ToString(),

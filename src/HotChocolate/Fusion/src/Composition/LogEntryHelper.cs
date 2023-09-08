@@ -1,4 +1,5 @@
 using System.Security;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 
@@ -87,16 +88,44 @@ internal static class LogEntryHelper
 
     public static LogEntry OutputFieldArgumentSetMismatch(
         SchemaCoordinate coordinate,
-        OutputField field)
+        OutputField field,
+        IReadOnlyList<string> targetArgs,
+        IReadOnlyList<string> sourceArgs)
         => new LogEntry(
-            string.Format(LogEntryHelper_OutputFieldArgumentSetMismatch, coordinate.ToString()),
+            string.Format(
+                LogEntryHelper_OutputFieldArgumentSetMismatch,
+                coordinate.ToString(),
+                string.Join(", ", targetArgs),
+                string.Join(", ", sourceArgs)),
             code: LogEntryCodes.OutputFieldArgumentSetMismatch,
             severity: LogSeverity.Error,
             coordinate: coordinate,
             member: field);
+
+    public static LogEntry FieldDependencyCannotBeResolved(
+        SchemaCoordinate coordinate,
+        FieldNode dependency,
+        Schema schema)
+        => new LogEntry(
+            string.Format(
+                LogEntryHelper_FieldDependencyCannotBeResolved,
+                dependency),
+            severity: LogSeverity.Error,
+            code: LogEntryCodes.FieldDependencyCannotBeResolved,
+            coordinate: coordinate,
+            schema: schema);
+
+    public static LogEntry TypeNotDeclared(MissingType type, Schema schema)
+        => new(
+            string.Format(LogEntryHelper_TypeNotDeclared, type.Name, schema.Name),
+            LogEntryCodes.TypeNotDeclared,
+            severity: LogSeverity.Error,
+            coordinate: new SchemaCoordinate(type.Name),
+            member: type,
+            schema: schema);
 }
 
-internal static class LogEntryCodes
+static file class LogEntryCodes
 {
     public const string RemoveMemberNotFound = "HF0001";
 
@@ -109,4 +138,10 @@ internal static class LogEntryCodes
     public const string OutputFieldArgumentMismatch = "HF0005";
 
     public const string OutputFieldArgumentSetMismatch = "HF0006";
+
+    public const string CoordinateNotAllowedForRequirements = "HF0007";
+
+    public const string FieldDependencyCannotBeResolved = "HF0008";
+    
+    public const string TypeNotDeclared = "HF0009";
 }

@@ -36,7 +36,7 @@ public class RemoteQueryBuilderTests
             .OfType<OperationDefinitionNode>().Single()
             .SelectionSet.Selections
             .OfType<FieldNode>().Single()
-            .SelectionSet.Selections
+            .SelectionSet!.Selections
             .OfType<FieldNode>().Single();
 
         // act

@@ -1,0 +1,25 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  someData: SomeData
+    @resolver(subgraph: "A", select: "{ someData }")
+    @resolver(subgraph: "B", select: "{ someData }")
+}
+
+type OtherData {
+  a: String
+    @source(subgraph: "A")
+  b: String
+    @source(subgraph: "B")
+}
+
+type SomeData {
+  other: OtherData
+    @source(subgraph: "A")
+    @source(subgraph: "B")
+}

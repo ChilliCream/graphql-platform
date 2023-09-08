@@ -41,6 +41,9 @@ public class OutputFieldBase<TDefinition>
     /// </summary>
     public bool IsIntrospectionField
         => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
+    
+    internal bool IsTypeNameField
+        => (Flags & FieldFlags.TypeNameField) == FieldFlags.TypeNameField;
 
     /// <inheritdoc />
     public bool IsDeprecated

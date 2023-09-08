@@ -1,0 +1,7 @@
+schema {
+  query: QueryWithGenerics
+}
+
+type QueryWithGenerics {
+  bar: String!
+}

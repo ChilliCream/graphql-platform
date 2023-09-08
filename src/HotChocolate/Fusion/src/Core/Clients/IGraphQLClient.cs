@@ -23,6 +23,6 @@ public interface IGraphQLClient : IAsyncDisposable
     /// A task representing the asynchronous operation, which returns the GraphQL response.
     /// </returns>
     Task<GraphQLResponse> ExecuteAsync(
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         CancellationToken cancellationToken);
 }

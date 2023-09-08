@@ -43,8 +43,8 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             // since we bind the id field late we need to hint to the type discovery
             // that we will need the ID scalar.
             definition.Dependencies.Add(
-            TypeDependency.FromSchemaType(
-                context.TypeInspector.GetType(typeof(IdType))));
+                TypeDependency.FromSchemaType(
+                    context.TypeInspector.GetType(typeof(IdType))));
         });
 
         descriptor.Extend().OnBeforeNaming(

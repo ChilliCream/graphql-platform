@@ -231,6 +231,11 @@ public static class WellKnownContextData
     public const string MutationQueryField = "HotChocolate.Relay.Mutations.QueryField";
 
     /// <summary>
+    /// The key to the name of the data field when using the mutation convention.
+    /// </summary>
+    public const string MutationConventionDataField = "HotChocolate.Types.Mutations.Conventions.DataField";
+
+    /// <summary>
     /// The key to get the Cache-Control header value from the context data.
     /// </summary>
     public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
@@ -269,4 +274,9 @@ public static class WellKnownContextData
     /// The key to access the authorization handler on the global context.
     /// </summary>
     public const string AuthorizationHandler = "HotChocolate.Authorization.AuthorizationHandler";
+
+    /// <summary>
+    /// The key to access the authorization allowed flag on the member context.
+    /// </summary>
+    public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
 }

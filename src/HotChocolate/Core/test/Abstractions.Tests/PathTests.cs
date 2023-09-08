@@ -1,18 +1,30 @@
 ﻿using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Instrumentation;
 
 public class PathExtensionsTests
 {
     [Fact]
+    public void GetHashCode_Test()
+    {
+        var path = Path.Root.Append("hero");
+        Assert.NotEqual(0, path.GetHashCode());
+    }
+    
+    [Fact]
+    public void GetHashCode_Root_Test()
+    {
+        Assert.Equal(0, Path.Root.GetHashCode());
+    }
+    
+    [Fact]
     public void Path_ToString()
     {
         // arrange
-        Path path = PathFactory.Instance.New("hero");
-        path = PathFactory.Instance.Append(path, "friends");
-        path = PathFactory.Instance.Append(path, 0);
-        path = PathFactory.Instance.Append(path, "name");
+        var path = Path.Root.Append("hero");
+        path = path.Append("friends");
+        path = path.Append(0);
+        path = path.Append("name");
 
         // act
         var result = path.ToString();
@@ -25,10 +37,10 @@ public class PathExtensionsTests
     public void Path_ToList()
     {
         // arrange
-        Path path = PathFactory.Instance.New("hero");
-        path = PathFactory.Instance.Append(path, "friends");
-        path = PathFactory.Instance.Append(path, 0);
-        path = PathFactory.Instance.Append(path, "name");
+        var path = Path.Root.Append("hero");
+        path = path.Append("friends");
+        path = path.Append(0);
+        path = path.Append("name");
 
         // act
         var result = path.ToList();
@@ -41,7 +53,7 @@ public class PathExtensionsTests
     public void Path_Equals_Null()
     {
         // arrange
-        Path hero = PathFactory.Instance.New("hero");
+        var hero = Path.Root.Append("hero");
         Path friends = null;
 
         // act
@@ -55,9 +67,9 @@ public class PathExtensionsTests
     public void Path_Equals_False()
     {
         // arrange
-        Path hero = PathFactory.Instance.New("hero");
-        Path friends = PathFactory.Instance.New("hero");
-        friends = PathFactory.Instance.Append(friends, "friends");
+        var hero = Path.Root.Append("hero");
+        var friends = Path.Root.Append("hero");
+        friends = friends.Append("friends");
 
         // act
         var areEqual = hero.Equals(friends);
@@ -70,10 +82,10 @@ public class PathExtensionsTests
     public void Path_Equals_True()
     {
         // arrange
-        Path friends1 = PathFactory.Instance.New("hero");
-        friends1 = PathFactory.Instance.Append(friends1, "friends");
-        Path friends2 = PathFactory.Instance.New("hero");
-        friends2 = PathFactory.Instance.Append(friends2, "friends");
+        var friends1 = Path.Root.Append("hero");
+        friends1 = friends1.Append("friends");
+        var friends2 = Path.Root.Append("hero");
+        friends2 = friends2.Append("friends");
 
         // act
         var areEqual = friends1.Equals(friends2);

@@ -1,9 +1,11 @@
 using CookieCrumble;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Sorting;
+namespace HotChocolate.Data;
 
-public class QueryableSortVisitorBooleanTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableSortVisitorBooleanTests
 {
     private static readonly Foo[] _fooEntities = { new() { Bar = true }, new() { Bar = false } };
 

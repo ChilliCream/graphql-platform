@@ -27,7 +27,7 @@ internal sealed class RabbitMQPubSub : DefaultPubSub
 
     protected override async ValueTask OnSendAsync<TMessage>(
         string formattedTopic,
-        MessageEnvelope<TMessage> message,
+        TMessage message,
         CancellationToken cancellationToken = default)
     {
         var serializedMessage = _serializer.Serialize(message);
@@ -35,8 +35,8 @@ internal sealed class RabbitMQPubSub : DefaultPubSub
         await PublishAsync(formattedTopic, serializedMessage).ConfigureAwait(false);
     }
 
-    protected override async ValueTask OnCompleteAsync(string formattedTopic) =>
-        await PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
+    protected override async ValueTask OnCompleteAsync(string formattedTopic)
+        => await PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
 
     protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(
         string formattedTopic,

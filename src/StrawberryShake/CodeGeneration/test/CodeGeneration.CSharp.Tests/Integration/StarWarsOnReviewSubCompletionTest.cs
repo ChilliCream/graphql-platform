@@ -42,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
 
             var sub = client.OnReviewSub.Watch();
             var session = sub.Subscribe(
-                result => commentary = result.Data?.OnReview?.Commentary,
+                result => commentary = result.Data?.OnReview.Commentary,
                 () => completionTriggered = true);
 
             var topic = Episode.NewHope;
@@ -67,7 +67,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             }
 
             // assert
-            Assert.True(commentary is not null && completionTriggered);
+            Assert.True(completionTriggered);
+            Assert.NotNull(commentary);
 
             session.Dispose();
         }

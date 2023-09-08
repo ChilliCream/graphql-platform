@@ -747,6 +747,23 @@ public class InterfaceTypeTests : TypeTestBase
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task StripLeadingIFromInterface()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("foo")
+                .Type<InterfaceType<IFooNaming>>()
+                .Resolve(() => null))
+            .AddResolver("Foo", "bar", x => 1)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ModifyOptions(o => o.StripLeadingIFromInterface = true)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
     private sealed class SnakeCaseNamingConventions : DefaultNamingConventions
     {
         public override string GetMemberName(MemberInfo member, MemberKind kind)

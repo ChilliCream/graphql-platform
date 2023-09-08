@@ -1,7 +1,6 @@
 using System.Collections;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.PathFactory;
 
 namespace HotChocolate.Stitching.Delegation;
 
@@ -55,7 +54,7 @@ internal static class DictionaryDeserializer
                             elementType,
                             item,
                             parser,
-                            Instance.Append(path, i++)));
+                            path.Append(i++)));
                 }
 
                 return deserializedList;
@@ -75,7 +74,7 @@ internal static class DictionaryDeserializer
                             elementType,
                             item,
                             parser,
-                            Instance.Append(path, i++)));
+                            path.Append(i++)));
                 }
 
                 return list;
@@ -123,7 +122,7 @@ internal static class DictionaryDeserializer
                             elementType,
                             item,
                             parser,
-                            Instance.Append(path, i++)));
+                            path.Append(i++)));
                 }
 
                 return deserializedList;
@@ -143,7 +142,7 @@ internal static class DictionaryDeserializer
                             elementType,
                             item,
                             parser,
-                            Instance.Append(path, i++)));
+                            path.Append(i++)));
                 }
 
                 return list;

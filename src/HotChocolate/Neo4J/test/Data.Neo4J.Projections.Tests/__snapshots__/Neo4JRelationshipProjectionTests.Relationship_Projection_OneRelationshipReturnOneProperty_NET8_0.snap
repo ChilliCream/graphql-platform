@@ -1,0 +1,23 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barBool": true,
+        "barString": "a",
+        "bars": [
+          {
+            "name": "b"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Query:
+---------------
+MATCH (fooRel:FooRel) RETURN fooRel {.BarBool, .BarString, Bars: [(fooRel:FooRel)-[:RELATED_TO]->(bar:Bar) | bar {.Name}]} ORDER BY fooRel {.BarBool, .BarString, Bars: [(fooRel:FooRel)-[:RELATED_TO]->(bar:Bar) | bar {.Name}]} ASC
+---------------

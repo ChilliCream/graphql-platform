@@ -361,7 +361,7 @@ public class MyDirectiveType : DirectiveType<MyDirective>
         descriptor.Name("my");
         descriptor.Location(DirectiveLocation.Object);
 
-        descriptor.Use(next => context =>
+        descriptor.Use((next, directive) => context =>
         {
             context.Result = "Bar";
             return next.Invoke(context);

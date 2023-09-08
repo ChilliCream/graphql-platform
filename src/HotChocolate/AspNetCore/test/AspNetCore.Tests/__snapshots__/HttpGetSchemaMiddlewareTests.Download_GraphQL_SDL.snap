@@ -51,6 +51,7 @@ type Human implements Character {
 
 type Mutation {
   createReview(episode: Episode! review: ReviewInput!): Review!
+  complete(episode: Episode!): Boolean!
 }
 
 "Information about pagination in a connection."
@@ -92,6 +93,7 @@ type Subscription {
   onReview(episode: Episode!): Review!
   onNext: String!
   onException: String!
+  delay(delay: Int! count: Int!): String!
 }
 
 union SearchResult = Starship | Human | Droid

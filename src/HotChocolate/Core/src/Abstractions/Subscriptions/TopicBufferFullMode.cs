@@ -6,11 +6,6 @@ namespace HotChocolate.Subscriptions;
 public enum TopicBufferFullMode
 {
     /// <summary>
-    /// Wait for space to be available in order to complete the write operation.
-    /// </summary>
-    Wait,
-
-    /// <summary>
     /// Remove and ignore the newest item in the topic channel in order to make room for
     /// the item being written.
     /// </summary>

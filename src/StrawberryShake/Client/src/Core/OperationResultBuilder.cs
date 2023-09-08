@@ -25,6 +25,7 @@ public abstract class OperationResultBuilder<TResultData>
         TResultData? data = null;
         IOperationResultDataInfo? dataInfo = null;
         IReadOnlyList<IClientError>? errors = null;
+        IReadOnlyDictionary<string, object?>? extensions = null;
 
         try
         {
@@ -41,6 +42,14 @@ public abstract class OperationResultBuilder<TResultData>
                     errorsProp.ValueKind is JsonValueKind.Array)
                 {
                     errors = JsonErrorParser.ParseErrors(errorsProp);
+                }
+
+                if (body.RootElement.TryGetProperty(
+                        ResultFields.Extensions,
+                        out var extensionsProp) &&
+                    extensionsProp.ValueKind is JsonValueKind.Object)
+                {
+                    extensions = JsonExtensionParser.ParseExtensions(extensionsProp);
                 }
             }
         }
@@ -88,7 +97,7 @@ public abstract class OperationResultBuilder<TResultData>
             dataInfo,
             ResultDataFactory,
             errors,
-            response.Extensions,
+            extensions,
             response.ContextData);
     }
 

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -13,5 +11,5 @@ public interface ISourceStream : IAsyncDisposable
     /// <summary>
     /// Reads the subscription result from the pub/sub system.
     /// </summary>
-    IAsyncEnumerable<object> ReadEventsAsync();
+    IAsyncEnumerable<object?> ReadEventsAsync();
 }

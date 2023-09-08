@@ -124,7 +124,7 @@ services
     .AddGraphQL()
     .ModifyRequestOptions(o =>
     {
-        o.Enable = true;
+        o.Complexity.Enable = true;
         o.Complexity.MaximumAllowed = 1500;
     });
 ```

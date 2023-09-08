@@ -10,7 +10,7 @@ internal static class QueryPlannerHelpers
         this FusionGraphConfiguration configuration,
         IOperation operation,
         IReadOnlyList<ISelection> selections,
-        ObjectTypeInfo typeInfoContext,
+        ObjectTypeMetadata typeMetadataContext,
         IReadOnlyList<string>? availableSubgraphs = null)
     {
         var bestScore = 0;
@@ -23,7 +23,7 @@ internal static class QueryPlannerHelpers
                     configuration,
                     operation,
                     selections,
-                    typeInfoContext,
+                    typeMetadataContext,
                     subgraphName);
 
             if (score > bestScore)
@@ -40,12 +40,12 @@ internal static class QueryPlannerHelpers
         FusionGraphConfiguration configuration,
         IOperation operation,
         IReadOnlyList<ISelection> selections,
-        ObjectTypeInfo typeInfoContext,
+        ObjectTypeMetadata typeMetadataContext,
         string schemaName)
     {
         var score = 0;
-        var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectTypeInfo typeContext)>();
-        stack.Push((selections, typeInfoContext));
+        var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectTypeMetadata typeContext)>();
+        stack.Push((selections, typeMetadataContext));
 
         while (stack.Count > 0)
         {
@@ -63,7 +63,7 @@ internal static class QueryPlannerHelpers
                     {
                         foreach (var possibleType in operation.GetPossibleTypes(selection))
                         {
-                            var type = configuration.GetType<ObjectTypeInfo>(possibleType.Name);
+                            var type = configuration.GetType<ObjectTypeMetadata>(possibleType.Name);
                             var selectionSet = operation.GetSelectionSet(selection, possibleType);
                             stack.Push((selectionSet.Selections, type));
                         }

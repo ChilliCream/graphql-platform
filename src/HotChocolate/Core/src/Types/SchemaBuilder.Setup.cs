@@ -84,7 +84,7 @@ public partial class SchemaBuilder
             var typeInterceptor = new AggregateTypeInterceptor();
 
             var context = DescriptorContext.Create(
-                builder._options,
+                () => builder._options,
                 services,
                 builder._conventions,
                 builder._contextData,

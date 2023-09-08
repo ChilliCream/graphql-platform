@@ -120,7 +120,7 @@ query GetSessions {
 dotnet build
 ```
 
-With the project compiled you now should see a directory `Generated`. The generated code is just there for the IDE, the actual code was injected directly into roslyn through source generators.
+With the project compiled, you should now see in the directory `./obj/<configuration>/<target-framework>/berry` the generated code that your applications can leverage. For example, if you've run a Debug build for .NET 8, the path would be `./obj/Debug/net8.0/berry`.
 
 ![Visual Studio code showing the generated directory.](../../../shared/berry_console_generated.png)
 

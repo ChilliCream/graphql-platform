@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -34,4 +35,7 @@ public sealed class Argument
     public string Name { get;  }
 
     public IValueNode Value { get; }
+
+    public override string ToString()
+        => RewriteArgument(this).ToString(true);
 }

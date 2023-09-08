@@ -24,7 +24,7 @@ internal static class InputObjectConstructorResolver
 
         if (AllPropertiesCanWrite(fields))
         {
-            if (constructors.Length == 0)
+            if (constructors.Length == 0 || type.IsValueType)
             {
                 return null;
             }

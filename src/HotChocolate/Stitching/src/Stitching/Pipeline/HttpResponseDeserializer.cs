@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Pipeline;
 
@@ -12,9 +11,6 @@ internal static class HttpResponseDeserializer
     private const string _data = "data";
     private const string _extensions = "extensions";
     private const string _errors = "errors";
-
-    private static readonly ObjectValueToDictionaryConverter _converter =
-        new ObjectValueToDictionaryConverter();
 
     public static IQueryResult Deserialize(
         IReadOnlyDictionary<string, object?> serializedResult)

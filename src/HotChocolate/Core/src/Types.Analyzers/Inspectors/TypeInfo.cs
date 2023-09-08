@@ -23,6 +23,21 @@ public sealed class TypeInfo : ISyntaxInfo, IEquatable<TypeInfo>
 
         return Name == other.Name;
     }
+    
+    public bool Equals(ISyntaxInfo other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return other is TypeInfo info && Equals(info);
+    }
 
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||

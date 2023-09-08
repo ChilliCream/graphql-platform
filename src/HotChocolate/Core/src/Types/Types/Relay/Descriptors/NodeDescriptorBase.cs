@@ -1,7 +1,6 @@
 #nullable enable
 
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -155,6 +154,26 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
                     Definition.ResolverField.GetResultConverters(),
                     Definition.ResolverField.Resolver,
                     false);
+
+                var directiveDefs = Definition.ResolverField.GetDirectives();
+
+                if (directiveDefs.Count > 0)
+                {
+                    var directives =
+                        DirectiveCollection.CreateAndComplete(
+                            context,
+                            DirectiveLocation.FieldDefinition,
+                            Definition.ResolverField,
+                            directiveDefs);
+
+                    foreach (var directive in directives)
+                    {
+                        if (directive.Type.Middleware is not null)
+                        {
+                            pipeline = directive.Type.Middleware.Invoke(pipeline, directive);
+                        }
+                    }
+                }
 
                 definition.ContextData[WellKnownContextData.NodeResolver] =
                     new NodeResolverInfo(null, pipeline!);

@@ -81,7 +81,7 @@ internal static class EntitiesResolver
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
     {
-        Path itemPath = PathFactory.Instance.Append(context.Path, item);
+        var itemPath = context.Path.Append(item);
         context.ReportError(ex, error => error.SetPath(itemPath));
     }
 }

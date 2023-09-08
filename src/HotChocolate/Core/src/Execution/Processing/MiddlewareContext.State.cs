@@ -8,8 +8,9 @@ internal partial class MiddlewareContext
 {
     private object? _result;
     private object? _parent;
+    private Path? _path;
 
-    public Path Path { get; private set; } = default!;
+    public Path Path => _path ??= PathHelper.CreatePathFromContext(Selection, ParentResult, -1);
 
     public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = default!;
 

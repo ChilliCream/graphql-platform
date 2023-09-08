@@ -21,7 +21,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
     /// </exception>
     public static IObjectTypeDescriptor Authorize(
         this IObjectTypeDescriptor descriptor,
-        ApplyPolicy apply = ApplyPolicy.Validation)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
         if (descriptor == null)
         {
@@ -46,7 +46,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
     public static IObjectTypeDescriptor Authorize(
         this IObjectTypeDescriptor descriptor,
         string policy,
-        ApplyPolicy apply = ApplyPolicy.Validation)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
         if (descriptor == null)
         {
@@ -92,7 +92,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
     /// </exception>
     public static IObjectTypeDescriptor<T> Authorize<T>(
         this IObjectTypeDescriptor<T> descriptor,
-        ApplyPolicy apply = ApplyPolicy.Validation)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
         if (descriptor == null)
         {
@@ -117,7 +117,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
     public static IObjectTypeDescriptor<T> Authorize<T>(
         this IObjectTypeDescriptor<T> descriptor,
         string policy,
-        ApplyPolicy apply = ApplyPolicy.Validation)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
         if (descriptor == null)
         {

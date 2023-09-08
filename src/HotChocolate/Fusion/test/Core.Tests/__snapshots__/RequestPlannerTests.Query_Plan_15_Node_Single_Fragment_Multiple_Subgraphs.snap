@@ -82,6 +82,9 @@ QueryPlan
         ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id"
   }
 }
 ---------------

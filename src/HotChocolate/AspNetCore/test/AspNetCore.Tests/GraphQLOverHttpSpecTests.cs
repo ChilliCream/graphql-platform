@@ -451,14 +451,59 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 {""errors"":[{""message"":""The specified operation kind is not allowed.""}]}");
     }
 
+    [Fact]
+    public async Task EventStream_Sends_KeepAlive()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+        client.Timeout = TimeSpan.FromSeconds(30);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest { Query = "subscription {delay(count: 2, delay:15000)}" }),
+            Headers = { { "Accept", "text/event-stream" } }
+        };
+
+        using var response = await client.SendAsync(request, ResponseHeadersRead);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline("""
+                Headers:
+                Cache-Control: no-cache
+                Content-Type: text/event-stream; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: next
+                data: {"data":{"delay":"next"}}
+
+                :
+
+                event: complete
+
+
+                """);
+    }
+
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(
-               configureServices: s => s.AddHttpResponseFormatter(
-                   new HttpResponseFormatterOptions
-                   {
-                       HttpTransportVersion = serverTransportVersion
-                   }));
+            configureServices: s => s.AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = serverTransportVersion
+                }));
 
         return server.CreateClient();
     }

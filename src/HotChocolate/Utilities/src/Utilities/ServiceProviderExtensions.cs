@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+#if NET6_0_OR_GREATER
+using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
+#endif
 
 #nullable enable
 
@@ -12,8 +15,15 @@ public static class ServiceProviderExtensions
         IServiceProvider second) =>
         new CombinedServiceProvider(first, second);
 
-    [return: MaybeNull]
-    public static T GetOrCreateService<T>(this IServiceProvider services, Type type)
+#if NET6_0_OR_GREATER
+    public static T? GetOrCreateService<T>(
+        this IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type)
+#else
+    public static T? GetOrCreateService<T>(
+        this IServiceProvider services,
+        Type type)
+#endif
     {
         if (services == null)
         {
@@ -28,10 +38,17 @@ public static class ServiceProviderExtensions
         return CreateInstance<T>(services, type);
     }
 
+#if NET6_0_OR_GREATER
+    public static bool TryGetOrCreateService<T>(
+        this IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type,
+        [NotNullWhen(true)] out T service)
+#else
     public static bool TryGetOrCreateService<T>(
         this IServiceProvider services,
         Type type,
         [NotNullWhen(true)] out T service)
+#endif
     {
         if (services == null)
         {
@@ -44,11 +61,16 @@ public static class ServiceProviderExtensions
             return true;
         }
 
-        return TryCreateInstance<T>(services, type, out service);
+        return TryCreateInstance(services, type, out service);
     }
 
-    [return: MaybeNull]
-    public static T CreateInstance<T>(this IServiceProvider services, Type type)
+#if NET6_0_OR_GREATER
+    public static T? CreateInstance<T>(
+        this IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type)
+#else
+    public static T? CreateInstance<T>(this IServiceProvider services, Type type)
+#endif
     {
         if (services == null)
         {
@@ -63,10 +85,17 @@ public static class ServiceProviderExtensions
         return default;
     }
 
+#if NET6_0_OR_GREATER
+    public static bool TryCreateInstance<T>(
+        this IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type,
+        [NotNullWhen(true)] out T service)
+#else
     public static bool TryCreateInstance<T>(
         this IServiceProvider services,
         Type type,
         [NotNullWhen(true)] out T service)
+#endif
     {
         if (services == null)
         {

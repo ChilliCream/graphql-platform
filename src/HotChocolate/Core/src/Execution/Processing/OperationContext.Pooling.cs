@@ -19,7 +19,6 @@ internal sealed partial class OperationContext
     private readonly WorkScheduler _workScheduler;
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultBuilder;
-    private readonly PooledPathFactory _pathFactory;
     private IRequestContext _requestContext = default!;
     private ISchema _schema = default!;
     private IErrorHandler _errorHandler = default!;
@@ -38,12 +37,10 @@ internal sealed partial class OperationContext
 
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
-        PooledPathFactory pathFactory,
         ResultBuilder resultBuilder,
         ITypeConverter typeConverter)
     {
         _resolverTaskFactory = resolverTaskFactory;
-        _pathFactory = pathFactory;
         _workScheduler = new(this);
         _deferredWorkScheduler = new();
         _resultBuilder = resultBuilder;
@@ -111,7 +108,6 @@ internal sealed partial class OperationContext
     {
         if (_isInitialized)
         {
-            _pathFactory.Clear();
             _workScheduler.Clear();
             _resultBuilder.Clear();
             _deferredWorkScheduler.Clear();

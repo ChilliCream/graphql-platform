@@ -1,0 +1,11 @@
+﻿schema {
+  query: Query
+}
+
+interface FooNaming {
+  fooBarBaz: String
+}
+
+type Query {
+  foo: FooNaming
+}

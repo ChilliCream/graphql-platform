@@ -19,15 +19,14 @@ internal static class FederatedQueryExecutor
                 .ExecuteAsync(context, cancellationToken)
                 .ConfigureAwait(false);
         }
-        else if (operation.Type is OperationType.Subscription)
+
+        if (operation.Type is OperationType.Subscription)
         {
             return await context.QueryPlan
                 .SubscribeAsync(context, cancellationToken)
                 .ConfigureAwait(false);
         }
-        else
-        {
-            return ErrorHelper.IncrementalDelivery_NotSupported();
-        }
+
+        return ErrorHelper.IncrementalDelivery_NotSupported();
     }
 }

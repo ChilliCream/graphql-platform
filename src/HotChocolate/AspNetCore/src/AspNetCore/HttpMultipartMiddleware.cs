@@ -39,8 +39,10 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     public override async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsPost(context.Request.Method) &&
-            (context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true) &&
-            ParseContentType(context) == RequestContentType.Form)
+            GetOptions(context).EnableMultipartRequests &&
+            ParseContentType(context) == RequestContentType.Form &&
+            (context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) ||
+                !GetOptions(context).EnforceMultipartRequestsPreflightHeader))
         {
             if (!IsDefaultSchema)
             {

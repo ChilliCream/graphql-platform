@@ -30,14 +30,8 @@ public sealed partial class SyntaxSerializer
             writer.WriteMany(node.VariableDefinitions, VisitVariableDefinition);
             writer.Write(')');
         }
-
-        if (node.Directives.Count > 0)
-        {
-            writer.WriteSpace();
-            writer.WriteMany(node.Directives,
-                (n, w) => w.WriteDirective(n),
-                w => w.WriteSpace());
-        }
+        
+        WriteDirectives(node.Directives, writer);
 
         if (writeOperation)
         {
@@ -86,10 +80,9 @@ public sealed partial class SyntaxSerializer
 
         writer.WriteNamedType(node.TypeCondition);
 
-        writer.WriteMany(node.Directives,
-            (n, w) => w.WriteDirective(n));
+        WriteDirectives(node.Directives, writer);
 
-        if (node.SelectionSet is { })
+        if (node.SelectionSet is not null)
         {
             writer.WriteSpace();
             VisitSelectionSet(node.SelectionSet, writer);
@@ -171,13 +164,7 @@ public sealed partial class SyntaxSerializer
             VisitNullability(node.Required, writer);
         }
 
-        if (node.Directives.Count > 0)
-        {
-            writer.WriteSpace();
-            writer.WriteMany(node.Directives,
-                (n, w) => w.WriteDirective(n),
-                w => w.WriteSpace());
-        }
+        WriteDirectives(node.Directives, writer);
 
         if (node.SelectionSet is not null)
         {
@@ -223,13 +210,7 @@ public sealed partial class SyntaxSerializer
         writer.Write("... ");
         writer.WriteName(node.Name);
 
-        if (node.Directives.Count > 0)
-        {
-            writer.WriteSpace();
-            writer.WriteMany(node.Directives,
-                (n, w) => w.WriteDirective(n),
-                w => w.WriteSpace());
-        }
+        WriteDirectives(node.Directives, writer);
     }
 
     private void VisitInlineFragment(InlineFragmentNode node, ISyntaxWriter writer)
@@ -247,13 +228,7 @@ public sealed partial class SyntaxSerializer
             writer.WriteNamedType(node.TypeCondition);
         }
 
-        if (node.Directives.Count > 0)
-        {
-            writer.WriteSpace();
-            writer.WriteMany(node.Directives,
-                (n, w) => w.WriteDirective(n),
-                w => w.WriteSpace());
-        }
+        WriteDirectives(node.Directives, writer);
 
         if (node.SelectionSet is { })
         {

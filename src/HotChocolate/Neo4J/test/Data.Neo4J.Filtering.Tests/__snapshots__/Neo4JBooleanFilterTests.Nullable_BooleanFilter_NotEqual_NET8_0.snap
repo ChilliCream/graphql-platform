@@ -1,0 +1,41 @@
+Nullable_BooleanFilter_NotEqual_True Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+Nullable_BooleanFilter_NotEqual_True Query:
+---------------
+MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar <> True RETURN fooBoolNullable {.Bar} ORDER BY fooBoolNullable {.Bar} ASC
+---------------
+
+Nullable_BooleanFilter_NotEqual_False Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+Nullable_BooleanFilter_NotEqual_False Query:
+---------------
+MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar <> False RETURN fooBoolNullable {.Bar} ORDER BY fooBoolNullable {.Bar} ASC
+---------------
+
+Nullable_BooleanFilter_NotEqual_null Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+Nullable_BooleanFilter_NotEqual_null Query:
+---------------
+MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar <> NULL RETURN fooBoolNullable {.Bar} ORDER BY fooBoolNullable {.Bar} ASC
+---------------

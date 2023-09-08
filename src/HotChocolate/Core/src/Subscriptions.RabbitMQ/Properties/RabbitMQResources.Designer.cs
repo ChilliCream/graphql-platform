@@ -57,9 +57,9 @@ namespace HotChocolate.Subscriptions.RabbitMQ {
             }
         }
         
-        internal static string Subscription_Unsubscribe_UnsubscribedFromRabbitMQ {
+        internal static string Subscription_UnsubscribedFromRabbitMQ {
             get {
-                return ResourceManager.GetString("Subscription_Unsubscribe_UnsubscribedFromRabbitMQ", resourceCulture);
+                return ResourceManager.GetString("Subscription_UnsubscribedFromRabbitMQ", resourceCulture);
             }
         }
         

@@ -15,6 +15,7 @@ public sealed class RequestExecutorProxy : IDisposable
     private readonly IRequestExecutorResolver _executorResolver;
     private readonly string _schemaName;
     private IRequestExecutor? _executor;
+    private IDisposable? _eventSubscription;
     private bool _disposed;
 
     public event EventHandler<RequestExecutorUpdatedEventArgs>? ExecutorUpdated;
@@ -31,7 +32,9 @@ public sealed class RequestExecutorProxy : IDisposable
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));
         _schemaName = schemaName;
-        _executorResolver.RequestExecutorEvicted += EvictRequestExecutor;
+        _eventSubscription =
+            _executorResolver.Events.Subscribe(
+                new ExecutorObserver(name => EvictRequestExecutor(name)));
     }
 
     /// <summary>
@@ -176,11 +179,12 @@ public sealed class RequestExecutorProxy : IDisposable
         return executor;
     }
 
-    private void EvictRequestExecutor(object? sender, RequestExecutorEvictedEventArgs args)
+    private void EvictRequestExecutor(string schemaName)
     {
-        if (!_disposed && args.Name.Equals(_schemaName))
+        if (!_disposed && schemaName.Equals(_schemaName))
         {
             _semaphore.Wait();
+
             try
             {
                 _executor = null;
@@ -198,8 +202,31 @@ public sealed class RequestExecutorProxy : IDisposable
         if (!_disposed)
         {
             _executor = null;
+            _eventSubscription?.Dispose();
             _semaphore.Dispose();
             _disposed = true;
         }
+    }
+
+    private sealed class ExecutorObserver : IObserver<RequestExecutorEvent>
+    {
+        public ExecutorObserver(Action<string> evicted)
+        {
+            Evicted = evicted;
+        }
+
+        public Action<string> Evicted { get; }
+
+        public void OnNext(RequestExecutorEvent value)
+        {
+            if (value.Type is RequestExecutorEventType.Evicted)
+            {
+                Evicted(value.Name);
+            }
+        }
+
+        public void OnError(Exception error) { }
+
+        public void OnCompleted() { }
     }
 }

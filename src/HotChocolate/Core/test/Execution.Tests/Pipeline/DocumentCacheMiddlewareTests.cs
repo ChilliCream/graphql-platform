@@ -16,7 +16,7 @@ public class DocumentCacheMiddlewareTests
         var hashProvider = new MD5DocumentHashProvider();
 
         var middleware = new DocumentCacheMiddleware(
-            context => default,
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             cache,
             hashProvider);

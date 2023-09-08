@@ -1,5 +1,5 @@
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public interface ISyntaxInfo
+public interface ISyntaxInfo : IEquatable<ISyntaxInfo>
 {
 }

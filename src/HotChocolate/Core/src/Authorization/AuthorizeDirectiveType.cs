@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -6,7 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Authorization;
@@ -50,10 +48,9 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
                 "Defines when when the authorize directive shall be applied." +
                 "By default the authorize directives are applied during the validation phase.")
             .Type<NonNullType<ApplyPolicyType>>()
-            .DefaultValue(ApplyPolicy.Validation);
+            .DefaultValue(ApplyPolicy.BeforeResolver);
 
-        var context = descriptor.Extend().Context;
-        descriptor.Use(CreateMiddleware(context.Services));
+        descriptor.Use(CreateMiddleware());
     }
 
     public void ApplyConfiguration(
@@ -89,16 +86,13 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
         }
     }
 
-    private static DirectiveMiddleware CreateMiddleware(
-        IServiceProvider schemaServices)
-    {
-        return (next, directive) =>
+    private static DirectiveMiddleware CreateMiddleware()
+        => (next, directive) =>
         {
             var value = directive.AsValue<AuthorizeDirective>();
             var auth = new AuthorizeMiddleware(next, value);
             return async context => await auth.InvokeAsync(context).ConfigureAwait(false);
         };
-    }
 
     public static class Names
     {

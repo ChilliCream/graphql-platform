@@ -23,6 +23,6 @@ public interface IGraphQLSubscriptionClient : IAsyncDisposable
     /// A task representing the asynchronous operation, which returns a stream of GraphQL responses.
     /// </returns>
     IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         CancellationToken cancellationToken);
 }

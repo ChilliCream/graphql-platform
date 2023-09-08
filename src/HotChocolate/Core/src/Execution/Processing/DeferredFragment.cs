@@ -60,15 +60,19 @@ internal sealed class DeferredFragment : DeferredExecutionTask
         try
         {
             var operationContext = operationContextOwner.OperationContext;
+            var parentResult = operationContext.Result.RentObject(Fragment.SelectionSet.Selections.Count);
+            
+            parentResult.PatchPath = Path;
 
-            var parentResult = EnqueueResolverTasks(
+            EnqueueResolverTasks(
                 operationContext,
                 Fragment.SelectionSet,
                 Parent,
                 Path,
                 // for the execution of this task we set the deferred task ID so that
                 // child deferrals can lookup their dependency to this task.
-                ScopedContextData.SetItem(DeferredResultId, resultId));
+                ScopedContextData.SetItem(DeferredResultId, resultId),
+                parentResult);
 
             // start executing the deferred fragment.
             await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);

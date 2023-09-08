@@ -471,9 +471,9 @@ namespace HotChocolate.Data {
             }
         }
         
-        internal static string UseProjection_CannotHandleType_ {
+        internal static string UseProjection_CannotHandleType {
             get {
-                return ResourceManager.GetString("UseProjection_CannotHandleType_", resourceCulture);
+                return ResourceManager.GetString("UseProjection_CannotHandleType", resourceCulture);
             }
         }
         
@@ -612,6 +612,12 @@ namespace HotChocolate.Data {
         internal static string NameHelpers_UppercaseFirstLetter {
             get {
                 return ResourceManager.GetString("NameHelpers_UppercaseFirstLetter", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed {
+            get {
+                return ResourceManager.GetString("ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed", resourceCulture);
             }
         }
     }

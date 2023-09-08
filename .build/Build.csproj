@@ -11,17 +11,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="6.0.1" />
+    <PackageReference Include="Nuke.Common" Version="6.3.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
+    <PackageReference Include="Semver" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageDownload Include="GitVersion.Tool" Version="[5.8.2]" />
-    <PackageDownload Include="NuGet.CommandLine" Version="[6.0.0]" />
-    <PackageDownload Include="dotnet-sonarscanner" Version="[5.5.3]" />
+    <PackageDownload Include="NuGet.CommandLine" Version="[6.5.0]" />
+    <PackageDownload Include="dotnet-sonarscanner" Version="[5.13.0]" />
     <PackageDownload Include="OpenCover" Version="[4.7.1221]" />
-    <PackageDownload Include="ReportGenerator" Version="[5.0.0]" />
-    <PackageDownload Include="xunit.runner.console" Version="[2.4.1]" />
+    <PackageDownload Include="ReportGenerator" Version="[5.1.20]" />
+    <PackageDownload Include="xunit.runner.console" Version="[2.4.2]" />
   </ItemGroup>
 
 </Project>

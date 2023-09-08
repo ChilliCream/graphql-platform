@@ -1,0 +1,41 @@
+ASC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------
+
+ASC Query:
+---------------
+aggregate([{ "$sort" : { "renameTest" : 1 } }])
+---------------
+
+DESC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+DESC Query:
+---------------
+aggregate([{ "$sort" : { "renameTest" : -1 } }])
+---------------

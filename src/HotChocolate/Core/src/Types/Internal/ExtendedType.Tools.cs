@@ -144,7 +144,7 @@ internal sealed partial class ExtendedType
             }
 
             written = buffer.Length;
-            return false;
+            return true;
         }
     }
 }

@@ -1,0 +1,63 @@
+testa Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testa Query:
+---------------
+MATCH (fooString:FooString) WHERE NOT (fooString.Bar STARTS WITH 'testa') RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
+---------------
+
+testb Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testb Query:
+---------------
+MATCH (fooString:FooString) WHERE NOT (fooString.Bar STARTS WITH 'testb') RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060nstartsWith\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 37
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

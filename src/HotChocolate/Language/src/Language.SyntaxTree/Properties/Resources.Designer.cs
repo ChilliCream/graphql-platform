@@ -92,5 +92,11 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("NameNode_Name_CannnotBeNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string SyntaxWriterExtensions_WriteValue_ValueNodeNotSupported {
+            get {
+                return ResourceManager.GetString("SyntaxWriterExtensions_WriteValue_ValueNodeNotSupported", resourceCulture);
+            }
+        }
     }
 }

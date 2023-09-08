@@ -1,0 +1,49 @@
+Nullable_Short_Equal_12 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 12
+      }
+    ]
+  }
+}
+---------------
+
+Nullable_Short_Equal_12 Query:
+---------------
+MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = 12 RETURN fooCompNullable {.BarShort} ORDER BY fooCompNullable {.BarShort} ASC
+---------------
+
+Nullable_Short_Equal_13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 13
+      }
+    ]
+  }
+}
+---------------
+
+Nullable_Short_Equal_13 Query:
+---------------
+MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = 13 RETURN fooCompNullable {.BarShort} ORDER BY fooCompNullable {.BarShort} ASC
+---------------
+
+Nullable_Short_Equal_null Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+Nullable_Short_Equal_null Query:
+---------------
+MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = NULL RETURN fooCompNullable {.BarShort} ORDER BY fooCompNullable {.BarShort} ASC
+---------------

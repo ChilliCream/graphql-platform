@@ -1,1 +1,1 @@
-Sorting needs a expression with exactly one parameter of type HotChocolate.Data.Sorting.QueryableSortVisitorExpressionTests+Foo! Check the expression on field lastName.
+Sorting needs a expression with exactly one parameter of type HotChocolate.Data.QueryableSortVisitorExpressionTests+Foo! Check the expression on field lastName.

@@ -48,7 +48,7 @@ public abstract class CustomParameterExpressionBuilder : IParameterExpressionBui
 /// A custom parameter expression builder that allows to specify the expressions by
 /// passing them into the constructor.
 /// </summary>
-public sealed class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionBuilder
+public class CustomParameterExpressionBuilder<TArg> : CustomParameterExpressionBuilder
 {
     private readonly Func<ParameterInfo, bool> _canHandle;
     private readonly Expression<Func<IResolverContext, TArg>> _expression;

@@ -130,6 +130,28 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<ReadPersistedQueryMiddleware>();
 
+    public static IRequestExecutorBuilder UseAutomaticPersistedQueryNotFound(
+        this IRequestExecutorBuilder builder)
+        => builder.UseRequest(next => context =>
+        {
+            if (context.Document is null && context.Request.Query is null)
+            {
+                var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
+                var result = QueryResultBuilder.CreateError(
+                    error,
+                    new Dictionary<string, object?>
+                    {
+                        { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+                    });
+
+                context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
+                context.Result = result;
+                return default;
+            }
+
+            return next(context);
+        });
+
     public static IRequestExecutorBuilder UseWritePersistedQuery(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<WritePersistedQueryMiddleware>();
@@ -199,25 +221,7 @@ public static partial class RequestExecutorBuilderExtensions
             .UseTimeout()
             .UseDocumentCache()
             .UseReadPersistedQuery()
-            .UseRequest(next => context =>
-            {
-                if (context.Document is null && context.Request.Query is null)
-                {
-                    var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
-                    var result = QueryResultBuilder.CreateError(
-                        error,
-                        new Dictionary<string, object?>
-                        {
-                            { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
-                        });
-
-                    context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
-                    context.Result = result;
-                    return default;
-                }
-
-                return next(context);
-            })
+            .UseAutomaticPersistedQueryNotFound()
             .UseWritePersistedQuery()
             .UseDocumentParser()
             .UseDocumentValidation()

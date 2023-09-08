@@ -8,6 +8,7 @@ namespace HotChocolate.Fusion.Composition;
 internal static class DirectivesHelper
 {
     public const string IsDirectiveName = "is";
+    public const string RequireDirectiveName = "require";
     public const string RemoveDirectiveName = "remove";
     public const string RenameDirectiveName = "rename";
     public const string CoordinateArg = "coordinate";
@@ -37,5 +38,22 @@ internal static class DirectivesHelper
 
         throw new InvalidOperationException(
             DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate);
+    }
+
+    public static bool ContainsRequireDirective(this IHasDirectives member)
+        => member.Directives.ContainsName(RequireDirectiveName);
+
+    public static RequireDirective GetRequireDirective(this IHasDirectives member)
+    {
+        var directive = member.Directives[RequireDirectiveName].First();
+        var arg = directive.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(FieldArg));
+
+        if (arg is { Value: StringValueNode field })
+        {
+            return new RequireDirective(Utf8GraphQLParser.Syntax.ParseField(field.Value));
+        }
+
+        throw new InvalidOperationException(
+            DirectivesHelper_GetRequireDirective_NoFieldArg);
     }
 }

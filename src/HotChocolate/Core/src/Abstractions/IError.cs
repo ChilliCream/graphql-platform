@@ -40,7 +40,7 @@ public interface IError
     /// This property is optional and can be null.
     /// </summary>
     IReadOnlyDictionary<string, object?>? Extensions { get; }
-
+ 
     /// <summary>
     /// Gets the exception associated with this error.
     /// </summary>

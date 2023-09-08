@@ -1,0 +1,15 @@
+schema {
+  query: QueryComparableEntity
+}
+
+type ComparableExample {
+  some: String!
+}
+
+type QueryComparableEntity {
+  foo(example: ComparableExampleInput!): ComparableExample!
+}
+
+input ComparableExampleInput {
+  some: String!
+}

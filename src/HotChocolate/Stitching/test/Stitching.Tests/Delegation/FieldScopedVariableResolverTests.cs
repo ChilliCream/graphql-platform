@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation.ScopedVariables;
@@ -46,7 +45,7 @@ public class FieldScopedVariableResolverTests
         Assert.Null(value.DefaultValue);
         Assert.Equal("__fields_a", value.Name);
         Assert.IsType<NamedTypeNode>(value.Type);
-        Assert.Equal("baz", value.Value.Value);
+        Assert.Equal("baz", value.Value!.Value);
     }
 
     [Fact]
@@ -75,7 +74,7 @@ public class FieldScopedVariableResolverTests
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null));
-        context.Setup(t => t.Path).Returns(PathFactory.Instance.New("foo"));
+        context.Setup(t => t.Path).Returns(Path.Root.Append("foo"));
 
         var scopedVariable = new ScopedVariableNode(
             null,
@@ -139,7 +138,7 @@ public class FieldScopedVariableResolverTests
         var resolver = new FieldScopedVariableResolver();
         Action a = () => resolver.Resolve(
             context.Object,
-            null,
+            null!,
             schema.GetType<StringType>("String"));
 
         // assert

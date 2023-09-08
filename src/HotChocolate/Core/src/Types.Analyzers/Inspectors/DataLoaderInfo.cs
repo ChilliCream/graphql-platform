@@ -76,6 +76,21 @@ public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
         return AttributeSyntax.Equals(other.AttributeSyntax) &&
             MethodSyntax.Equals(other.MethodSyntax);
     }
+    
+    public bool Equals(ISyntaxInfo other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return other is DataLoaderInfo info && Equals(info);
+    }
 
     public override bool Equals(object? obj)
     {

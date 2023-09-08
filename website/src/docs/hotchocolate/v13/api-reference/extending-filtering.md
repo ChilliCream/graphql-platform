@@ -346,6 +346,10 @@ The following example creates a `StringOperationHandler` that supports case inse
 // below
 public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHandler
 {
+    public QueryableStringInvariantContainsHandler(InputParser inputParser) : base(inputParser)
+    {
+    }
+   
     // For creating a expression tree we need the `MethodInfo` of the `ToLower` method of string
     private static readonly MethodInfo _toLower = typeof(string)
         .GetMethods()

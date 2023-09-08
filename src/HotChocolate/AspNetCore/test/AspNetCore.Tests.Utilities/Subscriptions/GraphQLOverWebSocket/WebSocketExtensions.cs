@@ -2,6 +2,7 @@ using System.Net.WebSockets;
 using System.Text;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;

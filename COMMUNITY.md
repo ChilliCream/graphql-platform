@@ -8,6 +8,10 @@ Feel free to open a PR to include your project in this list.
 
 Various libraries, packages, etc. that developers can add to their own project and benefit from.
 
+### Authorization
+
+- [Cloudey.Reflex.Authorization.HotChocolate](https://github.com/CloudeyIT/Reflex/tree/master/Cloudey.Reflex.Authorization.HotChocolate) - Extensions to make authorization painless in HotChocolate
+
 ### Data access
 
 - [GraphQL.PreprocessingExtensions](https://github.com/cajuncoding/GraphQL.RepoDB/tree/main/GraphQL.PreProcessingExtensions) - HotChocolate resolver extensions for working with Micro ORM(s) and encapsulated data access without IQueryable

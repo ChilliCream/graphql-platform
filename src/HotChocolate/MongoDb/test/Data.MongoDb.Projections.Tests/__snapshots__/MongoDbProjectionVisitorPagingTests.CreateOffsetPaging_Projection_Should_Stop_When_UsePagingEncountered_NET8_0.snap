@@ -1,0 +1,24 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": true,
+          "paging": null
+        },
+        {
+          "bar": false,
+          "paging": null
+        }
+      ]
+    }
+  }
+}
+---------------
+
+Query:
+---------------
+find({ }, { "Bar" : 1 })
+---------------

@@ -21,6 +21,7 @@ public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
 
         var interfaceBuilder = InterfaceBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetComment(descriptor.Description)
             .SetName(fileName);
 

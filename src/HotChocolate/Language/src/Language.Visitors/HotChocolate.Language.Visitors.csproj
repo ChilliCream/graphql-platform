@@ -20,6 +20,15 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Compile Update="SyntaxWalker~1.Enter.cs">
+      <DependentUpon>SyntaxWalker~1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SyntaxWalker~1.Leave.cs">
+      <DependentUpon>SyntaxWalker~1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SyntaxVisitor~1.VisitationMap.cs">
+      <DependentUpon>SyntaxVisitor~1.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

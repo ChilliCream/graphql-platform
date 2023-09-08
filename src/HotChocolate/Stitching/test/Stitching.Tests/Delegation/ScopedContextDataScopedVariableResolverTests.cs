@@ -24,7 +24,7 @@ public class ScopedContextDataScopedVariableResolverTests
             .Create();
 
         var contextData =
-            ImmutableDictionary<string, object>.Empty
+            ImmutableDictionary<string, object?>.Empty
                 .Add("a", "AbcDef");
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
@@ -63,7 +63,7 @@ public class ScopedContextDataScopedVariableResolverTests
             .Create();
 
         var contextData =
-            ImmutableDictionary<string, object>.Empty;
+            ImmutableDictionary<string, object?>.Empty;
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
         context.SetupGet(t => t.ScopedContextData).Returns(contextData);

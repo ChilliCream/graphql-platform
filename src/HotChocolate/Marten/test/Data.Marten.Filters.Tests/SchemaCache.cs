@@ -1,7 +1,8 @@
 using System.Collections.Concurrent;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data;
 
 public class SchemaCache : FilterVisitorTestBase
 {

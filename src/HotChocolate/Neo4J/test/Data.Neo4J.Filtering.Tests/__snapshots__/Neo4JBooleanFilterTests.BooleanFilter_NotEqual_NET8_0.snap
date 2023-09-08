@@ -1,0 +1,35 @@
+BooleanFilter_NotEqual_True Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+BooleanFilter_NotEqual_True Query:
+---------------
+MATCH (fooBool:FooBool) WHERE fooBool.Bar <> True RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
+---------------
+
+BooleanFilter_NotEqual_False Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------
+
+BooleanFilter_NotEqual_False Query:
+---------------
+MATCH (fooBool:FooBool) WHERE fooBool.Bar <> False RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
+---------------

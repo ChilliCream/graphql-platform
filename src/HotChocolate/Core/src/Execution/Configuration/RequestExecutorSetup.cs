@@ -81,6 +81,11 @@ public sealed class RequestExecutorSetup
         => _pipeline;
 
     /// <summary>
+    /// Gets or sets the default pipeline factory.
+    /// </summary>
+    public Action<IList<RequestCoreMiddleware>>? DefaultPipelineFactory { get; set; }
+
+    /// <summary>
     /// Copies the options to the specified other options object.
     /// </summary>
     /// <param name="options">
@@ -98,6 +103,11 @@ public sealed class RequestExecutorSetup
         options._onRequestExecutorCreatedHooks.AddRange(_onRequestExecutorCreatedHooks);
         options._onRequestExecutorEvictedHooks.AddRange(_onRequestExecutorEvictedHooks);
         options._typeModules.AddRange(_typeModules);
+
+        if(DefaultPipelineFactory is not null)
+        {
+            options.DefaultPipelineFactory = DefaultPipelineFactory;
+        }
     }
 }
 

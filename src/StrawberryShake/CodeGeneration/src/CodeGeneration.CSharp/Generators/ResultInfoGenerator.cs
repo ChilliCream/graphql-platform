@@ -41,6 +41,7 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .AddImplements(TypeNames.IOperationResultDataInfo)
             .SetName(fileName);
 

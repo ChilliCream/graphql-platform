@@ -45,7 +45,10 @@ public static class Refactor
         return false;
     }
 
-    public static bool RemoveMember(this Schema schema, SchemaCoordinate coordinate)
+    public static bool RemoveMember(
+        this Schema schema,
+        SchemaCoordinate coordinate,
+        bool onRequiredRemoveParent = false)
     {
         if (schema is null)
         {
@@ -67,9 +70,20 @@ public static class Refactor
 
                 if (directive.Arguments.TryGetField(coordinate.ArgumentName, out var arg))
                 {
-                    var rewriter = new RemoveDirectiveArgRewriter();
-                    rewriter.VisitSchema(schema, (directive, arg.Name));
-                    return true;
+                    if (arg.Type.Kind is TypeKind.NonNull && arg.DefaultValue is null && onRequiredRemoveParent)
+                    {
+                        schema.DirectiveTypes.Remove(directive);
+
+                        var rewriter = new RemoveDirectiveRewriter();
+                        rewriter.VisitSchema(schema, directive);
+                        return true;
+                    }
+                    else
+                    {
+                        var rewriter = new RemoveDirectiveArgRewriter();
+                        rewriter.VisitSchema(schema, (directive, arg.Name));
+                        return true;
+                    }
                 }
             }
 
@@ -90,7 +104,7 @@ public static class Refactor
             {
                 if (type.Kind is TypeKind.Enum)
                 {
-                    var enumType = (EnumType)type;
+                    var enumType = (EnumType) type;
 
                     if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
@@ -103,14 +117,26 @@ public static class Refactor
 
                 if (type.Kind is TypeKind.InputObject)
                 {
-                    var inputType = (InputObjectType)type;
+                    var inputType = (InputObjectType) type;
 
                     if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
-                        inputType.Fields.Remove(input);
-                        var rewriter = new RemoveInputFieldRewriter();
-                        rewriter.VisitSchema(schema, (inputType, input));
-                        return true;
+                        if (input.Type.Kind is TypeKind.NonNull &&
+                            input.DefaultValue is null &&
+                            onRequiredRemoveParent)
+                        {
+                            schema.Types.Remove(type);
+                            var rewriter = new RemoveTypeRewriter();
+                            rewriter.VisitSchema(schema, type);
+                            return true;
+                        }
+                        else
+                        {
+                            inputType.Fields.Remove(input);
+                            var rewriter = new RemoveInputFieldRewriter();
+                            rewriter.VisitSchema(schema, (inputType, input));
+                            return true;
+                        }
                     }
                 }
             }
@@ -120,7 +146,7 @@ public static class Refactor
                 return false;
             }
 
-            var complexType = (ComplexType)type;
+            var complexType = (ComplexType) type;
 
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
@@ -132,8 +158,18 @@ public static class Refactor
 
                 if (field.Arguments.TryGetField(coordinate.ArgumentName, out var fieldArg))
                 {
-                    field.Arguments.Remove(fieldArg);
-                    return true;
+                    if (fieldArg.Type.Kind is TypeKind.NonNull &&
+                        fieldArg.DefaultValue is null &&
+                        onRequiredRemoveParent)
+                    {
+                        complexType.Fields.Remove(field);
+                        return true;
+                    }
+                    else
+                    {
+                        field.Arguments.Remove(fieldArg);
+                        return true;
+                    }
                 }
             }
         }
@@ -323,7 +359,7 @@ public static class Refactor
                 var rewritten = rewriter.Rewrite(
                     field.DefaultValue,
                     new RewriterContext(context.Value.Name));
-                field.DefaultValue = (IValueNode?)rewritten;
+                field.DefaultValue = (IValueNode?) rewritten;
             }
 
             base.VisitInputField(field, context);
@@ -389,7 +425,7 @@ public static class Refactor
                 var rewritten = rewriter.Rewrite(
                     field.DefaultValue,
                     new RewriterContext(field.Name));
-                field.DefaultValue = (IValueNode?)rewritten;
+                field.DefaultValue = (IValueNode?) rewritten;
             }
 
             base.VisitInputField(field, context);
@@ -413,8 +449,6 @@ public static class Refactor
                             fields.Add(item);
                         }
                     }
-
-
                 }
 
                 return fields.Count == node.Fields.Count

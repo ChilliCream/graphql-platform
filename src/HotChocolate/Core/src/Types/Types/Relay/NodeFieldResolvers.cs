@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -56,7 +55,7 @@ internal static class NodeFieldResolvers
     /// <summary>
     /// This is the resolver of the nodes field.
     /// </summary>
-    public static async ValueTask<bool> ResolveManyNodeAsync(
+    public static async ValueTask ResolveManyNodeAsync(
         IMiddlewareContext context,
         IIdSerializer serializer,
         int maxAllowedNodes)
@@ -75,7 +74,7 @@ internal static class NodeFieldResolvers
                         context.Path,
                         maxAllowedNodes,
                         list.Items.Count));
-                return false;
+                return;
             }
 
             var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
@@ -182,8 +181,6 @@ internal static class NodeFieldResolvers
             context.Result = result;
         }
 
-        return true;
-
         static async Task<object?> ExecutePipelineAsync(
             IMiddlewareContext nodeResolverContext,
             NodeResolverInfo nodeResolverInfo)
@@ -237,8 +234,5 @@ internal static class NodeFieldResolvers
     }
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
-    {
-        Path itemPath = PathFactory.Instance.Append(context.Path, item);
-        context.ReportError(ex, error => error.SetPath(itemPath));
-    }
+        => context.ReportError(ex, error => error.SetPath(context.Path.Append(item)));
 }

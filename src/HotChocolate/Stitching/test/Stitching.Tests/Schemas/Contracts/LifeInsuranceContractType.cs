@@ -11,9 +11,9 @@ public class LifeInsuranceContractType : ObjectType<LifeInsuranceContract>
         IObjectTypeDescriptor<LifeInsuranceContract> descriptor)
     {
         descriptor
-            .AsNode()
+            .ImplementsNode()
             .IdField(t => t.Id)
-            .NodeResolver((ctx, id) =>
+            .ResolveNode((ctx, id) =>
             {
                 return Task.FromResult(
                     ctx.Service<ContractStorage>()

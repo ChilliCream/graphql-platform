@@ -7,4 +7,5 @@ public static class ResultFields
     public const string Path = "path";
     public const string Label = "label";
     public const string HasNext = "hasNext";
+    public const string Extensions = "extensions";
 }

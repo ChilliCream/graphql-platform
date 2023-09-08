@@ -1,3 +1,0 @@
----
-title: "Document Headers"
----

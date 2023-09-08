@@ -36,42 +36,37 @@ public partial class OperationExecutor<TData, TResult>
             if (_strategy is ExecutionStrategy.NetworkOnly ||
                 _request.Document.Kind is OperationKind.Subscription)
             {
-                var observerSession = new ObserverSession();
-                BeginExecute(observer, observerSession);
-                return observerSession;
+                return BeginExecute(observer, lastEmittedResult: null);
             }
 
-            var hasResultInStore = false;
-
-            if ((_strategy == ExecutionStrategy.CacheFirst ||
-                    _strategy == ExecutionStrategy.CacheAndNetwork) &&
-                _operationStore.TryGet(_request, out IOperationResult<TResult>? result))
+            if (_operationStore.TryGet(_request, out IOperationResult<TResult>? result))
             {
-                hasResultInStore = true;
                 observer.OnNext(result);
+
+                if (_strategy is ExecutionStrategy.CacheFirst)
+                {
+                    // Skip the network request and just subscribe to store updates
+                    return _operationStore.Watch<TResult>(_request).Subscribe(observer);
+                }
             }
 
-            if (_strategy is not ExecutionStrategy.CacheFirst || !hasResultInStore)
-            {
-                var observerSession = new ObserverSession();
-                BeginExecute(observer, observerSession);
-                return observerSession;
-            }
-
-            return _operationStore.Watch<TResult>(_request).Subscribe(observer);
+            return BeginExecute(observer, lastEmittedResult: result);
         }
 
-        private void BeginExecute(
+        private IDisposable BeginExecute(
             IObserver<IOperationResult<TResult>> observer,
-            ObserverSession session) =>
-            Task.Run(() => ExecuteAsync(observer, session));
+            IOperationResult<TResult>? lastEmittedResult)
+        {
+            var observerSession = new ObserverSession();
+            Task.Run(() => ExecuteAsync(observer, observerSession, lastEmittedResult));
+            return observerSession;
+        }
 
         private async Task ExecuteAsync(
             IObserver<IOperationResult<TResult>> observer,
-            ObserverSession session)
+            ObserverSession session,
+            IOperationResult<TResult>? lastEmittedResult)
         {
-            TrySubscribeObserverSessionToStore(observer, session);
-
             try
             {
                 var abort = session.RequestSession.Abort;
@@ -88,18 +83,38 @@ public partial class OperationExecutor<TData, TResult>
                         return;
                     }
 
+                    IOperationResult<TResult>? result;
                     if (response.IsPatch)
                     {
                         var patched = resultPatcher.PatchResponse(response);
-                        var result = resultBuilder.Build(patched);
-                        _operationStore.Set(_request, result);
+                        result = resultBuilder.Build(patched);
                     }
                     else
                     {
                         resultPatcher.SetResponse(response);
-                        var result = resultBuilder.Build(response);
-                        _operationStore.Set(_request, result);
+                        result = resultBuilder.Build(response);
                     }
+
+                    // Emit the result, if it isn't a duplicate
+                    if (!Equals(result.Data, lastEmittedResult?.Data))
+                    {
+                        observer.OnNext(result);
+                        lastEmittedResult = result;
+                    }
+                    _operationStore.Set(_request, result);
+                }
+
+                if (_request.Document.Kind is OperationKind.Subscription)
+                {
+                    // If the subscription is completed by the server, notify observers.
+                    // This should not be done for queries, as they should continue listening
+                    // to updates from the entity store.
+                    observer.OnCompleted();
+                }
+                else
+                {
+                    // Subscribe to updates from the entity store after the query has completed
+                    TrySubscribeObserverSessionToStore(observer, session);
                 }
             }
             catch (Exception ex)
@@ -108,10 +123,6 @@ public partial class OperationExecutor<TData, TResult>
             }
             finally
             {
-                // call observer's OnCompleted method to notify observer
-                // there is no further data is available.
-                observer.OnCompleted();
-
                 // after all the transport logic is finished we will dispose
                 // the request session.
                 session.RequestSession.Dispose();

@@ -14,16 +14,16 @@ type Mutation {
 
 type Person implements Entity {
   name: String!
-  lastName: String!
   address: String!
+  lastName: String!
 }
 
 type Query {
-  staticField: String!
   person: Entity
   enum: CustomEnum
   book: SomeBook!
   withDataLoader: String!
+  staticField: String!
 }
 
 type SomeBook {

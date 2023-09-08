@@ -21,16 +21,18 @@ internal static class OperationResolverHelper
 
             for (var i = 0; i < length; i++)
             {
-                if (definitions[i] is OperationDefinitionNode op)
+                if (definitions[i] is not OperationDefinitionNode op)
                 {
-                    if (operation is null)
-                    {
-                        operation = op;
-                    }
-                    else
-                    {
-                        throw OperationResolverHelper_MultipleOperation(operation, op);
-                    }
+                    continue;
+                }
+
+                if (operation is null)
+                {
+                    operation = op;
+                }
+                else
+                {
+                    throw OperationResolverHelper_MultipleOperation(operation, op);
                 }
             }
 

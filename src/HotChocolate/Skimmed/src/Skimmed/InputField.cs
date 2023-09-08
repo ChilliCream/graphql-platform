@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
@@ -63,6 +64,9 @@ public sealed class InputField : IField, INamedTypeSystemMember<InputField>
         get => _type;
         set => _type = value.ExpectInputType();
     }
+
+    public override string ToString()
+        => RewriteInputField(this).ToString(true);
 
     public static InputField Create(string name) => new(name);
 }

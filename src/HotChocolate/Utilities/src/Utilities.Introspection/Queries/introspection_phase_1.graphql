@@ -1,4 +1,4 @@
-query introspection_phase_1 {
+query IntrospectionQuery {
   schema: __schema {
     types
     {

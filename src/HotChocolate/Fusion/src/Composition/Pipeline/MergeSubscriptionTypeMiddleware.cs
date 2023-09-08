@@ -108,7 +108,7 @@ static file class MergeSubscriptionTypeMiddlewareExtensions
             subgraphName,
             selectionSet,
             arguments,
-            EntityResolverKind.Subscription);
+            EntityResolverKind.Subscribe);
 
     private static Directive CreateVariableDirective(
         CompositionContext context,

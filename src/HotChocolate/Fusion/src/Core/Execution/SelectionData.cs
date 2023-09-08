@@ -1,4 +1,3 @@
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using static System.Text.Json.JsonValueKind;
 
@@ -75,4 +74,6 @@ internal readonly struct SelectionData
         array[Multiple.Length] = result;
         return new SelectionData(array);
     }
+
+    public static SelectionData Empty { get; } = new();
 }

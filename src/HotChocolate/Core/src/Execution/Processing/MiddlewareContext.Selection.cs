@@ -30,12 +30,12 @@ internal partial class MiddlewareContext
 
     public bool TryCreatePureContext(
         ISelection selection,
-        Path path,
         ObjectType parentType,
+        ObjectResult parentResult,
         object? parent,
         [NotNullWhen(true)] out IPureResolverContext? context)
     {
-        if (_childContext.Initialize(selection, path, parentType, parent))
+        if (_childContext.Initialize(selection, parentType, parentResult, parent))
         {
             context = _childContext;
             return true;

@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Composition.LogEntryHelper;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -17,7 +18,7 @@ internal class MergeEntityMiddleware : IMergeMiddleware
                 context.Merge(part, entityType);
             }
 
-            context.ApplyResolvers(entityType, entity.Metadata);
+            context.ApplyResolvers(entityType, entity);
         }
 
         if (!context.Log.HasErrors)
@@ -27,7 +28,7 @@ internal class MergeEntityMiddleware : IMergeMiddleware
     }
 }
 
-static file class MergeEntitiesMiddlewareExtensions
+file static class MergeEntitiesMiddlewareExtensions
 {
     public static void Merge(this CompositionContext context, EntityPart source, ObjectType target)
     {
@@ -74,26 +75,41 @@ static file class MergeEntitiesMiddlewareExtensions
     public static void ApplyResolvers(
         this CompositionContext context,
         ObjectType entityType,
-        EntityMetadata metadata)
+        EntityGroup entity)
     {
-        var variables = new HashSet<(string, string)>();
+        var variables = new HashSet<string>();
 
-        foreach (var resolver in metadata.EntityResolvers)
+        foreach (var resolver in entity.Metadata.EntityResolvers)
         {
             foreach (var variable in resolver.Variables)
             {
-                if (variables.Add((variable.Key, resolver.SubgraphName)))
+                context.ResetSupportedBy();
+
+                if (variables.Add(variable.Key))
                 {
-                    entityType.Directives.Add(
-                        CreateVariableDirective(
-                            context,
-                            variable,
-                            resolver.SubgraphName));
+                    if (!context.CanResolveDependency(entityType, variable.Value.Field))
+                    {
+                        FieldDependencyCannotBeResolved(
+                            new SchemaCoordinate(
+                                entityType.Name,
+                                variable.Value.Field.Name.Value),
+                            variable.Value.Field,
+                            context.GetSubgraphSchema(resolver.SubgraphName));
+                    }
+
+                    foreach (var subgraph in context.SupportedBy)
+                    {
+                        entityType.Directives.Add(
+                            context.FusionTypes.CreateVariableDirective(
+                                subgraph,
+                                variable.Key,
+                                variable.Value.Field));
+                    }
                 }
             }
         }
 
-        foreach (var resolver in metadata.EntityResolvers)
+        foreach (var resolver in entity.Metadata.EntityResolvers)
         {
             Dictionary<string, ITypeNode>? arguments = null;
 
@@ -122,15 +138,6 @@ static file class MergeEntitiesMiddlewareExtensions
             resolver.SelectionSet,
             arguments,
             kind);
-
-    private static Directive CreateVariableDirective(
-        CompositionContext context,
-        KeyValuePair<string, VariableDefinition> variable,
-        string schemaName)
-        => context.FusionTypes.CreateVariableDirective(
-            schemaName,
-            variable.Key,
-            variable.Value.Field);
 
     private static Directive CreateVariableDirective(
         CompositionContext context,

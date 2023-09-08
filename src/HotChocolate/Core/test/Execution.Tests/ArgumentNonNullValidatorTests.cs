@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -22,7 +20,7 @@ public class ArgumentNonNullValidatorTests
                         a: String! = ""bar""
                     }
                 ")
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
@@ -31,7 +29,7 @@ public class ArgumentNonNullValidatorTests
         var report =
             ArgumentNonNullValidator.Validate(
                 field,
-                new ObjectValueNode(), PathFactory.Instance.New("root"));
+                new ObjectValueNode(), Path.Root.Append("root"));
 
         // assert
         Assert.False(report.HasErrors);
@@ -51,7 +49,7 @@ public class ArgumentNonNullValidatorTests
                         a: String!
                     }
                 ")
-            .Use(next => context => default(ValueTask))
+            .Use(_ => _ => default)
             .Create();
 
         IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
@@ -59,7 +57,7 @@ public class ArgumentNonNullValidatorTests
         // act
         var report = ArgumentNonNullValidator.Validate(
             field,
-            new ObjectValueNode(), PathFactory.Instance.New("root"));
+            new ObjectValueNode(), Path.Root.Append("root"));
 
         // assert
         Assert.True(report.HasErrors);

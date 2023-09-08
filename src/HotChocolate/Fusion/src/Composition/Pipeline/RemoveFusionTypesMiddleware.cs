@@ -23,8 +23,7 @@ internal sealed class RemoveFusionTypesMiddleware : IMergeMiddleware
         context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Source);
         context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Node);
         context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.ReEncodeId);
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.HttpClient);
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.WebSocketClient);
+        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Transport);
         context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Fusion);
 
         return next(context);

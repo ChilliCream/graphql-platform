@@ -25,5 +25,5 @@ public interface ISyntaxGenerator
     void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        IReadOnlyCollection<ISyntaxInfo> consumed);
+        ReadOnlySpan<ISyntaxInfo> consumed);
 }

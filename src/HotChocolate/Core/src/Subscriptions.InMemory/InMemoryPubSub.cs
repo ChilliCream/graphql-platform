@@ -21,25 +21,25 @@ internal sealed class InMemoryPubSub : DefaultPubSub
 
     protected override ValueTask OnSendAsync<TMessage>(
         string formattedTopic,
-        MessageEnvelope<TMessage> message,
+        TMessage message,
         CancellationToken cancellationToken = default)
     {
-        if (TryGetTopic<InMemoryTopic<TMessage>>(formattedTopic, out var topic))
+        if (TryGetTopic<TMessage>(formattedTopic, out var topic))
         {
-            topic.TryWrite(message);
+            topic.Publish(message);
         }
-
-        return default;
+        
+        return ValueTask.CompletedTask;
     }
 
     protected override ValueTask OnCompleteAsync(string formattedTopic)
     {
-        if (TryGetTopic<IInMemoryTopic>(formattedTopic, out var topic))
+        if (TryGetTopic(formattedTopic, out var topic))
         {
-            topic.TryComplete();
+            topic.Complete();
         }
 
-        return default;
+        return ValueTask.CompletedTask;
     }
 
     protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(

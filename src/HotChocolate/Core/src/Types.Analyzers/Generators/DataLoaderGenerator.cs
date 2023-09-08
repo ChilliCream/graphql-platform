@@ -40,21 +40,10 @@ public class DataLoaderGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        IReadOnlyCollection<ISyntaxInfo> syntaxInfos)
+        ReadOnlySpan<ISyntaxInfo> syntaxInfos)
     {
-        var module =
-            syntaxInfos.OfType<ModuleInfo>().FirstOrDefault() ??
-            new ModuleInfo(
-                compilation.AssemblyName is null
-                    ? "AssemblyTypes"
-                    : compilation.AssemblyName?.Split('.').Last() + "Types",
-                ModuleOptions.Default);
+        var (module, defaults) = syntaxInfos.GetDataLoaderDefaults(compilation.AssemblyName);
 
-        var defaults =
-            syntaxInfos.OfType<DataLoaderDefaultsInfo>().FirstOrDefault() ??
-            new DataLoaderDefaultsInfo(null, null, true, true);
-
-        var processed = new HashSet<string>(StringComparer.Ordinal);
         var dataLoaders = new List<DataLoaderInfo>();
         var sourceText = StringBuilderPool.Get();
 
@@ -66,80 +55,79 @@ public class DataLoaderGenerator : ISyntaxGenerator
 
         foreach (var syntaxInfo in syntaxInfos)
         {
-            if (syntaxInfo is DataLoaderInfo dataLoader)
+            if (syntaxInfo is not DataLoaderInfo dataLoader)
             {
-                if (dataLoader.MethodSymbol.Parameters.Length == 0)
-                {
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(
-                            _keyParameterMissing,
-                            Location.Create(
-                                dataLoader.MethodSyntax.SyntaxTree,
-                                dataLoader.MethodSyntax.ParameterList.Span)));
-                    continue;
-                }
-
-                if (dataLoader.MethodSymbol.DeclaredAccessibility is not Accessibility.Public
-                    and not Accessibility.Internal and not Accessibility.ProtectedAndInternal)
-                {
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(
-                            _methodAccessModifierInvalid,
-                            Location.Create(
-                                dataLoader.MethodSyntax.SyntaxTree,
-                                dataLoader.MethodSyntax.Modifiers.Span)));
-                    continue;
-                }
-
-                var keyArg = dataLoader.MethodSymbol.Parameters[0];
-                var keyType = keyArg.Type;
-                var cancellationTokenIndex = -1;
-                var serviceMap = new Dictionary<int, string>();
-
-                if (IsKeysArgument(keyType))
-                {
-                    keyType = ExtractKeyType(keyType);
-                }
-
-                InspectDataLoaderParameters(
-                    dataLoader,
-                    ref cancellationTokenIndex,
-                    serviceMap);
-
-                DataLoaderKind kind;
-
-                if (IsReturnTypeDictionary(dataLoader.MethodSymbol.ReturnType, keyType))
-                {
-                    kind = DataLoaderKind.Batch;
-                }
-                else if (IsReturnTypeLookup(dataLoader.MethodSymbol.ReturnType, keyType))
-                {
-                    kind = DataLoaderKind.Group;
-                }
-                else
-                {
-                    keyType = keyArg.Type;
-                    kind = DataLoaderKind.Cache;
-                }
-
-                var valueType = ExtractValueType(dataLoader.MethodSymbol.ReturnType, kind);
-
-                if (processed.Add(dataLoader.FullName))
-                {
-                    dataLoaders.Add(dataLoader);
-
-                    GenerateDataLoader(
-                        dataLoader,
-                        defaults,
-                        kind,
-                        keyType,
-                        valueType,
-                        dataLoader.MethodSymbol.Parameters.Length,
-                        cancellationTokenIndex,
-                        serviceMap,
-                        sourceText);
-                }
+                continue;
             }
+
+            if (dataLoader.MethodSymbol.Parameters.Length == 0)
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        _keyParameterMissing,
+                        Location.Create(
+                            dataLoader.MethodSyntax.SyntaxTree,
+                            dataLoader.MethodSyntax.ParameterList.Span)));
+                continue;
+            }
+
+            if (dataLoader.MethodSymbol.DeclaredAccessibility is not Accessibility.Public
+                and not Accessibility.Internal and not Accessibility.ProtectedAndInternal)
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        _methodAccessModifierInvalid,
+                        Location.Create(
+                            dataLoader.MethodSyntax.SyntaxTree,
+                            dataLoader.MethodSyntax.Modifiers.Span)));
+                continue;
+            }
+
+            var keyArg = dataLoader.MethodSymbol.Parameters[0];
+            var keyType = keyArg.Type;
+            var cancellationTokenIndex = -1;
+            var serviceMap = new Dictionary<int, string>();
+
+            if (IsKeysArgument(keyType))
+            {
+                keyType = ExtractKeyType(keyType);
+            }
+
+            InspectDataLoaderParameters(
+                dataLoader,
+                ref cancellationTokenIndex,
+                serviceMap);
+
+            DataLoaderKind kind;
+
+            if (IsReturnTypeDictionary(dataLoader.MethodSymbol.ReturnType, keyType))
+            {
+                kind = DataLoaderKind.Batch;
+            }
+            else if (IsReturnTypeLookup(dataLoader.MethodSymbol.ReturnType, keyType))
+            {
+                kind = DataLoaderKind.Group;
+            }
+            else
+            {
+                keyType = keyArg.Type;
+                kind = DataLoaderKind.Cache;
+            }
+
+            var valueType = ExtractValueType(dataLoader.MethodSymbol.ReturnType, kind);
+
+            dataLoaders.Add(dataLoader);
+
+            GenerateDataLoader(
+                dataLoader,
+                defaults,
+                kind,
+                keyType,
+                valueType,
+                dataLoader.MethodSymbol.Parameters.Length,
+                cancellationTokenIndex,
+                serviceMap,
+                sourceText);
         }
 
         // if we find no valid DataLoader we will not create any file.
@@ -603,4 +591,60 @@ public class DataLoaderGenerator : ISyntaxGenerator
 
     private static string ToTypeNameNoGenerics(ITypeSymbol typeSymbol)
         => $"{typeSymbol.ContainingNamespace}.{typeSymbol.Name}";
+}
+
+internal static class GeneratorUtils
+{
+    public static ModuleInfo GetModuleInfo(
+        this ReadOnlySpan<ISyntaxInfo> syntaxInfos,
+        string? assemblyName,
+        out bool defaultModule)
+    {
+        foreach (var syntaxInfo in syntaxInfos)
+        {
+            if (syntaxInfo is ModuleInfo module)
+            {
+                defaultModule = false;
+                return module;
+            }
+        }
+
+        defaultModule = true;
+        return new ModuleInfo(CreateModuleName(assemblyName), ModuleOptions.Default);
+    }
+
+    public static (ModuleInfo, DataLoaderDefaultsInfo) GetDataLoaderDefaults(
+        this ReadOnlySpan<ISyntaxInfo> syntaxInfos,
+        string? assemblyName)
+    {
+        ModuleInfo? moduleInfo = null;
+        DataLoaderDefaultsInfo? dataLoaderDefaultsInfo = null;
+
+        foreach (var syntaxInfo in syntaxInfos)
+        {
+            if (moduleInfo is null && syntaxInfo is ModuleInfo mi)
+            {
+                moduleInfo = mi;
+            }
+            else if (dataLoaderDefaultsInfo is null && syntaxInfo is DataLoaderDefaultsInfo dldi)
+            {
+                dataLoaderDefaultsInfo = dldi;
+            }
+
+            if (moduleInfo is not null && dataLoaderDefaultsInfo is not null)
+            {
+                return (moduleInfo, dataLoaderDefaultsInfo);
+            }
+        }
+
+        moduleInfo ??= new ModuleInfo(CreateModuleName(assemblyName), ModuleOptions.Default);
+        dataLoaderDefaultsInfo ??= new DataLoaderDefaultsInfo(null, null, true, true);
+
+        return (moduleInfo, dataLoaderDefaultsInfo);
+    }
+
+    private static string CreateModuleName(string? assemblyName)
+        => assemblyName is null
+            ? "AssemblyTypes"
+            : assemblyName.Split('.').Last() + "Types";
 }

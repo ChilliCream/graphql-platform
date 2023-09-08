@@ -1,5 +1,6 @@
 #if NET7_0_OR_GREATER
 using System.Buffers;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 
 namespace CookieCrumble.Formatters;

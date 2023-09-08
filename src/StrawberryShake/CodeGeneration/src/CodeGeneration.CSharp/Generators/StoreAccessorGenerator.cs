@@ -32,7 +32,7 @@ public class StoreAccessorGenerator : CodeGenerator<StoreAccessorDescriptor>
 
         var factory = ClassBuilder
             .New(fileName)
-            .SetAccessModifier(AccessModifier.Public)
+            .SetAccessModifier(settings.AccessModifier)
             .AddImplements(TypeNames.StoreAccessor);
 
         factory

@@ -21,6 +21,26 @@ Result:
       "extensions": {
         "code": "HC0018"
       }
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 9,
+          "column": 41
+        }
+      ],
+      "path": [
+        "root",
+        1,
+        "foo",
+        "nestedObject",
+        "foo",
+        "barString"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
     }
   ],
   "data": {
@@ -43,9 +63,7 @@ Result:
           "id": null,
           "barEnum": "FOO",
           "nestedObject": {
-            "foo": {
-              "barString": null
-            }
+            "foo": null
           }
         }
       },

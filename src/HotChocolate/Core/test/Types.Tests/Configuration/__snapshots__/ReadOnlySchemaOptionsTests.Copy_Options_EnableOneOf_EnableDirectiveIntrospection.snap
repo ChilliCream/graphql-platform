@@ -9,7 +9,7 @@
   "PreserveSyntaxNodes": true,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Explicit",
-  "DefaultFieldBindingFlags": "Instance",
+  "DefaultFieldBindingFlags": "Default",
   "FieldMiddleware": "AllFields",
   "EnableDirectiveIntrospection": true,
   "DefaultDirectiveVisibility": "Public",
@@ -22,5 +22,6 @@
   "EnableFlagEnums": false,
   "EnableDefer": false,
   "EnableStream": false,
-  "MaxAllowedNodeBatchSize": 10
+  "MaxAllowedNodeBatchSize": 50,
+  "StripLeadingIFromInterface": false
 }

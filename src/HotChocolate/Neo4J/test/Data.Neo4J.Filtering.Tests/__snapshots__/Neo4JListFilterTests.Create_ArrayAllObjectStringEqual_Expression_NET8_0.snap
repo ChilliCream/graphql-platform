@@ -1,0 +1,43 @@
+all Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barString": "a",
+        "fooNested": [
+          {
+            "bar": "a",
+            "barNested": [
+              {
+                "foo": "a"
+              }
+            ]
+          },
+          {
+            "bar": "a",
+            "barNested": [
+              {
+                "foo": "a"
+              }
+            ]
+          },
+          {
+            "bar": "a",
+            "barNested": [
+              {
+                "foo": "a"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+all Query:
+---------------
+MATCH (foo:Foo) WHERE foo.BarString = 'a' RETURN foo {.BarString, FooNested: [(foo:Foo)-[:RELATED_FOO]->(fooNested:FooNested) | fooNested {.Bar, BarNested: [(fooNested:FooNested)-[:RELATED_BAR]->(barNested:BarNested) | barNested {.Foo}]}]} ORDER BY foo {.BarString, FooNested: [(foo:Foo)-[:RELATED_FOO]->(fooNested:FooNested) | fooNested {.Bar, BarNested: [(fooNested:FooNested)-[:RELATED_BAR]->(barNested:BarNested) | barNested {.Foo}]}]} ASC
+---------------

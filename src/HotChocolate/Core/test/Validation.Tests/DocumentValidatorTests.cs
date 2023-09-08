@@ -898,7 +898,7 @@ public class DocumentValidatorTests
         // arrange
         schema ??= ValidationUtils.CreateSchema();
         validator ??= CreateValidator();
-        var query = Utf8GraphQLParser.Parse(sourceText);
+        var query = Utf8GraphQLParser.Parse(sourceText, new ParserOptions(maxAllowedFields: int.MaxValue));
 
         // act
         var result = await validator.ValidateAsync(

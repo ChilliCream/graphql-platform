@@ -1,11 +1,10 @@
 #pragma warning disable CA1812
 #nullable disable
 
-namespace HotChocolate.Utilities.Introspection
+namespace HotChocolate.Utilities.Introspection;
+
+internal class RootTypeRef
 {
-    internal class RootTypeRef
-    {
-        public string Name { get; set; }
-    }
+    public string Name { get; set; }
 }
 #pragma warning restore CA1812

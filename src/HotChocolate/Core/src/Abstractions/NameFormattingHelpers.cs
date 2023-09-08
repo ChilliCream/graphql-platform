@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
@@ -17,7 +18,7 @@ internal static class NameFormattingHelpers
 {
     private const string _get = "Get";
     private const string _async = "Async";
-    private const string _typePostfix = "`1";
+    private const char _genericTypeDelimiter = '`';
 
     public static string GetGraphQLName(this Type type)
     {
@@ -26,10 +27,7 @@ internal static class NameFormattingHelpers
             throw new ArgumentNullException(nameof(type));
         }
 
-        var typeInfo = type.GetTypeInfo();
-        var name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
-            ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : GetFromType(typeInfo);
+        var name = GetFromType(type);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -184,21 +182,44 @@ internal static class NameFormattingHelpers
 
     private static string GetFromType(Type type)
     {
-        if (type.GetTypeInfo().IsGenericType)
+        var typeName = type.IsDefined(typeof(GraphQLNameAttribute), false)
+            ? type.GetCustomAttribute<GraphQLNameAttribute>()!.Name
+            : null;
+
+        if (type.IsGenericType)
         {
-            var name = type.GetTypeInfo()
-                .GetGenericTypeDefinition()
-                .Name;
+            if (typeName == null)
+            {
+                typeName = type.GetGenericTypeDefinition().Name;
 
-            name = name.Substring(0, name.Length - _typePostfix.Length);
+                var nameSpan = typeName.AsSpan();
+                var index = nameSpan.LastIndexOf(_genericTypeDelimiter);
 
-            var arguments = type
-                .GetTypeInfo().GenericTypeArguments
-                .Select(GetFromType);
+                if (index >= 0)
+                {
+                    nameSpan = nameSpan.Slice(0, index);
+                }
 
-            return $"{name}Of{string.Join("And", arguments)}";
+                typeName = nameSpan.ToString();
+            }
+
+            var arguments = type.GetGenericArguments();
+            var stringBuilder = new StringBuilder(typeName).Append("Of");
+
+            for (var i = 0; i < arguments.Length; i++)
+            {
+                if (i > 0)
+                {
+                    stringBuilder.Append("And");
+                }
+
+                stringBuilder.Append(GetFromType(arguments[i]));
+            }
+
+            return stringBuilder.ToString();
         }
-        return type.Name;
+
+        return typeName ?? type.Name;
     }
 
     public static unsafe string FormatFieldName(string fieldName)

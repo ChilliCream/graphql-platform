@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Fusion.Utilities;
 
@@ -9,4 +10,13 @@ internal static class ErrorHelper
             ErrorBuilder.New()
                 .SetMessage("Incremental delivery is not yet supported.")
                 .Build());
+
+    public static IError InvalidNodeFormat(
+        ISelection selection,
+        Exception? exception = null)
+        => ErrorBuilder.New()
+            .SetMessage("The id value has an invalid format.")
+            .AddLocation(selection.SyntaxNode)
+            .SetException(exception)
+            .Build();
 }

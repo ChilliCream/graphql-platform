@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
@@ -74,11 +75,7 @@ public sealed class ObjectResult
     /// </param>
     internal void SetValueUnsafe(int index, string name, ResultData? value, bool isNullable = true)
     {
-        if (value is not null)
-        {
-            value.Parent = this;
-        }
-
+        value?.SetParent(this, index);
         _buffer[index].Set(name, value, isNullable);
     }
 
@@ -90,7 +87,9 @@ public sealed class ObjectResult
     /// The index in the buffer on which the value shall be removed.
     /// </param>
     internal void RemoveValueUnsafe(int index)
-        => _buffer[index].Reset();
+    {
+        _buffer[index].Reset();
+    }
 
     /// <summary>
     /// Searches within the capacity of the buffer to find a field value that matches
@@ -107,7 +106,7 @@ public sealed class ObjectResult
     /// </returns>
     internal ObjectFieldResult? TryGetValue(string name, out int index)
     {
-        ref var searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
+        ref var searchSpace = ref GetReference();
 
         for(var i = 0; i < _capacity; i++)
         {
@@ -157,7 +156,7 @@ public sealed class ObjectResult
     /// </summary>
     internal void Reset()
     {
-        ref var searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
+        ref var searchSpace = ref GetReference();
 
         for(var i = 0; i < _capacity; i++)
         {
@@ -165,6 +164,11 @@ public sealed class ObjectResult
         }
 
         _capacity = 0;
+        IsInvalidated = false;
+        ParentIndex = 0;
+        Parent = null;
+        PatchId = 0;
+        PatchPath = null;
     }
 
     object? IReadOnlyDictionary<string, object?>.this[string key]
@@ -249,4 +253,11 @@ public sealed class ObjectResult
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+internal static class ObjectResultExtensions
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void InitValueUnsafe(this ObjectResult result, int index, ISelection selection)
+        => result.SetValueUnsafe(index, selection.ResponseName, null, selection.Type.Kind is not TypeKind.NonNull);
 }

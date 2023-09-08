@@ -18,7 +18,7 @@ public sealed class AuthorizeDirective
     /// </param>
     public AuthorizeDirective(
         IReadOnlyList<string> roles,
-        ApplyPolicy apply = ApplyPolicy.Validation)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
         : this(null, roles, apply) { }
 
     /// <summary>
@@ -45,7 +45,7 @@ public sealed class AuthorizeDirective
     public AuthorizeDirective(
         string? policy = null,
         IReadOnlyList<string>? roles = null,
-        ApplyPolicy apply = ApplyPolicy.Validation)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
         Policy = policy;
         Roles = roles;

@@ -105,12 +105,9 @@ public class ObjectTypeDefinition
     {
         get
         {
-            if (Fields.BindingBehavior == BindingBehavior.Explicit)
-            {
-                return FieldBindingFlags.Default;
-            }
-
-            return _fieldBindingFlags;
+            return Fields.BindingBehavior is BindingBehavior.Explicit
+                ? FieldBindingFlags.Default
+                : _fieldBindingFlags;
         }
         set
         {

@@ -14,7 +14,13 @@ public interface IRequestExecutorResolver
     /// The consumers of a request executor shall subscribe to this event
     /// in order to release once this event is triggered.
     /// </summary>
+    [Obsolete("Use the events property instead.")]
     event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
+
+    /// <summary>
+    /// An event that is raised when a request executor is created or evicted.
+    /// </summary>
+    IObservable<RequestExecutorEvent> Events { get; }
 
     /// <summary>
     /// Gets or creates the request executor that is associated with the
@@ -46,3 +52,4 @@ public interface IRequestExecutorResolver
     /// </param>
     void EvictRequestExecutor(string? schemaName = default);
 }
+

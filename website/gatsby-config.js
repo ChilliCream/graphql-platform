@@ -1,7 +1,6 @@
-/** @type import('gatsby').GatsbyConfig */
-
 const SITE_URL = `https://chillicream.com`;
 
+/** @type import('gatsby').GatsbyConfig */
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL Platform`,

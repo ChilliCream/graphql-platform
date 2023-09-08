@@ -7,7 +7,7 @@ namespace HotChocolate.Data;
 
 /// <summary>
 /// Returns the first element of the sequence that satisfies a condition or a default value if
-/// no such element is found. Applies the <see cref="UseSingleOrDefaultAttribute"/> to the field
+/// no such element is found. Applies the <see cref="UseFirstOrDefaultAttribute"/> to the field
 /// </summary>
 public sealed class UseFirstOrDefaultAttribute
     : ObjectFieldDescriptorAttribute

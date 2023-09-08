@@ -33,7 +33,7 @@ public abstract class UseSubscription<TResult> : ComponentBase, IDisposable wher
                 _isErrorResult = operationResult.IsErrorResult();
                 _isSuccessResult = operationResult.IsSuccessResult();
                 _isInitializing = false;
-                StateHasChanged();
+                InvokeAsync(StateHasChanged);
             });
     }
 

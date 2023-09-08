@@ -9,14 +9,14 @@ public class StreamTests
     /// <summary>
     /// This test shows how IAsyncEnumerable is translated to SDL
     /// </summary>
-    [Fact]
+    [LocalFact]
     public async Task Schema()
     {
         var executor = await DeferAndStreamTestSchema.CreateAsync();
         executor.Schema.MatchSnapshot();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Stream()
     {
         // arrange
@@ -36,7 +36,7 @@ public class StreamTests
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Stream_Nested_Defer()
     {
         // arrange
@@ -60,7 +60,7 @@ public class StreamTests
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Stream_InitialCount_Set_To_1()
     {
         // arrange
@@ -80,7 +80,7 @@ public class StreamTests
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Stream_Label_Set_To_abc()
     {
         // arrange
@@ -88,19 +88,21 @@ public class StreamTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 ... @defer {
                     wait(m: 300)
                 }
-                persons @stream(label: ""abc"") {
+                persons @stream(label: "abc") {
                     id
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Stream_If_Set_To_false()
     {
         // arrange
@@ -108,16 +110,18 @@ public class StreamTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 persons @stream(if: false) {
                     id
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<QueryResult>(result).MatchSnapshot();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task Stream_If_Variable_Set_To_false()
     {
         // arrange
@@ -128,18 +132,20 @@ public class StreamTests
             QueryRequestBuilder
                 .New()
                 .SetQuery(
-                    @"query ($stream: Boolean!) {
+                    """
+                    query ($stream: Boolean!) {
                         persons @stream(if: $stream) {
                             id
                         }
-                    }")
+                    }
+                    """)
                 .SetVariableValue("stream", false)
                 .Create());
 
         Assert.IsType<QueryResult>(result).MatchSnapshot();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task AsyncEnumerable_Result()
     {
         // arrange
@@ -150,11 +156,13 @@ public class StreamTests
             QueryRequestBuilder
                 .New()
                 .SetQuery(
-                    @"{
+                    """
+                    {
                         persons {
                             id
                         }
-                    }")
+                    }
+                    """)
                 .Create());
 
         Assert.IsType<QueryResult>(result).MatchSnapshot();

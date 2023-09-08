@@ -156,7 +156,8 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
-                    EnableSchemaRequests = false
+                    EnableSchemaRequests = false,
+                    Tool = { Enable = false }
                 }));
         var url = TestServerExtensions.CreateUrl("/graphql?sdl");
         var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -165,7 +166,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var response = await server.CreateClient().SendAsync(request);
 
         // assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
         result.MatchSnapshot();
     }

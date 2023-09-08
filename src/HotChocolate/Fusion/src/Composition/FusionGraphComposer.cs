@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Composition.Pipeline;
 using HotChocolate.Skimmed;
 
@@ -34,6 +35,8 @@ public sealed class FusionGraphComposer
             new IEntityEnricher[]
             {
                 new RefResolverEntityEnricher(),
+                new PatternEntityEnricher(),
+                new RequireEnricher(),
                 new NodeEntityEnricher()
             },
             new ITypeMergeHandler[]
@@ -58,16 +61,19 @@ public sealed class FusionGraphComposer
         _pipeline =
             MergePipelineBuilder.New()
                 .Use<ParseSubgraphSchemaMiddleware>()
-                .Use<RegisterClientMiddleware>()
+                .Use<RegisterClientsMiddleware>()
                 .Use<ApplyRenameDirectiveMiddleware>()
                 .Use<ApplyRemoveDirectiveMiddleware>()
                 .Use(() => new EnrichEntityMiddleware(entityEnrichers))
                 .Use<PrepareFusionSchemaMiddleware>()
                 .Use<MergeEntityMiddleware>()
+                .Use<EntityFieldDependencyMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
                 .Use<MergeQueryAndMutationTypeMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()
                 .Use<NodeMiddleware>()
+                .Use<ApplyTagDirectiveMiddleware>()
+                .Use<ApplyExcludeTagMiddleware>()
                 .Use<RemoveFusionTypesMiddleware>()
                 .Build();
         _logFactory = logFactory;
@@ -91,7 +97,7 @@ public sealed class FusionGraphComposer
     /// <returns>The fusion gateway configuration.</returns>
     public async ValueTask<Schema> ComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
-        FusionFeatureFlags features = FusionFeatureFlags.None,
+        FusionFeatureCollection? features = null,
         CancellationToken cancellationToken = default)
     {
         var log = new DefaultCompositionLog(_logFactory?.Invoke());
@@ -100,11 +106,11 @@ public sealed class FusionGraphComposer
         // fusion type prefix, and fusion type self option.
         var context = new CompositionContext(
             configurations.ToArray(),
+            features ?? FusionFeatureCollection.Empty,
             log,
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Features = features,
             Abort = cancellationToken
         };
 
@@ -119,5 +125,86 @@ public sealed class FusionGraphComposer
 
         // Return the resulting merged schema.
         return context.FusionGraph;
+    }
+
+    /// <summary>
+    /// Composes the subgraph schemas into a single,
+    /// merged schema representing the fusion gateway configuration.
+    /// </summary>
+    /// <param name="configurations">
+    /// The subgraph configurations to compose.
+    /// </param>
+    /// <param name="features">
+    /// The composition feature flags.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the operation.
+    /// </param>
+    /// <returns>The fusion gateway configuration.</returns>
+    public async ValueTask<Schema?> TryComposeAsync(
+        IEnumerable<SubgraphConfiguration> configurations,
+        FusionFeatureCollection? features = null,
+        CancellationToken cancellationToken = default)
+    {
+        var log = new DefaultCompositionLog(_logFactory?.Invoke());
+
+        // Create a new composition context with the given subgraph configurations,
+        // fusion type prefix, and fusion type self option.
+        var context = new CompositionContext(
+            configurations.ToArray(),
+            features ?? FusionFeatureCollection.Empty,
+            log,
+            _fusionTypePrefix,
+            _fusionTypeSelf)
+        {
+            Abort = cancellationToken
+        };
+
+        // Run the merge pipeline on the composition context.
+        await _pipeline(context);
+
+        return log.HasErrors ? null : context.FusionGraph;
+    }
+
+    /// <summary>
+    /// Composes the subgraph schemas into a single,
+    /// merged schema representing the fusion gateway configuration.
+    /// </summary>
+    /// <param name="configurations">
+    /// The subgraph configurations to compose.
+    /// </param>
+    /// <param name="features">
+    /// The composition feature flags.
+    /// </param>
+    /// <param name="fusionTypePrefix">
+    /// The prefix that is used for the fusion types.
+    /// </param>
+    /// <param name="fusionTypeSelf">
+    /// Defines if the fusion types should be prefixed with the subgraph name.
+    /// </param>
+    /// <param name="logFactory">
+    /// A factory that creates a new composition log.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the operation.
+    /// </param>
+    /// <returns>The fusion gateway configuration.</returns>
+    public static async ValueTask<Schema> ComposeAsync(
+        IEnumerable<SubgraphConfiguration> configurations,
+        FusionFeatureCollection? features = null,
+        string? fusionTypePrefix = null,
+        bool fusionTypeSelf = false,
+        Func<ICompositionLog>? logFactory = null,
+        CancellationToken cancellationToken = default)
+    {
+        var composer = new FusionGraphComposer(
+            fusionTypePrefix,
+            fusionTypeSelf,
+            logFactory);
+
+        return await composer.ComposeAsync(
+            configurations,
+            features,
+            cancellationToken);
     }
 }

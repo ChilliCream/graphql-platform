@@ -78,7 +78,7 @@ public class HotChocolateStitchingRequestExecutorExtensionsTests
 
 public class CustomQueryType : ObjectType
 {
-    public IDescriptorContext Context { get; set; }
+    public IDescriptorContext Context { get; set; } = default!;
 
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {

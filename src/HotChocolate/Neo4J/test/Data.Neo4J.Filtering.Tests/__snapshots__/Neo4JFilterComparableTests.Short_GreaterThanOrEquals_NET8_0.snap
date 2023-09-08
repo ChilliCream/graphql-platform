@@ -1,0 +1,90 @@
+Short_GreaterThanOrEquals_12 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 12
+      },
+      {
+        "barShort": 13
+      },
+      {
+        "barShort": 14
+      }
+    ]
+  }
+}
+---------------
+
+Short_GreaterThanOrEquals_12 Query:
+---------------
+MATCH (fooComp:FooComp) WHERE fooComp.BarShort >= 12 RETURN fooComp {.BarShort} ORDER BY fooComp {.BarShort} ASC
+---------------
+
+Short_GreaterThanOrEquals_13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 13
+      },
+      {
+        "barShort": 14
+      }
+    ]
+  }
+}
+---------------
+
+Short_GreaterThanOrEquals_13 Query:
+---------------
+MATCH (fooComp:FooComp) WHERE fooComp.BarShort >= 13 RETURN fooComp {.BarShort} ORDER BY fooComp {.BarShort} ASC
+---------------
+
+Short_GreaterThanOrEquals_14 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 14
+      }
+    ]
+  }
+}
+---------------
+
+Short_GreaterThanOrEquals_14 Query:
+---------------
+MATCH (fooComp:FooComp) WHERE fooComp.BarShort >= 14 RETURN fooComp {.BarShort} ORDER BY fooComp {.BarShort} ASC
+---------------
+
+Short_GreaterThanOrEquals_null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060gte\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 34
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Short!",
+        "filterType": "ShortOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

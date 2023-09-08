@@ -15,5 +15,5 @@ public class SubscriptionOptions
     /// <summary>
     /// Specifies the behavior to use when writing to a topic buffer that is already full.
     /// </summary>
-    public TopicBufferFullMode TopicBufferFullMode { get; set; } = TopicBufferFullMode.Wait;
+    public TopicBufferFullMode TopicBufferFullMode { get; set; } = TopicBufferFullMode.DropOldest;
 }

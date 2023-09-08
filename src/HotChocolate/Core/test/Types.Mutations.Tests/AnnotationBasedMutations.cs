@@ -1,9 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
 
 namespace HotChocolate.Types;
 
@@ -378,6 +383,21 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutation_Add_Error_Via_Type_Interceptor()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationInputOverride>()
+                .TryAddTypeInterceptor<SimpleMutation_ErrorViaTypeInterceptor>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task MultipleArgumentMutation_Inferred()
     {
         var schema =
@@ -706,7 +726,7 @@ public class AnnotationBasedMutations
     [Fact]
     public async Task Union_Result_4_Success()
     {
-        var result=
+        var result =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddMutationType<MutationWithUnionResult4_Success>()
@@ -985,6 +1005,29 @@ public class AnnotationBasedMutations
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Mutation_Aggregate_Error_Not_Mapped()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationAggregateError>()
+                .AddMutationConventions()
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething2(input: { userId: 1 }) {
+                            userId
+                            errors {
+                                __typename
+                            }
+                        }
+                    }");
+
+        result.MatchSnapshot();
+    }
+
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -1048,9 +1091,49 @@ public class AnnotationBasedMutations
         public string MyResult2 { get; set; } = default!;
     }
 
+    internal class SimpleMutation_ErrorViaTypeInterceptor : TypeInterceptor
+    {
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase definition)
+        {
+            if (definition is not ObjectTypeDefinition objTypeDef)
+            {
+                return;
+            }
+        }
+
+        public override void OnBeforeRegisterDependencies(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase definition)
+        {
+            if (definition is ObjectTypeDefinition objTypeDef)
+            {
+                foreach (var fieldDef in objTypeDef.Fields)
+                {
+                    if (fieldDef.Name != "doSomething")
+                    {
+                        continue;
+                    }
+
+                    foreach (var argDef in fieldDef.Arguments)
+                    {
+                        if (argDef.Name == "something")
+                        {
+                            fieldDef.AddErrorType(
+                                discoveryContext.DescriptorContext,
+                                typeof(OutOfMemoryException));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public class SimpleMutationInputOverride
     {
-        public string DoSomething(DoSomethingInput something)
+        public string DoSomething(
+            DoSomethingInput something)
         {
             throw new Exception();
         }
@@ -1299,6 +1382,18 @@ public class AnnotationBasedMutations
             => userId.HasValue
                 ? new DoSomething2Payload(userId)
                 : throw new CustomException();
+    }
+
+    public class MutationAggregateError
+    {
+        [Error<CustomException>]
+        public DoSomething2Payload DoSomething2(int? userId)
+        {
+            var errors = new List<Exception>();
+            errors.Add(new CustomException());
+            errors.Add(new Custom2Exception());
+            throw new AggregateException(errors);
+        }
     }
 
     public record DoSomething2Payload(int? UserId);

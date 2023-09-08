@@ -30,17 +30,17 @@ You can learn more about the benefits of persisted queries and how you can setup
 
 # Usage
 
-To enable persisted queries, specify a `GraphQLPersistedQueryFormat` property in a MSBuild `PropertyGroup` in the `.csproj` of your Strawberry Shake application:
+To enable persisted queries, specify a `GraphQLPersistedQueryOutput` property in a MSBuild `PropertyGroup` in the `.csproj` of your Strawberry Shake application:
 
 ```xml
 <PropertyGroup>
-    <GraphQLPersistedQueryFormat>./persisted-queries</GraphQLPersistedQueryFormat>
+    <GraphQLPersistedQueryOutput>./persisted-queries</GraphQLPersistedQueryOutput>
 </PropertyGroup>
 ```
 
-The value in `GraphQLPersistedQueryFormat` should be the path to a directory relative to the project root directory. An empty value disables the feature and is also the default.
+The value in `GraphQLPersistedQueryOutput` should be the path to a directory relative to the project root directory. An empty value disables the feature and is also the default.
 
-If you now re-build your application, the directory specified by `GraphQLPersistedQueryFormat` should be created and contain all of your persisted queries.
+If you now re-build your application, the directory specified by `GraphQLPersistedQueryOutput` should be created and contain all of your persisted queries.
 
 You can now make these persisted queries available to your GraphQL server, by for example uploading the directory.
 

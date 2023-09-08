@@ -21,7 +21,7 @@ internal sealed partial class TypeRegistrar
                 return (TypeSystemObjectBase)constructor.Invoke(Array.Empty<object>());
             }
 
-            var args = new object[parameters.Length];
+            var args = new object?[parameters.Length];
 
             for (var i = 0; i < parameters.Length; i++)
             {

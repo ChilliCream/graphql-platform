@@ -1,0 +1,64 @@
+true Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": true
+        }
+      }
+    ]
+  }
+}
+---------------
+
+true SQL:
+---------------
+from 'BarNullables' where Foo.BarBool = $p0
+---------------
+
+false Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": false
+        }
+      },
+      {
+        "foo": {
+          "barBool": false
+        }
+      }
+    ]
+  }
+}
+---------------
+
+false SQL:
+---------------
+from 'BarNullables' where Foo.BarBool = $p0
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": null
+        }
+      }
+    ]
+  }
+}
+---------------
+
+null SQL:
+---------------
+from 'BarNullables' where Foo.BarBool = $p0
+---------------

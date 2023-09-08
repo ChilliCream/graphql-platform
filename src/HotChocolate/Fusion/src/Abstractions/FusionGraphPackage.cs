@@ -2,8 +2,10 @@ using System.Buffers;
 using System.IO.Packaging;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using static HotChocolate.Fusion.FusionAbstractionResources;
 using static HotChocolate.Fusion.FusionGraphPackageConstants;
 using static HotChocolate.Language.Utf8GraphQLParser;
@@ -22,6 +24,13 @@ namespace HotChocolate.Fusion;
 /// </summary>
 public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 {
+    private static readonly SyntaxSerializerOptions _syntaxSerializerOptions =
+        new()
+        {
+            Indented = true, 
+            MaxDirectivesPerLine = 0
+        };
+
     private readonly Package _package;
 
     private FusionGraphPackage(Package package)
@@ -75,7 +84,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// </param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="stream"/> is <c>null</c>.
+    /// <paramref name="path"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="access"/> is not <see cref="FileAccess.Read"/> or
@@ -95,7 +104,9 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(access));
         }
 
-        var mode = access == FileAccess.Read ? FileMode.Open : FileMode.OpenOrCreate;
+        var mode = access == FileAccess.Read
+            ? FileMode.Open
+            : FileMode.OpenOrCreate;
         var package = Package.Open(path, mode, access);
         return new FusionGraphPackage(package);
     }
@@ -174,6 +185,60 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             FusionFileName,
             FusionKind,
             FusionId,
+            document,
+            cancellationToken);
+    }
+
+    public Task<JsonDocument> GetFusionGraphSettingsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
+        {
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
+        }
+
+        if (!_package.RelationshipExists(FusionSettingsId))
+        {
+            return Task.FromResult(
+                JsonDocument.Parse(
+                    """
+                    { 
+                      "fusionTypePrefix" : null,
+                      "fusionTypeSelf": false
+                    }
+                    """));
+        }
+
+        var relationship = _package.GetRelationship(FusionSettingsId);
+        var part = _package.GetPart(relationship.TargetUri);
+        return ReadJsonPartAsync(part, cancellationToken);
+    }
+
+    public Task SetFusionGraphSettingsAsync(
+        JsonDocument document,
+        CancellationToken cancellationToken = default)
+    {
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        if (_package.FileOpenAccess != FileAccess.ReadWrite)
+        {
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotWrite);
+        }
+
+        if (_package.RelationshipExists(FusionSettingsId))
+        {
+            var relationship = _package.GetRelationship(FusionSettingsId);
+            _package.DeletePart(relationship.TargetUri);
+            _package.DeleteRelationship(relationship.Id);
+        }
+
+        return WriteJsonPartAsync(
+            FusionSettingsFileName,
+            FusionSettingsKind,
+            FusionSettingsId,
             document,
             cancellationToken);
     }
@@ -410,8 +475,37 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         var part = _package.CreatePart(uri, SchemaMediaType);
 
         await using var stream = part.GetStream(FileMode.Create);
-        var sourceText = Encoding.UTF8.GetBytes(document.ToString(true));
+        var sourceText = Encoding.UTF8.GetBytes(document.ToString(_syntaxSerializerOptions));
         await stream.WriteAsync(sourceText, ct);
+
+        _package.CreateRelationship(part.Uri, TargetMode.Internal, relKind, relId);
+        _package.Flush();
+    }
+
+    private static async Task<JsonDocument> ReadJsonPartAsync(
+        PackagePart schemaPart,
+        CancellationToken ct)
+    {
+        var options = new JsonDocumentOptions { MaxDepth = 16, CommentHandling = JsonCommentHandling.Skip };
+        await using var stream = schemaPart.GetStream(FileMode.Open, FileAccess.Read);
+        return await JsonDocument.ParseAsync(stream, options, ct);
+    }
+
+    private async Task WriteJsonPartAsync(
+        string fileName,
+        string relKind,
+        string relId,
+        JsonDocument document,
+        CancellationToken ct)
+    {
+        var uri = PackUriHelper.CreatePartUri(new Uri(fileName, UriKind.Relative));
+        var part = _package.CreatePart(uri, JsonMediaType);
+
+        var options = new JsonWriterOptions { Indented = true, MaxDepth = 16 };
+        await using var stream = part.GetStream(FileMode.Create);
+        await using var writer = new Utf8JsonWriter(stream, options);
+        document.WriteTo(writer);
+        await writer.FlushAsync(ct);
 
         _package.CreateRelationship(part.Uri, TargetMode.Internal, relKind, relId);
         _package.Flush();
@@ -428,7 +522,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         return new SubgraphConfiguration(
             config.Name,
             schema.ToString(true),
-            extensions.Select(t => t.ToString(true)).ToArray(),
+            extensions.Select(t => t.ToString(_syntaxSerializerOptions)).ToArray(),
             config.Clients);
     }
 
@@ -509,7 +603,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         var part = _package.CreatePart(uri, SchemaMediaType);
 
         await using var stream = part.GetStream(FileMode.Create);
-        var sourceText = Encoding.UTF8.GetBytes(document.ToString(true));
+        var sourceText = Encoding.UTF8.GetBytes(document.ToString(_syntaxSerializerOptions));
         await stream.WriteAsync(sourceText, ct);
 
         root.CreateRelationship(part.Uri, TargetMode.Internal, SchemaKind, SchemaId);
@@ -529,7 +623,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             var part = _package.CreatePart(uri, SchemaMediaType);
 
             await using var stream = part.GetStream(FileMode.Create);
-            var sourceText = Encoding.UTF8.GetBytes(extension.ToString(true));
+            var sourceText = Encoding.UTF8.GetBytes(extension.ToString(_syntaxSerializerOptions));
             await stream.WriteAsync(sourceText, ct);
 
             root.CreateRelationship(part.Uri, TargetMode.Internal, ExtensionKind);

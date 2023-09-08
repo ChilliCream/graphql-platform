@@ -29,7 +29,7 @@ internal sealed class RedisPubSub : DefaultPubSub
 
     protected override async ValueTask OnSendAsync<TMessage>(
         string formattedTopic,
-        MessageEnvelope<TMessage> message,
+        TMessage message,
         CancellationToken cancellationToken = default)
     {
         var serialized = _serializer.Serialize(message);

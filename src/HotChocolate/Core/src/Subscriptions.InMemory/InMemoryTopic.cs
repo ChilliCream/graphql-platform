@@ -9,10 +9,8 @@ namespace HotChocolate.Subscriptions.InMemory;
 /// <typeparam name="TMessage">
 /// The message type used with this topic.
 /// </typeparam>
-internal sealed class InMemoryTopic<TMessage> : DefaultTopic<TMessage>, IInMemoryTopic
+internal sealed class InMemoryTopic<TMessage> : DefaultTopic<TMessage>
 {
-    private static readonly MessageEnvelope<TMessage> _complete = new(kind: MessageKind.Completed);
-
     public InMemoryTopic(
         string name,
         int capacity,
@@ -23,13 +21,7 @@ internal sealed class InMemoryTopic<TMessage> : DefaultTopic<TMessage>, IInMemor
             capacity,
             fullMode,
             diagnosticEvents,
-            CreateUnbounded<MessageEnvelope<TMessage>>())
+            CreateUnbounded<TMessage>())
     {
     }
-
-    public void TryWrite(MessageEnvelope<TMessage> message)
-        => Incoming.TryWrite(message);
-
-    public void TryComplete()
-        => Incoming.TryWrite(_complete);
 }

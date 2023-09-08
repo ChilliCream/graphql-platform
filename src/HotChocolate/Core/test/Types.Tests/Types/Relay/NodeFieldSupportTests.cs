@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Types.Relay;
 
@@ -28,7 +28,7 @@ public class NodeFieldSupportTests
         var result = await executor.ExecuteAsync("{ bar { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Obsolete]
@@ -66,7 +66,7 @@ public class NodeFieldSupportTests
 
         // assert
         Assert.Equal("Bar", type);
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class NodeFieldSupportTests
             "{ nodes(ids: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class NodeFieldSupportTests
             "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class NodeFieldSupportTests
             "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class NodeFieldSupportTests
         var result = await executor.ExecuteAsync("{ childs { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -244,8 +244,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        var json = result.ToJson();
-        json.MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -264,7 +263,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -283,7 +282,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -302,7 +301,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -321,7 +320,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -340,7 +339,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -359,7 +358,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -378,7 +377,7 @@ public class NodeFieldSupportTests
             "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     public class Foo

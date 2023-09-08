@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -10,11 +11,26 @@ namespace HotChocolate.Types;
 /// HTML Spec
 /// </a>
 /// </summary>
+#if NET7_0_OR_GREATER
+public partial class EmailAddressType : RegexType
+#else
 public class EmailAddressType : RegexType
+#endif
 {
     private const string _validationPattern =
         "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
         "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
+
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegex();
+#else
+    private static Regex CreateRegex()
+        => new Regex(
+            _validationPattern,
+            RegexOptions.Compiled | RegexOptions.IgnoreCase,
+            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
+#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
@@ -22,9 +38,7 @@ public class EmailAddressType : RegexType
     public EmailAddressType()
         : this(
             WellKnownScalarTypes.EmailAddress,
-            ScalarResources.EmailAddressType_Description)
-    {
-    }
+            ScalarResources.EmailAddressType_Description) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
@@ -35,22 +49,17 @@ public class EmailAddressType : RegexType
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(
             name,
-            _validationPattern,
+            CreateRegex(),
             description,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
             bind)
     {
     }
 
     /// <inheritdoc />
     protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
-    }
+        => ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
 
     /// <inheritdoc />
     protected override SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
-    }
+        => ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
 }

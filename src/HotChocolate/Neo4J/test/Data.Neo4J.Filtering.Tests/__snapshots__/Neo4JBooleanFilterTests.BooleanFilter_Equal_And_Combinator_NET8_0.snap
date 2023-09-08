@@ -1,0 +1,13 @@
+BooleanFilter_Equal_And_Combinator Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+BooleanFilter_Equal_And_Combinator Query:
+---------------
+MATCH (fooBool:FooBool) WHERE (fooBool.Bar = True AND fooBool.Bar = False) RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
+---------------

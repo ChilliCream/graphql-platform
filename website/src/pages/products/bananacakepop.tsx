@@ -209,8 +209,8 @@ const BananaCakePopPage: FC = () => {
           </Card>
         </CardsContainer>
       </Section>
-      <MostRecentBcpBlogPostsSection />
       <CompaniesSection />
+      <MostRecentBcpBlogPostsSection />
     </Layout>
   );
 };

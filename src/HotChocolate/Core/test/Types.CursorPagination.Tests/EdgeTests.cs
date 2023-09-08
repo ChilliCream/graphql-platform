@@ -27,11 +27,22 @@ public class EdgeTests
     }
 
     [Fact]
-    public void CreateEdge_CursorIsNull_ArgumentNullException()
+    public void CreateEdge_CursorIsNull_ArgumentNullException_1()
     {
         // arrange
         // act
-        void Action() => new Edge<string>("abc", null!);
+        void Action() => new Edge<string>("abc", default(string)!);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
+    
+    [Fact]
+    public void CreateEdge_CursorIsNull_ArgumentNullException_2()
+    {
+        // arrange
+        // act
+        void Action() => new Edge<string>("abc", default(Func<string, string>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

@@ -14,6 +14,7 @@ namespace HotChocolate.Language;
 public sealed class DocumentNode : ISyntaxNode
 {
     private int _count = -1;
+    private int _fieldsCount = -1;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentNode"/>.
@@ -57,11 +58,13 @@ public sealed class DocumentNode : ISyntaxNode
     internal DocumentNode(
         Location? location,
         IReadOnlyList<IDefinitionNode> definitions,
-        int nodesCount)
+        int nodesCount,
+        int fieldsCount)
     {
         Location = location;
         Definitions = definitions ?? throw new ArgumentNullException(nameof(definitions));
         _count = nodesCount;
+        _fieldsCount = fieldsCount;
     }
 
     /// <inheritdoc />
@@ -76,7 +79,7 @@ public sealed class DocumentNode : ISyntaxNode
     public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
     /// <summary>
-    /// Gets the
+    /// Gets the number of nodes in this document.
     /// </summary>
     public int Count
     {
@@ -108,6 +111,47 @@ public sealed class DocumentNode : ISyntaxNode
             // we will cache the result on the document.
             _count = count;
             return _count;
+        }
+    }
+
+    /// <summary>
+    /// Gets the number of fields in this document.
+    /// </summary>
+    public int FieldsCount
+    {
+        get
+        {
+            // the parser will always calculate the nodes efficiently and provide
+            // us with the correct count.
+            if (_fieldsCount != -1)
+            {
+                return _fieldsCount;
+            }
+
+            // in the case the document was constructed by hand or constructed through
+            // rewriting a document we will calculate the nodes.
+            var stack = new Stack<ISyntaxNode>(GetNodes());
+            var count = 0;
+
+            while (stack.Count > 0)
+            {
+                var node = stack.Pop();
+
+                if(node.Kind == SyntaxKind.Field)
+                {
+                    count++;
+                }
+
+                foreach (var child in node.GetNodes())
+                {
+                    stack.Push(child);
+                }
+            }
+
+            // Since the calculation of the nodes requires us to walk the tree
+            // we will cache the result on the document.
+            _fieldsCount = count;
+            return _fieldsCount;
         }
     }
 

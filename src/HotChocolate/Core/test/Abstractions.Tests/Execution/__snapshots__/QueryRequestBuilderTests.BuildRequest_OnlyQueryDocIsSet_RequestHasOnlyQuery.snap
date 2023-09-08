@@ -58,7 +58,8 @@
           }
         }
       ],
-      "Count": 5
+      "Count": 5,
+      "FieldsCount": 1
     }
   },
   "QueryId": null,

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using static HotChocolate.Execution.ErrorHelper;
@@ -7,91 +6,40 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private bool ApplyNonNullViolations(
+    private void ApplyNonNullViolations(
         List<IError> errors,
         List<NonNullViolation> violations,
         HashSet<ISelection> fieldErrors)
     {
-        if (violations.Count is 0)
+        if (violations.Count == 0)
         {
-            return true;
+            return;
         }
 
         while (violations.TryPop(out var violation))
         {
-            var path = violation.Path;
-            ResultData? parent = violation.Parent;
-
-            if (!fieldErrors.Contains(violation.Selection))
+            if (fieldErrors.Contains(violation.Selection))
             {
-                var error = NonNullOutputFieldViolation(path, violation.Selection.SyntaxNode);
-                error = _context.ErrorHandler.Handle(error);
-                _diagnosticEvents.ResolverError(_context, violation.Selection, error);
-                errors.Add(error);
+                continue;
             }
-
-            while (parent is not null)
-            {
-                switch (parent)
-                {
-                    case ObjectResult obj:
-                        if (path is not NamePathSegment nps)
-                        {
-                            return false;
-                        }
-
-                        var field = obj.TryGetValue(nps.Name, out _);
-
-                        if (field is null)
-                        {
-                            return false;
-                        }
-
-                        if (field.IsNullable)
-                        {
-                            field.Set(field.Name, null, true);
-                            return true;
-                        }
-
-                        _removedResults.Add(obj.PatchId);
-                        path = path.Parent;
-                        parent = obj.Parent;
-                        break;
-
-                    case ListResult list:
-                        if (list.IsNullable)
-                        {
-                            list.SetUnsafe(((IndexerPathSegment)path).Index, null);
-                            return true;
-                        }
-
-                        _removedResults.Add(list.PatchId);
-                        path = path.Parent;
-                        parent = parent.Parent;
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(parent));
-                }
-            }
+            
+            var error = NonNullOutputFieldViolation(violation.Path, violation.Selection.SyntaxNode);
+            error = _context.ErrorHandler.Handle(error);
+            _diagnosticEvents.ResolverError(_context, violation.Selection, error);
+            errors.Add(error);
         }
-
-        return false;
     }
 
     private sealed class NonNullViolation
     {
-        public NonNullViolation(ISelection selection, Path path, ObjectResult parent)
+        public NonNullViolation(ISelection selection, Path path)
         {
             Selection = selection;
             Path = path;
-            Parent = parent;
         }
 
         public ISelection Selection { get; }
 
         public Path Path { get; }
-
-        public ObjectResult Parent { get; }
     }
 }

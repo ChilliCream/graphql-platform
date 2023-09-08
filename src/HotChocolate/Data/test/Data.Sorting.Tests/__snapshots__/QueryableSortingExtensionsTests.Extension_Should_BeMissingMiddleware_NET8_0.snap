@@ -1,0 +1,30 @@
+Result:
+---------------
+{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "missingMiddleware"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    }
+  ]
+}
+---------------
+
+Exception:
+---------------
+For more details look at the `Errors` property.
+
+1. Sorting was not found. Register sorting with [UseSorting] or descriptor.UseSorting().
+
+---------------

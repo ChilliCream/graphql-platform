@@ -1,31 +1,21 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
+internal sealed class NodeRequestDocumentFormatter(
+    FusionGraphConfiguration configuration,
+    ISchema schema)
+    : RequestDocumentFormatter(configuration)
 {
-    private static readonly FieldNode _typeNameField =
-        new FieldNode(
-            null,
-            new NameNode(null, IntrospectionFields.TypeName),
-            null,
-            null,
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
-            null);
-    private readonly ISchema _schema;
-
-    public NodeRequestDocumentFormatter(FusionGraphConfiguration configuration, ISchema schema)
-        : base(configuration)
-    {
-        _schema = schema;
-    }
+    private readonly ISchema _schema = schema;
 
     internal RequestDocument CreateRequestDocument(
         QueryPlanContext context,
@@ -48,7 +38,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
             context.Exports.CreateVariableDefinitions(
                 context.ForwardedVariables,
                 executionStep.Variables.Values,
-                executionStep.Resolver?.Arguments),
+                executionStep.ArgumentTypes),
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
@@ -63,8 +53,8 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         string entityTypeName)
     {
         var selectionNodes = new List<ISelectionNode>();
-        var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
-        var selectionSetType = executionStep.SelectionSetTypeInfo;
+        var selectionSet = context.Operation.GetSelectionSet(executionStep);
+        var selectionSetType = executionStep.SelectionSetTypeMetadata;
         var nodeSelection = executionStep.RootSelections[0];
         Debug.Assert(selectionSet is not null);
         Debug.Assert(executionStep.RootSelections.Count == 1);
@@ -122,12 +112,13 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         var selectionNodes = new List<ISelectionNode>();
         var typeSelectionNodes = new List<ISelectionNode>();
         var entityType = _schema.GetType<ObjectType>(entityTypeName);
+        var selectionSet = (SelectionSet)context.Operation.GetSelectionSet(parentSelection, entityType);
 
         CreateSelectionNodes(
             context,
             executionStep,
-            parentSelection,
             entityType,
+            selectionSet,
             typeSelectionNodes);
 
         AddInlineFragment(entityType);
@@ -152,7 +143,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
 
             if (needsTypeNameField)
             {
-                typeSelectionNodes.Add(_typeNameField);
+                typeSelectionNodes.Add(TypeNameField);
             }
 
             var inlineFragment = new InlineFragmentNode(
@@ -170,35 +161,64 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         }
     }
 
-    protected override void CreateSelectionNodes(
+    protected override bool CreateSelectionNodes(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
-        ISelection parentSelection,
         IObjectType possibleType,
+        SelectionSet selectionSet,
         List<ISelectionNode> selectionNodes)
     {
-        var typeContext = Configuration.GetType<ObjectTypeInfo>(possibleType.Name);
-        var selectionSet = context.Operation.GetSelectionSet(parentSelection, possibleType);
+        var onlyIntrospection = true;
+        var typeContext = Configuration.GetType<ObjectTypeMetadata>(possibleType.Name);
 
-        foreach (var selection in selectionSet.Selections)
+        ref var selection = ref selectionSet.GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
+
+        while(Unsafe.IsAddressLessThan(ref selection, ref end))
         {
-            if (executionStep.AllSelections.Contains(selection) ||
-                selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
+            if (!executionStep.AllSelections.Contains(selection) &&
+                !selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
             {
-                selectionNodes.Add(
-                    CreateSelectionNode(
-                        context,
-                        executionStep,
-                        selection,
-                        typeContext.Fields[selection.Field.Name]));
+                goto NEXT;
             }
+
+            if (onlyIntrospection && !selection.Field.IsIntrospectionField)
+            {
+                onlyIntrospection = false;
+            }
+
+            selectionNodes.Add(
+                CreateSelectionNode(
+                    context,
+                    executionStep,
+                    selection,
+                    typeContext.Fields[selection.Field.Name]));
+
+            if (!selection.Arguments.IsFullyCoercedNoErrors)
+            {
+                foreach (var argument in selection.Arguments)
+                {
+                    if (!argument.IsFullyCoerced)
+                    {
+                        TryForwardVariable(
+                            context,
+                            executionStep.SubgraphName,
+                            null,
+                            argument,
+                            argument.Name);
+                    }
+                }
+            }
+
+            NEXT:
+            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         if (selectionSet.Selections.Count == 0 && selectionNodes.Count == 0)
         {
             // Since each entity type has its unique subgraph query we need to substitute
             // subgraph queries where the consumer did not specify any fields explicitly.
-            selectionNodes.Add(_typeNameField);
+            selectionNodes.Add(TypeNameField);
         }
 
         // append exports that were required by other execution steps.
@@ -212,5 +232,7 @@ internal sealed class NodeRequestDocumentFormatter : RequestDocumentFormatter
         {
             throw ThrowHelper.RequestFormatter_SelectionSetEmpty();
         }
+
+        return onlyIntrospection;
     }
 }

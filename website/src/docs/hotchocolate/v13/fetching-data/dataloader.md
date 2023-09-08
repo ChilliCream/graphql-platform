@@ -72,7 +72,7 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
     public PersonBatchDataLoader(
         IPersonRepository repository,
         IBatchScheduler batchScheduler,
-        DataLoaderOptions<string>? options = null)
+        DataLoaderOptions? options = null)
         : base(batchScheduler, options)
     {
         _repository = repository;
@@ -144,7 +144,7 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
     public PersonBatchDataLoader(
         IPersonRepository repository,
         IBatchScheduler batchScheduler,
-        DataLoaderOptions<string>? options = null)
+        DataLoaderOptions? options = null)
         : base(batchScheduler, options)
     {
         _repository = repository;
@@ -209,7 +209,7 @@ public class PersonsByLastNameDataloader
     public PersonsByLastNameDataloader(
         IPersonRepository repository,
         IBatchScheduler batchScheduler,
-        DataLoaderOptions<string>? options = null)
+        DataLoaderOptions? options = null)
         : base(batchScheduler, options)
     {
         _repository = repository;

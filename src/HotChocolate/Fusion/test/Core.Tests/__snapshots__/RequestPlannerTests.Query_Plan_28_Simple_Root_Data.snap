@@ -1,0 +1,45 @@
+UserRequest
+---------------
+query Query {
+  data {
+    a
+    b
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query Query { data { a b } }",
+  "operation": "Query",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Parallel",
+        "nodes": [
+          {
+            "type": "Resolve",
+            "subgraph": "A",
+            "document": "query Query_1 { data { a } }",
+            "selectionSetId": 0
+          },
+          {
+            "type": "Resolve",
+            "subgraph": "B",
+            "document": "query Query_2 { data { b } }",
+            "selectionSetId": 0
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------

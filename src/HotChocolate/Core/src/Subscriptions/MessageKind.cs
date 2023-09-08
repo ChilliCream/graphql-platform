@@ -15,10 +15,5 @@ public enum MessageKind
     /// A completed message, which signals that the topic is now
     /// completed and no more messages will arrive.
     /// </summary>
-    Completed = 1,
-
-    /// <summary>
-    /// Signals that one or more subscribers are nor listening anymore.
-    /// </summary>
-    Unsubscribed = 2
+    Completed = 1
 }

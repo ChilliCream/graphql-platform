@@ -192,6 +192,9 @@
     <Compile Update="RequestExecutorResolver.Hooks.cs">
       <DependentUpon>RequestExecutorResolver.cs</DependentUpon>
     </Compile>
+    <Compile Update="Processing\ValueCompletionContext.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

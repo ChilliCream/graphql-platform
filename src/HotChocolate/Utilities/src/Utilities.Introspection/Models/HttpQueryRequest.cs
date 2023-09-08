@@ -1,15 +1,14 @@
-namespace HotChocolate.Utilities.Introspection
+namespace HotChocolate.Utilities.Introspection;
+
+internal class HttpQueryRequest
 {
-    internal class HttpQueryRequest
+    public HttpQueryRequest(string query, string operationName)
     {
-        public HttpQueryRequest(string query, string operationName)
-        {
-            Query = query;
-            OperationName = operationName;
-        }
-
-        public string Query { get; set; }
-
-        public string OperationName { get; set; }
+        Query = query;
+        OperationName = operationName;
     }
+
+    public string Query { get; set; }
+
+    public string OperationName { get; set; }
 }

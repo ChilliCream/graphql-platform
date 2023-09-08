@@ -18,6 +18,7 @@ public class DefaultNamingConventions
     private const string _directiveTypePostfix = "DirectiveType";
 
     private readonly IDocumentationProvider _documentation;
+    private bool _formatInterfaceName;
 
     public DefaultNamingConventions()
     {
@@ -31,6 +32,12 @@ public class DefaultNamingConventions
     }
 
     protected IDocumentationProvider DocumentationProvider => _documentation;
+
+    protected internal override void Initialize(IConventionContext context)
+    {
+        base.Initialize(context);
+        _formatInterfaceName = context.DescriptorContext.Options.StripLeadingIFromInterface;
+    }
 
     /// <inheritdoc />
     public virtual string GetTypeName(Type type)
@@ -57,6 +64,17 @@ public class DefaultNamingConventions
         }
 
         var name = type.GetGraphQLName();
+
+        if (_formatInterfaceName &&
+            kind == TypeKind.Interface &&
+            type.IsInterface &&
+            name.Length > 1 &&
+            char.IsUpper(name[0]) &&
+            char.IsUpper(name[1]) &&
+            name[0] == 'I')
+        {
+            return name.Substring(1);
+        }
 
         if (kind == TypeKind.InputObject)
         {

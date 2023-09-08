@@ -1,0 +1,21 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "computed": "Foo"
+      },
+      {
+        "computed": "Foo"
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT 1
+FROM "Data" AS "d"
+---------------

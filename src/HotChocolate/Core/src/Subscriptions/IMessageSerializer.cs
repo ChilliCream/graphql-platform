@@ -30,5 +30,5 @@ public interface IMessageSerializer
     /// <returns>
     /// Returns the deserialized message object.
     /// </returns>
-    TMessage Deserialize<TMessage>(string serializedMessage);
+    MessageEnvelope<TMessage> Deserialize<TMessage>(string serializedMessage);
 }

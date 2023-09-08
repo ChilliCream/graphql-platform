@@ -1,0 +1,49 @@
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest Query:
+---------------
+MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar <> 'testatest' RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
+---------------
+
+testbtest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testbtest Query:
+---------------
+MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar <> 'testbtest' RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+null Query:
+---------------
+MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar <> NULL RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
+---------------

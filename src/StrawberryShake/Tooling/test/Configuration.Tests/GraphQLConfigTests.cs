@@ -28,6 +28,7 @@ namespace StrawberryShake.Tools.Configuration
                 ""extensions"": {
                         ""strawberryShake"": {
                         ""name"": ""Client"",
+                        ""accessModifier"": ""public"",
                         ""dependencyInjection"": true,
                         ""strictSchemaValidation"": true,
                         ""hashAlgorithm"": ""md5"",
@@ -60,6 +61,7 @@ namespace StrawberryShake.Tools.Configuration
                 ""extensions"": {
                         ""strawberryShake"": {
                         ""name"": ""Client"",
+                        ""accessModifier"": ""public"",
                         ""dependencyInjection"": true,
                         ""strictSchemaValidation"": true,
                         ""hashAlgorithm"": ""md5"",
@@ -94,6 +96,7 @@ namespace StrawberryShake.Tools.Configuration
                 ""extensions"": {
                         ""strawberryShake"": {
                         ""name"": ""Client"",
+                        ""accessModifier"": ""public"",
                         ""dependencyInjection"": true,
                         ""strictSchemaValidation"": true,
                         ""hashAlgorithm"": ""md5"",

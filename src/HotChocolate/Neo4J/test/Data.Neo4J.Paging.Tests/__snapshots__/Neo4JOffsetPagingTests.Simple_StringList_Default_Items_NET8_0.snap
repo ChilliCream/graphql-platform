@@ -1,0 +1,35 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": "a"
+        },
+        {
+          "bar": "b"
+        },
+        {
+          "bar": "d"
+        },
+        {
+          "bar": "e"
+        },
+        {
+          "bar": "f"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false
+      }
+    }
+  }
+}
+---------------
+
+Query:
+---------------
+MATCH (foo:Foo) RETURN foo ORDER BY foo ASC LIMIT 11
+---------------

@@ -5,59 +5,68 @@ namespace HotChocolate.Subscriptions;
 public class DefaultJsonMessageSerializerTests
 {
     [Fact]
-    public void SerializeCompleteMessage()
+    public void DeserializeDefaultMessage()
     {
         // arrange
         var serializer = new DefaultJsonMessageSerializer();
-        var message = new MessageEnvelope<object>(kind: MessageKind.Completed);
+        var message = "{\"body\":\"abc\",\"kind\":0}";
 
         // act
-        var serializedMessage = serializer.Serialize(message);
+        var messageEnvelope = serializer.Deserialize<string>(message);
 
         // assert
-        Snapshot
-            .Create()
-            .Add(serializedMessage)
-            .MatchInline("{\"kind\":1}");
-    }
-
-     [Fact]
-    public void CompleteMessagePropIsEqualToSerializationResult()
-    {
-        // arrange
-        var serializer = new DefaultJsonMessageSerializer();
-        var message = new MessageEnvelope<object>(kind: MessageKind.Completed);
-
-        // act
-        var serializedMessage = serializer.Serialize(message);
-
-        // assert
-        Assert.Equal(serializer.CompleteMessage, serializedMessage);
+        Assert.Equal(MessageKind.Default, messageEnvelope.Kind);
+        Assert.Equal("abc", messageEnvelope.Body);
     }
 
     [Fact]
-    public void SerializeUnsubscribedMessage()
+    public void DeserializeCompleteMessage()
     {
         // arrange
         var serializer = new DefaultJsonMessageSerializer();
-        var message = new MessageEnvelope<object>(kind: MessageKind.Unsubscribed);
+        var message = "{\"kind\":1}";
 
         // act
-        var serializedMessage = serializer.Serialize(message);
+        var messageEnvelope = serializer.Deserialize<string>(message);
 
         // assert
-        Snapshot
-            .Create()
-            .Add(serializedMessage)
-            .MatchInline("{\"kind\":2}");
+        Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
+    }
+    
+    [Fact]
+    public void DeserializeCompleteMessage_With_Enum_Body()
+    {
+        // arrange
+        var serializer = new DefaultJsonMessageSerializer();
+        var message = "{\"kind\":1}";
+
+        // act
+        var messageEnvelope = serializer.Deserialize<Foo>(message);
+
+        // assert
+        Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
+    }
+    
+    [Fact]
+    public void DeserializeCompleteMessage_With_Int_Body()
+    {
+        // arrange
+        var serializer = new DefaultJsonMessageSerializer();
+        var message = "{\"kind\":1}";
+
+        // act
+        var messageEnvelope = serializer.Deserialize<int>(message);
+
+        // assert
+        Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
     }
 
-        [Fact]
+    [Fact]
     public void SerializeDefaultMessage()
     {
         // arrange
         var serializer = new DefaultJsonMessageSerializer();
-        var message = new MessageEnvelope<string>(body: "abc", kind: MessageKind.Default);
+        var message = "abc";
 
         // act
         var serializedMessage = serializer.Serialize(message);
@@ -67,5 +76,10 @@ public class DefaultJsonMessageSerializerTests
             .Create()
             .Add(serializedMessage)
             .MatchInline("{\"body\":\"abc\",\"kind\":0}");
+    }
+    
+    public enum Foo
+    {
+        Bar
     }
 }

@@ -281,25 +281,30 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         async ValueTask StartDispatchingAsync()
         {
+            var errors = false;
+            
             using (_diagnosticEvents.ExecuteBatch(this, batch.Keys))
             {
                 var buffer = new Result<TValue>[batch.Keys.Count];
 
                 try
                 {
-                    await FetchAsync(batch.Keys, buffer, cancellationToken)
-                        .ConfigureAwait(false);
+                    await FetchAsync(batch.Keys, buffer, cancellationToken).ConfigureAwait(false);
                     BatchOperationSucceeded(batch, batch.Keys, buffer);
                     _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
-
-                    // we deliberately return the batch here... in case of an error we are
-                    // not reusing this batch.
-                    BatchPool<TKey>.Shared.Return(batch);
                 }
                 catch (Exception ex)
                 {
+                    errors = true;
                     BatchOperationFailed(batch, batch.Keys, ex);
                 }
+            }
+
+            // we return the batch here so that the keys are only cleared
+            // after the diagnostic events are done.
+            if (!errors)
+            {
+                BatchPool<TKey>.Shared.Return(batch);
             }
         }
     }

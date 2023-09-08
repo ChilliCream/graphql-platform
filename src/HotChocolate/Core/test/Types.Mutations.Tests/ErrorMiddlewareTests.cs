@@ -88,7 +88,8 @@ public class ErrorMiddlewareTests
                     new InvalidOperationException(),
                     new NullReferenceException(),
                     new ArgumentException()),
-                field => field.Error<CustomError>()
+                field => field
+                    .Error<CustomError>()
                     .Error<CustomNullRef>()
                     .Error<ArgumentException>());
 

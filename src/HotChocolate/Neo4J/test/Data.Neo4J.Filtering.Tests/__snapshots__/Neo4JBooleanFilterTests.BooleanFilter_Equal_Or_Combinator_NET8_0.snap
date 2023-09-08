@@ -1,0 +1,20 @@
+BooleanFilter_Equal_Or_Combinator Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------
+
+BooleanFilter_Equal_Or_Combinator Query:
+---------------
+MATCH (fooBool:FooBool) WHERE (fooBool.Bar = True OR fooBool.Bar = False) RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
+---------------

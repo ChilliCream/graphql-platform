@@ -9,6 +9,15 @@ namespace HotChocolate.Language;
 public class QueryParserTests
 {
     [Fact]
+    public void Reject_Queries_With_More_Than_2048_Fields()
+    {;
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(FileResource.Open("aliases.graphql")))
+            .Message
+            .MatchInlineSnapshot("The GraphQL request document contains more than 2048 fields. Parsing aborted.");
+    }
+
+    [Fact]
     public void ParseSimpleShortHandFormQuery()
     {
         // arrange
@@ -20,6 +29,8 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
+        Assert.Equal(2, document.FieldsCount);
+
         Assert.Collection(document.Definitions,
             t =>
             {

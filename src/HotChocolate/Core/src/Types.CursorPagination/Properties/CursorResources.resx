@@ -42,4 +42,7 @@
   <data name="ThrowHelper_PagingHandler_NoBoundariesSet" xml:space="preserve">
     <value>You must provide a `first` or `last` value to properly paginate the `{0}`.</value>
   </data>
+  <data name="Edge_Cursor_CursorAndResolverNull" xml:space="preserve">
+    <value>The edge state is invalid and has no cursor.</value>
+  </data>
 </root>

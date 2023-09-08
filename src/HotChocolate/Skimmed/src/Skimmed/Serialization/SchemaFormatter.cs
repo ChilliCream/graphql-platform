@@ -1,16 +1,29 @@
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Skimmed.Serialization;
 
 public static class SchemaFormatter
 {
     private static readonly SchemaFormatterVisitor _visitor = new();
-
+    private static readonly SyntaxSerializerOptions _options =
+        new()
+        {
+            Indented = true, 
+            MaxDirectivesPerLine = 0
+        };
+    
     public static string FormatAsString(Schema schema, bool indented = true)
     {
         var context = new VisitorContext();
         _visitor.VisitSchema(schema, context);
-        return ((DocumentNode)context.Result!).ToString(indented);
+
+        if (!indented)
+        {
+            ((DocumentNode) context.Result!).ToString(false);
+        }
+        
+        return ((DocumentNode)context.Result!).ToString(_options);
     }
 
     public static DocumentNode FormatAsDocument(Schema schema)

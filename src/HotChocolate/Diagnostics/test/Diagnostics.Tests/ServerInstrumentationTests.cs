@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;

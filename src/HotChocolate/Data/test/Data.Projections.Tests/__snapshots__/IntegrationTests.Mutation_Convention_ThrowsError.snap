@@ -1,0 +1,12 @@
+{
+  "data": {
+    "createRecord": {
+      "foo": null,
+      "errors": [
+        {
+          "message": "this is only a test"
+        }
+      ]
+    }
+  }
+}

@@ -324,7 +324,7 @@ extend type Product {
 @delegate(path: "inventoryInfo(upc: $arguments:sku).isInStock")
 ```
 
-With the `$fields` variable you can access fields of the type you extend.
+With the `$arguments` variable you can access the arguments of the Gateway resolver
 
 ```sdl
 extend type Query {

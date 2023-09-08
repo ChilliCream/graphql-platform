@@ -46,6 +46,12 @@ public class GraphQLException : Exception
         };
     }
 
+#if NET8_0_OR_GREATER
+    [Obsolete(
+        "This API supports obsolete formatter-based serialization. " +
+        "It should not be called or extended by application code.",
+        true)]
+#endif
     protected GraphQLException(
         SerializationInfo info,
         StreamingContext context)

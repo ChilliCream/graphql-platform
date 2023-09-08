@@ -27,9 +27,9 @@ public sealed partial class DescriptorContext : IDescriptorContext
     private readonly Dictionary<(Type, string?), IConvention> _conventionInstances = new();
     private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>> _conventions;
     private readonly Dictionary<string, ISchemaDirective> _schemaDirectives = new();
-
     private readonly IServiceProvider _schemaServices;
     private readonly ServiceHelper _serviceHelper;
+    private readonly Func<IReadOnlySchemaOptions> _options;
 
     private TypeDiscoveryHandler[]? _typeDiscoveryHandlers;
     private INamingConventions? _naming;
@@ -38,7 +38,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public event EventHandler<SchemaCompletedEventArgs>? SchemaCompleted;
 
     private DescriptorContext(
-        IReadOnlySchemaOptions options,
+        Func<IReadOnlySchemaOptions> options,
         IReadOnlyDictionary<(Type, string?), List<CreateConvention>> conventions,
         IServiceProvider schemaServices,
         IDictionary<string, object?> contextData,
@@ -46,8 +46,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
         TypeInterceptor typeInterceptor)
     {
 
+        _options = options;
         Schema = schema;
-        Options = options;
         _conventions = conventions;
         _schemaServices = schemaServices;
         _serviceHelper = new ServiceHelper(_schemaServices);
@@ -75,7 +75,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public IServiceProvider Services => _schemaServices;
 
     /// <inheritdoc />
-    public IReadOnlySchemaOptions Options { get; }
+    public IReadOnlySchemaOptions Options => _options();
 
     /// <inheritdoc />
     public INamingConventions Naming
@@ -284,23 +284,26 @@ public sealed partial class DescriptorContext : IDescriptorContext
         IDictionary<string, object?>? contextData = null,
         SchemaBuilder.LazySchema? schema = null,
         TypeInterceptor? typeInterceptor = null)
-    {
-        return new(
-            options ?? new SchemaOptions(),
+        => new DescriptorContext(
+            () => (options ??= new SchemaOptions()),
             conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
             services ?? new EmptyServiceProvider(),
             contextData ?? new Dictionary<string, object?>(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());
-    }
 
-    private sealed class NoOpStringBuilderPool : ObjectPool<StringBuilder>
-    {
-        public override StringBuilder Get() => new();
-
-        public override void Return(StringBuilder obj)
-        {
-            obj.Clear();
-        }
-    }
+    internal static DescriptorContext Create(
+        Func<IReadOnlySchemaOptions> options,
+        IServiceProvider? services = null,
+        IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
+        IDictionary<string, object?>? contextData = null,
+        SchemaBuilder.LazySchema? schema = null,
+        TypeInterceptor? typeInterceptor = null)
+        => new DescriptorContext(
+            options,
+            conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
+            services ?? new EmptyServiceProvider(),
+            contextData ?? new Dictionary<string, object?>(),
+            schema ?? new SchemaBuilder.LazySchema(),
+            typeInterceptor ?? new AggregateTypeInterceptor());
 }

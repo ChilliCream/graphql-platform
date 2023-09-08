@@ -1,5 +1,9 @@
 namespace HotChocolate.Types;
 
+/// <summary>
+/// The cost directive can be used to express the expected
+/// cost that a resolver incurs on the system.
+/// </summary>
 public sealed class CostDirectiveType : DirectiveType<CostDirective>
 {
     protected override void Configure(IDirectiveTypeDescriptor<CostDirective> descriptor)

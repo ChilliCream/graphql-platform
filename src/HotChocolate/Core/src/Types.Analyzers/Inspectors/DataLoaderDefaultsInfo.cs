@@ -39,6 +39,21 @@ public sealed class DataLoaderDefaultsInfo : ISyntaxInfo, IEquatable<DataLoaderD
             RegisterServices == other.RegisterServices;
     }
 
+    public bool Equals(ISyntaxInfo other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return other is DataLoaderDefaultsInfo info && Equals(info);
+    }
+
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
             (obj is ModuleInfo other && Equals(other));

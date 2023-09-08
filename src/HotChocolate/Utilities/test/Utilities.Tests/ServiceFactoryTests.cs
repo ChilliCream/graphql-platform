@@ -2,127 +2,126 @@
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public class ServiceFactoryTests
 {
-    public class ServiceFactoryTests
+    [Fact]
+    public void TypeArgumentValidation()
     {
-        [Fact]
-        public void TypeArgumentValidation()
+        // arrange
+        var factory = new ServiceFactory();
+
+        // act
+        Action a = () => factory.CreateInstance(null);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(a);
+    }
+
+    [Fact]
+    public void CreateInstanceWithoutServiceProvider()
+    {
+        // arrange
+        var factory = new ServiceFactory();
+
+        // act
+        var instance =
+            factory.CreateInstance(typeof(ClassWithNoDependencies));
+
+        // assert
+        Assert.NotNull(instance);
+        Assert.IsType<ClassWithNoDependencies>(instance);
+    }
+
+    [Fact]
+    public void CreateInstanceWithServiceProvider()
+    {
+        // arrange
+        var serviceProvider = new DictionaryServiceProvider(
+            typeof(ClassWithNoDependencies),
+            new ClassWithNoDependencies());
+
+        var factory = new ServiceFactory();
+        factory.Services = serviceProvider;
+
+        // act
+        var instance =
+            factory.CreateInstance(typeof(ClassWithDependencies));
+
+        // assert
+        Assert.NotNull(instance);
+        Assert.IsType<ClassWithDependencies>(instance);
+
+        var classWithDependencies =
+            (ClassWithDependencies)instance;
+        Assert.NotNull(classWithDependencies.Dependency);
+    }
+
+    [Fact]
+    public void Catch_Exception_On_Create()
+    {
+        // arrange
+        var factory = new ServiceFactory();
+        var type = typeof(ClassWithException);
+
+        // act
+        Action action = () => factory.CreateInstance(type);
+
+        // assert
+        Assert.Throws<ServiceException>(action)
+            .Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Cannot_Resolve_Dependencies()
+    {
+        // arrange
+        var factory = new ServiceFactory();
+        var type = typeof(ClassWithDependencies);
+
+        // act
+        Action action = () => factory.CreateInstance(type);
+
+        // assert
+        Assert.Throws<ServiceException>(action)
+            .Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void No_Services_Available()
+    {
+        // arrange
+        var factory = new ServiceFactory();
+        var type = typeof(ClassWithDependencies);
+
+        // act
+        Action action = () => factory.CreateInstance(type);
+
+        // assert
+        Assert.Throws<ServiceException>(action)
+            .Message.MatchSnapshot();
+    }
+
+    private sealed class ClassWithNoDependencies
+    {
+    }
+
+    private sealed class ClassWithDependencies
+    {
+        public ClassWithDependencies(ClassWithNoDependencies dependency)
         {
-            // arrange
-            var factory = new ServiceFactory();
-
-            // act
-            Action a = () => factory.CreateInstance(null);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Dependency = dependency ?? throw new ArgumentNullException(nameof(dependency));
         }
 
-        [Fact]
-        public void CreateInstanceWithoutServiceProvider()
+        public ClassWithNoDependencies Dependency { get; }
+    }
+
+    private sealed class ClassWithException
+    {
+        public ClassWithException()
         {
-            // arrange
-            var factory = new ServiceFactory();
-
-            // act
-            object instance =
-                factory.CreateInstance(typeof(ClassWithNoDependencies));
-
-            // assert
-            Assert.NotNull(instance);
-            Assert.IsType<ClassWithNoDependencies>(instance);
-        }
-
-        [Fact]
-        public void CreateInstanceWithServiceProvider()
-        {
-            // arrange
-            var serviceProvider = new DictionaryServiceProvider(
-                typeof(ClassWithNoDependencies),
-                new ClassWithNoDependencies());
-
-            var factory = new ServiceFactory();
-            factory.Services = serviceProvider;
-
-            // act
-            object instance =
-                factory.CreateInstance(typeof(ClassWithDependencies));
-
-            // assert
-            Assert.NotNull(instance);
-            Assert.IsType<ClassWithDependencies>(instance);
-
-            var classWithDependencies =
-                (ClassWithDependencies)instance;
-            Assert.NotNull(classWithDependencies.Dependency);
-        }
-
-        [Fact]
-        public void Catch_Exception_On_Create()
-        {
-            // arrange
-            var factory = new ServiceFactory();
-            var type = typeof(ClassWithException);
-
-            // act
-            Action action = () => factory.CreateInstance(type);
-
-            // assert
-            Assert.Throws<ServiceException>(action)
-                .Message.MatchSnapshot();
-        }
-
-        [Fact]
-        public void Cannot_Resolve_Dependencies()
-        {
-            // arrange
-            var factory = new ServiceFactory();
-            var type = typeof(ClassWithDependencies);
-
-            // act
-            Action action = () => factory.CreateInstance(type);
-
-            // assert
-            Assert.Throws<ServiceException>(action)
-                .Message.MatchSnapshot();
-        }
-
-        [Fact]
-        public void No_Services_Available()
-        {
-            // arrange
-            var factory = new ServiceFactory();
-            var type = typeof(ClassWithDependencies);
-
-            // act
-            Action action = () => factory.CreateInstance(type);
-
-            // assert
-            Assert.Throws<ServiceException>(action)
-                .Message.MatchSnapshot();
-        }
-
-        private sealed class ClassWithNoDependencies
-        {
-        }
-
-        private sealed class ClassWithDependencies
-        {
-            public ClassWithDependencies(ClassWithNoDependencies dependency)
-            {
-                Dependency = dependency ?? throw new ArgumentNullException(nameof(dependency));
-            }
-
-            public ClassWithNoDependencies Dependency { get; }
-        }
-
-        private sealed class ClassWithException
-        {
-            public ClassWithException()
-            {
-                throw new NullReferenceException();
-            }
+            throw new NullReferenceException();
         }
     }
 }

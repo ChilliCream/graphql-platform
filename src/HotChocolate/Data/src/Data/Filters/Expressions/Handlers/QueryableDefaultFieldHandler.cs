@@ -161,6 +161,8 @@ public class QueryableDefaultFieldHandler
             _parameter = parameter;
         }
 
+        protected override Expression VisitExtension(Expression node) => node.CanReduce ? base.VisitExtension(node) : node;
+
         protected override Expression VisitParameter(ParameterExpression node)
         {
             if (node == _parameter)

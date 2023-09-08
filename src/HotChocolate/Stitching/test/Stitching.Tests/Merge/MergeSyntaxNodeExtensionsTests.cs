@@ -117,7 +117,7 @@ public class MergeSyntaxNodeExtensionsTests
                         new NameNode("quux")))
             });
 
-        void Action() => fieldNode.AddDelegationPath(default, path);
+        void Action() => fieldNode.AddDelegationPath(default!, path);
 
         // assert
         Assert.Throws<ArgumentException>(Action);
@@ -136,7 +136,7 @@ public class MergeSyntaxNodeExtensionsTests
             Array.Empty<DirectiveNode>());
 
         // act
-        void Action() => fieldNode.AddDelegationPath("Schema", ((SelectionPathComponent)null)!);
+        void Action() => fieldNode.AddDelegationPath("Schema", ((SelectionPathComponent)null!)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -295,7 +295,7 @@ public class MergeSyntaxNodeExtensionsTests
                         new NameNode("quux")))
             });
 
-        void Action() => fieldNode.AddDelegationPath(default, new[] {path});
+        void Action() => fieldNode.AddDelegationPath(default!, new[] {path});
 
         // assert
         Assert.Throws<ArgumentException>(Action);
@@ -315,7 +315,7 @@ public class MergeSyntaxNodeExtensionsTests
 
         // act
         void Action() =>
-            fieldNode.AddDelegationPath("Schema", ((SelectionPathComponent[])null)!);
+            fieldNode.AddDelegationPath("Schema", ((SelectionPathComponent[])null!)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

@@ -14,8 +14,8 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
         TypeGroup typeGroup,
         CancellationToken cancellationToken)
     {
-        // If any type in the group is not a union type, skip merging
-        if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.Union))
+        // If any type in the group is not an enum type, skip merging
+        if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.Enum))
         {
             return new(MergeStatus.Skipped);
         }
@@ -56,7 +56,7 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
             {
                 // If the target enum type doesn't have a value with the same name as the
                 // source value, create a new target value with the source value's name
-                targetValue = new EnumValue(source.Name);
+                targetValue = new EnumValue(sourceValue.Name);
                 target.Values.Add(targetValue);
             }
 

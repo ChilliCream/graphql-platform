@@ -754,6 +754,19 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(result);
     }
 
+    [Fact]
+    public async Task ExtendObjectTypeAttribute_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddTypeExtension<QueryExtensions>()
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
     public class FooType : ObjectType<Foo>
     {
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
@@ -1138,4 +1151,18 @@ public class ObjectTypeExtensionTests
             => query.Abc;
     }
 
+    public class QueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Query");
+            descriptor.Field("foo").Resolve("bar");
+        }
+    }
+
+    [ExtendObjectType<QueryType>]
+    public class QueryExtensions
+    {
+        public string Bar() => "baz";
+    }
 }

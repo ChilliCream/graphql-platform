@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using static System.IO.Packaging.PackUriHelper;
 using static System.IO.Path;
 using static System.UriKind;
@@ -13,14 +14,18 @@ namespace HotChocolate.Fusion.CommandLine.Helpers;
 
 internal static class PackageHelper
 {
-    private const string _fusionKind = "urn:hotchocolate:fusion:graph";
-    private const string _fusionId = "fusion";
     private const string _schemaKind = "urn:graphql:schema";
     private const string _schemaId = "schema";
     private const string _schemaExtensionKind = "urn:graphql:schema-extensions";
     private const string _subgraphConfigKind = "urn:hotchocolate:fusion:subgraph-config";
     private const string _subgraphConfigId = "subgraph-config";
-    private const string _subgraphPackageKind = "urn:hotchocolate:fusion:subgraph-package";
+    
+    private static readonly SyntaxSerializerOptions _serializerOptions =
+        new()
+        {
+            Indented = true, 
+            MaxDirectivesPerLine = 0
+        };
 
     public static async Task CreateSubgraphPackageAsync(
         string packageFile,
@@ -46,6 +51,23 @@ internal static class PackageHelper
         await AddTransportConfigToPackage(package, transportConfig);
         await AddSchemaExtensionsToPackage(package, extensions);
     }
+    
+    public static async Task<SubgraphConfigurationDto> LoadSubgraphConfigFromSubgraphPackageAsync(
+        string packageFile,
+        CancellationToken ct = default)
+    {
+        using var package = Package.Open(packageFile, FileMode.Open, FileAccess.Read);
+        var transportConfig = await ReadSubgraphConfigPartAsync(package, ct);
+        return transportConfig;
+    }
+    
+    public static async Task ReplaceSubgraphConfigInSubgraphPackageAsync(
+        string packageFile,
+        SubgraphConfigurationDto config)
+    {
+        using var package = Package.Open(packageFile, FileMode.Open, FileAccess.ReadWrite);
+        await ReplaceTransportConfigInPackageAsync(package, config);
+    }
 
     public static async Task CreateSubgraphPackageAsync(
         Stream stream,
@@ -66,32 +88,6 @@ internal static class PackageHelper
         await AddSchemaExtensionsToPackage(package, extensions);
     }
 
-    public static async Task CreateFusionPackageAsync(
-        string packageFile,
-        DocumentNode schema,
-        DocumentNode fusionGraph,
-        IEnumerable<SubgraphConfiguration> subgraphConfigs)
-    {
-        if (File.Exists(packageFile))
-        {
-            File.Delete(packageFile);
-        }
-
-        using var package = Package.Open(packageFile, FileMode.Create);
-
-        await AddSchemaToPackageAsync(package, schema);
-        await AddFusionGraphToPackageAsync(package, fusionGraph);
-
-        foreach (var subgraphConfig in subgraphConfigs)
-        {
-            var uri = CreatePartUri(new Uri($"subgraphs/{subgraphConfig.Name}", Relative));
-            var part = package.CreatePart(uri, "application/subgraph-package");
-            await using var stream = part.GetStream(FileMode.Create);
-            await CreateSubgraphPackageAsync(stream, subgraphConfig);
-            package.CreateRelationship(part.Uri, TargetMode.Internal, _subgraphPackageKind);
-        }
-    }
-
     public static async Task<SubgraphConfiguration> ReadSubgraphPackageAsync(
         string packageFile,
         CancellationToken cancellationToken = default)
@@ -110,28 +106,9 @@ internal static class PackageHelper
 
         return new SubgraphConfiguration(
             subgraphConfig.Name,
-            schema.ToString(true),
-            extensions.Select(t => t.ToString(true)).ToArray(),
+            schema.ToString(_serializerOptions),
+            extensions.Select(t => t.ToString(_serializerOptions)).ToArray(),
             subgraphConfig.Clients);
-    }
-
-    public static async Task<SubgraphConfiguration[]> ReadSubgraphConfigsFromFusionPackageAsync(
-        string packageFile,
-        CancellationToken cancellationToken = default)
-    {
-        using var package = Package.Open(packageFile, FileMode.Open, FileAccess.Read);
-        var configs = new List<SubgraphConfiguration>();
-
-        foreach (var extensionRel in package.GetRelationshipsByType(_subgraphPackageKind))
-        {
-            var schemaPart = package.GetPart(extensionRel.TargetUri);
-            await using var stream = schemaPart.GetStream(FileMode.Open, FileAccess.Read);
-            using var subgraphPackage = Package.Open(stream, FileMode.Open, FileAccess.Read);
-            var config = await ReadSubgraphPackageAsync(subgraphPackage, cancellationToken);
-            configs.Add(config);
-        }
-
-        return configs.ToArray();
     }
 
     public static async Task ExtractSubgraphPackageAsync(
@@ -303,33 +280,6 @@ internal static class PackageHelper
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
-    private static async Task AddFusionGraphToPackageAsync(
-        Package package,
-        DocumentNode schema)
-    {
-        var uri = CreatePartUri(new Uri("fusion.graphql", Relative));
-        var part = package.CreatePart(uri, "application/graphql-schema");
-
-        await using var stream = part.GetStream(FileMode.Create);
-        await using var writer = new StreamWriter(stream, Encoding.UTF8);
-        await writer.WriteAsync(schema.ToString(true));
-
-        package.CreateRelationship(part.Uri, TargetMode.Internal, _fusionKind, _fusionId);
-    }
-
-    private static async Task<DocumentNode> ReadFusionGraphPartAsync(
-        Package package,
-        CancellationToken ct)
-    {
-        var schemaRel = package.GetRelationship(_fusionId);
-        var schemaPart = package.GetPart(schemaRel.TargetUri);
-
-        await using var stream = schemaPart.GetStream(FileMode.Open);
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        var schema = await reader.ReadToEndAsync(ct);
-        return Utf8GraphQLParser.Parse(schema);
-    }
-
     private static async Task AddSchemaToPackageAsync(
         Package package,
         DocumentNode schema)
@@ -339,7 +289,7 @@ internal static class PackageHelper
 
         await using var stream = part.GetStream(FileMode.Create);
         await using var writer = new StreamWriter(stream, Encoding.UTF8);
-        await writer.WriteAsync(schema.ToString(true));
+        await writer.WriteAsync(schema.ToString(_serializerOptions));
 
         package.CreateRelationship(part.Uri, TargetMode.Internal, _schemaKind, _schemaId);
     }
@@ -369,7 +319,7 @@ internal static class PackageHelper
 
             await using var stream = part.GetStream(FileMode.Create);
             await using var writer = new StreamWriter(stream, Encoding.UTF8);
-            await writer.WriteAsync(extension.ToString(true));
+            await writer.WriteAsync(extension.ToString(_serializerOptions));
 
             package.CreateRelationship(part.Uri, TargetMode.Internal, _schemaExtensionKind);
         }
@@ -405,6 +355,18 @@ internal static class PackageHelper
         await writer.WriteAsync(FormatSubgraphConfig(subgraphConfig));
 
         package.CreateRelationship(part.Uri, TargetMode.Internal, _subgraphConfigKind, _subgraphConfigId);
+    }
+    
+    private static async Task ReplaceTransportConfigInPackageAsync(
+        Package package,
+        SubgraphConfigurationDto subgraphConfig)
+    {
+        var uri = CreatePartUri(new Uri("subgraph.json", Relative));
+        var part = package.GetPart(uri);
+
+        await using var stream = part.GetStream(FileMode.Create);
+        await using var writer = new StreamWriter(stream, Encoding.UTF8);
+        await writer.WriteAsync(FormatSubgraphConfig(subgraphConfig));
     }
 
     private static async Task<SubgraphConfigurationDto> ReadSubgraphConfigPartAsync(
