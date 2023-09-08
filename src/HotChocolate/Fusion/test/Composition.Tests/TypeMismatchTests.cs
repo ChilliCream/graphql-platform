@@ -100,6 +100,34 @@ public class TypeMismatchTests(ITestOutputHelper output)
               someData4(a: [Int]!): String!
             }
             """);
+    
+    [Fact]
+    public async Task Input_Rewrite_Nullability_For_Input_Types()
+        => await Succeed(
+            """
+            type Query {
+              someData1(a: Abc): String!
+            }
+            
+            input Abc {
+              a: Int!
+              b: [Int!]
+              c: [Int]!
+              d: [Int!]!
+            }
+            """,
+            """
+            type Query {
+              someData1(a: Abc!): String!
+            }
+            
+            input Abc {
+              a: Int
+              b: [Int]
+              c: [Int]
+              d: [Int]!
+            }
+            """);
 
     private async Task Succeed(string schemaA, string schemaB)
     {

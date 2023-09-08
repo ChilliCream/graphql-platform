@@ -79,7 +79,7 @@ internal static class TypeMergeExtensions
 
         return null;
     }
-    
+
     internal static IType? MergeInputType(IType source, IType target)
     {
         if (source.Equals(target, TypeComparison.Structural))
@@ -93,7 +93,7 @@ internal static class TypeMergeExtensions
 
             if (nullableSource.Equals(target, TypeComparison.Structural))
             {
-                return new NonNullType(source);
+                return new NonNullType(nullableSource);
             }
 
             if (nullableSource.Kind == target.Kind && nullableSource.Kind == TypeKind.List)
