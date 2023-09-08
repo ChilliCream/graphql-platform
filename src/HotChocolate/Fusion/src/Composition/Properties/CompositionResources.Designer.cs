@@ -140,5 +140,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("LogEntryHelper_OutputFieldTypeMismatch", resourceCulture);
             }
         }
+        
+        internal static string LogEntryHelper_RootTypeNameMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RootTypeNameMismatch", resourceCulture);
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -9,49 +10,62 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
     {
         foreach (var schema in context.Subgraphs)
         {
-            if (schema.SubscriptionType is not null)
+            if (schema.SubscriptionType is null)
             {
-                var subscriptionType = context.FusionGraph.SubscriptionType!;
+                continue;
+            }
+            
+            var subscriptionType = context.FusionGraph.SubscriptionType!;
 
-                if (context.FusionGraph.SubscriptionType is null)
+            if (context.FusionGraph.SubscriptionType is null)
+            {
+                subscriptionType = context.FusionGraph.SubscriptionType = new ObjectType(schema.SubscriptionType.Name);
+                context.FusionGraph.Types.Add(subscriptionType);
+            }
+            
+            if (!subscriptionType.Name.EqualsOrdinal(schema.SubscriptionType.Name))
+            {
+                context.Log.Write(
+                    LogEntryHelper.RootTypeNameMismatch(
+                        OperationType.Subscription,
+                        schema.SubscriptionType.Name,
+                        subscriptionType.Name,
+                        schema.Name));
+                return;
+            }
+
+            foreach (var field in schema.SubscriptionType.Fields)
+            {
+                if (subscriptionType.Fields.TryGetField(field.Name, out var targetField))
                 {
-                    subscriptionType = context.FusionGraph.SubscriptionType = new ObjectType("Subscription");
-                    context.FusionGraph.Types.Add(subscriptionType);
+                    context.MergeField(field, targetField, subscriptionType.Name);
+                }
+                else
+                {
+                    targetField = context.CreateField(field, context.FusionGraph);
+                    subscriptionType.Fields.Add(targetField);
                 }
 
-                foreach (var field in schema.SubscriptionType.Fields)
+                var arguments = new List<ArgumentNode>();
+
+                var selection = new FieldNode(
+                    null,
+                    new NameNode(field.GetOriginalName()),
+                    null,
+                    null,
+                    Array.Empty<DirectiveNode>(),
+                    arguments,
+                    null);
+
+                var selectionSet = new SelectionSetNode(new[] { selection });
+
+                foreach (var arg in field.Arguments)
                 {
-                    if (subscriptionType.Fields.TryGetField(field.Name, out var targetField))
-                    {
-                        context.MergeField(field, targetField, subscriptionType.Name);
-                    }
-                    else
-                    {
-                        targetField = context.CreateField(field, context.FusionGraph);
-                        subscriptionType.Fields.Add(targetField);
-                    }
-
-                    var arguments = new List<ArgumentNode>();
-
-                    var selection = new FieldNode(
-                        null,
-                        new NameNode(field.GetOriginalName()),
-                        null,
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        arguments,
-                        null);
-
-                    var selectionSet = new SelectionSetNode(new[] { selection });
-
-                    foreach (var arg in field.Arguments)
-                    {
-                        arguments.Add(new ArgumentNode(arg.Name, new VariableNode(arg.Name)));
-                        context.ApplyVariable(targetField, arg, schema.Name);
-                    }
-
-                    context.ApplyResolvers(targetField, selectionSet, schema.Name);
+                    arguments.Add(new ArgumentNode(arg.Name, new VariableNode(arg.Name)));
+                    context.ApplyVariable(targetField, arg, schema.Name);
                 }
+
+                context.ApplyResolvers(targetField, selectionSet, schema.Name);
             }
         }
 

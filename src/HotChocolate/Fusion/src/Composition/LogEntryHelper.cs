@@ -157,6 +157,21 @@ internal static class LogEntryHelper
             coordinate: schemaCoordinate,
             member: source,
             extension: new[] { targetType, sourceType });
+    
+    public static LogEntry RootTypeNameMismatch(
+        OperationType operationType,
+        string fusionRootTypeName,
+        string subgraphRootTypeName,
+        string subgraphName)
+        => new(
+            string.Format(
+                LogEntryHelper_RootTypeNameMismatch,
+                operationType.ToString().ToLowerInvariant(),
+                fusionRootTypeName,
+                subgraphRootTypeName,
+                subgraphName),
+            LogEntryCodes.TypeKindMismatch,
+            severity: LogSeverity.Error);
 }
 
 static file class LogEntryCodes
@@ -178,4 +193,5 @@ static file class LogEntryCodes
     public const string FieldDependencyCannotBeResolved = "HF0008";
     
     public const string TypeNotDeclared = "HF0009";
+    public const string RootNameMismatch = "HF0010";
 }
