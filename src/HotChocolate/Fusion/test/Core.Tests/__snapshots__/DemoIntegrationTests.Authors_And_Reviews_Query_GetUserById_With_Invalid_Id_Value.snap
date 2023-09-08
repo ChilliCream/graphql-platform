@@ -195,14 +195,11 @@ input AddReviewInput {
 }
 
 input AddUserInput {
-  birthdate: DateTime!
+  birthdate: Date!
   name: String!
   username: String!
 }
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
-
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime
 ---------------
