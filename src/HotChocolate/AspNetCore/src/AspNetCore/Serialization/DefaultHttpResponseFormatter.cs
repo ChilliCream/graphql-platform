@@ -175,7 +175,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 #if NET6_0_OR_GREATER
                     response.Headers.CacheControl = cacheControlHeaderValue;
 #else
-                response.Headers[HttpHeaderKeys.CacheControl] = cacheControlHeaderValue;
+                    response.Headers[HttpHeaderKeys.CacheControl] = cacheControlHeaderValue;
 #endif
                 }
                 if (result.ContextData.TryGetValue(VaryHeaderValue, out var varyValue) &&
