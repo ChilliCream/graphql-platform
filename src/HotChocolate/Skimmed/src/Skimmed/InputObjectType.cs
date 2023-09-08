@@ -33,8 +33,15 @@ public sealed class InputObjectType : INamedType, INamedTypeSystemMember<InputOb
         => Equals(other, TypeComparison.Reference);
     
     public bool Equals(IType? other, TypeComparison comparison)
-        => other is InputObjectType otherInput && otherInput.Name.Equals(Name, StringComparison.Ordinal);
-    
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is InputObjectType otherInput && otherInput.Name.Equals(Name, StringComparison.Ordinal);
+    }
+
     public override string ToString()
         => RewriteInputObjectType(this).ToString(true);
 

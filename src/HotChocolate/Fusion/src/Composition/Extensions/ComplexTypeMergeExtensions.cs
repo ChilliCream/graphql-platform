@@ -103,8 +103,8 @@ internal static class ComplexTypeMergeExtensions
                         LogEntryHelper.InputFieldTypeMismatch(
                             new SchemaCoordinate(typeName, source.Name, sourceArgument.Name),
                             sourceArgument,
-                            target.Type,
-                            source.Type));
+                            sourceArgument.Type,
+                            targetArgument.Type));
                     return;
                 }
                 

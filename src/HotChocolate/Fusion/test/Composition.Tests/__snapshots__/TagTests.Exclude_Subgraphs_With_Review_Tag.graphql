@@ -79,7 +79,7 @@ interface Node {
 }
 
 input AddUserInput {
-  birthdate: DateTime!
+  birthdate: Date!
     @tag(name: "internal")
   name: String!
   username: String!
@@ -87,8 +87,5 @@ input AddUserInput {
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
-
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime
 
 directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

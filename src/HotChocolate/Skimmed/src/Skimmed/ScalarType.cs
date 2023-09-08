@@ -35,7 +35,14 @@ public sealed class ScalarType : INamedType, INamedTypeSystemMember<ScalarType>
         => Equals(other, TypeComparison.Reference);
     
     public bool Equals(IType? other, TypeComparison comparison)
-        => other is ScalarType otherScalar && otherScalar.Name.Equals(Name, StringComparison.Ordinal);
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is ScalarType otherScalar && otherScalar.Name.Equals(Name, StringComparison.Ordinal);
+    }
 
     public static ScalarType Create(string name) => new(name);
 }

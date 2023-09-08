@@ -133,8 +133,8 @@ internal static class LogEntryHelper
             string.Format(
                 LogEntryHelper_OutputFieldTypeMismatch,
                 schemaCoordinate,
-                targetType,
-                sourceType),
+                targetType.ToTypeNode().ToString(),
+                sourceType.ToTypeNode().ToString()),
             LogEntryCodes.TypeKindMismatch,
             severity: LogSeverity.Error,
             coordinate: schemaCoordinate,
@@ -150,8 +150,8 @@ internal static class LogEntryHelper
             string.Format(
                 LogEntryHelper_OutputFieldTypeMismatch,
                 schemaCoordinate,
-                targetType,
-                sourceType),
+                targetType.ToTypeNode().ToString(),
+                sourceType.ToTypeNode().ToString()),
             LogEntryCodes.TypeKindMismatch,
             severity: LogSeverity.Error,
             coordinate: schemaCoordinate,
