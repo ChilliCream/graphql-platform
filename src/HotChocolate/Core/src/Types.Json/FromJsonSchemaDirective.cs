@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -29,7 +31,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
 
                         if (type.IsListType())
                         {
-                            throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
+                            JsonObjectTypeExtensions.InferListResolver(def);
                         }
 
                         if (namedType is ScalarType scalarType)
@@ -64,5 +66,10 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
         }
 
         return null;
+    }
+
+    private ValueTask Test(IMiddlewareContext ctx)
+    {
+        return new ValueTask();
     }
 }

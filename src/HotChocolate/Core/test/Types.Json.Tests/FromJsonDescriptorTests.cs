@@ -406,11 +406,45 @@ public class FromJsonDescriptorTests
             """);
     }
 
+    [Fact]
+    public async Task InferLists_ReturnsItems()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddObjectType(
+                    d =>
+                    {
+                        d.Name("Foo");
+                        d.Field("baz").Type<BooleanType>().FromJson("bar");
+                    })
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("foos").Type("[Foo]").FromJson().Resolve(
+                        (_, _) => @"[ {""bar"": ""abc""}]");
+                })
+                .AddJsonSupport()
+                .ExecuteRequestAsync("{ foos { baz } }");
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "foos": [{
+                  "baz": null
+                }
+              }]
+            }
+            """);
+
+    }
+
 
     public class Query
     {
         [GraphQLType("Foo")]
         public JsonElement GetFoo() => JsonDocument.Parse(@"{ ""bar"": ""abc"" }").RootElement;
+
     }
 
     public class QueryNullProp

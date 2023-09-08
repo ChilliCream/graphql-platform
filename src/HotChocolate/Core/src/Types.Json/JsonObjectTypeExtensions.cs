@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -44,7 +46,8 @@ public static class JsonObjectTypeExtensions
 
                     if (type.IsListType())
                     {
-                        throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
+                        InferListResolver(def);
+                        return;
                     }
 
                     if (namedType is ScalarType scalarType)
@@ -57,6 +60,11 @@ public static class JsonObjectTypeExtensions
                 });
 
         return descriptor;
+    }
+
+    internal static void InferListResolver(ObjectFieldDefinition def)
+    {
+        def.PureResolver = ctx => new ValueTask<object?>(ctx.GetArray());
     }
 
     /// <summary>
@@ -261,4 +269,7 @@ public static class JsonObjectTypeExtensions
         => context.Parent<JsonElement>().TryGetProperty(propertyName, out var element)
             ? element
             : null;
+
+    private static JsonElement[] GetArray(this IPureResolverContext context)
+        => context.Parent<JsonElement>().EnumerateArray().ToArray();
 }
