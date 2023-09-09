@@ -2,6 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Shared.Reviews2;
 
+[GraphQLName("Subscription")]
 public sealed class ReviewsSubscription
 {
     public async IAsyncEnumerable<Review> CreateOnNewReviewStream()

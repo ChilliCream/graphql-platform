@@ -168,6 +168,7 @@ interface IPatient {
   id: ID!
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }

@@ -29,5 +29,12 @@ public sealed class MissingType : INamedType
         => Equals(other, TypeComparison.Reference);
     
     public bool Equals(IType? other, TypeComparison comparison)
-        => other is MissingType otherMissing && otherMissing.Name.Equals(Name, StringComparison.Ordinal);
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is MissingType otherMissing && otherMissing.Name.Equals(Name, StringComparison.Ordinal);
+    }
 }

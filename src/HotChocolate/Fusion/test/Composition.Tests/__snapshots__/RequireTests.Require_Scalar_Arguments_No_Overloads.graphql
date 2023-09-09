@@ -203,6 +203,7 @@ interface Error {
   message: String!
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
@@ -218,7 +219,7 @@ input AddReviewInput {
 }
 
 input AddUserInput {
-  birthdate: DateTime!
+  birthdate: Date!
   name: String!
   username: String!
 }
@@ -235,9 +236,6 @@ input UploadProductPictureInput {
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
-
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime
 
 "The `Upload` scalar type represents a file upload."
 scalar Upload

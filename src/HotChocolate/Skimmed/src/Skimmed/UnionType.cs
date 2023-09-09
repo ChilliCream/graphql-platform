@@ -35,7 +35,14 @@ public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
         => Equals(other, TypeComparison.Reference);
     
     public bool Equals(IType? other, TypeComparison comparison)
-        => other is UnionType otherUnion && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is UnionType otherUnion && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
+    }
 
     public static UnionType Create(string name) => new(name);
 }
