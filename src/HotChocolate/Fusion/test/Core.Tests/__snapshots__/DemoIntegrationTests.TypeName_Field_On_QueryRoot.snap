@@ -192,6 +192,7 @@ type UploadProductPicturePayload {
     @source(subgraph: "Products")
 }
 
+"The user who wrote the review."
 type User implements Node
   @variable(subgraph: "Reviews2", name: "User_id", select: "id")
   @variable(subgraph: "Accounts", name: "User_id", select: "id")
@@ -232,6 +233,7 @@ interface Error {
   message: String!
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }

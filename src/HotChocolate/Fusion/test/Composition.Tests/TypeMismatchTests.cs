@@ -1,14 +1,9 @@
-using CookieCrumble;
-using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class TypeMismatchTests(ITestOutputHelper output)
+public class TypeMismatchTests(ITestOutputHelper output) : CompositionTestBase(output)
 {
-    private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
-
     [Fact]
     public async Task Output_Rewrite_Nullability_For_Output_Types()
         => await Succeed(
@@ -108,7 +103,7 @@ public class TypeMismatchTests(ITestOutputHelper output)
             type Query {
               someData1(a: Abc): String!
             }
-            
+
             input Abc {
               a: Int!
               b: [Int!]
@@ -120,7 +115,7 @@ public class TypeMismatchTests(ITestOutputHelper output)
             type Query {
               someData1(a: Abc!): String!
             }
-            
+
             input Abc {
               a: Int
               b: [Int]
@@ -128,58 +123,26 @@ public class TypeMismatchTests(ITestOutputHelper output)
               d: [Int]!
             }
             """);
-
-    private async Task Succeed(string schemaA, string schemaB)
-    {
-        // arrange
-        var configA = new SubgraphConfiguration(
-            "A",
-            schemaA,
-            Array.Empty<string>(),
-            new[] { new HttpClientConfiguration(new Uri("https://localhost:5001/graphql")) });
-
-        var configB = new SubgraphConfiguration(
-            "B",
-            schemaB,
-            Array.Empty<string>(),
-            new[] { new HttpClientConfiguration(new Uri("https://localhost:5002/graphql")) });
-
-        // act
-        var composer = new FusionGraphComposer(logFactory: _logFactory);
-        var fusionConfig = await composer.ComposeAsync(new[] { configA, configB });
-
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
-    }
     
-    private async Task Fail(string schemaA, string schemaB)
-    {
-        // arrange
-        var configA = new SubgraphConfiguration(
-            "A",
-            schemaA,
-            Array.Empty<string>(),
-            new[] { new HttpClientConfiguration(new Uri("https://localhost:5001/graphql")) });
+    [Fact]
+    public async Task Input_Fail_On_Named_Type_Mismatch()
+        => await Fail(
+            """
+            type Query {
+              someData1(a: Abc): String!
+            }
 
-        var configB = new SubgraphConfiguration(
-            "B",
-            schemaB,
-            Array.Empty<string>(),
-            new[] { new HttpClientConfiguration(new Uri("https://localhost:5002/graphql")) });
+            input Abc {
+              a: Int!
+            }
+            """,
+            """
+            type Query {
+              someData1(a: Abc!): String!
+            }
 
-        // act
-        var log = new ErrorCompositionLog();
-        var composer = new FusionGraphComposer(logFactory: () => log);
-        await composer.TryComposeAsync(new[] { configA, configB });
-
-        var snapshot = new Snapshot();
-        
-        foreach (var error in log.Errors)
-        {
-            snapshot.Add(error.Message);
-        }
-
-        await snapshot.MatchAsync();
-    }
+            input Abc {
+              a: String
+            }
+            """);
 }

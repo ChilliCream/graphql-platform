@@ -36,6 +36,7 @@ type Viewer {
   user: User
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
@@ -88,6 +89,7 @@ type Viewer {
   user: User @source(subgraph: "Accounts")
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }

@@ -51,6 +51,7 @@ type SomeData {
   reviewsValue: String!
 }
 
+"The user who wrote the review."
 type User implements Node {
   birthdate: Date!
   id: ID!
@@ -65,6 +66,7 @@ type Viewer {
   user: User
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
@@ -140,6 +142,7 @@ type SomeData {
   reviewsValue: String! @source(subgraph: "Reviews2")
 }
 
+"The user who wrote the review."
 type User implements Node @variable(subgraph: "Accounts", name: "User_id", select: "id") @variable(subgraph: "Reviews2", name: "User_id", select: "id") @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") @resolver(subgraph: "Reviews2", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ]) @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date! @source(subgraph: "Accounts")
   id: ID! @source(subgraph: "Accounts") @source(subgraph: "Reviews2")
@@ -154,6 +157,7 @@ type Viewer {
   user: User @source(subgraph: "Accounts")
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
@@ -201,7 +205,7 @@ Reviews2 Subgraph Configuration
 ---------------
 {
   "Name": "Reviews2",
-  "Schema": "schema {\n  query: Query\n  mutation: Mutation\n  subscription: Subscription\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  reviews: [Review!]!\n  reviewById(id: ID!): Review\n  authorById(id: ID!): User\n  productById(id: ID!): Product\n  reviewOrAuthor: ReviewOrAuthor!\n  viewer: Viewer!\n}\n\ntype Mutation {\n  addReview(input: AddReviewInput!): AddReviewPayload!\n}\n\ntype Subscription {\n  onNewReview: Review!\n}\n\ntype User implements Node {\n  reviews: [Review!]!\n  id: ID!\n  name: String!\n}\n\ntype Review implements Node {\n  id: ID!\n  author: User!\n  product: Product!\n  body: String!\n}\n\ntype Product {\n  reviews: [Review!]!\n  id: ID!\n}\n\nunion ReviewOrAuthor = User | Review\n\ntype Viewer {\n  latestReview: Review\n  data: SomeData!\n}\n\ntype SomeData {\n  reviewsValue: String!\n}\n\ninput AddReviewInput {\n  body: String!\n  authorId: Int!\n  upc: Int!\n}\n\ntype AddReviewPayload {\n  review: Review\n}",
+  "Schema": "schema {\n  query: Query\n  mutation: Mutation\n  subscription: Subscription\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  reviews: [Review!]!\n  reviewById(id: ID!): Review\n  authorById(id: ID!): User\n  productById(id: ID!): Product\n  reviewOrAuthor: ReviewOrAuthor!\n  viewer: Viewer!\n}\n\ntype Mutation {\n  addReview(input: AddReviewInput!): AddReviewPayload!\n}\n\ntype Subscription {\n  onNewReview: Review!\n}\n\n\"The user who wrote the review.\"\ntype User implements Node {\n  reviews: [Review!]!\n  id: ID!\n  name: String!\n}\n\ntype Review implements Node {\n  id: ID!\n  author: User!\n  product: Product!\n  body: String!\n}\n\ntype Product {\n  reviews: [Review!]!\n  id: ID!\n}\n\nunion ReviewOrAuthor = User | Review\n\ntype Viewer {\n  latestReview: Review\n  data: SomeData!\n}\n\ntype SomeData {\n  reviewsValue: String!\n}\n\ninput AddReviewInput {\n  body: String!\n  authorId: Int!\n  upc: Int!\n}\n\ntype AddReviewPayload {\n  review: Review\n}",
   "Extensions": [
     "extend type Query {\n  authorById(id: ID!\n    @is(field: \"id\")): User\n  productById(id: ID!\n    @is(field: \"id\")): Product\n}\n\nschema\n  @rename(coordinate: \"Query.authorById\", newName: \"userById\") {\n\n}"
   ],

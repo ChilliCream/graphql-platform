@@ -91,6 +91,7 @@ type SomeData {
     @source(subgraph: "Reviews2")
 }
 
+"The user who wrote the review."
 type User implements Node
   @variable(subgraph: "Reviews2", name: "User_id", select: "id")
   @variable(subgraph: "Accounts", name: "User_id", select: "id")
@@ -127,6 +128,7 @@ type Viewer {
     @source(subgraph: "Accounts")
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }

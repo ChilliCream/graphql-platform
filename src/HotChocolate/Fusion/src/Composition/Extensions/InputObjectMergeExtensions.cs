@@ -1,11 +1,11 @@
-// This static class provides extension methods to facilitate merging InputObject types
-// in a Fusion graph.
-
 using HotChocolate.Skimmed;
-using static HotChocolate.Fusion.Composition.TypeMergeExtensions;
+using static HotChocolate.Fusion.Composition.MergeExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
+/// <summary>
+/// This static class provides extension methods to facilitate merging InputObject types in a Fusion graph.
+/// </summary>
 internal static class InputObjectMergeExtensions
 {
     // This extension method creates a new InputField instance by replacing any
@@ -18,9 +18,9 @@ internal static class InputObjectMergeExtensions
     {
         var targetFieldType = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
         var target = new InputField(source.Name, targetFieldType);
-        target.DeprecationReason = source.DeprecationReason;
-        target.IsDeprecated = source.IsDeprecated;
-        target.Description = source.Description;
+        target.MergeDescriptionWith(source);
+        target.MergeDeprecationWith(source);
+        target.DefaultValue = source.DefaultValue;
         return target;
     }
 
@@ -52,17 +52,8 @@ internal static class InputObjectMergeExtensions
         {
             target.Type = mergedInputType;
         }
-        
-        if (!string.IsNullOrEmpty(source.Description) &&
-            string.IsNullOrEmpty(target.Description))
-        {
-            target.Description = source.Description;
-        }
 
-        if (source.IsDeprecated && string.IsNullOrEmpty(target.DeprecationReason))
-        {
-            target.DeprecationReason = source.DeprecationReason;
-            target.IsDeprecated = source.IsDeprecated;
-        }
+        target.MergeDescriptionWith(source);
+        target.MergeDeprecationWith(source);
     }
 }

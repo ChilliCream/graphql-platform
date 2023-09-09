@@ -27,6 +27,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 if (context.FusionGraph.QueryType is null)
                 {
                     targetType = context.FusionGraph.QueryType = new ObjectType(schema.QueryType.Name);
+                    targetType.MergeDescriptionWith(schema.QueryType);
                     context.FusionGraph.Types.Add(targetType);
                 }
 
@@ -46,6 +47,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 if (context.FusionGraph.MutationType is null)
                 {
                     targetType = context.FusionGraph.MutationType = new ObjectType(schema.MutationType.Name);
+                    targetType.MergeDescriptionWith(schema.MutationType);
                     context.FusionGraph.Types.Add(targetType);
                 }
 

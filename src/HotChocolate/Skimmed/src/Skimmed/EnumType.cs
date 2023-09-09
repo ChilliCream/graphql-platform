@@ -3,7 +3,7 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class EnumType : INamedType, INamedTypeSystemMember<EnumType>
+public sealed class EnumType : INamedType, INamedTypeSystemMember<EnumType> 
 {
     private string _name;
 

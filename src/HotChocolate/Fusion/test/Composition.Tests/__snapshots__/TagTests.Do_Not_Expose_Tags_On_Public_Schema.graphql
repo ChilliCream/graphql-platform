@@ -132,6 +132,7 @@ type Viewer {
     @source(subgraph: "Accounts")
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
