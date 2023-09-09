@@ -18,6 +18,7 @@ public sealed class FusionTypeNames
         string fetchDirective,
         string sourceDirective,
         string isDirective,
+        string resolveDirective,
         string nodeDirective,
         string reEncodeIdDirective,
         string transportDirective,
@@ -35,6 +36,7 @@ public sealed class FusionTypeNames
         ResolverDirective = fetchDirective;
         SourceDirective = sourceDirective;
         IsDirective = isDirective;
+        ResolveDirective = resolveDirective;
         NodeDirective = nodeDirective;
         ReEncodeIdDirective = reEncodeIdDirective;
         TransportDirective = transportDirective;
@@ -91,6 +93,11 @@ public sealed class FusionTypeNames
     public string IsDirective { get; }
 
     /// <summary>
+    /// Gets the name of the resolve directive.
+    /// </summary>
+    public string ResolveDirective { get; }
+
+    /// <summary>
     /// Gets the name of the node directive.
     /// </summary>
     public string NodeDirective { get; }
@@ -99,8 +106,7 @@ public sealed class FusionTypeNames
     /// Gets the name of the reEncodeId directive.
     /// </summary>
     public string ReEncodeIdDirective { get; }
-
-
+    
     /// <summary>
     /// Gets the name of the transport directive.
     /// </summary>
@@ -194,6 +200,7 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.ResolverDirective}",
                 $"{prefix}_{FusionTypeBaseNames.SourceDirective}",
                 $"{prefix}_{FusionTypeBaseNames.IsDirective}",
+                $"{prefix}_{FusionTypeBaseNames.ResolveDirective}",
                 $"{prefix}_{FusionTypeBaseNames.NodeDirective}",
                 $"{prefix}_{FusionTypeBaseNames.ReEncodeIdDirective}",
                 $"{prefix}_{FusionTypeBaseNames.TransportDirective}",
@@ -215,6 +222,7 @@ public sealed class FusionTypeNames
             FusionTypeBaseNames.ResolverDirective,
             FusionTypeBaseNames.SourceDirective,
             FusionTypeBaseNames.IsDirective,
+            FusionTypeBaseNames.ResolveDirective,
             FusionTypeBaseNames.NodeDirective,
             FusionTypeBaseNames.ReEncodeIdDirective,
             FusionTypeBaseNames.TransportDirective,

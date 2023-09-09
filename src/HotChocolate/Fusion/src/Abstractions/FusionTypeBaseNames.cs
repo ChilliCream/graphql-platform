@@ -21,9 +21,14 @@ internal static class FusionTypeBaseNames
     public const string SourceDirective = "source";
 
     /// <summary>
-    /// The base name of the is directive.
+    /// The base name of the is directive which is used during composition.
     /// </summary>
     public const string IsDirective = "is";
+    
+    /// <summary>
+    /// The base name for the resolve directive which is used during composition.
+    /// </summary>
+    public const string ResolveDirective = "resolve";
 
     /// <summary>
     /// The base name of the node directive.
