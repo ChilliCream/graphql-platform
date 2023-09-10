@@ -1,69 +1,141 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// A fluent configuration API for GraphQL enum types.
+/// </summary>
+/// <typeparam name="TRuntimeType">
+/// The runtime type.
+/// </typeparam>"
+public interface IEnumTypeDescriptor<TRuntimeType>
+    : IDescriptor<EnumTypeDefinition>
+    , IFluent
 {
-    public interface IEnumTypeDescriptor<T>
-        : IDescriptor<EnumTypeDefinition>
-        , IFluent
-    {
-        /// <summary>
-        /// Associates the enum type with a syntax node
-        /// of the parsed GraphQL SDL.
-        /// </summary>
-        /// <param name="enumTypeDefinition">
-        /// The the type definition node.
-        /// </param>
-        IEnumTypeDescriptor<T> SyntaxNode(
-            EnumTypeDefinitionNode enumTypeDefinition);
+    /// <summary>
+    /// Associates the enum type with a syntax node
+    /// of the parsed GraphQL SDL.
+    /// </summary>
+    /// <param name="enumTypeDefinition">
+    /// The the type definition node.
+    /// </param>
+    IEnumTypeDescriptor<TRuntimeType> SyntaxNode(
+        EnumTypeDefinitionNode enumTypeDefinition);
 
-        /// <summary>
-        /// Defines the name the enum type shall have.
-        /// </summary>
-        /// <param name="value">
-        /// The name value.
-        /// </param>
-        IEnumTypeDescriptor<T> Name(NameString value);
+    /// <summary>
+    /// Defines the name the enum type shall have.
+    /// </summary>
+    /// <param name="value">
+    /// The name value.
+    /// </param>
+    IEnumTypeDescriptor<TRuntimeType> Name(string value);
 
-        /// <summary>
-        /// Defines the description that the enum type shall have.
-        /// </summary>
-        /// <param name="value">
-        /// The description value.
-        /// </param>
-        IEnumTypeDescriptor<T> Description(string value);
+    /// <summary>
+    /// Defines the description that the enum type shall have.
+    /// </summary>
+    /// <param name="value">
+    /// The description value.
+    /// </param>
+    IEnumTypeDescriptor<TRuntimeType> Description(string value);
 
-        [Obsolete("Use `Value`.")]
-        IEnumValueDescriptor Item(T value);
+    /// <summary>
+    /// Defines a value that should be included on the enum type.
+    /// </summary>
+    /// <param name="value">
+    /// The value to include.
+    /// </param>
+    [Obsolete("Use `Value`.")]
+    IEnumValueDescriptor Item(TRuntimeType value);
 
-        IEnumValueDescriptor Value(T value);
+    /// <summary>
+    /// Defines a value that should be included on the enum type.
+    /// </summary>
+    /// <param name="value">
+    /// The value to include.
+    /// </param>
+    IEnumValueDescriptor Value(TRuntimeType value);
 
-        [Obsolete("Use `BindValues`.")]
-        IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior);
+    /// <summary>
+    /// Specifies if the enum values shall be inferred or explicitly specfied.
+    /// </summary>
+    /// <param name="behavior">
+    /// The binding behavior.
+    /// </param>
+    [Obsolete("Use `BindValues`.")]
+    IEnumTypeDescriptor<TRuntimeType> BindItems(BindingBehavior behavior);
 
-        IEnumTypeDescriptor<T> BindValues(BindingBehavior behavior);
+    /// <summary>
+    /// Specifies if the enum values shall be inferred or explicitly specfied.
+    /// </summary>
+    /// <param name="behavior">
+    /// The binding behavior.
+    /// </param>
+    IEnumTypeDescriptor<TRuntimeType> BindValues(BindingBehavior behavior);
 
-        /// <summary>
-        /// Defines that all enum values have to be specified explicitly.
-        /// </summary>
-        IEnumTypeDescriptor<T> BindValuesExplicitly();
+    /// <summary>
+    /// Defines that all enum values have to be specified explicitly.
+    /// </summary>
+    IEnumTypeDescriptor<TRuntimeType> BindValuesExplicitly();
 
-        /// <summary>
-        /// Defines that all enum values shall be inferred
-        /// from the associated .Net type,
-        /// </summary>
-        IEnumTypeDescriptor<T> BindValuesImplicitly();
+    /// <summary>
+    /// Defines that all enum values shall be inferred
+    /// from the associated .Net type,
+    /// </summary>
+    IEnumTypeDescriptor<TRuntimeType> BindValuesImplicitly();
 
-        IEnumTypeDescriptor<T> Directive<TDirective>(
-            TDirective directiveInstance)
-            where TDirective : class;
+    /// <summary>
+    /// Specifies the enum name comparer that will be used to validate
+    /// if an enum name represents an enum value of this type.
+    /// </summary>
+    /// <param name="comparer">
+    /// The equality comparer for enum names.
+    /// </param>
+    IEnumTypeDescriptor NameComparer(IEqualityComparer<string> comparer);
 
-        IEnumTypeDescriptor<T> Directive<TDirective>()
-            where TDirective : class, new();
+    /// <summary>
+    /// Specifies the runtime value comparer that will be used to validate
+    /// if a runtime value represents a GraphQL enum value of this type.
+    /// </summary>
+    /// <param name="comparer">
+    /// The equality comparer for enum names.
+    /// </param>
+    IEnumTypeDescriptor ValueComparer(IEqualityComparer<object> comparer);
 
-        IEnumTypeDescriptor<T> Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
-    }
+    /// <summary>
+    /// Annotates a directive to this type.
+    /// </summary>
+    /// <param name="directiveInstance">
+    /// The directive that shall be annotated to this type.
+    /// </param>
+    /// <typeparam name="TDirective">
+    /// The type of the directive instance.
+    /// </typeparam>
+    IEnumTypeDescriptor<TRuntimeType> Directive<TDirective>(
+        TDirective directiveInstance)
+        where TDirective : class;
+
+    /// <summary>
+    /// Annotates a directive to this type.
+    /// </summary>
+    /// <typeparam name="TDirective">
+    /// The type of the directive instance.
+    /// </typeparam>
+    IEnumTypeDescriptor<TRuntimeType> Directive<TDirective>()
+        where TDirective : class, new();
+
+    /// <summary>
+    /// Annotates a directive to this type.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the directive.
+    /// </param>
+    /// <param name="arguments">
+    /// The argument values that the directive instance shall have.
+    /// </param>
+    IEnumTypeDescriptor<TRuntimeType> Directive(
+        string name,
+        params ArgumentNode[] arguments);
 }

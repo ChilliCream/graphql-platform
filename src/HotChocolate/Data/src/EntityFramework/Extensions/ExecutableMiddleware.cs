@@ -1,27 +1,28 @@
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+#pragma warning disable CA1812
+
+internal sealed class ExecutableMiddleware
 {
-    internal class ExecutableMiddleware
+    private readonly FieldDelegate _next;
+
+    public ExecutableMiddleware(FieldDelegate next)
     {
-        private readonly FieldDelegate _next;
+        _next = next;
+    }
 
-        public ExecutableMiddleware(FieldDelegate next)
+    public async ValueTask InvokeAsync(IMiddlewareContext context)
+    {
+        await _next(context).ConfigureAwait(false);
+
+        if (context.Result is IExecutable executable)
         {
-            _next = next;
-        }
-
-        public async ValueTask InvokeAsync(IMiddlewareContext context)
-        {
-            await _next(context).ConfigureAwait(false);
-
-            if (context.Result is IExecutable executable)
-            {
-                context.Result = await executable
-                    .ToListAsync(context.RequestAborted)
-                    .ConfigureAwait(false);
-            }
+            context.Result = await executable
+                .ToListAsync(context.RequestAborted)
+                .ConfigureAwait(false);
         }
     }
 }

@@ -2,116 +2,115 @@ using System.Linq;
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+public class TypeInfoExtensionsTests
 {
-    public class TypeInfoExtensionsTests
+    [Fact]
+    public void IsQueryType_True()
     {
-        [Fact]
-        public void IsQueryType_True()
-        {
-            // arrange
-            DocumentNode schema = Utf8GraphQLParser.Parse(
-                "type Query { a: String } type Abc { a: String }");
-            var schemaInfo = new SchemaInfo("foo", schema);
-            ObjectTypeDefinitionNode queryType = schema.Definitions
-                .OfType<ObjectTypeDefinitionNode>().First();
-            var type = new ObjectTypeInfo(queryType, schemaInfo);
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            "type Query { a: String } type Abc { a: String }");
+        var schemaInfo = new SchemaInfo("foo", schema);
+        var queryType = schema.Definitions
+            .OfType<ObjectTypeDefinitionNode>().First();
+        var type = new ObjectTypeInfo(queryType, schemaInfo);
 
-            // act
-            bool isQuery = type.IsQueryType();
+        // act
+        var isQuery = type.IsQueryType();
 
-            // assert
-            Assert.True(isQuery);
-        }
+        // assert
+        Assert.True(isQuery);
+    }
 
-        [Fact]
-        public void IsQueryType_False()
-        {
-            // arrange
-            DocumentNode schema = Utf8GraphQLParser.Parse(
-                "type Query { a: String } type Abc { a: String }");
-            var schemaInfo = new SchemaInfo("foo", schema);
-            ObjectTypeDefinitionNode queryType = schema.Definitions
-                .OfType<ObjectTypeDefinitionNode>().Last();
-            var type = new ObjectTypeInfo(queryType, schemaInfo);
+    [Fact]
+    public void IsQueryType_False()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            "type Query { a: String } type Abc { a: String }");
+        var schemaInfo = new SchemaInfo("foo", schema);
+        var queryType = schema.Definitions
+            .OfType<ObjectTypeDefinitionNode>().Last();
+        var type = new ObjectTypeInfo(queryType, schemaInfo);
 
-            // act
-            bool isQuery = type.IsQueryType();
+        // act
+        var isQuery = type.IsQueryType();
 
-            // assert
-            Assert.False(isQuery);
-        }
+        // assert
+        Assert.False(isQuery);
+    }
 
-        [Fact]
-        public void IsMutationType_True()
-        {
-            // arrange
-            DocumentNode schema = Utf8GraphQLParser.Parse(
-                "type Mutation { a: String } type Abc { a: String }");
-            var schemaInfo = new SchemaInfo("foo", schema);
-            ObjectTypeDefinitionNode queryType = schema.Definitions
-                .OfType<ObjectTypeDefinitionNode>().First();
-            var type = new ObjectTypeInfo(queryType, schemaInfo);
+    [Fact]
+    public void IsMutationType_True()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            "type Mutation { a: String } type Abc { a: String }");
+        var schemaInfo = new SchemaInfo("foo", schema);
+        var queryType = schema.Definitions
+            .OfType<ObjectTypeDefinitionNode>().First();
+        var type = new ObjectTypeInfo(queryType, schemaInfo);
 
-            // act
-            bool isQuery = type.IsMutationType();
+        // act
+        var isQuery = type.IsMutationType();
 
-            // assert
-            Assert.True(isQuery);
-        }
+        // assert
+        Assert.True(isQuery);
+    }
 
-        [Fact]
-        public void IsMutationType_False()
-        {
-            // arrange
-            DocumentNode schema = Utf8GraphQLParser.Parse(
-                "type Mutation { a: String } type Abc { a: String }");
-            var schemaInfo = new SchemaInfo("foo", schema);
-            ObjectTypeDefinitionNode queryType = schema.Definitions
-                .OfType<ObjectTypeDefinitionNode>().Last();
-            var type = new ObjectTypeInfo(queryType, schemaInfo);
+    [Fact]
+    public void IsMutationType_False()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            "type Mutation { a: String } type Abc { a: String }");
+        var schemaInfo = new SchemaInfo("foo", schema);
+        var queryType = schema.Definitions
+            .OfType<ObjectTypeDefinitionNode>().Last();
+        var type = new ObjectTypeInfo(queryType, schemaInfo);
 
-            // act
-            bool isQuery = type.IsMutationType();
+        // act
+        var isQuery = type.IsMutationType();
 
-            // assert
-            Assert.False(isQuery);
-        }
+        // assert
+        Assert.False(isQuery);
+    }
 
-        [Fact]
-        public void IsSubscriptionType_True()
-        {
-            // arrange
-            DocumentNode schema = Utf8GraphQLParser.Parse(
-                "type Subscription { a: String } type Abc { a: String }");
-            var schemaInfo = new SchemaInfo("foo", schema);
-            ObjectTypeDefinitionNode queryType = schema.Definitions
-                .OfType<ObjectTypeDefinitionNode>().First();
-            var type = new ObjectTypeInfo(queryType, schemaInfo);
+    [Fact]
+    public void IsSubscriptionType_True()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            "type Subscription { a: String } type Abc { a: String }");
+        var schemaInfo = new SchemaInfo("foo", schema);
+        var queryType = schema.Definitions
+            .OfType<ObjectTypeDefinitionNode>().First();
+        var type = new ObjectTypeInfo(queryType, schemaInfo);
 
-            // act
-            bool isQuery = type.IsSubscriptionType();
+        // act
+        var isQuery = type.IsSubscriptionType();
 
-            // assert
-            Assert.True(isQuery);
-        }
+        // assert
+        Assert.True(isQuery);
+    }
 
-        [Fact]
-        public void IsSubscriptionType_False()
-        {
-            // arrange
-            DocumentNode schema = Utf8GraphQLParser.Parse(
-                "type Subscription { a: String } type Abc { a: String }");
-            var schemaInfo = new SchemaInfo("foo", schema);
-            ObjectTypeDefinitionNode queryType = schema.Definitions
-                .OfType<ObjectTypeDefinitionNode>().Last();
-            var type = new ObjectTypeInfo(queryType, schemaInfo);
+    [Fact]
+    public void IsSubscriptionType_False()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            "type Subscription { a: String } type Abc { a: String }");
+        var schemaInfo = new SchemaInfo("foo", schema);
+        var queryType = schema.Definitions
+            .OfType<ObjectTypeDefinitionNode>().Last();
+        var type = new ObjectTypeInfo(queryType, schemaInfo);
 
-            // act
-            bool isQuery = type.IsSubscriptionType();
+        // act
+        var isQuery = type.IsSubscriptionType();
 
-            // assert
-            Assert.False(isQuery);
-        }
+        // assert
+        Assert.False(isQuery);
     }
 }

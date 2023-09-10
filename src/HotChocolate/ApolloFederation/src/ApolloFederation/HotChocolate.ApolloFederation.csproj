@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.ApolloFederation</PackageId>
+    <AssemblyName>HotChocolate.ApolloFederation</AssemblyName>
+    <RootNamespace>HotChocolate.ApolloFederation</RootNamespace>
+    <Description>Apollo Federation Subgraph support for HotChocolate.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.ApolloFederation.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Execution" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\FederationResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FederationResources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Properties\FederationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.ApolloFederation.props" Pack="true" PackagePath="build/HotChocolate.ApolloFederation.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.ApolloFederation.targets" Pack="true" PackagePath="build/HotChocolate.ApolloFederation.targets" Visible="false" />
+  </ItemGroup>
+
+</Project>

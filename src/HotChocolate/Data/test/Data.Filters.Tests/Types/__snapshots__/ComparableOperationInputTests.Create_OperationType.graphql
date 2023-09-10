@@ -1,0 +1,22 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(test: ComparableInt32OperationFilterInput): String
+}
+
+input ComparableInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}

@@ -59,6 +59,6 @@ public Task<object> StarshipResolver(IResolverContext context)
 }
 ```
 
-> Note, that this kind of conversion is done in the resolver`s pipeline instead of in the query pipeline.
+> Note: This kind of conversion is done in the resolver's pipeline instead of in the query pipeline.
 
 Compatible .NET types are types to which we are able to map the properties. The .NET type is allowed to have more or less fields then the input type specifies. Moreover, the .NET Type is allowed to have properties that cannot be matched.

@@ -4,67 +4,65 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+public class SchemaMergeContext
+    : ISchemaMergeContext
 {
-    public class SchemaMergeContext
-        : ISchemaMergeContext
+    private readonly Dictionary<string, ITypeDefinitionNode> _types = new();
+    private readonly Dictionary<string, DirectiveDefinitionNode> _dirs = new();
+
+    public void AddType(ITypeDefinitionNode type)
     {
-        private readonly Dictionary<NameString, ITypeDefinitionNode> _types =
-            new Dictionary<NameString, ITypeDefinitionNode>();
-        private readonly Dictionary<NameString, DirectiveDefinitionNode> _dirs =
-            new Dictionary<NameString, DirectiveDefinitionNode>();
-
-        public void AddType(ITypeDefinitionNode type)
+        if (type == null)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (_types.ContainsKey(type.Name.Value))
-            {
-                throw new ArgumentException(
-                    "A type with that name was already added.");
-            }
-
-            _types.Add(type.Name.Value, type);
+            throw new ArgumentNullException(nameof(type));
         }
 
-        public void AddDirective(DirectiveDefinitionNode directive)
+        if (_types.ContainsKey(type.Name.Value))
         {
-            if (directive == null)
-            {
-                throw new ArgumentNullException(nameof(directive));
-            }
-
-            if (_dirs.ContainsKey(directive.Name.Value))
-            {
-                throw new ArgumentException(
-                    "A type with that name was already added.");
-            }
-
-            _dirs.Add(directive.Name.Value, directive);
+            throw new ArgumentException(
+                "A type with that name was already added.");
         }
 
-        public bool ContainsType(NameString typeName)
+        _types.Add(type.Name.Value, type);
+    }
+
+    public void AddDirective(DirectiveDefinitionNode directive)
+    {
+        if (directive == null)
         {
-            typeName.EnsureNotEmpty(nameof(typeName));
-            return _types.ContainsKey(typeName);
+            throw new ArgumentNullException(nameof(directive));
         }
 
-        public bool ContainsDirective(NameString directiveName)
+        if (_dirs.ContainsKey(directive.Name.Value))
         {
-            directiveName.EnsureNotEmpty(nameof(directiveName));
-            return _dirs.ContainsKey(directiveName);
+            throw new ArgumentException(
+                "A type with that name was already added.");
         }
 
-        public DocumentNode CreateSchema()
-        {
-            var definitions = new List<IDefinitionNode>();
-            definitions.AddRange(_types.Values);
-            definitions.AddRange(_dirs.Values);
-            return new DocumentNode(definitions);
-        }
+        _dirs.Add(directive.Name.Value, directive);
+    }
+
+    public bool ContainsType(string typeName)
+    {
+        typeName.EnsureGraphQLName(nameof(typeName));
+        return _types.ContainsKey(typeName);
+    }
+
+    public bool ContainsDirective(string directiveName)
+    {
+        directiveName.EnsureGraphQLName(nameof(directiveName));
+        return _dirs.ContainsKey(directiveName);
+    }
+
+    public DocumentNode CreateSchema()
+    {
+        var definitions = new List<IDefinitionNode>();
+        definitions.AddRange(_types.Values);
+        definitions.AddRange(_dirs.Values);
+        return new DocumentNode(definitions);
     }
 }

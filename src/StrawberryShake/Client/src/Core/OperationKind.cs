@@ -1,9 +1,8 @@
-namespace StrawberryShake
+namespace StrawberryShake;
+
+public enum OperationKind : byte
 {
-    public enum OperationKind : byte
-    {
-        Query = 0,
-        Mutation = 1,
-        Subscription = 2
-    }
+    Query = 0,
+    Mutation = 1,
+    Subscription = 2
 }

@@ -46,7 +46,6 @@ dlldata.c
 project.lock.json
 project.fragment.lock.json
 artifacts/
-**/Properties/launchSettings.json
 
 *_i.c
 *_p.c
@@ -307,6 +306,7 @@ __mismatch__
 coverage.opencover.xml
 output
 src/All.sln
+src/Build.CheckApi.sln
 src/Build.Sonar.sln
 src/Build.Test.sln
 src/Build.Pack.sln
@@ -314,3 +314,12 @@ src/Build.Pack.sln
 
 # asp .net core
 appsettings.user.json
+
+# benchmark dbs
+conferences.db
+conferences.db-shm
+conferences.db-wal
+
+.server/
+.nuke/
+.mono/

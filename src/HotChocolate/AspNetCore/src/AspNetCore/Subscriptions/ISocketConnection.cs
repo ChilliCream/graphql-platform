@@ -1,36 +1,79 @@
-using System;
-using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+/// <summary>
+/// The socket connection represent an accepted connection with a socket
+/// where the protocol is already negotiated.
+/// </summary>
+public interface ISocketConnection : ISocket, IHasContextData, IDisposable
 {
-    public interface ISocketConnection : IDisposable
-    {
-        HttpContext HttpContext { get; }
+    /// <summary>
+    /// Gets access to the HTTP Context.
+    /// </summary>
+    HttpContext HttpContext { get; }
 
-        bool Closed { get; }
+    /// <summary>
+    /// Gets access to the request scoped service provider.
+    /// </summary>
+    IServiceProvider RequestServices { get; }
 
-        ISubscriptionManager Subscriptions { get; }
+    /// <summary>
+    /// Get the request cancellation token.
+    /// </summary>
+    CancellationToken RequestAborted { get; }
 
-        IServiceProvider RequestServices { get; }
+    /// <summary>
+    /// Tries to accept the connection and returns the accepted protocol handler.
+    /// </summary>
+    Task<IProtocolHandler?> TryAcceptConnection();
 
-        CancellationToken RequestAborted { get; }
+    /// <summary>
+    /// Send a message to the client.
+    /// </summary>
+    /// <param name="message">
+    /// The message.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    ValueTask SendAsync(
+        ReadOnlyMemory<byte> message,
+        CancellationToken cancellationToken = default);
 
-        Task<bool> TryOpenAsync();
+    /// <summary>
+    /// Closes the connection with the client.
+    /// </summary>
+    /// <param name="message">
+    /// A human readable message explaining the close reason.
+    /// </param>
+    /// <param name="reason">
+    /// The message close reason.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    ValueTask CloseAsync(
+        string message,
+        ConnectionCloseReason reason,
+        CancellationToken cancellationToken = default);
 
-        Task SendAsync(
-            byte[] message,
-            CancellationToken cancellationToken);
-
-        Task ReceiveAsync(
-            PipeWriter writer,
-            CancellationToken cancellationToken);
-
-        Task CloseAsync(
-            string message,
-            SocketCloseStatus closeStatus,
-            CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// Closes the connection with the client.
+    /// </summary>
+    /// <param name="message">
+    /// A human readable message explaining the close reason.
+    /// </param>
+    /// <param name="reason">
+    /// The message close reason.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    ValueTask CloseAsync(
+        string message,
+        int reason,
+        CancellationToken cancellationToken = default);
 }

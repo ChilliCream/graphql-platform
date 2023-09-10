@@ -1,11 +1,10 @@
-namespace StrawberryShake
+namespace StrawberryShake;
+
+public enum ValueKind
 {
-    public enum ValueKind
-    {
-        String,
-        Integer,
-        Float,
-        Boolean,
-        Enum
-    }
+    String,
+    Integer,
+    Float,
+    Boolean,
+    Enum
 }

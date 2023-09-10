@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,83 +8,117 @@ using HotChocolate.StarWars.Models;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Execution.Instrumentation
+namespace HotChocolate.Execution.Instrumentation;
+
+public class DiagnosticListenerTests
 {
-    public class DiagnosticListenerTests
+    [Fact]
+    public async Task Intercept_Resolver_Result_With_Listener()
     {
-        [Fact]
-        public async Task Intercept_Resolver_Result_With_Listener()
+        // arrange
+        var listener = new TestListener();
+        var executor = await CreateExecutorAsync(c => c
+            .AddDiagnosticEventListener(_ => listener)
+            .AddStarWarsTypes()
+            .Services
+            .AddStarWarsRepositories());
+
+        // act
+        var result = await executor.ExecuteAsync("{ hero { name } }");
+
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Collection(listener.Results, r => Assert.IsType<Droid>(r));
+    }
+
+    [Fact]
+    public async Task Intercept_Resolver_Result_With_Listener_2()
+    {
+        // arrange
+        var services = new ServiceCollection()
+            .AddSingleton<Touched>()
+            .AddGraphQL()
+            .AddDiagnosticEventListener<TouchedListener>()
+            .AddStarWars()
+            .Services
+            .BuildServiceProvider();
+
+        // act
+        await services.ExecuteRequestAsync("{ hero { name } }");
+
+        // assert
+        Assert.True(services.GetRequiredService<Touched>().Signal);
+    }
+
+    [Fact]
+    public async Task Intercept_Resolver_Result_With_Multiple_Listener()
+    {
+        // arrange
+        var listenerA = new TestListener();
+        var listenerB = new TestListener();
+        var executor = await CreateExecutorAsync(c => c
+            .AddDiagnosticEventListener(_ => listenerA)
+            .AddDiagnosticEventListener(_ => listenerB)
+            .AddStarWarsTypes()
+            .Services
+            .AddStarWarsRepositories());
+
+        // act
+        var result = await executor.ExecuteAsync("{ hero { name } }");
+
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Collection(listenerA.Results, r => Assert.IsType<Droid>(r));
+        Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
+    }
+
+    public class Touched
+    {
+        public bool Signal = false;
+    }
+
+    private class TouchedListener : ExecutionDiagnosticEventListener
+    {
+        private readonly Touched _touched;
+
+        public TouchedListener(Touched touched)
         {
-            // arrange
-            var listener = new TestListener();
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-               .AddDiagnosticEventListener(sp => listener)
-               .AddStarWarsTypes()
-               .Services
-               .AddStarWarsRepositories());
-
-            // act
-            await executor.ExecuteAsync("{ hero { name } }");
-
-            // assert
-            Assert.Collection(listener.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
+            _touched = touched;
         }
 
-        [Fact]
-        public async Task Intercept_Resolver_Result_With_Multiple_Listener()
+        public override IDisposable ExecuteRequest(IRequestContext context)
         {
-            // arrange
-            var listener_a = new TestListener();
-            var listener_b = new TestListener();
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-               .AddDiagnosticEventListener(sp => listener_a)
-               .AddDiagnosticEventListener(sp => listener_b)
-               .AddStarWarsTypes()
-               .Services
-               .AddStarWarsRepositories());
+            _touched.Signal = true;
+            return EmptyScope;
+        }
+    }
 
-            // act
-            await executor.ExecuteAsync("{ hero { name } }");
+    private sealed class TestListener : ExecutionDiagnosticEventListener
+    {
+        public List<object> Results { get; } = new();
 
-            // assert
-            Assert.Collection(listener_a.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
-            Assert.Collection(listener_b.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
+        public override bool EnableResolveFieldValue => true;
+
+        public override IDisposable ResolveFieldValue(IMiddlewareContext context)
+        {
+            return new ResolverActivityScope(context, Results);
         }
 
-
-        private class TestListener : DiagnosticEventListener
+        private sealed class ResolverActivityScope : IDisposable
         {
-            public List<object> Results { get; } = new List<object>();
-
-            public override bool EnableResolveFieldValue => true;
-
-            public override IActivityScope ResolveFieldValue(IMiddlewareContext context)
+            public ResolverActivityScope(IMiddlewareContext context, List<object> results)
             {
-                return new ResolverActivityScope(context, Results);
+                Context = context;
+                Results = results;
             }
 
-            private class ResolverActivityScope : IActivityScope
+            private IMiddlewareContext Context { get; }
+
+            public List<object> Results { get; }
+
+            public void Dispose()
             {
-                public ResolverActivityScope(IMiddlewareContext context, List<object> results)
-                {
-                    Context = context;
-                    Results = results;
-                }
-
-                private IMiddlewareContext Context { get; }
-
-                public List<object> Results { get; }
-
-                public void Dispose()
-                {
-                    Results.Add(Context.Result);
-                }
+                Results.Add(Context.Result);
             }
         }
     }

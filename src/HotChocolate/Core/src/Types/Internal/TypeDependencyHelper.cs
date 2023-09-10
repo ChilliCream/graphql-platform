@@ -1,184 +1,352 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Internal;
+
+public static class TypeDependencyHelper
 {
-    public static class TypeDependencyHelper
+    public static void CollectDependencies(
+        InterfaceTypeDefinition definition,
+        ICollection<TypeDependency> dependencies)
     {
-        public static void RegisterDependencies(
-            this ITypeDiscoveryContext context,
-            ObjectTypeDefinition definition)
+        if (definition is null)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (definition is null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            context.RegisterDependencyRange(
-                definition.GetInterfaces(),
-                TypeDependencyKind.Completed);
-
-            RegisterAdditionalDependencies(context, definition);
-            RegisterDirectiveDependencies(context, definition);
-            RegisterFieldDependencies(context, definition.Fields);
+            throw new ArgumentNullException(nameof(definition));
         }
 
-        public static void RegisterDependencies(
-            this ITypeDiscoveryContext context,
-            InterfaceTypeDefinition definition)
+        if (dependencies is null)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (definition is null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            context.RegisterDependencyRange(
-                definition.GetInterfaces(),
-                TypeDependencyKind.Completed);
-
-            RegisterAdditionalDependencies(context, definition);
-            RegisterDirectiveDependencies(context, definition);
-            RegisterFieldDependencies(context, definition.Fields);
+            throw new ArgumentNullException(nameof(dependencies));
         }
 
-        public static void RegisterDependencies(
-            this ITypeDiscoveryContext context,
-            EnumTypeDefinition definition)
+        if (definition.HasDependencies)
         {
-            if (context is null)
+            foreach (var dependency in definition.Dependencies)
             {
-                throw new ArgumentNullException(nameof(context));
+                dependencies.Add(dependency);
             }
-
-            if (definition is null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            RegisterAdditionalDependencies(context, definition);
-            RegisterDirectiveDependencies(context, definition);
-            RegisterEnumValueDependencies(context, definition.Values);
         }
 
-        public static void RegisterDependencies(
-            this ITypeDiscoveryContext context,
-            InputObjectTypeDefinition definition)
+        if (definition.HasInterfaces)
         {
-            if (context is null)
+            foreach (var typeRef in definition.Interfaces)
             {
-                throw new ArgumentNullException(nameof(context));
+                dependencies.Add(new TypeDependency(typeRef, Completed));
             }
+        }
 
-            if (definition is null)
+        CollectDirectiveDependencies(definition, dependencies);
+        CollectFieldDependencies(definition.Fields, dependencies);
+    }
+
+    public static void CollectDependencies(
+        ObjectTypeDefinition definition,
+        ICollection<TypeDependency> dependencies)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        if (dependencies is null)
+        {
+            throw new ArgumentNullException(nameof(dependencies));
+        }
+
+        if (definition.HasDependencies)
+        {
+            foreach (var dependency in definition.Dependencies)
             {
-                throw new ArgumentNullException(nameof(definition));
+                dependencies.Add(dependency);
             }
+        }
 
-            RegisterAdditionalDependencies(context, definition);
-            RegisterDirectiveDependencies(context, definition);
-
-            foreach (InputFieldDefinition field in definition.Fields)
+        if (definition.HasInterfaces)
+        {
+            foreach (var typeRef in definition.Interfaces)
             {
-                RegisterAdditionalDependencies(context, field);
+                dependencies.Add(new(typeRef, Completed));
+            }
+        }
 
-                if (field.Type is not null)
+        CollectDirectiveDependencies(definition, dependencies);
+        CollectFieldDependencies(definition.Fields, dependencies);
+    }
+
+    public static void CollectDependencies(
+        InputObjectTypeDefinition definition,
+        ICollection<TypeDependency> dependencies)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        if (dependencies is null)
+        {
+            throw new ArgumentNullException(nameof(dependencies));
+        }
+
+        if (definition.HasDependencies)
+        {
+            foreach (var dependency in definition.Dependencies)
+            {
+                dependencies.Add(dependency);
+            }
+        }
+
+        foreach (var field in definition.Fields)
+        {
+            if (field.HasDependencies)
+            {
+                foreach (var dependency in field.Dependencies)
                 {
-                    context.RegisterDependency(field.Type,
-                        TypeDependencyKind.Default);
+                    dependencies.Add(dependency);
                 }
+            }
 
-                context.RegisterDependencyRange(
-                    field.GetDirectives().Select(t => t.TypeReference),
-                    TypeDependencyKind.Completed);
+            if (field.Type is not null)
+            {
+                dependencies.Add(new(field.Type, GetDefaultValueDependencyKind(field)));
+            }
+
+            CollectDirectiveDependencies(field, dependencies);
+        }
+
+        CollectDirectiveDependencies(definition, dependencies);
+    }
+
+    public static void CollectDependencies(
+        EnumTypeDefinition definition,
+        ICollection<TypeDependency> dependencies)
+    {
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        if (dependencies is null)
+        {
+            throw new ArgumentNullException(nameof(dependencies));
+        }
+
+        if (definition.HasDependencies)
+        {
+            foreach (var dependency in definition.Dependencies)
+            {
+                dependencies.Add(dependency);
             }
         }
 
-        private static void RegisterDirectiveDependencies<T>(
-            this ITypeDiscoveryContext context,
-            TypeDefinitionBase<T> definition)
-            where T : class, ISyntaxNode
+        foreach (var value in definition.Values)
         {
-            context.RegisterDependencyRange(
-                definition.GetDirectives().Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
-        }
-
-        private static void RegisterAdditionalDependencies(
-            this ITypeDiscoveryContext context,
-            DefinitionBase definition)
-        {
-            context.RegisterDependencyRange(definition.GetDependencies());
-        }
-
-        private static void RegisterFieldDependencies(
-            this ITypeDiscoveryContext context,
-            IReadOnlyList<OutputFieldDefinitionBase> fields)
-        {
-            foreach (OutputFieldDefinitionBase field in fields)
+            if (value.HasDependencies)
             {
-                RegisterAdditionalDependencies(context, field);
-
-                if (field.Type is not null)
+                foreach (var dependency in value.Dependencies)
                 {
-                    context.RegisterDependency(field.Type,
-                        TypeDependencyKind.Default);
+                    dependencies.Add(dependency);
                 }
-
-                context.RegisterDependencyRange(
-                    field.GetDirectives().Select(t => t.TypeReference),
-                    TypeDependencyKind.Completed);
             }
 
-            RegisterFieldDependencies(context,
-                fields.SelectMany(t => t.GetArguments()));
+            CollectDirectiveDependencies(value, dependencies);
         }
 
-        private static void RegisterFieldDependencies(
-            this ITypeDiscoveryContext context,
-            IEnumerable<ArgumentDefinition> fields)
-        {
-            foreach (ArgumentDefinition field in fields)
-            {
-                RegisterAdditionalDependencies(context, field);
+        CollectDirectiveDependencies(definition, dependencies);
+    }
 
-                if (field.Type is not null)
+    public static void CollectDependencies(
+        DirectiveTypeDefinition definition,
+        ICollection<TypeDependency> dependencies)
+    {
+        if (definition.HasDependencies)
+        {
+            foreach (var dependency in definition.Dependencies)
+            {
+                dependencies.Add(dependency);
+            }
+        }
+        
+        if (definition.HasArguments)
+        {
+            foreach (var argument in definition.Arguments)
+            {
+                if (argument.HasDependencies)
                 {
-                    context.RegisterDependency(field.Type,
-                        TypeDependencyKind.Completed);
+                    foreach (var dependency in argument.Dependencies)
+                    {
+                        dependencies.Add(dependency);
+                    }
                 }
-
-                context.RegisterDependencyRange(
-                    field.GetDirectives().Select(t => t.TypeReference),
-                    TypeDependencyKind.Completed);
+                
+                if (argument.Type is not null)
+                {
+                    dependencies.Add(new(
+                        argument.Type,
+                        GetDefaultValueDependencyKind(argument)));
+                }
             }
         }
+    }
 
-        private static void RegisterEnumValueDependencies(
-            this ITypeDiscoveryContext context,
-            IEnumerable<EnumValueDefinition> enumValues)
+    internal static void CollectDirectiveDependencies<T>(
+        TypeDefinitionBase<T> definition,
+        ICollection<TypeDependency> dependencies)
+        where T : class, ISyntaxNode
+    {
+        if (definition.HasDirectives)
         {
-            foreach (EnumValueDefinition enumValue in enumValues)
+            foreach (var directive in definition.Directives)
             {
-                RegisterAdditionalDependencies(context, enumValue);
-
-                context.RegisterDependencyRange(
-                    enumValue.GetDirectives().Select(t => t.TypeReference),
-                    TypeDependencyKind.Completed);
+                dependencies.Add(new TypeDependency(directive.Type, Completed));
             }
         }
+    }
+
+    private static void CollectDirectiveDependencies(
+        FieldDefinitionBase definition,
+        ICollection<TypeDependency> dependencies)
+    {
+        if (definition.HasDirectives)
+        {
+            foreach (var directive in definition.Directives)
+            {
+                dependencies.Add(new TypeDependency(directive.Type, Completed));
+            }
+        }
+    }
+
+    private static void CollectFieldDependencies(
+        IReadOnlyList<OutputFieldDefinitionBase> fields,
+        ICollection<TypeDependency> dependencies)
+    {
+        foreach (var field in fields)
+        {
+            if (field.HasDependencies)
+            {
+                foreach (var dependency in field.Dependencies)
+                {
+                    dependencies.Add(dependency);
+                }
+            }
+
+            if (field.Type is not null)
+            {
+                dependencies.Add(new(field.Type));
+            }
+
+            if (field.HasArguments)
+            {
+                CollectArgumentDependencies(field.GetArguments(), dependencies);
+            }
+
+            CollectDirectiveDependencies(field, dependencies);
+        }
+    }
+
+    private static void CollectArgumentDependencies(
+        IReadOnlyList<ArgumentDefinition> fields,
+        ICollection<TypeDependency> dependencies)
+    {
+        foreach (var field in fields)
+        {
+            if (field.HasDependencies)
+            {
+                foreach (var dependency in field.Dependencies)
+                {
+                    dependencies.Add(dependency);
+                }
+            }
+
+            if (field.Type is not null)
+            {
+                dependencies.Add(new(field.Type, Completed));
+            }
+
+            CollectDirectiveDependencies(field, dependencies);
+        }
+    }
+
+    public static void RegisterDependencies(
+        this ITypeDiscoveryContext context,
+        ObjectTypeDefinition definition)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        CollectDependencies(definition, context.Dependencies);
+    }
+
+    public static void RegisterDependencies(
+        this ITypeDiscoveryContext context,
+        InterfaceTypeDefinition definition)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        CollectDependencies(definition, context.Dependencies);
+    }
+
+    public static void RegisterDependencies(
+        this ITypeDiscoveryContext context,
+        EnumTypeDefinition definition)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        CollectDependencies(definition, context.Dependencies);
+    }
+
+    public static void RegisterDependencies(
+        this ITypeDiscoveryContext context,
+        InputObjectTypeDefinition definition)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (definition is null)
+        {
+            throw new ArgumentNullException(nameof(definition));
+        }
+
+        CollectDependencies(definition, context.Dependencies);
+    }
+
+    private static TypeDependencyFulfilled GetDefaultValueDependencyKind(
+        ArgumentDefinition argumentDefinition)
+    {
+        var hasDefaultValue =
+            argumentDefinition.DefaultValue is not null and not NullValueNode ||
+            argumentDefinition.RuntimeDefaultValue is not null;
+
+        return hasDefaultValue
+            ? Completed
+            : Default;
     }
 }

@@ -1,0 +1,63 @@
+{
+  a: speakerById(id: "U3BlYWtlcgppMQ==") {
+    ...SpeakerInfo
+  }
+  b: speakerById(id: "U3BlYWtlcgppMzE=") {
+    ...SpeakerInfo
+  }
+  c: speakerById(id: "U3BlYWtlcgppMzA=") {
+    ...SpeakerInfo
+  }
+  d: speakerById(id: "U3BlYWtlcgppMjk=") {
+    ...SpeakerInfo
+  }
+  sessions(first: 50) {
+    nodes {
+      speakers {
+        name
+        sessions {
+          ...SessionInfo
+        }
+      }
+    }
+  }
+  tracks {
+    nodes {
+      name
+      sessions {
+        nodes {
+          abstract
+          title
+          speakers {
+            name
+            sessions {
+              ...SessionInfo
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment SessionInfo on Session {
+  id
+  abstract
+  title
+  startTime
+  endTime
+  speakers {
+    ...SpeakerInfo
+  }
+  track {
+    id
+    name
+  }
+}
+
+fragment SpeakerInfo on Speaker {
+  id
+  name
+  bio
+  webSite
+}

@@ -2,162 +2,161 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
-namespace StrawberryShake.Transport.WebSockets.Protocols
+namespace StrawberryShake.Transport.WebSockets.Protocols;
+
+public class GraphQlWsSocketWriterExtensionTests
 {
-    public class GraphQlWsSocketWriterExtensionTests
+    [Fact]
+    public async Task WriteStartOperationMessage_WithOperation_IsMatch()
     {
-        [Fact]
-        public async Task WriteStartOperationMessage_WithOperation_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
-            var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
-            var request = new OperationRequest("Foo",
-                GetHeroQueryDocument.Instance,
-                new Dictionary<string, object?>() { { "Var1", "Value1" } });
+        // arrange
+        await using var writer = new SocketMessageWriter();
+        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+        var request = new OperationRequest("Foo",
+            GetHeroQueryDocument.Instance,
+            new Dictionary<string, object?>() { { "Var1", "Value1" } });
 
 
-            // act
-            writer.WriteStartOperationMessage(operationId, request);
+        // act
+        writer.WriteStartOperationMessage(operationId, request);
 
-            // assert
-            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
-        }
+        // assert
+        Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task WriteStartOperationMessage_OperationIdNull_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
-            var request = new OperationRequest("Foo",
-                GetHeroQueryDocument.Instance,
-                new Dictionary<string, object?>() { { "Var1", "Value1" } });
-
-
-            // act
-            Exception? ex =
-                Record.Exception(() => writer.WriteStartOperationMessage(null!, request));
-
-            // assert
-            Assert.IsType<ArgumentNullException>(ex);
-        }
-
-        [Fact]
-        public async Task WriteStartOperationMessage_RequestIsNull_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
-            var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+    [Fact]
+    public async Task WriteStartOperationMessage_OperationIdNull_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
+        var request = new OperationRequest("Foo",
+            GetHeroQueryDocument.Instance,
+            new Dictionary<string, object?>() { { "Var1", "Value1" } });
 
 
-            // act
-            Exception? ex =
-                Record.Exception(() => writer.WriteStartOperationMessage(operationId, null!));
+        // act
+        var ex =
+            Record.Exception(() => writer.WriteStartOperationMessage(null!, request));
 
-            // assert
-            Assert.IsType<ArgumentNullException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentNullException>(ex);
+    }
 
-        [Fact]
-        public async Task WriteStopOperationMessage_WithOperationId_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
-            var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+    [Fact]
+    public async Task WriteStartOperationMessage_RequestIsNull_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
+        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
 
-            // act
-            writer.WriteStopOperationMessage(operationId);
 
-            // assert
-            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
-        }
+        // act
+        var ex =
+            Record.Exception(() => writer.WriteStartOperationMessage(operationId, null!));
 
-        [Fact]
-        public async Task WriteStopOperationMessage_OperationIdNull_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
+        // assert
+        Assert.IsType<ArgumentNullException>(ex);
+    }
 
-            // act
-            Exception? ex =
-                Record.Exception(() => writer.WriteStopOperationMessage(null!));
+    [Fact]
+    public async Task WriteStopOperationMessage_WithOperationId_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
+        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
 
-            // assert
-            Assert.IsType<ArgumentNullException>(ex);
-        }
+        // act
+        writer.WriteStopOperationMessage(operationId);
 
-        [Fact]
-        public async Task WriteInitializeMessage_Default_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
+        // assert
+        Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+    }
 
-            // act
-            writer.WriteInitializeMessage(null);
+    [Fact]
+    public async Task WriteStopOperationMessage_OperationIdNull_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
 
-            // assert
-            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
-        }
+        // act
+        var ex =
+            Record.Exception(() => writer.WriteStopOperationMessage(null!));
 
-        [Fact]
-        public async Task WriteInitializeMessage_String_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
+        // assert
+        Assert.IsType<ArgumentNullException>(ex);
+    }
 
-            // act
-            writer.WriteInitializeMessage("Payload");
+    [Fact]
+    public async Task WriteInitializeMessage_Default_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
 
-            // assert
-            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
-        }
+        // act
+        writer.WriteInitializeMessage(null);
 
-        [Fact]
-        public async Task WriteInitializeMessage_Dictionary_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
+        // assert
+        Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+    }
 
-            // act
-            writer.WriteInitializeMessage(new Dictionary<string, object> { ["Key"] = "Value" });
+    [Fact]
+    public async Task WriteInitializeMessage_String_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
 
-            // assert
-            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
-        }
+        // act
+        writer.WriteInitializeMessage("Payload");
 
-        [Fact]
-        public async Task WriteInitializeMessage_CustomObject_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
+        // assert
+        Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+    }
 
-            // act
-            writer.WriteInitializeMessage(new CustomPayload());
+    [Fact]
+    public async Task WriteInitializeMessage_Dictionary_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
 
-            // assert
-            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
-        }
+        // act
+        writer.WriteInitializeMessage(new Dictionary<string, object> { ["Key"] = "Value" });
 
-        [Fact]
-        public async Task WriteTerminateMessage_Default_IsMatch()
-        {
-            // arrange
-            await using var writer = new SocketMessageWriter();
+        // assert
+        Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+    }
 
-            // act
-            writer.WriteTerminateMessage();
+    [Fact]
+    public async Task WriteInitializeMessage_CustomObject_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
 
-            // assert
-            Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
-        }
+        // act
+        writer.WriteInitializeMessage(new CustomPayload());
 
-        private class GetHeroQueryDocument : IDocument
-        {
-            private const string _bodyString =
-                @"query GetHero {
+        // assert
+        Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task WriteTerminateMessage_Default_IsMatch()
+    {
+        // arrange
+        await using var writer = new SocketMessageWriter();
+
+        // act
+        writer.WriteTerminateMessage();
+
+        // assert
+        Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
+    }
+
+    private sealed class GetHeroQueryDocument : IDocument
+    {
+        private const string _bodyString =
+            @"query GetHero {
                 hero {
                     __typename
                     id
@@ -174,24 +173,23 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
                 version
             }";
 
-            private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
 
-            private GetHeroQueryDocument() { }
+        private GetHeroQueryDocument() { }
 
-            public OperationKind Kind => OperationKind.Query;
+        public OperationKind Kind => OperationKind.Query;
 
-            public ReadOnlySpan<byte> Body => _body;
+        public ReadOnlySpan<byte> Body => _body;
 
-            public DocumentHash Hash { get; } = new("MD5", "ABC");
+        public DocumentHash Hash { get; } = new("MD5", "ABC");
 
-            public override string ToString() => _bodyString;
+        public override string ToString() => _bodyString;
 
-            public static GetHeroQueryDocument Instance { get; } = new();
-        }
+        public static GetHeroQueryDocument Instance { get; } = new();
+    }
 
-        private class CustomPayload
-        {
-            public string Key { get; set; } = "Value";
-        }
+    private sealed class CustomPayload
+    {
+        public string Key { get; set; } = "Value";
     }
 }

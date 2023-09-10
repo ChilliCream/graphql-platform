@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <ApolloFederationImplicitUsings Condition="'$(ImplicitUsings)' == 'enable' AND '$(ApolloFederationImplicitUsings)' != 'disable'">enable</ApolloFederationImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(ApolloFederationImplicitUsings)' == 'enable'">
+    <Using Include="HotChocolate.ApolloFederation" />
+  </ItemGroup>
+</Project>

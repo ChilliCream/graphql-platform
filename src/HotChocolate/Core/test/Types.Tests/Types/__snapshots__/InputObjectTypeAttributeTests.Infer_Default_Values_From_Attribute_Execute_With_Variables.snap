@@ -1,0 +1,11 @@
+﻿{
+  "data": {
+    "foo": {
+      "foo": "DefaultValue123",
+      "bar": 2,
+      "baz": 1.2,
+      "qux": true,
+      "quux": "CORGE"
+    }
+  }
+}

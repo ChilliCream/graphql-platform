@@ -1,0 +1,19 @@
+{
+  "errors": [
+    {
+      "message": "The default authorization policy does not exist.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "bar"
+      ],
+      "extensions": {
+        "code": "AUTH_NO_DEFAULT_POLICY"
+      }
+    }
+  ]
+}

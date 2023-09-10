@@ -1,0 +1,12 @@
+﻿input InputWithDefaultsInput {
+  foo: String = "DefaultValue123"
+  bar: Int! = 2
+  baz: Float! = 1.2
+  qux: Boolean! = true
+  quux: Quux! = CORGE
+}
+
+enum Quux {
+  CORGE
+  GRAULT
+}

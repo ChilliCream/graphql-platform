@@ -2,36 +2,35 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb;
+
+public static class FilterDefinitionExtensions
 {
-    internal static class FilterDefinitionExtensions
+    public static MongoDbFilterDefinition Wrap<T>(
+        this FilterDefinition<T> filterDefinition) =>
+        new FilterDefinitionWrapper<T>(filterDefinition);
+
+    private sealed class FilterDefinitionWrapper<TDocument> : MongoDbFilterDefinition
     {
-        public static MongoDbFilterDefinition Wrap<T>(
-            this FilterDefinition<T> filterDefinition) =>
-            new FilterDefinitionWrapper<T>(filterDefinition);
+        private readonly FilterDefinition<TDocument> _filter;
 
-        private class FilterDefinitionWrapper<TDocument> : MongoDbFilterDefinition
+        public FilterDefinitionWrapper(FilterDefinition<TDocument> filter)
         {
-            private readonly FilterDefinition<TDocument> _filter;
+            _filter = filter;
+        }
 
-            public FilterDefinitionWrapper(FilterDefinition<TDocument> filter)
+        public override BsonDocument Render(
+            IBsonSerializer documentSerializer,
+            IBsonSerializerRegistry serializerRegistry)
+        {
+            if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
             {
-                _filter = filter;
+                return _filter.Render(typedSerializer, serializerRegistry);
             }
 
-            public override BsonDocument Render(
-                IBsonSerializer documentSerializer,
-                IBsonSerializerRegistry serializerRegistry)
-            {
-                if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
-                {
-                    return _filter.Render(typedSerializer, serializerRegistry);
-                }
-
-                return _filter.Render(
-                    serializerRegistry.GetSerializer<TDocument>(),
-                    serializerRegistry);
-            }
+            return _filter.Render(
+                serializerRegistry.GetSerializer<TDocument>(),
+                serializerRegistry);
         }
     }
 }

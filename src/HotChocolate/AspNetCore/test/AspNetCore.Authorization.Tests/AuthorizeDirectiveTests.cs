@@ -1,336 +1,423 @@
-using System;
+using CookieCrumble;
+using HotChocolate.Authorization;
+using HotChocolate.Execution;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.AspNetCore.Authorization
+namespace HotChocolate.AspNetCore.Authorization;
+
+public class AuthorizeDirectiveTests
 {
-    public class AuthorizeDirectiveTests
+    [Fact]
+    public void CreateInstance_PolicyRoles_PolicyIsNullRolesHasItems()
     {
-        [Fact]
-        public void CreateInstance_PolicyRoles_PolicyIsNullRolesHasItems()
-        {
-            // arrange
-            // act
-            var authorizeDirective = new AuthorizeDirective(
-                null,
-                new[] { "a", "b" });
+        // arrange
+        // act
+        var authorizeDirective = new AuthorizeDirective(
+            null,
+            new[] { "a", "b" });
 
-            // assert
-            Assert.Null(authorizeDirective.Policy);
-            Assert.Collection(authorizeDirective.Roles,
-                t => Assert.Equal("a", t),
-                t => Assert.Equal("b", t));
-        }
+        // assert
+        Assert.Null(authorizeDirective.Policy);
+        Assert.Collection(
+            authorizeDirective.Roles!,
+            t => Assert.Equal("a", t),
+            t => Assert.Equal("b", t));
+    }
 
-        [Fact]
-        public void CreateInstance_PolicyRoles_PolicyIsSetRolesIsEmpty()
-        {
-            // arrange
-            // act
-            var authorizeDirective = new AuthorizeDirective(
-                "abc", Array.Empty<string>());
+    [Fact]
+    public void CreateInstance_PolicyRoles_PolicyIsSetRolesIsEmpty()
+    {
+        // arrange
+        // act
+        var authorizeDirective = new AuthorizeDirective(
+            "abc",
+            Array.Empty<string>());
 
-            // assert
-            Assert.Equal("abc", authorizeDirective.Policy);
-            Assert.Empty(authorizeDirective.Roles);
-        }
+        // assert
+        Assert.Equal("abc", authorizeDirective.Policy);
+        Assert.Empty(authorizeDirective.Roles);
+    }
 
-        [Fact]
-        public void CreateInstance_PolicyRoles_PolicyIsSetRolesIsNull()
-        {
-            // arrange
-            // act
-            var authorizeDirective = new AuthorizeDirective(
-                "abc", Array.Empty<string>());
+    [Fact]
+    public void CreateInstance_PolicyRoles_PolicyIsSetRolesIsNull()
+    {
+        // arrange
+        // act
+        var authorizeDirective = new AuthorizeDirective(
+            "abc",
+            Array.Empty<string>());
 
-            // assert
-            Assert.Equal("abc", authorizeDirective.Policy);
-            Assert.Empty(authorizeDirective.Roles);
-        }
+        // assert
+        Assert.Equal("abc", authorizeDirective.Policy);
+        Assert.Empty(authorizeDirective.Roles!);
+    }
 
-        [Fact]
-        public void CreateInstance_Policy_PolicyIsSet()
-        {
-            // arrange
-            // act
-            var authorizeDirective = new AuthorizeDirective("abc");
+    [Fact]
+    public void CreateInstance_Policy_PolicyIsSet()
+    {
+        // arrange
+        // act
+        var authorizeDirective = new AuthorizeDirective("abc");
 
-            // assert
-            Assert.Equal("abc", authorizeDirective.Policy);
-            Assert.Null(authorizeDirective.Roles);
-        }
+        // assert
+        Assert.Equal("abc", authorizeDirective.Policy);
+        Assert.Null(authorizeDirective.Roles);
+    }
 
-        [Fact]
-        public void CreateInstance_Roles_RolesHasItems()
-        {
-            // arrange
-            // act
-            var authorizeDirective = new AuthorizeDirective(
-                new[] { "a", "b" });
+    [Fact]
+    public void CreateInstance_Roles_RolesHasItems()
+    {
+        // arrange
+        // act
+        var authorizeDirective = new AuthorizeDirective(
+            new[] { "a", "b" });
 
-            // assert
-            Assert.Null(authorizeDirective.Policy);
-            Assert.Collection(authorizeDirective.Roles,
-                t => Assert.Equal("a", t),
-                t => Assert.Equal("b", t));
-        }
+        // assert
+        Assert.Null(authorizeDirective.Policy);
+        Assert.Collection(
+            authorizeDirective.Roles,
+            t => Assert.Equal("a", t),
+            t => Assert.Equal("b", t));
+    }
 
-        [Fact]
-        public void TypeAuth_DefaultPolicy()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void TypeAuth_DefaultPolicy()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
-                    .Authorize()
+                    .Authorize(ApplyPolicy.BeforeResolver)
                     .Field("foo")
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+                    .Resolve("bar"))
+            .AddAuthorizeDirectiveType()
+            .Create();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void TypeAuth_DefaultPolicy_DescriptorNull()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                AuthorizeObjectTypeDescriptorExtensions.Authorize(null);
+    [Fact]
+    public void TypeAuth_DefaultPolicy_DescriptorNull()
+    {
+        // arrange
+        // act
+        Action action = () =>
+            AuthorizeObjectTypeDescriptorExtensions.Authorize(null!);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-        [Fact]
-        public void TypeAuth_WithPolicy()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void TypeAuth_WithPolicy()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
-                    .Authorize("MyPolicy")
+                    .Authorize("MyPolicy", ApplyPolicy.BeforeResolver)
                     .Field("foo")
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+                    .Resolve("bar"))
+            .AddAuthorizeDirectiveType()
+            .Create();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void TypeAuth_WithPolicy_DescriptorNull()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                AuthorizeObjectTypeDescriptorExtensions
-                    .Authorize(null, "MyPolicy");
+    [Fact]
+    public void TypeAuth_WithPolicy_DescriptorNull()
+    {
+        // arrange
+        // act
+        Action action = () =>
+            AuthorizeObjectTypeDescriptorExtensions
+                .Authorize(null!, "MyPolicy");
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-        [Fact]
-        public void TypeAuth_WithRoles()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void TypeAuth_WithRoles()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Authorize(new[] { "MyRole" })
                     .Field("foo")
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+                    .Resolve("bar"))
+            .AddAuthorizeDirectiveType()
+            .Create();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void TypeAuth_WithRoles_DescriptorNull()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                AuthorizeObjectTypeDescriptorExtensions
-                    .Authorize(null, new[] { "MyRole" });
+    [Fact]
+    public void TypeAuth_WithRoles_DescriptorNull()
+    {
+        // arrange
+        // act
+        void Action()
+            => AuthorizeObjectTypeDescriptorExtensions.Authorize(null!, new[] { "MyRole" });
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
 
-        [Fact]
-        public void FieldAuth_DefaultPolicy()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Authorize()
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+    [Fact]
+    public async Task FieldAuth_DefaultPolicy()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize(ApplyPolicy.BeforeResolver)
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void FieldAuth_DefaultPolicy_AfterResolver()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Authorize(apply: ApplyPolicy.AfterResolver)
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+    [Fact]
+    public async Task FieldAuth_DefaultPolicy_AfterResolver()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize(apply: ApplyPolicy.AfterResolver)
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void FieldAuth_DefaultPolicy_BeforeResolver()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Authorize(apply: ApplyPolicy.BeforeResolver)
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+    [Fact]
+    public async Task FieldAuth_DefaultPolicy_BeforeResolver()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize(apply: ApplyPolicy.BeforeResolver)
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void FieldAuth_DefaultPolicy_DescriptorNull()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                AuthorizeObjectFieldDescriptorExtensions
-                    .Authorize(null);
+    [Fact]
+    public async Task FieldAuth_DefaultPolicy_Validation()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize(apply: ApplyPolicy.Validation)
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void FieldAuth_WithPolicy()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Authorize("MyPolicy")
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+    [Fact]
+    public void FieldAuth_DefaultPolicy_DescriptorNull()
+    {
+        // arrange
+        // act
+        Action action = () =>
+            AuthorizeObjectFieldDescriptorExtensions
+                .Authorize(null!);
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-        [Fact]
-        public void FieldAuth_WithPolicy_AfterResolver()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Authorize("MyPolicy", apply: ApplyPolicy.AfterResolver)
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+    [Fact]
+    public async Task FieldAuth_WithPolicy()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize("MyPolicy", ApplyPolicy.BeforeResolver)
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void FieldAuth_WithPolicy_BeforeResolver()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Authorize("MyPolicy", apply: ApplyPolicy.BeforeResolver)
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+    [Fact]
+    public async Task FieldAuth_WithPolicy_AfterResolver()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize("MyPolicy", apply: ApplyPolicy.AfterResolver)
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void FieldAuth_WithPolicy_DescriptorNull()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                AuthorizeObjectFieldDescriptorExtensions
-                    .Authorize(null, "MyPolicy");
+    [Fact]
+    public async Task FieldAuth_WithPolicy_BeforeResolver()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize("MyPolicy", apply: ApplyPolicy.BeforeResolver)
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void FieldAuth_WithRoles()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Authorize(new[] { "MyRole" })
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
+    [Fact]
+    public async Task FieldAuth_WithPolicy_Validation()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize("MyPolicy", apply: ApplyPolicy.Validation)
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void FieldAuth_WithRoles_DescriptorNull()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                AuthorizeObjectFieldDescriptorExtensions
-                    .Authorize(null, new[] { "MyRole" });
+    [Fact]
+    public void FieldAuth_WithPolicy_DescriptorNull()
+    {
+        // arrange
+        // act
+        Action action = () =>
+            AuthorizeObjectFieldDescriptorExtensions
+                .Authorize(null!, "MyPolicy");
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
+
+    [Fact]
+    public async Task FieldAuth_WithRoles()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
+                .AddGraphQL()
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
+                        .Field("foo")
+                        .Authorize(new[] { "MyRole" })
+                        .Resolve("bar"))
+                .AddAuthorization()
+                .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FieldAuth_WithRoles_DescriptorNull()
+    {
+        // arrange
+        // act
+        Action action = () =>
+            AuthorizeObjectFieldDescriptorExtensions
+                .Authorize(null!, new[] { "MyRole" });
+
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
     }
 }

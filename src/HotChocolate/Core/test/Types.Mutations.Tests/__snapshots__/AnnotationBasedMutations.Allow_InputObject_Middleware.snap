@@ -1,0 +1,9 @@
+{
+  "data": {
+    "doSomething": {
+      "user": {
+        "name": "foo"
+      }
+    }
+  }
+}

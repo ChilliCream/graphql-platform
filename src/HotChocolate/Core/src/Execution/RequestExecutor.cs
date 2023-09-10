@@ -1,137 +1,162 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Batching;
-using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Utilities;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+internal sealed class RequestExecutor : IRequestExecutor
 {
-    internal sealed class RequestExecutor : IRequestExecutor
-    {
-        private readonly DefaultRequestContextAccessor _requestContextAccessor;
-        private readonly IServiceProvider _applicationServices;
-        private readonly IErrorHandler _errorHandler;
-        private readonly ITypeConverter _converter;
-        private readonly IActivator _activator;
-        private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly RequestDelegate _requestDelegate;
-        private readonly BatchExecutor _batchExecutor;
+    private readonly IServiceProvider _applicationServices;
+    private readonly RequestDelegate _requestDelegate;
+    private readonly BatchExecutor _batchExecutor;
+    private readonly ObjectPool<RequestContext> _contextPool;
+    private readonly DefaultRequestContextAccessor _contextAccessor;
+    private readonly IRequestContextEnricher[] _enricher;
 
-        public RequestExecutor(
-            ISchema schema,
-            DefaultRequestContextAccessor requestContextAccessor,
-            IServiceProvider applicationServices,
-            IServiceProvider executorServices,
-            IErrorHandler errorHandler,
-            ITypeConverter converter,
-            IActivator activator,
-            IDiagnosticEvents diagnosticEvents,
-            RequestDelegate requestDelegate,
-            ulong version)
+    public RequestExecutor(
+        ISchema schema,
+        IServiceProvider applicationServices,
+        IServiceProvider executorServices,
+        RequestDelegate requestDelegate,
+        BatchExecutor batchExecutor,
+        ObjectPool<RequestContext> contextPool,
+        DefaultRequestContextAccessor contextAccessor,
+        ulong version)
+    {
+        Schema = schema ??
+            throw new ArgumentNullException(nameof(schema));
+        _applicationServices = applicationServices ??
+            throw new ArgumentNullException(nameof(applicationServices));
+        Services = executorServices ??
+            throw new ArgumentNullException(nameof(executorServices));
+        _requestDelegate = requestDelegate ??
+            throw new ArgumentNullException(nameof(requestDelegate));
+        _batchExecutor = batchExecutor ??
+            throw new ArgumentNullException(nameof(batchExecutor));
+        _contextPool = contextPool ??
+            throw new ArgumentNullException(nameof(contextPool));
+        _contextAccessor = contextAccessor ?? 
+            throw new ArgumentNullException(nameof(contextAccessor));
+        Version = version;
+
+        var list = new List<IRequestContextEnricher>();
+        CollectEnricher(applicationServices, list);
+        CollectEnricher(executorServices, list);
+        _enricher = list.ToArray();
+
+        static void CollectEnricher(IServiceProvider services, List<IRequestContextEnricher> list)
         {
-            Schema = schema ??
-                throw new ArgumentNullException(nameof(schema));
-            _requestContextAccessor = requestContextAccessor ??
-                throw new ArgumentNullException(nameof(requestContextAccessor));
-            _applicationServices = applicationServices ??
-                throw new ArgumentNullException(nameof(applicationServices));
-            Services = executorServices ??
-                throw new ArgumentNullException(nameof(executorServices));
-            _errorHandler = errorHandler ??
-                throw new ArgumentNullException(nameof(errorHandler));
-            _converter = converter ??
-                throw new ArgumentNullException(nameof(converter));
-            _activator = activator ??
-                throw new ArgumentNullException(nameof(activator));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            _requestDelegate = requestDelegate ??
-                throw new ArgumentNullException(nameof(requestDelegate));
-            Version = version;
-            _batchExecutor = new BatchExecutor(this, errorHandler, converter);
+            var enricher = services.GetService<IEnumerable<IRequestContextEnricher>>();
+
+            if (enricher is not null)
+            {
+                list.AddRange(enricher);
+            }
+        }
+    }
+
+    public ISchema Schema { get; }
+
+    public IServiceProvider Services { get; }
+
+    public ulong Version { get; }
+
+    public async Task<IExecutionResult> ExecuteAsync(
+        IQueryRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request is null)
+        {
+            throw new ArgumentNullException(nameof(request));
         }
 
-        public ISchema Schema { get; }
+        var scope = request.Services is null
+            ? _applicationServices.CreateScope()
+            : null;
 
-        public IServiceProvider Services { get; }
+        var services = scope is null
+            ? request.Services!
+            : scope.ServiceProvider;
 
-        public ulong Version { get; }
+        var context = _contextPool.Get();
 
-        public async Task<IExecutionResult> ExecuteAsync(
-            IQueryRequest request,
-            CancellationToken cancellationToken = default)
+        try
         {
-            if (request is null)
+            context.RequestAborted = cancellationToken;
+            context.Initialize(request, services);
+            EnrichContext(context);
+            
+            _contextAccessor.RequestContext = context;
+
+            await _requestDelegate(context).ConfigureAwait(false);
+
+            if (context.Result is null)
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new InvalidOperationException();
             }
 
-            IServiceScope? scope = request.Services is null ? _applicationServices.CreateScope() : null;
-            IServiceProvider services = scope is null ? request.Services! : scope.ServiceProvider;
-
-            try
+            if (scope is null)
             {
-                var context = new RequestContext(
-                    Schema,
-                    Version,
-                    services,
-                    _errorHandler,
-                    _converter,
-                    _activator,
-                    _diagnosticEvents,
-                    request)
-                {
-                    RequestAborted = cancellationToken
-                };
-
-                _requestContextAccessor.RequestContext = context;
-
-                await _requestDelegate(context).ConfigureAwait(false);
-
-                if (context.Result is null)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                if (scope is not null)
-                {
-                    if (context.Result is DeferredQueryResult deferred)
-                    {
-                        context.Result = new DeferredQueryResult(deferred, scope);
-                        scope = null;
-                    }
-                    else if (context.Result is SubscriptionResult result)
-                    {
-                        context.Result = new SubscriptionResult(result, scope);
-                        scope = null;
-                    }
-                }
-
                 return context.Result;
             }
-            finally
+
+            if (context.Result.IsStreamResult())
             {
-                scope?.Dispose();
+                context.Result.RegisterForCleanup(scope);
+                scope = null;
             }
+
+            return context.Result;
+        }
+        finally
+        {
+            _contextPool.Return(context);
+            scope?.Dispose();
+        }
+    }
+
+    public Task<IResponseStream> ExecuteBatchAsync(
+        IReadOnlyList<IQueryRequest> requestBatch,
+        CancellationToken cancellationToken = default)
+    {
+        if (requestBatch is null)
+        {
+            throw new ArgumentNullException(nameof(requestBatch));
         }
 
-        public Task<IBatchQueryResult> ExecuteBatchAsync(
-            IEnumerable<IQueryRequest> requestBatch,
-            bool allowParallelExecution = false,
-            CancellationToken cancellationToken = default)
-        {
-            if (requestBatch is null)
-            {
-                throw new ArgumentNullException(nameof(requestBatch));
-            }
+        return Task.FromResult<IResponseStream>(
+            new ResponseStream(
+                () => _batchExecutor.ExecuteAsync(this, requestBatch),
+                ExecutionResultKind.BatchResult));
+    }
 
-            return Task.FromResult<IBatchQueryResult>(new BatchQueryResult(
-                () => _batchExecutor.ExecuteAsync(requestBatch, cancellationToken),
-                null));
+    private void EnrichContext(IRequestContext context)
+    {
+        if (_enricher.Length > 0)
+        {
+#if NET6_0_OR_GREATER
+            ref var start = ref MemoryMarshal.GetArrayDataReference(_enricher);
+            ref var end = ref Unsafe.Add(ref start, _enricher.Length);
+#else
+            ref var start = ref MemoryMarshal.GetReference(_enricher.AsSpan());
+            ref var end = ref Unsafe.Add(ref start, _enricher.Length);
+#endif
+
+            while (Unsafe.IsAddressLessThan(ref start, ref end))
+            {
+                start.Enrich(context);
+
+#pragma warning disable CS8619
+                start = ref Unsafe.Add(ref start, 1);
+#pragma warning restore CS8619
+            }
         }
     }
 }

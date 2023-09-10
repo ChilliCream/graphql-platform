@@ -1,0 +1,71 @@
+﻿{
+  "activities": [
+    {
+      "OperationName": "ExecuteRequest",
+      "DisplayName": "Execute Request",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.document.id",
+          "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+        },
+        {
+          "Key": "graphql.document.body",
+          "Value": "query SayHelloOperation {\n  sayHello_\n}"
+        },
+        {
+          "Key": "otel.status_code",
+          "Value": "ERROR"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseDocument",
+          "DisplayName": "Parse Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "ValidateDocument",
+          "DisplayName": "Validate Document",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "ERROR"
+            },
+            {
+              "Key": "graphql.document.id",
+              "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "bb1d246465341a97bdc727d6cd8ead5c"
+            }
+          ],
+          "event": [
+            {
+              "Name": "Error",
+              "Tags": {
+                "graphql.error.message": "The field `sayHello_` does not exist on the type `SimpleQuery`.",
+                "graphql.error.location.column": 27,
+                "graphql.error.location.line": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

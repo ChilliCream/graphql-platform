@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -58,8 +58,7 @@
                 "Column": 42
               },
               "Value": "atOtherHomes"
-            },
-            "Value": "atOtherHomes"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -108,8 +107,7 @@
                 "Column": 66
               },
               "Value": "extra"
-            },
-            "Value": "extra"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -148,6 +146,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {

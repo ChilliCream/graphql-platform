@@ -2,109 +2,108 @@ using System;
 using HotChocolate.Data.Utilities;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data.Sorting;
+
+/// <summary>
+/// The sort convention extensions can be used to extend a sort convention.
+/// </summary>
+public class SortConventionExtension
+    : ConventionExtension<SortConventionDefinition>
 {
-    /// <summary>
-    /// The sort convention extensions can be used to extend a sort convention.
-    /// </summary>
-    public class SortConventionExtension
-        : ConventionExtension<SortConventionDefinition>
+    private Action<ISortConventionDescriptor>? _configure;
+
+    protected SortConventionExtension()
     {
-        private Action<ISortConventionDescriptor>? _configure;
+        _configure = Configure;
+    }
 
-        protected SortConventionExtension()
+    public SortConventionExtension(Action<ISortConventionDescriptor> configure)
+    {
+        _configure = configure ??
+            throw new ArgumentNullException(nameof(configure));
+    }
+
+    protected override SortConventionDefinition CreateDefinition(
+        IConventionContext context)
+    {
+        if (_configure is null)
         {
-            _configure = Configure;
+            throw new InvalidOperationException(
+                DataResources.SortConvention_NoConfigurationSpecified);
         }
 
-        public SortConventionExtension(Action<ISortConventionDescriptor> configure)
-        {
-            _configure = configure ??
-                throw new ArgumentNullException(nameof(configure));
-        }
+        var descriptor = SortConventionDescriptor.New(
+            context.DescriptorContext,
+            context.Scope);
 
-        protected override SortConventionDefinition CreateDefinition(
-            IConventionContext context)
+        _configure(descriptor);
+        _configure = null;
+
+        return descriptor.CreateDefinition();
+    }
+
+    protected internal new void Initialize(IConventionContext context)
+    {
+        base.Initialize(context);
+    }
+
+    protected virtual void Configure(ISortConventionDescriptor descriptor)
+    {
+    }
+
+    public override void Merge(IConventionContext context, Convention convention)
+    {
+        if (convention is SortConvention sortConvention &&
+            Definition is not null &&
+            sortConvention.Definition is not null)
         {
-            if (_configure is null)
+            ExtensionHelpers.MergeDictionary(
+                Definition.Bindings,
+                sortConvention.Definition.Bindings);
+
+            ExtensionHelpers.MergeListDictionary(
+                Definition.Configurations,
+                sortConvention.Definition.Configurations);
+
+            ExtensionHelpers.MergeListDictionary(
+                Definition.EnumConfigurations,
+                sortConvention.Definition.EnumConfigurations);
+
+            for (var i = 0; i < Definition.Operations.Count; i++)
             {
-                throw new InvalidOperationException(
-                    DataResources.SortConvention_NoConfigurationSpecified);
+                sortConvention.Definition.Operations.Add(Definition.Operations[i]);
             }
 
-            var descriptor = SortConventionDescriptor.New(
-                context.DescriptorContext,
-                context.Scope);
-
-            _configure(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
-        }
-
-        protected internal new void Initialize(IConventionContext context)
-        {
-            base.Initialize(context);
-        }
-
-        protected virtual void Configure(ISortConventionDescriptor descriptor)
-        {
-        }
-
-        public override void Merge(IConventionContext context, Convention convention)
-        {
-            if (convention is SortConvention sortConvention &&
-                Definition is not null &&
-                sortConvention.Definition is not null)
+            for (var i = 0; i < Definition.ProviderExtensions.Count; i++)
             {
-                ExtensionHelpers.MergeDictionary(
-                    Definition.Bindings,
-                    sortConvention.Definition.Bindings);
+                sortConvention.Definition.ProviderExtensions.Add(
+                    Definition.ProviderExtensions[i]);
+            }
 
-                ExtensionHelpers.MergeListDictionary(
-                    Definition.Configurations,
-                    sortConvention.Definition.Configurations);
+            for (var i = 0; i < Definition.ProviderExtensionsTypes.Count; i++)
+            {
+                sortConvention.Definition.ProviderExtensionsTypes.Add(
+                    Definition.ProviderExtensionsTypes[i]);
+            }
 
-                ExtensionHelpers.MergeListDictionary(
-                    Definition.EnumConfigurations,
-                    sortConvention.Definition.EnumConfigurations);
+            if (Definition.ArgumentName != SortConventionDefinition.DefaultArgumentName)
+            {
+                sortConvention.Definition.ArgumentName = Definition.ArgumentName;
+            }
 
-                for (var i = 0; i < Definition.Operations.Count; i++)
-                {
-                    sortConvention.Definition.Operations.Add(Definition.Operations[i]);
-                }
+            if (Definition.Provider is not null)
+            {
+                sortConvention.Definition.Provider = Definition.Provider;
+            }
 
-                for (var i = 0; i < Definition.ProviderExtensions.Count; i++)
-                {
-                    sortConvention.Definition.ProviderExtensions.Add(
-                        Definition.ProviderExtensions[i]);
-                }
+            if (Definition.ProviderInstance is not null)
+            {
+                sortConvention.Definition.ProviderInstance = Definition.ProviderInstance;
+            }
 
-                for (var i = 0; i < Definition.ProviderExtensionsTypes.Count; i++)
-                {
-                    sortConvention.Definition.ProviderExtensionsTypes.Add(
-                        Definition.ProviderExtensionsTypes[i]);
-                }
-
-                if (Definition.ArgumentName != SortConventionDefinition.DefaultArgumentName)
-                {
-                    sortConvention.Definition.ArgumentName = Definition.ArgumentName;
-                }
-
-                if (Definition.Provider is not null)
-                {
-                    sortConvention.Definition.Provider = Definition.Provider;
-                }
-
-                if (Definition.ProviderInstance is not null)
-                {
-                    sortConvention.Definition.ProviderInstance = Definition.ProviderInstance;
-                }
-
-                if (Definition.DefaultBinding is not null)
-                {
-                    sortConvention.Definition.DefaultBinding = Definition.DefaultBinding;
-                }
+            if (Definition.DefaultBinding is not null)
+            {
+                sortConvention.Definition.DefaultBinding = Definition.DefaultBinding;
             }
         }
     }

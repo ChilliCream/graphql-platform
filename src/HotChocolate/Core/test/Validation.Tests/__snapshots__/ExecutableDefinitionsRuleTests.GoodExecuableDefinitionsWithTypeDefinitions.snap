@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Executable-Definitions"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Executable-Definitions"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -1,19 +1,40 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PackageId>HotChocolate.AspNetCore</PackageId>
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
     <Description>This package contains the GraphQL ASP.NET Core middleware for Hot Chocolate. Moreover, this package includes the Banana Cake Pop middleware, which provides you with our beloved GraphQL IDE middleware.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
+    <ProjectReference Include="..\Transport.Sockets\HotChocolate.Transport.Sockets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Execution" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,14 +44,16 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>AspNetCoreResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\AspNetCoreResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AspNetCoreResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AspNetCore.props" Pack="true" PackagePath="build/HotChocolate.AspNetCore.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AspNetCore.targets" Pack="true" PackagePath="build/HotChocolate.AspNetCore.targets" Visible="false" />
   </ItemGroup>
 
 </Project>

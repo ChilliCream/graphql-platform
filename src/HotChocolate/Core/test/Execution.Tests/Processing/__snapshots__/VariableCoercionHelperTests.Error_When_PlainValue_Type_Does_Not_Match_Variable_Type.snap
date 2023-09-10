@@ -1,13 +1,19 @@
 ﻿[
   {
-    "Message": "Variable `abc` got an invalid value.",
-    "Code": "HC0016",
-    "Path": null,
-    "Locations": null,
-    "Extensions": {
-      "code": "HC0016",
-      "variable": "abc"
+    "Message": "String cannot deserialize the given value.",
+    "Code": null,
+    "Path": {
+      "Name": "abc",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
+    "Locations": null,
+    "Extensions": null,
     "Exception": null,
     "SyntaxNode": null
   }

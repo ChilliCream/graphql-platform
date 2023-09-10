@@ -5,25 +5,25 @@ using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal interface ITypeRegistrar
 {
-    internal interface ITypeRegistrar
-    {
-        void Register(
-            TypeSystemObjectBase typeSystemObject, 
-            string? scope,
-            bool isInferred = false);
+    void Register(
+        TypeSystemObjectBase obj,
+        string? scope,
+        bool inferred = false,
+        Action<RegisteredType>? configure = null);
 
-        void MarkUnresolved(ITypeReference typeReference);
+    void MarkUnresolved(TypeReference typeReference);
 
-        void MarkResolved(ITypeReference typeReference);
+    void MarkResolved(TypeReference typeReference);
 
-        bool IsResolved(ITypeReference typeReference);
+    bool IsResolved(TypeReference typeReference);
 
-        TypeSystemObjectBase CreateInstance(Type namedSchemaType);
+    TypeSystemObjectBase CreateInstance(Type namedSchemaType);
 
-        IReadOnlyCollection<ITypeReference> GetUnresolved();
+    IReadOnlyCollection<TypeReference> Unresolved { get; }
 
-        IReadOnlyCollection<ITypeReference> GetUnhandled();
-    }
+    IReadOnlyCollection<TypeReference> GetUnhandled();
 }

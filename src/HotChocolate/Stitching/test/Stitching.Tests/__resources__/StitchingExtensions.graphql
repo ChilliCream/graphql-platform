@@ -4,7 +4,7 @@ extend type Customer {
   contractIds: [ID!]
     @delegate(schema: "contract", path: "contracts(customerId:$fields:id).id")
   int: Int! @delegate(schema: "contract", path: "int(i:$fields:someInt)")
-  guid: Uuid! @delegate(schema: "contract", path: "guid(guid:$fields:someGuid)")
+  guid: UUID! @delegate(schema: "contract", path: "guid(guid:$fields:someGuid)")
 }
 
 extend type Query {

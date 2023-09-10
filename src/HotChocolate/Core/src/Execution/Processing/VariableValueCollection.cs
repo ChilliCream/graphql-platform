@@ -1,97 +1,99 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal class VariableValueCollection : IVariableValueCollection
 {
-    internal class VariableValueCollection : IVariableValueCollection
+    private readonly Dictionary<string, VariableValueOrLiteral> _coercedValues;
+
+    public VariableValueCollection(Dictionary<string, VariableValueOrLiteral> coercedValues)
     {
-        private readonly Dictionary<string, VariableValueOrLiteral> _coercedValues;
+        _coercedValues = coercedValues;
+    }
 
-        public VariableValueCollection(Dictionary<string, VariableValueOrLiteral> coercedValues)
+    public static VariableValueCollection Empty { get; } =
+        new(new Dictionary<string, VariableValueOrLiteral>());
+
+    public T? GetVariable<T>(string name)
+    {
+        if (TryGetVariable(name, out T? value))
         {
-            _coercedValues = coercedValues;
+            return value;
         }
 
-        public static VariableValueCollection Empty { get; } =
-            new(new Dictionary<string, VariableValueOrLiteral>());
-
-        public T GetVariable<T>(NameString name)
+        if (_coercedValues.ContainsKey(name))
         {
-            if (TryGetVariable(name, out T value))
-            {
-                return value;
-            }
-
-            if (_coercedValues.ContainsKey(name))
-            {
-                throw ThrowHelper.VariableNotOfType(name, typeof(T));
-            }
-
-            throw ThrowHelper.VariableNotFound(name);
+            throw ThrowHelper.VariableNotOfType(name, typeof(T));
         }
 
-        public bool TryGetVariable<T>(NameString name, [NotNullWhen(true)] out T value)
+        throw ThrowHelper.VariableNotFound(name);
+    }
+
+    public bool TryGetVariable<T>(string name, out T? value)
+    {
+        if (string.IsNullOrEmpty(name))
         {
-            if (_coercedValues.TryGetValue(name.Value, out VariableValueOrLiteral variableValue))
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (_coercedValues.TryGetValue(name, out var variableValue))
+        {
+            var requestedType = typeof(T);
+
+            if (requestedType == typeof(IValueNode))
             {
-                if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
+                value = (T)variableValue.ValueLiteral;
+                return true;
+            }
+
+            if (typeof(IValueNode).IsAssignableFrom(requestedType))
+            {
+                if (variableValue.ValueLiteral is T casted)
                 {
-                    if (variableValue.ValueLiteral is T casted)
-                    {
-                        value = casted;
-                        return true;
-                    }
-
-                    if (variableValue.ValueLiteral is null)
-                    {
-                        IValueNode literal = variableValue.Type.ParseValue(variableValue.Value);
-                        if (literal is T casted2)
-                        {
-                            value = casted2;
-                            return true;
-                        }
-                    }
+                    value = casted;
+                    return true;
                 }
-                else
-                {
-                    if (variableValue.Value is T casted)
-                    {
-                        value = casted;
-                        return true;
-                    }
 
-                    if (variableValue.ValueLiteral is not null)
-                    {
-                        object? temp  = variableValue.Type.ParseLiteral(variableValue.ValueLiteral);
-                        if (temp is T casted2)
-                        {
-                            value = casted2;
-                            return true;
-                        }
-                    }
-                }
+                value = default!;
+                return false;
             }
 
-            value = default!;
-            return false;
-        }
-
-        public IEnumerator<VariableValue> GetEnumerator()
-        {
-            foreach (KeyValuePair<string, VariableValueOrLiteral> item in _coercedValues)
+            if (variableValue.Value is null)
             {
-                IInputType type = item.Value.Type;
-                IValueNode value = item.Value.ValueLiteral ?? type.ParseValue(item.Value.Value);
-                yield return new VariableValue(item.Key, type, value);
+                value = default;
+                return true;
+            }
+
+            if (variableValue.Value.GetType() == requestedType)
+            {
+                value = (T)variableValue.Value;
+                return true;
+            }
+
+            if (variableValue.Value is T castedValue)
+            {
+                value = castedValue;
+                return true;
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        value = default!;
+        return false;
+    }
+
+    public IEnumerator<VariableValue> GetEnumerator()
+    {
+        foreach (var item in _coercedValues)
         {
-            return GetEnumerator();
+            var type = item.Value.Type;
+            var value = item.Value.ValueLiteral;
+            yield return new VariableValue(item.Key, type, value);
         }
     }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 }

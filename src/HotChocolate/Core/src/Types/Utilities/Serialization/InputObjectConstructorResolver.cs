@@ -1,110 +1,152 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Types;
+using HotChocolate.Types.Helpers;
+using static System.Reflection.BindingFlags;
 
 #nullable enable
 
-namespace HotChocolate.Utilities.Serialization
+namespace HotChocolate.Utilities.Serialization;
+
+internal static class InputObjectConstructorResolver
 {
-    internal static class InputObjectConstructorResolver
+    public static ConstructorInfo? GetCompatibleConstructor<T>(
+        Type type,
+        FieldCollection<T> fields,
+        Dictionary<string, T> fieldMap,
+        HashSet<string> required)
+        where T : class, IInputField, IHasProperty
     {
-        public static ConstructorInfo? GetConstructor(
-            Type type,
-            IEnumerable<PropertyInfo> properties)
-        {
-            Dictionary<string, PropertyInfo> propertyMap = properties.ToDictionary(
-                t => t.Name,
-                StringComparer.OrdinalIgnoreCase);
-            return GetCompatibleConstructor(type, propertyMap);
-        }
+        var constructors = type.GetConstructors(NonPublic | Public | Instance);
 
-        private static ConstructorInfo? GetCompatibleConstructor(
-            Type type,
-            IReadOnlyDictionary<string, PropertyInfo> properties)
+        if (AllPropertiesCanWrite(fields))
         {
-            ConstructorInfo[] constructors = type.GetConstructors(
-                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
-                t => t.GetParameters().Length == 0);
-
-            if (properties.Values.All(t => t.CanWrite))
+            if (constructors.Length == 0 || type.IsValueType)
             {
-                if (defaultConstructor is not null)
-                {
-                    return defaultConstructor;
-                }
-                else if (constructors.Length == 0)
-                {
-                    return null;
-                }
+                return null;
             }
 
-            var required = new HashSet<string>();
+            var defaultCtor = Array.Find(constructors, t => t.GetParameters().Length == 0);
 
-            foreach (ConstructorInfo constructor in
+            if (defaultCtor is not null)
+            {
+                return defaultCtor;
+            }
+        }
+
+        CollectReadOnlyProperties(fields, required);
+        ConstructorInfo? compatibleCtor = null;
+
+        if (constructors.Length == 1)
+        {
+            var constructor = constructors[0];
+            if (IsCompatibleConstructor(constructor, fieldMap, required))
+            {
+                compatibleCtor = constructor;
+            }
+        }
+        else if (constructors.Length != 0)
+        {
+            foreach (var constructor in
                 constructors.OrderByDescending(t => t.GetParameters().Length))
             {
-                if (IsCompatibleConstructor(constructor, properties, required))
+                if (IsCompatibleConstructor(constructor, fieldMap, required))
                 {
-                    return constructor;
+                    compatibleCtor = constructor;
+                    break;
                 }
             }
-
-            throw new InvalidOperationException(
-                $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
-                "Either you have to provide a public constructor with settable properties or " +
-                "a public constructor that allows to pass in values for read-only properties." +
-                $"There was no way to set the following properties: {string.Join(", ", required)}.");
         }
 
-        private static bool IsCompatibleConstructor(
-            ConstructorInfo constructor,
-            IReadOnlyDictionary<string, PropertyInfo> properties,
-            ISet<string> required)
+        if (compatibleCtor is not null)
         {
-            CollectReadOnlyProperties(properties, required);
-            return IsCompatibleConstructor(
-                constructor.GetParameters(),
-                properties,
-                required);
+            return compatibleCtor;
         }
 
-        private static bool IsCompatibleConstructor(
-            ParameterInfo[] parameters,
-            IReadOnlyDictionary<string, PropertyInfo> properties,
-            ISet<string> required)
+        throw new InvalidOperationException(
+            $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
+            "Either you have to provide a public constructor with settable properties or " +
+            "a public constructor that allows to pass in values for read-only properties. " +
+            $"There was no way to set the following properties: {string.Join(", ", required)}.");
+    }
+
+    private static bool AllPropertiesCanWrite<T>(FieldCollection<T> fields)
+        where T : class, IInputField, IHasProperty
+    {
+        foreach (var field in fields.AsSpan())
         {
-            for (int i = 0; i < parameters.Length; i++)
+            if (!(field.Property?.CanWrite ?? false))
             {
-                ParameterInfo parameter = parameters[i];
-                if (properties.TryGetValue(parameter.Name!, out PropertyInfo? property)
-                    && parameter.ParameterType == property.PropertyType)
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsCompatibleConstructor<T>(
+        ConstructorInfo constructor,
+        IReadOnlyDictionary<string, T> fields,
+        HashSet<string> required)
+        where T : class, IInputField, IHasProperty
+    {
+        var count = required.Count;
+
+        foreach (var parameter in constructor.GetParameters())
+        {
+            if (fields.TryGetParameter(parameter, out var field) &&
+                parameter.ParameterType == field.Property!.PropertyType)
+            {
+                if (required.Contains(field.Name))
                 {
-                    required.Remove(property.Name);
-                }
-                else
-                {
-                    return false;
+                    count--;
                 }
             }
-
-            return required.Count == 0;
+            else
+            {
+                return false;
+            }
         }
 
-        private static void CollectReadOnlyProperties(
-            IReadOnlyDictionary<string, PropertyInfo> properties,
-            ISet<string> required)
-        {
-            required.Clear();
+        return count == 0;
+    }
 
-            foreach (KeyValuePair<string, PropertyInfo> item in properties)
+    private static void CollectReadOnlyProperties<T>(
+        FieldCollection<T> fields,
+        ISet<string> required)
+        where T : class, IInputField, IHasProperty
+    {
+        required.Clear();
+
+        foreach (var item in fields.AsSpan())
+        {
+            if (!(item.Property?.CanWrite ?? false))
             {
-                if (!item.Value.CanWrite)
-                {
-                    required.Add(item.Key);
-                }
+                required.Add(item.Name);
             }
         }
     }
+
+    public static bool TryGetParameter<T>(
+        this IReadOnlyDictionary<string, T> fields,
+        ParameterInfo parameter,
+        [NotNullWhen(true)] out T? field)
+        where T : class, IInputField, IHasProperty
+    {
+        var name = parameter.Name!;
+        var alterName = GetAlternativeParameterName(parameter.Name!);
+        return fields.TryGetValue(alterName, out field) || fields.TryGetValue(name, out field);
+    }
+
+    private static string GetAlternativeParameterName(string name)
+        => name.Length > 1
+#if NET6_0_OR_GREATER
+            ? string.Concat(name[..1].ToUpperInvariant(), name.AsSpan(1))
+#else
+            ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.Substring(1))
+#endif
+            : name.ToUpperInvariant();
 }

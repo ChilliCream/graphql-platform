@@ -11,126 +11,120 @@ using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public partial class SchemaErrorBuilder
 {
-    public partial class SchemaErrorBuilder
+    private sealed class Error : ISchemaError
     {
-        private class Error : ISchemaError
+        private static readonly JsonWriterOptions _serializationOptions = new()
         {
-            private static readonly JsonWriterOptions _serializationOptions =  new()
+            Indented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
+        public string Message { get; set; } = default!;
+
+        public string? Code { get; set; }
+
+        public ITypeSystemObject? TypeSystemObject { get; set; }
+
+        public IReadOnlyCollection<object>? Path { get; set; }
+
+        public ImmutableList<ISyntaxNode> SyntaxNodes { get; set; } =
+            ImmutableList<ISyntaxNode>.Empty;
+
+        IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
+
+        public ImmutableDictionary<string, object> Extensions { get; set; }
+            = ImmutableDictionary<string, object>.Empty;
+
+        IReadOnlyDictionary<string, object> ISchemaError.Extensions => Extensions;
+
+        public Exception? Exception { get; set; }
+
+        public override unsafe string ToString()
+        {
+            using var buffer = new ArrayWriter();
+
+            using var writer = new Utf8JsonWriter(buffer, _serializationOptions);
+
+            writer.WriteStartObject();
+            Serialize(writer);
+            writer.WriteEndObject();
+
+            writer.Flush();
+
+            fixed (byte* b = buffer.GetInternalBuffer())
             {
-                Indented = true,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
+                return Encoding.UTF8.GetString(b, buffer.Length);
+            }
+        }
 
-            public string Message { get; set; } = default!;
+        private void Serialize(Utf8JsonWriter writer)
+        {
+            writer.WriteString("message", Message);
 
-            public string? Code { get; set; }
-
-            public ITypeSystemObject? TypeSystemObject { get; set; }
-
-            public IReadOnlyCollection<object>? Path { get; set; }
-
-            public ImmutableList<ISyntaxNode> SyntaxNodes { get; set; } =
-                ImmutableList<ISyntaxNode>.Empty;
-
-            IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
-
-            public ImmutableDictionary<string, object> Extensions { get; set; }
-                = ImmutableDictionary<string, object>.Empty;
-
-            IReadOnlyDictionary<string, object> ISchemaError.Extensions => Extensions;
-
-            public Exception? Exception { get; set; }
-
-            public override unsafe string ToString()
+            if (Code is { })
             {
-                using var buffer = new ArrayWriter();
+                writer.WriteString("code", Code);
+            }
 
-                using var writer = new Utf8JsonWriter(buffer, _serializationOptions);
+            if (TypeSystemObject is INamedType namedType)
+            {
+                writer.WriteString("type", namedType.Name);
+            }
 
-                writer.WriteStartObject();
-                Serialize(writer);
-                writer.WriteEndObject();
+            if (Path is { })
+            {
+                writer.WritePropertyName("path");
+                writer.WriteStartArray();
 
-                writer.Flush();
-
-                fixed (byte* b = buffer.GetInternalBuffer())
+                foreach (var segment in Path.Select(t => t.ToString()!))
                 {
-                    return Encoding.UTF8.GetString(b, buffer.Length);
+                    writer.WriteStringValue(segment);
+                }
+
+                writer.WriteEndArray();
+            }
+
+            writer.WritePropertyName("extensions");
+            writer.WriteStartObject();
+
+            foreach (var item in Extensions.OrderBy(t => t.Key))
+            {
+                writer.WritePropertyName(item.Key);
+
+                if (item.Value is null)
+                {
+                    writer.WriteNullValue();
+                }
+                else if (item.Value is IField f)
+                {
+                    writer.WriteStringValue(f.Name);
+                }
+                else if (item.Value is INamedType n)
+                {
+                    writer.WriteStringValue(n.Name ?? n.GetType().FullName);
+                }
+                else
+                {
+                    writer.WriteStringValue(item.Value.ToString());
                 }
             }
 
-            private void Serialize(Utf8JsonWriter writer)
+            writer.WriteEndObject();
+
+            if (Exception is not null)
             {
-                writer.WriteString("message", Message);
-
-                if (Code is { })
-                {
-                    writer.WriteString("code", Code);
-                }
-
-                if (TypeSystemObject is INamedType namedType)
-                {
-                    writer.WriteString("type", namedType.Name.Value);
-                }
-
-                if (Path is { })
-                {
-                    writer.WritePropertyName("path");
-                    writer.WriteStartArray();
-
-                    foreach (string segment in Path.Select(t => t.ToString()!))
-                    {
-                        writer.WriteStringValue(segment);
-                    }
-
-                    writer.WriteEndArray();
-                }
-
-                if (Extensions is not null)
-                {
-                    writer.WritePropertyName("extensions");
-                    writer.WriteStartObject();
-
-                    foreach (KeyValuePair<string, object> item in Extensions.OrderBy(t => t.Key))
-                    {
-                        writer.WritePropertyName(item.Key);
-
-                        if (item.Value is null)
-                        {
-                            writer.WriteNullValue();
-                        }
-                        else if (item.Value is IField f)
-                        {
-                            writer.WriteStringValue(f.Name.Value);
-                        }
-                        else if (item.Value is INamedType n)
-                        {
-                            writer.WriteStringValue(n.Name.HasValue
-                                ? n.Name.Value
-                                : n.GetType().FullName);
-                        }
-                        else
-                        {
-                            writer.WriteStringValue(item.Value.ToString());
-                        }
-                    }
-
-                    writer.WriteEndObject();
-                }
-
-                if (Exception is { })
-                {
-                    writer.WritePropertyName("exception");
-                    writer.WriteStringValue(Exception.Message);
-                }
+                writer.WritePropertyName("exception");
+                writer.WriteStringValue(Exception.Message);
             }
+        }
 
-            public Error Clone()
-            {
-                return (Error)MemberwiseClone();
-            }
+        public Error Clone()
+        {
+            return (Error)MemberwiseClone();
         }
     }
 }

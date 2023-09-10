@@ -1,0 +1,15 @@
+﻿schema {
+  query: Query
+}
+
+interface DeprecatedImplementation implements DeprecatedInterface {
+  deprecated(deprecated: Int @deprecated(reason: "reason")): Int
+}
+
+interface DeprecatedInterface {
+  deprecated(deprecated: Int @deprecated(reason: "reason")): Int
+}
+
+type Query {
+  foo: Int!
+}

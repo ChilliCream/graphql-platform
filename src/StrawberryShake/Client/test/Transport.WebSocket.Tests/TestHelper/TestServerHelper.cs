@@ -1,4 +1,6 @@
 using System;
+using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using Microsoft.AspNetCore.Builder;
@@ -6,28 +8,29 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.WellKnownContextData;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets;
+
+public static class TestServerHelper
 {
-    public static class TestServerHelper
+    public static IWebHost CreateServer(Action<IRequestExecutorBuilder> configure, out int port)
     {
-        public static IWebHost CreateServer(Action<IRequestExecutorBuilder> configure, out int port)
+        for (port = 5500; port < 6000; port++)
         {
-            for (port = 5500; port < 6000; port++)
+            try
             {
-                try
-                {
-                    var configBuilder = new ConfigurationBuilder();
-                    configBuilder.AddInMemoryCollection();
-                    var config = configBuilder.Build();
-                    config["server.urls"] = $"http://localhost:{port}";
-                    var host = new WebHostBuilder()
-                        .UseConfiguration(config)
-                        .UseKestrel()
-                        .ConfigureServices(services =>
+                var configBuilder = new ConfigurationBuilder();
+                configBuilder.AddInMemoryCollection();
+                var config = configBuilder.Build();
+                config["server.urls"] = $"http://localhost:{port}";
+                var host = new WebHostBuilder()
+                    .UseConfiguration(config)
+                    .UseKestrel()
+                    .ConfigureServices(
+                        services =>
                         {
-                            IRequestExecutorBuilder builder = services.AddRouting()
-                                .AddGraphQLServer();
+                            var builder = services.AddRouting().AddGraphQLServer();
 
                             configure(builder);
 
@@ -35,42 +38,84 @@ namespace StrawberryShake.Transport.WebSockets
                                 .AddStarWarsTypes()
                                 .AddExportDirectiveType()
                                 .AddStarWarsRepositories()
-                                .AddInMemorySubscriptions();
-                        })
-                        .Configure(app =>
-                            app.Use(async (ct, next) =>
-                                {
-                                    try
+                                .AddInMemorySubscriptions()
+                                .ModifyOptions(
+                                    o =>
                                     {
-                                        // Kestrel does not return proper error responses:
-                                        // https://github.com/aspnet/KestrelHttpServer/issues/43
-                                        await next();
-                                    }
-                                    catch (Exception ex)
+                                        o.EnableDefer = true;
+                                        o.EnableStream = true;
+                                    })
+                                .UseDefaultPipeline()
+                                .UseRequest(
+                                    next => async context =>
                                     {
-                                        if (ct.Response.HasStarted)
+                                        if (context.ContextData.TryGetValue(
+                                                nameof(HttpContext),
+                                                out var value) &&
+                                            value is HttpContext httpContext &&
+                                            context.Result is IQueryResult result)
                                         {
-                                            throw;
+                                            var headers = httpContext.Request.Headers;
+                                            if (headers.ContainsKey("sendErrorStatusCode"))
+                                            {
+                                                context.Result = result =
+                                                    QueryResultBuilder
+                                                        .FromResult(result)
+                                                        .SetContextData(HttpStatusCode, 403)
+                                                        .Create();
+                                            }
+
+                                            if (headers.ContainsKey("sendError"))
+                                            {
+                                                context.Result =
+                                                    QueryResultBuilder
+                                                        .FromResult(result)
+                                                        .AddError(new Error("Some error!"))
+                                                        .Create();
+                                            }
                                         }
 
-                                        ct.Response.StatusCode = 500;
-                                        ct.Response.Headers.Clear();
-                                        await ct.Response.WriteAsync(ex.ToString());
-                                    }
-                                })
+                                        await next(context);
+                                    });
+                        })
+                    .Configure(
+                        app =>
+                            app.Use(
+                                    async (ct, next) =>
+                                    {
+                                        try
+                                        {
+                                            // Kestrel does not return proper error responses:
+                                            // https://github.com/aspnet/KestrelHttpServer/issues/43
+                                            await next();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (ct.Response.HasStarted)
+                                            {
+                                                throw;
+                                            }
+
+                                            ct.Response.StatusCode = 500;
+                                            ct.Response.Headers.Clear();
+                                            await ct.Response.WriteAsync(ex.ToString());
+                                        }
+                                    })
                                 .UseWebSockets()
                                 .UseRouting()
                                 .UseEndpoints(e => e.MapGraphQL()))
-                        .Build();
+                    .Build();
 
-                    host.Start();
+                host.Start();
 
-                    return host;
-                }
-                catch { }
+                return host;
             }
-
-            throw new InvalidOperationException("Not port found");
+            catch
+            {
+                // we ignore any errors here and try the next port
+            }
         }
+
+        throw new InvalidOperationException("Not port found");
     }
 }

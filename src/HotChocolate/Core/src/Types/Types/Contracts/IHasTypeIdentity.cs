@@ -2,16 +2,15 @@ using System;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// GraphQL type system members that have a type identity.
+/// </summary>
+public interface IHasTypeIdentity
 {
     /// <summary>
-    /// GraphQL type system members that have a type identity.
+    /// Gets the type identity of this type system member.
     /// </summary>
-    public interface IHasTypeIdentity
-    {
-        /// <summary>
-        /// Gets the type identity of this type system member.
-        /// </summary>
-        Type? TypeIdentity { get; }
-    }
+    Type? TypeIdentity { get; }
 }

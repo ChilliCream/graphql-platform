@@ -6,106 +6,105 @@ using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Generators
+namespace StrawberryShake.CodeGeneration.CSharp.Generators;
+
+public partial class JsonResultBuilderGenerator
 {
-    public partial class JsonResultBuilderGenerator
+    private const string _typename = "typename";
+
+    private void AddDataTypeDeserializerMethod(
+        ClassBuilder classBuilder,
+        MethodBuilder methodBuilder,
+        ComplexTypeDescriptor complexTypeDescriptor,
+        HashSet<string> processed)
     {
-        private const string _typename = "typename";
-
-        private void AddDataTypeDeserializerMethod(
-            ClassBuilder classBuilder,
-            MethodBuilder methodBuilder,
-            ComplexTypeDescriptor complexTypeDescriptor,
-            HashSet<string> processed)
+        if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
         {
-            if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
-            {
-                AddInterfaceDataTypeDeserializerToMethod(methodBuilder, interfaceTypeDescriptor);
-            }
-            else
-            {
-                MethodCallBuilder returnStatement = MethodCallBuilder
-                    .New()
-                    .SetReturn()
-                    .SetNew()
-                    .SetMethodName(complexTypeDescriptor.Name);
+            AddInterfaceDataTypeDeserializerToMethod(methodBuilder, interfaceTypeDescriptor);
+        }
+        else
+        {
+            var returnStatement = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetNew()
+                .SetMethodName(complexTypeDescriptor.Name);
 
-                foreach (PropertyDescriptor property in complexTypeDescriptor.Properties)
-                {
-                    returnStatement.AddArgument(BuildUpdateMethodCall(property));
-                }
-
-                methodBuilder.AddCode(returnStatement);
+            foreach (var property in complexTypeDescriptor.Properties)
+            {
+                returnStatement.AddArgument(BuildUpdateMethodCall(property));
             }
 
-            AddRequiredDeserializeMethods(complexTypeDescriptor, classBuilder, processed);
+            methodBuilder.AddCode(returnStatement);
         }
 
-        private void AddInterfaceDataTypeDeserializerToMethod(
-            MethodBuilder methodBuilder,
-            InterfaceTypeDescriptor interfaceTypeDescriptor)
+        AddRequiredDeserializeMethods(complexTypeDescriptor, classBuilder, processed);
+    }
+
+    private void AddInterfaceDataTypeDeserializerToMethod(
+        MethodBuilder methodBuilder,
+        InterfaceTypeDescriptor interfaceTypeDescriptor)
+    {
+        methodBuilder.AddCode(
+            AssignmentBuilder
+                .New()
+                .SetLefthandSide($"var {_typename}")
+                .SetRighthandSide(MethodCallBuilder
+                    .Inline()
+                    .SetMethodName(
+                        _obj,
+                        "Value",
+                        nameof(JsonElement.GetProperty))
+                    .AddArgument(WellKnownNames.TypeName.AsStringToken())
+                    .Chain(x => x.SetMethodName(nameof(JsonElement.GetString)))));
+
+        // If the type is an interface
+        foreach (var concreteType in interfaceTypeDescriptor.ImplementedBy)
         {
-            methodBuilder.AddCode(
-                AssignmentBuilder
-                    .New()
-                    .SetLefthandSide($"var {_typename}")
-                    .SetRighthandSide(MethodCallBuilder
-                        .Inline()
-                        .SetMethodName(
-                            _obj,
-                            "Value",
-                            nameof(JsonElement.GetProperty))
-                        .AddArgument(WellKnownNames.TypeName.AsStringToken())
-                        .Chain(x => x.SetMethodName(nameof(JsonElement.GetString)))));
+            var returnStatement = CreateBuildDataStatement(concreteType)
+                .SetReturn();
 
-            // If the type is an interface
-            foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
-            {
-                MethodCallBuilder returnStatement = CreateBuildDataStatement(concreteType)
-                    .SetReturn();
-
-                IfBuilder ifStatement = IfBuilder
-                    .New()
-                    .SetCondition(
-                        $"typename?.Equals(\"{concreteType.Name}\", " +
-                        $"{TypeNames.OrdinalStringComparison}) ?? false")
-                    .AddCode(returnStatement);
-
-                methodBuilder
-                    .AddEmptyLine()
-                    .AddCode(ifStatement);
-            }
+            var ifStatement = IfBuilder
+                .New()
+                .SetCondition(
+                    $"typename?.Equals(\"{concreteType.Name}\", " +
+                    $"{TypeNames.OrdinalStringComparison}) ?? false")
+                .AddCode(returnStatement);
 
             methodBuilder
                 .AddEmptyLine()
-                .AddCode(ExceptionBuilder.New(TypeNames.NotSupportedException));
+                .AddCode(ifStatement);
         }
 
-        private MethodCallBuilder CreateBuildDataStatement(ObjectTypeDescriptor concreteType)
+        methodBuilder
+            .AddEmptyLine()
+            .AddCode(ExceptionBuilder.New(TypeNames.NotSupportedException));
+    }
+
+    private MethodCallBuilder CreateBuildDataStatement(ObjectTypeDescriptor concreteType)
+    {
+        var returnStatement = MethodCallBuilder
+            .New()
+            .SetNew()
+            .SetMethodName(
+                $"{concreteType.RuntimeType.Namespace}.State." +
+                CreateDataTypeName(concreteType.Name))
+            .AddArgument("typename");
+
+        foreach (var property in concreteType.Properties)
         {
-            MethodCallBuilder returnStatement = MethodCallBuilder
-                .New()
-                .SetNew()
-                .SetMethodName(
-                    $"{concreteType.RuntimeType.Namespace}.State." +
-                    CreateDataTypeName(concreteType.Name))
-                .AddArgument("typename");
-
-            foreach (PropertyDescriptor property in concreteType.Properties)
+            if (property.Name.EqualsOrdinal(WellKnownNames.TypeName))
             {
-                if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
-                {
-                    continue;
-                }
-
-                returnStatement.AddArgument(
-                    CodeBlockBuilder
-                        .New()
-                        .AddCode($"{GetParameterName(property.Name)}: ")
-                        .AddCode(BuildUpdateMethodCall(property)));
+                continue;
             }
 
-            return returnStatement;
+            returnStatement.AddArgument(
+                CodeBlockBuilder
+                    .New()
+                    .AddCode($"{GetParameterName(property.Name)}: ")
+                    .AddCode(BuildUpdateMethodCall(property)));
         }
+
+        return returnStatement;
     }
 }

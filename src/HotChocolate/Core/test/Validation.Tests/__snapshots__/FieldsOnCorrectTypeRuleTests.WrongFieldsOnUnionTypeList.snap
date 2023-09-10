@@ -1,0 +1,62 @@
+﻿[
+  {
+    "Message": "A union type cannot declare a field directly. Use inline fragments or fragments instead.",
+    "Code": null,
+    "Path": {
+      "Name": "list",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 26
+      }
+    ],
+    "Extensions": {
+      "type": "Foo",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "SelectionSet",
+      "Location": {
+        "Start": 50,
+        "End": 119,
+        "Line": 3,
+        "Column": 26
+      },
+      "Selections": [
+        {
+          "Kind": "Field",
+          "Alias": null,
+          "Arguments": [],
+          "Required": null,
+          "SelectionSet": null,
+          "Location": {
+            "Start": 76,
+            "End": 101,
+            "Line": 4,
+            "Column": 25
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 76,
+              "End": 101,
+              "Line": 4,
+              "Column": 25
+            },
+            "Value": "qux"
+          },
+          "Directives": []
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,8 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+  bar: String!
+}

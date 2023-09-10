@@ -4,44 +4,43 @@ using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Utilities;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.Mappers
+namespace StrawberryShake.CodeGeneration.Mappers;
+
+public static class ResultBuilderDescriptorMapper
 {
-    public class ResultBuilderDescriptorMapper
+    public static void Map(ClientModel model, IMapperContext context)
     {
-        public static void Map(ClientModel model, IMapperContext context)
+        foreach (var modelOperation in model.Operations)
         {
-            foreach (OperationModel modelOperation in model.Operations)
-            {
-                RuntimeTypeInfo resultType = context.GetRuntimeType(
-                    modelOperation.ResultType.Name,
-                    Descriptors.TypeDescriptors.TypeKind.Result);
+            var resultType = context.GetRuntimeType(
+                modelOperation.ResultType.Name,
+                Descriptors.TypeDescriptors.TypeKind.Result);
 
-                context.Register(
-                    modelOperation.Name,
-                    new ResultBuilderDescriptor(
-                        new RuntimeTypeInfo(
-                            CreateResultBuilderName(modelOperation.Name),
-                            CreateStateNamespace(context.Namespace)),
-                        context.Types.Single(t => t.RuntimeType.Equals(resultType)),
-                        modelOperation.LeafTypes.Select(
-                            leafType =>
-                            {
-                                string runtimeType =
-                                    leafType.RuntimeType.Contains('.')
-                                        ? leafType.RuntimeType
-                                        : $"{context.Namespace}.{leafType.RuntimeType}";
+            context.Register(
+                modelOperation.Name,
+                new ResultBuilderDescriptor(
+                    new RuntimeTypeInfo(
+                        CreateResultBuilderName(modelOperation.Name),
+                        CreateStateNamespace(context.Namespace)),
+                    context.Types.Single(t => t.RuntimeType.Equals(resultType)),
+                    modelOperation.LeafTypes.Select(
+                        leafType =>
+                        {
+                            var runtimeType =
+                                leafType.RuntimeType.Contains('.')
+                                    ? leafType.RuntimeType
+                                    : $"{context.Namespace}.{leafType.RuntimeType}";
 
-                                string serializationType =
-                                    leafType.SerializationType.Contains('.')
-                                        ? leafType.SerializationType
-                                        : $"{context.Namespace}.{leafType.SerializationType}";
+                            var serializationType =
+                                leafType.SerializationType.Contains('.')
+                                    ? leafType.SerializationType
+                                    : $"{context.Namespace}.{leafType.SerializationType}";
 
-                                return new ValueParserDescriptor(
-                                    leafType.Name,
-                                    model.Schema.GetOrCreateTypeInfo(runtimeType),
-                                    model.Schema.GetOrCreateTypeInfo(serializationType));
-                            }).ToList()));
-            }
+                            return new ValueParserDescriptor(
+                                leafType.Name,
+                                model.Schema.GetOrCreateTypeInfo(runtimeType),
+                                model.Schema.GetOrCreateTypeInfo(serializationType));
+                        }).ToList()));
         }
     }
 }

@@ -1,92 +1,159 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.TestHost;
-using HotChocolate.AspNetCore.Utilities;
+using System.Net;
+using System.Net.Http.Json;
+using CookieCrumble;
+using CookieCrumble.Formatters;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Serialization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
+using Newtonsoft.Json;
+using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public class HttpPostMiddlewareTests : ServerTestBase
 {
-    public class HttpPostMiddlewareTests : ServerTestBase
+    private static readonly Uri _url = new("http://localhost:5000/graphql");
+
+    public HttpPostMiddlewareTests(TestServerFactory serverFactory)
+        : base(serverFactory) { }
+
+    [Fact]
+    public async Task Simple_IsAlive_Test()
     {
-        public HttpPostMiddlewareTests(TestServerFactory serverFactory)
-            : base(serverFactory)
-        {
-        }
+        // arrange
+        var server = CreateStarWarsServer();
 
-        [Fact]
-        public async Task Simple_IsAlive_Test()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ __typename }" });
 
-            // act
-            ClientQueryResult result = await server.PostAsync(
-                new ClientQueryRequest { Query = "{ __typename }" });
+        // assert
+        result.MatchSnapshot();
+    }
 
-            // assert
-            result.MatchSnapshot();
-        }
+    [Fact]
+    public async Task LimitTokenCount_Success()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyParserOptions(o => o.MaxAllowedNodes = 6));
 
-        [Fact]
-        public async Task Serialize_Payload_With_Whitespaces()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureServices: sc => sc.AddHttpResultSerializer(indented: true));
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ s: __typename }" });
 
-            // act
-            ClientRawResult result = await server.PostRawAsync(
-                new ClientQueryRequest { Query = "{ __typename }" });
+        // assert
+        result.MatchSnapshot();
+    }
 
-            // assert
-            result.MatchSnapshot();
-        }
+    [Fact]
+    public async Task LimitTokenCount_Fail()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyParserOptions(o => o.MaxAllowedNodes = 6));
 
-        [Fact]
-        public async Task Serialize_Payload_Without_Extra_Whitespaces()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureServices: sc => sc.AddHttpResultSerializer(indented: false));
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ s: __typename t: __typename }" });
 
-            // act
-            ClientRawResult result = await server.PostRawAsync(
-                new ClientQueryRequest { Query = "{ __typename }" });
+        // assert
+        result.MatchSnapshot();
+    }
 
-            // assert
-            result.MatchSnapshot();
-        }
+    [Fact]
+    public async Task MapGraphQLHttp_Simple_IsAlive_Test()
+    {
+        // arrange
+        var server = CreateServer(endpoint => endpoint.MapGraphQLHttp());
 
-        [Fact]
-        public async Task Simple_IsAlive_Test_On_Non_GraphQL_Path()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer("/foo");
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ __typename }" });
 
-            // act
-            ClientQueryResult result = await server.PostAsync(
-                new ClientQueryRequest { Query = "{ __typename }" },
-                "/foo");
+        // assert
+        result.MatchSnapshot();
+    }
 
-            // assert
-            result.MatchSnapshot();
-        }
+    [Fact(Skip = "We are currently reworking the query plans.")]
+    public async Task Include_Query_Plan()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-        [Fact]
-        public async Task SingleRequest_GetHeroName()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ __typename }" },
+            includeQueryPlan: true);
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Serialize_Payload_With_Whitespaces()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sc => sc.AddHttpResponseFormatter(indented: true));
+
+        // act
+        var result = await server.PostRawAsync(
+            new ClientQueryRequest { Query = "{ __typename }" });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Serialize_Payload_Without_Extra_Whitespaces()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sc => sc.AddHttpResponseFormatter(indented: false));
+
+        // act
+        var result = await server.PostRawAsync(
+            new ClientQueryRequest { Query = "{ __typename }" });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Simple_IsAlive_Test_On_Non_GraphQL_Path()
+    {
+        // arrange
+        var server = CreateStarWarsServer("/foo");
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ __typename }" },
+            "/foo");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SingleRequest_GetHeroName()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -96,19 +163,20 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_GetHeroName_Casing_Is_Preserved()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_GetHeroName_Casing_Is_Preserved()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -118,19 +186,49 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_GetHeroName_With_EnumVariable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task Complexity_Exceeded()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(
+                o =>
+                {
+                    o.Complexity.Enable = true;
+                    o.Complexity.MaximumAllowed = 1;
+                }));
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        HERO: hero {
+                            name
+                        }
+                    }"
+                });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SingleRequest_GetHeroName_With_EnumVariable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     query ($episode: Episode!) {
@@ -138,22 +236,68 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_GetHumanName_With_StringVariable()
+    [Fact]
+    public async Task Override_OnWriteResponseHeaders()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddHttpResponseFormatter<CustomFormatter>());
+
+        // act
+        var result =
+            await server.PostHttpAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                    query ($episode: Episode!) {
+                        hero(episode: $episode) {
+                            name
+                        }
+                    }",
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            Headers:
+            abc: def
+            Content-Type: application/graphql-response+json; charset=utf-8
+            -------------------------->
+            Status Code: OK
+            -------------------------->
+            {"data":{"hero":{"name":"R2-D2"}}}
+            """);
+    }
+
+    private class CustomFormatter : DefaultHttpResponseFormatter
+    {
+        protected override void OnWriteResponseHeaders(
+            IQueryResult result,
+            FormatInfo format,
+            IHeaderDictionary headers)
         {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+            headers.TryAdd("abc", "def");
+        }
+    }
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+    [Fact]
+    public async Task SingleRequest_GetHumanName_With_StringVariable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     query h($id: String!) {
@@ -161,25 +305,29 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object> { { "id", "1000" } }
+                    Variables = new Dictionary<string, object?> { { "id", "1000" } }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Defer_Results()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_Defer_Results()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientRawResult result =
-                await server.PostRawAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostRawAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
+                        ... @defer {
+                            wait(m: 300)
+                        }
                         hero(episode: NEW_HOPE)
                         {
                             name
@@ -191,19 +339,279 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task Single_Diagnostic_Listener_Is_Triggered()
+    {
+        // arrange
+        var listenerA = new TestListener();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listenerA));
+
+        // act
+        await server.PostRawAsync(
+            new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    ... @defer {
+                        wait(m: 300)
+                    }
+                    hero(episode: NEW_HOPE)
+                    {
+                        name
+                        ... on Droid @defer(label: ""my_id"")
+                        {
+                            id
+                        }
+                    }
+                }"
+            });
+
+        // assert
+        Assert.True(listenerA.Triggered);
+    }
+
+    [Fact]
+    public async Task Aggregate_Diagnostic_All_Listeners_Are_Triggered()
+    {
+        // arrange
+        var listenerA = new TestListener();
+        var listenerB = new TestListener();
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listenerA)
+                .AddDiagnosticEventListener(_ => listenerB));
+
+        // act
+        await server.PostRawAsync(
+            new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    ... @defer {
+                        wait(m: 300)
+                    }
+                    hero(episode: NEW_HOPE)
+                    {
+                        name
+                        ... on Droid @defer(label: ""my_id"")
+                        {
+                            id
+                        }
+                    }
+                }"
+            });
+
+        // assert
+        Assert.True(listenerA.Triggered);
+        Assert.True(listenerB.Triggered);
+    }
+
+    [Fact]
+    public async Task Apollo_Tracing_Invalid_Field()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddApolloTracing());
+
+        // act
+        var response = await server.PostRawAsync(
+            new ClientQueryRequest
+            {
+                Query =
+                    @"{
+                        hero123(episode: NEW_HOPE)
+                        {
+                            name
+                        }
+                    }"
+            },
+            enableApolloTracing: true);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Ensure_Multipart_Format_Is_Correct_With_Defer()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostHttpAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        ... @defer {
+                            wait(m: 300)
+                        }
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            ... on Droid @defer(label: ""my_id"")
+                            {
+                                id
+                            }
+                        }
+                    }"
+                });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2",
+                  "id": "2001"
+                },
+                "wait": true
+              }
+            }
+            """,
+            formatter: SnapshotValueFormatters.GraphQLHttp);
+    }
+
+    [Fact]
+    public async Task Ensure_Multipart_Format_Is_Correct_With_Defer_If_Condition_True()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostRawAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                    query ($if: Boolean!){
+                        ... @defer {
+                            wait(m: 300)
+                        }
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            ... on Droid @defer(label: ""my_id"", if: $if)
+                            {
+                                id
+                            }
+                        }
+                    }",
+                    Variables = new Dictionary<string, object?> { ["if"] = true }
+                });
+
+        // assert
+        result.Content.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_JSON_Format_Is_Correct_With_Defer_If_Condition_False()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostRawAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                    query ($if: Boolean!){
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            ... on Droid @defer(label: ""my_id"", if: $if)
+                            {
+                                id
+                            }
+                        }
+                    }",
+                    Variables = new Dictionary<string, object?> { ["if"] = false }
+                });
+
+        // assert
+        result.Content.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_Multipart_Format_Is_Correct_With_Stream()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result = await server.PostHttpAsync(
+            new ClientQueryRequest
+            {
+                Query = @"
+                    {
+                        ... @defer {
+                            wait(m: 300)
+                        }
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            friends {
+                                nodes @stream(initialCount: 1 label: ""foo"") {
+                                    name
+                                }
+                            }
+                        }
+                    }"
+            });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2",
+                  "friends": {
+                    "nodes": [
+                      {
+                        "name": "Luke Skywalker"
+                      },
+                      {
+                        "name": "Han Solo"
+                      },
+                      {
+                        "name": "Leia Organa"
+                      }
+                    ]
+                  }
+                },
+                "wait": true
+              }
+            }
+            """,
+            formatter: SnapshotValueFormatters.GraphQLHttp);
+    }
+
+    [Fact]
+    public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -214,7 +622,7 @@ namespace HotChocolate.AspNetCore
                             commentary
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "ep", "EMPIRE" },
                         {
@@ -227,19 +635,20 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -250,11 +659,11 @@ namespace HotChocolate.AspNetCore
                             commentary
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         {
                             "review",
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "stars", 5 }, { "commentary", "This is a great movie!" },
                             }
@@ -262,19 +671,20 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -289,7 +699,7 @@ namespace HotChocolate.AspNetCore
                             commentary
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
@@ -297,19 +707,20 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_CreateReviewForEpisode_Variables_Unused()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_CreateReviewForEpisode_Variables_Unused()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -325,7 +736,7 @@ namespace HotChocolate.AspNetCore
                             commentary
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
@@ -333,22 +744,23 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [InlineData("a")]
-        [InlineData("b")]
-        [Theory]
-        public async Task SingleRequest_Execute_Specific_Operation(
-            string operationName)
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [InlineData("a")]
+    [InlineData("b")]
+    [Theory]
+    public async Task SingleRequest_Execute_Specific_Operation(
+        string operationName)
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     query a {
@@ -365,19 +777,20 @@ namespace HotChocolate.AspNetCore
                     OperationName = operationName
                 });
 
-            // assert
-            result.MatchSnapshot(new SnapshotNameExtension(operationName));
-        }
+        // assert
+        result.MatchSnapshot(operationName);
+    }
 
-        [Fact]
-        public async Task SingleRequest_ValidationError()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_ValidationError()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -385,22 +798,23 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_SyntaxError()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_SyntaxError()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -410,202 +824,208 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Double_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_Double_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                            query ($d: Float) {
+                                 double_arg(d: $d)
+                            }",
+                    Variables = new Dictionary<string, object?> { { "d", 1.539 } }
+                },
+                "/arguments");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SingleRequest_Double_Max_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                            query ($d: Float) {
+                                 double_arg(d: $d)
+                            }",
+                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
+                },
+                "/arguments");
+
+        // assert
+        new { double.MaxValue, result }.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SingleRequest_Double_Min_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", 1.539 } }
+                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
                 },
                 "/arguments");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        new { double.MinValue, result }.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Double_Max_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_Decimal_Max_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
-                        query ($d: Float) {
-                             double_arg(d: $d)
-                        }",
-                    Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
+                            query ($d: Decimal) {
+                                 decimal_arg(d: $d)
+                            }",
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
                 },
                 "/arguments");
 
-            // assert
-            new { double.MaxValue, result }.MatchSnapshot();
-        }
+        // assert
+        new { decimal.MaxValue, result }.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Double_Min_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_Decimal_Min_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
-                        query ($d: Float) {
-                             double_arg(d: $d)
-                        }",
-                    Variables = new Dictionary<string, object> { { "d", double.MinValue } }
+                            query ($d: Decimal) {
+                                 decimal_arg(d: $d)
+                            }",
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
                 },
                 "/arguments");
 
-            // assert
-            new { double.MinValue, result }.MatchSnapshot();
-        }
+        // assert
+        new { decimal.MinValue, result }.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Decimal_Max_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_Incomplete()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
-                        query ($d: Decimal) {
-                             decimal_arg(d: $d)
-                        }",
-                    Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
-                },
-                "/arguments");
+        // act
+        var result = await server.PostAsync("{ \"query\":    ");
 
-            // assert
-            new { decimal.MaxValue, result }.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Decimal_Min_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [InlineData("{}", 1)]
+    [InlineData("{ }", 2)]
+    [InlineData("{\n}", 3)]
+    [InlineData("{\r\n}", 4)]
+    [Theory]
+    public async Task SingleRequest_Empty(string request, int id)
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
-                        query ($d: Decimal) {
-                             decimal_arg(d: $d)
-                        }",
-                    Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
-                },
-                "/arguments");
+        // act
+        var result = await server.PostAsync(request);
 
-            // assert
-            new { decimal.MinValue, result }.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot(id);
+    }
 
-        [Fact]
-        public async Task SingleRequest_Incomplete()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [InlineData("[]", 1)]
+    [InlineData("[ ]", 2)]
+    [InlineData("[\n]", 3)]
+    [InlineData("[\r\n]", 4)]
+    [Theory]
+    public async Task BatchRequest_Empty(string request, int id)
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result = await server.PostAsync("{ \"query\":    ");
+        // act
+        var result = await server.PostAsync(request);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot(id);
+    }
 
-        [InlineData("{}", 1)]
-        [InlineData("{ }", 2)]
-        [InlineData("{\n}", 3)]
-        [InlineData("{\r\n}", 4)]
-        [Theory]
-        public async Task SingleRequest_Empty(string request, int id)
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task EmptyRequest()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result = await server.PostAsync(request);
+        // act
+        var result = await server.PostAsync(string.Empty);
 
-            // assert
-            result.MatchSnapshot(new SnapshotNameExtension(id.ToString()));
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [InlineData("[]", 1)]
-        [InlineData("[ ]", 2)]
-        [InlineData("[\n]", 3)]
-        [InlineData("[\r\n]", 4)]
-        [Theory]
-        public async Task BatchRequest_Empty(string request, int id)
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task Ensure_Middleware_Mapping()
+    {
+        // arrange
+        var server = CreateStarWarsServer("/foo");
 
-            // act
-            ClientQueryResult result = await server.PostAsync(request);
+        // act
+        var result = await server.PostAsync(string.Empty);
 
-            // assert
-            result.MatchSnapshot(new SnapshotNameExtension(id.ToString()));
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task EmptyRequest()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task BatchRequest_GetHero_And_GetHuman()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result = await server.PostAsync(string.Empty);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Ensure_Middleware_Mapping()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer("/foo");
-
-            // act
-            ClientQueryResult result = await server.PostAsync(string.Empty);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task BatchRequest_GetHero_And_GetHuman()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostAsync(new List<ClientQueryRequest>
+        // act
+        var result =
+            await server.PostAsync(
+                new List<ClientQueryRequest>
                 {
                     new ClientQueryRequest
                     {
@@ -627,53 +1047,174 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task OperationBatchRequest_GetHero_And_GetHuman()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp => sp.AddHttpResponseFormatter());
 
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostOperationAsync(
-                    new ClientQueryRequest
+        // act
+        var response =
+            await server.SendPostRequestAsync(
+                JsonConvert.SerializeObject(
+                    new List<ClientQueryRequest>
                     {
-                        Query =
-                            @"query getHero {
+                        new ClientQueryRequest
+                        {
+                            Query = @"
+                            query getHero {
                                 hero(episode: EMPIRE) {
                                     id @export
                                 }
-                            }
-
+                            }"
+                        },
+                        new ClientQueryRequest
+                        {
+                            Query = @"
                             query getHuman {
                                 human(id: $id) {
                                     name
                                 }
                             }"
-                    },
-                    "getHero, getHuman");
+                        }
+                    }),
+                "/graphql");
 
-            // assert
-            result.MatchSnapshot();
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new Exception("GraphQL endpoint not found.");
         }
 
-        [Fact]
-        public async Task OperationBatchRequest_Invalid_BatchingParameter_1()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+        var result = await response.Content.ReadAsStringAsync();
 
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostOperationAsync(
-                    new ClientQueryRequest
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task OperationBatchRequest_GetHero_And_GetHuman()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostOperationAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query getHero {
+                            hero(episode: EMPIRE) {
+                                id @export
+                            }
+                        }
+
+                        query getHuman {
+                            human(id: $id) {
+                                name
+                            }
+                        }"
+                },
+                "getHero, getHuman");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart_Batching_Disabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp => sp.AddHttpResponseFormatter());
+
+        // act
+        var response =
+            await server.SendPostRequestAsync(
+                JsonConvert.SerializeObject(
+                    new List<ClientQueryRequest>
                     {
-                        Query =
-                            @"
+                        new ClientQueryRequest
+                        {
+                            Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
+                            }"
+                        },
+                        new ClientQueryRequest
+                        {
+                            Query = @"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
+                        }
+                    }),
+                path: "/batching");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new Exception("GraphQL endpoint not found.");
+        }
+
+        var result = await response.Content.ReadAsStringAsync();
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task OperationBatchRequest_GetHero_And_GetHuman_Batching_Disabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostOperationAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query getHero {
+                            hero(episode: EMPIRE) {
+                                id @export
+                            }
+                        }
+
+                        query getHuman {
+                            human(id: $id) {
+                                name
+                            }
+                        }"
+                },
+                "getHero, getHuman",
+                path: "/batching");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task OperationBatchRequest_Invalid_BatchingParameter_1()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostOperationAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"
                         query getHero {
                             hero(episode: EMPIRE) {
                                 id @export
@@ -685,26 +1226,26 @@ namespace HotChocolate.AspNetCore
                                 name
                             }
                         }"
-                    },
-                    "getHero",
-                    createOperationParameter: s => "batchOperations=" + s);
+                },
+                "getHero",
+                createOperationParameter: s => "batchOperations=" + s);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task OperationBatchRequest_Invalid_BatchingParameter_2()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task OperationBatchRequest_Invalid_BatchingParameter_2()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostOperationAsync(
-                    new ClientQueryRequest
-                    {
-                        Query = @"
+        // act
+        var result =
+            await server.PostOperationAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                             query getHero {
                                 hero(episode: EMPIRE) {
                                     id @export
@@ -716,26 +1257,26 @@ namespace HotChocolate.AspNetCore
                                     name
                                 }
                             }"
-                    },
-                    "getHero, getHuman",
-                    createOperationParameter: s => "batchOperations=[" + s);
+                },
+                "getHero, getHuman",
+                createOperationParameter: s => "batchOperations=[" + s);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task OperationBatchRequest_Invalid_BatchingParameter_3()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task OperationBatchRequest_Invalid_BatchingParameter_3()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostOperationAsync(
-                    new ClientQueryRequest
-                    {
-                        Query = @"
+        // act
+        var result =
+            await server.PostOperationAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                             query getHero {
                                 hero(episode: EMPIRE) {
                                     id @export
@@ -747,25 +1288,26 @@ namespace HotChocolate.AspNetCore
                                     name
                                 }
                             }"
-                    },
-                    "getHero, getHuman",
-                    createOperationParameter: s => "batchOperations=" + s);
+                },
+                "getHero, getHuman",
+                createOperationParameter: s => "batchOperations=" + s);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Throw_Custom_GraphQL_Error()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureServices: s => s.AddGraphQLServer()
-                    .AddHttpRequestInterceptor<ErrorRequestInterceptor>());
+    [Fact]
+    public async Task Throw_Custom_GraphQL_Error()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer()
+                .AddHttpRequestInterceptor<ErrorRequestInterceptor>());
 
-            // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.PostAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -775,20 +1317,147 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
+    [Fact]
+    public async Task Strip_Null_Values_Variant_1()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddHttpResponseFormatter(
+                _ => new DefaultHttpResponseFormatter(
+                    new() { Json = new() { NullIgnoreCondition = Fields } })));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
-            public override ValueTask OnCreateAsync(
-                HttpContext context,
-                IRequestExecutor requestExecutor,
-                IQueryRequestBuilder requestBuilder,
-                CancellationToken cancellationToken)
-            {
-                throw new GraphQLException("MyCustomError");
-            }
+            Content = JsonContent.Create(
+                new ClientQueryRequest { Query = "{ __schema { description } }" })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""__schema"":{}}}");
+    }
+
+    [Fact]
+    public async Task Strip_Null_Values_Variant_2()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = Fields }
+                }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest { Query = "{ __schema { description } }" })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""__schema"":{}}}");
+    }
+
+    [Fact]
+    public async Task Strip_Null_Elements()
+    {
+        // arrange
+        var url = new Uri("http://localhost:5000/test");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("test")
+                .AddQueryType<NullListQuery>()
+                .Services
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = Lists }
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest { Query = "{ nullValues }" })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""nullValues"":[""abc""]}}");
+    }
+
+    public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            IQueryRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            throw new GraphQLException("MyCustomError");
         }
+    }
+
+    public class TestListener : ServerDiagnosticEventListener
+    {
+        public bool Triggered { get; set; }
+
+        public override IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind)
+        {
+            Triggered = true;
+            return EmptyScope;
+        }
+    }
+
+    public class NullListQuery
+    {
+        public List<string?> NullValues => new() { null, "abc", null };
     }
 }

@@ -1,0 +1,52 @@
+{
+  "data": {
+    "root": {
+      "edges": [
+        {
+          "node": {
+            "foo": "A"
+          },
+          "cursor": "MA=="
+        },
+        {
+          "node": {
+            "foo": "B"
+          },
+          "cursor": "MQ=="
+        },
+        {
+          "node": {
+            "foo": "C"
+          },
+          "cursor": "Mg=="
+        },
+        {
+          "node": {
+            "foo": "D"
+          },
+          "cursor": "Mw=="
+        }
+      ],
+      "nodes": [
+        {
+          "foo": "A"
+        },
+        {
+          "foo": "B"
+        },
+        {
+          "foo": "C"
+        },
+        {
+          "foo": "D"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "Mw=="
+      }
+    }
+  }
+}

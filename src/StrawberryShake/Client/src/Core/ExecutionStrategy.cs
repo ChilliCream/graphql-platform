@@ -1,9 +1,8 @@
-namespace StrawberryShake
+namespace StrawberryShake;
+
+public enum ExecutionStrategy
 {
-    public enum ExecutionStrategy
-    {
-        CacheFirst,
-        CacheAndNetwork,
-        NetworkOnly
-    }
+    CacheFirst,
+    CacheAndNetwork,
+    NetworkOnly
 }

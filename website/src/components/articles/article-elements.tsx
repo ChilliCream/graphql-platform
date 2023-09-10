@@ -1,7 +1,12 @@
 import styled from "styled-components";
-import { IsSmallDesktop } from "../../shared-style";
 
-export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
+import { IsSmallDesktop } from "@/shared-style";
+
+export interface ArticleHeaderProps {
+  readonly kind: "basic" | "blog" | "doc";
+}
+
+export const ArticleHeader = styled.header<ArticleHeaderProps>`
   position: relative;
 
   ${({ kind }) =>
@@ -11,18 +16,56 @@ export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
   `)
       : ""}
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     > .gatsby-image-wrapper {
       border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
   }
 `;
 
+export interface ArticleVideoProps {
+  readonly videoId: string;
+}
+
+export const ArticleVideo = styled.iframe.attrs<ArticleVideoProps>(
+  ({ videoId }) => ({
+    src: `https://www.youtube.com/embed/${videoId}`,
+    frameBorder: 0,
+    allowFullScreen: true,
+  })
+)<ArticleVideoProps>`
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+`;
+
+export const ArticleHeaderVideoContainer = styled.div`
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.22%;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+  > ${ArticleVideo} {
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+  }
+`;
+
+export const ArticleContentVideoContainer = styled.div`
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.22%;
+  margin-bottom: 20px;
+`;
+
 export const ArticleTitle = styled.h1`
   margin: 20px 20px 10px;
   font-size: 2em;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 20px 50px 10px;
   }
 `;
@@ -59,7 +102,7 @@ export const ArticleContent = styled.div`
     }
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     > * {
       padding-right: 50px;
       padding-left: 50px;
@@ -101,4 +144,9 @@ export const ArticleContent = styled.div`
       }
     }
   }
+`;
+
+export const ScrollContainer = styled.div`
+  overflow-y: auto;
+  padding-bottom: 10px;
 `;

@@ -6,195 +6,164 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
+using static HotChocolate.WellKnownDirectives;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+public abstract class OutputFieldDescriptorBase<TDefinition>
+    : DescriptorBase<TDefinition>
+    where TDefinition : OutputFieldDefinitionBase
 {
-    public abstract class OutputFieldDescriptorBase<TDefinition>
-        : DescriptorBase<TDefinition>
-        where TDefinition : OutputFieldDefinitionBase
+    private ICollection<ArgumentDescriptor>? _arguments;
+
+    protected OutputFieldDescriptorBase(IDescriptorContext context)
+        : base(context)
     {
-        private bool _deprecatedDependencySet;
-        private DirectiveDefinition? _deprecatedDirective;
-        private ICollection<ArgumentDescriptor>? _arguments;
+    }
 
-        protected OutputFieldDescriptorBase(IDescriptorContext context)
-            : base(context)
+    protected ICollection<ArgumentDescriptor> Arguments
+        => _arguments ??= new List<ArgumentDescriptor>();
+
+    protected IReadOnlyDictionary<string, ParameterInfo> Parameters { get; set; } =
+        ImmutableDictionary<string, ParameterInfo>.Empty;
+
+    protected override void OnCreateDefinition(TDefinition definition)
+    {
+        base.OnCreateDefinition(definition);
+
+        if (_arguments is not null)
         {
-        }
-
-        protected ICollection<ArgumentDescriptor> Arguments =>
-            _arguments ??= new List<ArgumentDescriptor>();
-
-        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters { get; set; } =
-            ImmutableDictionary<NameString, ParameterInfo>.Empty;
-
-        protected override void OnCreateDefinition(TDefinition definition)
-        {
-            base.OnCreateDefinition(definition);
-
-            foreach (ArgumentDescriptor argument in Arguments)
+            foreach (var argument in Arguments)
             {
                 Definition.Arguments.Add(argument.CreateDefinition());
             }
         }
+    }
 
-        protected void SyntaxNode(FieldDefinitionNode? syntaxNode)
+    protected void SyntaxNode(FieldDefinitionNode? syntaxNode)
+        => Definition.SyntaxNode = syntaxNode;
+
+    protected void Name(string name)
+        => Definition.Name = name;
+
+    protected void Description(string? description)
+        => Definition.Description = description;
+
+    protected void Type<TOutputType>()
+        where TOutputType : IOutputType
+        => Type(typeof(TOutputType));
+
+    protected void Type(Type type)
+    {
+        var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
+
+        if (typeInfo.IsSchemaType && !typeInfo.IsOutputType())
         {
-            Definition.SyntaxNode = syntaxNode;
+            throw new ArgumentException(
+                TypeResources.ObjectFieldDescriptorBase_FieldType);
         }
 
-        protected void Name(NameString name)
+        Definition.SetMoreSpecificType(
+            typeInfo.GetExtendedType(),
+            TypeContext.Output);
+    }
+
+    protected void Type<TOutputType>(TOutputType outputType)
+        where TOutputType : class, IOutputType
+    {
+        if (outputType is null)
         {
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
+            throw new ArgumentNullException(nameof(outputType));
         }
 
-        protected void Description(string? description)
+        if (!outputType.IsOutputType())
         {
-            Definition.Description = description;
+            throw new ArgumentException(
+                TypeResources.ObjectFieldDescriptorBase_FieldType);
         }
 
-        protected void Type<TOutputType>()
-            where TOutputType : IOutputType
+        Definition.Type = new SchemaTypeReference(outputType);
+    }
+
+    protected void Type(ITypeNode typeNode)
+    {
+        if (typeNode is null)
         {
-            Type(typeof(TOutputType));
+            throw new ArgumentNullException(nameof(typeNode));
+        }
+        Definition.SetMoreSpecificType(typeNode, TypeContext.Output);
+    }
+
+    protected void Argument(
+        string name,
+        Action<IArgumentDescriptor> argument)
+    {
+        if (argument is null)
+        {
+            throw new ArgumentNullException(nameof(argument));
         }
 
-        protected void Type(Type type)
+        name.EnsureGraphQLName();
+
+        Parameters.TryGetValue(name, out var parameter);
+
+        var descriptor = parameter is null
+            ? Arguments.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name))
+            : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
+
+        if (descriptor is null && Definition.Arguments.Count > 0)
         {
-            var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
+            var definition = parameter is null
+                ? Definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(name))
+                : Definition.Arguments.FirstOrDefault(t => t.Parameter == parameter);
 
-            if (typeInfo.IsSchemaType && !typeInfo.IsOutputType())
+            if (definition is not null)
             {
-                throw new ArgumentException(
-                    TypeResources.ObjectFieldDescriptorBase_FieldType);
-            }
-
-            Definition.SetMoreSpecificType(
-                typeInfo.GetExtendedType(),
-                TypeContext.Output);
-        }
-
-        protected void Type<TOutputType>(TOutputType outputType)
-            where TOutputType : class, IOutputType
-        {
-            if (outputType is null)
-            {
-                throw new ArgumentNullException(nameof(outputType));
-            }
-
-            if (!outputType.IsOutputType())
-            {
-                throw new ArgumentException(
-                    TypeResources.ObjectFieldDescriptorBase_FieldType);
-            }
-
-            Definition.Type = new SchemaTypeReference(outputType);
-        }
-
-        protected void Type(ITypeNode typeNode)
-        {
-            if (typeNode is null)
-            {
-                throw new ArgumentNullException(nameof(typeNode));
-            }
-            Definition.SetMoreSpecificType(typeNode, TypeContext.Output);
-        }
-
-        protected void Argument(
-            NameString name,
-            Action<IArgumentDescriptor> argument)
-        {
-            if (argument is null)
-            {
-                throw new ArgumentNullException(nameof(argument));
-            }
-
-            name.EnsureNotEmpty(nameof(name));
-
-            ParameterInfo? parameter = null;
-            Parameters?.TryGetValue(name, out parameter);
-
-            ArgumentDescriptor? descriptor = parameter is null
-                ? Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name))
-                : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
-
-            if (descriptor is null)
-            {
-                descriptor = parameter is null
-                    ? ArgumentDescriptor.New(Context, name)
-                    : ArgumentDescriptor.New(Context, parameter);
-                Arguments.Add(descriptor);
-            }
-
-            argument(descriptor);
-        }
-
-        public void Deprecated(string? reason)
-        {
-            if (string.IsNullOrEmpty(reason))
-            {
-                Deprecated();
-            }
-            else
-            {
-                Definition.DeprecationReason = reason;
-                AddDeprecatedDirective(reason);
+                descriptor = ArgumentDescriptor.From(Context, definition);
             }
         }
 
-        public void Deprecated()
+        if (descriptor is null)
         {
-            Definition.DeprecationReason =
-                WellKnownDirectives.DeprecationDefaultReason;
-            AddDeprecatedDirective(null);
+            descriptor = parameter is null
+                ? ArgumentDescriptor.New(Context, name)
+                : ArgumentDescriptor.New(Context, parameter);
+            Arguments.Add(descriptor);
         }
 
-        private void AddDeprecatedDirective(string? reason)
+        argument(descriptor);
+    }
+
+    public void Deprecated(string? reason)
+    {
+        if (string.IsNullOrEmpty(reason))
         {
-            if (_deprecatedDirective != null)
-            {
-                Definition.Directives.Remove(_deprecatedDirective);
-            }
-
-            _deprecatedDirective = new DirectiveDefinition(
-                new DeprecatedDirective(reason),
-                Context.TypeInspector.GetTypeRef(typeof(DeprecatedDirective)));
-            Definition.Directives.Add(_deprecatedDirective);
-
-            if (!_deprecatedDependencySet)
-            {
-                Definition.Dependencies.Add(new TypeDependency(
-                    Context.TypeInspector.GetTypeRef(
-                        typeof(DeprecatedDirectiveType)),
-                    TypeDependencyKind.Completed));
-                _deprecatedDependencySet = true;
-            }
+            Deprecated();
         }
-
-        protected void Ignore(bool ignore = true)
+        else
         {
-            Definition.Ignore = ignore;
-        }
-
-        protected void Directive<T>(T directive)
-            where T : class
-        {
-            Definition.AddDirective(directive, Context.TypeInspector);
-        }
-
-        protected void Directive<T>()
-            where T : class, new()
-        {
-            Definition.AddDirective(new T(), Context.TypeInspector);
-        }
-
-        protected void Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            Definition.AddDirective(name, arguments);
+            Definition.DeprecationReason = reason;
         }
     }
+
+    public void Deprecated()
+        => Definition.DeprecationReason = DeprecationDefaultReason;
+
+    protected void Ignore(bool ignore = true)
+        => Definition.Ignore = ignore;
+
+    protected void Directive<T>(T directive)
+        where T : class
+        => Definition.AddDirective(directive, Context.TypeInspector);
+
+    protected void Directive<T>()
+        where T : class, new()
+        => Definition.AddDirective(new T(), Context.TypeInspector);
+
+    protected void Directive(string name, params ArgumentNode[] arguments)
+        => Definition.AddDirective(name, arguments);
 }

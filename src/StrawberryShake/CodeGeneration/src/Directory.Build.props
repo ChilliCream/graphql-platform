@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>$(ToolingTargetFrameworks)</TargetFrameworks>
     <NoWarn>$(NoWarn);CA1812</NoWarn>
   </PropertyGroup>
 

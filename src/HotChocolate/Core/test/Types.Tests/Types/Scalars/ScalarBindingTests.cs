@@ -2,110 +2,111 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types
+#nullable enable
+
+namespace HotChocolate.Types;
+
+public class ScalarBindingTests
 {
-    public class ScalarBindingTests
+    [Fact]
+    public void Ensure_That_Explicit_Binding_Behavior_Is_Respected_On_Scalars()
     {
-        [Fact]
-        public void Ensure_That_Explicit_Binding_Behavior_Is_Respected_On_Scalars()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryA>()
-                .Create();
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryA>()
+            .Create();
 
-            // assert
-            schema.ToString().MatchSnapshot();
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void Ensure_That_Implicit_Binding_Behavior_Is_Respected_On_Scalars()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryB>()
+            .Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    public class QueryA
+    {
+        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))]int id) => new Bar();
+    }
+
+    public class QueryB
+    {
+        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))]int id) => new Bar();
+    }
+
+    public class Bar
+    {
+        public Baz? Baz { get; set; }
+    }
+
+    public class Baz
+    {
+        public int Text { get; set; }
+    }
+
+    public class ImplicitBindingScalar : ScalarType<int>
+    {
+        public ImplicitBindingScalar()
+            : base("FOO", BindingBehavior.Implicit)
+        {
         }
 
-        [Fact]
-        public void Ensure_That_Implicit_Binding_Behavior_Is_Respected_On_Scalars()
+        public override bool IsInstanceOfType(IValueNode literal)
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryB>()
-                .Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
+            throw new System.NotImplementedException();
         }
 
-        public class QueryA
+        public override object? ParseLiteral(IValueNode valueSyntax)
         {
-            public Bar Bar([GraphQLType(typeof(ExplicitBindingScalar))]int id) => new Bar();
+            throw new System.NotImplementedException();
         }
 
-        public class QueryB
+        public override IValueNode ParseValue(object? value)
         {
-            public Bar Bar([GraphQLType(typeof(ImplicitBindingScalar))]int id) => new Bar();
+            throw new System.NotImplementedException();
         }
 
-        public class Bar
+        public override IValueNode ParseResult(object? resultValue)
         {
-            public Baz Baz { get; set; }
+            throw new System.NotImplementedException();
+        }
+    }
+
+    public class ExplicitBindingScalar : ScalarType<int>
+    {
+        public ExplicitBindingScalar()
+            : base("FOO", BindingBehavior.Explicit)
+        {
         }
 
-        public class Baz
+        public override bool IsInstanceOfType(IValueNode literal)
         {
-            public int Text { get; set; }
+            throw new System.NotImplementedException();
         }
 
-        public class ImplicitBindingScalar : ScalarType<int>
+        public override object? ParseLiteral(IValueNode valueSyntax)
         {
-            public ImplicitBindingScalar()
-                : base("FOO", BindingBehavior.Implicit)
-            {
-            }
-
-            public override bool IsInstanceOfType(IValueNode literal)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public override IValueNode ParseValue(object value)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public override IValueNode ParseResult(object resultValue)
-            {
-                throw new System.NotImplementedException();
-            }
+            throw new System.NotImplementedException();
         }
 
-        public class ExplicitBindingScalar : ScalarType<int>
+        public override IValueNode ParseValue(object? value)
         {
-            public ExplicitBindingScalar()
-                : base("FOO", BindingBehavior.Explicit)
-            {
-            }
+            throw new System.NotImplementedException();
+        }
 
-            public override bool IsInstanceOfType(IValueNode literal)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public override IValueNode ParseValue(object value)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public override IValueNode ParseResult(object resultValue)
-            {
-                throw new System.NotImplementedException();
-            }
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

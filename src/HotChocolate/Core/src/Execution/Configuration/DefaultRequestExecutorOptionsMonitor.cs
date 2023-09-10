@@ -5,145 +5,142 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
-namespace HotChocolate.Execution.Configuration
+namespace HotChocolate.Execution.Configuration;
+
+internal sealed class DefaultRequestExecutorOptionsMonitor
+    : IRequestExecutorOptionsMonitor
+    , IDisposable
 {
-    internal sealed class DefaultRequestExecutorOptionsMonitor
-        : IRequestExecutorOptionsMonitor
-        , IDisposable
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
+    private readonly IRequestExecutorOptionsProvider[] _optionsProviders;
+    private readonly Dictionary<string, List<IConfigureRequestExecutorSetup>> _configs =
+        new();
+    private readonly List<IDisposable> _disposables = new();
+    private readonly List<Action<string>> _listeners = new();
+    private bool _initialized;
+    private bool _disposed;
+
+    public DefaultRequestExecutorOptionsMonitor(
+        IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
+        IEnumerable<IRequestExecutorOptionsProvider> optionsProviders)
     {
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
-        private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
-        private readonly IRequestExecutorOptionsProvider[] _optionsProviders;
-        private readonly Dictionary<NameString, List<IConfigureRequestExecutorSetup>> _configs =
-            new();
-        private readonly List<IDisposable> _disposables = new();
-        private readonly List<Action<NameString>> _listeners = new();
-        private bool _initialized;
-        private bool _disposed;
+        _optionsMonitor = optionsMonitor;
+        _optionsProviders = optionsProviders.ToArray();
+    }
 
-        public DefaultRequestExecutorOptionsMonitor(
-            IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
-            IEnumerable<IRequestExecutorOptionsProvider> optionsProviders)
+    public async ValueTask<RequestExecutorSetup> GetAsync(
+        string schemaName,
+        CancellationToken cancellationToken = default)
+    {
+        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+
+        var options = new RequestExecutorSetup();
+        _optionsMonitor.Get(schemaName).CopyTo(options);
+
+        if (_configs.TryGetValue(schemaName, out var configurations))
         {
-            _optionsMonitor = optionsMonitor;
-            _optionsProviders = optionsProviders.ToArray();
-        }
-
-        public async ValueTask<RequestExecutorSetup> GetAsync(
-            NameString schemaName,
-            CancellationToken cancellationToken = default)
-        {
-            await InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-            var options = new RequestExecutorSetup();
-             _optionsMonitor.Get(schemaName).CopyTo(options);
-
-            if (_configs.TryGetValue(
-                schemaName,
-                out List<IConfigureRequestExecutorSetup>? configurations))
+            foreach (var configuration in configurations)
             {
-                foreach (IConfigureRequestExecutorSetup configuration in configurations)
-                {
-                    configuration.Configure(options);
-                }
+                configuration.Configure(options);
             }
-
-            return options;
         }
 
-        private async ValueTask InitializeAsync(CancellationToken cancellationToken)
+        return options;
+    }
+
+    private async ValueTask InitializeAsync(CancellationToken cancellationToken)
+    {
+        if (!_initialized)
         {
+            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
             if (!_initialized)
             {
-                await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                _configs.Clear();
 
-                if (!_initialized)
+                foreach (var provider in _optionsProviders)
                 {
-                    _configs.Clear();
+                    _disposables.Add(provider.OnChange(OnChange));
 
-                    foreach (IRequestExecutorOptionsProvider provider in _optionsProviders)
+                    var allConfigurations =
+                        await provider.GetOptionsAsync(cancellationToken)
+                            .ConfigureAwait(false);
+
+                    foreach (var configuration in allConfigurations)
                     {
-                        _disposables.Add(provider.OnChange(OnChange));
-
-                        IEnumerable<IConfigureRequestExecutorSetup> allConfigurations =
-                            await provider.GetOptionsAsync(cancellationToken)
-                                .ConfigureAwait(false);
-
-                        foreach (IConfigureRequestExecutorSetup configuration in allConfigurations)
+                        if (!_configs.TryGetValue(
+                            configuration.SchemaName,
+                            out var configurations))
                         {
-                            if (!_configs.TryGetValue(
-                                configuration.SchemaName,
-                                out List<IConfigureRequestExecutorSetup>? configurations))
-                            {
-                                configurations = new List<IConfigureRequestExecutorSetup>();
-                                _configs.Add(configuration.SchemaName, configurations);
-                            }
-
-                            configurations.Add(configuration);
+                            configurations = new List<IConfigureRequestExecutorSetup>();
+                            _configs.Add(configuration.SchemaName, configurations);
                         }
-                    }
 
-                    _initialized = true;
+                        configurations.Add(configuration);
+                    }
                 }
 
-                _semaphore.Release();
+                _initialized = true;
+            }
+
+            _semaphore.Release();
+        }
+    }
+
+    public IDisposable OnChange(Action<string> listener) =>
+        new Session(this, listener);
+
+    private void OnChange(IConfigureRequestExecutorSetup changes)
+    {
+        _initialized = false;
+
+        lock (_listeners)
+        {
+            foreach (var listener in _listeners)
+            {
+                listener.Invoke(changes.SchemaName);
             }
         }
+    }
 
-        public IDisposable OnChange(Action<NameString> listener) =>
-            new Session(this, listener);
-
-        private void OnChange(IConfigureRequestExecutorSetup changes)
+    public void Dispose()
+    {
+        if (!_disposed)
         {
-            _initialized = false;
+            _semaphore.Dispose();
 
-            lock (_listeners)
+            foreach (var disposable in _disposables)
             {
-                foreach (Action<NameString> listener in _listeners)
-                {
-                    listener.Invoke(changes.SchemaName);
-                }
+                disposable.Dispose();
+            }
+
+            _disposed = true;
+        }
+    }
+
+    private sealed class Session : IDisposable
+    {
+        private readonly DefaultRequestExecutorOptionsMonitor _monitor;
+        private readonly Action<string> _listener;
+
+        public Session(
+            DefaultRequestExecutorOptionsMonitor monitor,
+            Action<string> listener)
+        {
+            lock (monitor._listeners)
+            {
+                _monitor = monitor;
+                _listener = listener;
+                monitor._listeners.Add(listener);
             }
         }
 
         public void Dispose()
         {
-            if (!_disposed)
+            lock (_monitor._listeners)
             {
-                _semaphore.Dispose();
-
-                foreach (IDisposable disposable in _disposables)
-                {
-                    disposable.Dispose();
-                }
-
-                _disposed = true;
-            }
-        }
-
-        private class Session : IDisposable
-        {
-            private readonly DefaultRequestExecutorOptionsMonitor _monitor;
-            private readonly Action<NameString> _listener;
-
-            public Session(
-                DefaultRequestExecutorOptionsMonitor monitor,
-                Action<NameString> listener)
-            {
-                lock (monitor._listeners)
-                {
-                    _monitor = monitor;
-                    _listener = listener;
-                    monitor._listeners.Add(listener);
-                }
-            }
-
-            public void Dispose()
-            {
-                lock (_monitor._listeners)
-                {
-                    _monitor._listeners.Remove(_listener);
-                }
+                _monitor._listeners.Remove(_listener);
             }
         }
     }

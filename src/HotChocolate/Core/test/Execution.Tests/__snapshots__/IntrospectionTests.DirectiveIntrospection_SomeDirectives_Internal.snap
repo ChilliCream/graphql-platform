@@ -1,7 +1,183 @@
-﻿{
+{
   "data": {
     "__schema": {
       "types": [
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": null
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
         {
           "fields": [
             {
@@ -38,7 +214,7 @@
                   "args": [
                     {
                       "name": "quox",
-                      "value": "{  }"
+                      "value": "{ a: \u0022DEF\u0022 }"
                     }
                   ]
                 },
@@ -54,183 +230,10 @@
           "fields": null
         },
         {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
-        },
-        {
-          "fields": null
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
-        },
-        {
           "fields": null
         },
         {
           "fields": null
-        },
-        {
-          "fields": null
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
-        },
-        {
-          "fields": null
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
         }
       ]
     }

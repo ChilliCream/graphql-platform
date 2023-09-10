@@ -1,9 +1,11 @@
 using System;
 using Nuke.Common;
 
-partial class Build : NukeBuild
+partial class Build
 {
     [Parameter] readonly string GitHubToken;
+
+    [Parameter] readonly string CodeCovToken;
 
     /// <summary>
     /// ChilliCream/hotchocolate
@@ -21,7 +23,6 @@ partial class Build : NukeBuild
     /// Ex: sonar.pullrequest.branch=feature/my-new-feature
     /// </summary>
     [Parameter] readonly string GitHubHeadRef = Environment.GetEnvironmentVariable("HC_GITHUB_HEAD_REF");
-
 
     /// <summary>
     /// The long-lived branch into which the PR will be merged.

@@ -1,10 +1,9 @@
 using HotChocolate.Data.Filters.Expressions;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data.Filters.Spatial;
+
+public class QueryableSpatialBufferDataHandler
+    : QueryableDataOperationHandler
 {
-    public class QueryableSpatialBufferDataHandler
-        : QueryableDataOperationHandler
-    {
-        protected override int Operation => SpatialFilterOperations.Buffer;
-    }
+    protected override int Operation => SpatialFilterOperations.Buffer;
 }

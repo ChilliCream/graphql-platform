@@ -1,61 +1,121 @@
 using System.Threading.Tasks;
-using HotChocolate.Utilities;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types.Pagination;
+
+public abstract class CursorPagingHandler : IPagingHandler
 {
-    public abstract class CursorPagingHandler : IPagingHandler
+    protected CursorPagingHandler(PagingOptions options)
     {
-        protected CursorPagingHandler(PagingOptions options)
+        DefaultPageSize =
+            options.DefaultPageSize ??
+                PagingDefaults.DefaultPageSize;
+        MaxPageSize =
+            options.MaxPageSize ??
+                PagingDefaults.MaxPageSize;
+        IncludeTotalCount =
+            options.IncludeTotalCount ??
+                PagingDefaults.IncludeTotalCount;
+        RequirePagingBoundaries =
+            options.RequirePagingBoundaries ??
+                PagingDefaults.RequirePagingBoundaries;
+        AllowBackwardPagination =
+            options.AllowBackwardPagination ??
+                PagingDefaults.AllowBackwardPagination;
+
+        if (MaxPageSize < DefaultPageSize)
         {
-            DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
-            MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
-
-            if (MaxPageSize < DefaultPageSize)
-            {
-                DefaultPageSize = MaxPageSize;
-            }
+            DefaultPageSize = MaxPageSize;
         }
-
-        protected int DefaultPageSize { get; }
-
-        protected int MaxPageSize { get; }
-
-        public void ValidateContext(IResolverContext context)
-        {
-            int? first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
-            int? last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
-
-            if (first > MaxPageSize || last > MaxPageSize)
-            {
-                throw ThrowHelper.ConnectionMiddleware_MaxPageSize();
-            }
-        }
-
-        async ValueTask<IPage> IPagingHandler.SliceAsync(
-            IResolverContext context,
-            object source)
-        {
-            int? first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
-            int? last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
-
-            if (first is null && last is null)
-            {
-                first = DefaultPageSize;
-            }
-
-            var arguments = new CursorPagingArguments(
-                first,
-                last,
-                context.ArgumentValue<string?>(CursorPagingArgumentNames.After),
-                context.ArgumentValue<string?>(CursorPagingArgumentNames.Before));
-
-            return await SliceAsync(context, source, arguments).ConfigureAwait(false);
-        }
-
-        protected abstract ValueTask<Connection> SliceAsync(
-            IResolverContext context,
-            object source,
-            CursorPagingArguments arguments);
     }
+
+    /// <summary>
+    /// Gets the default page size.
+    /// </summary>
+    protected int DefaultPageSize { get; }
+
+    /// <summary>
+    /// Gets max allowed page size.
+    /// </summary>
+    protected int MaxPageSize { get; }
+
+    /// <summary>
+    /// Defines if the paging middleware shall require the
+    /// API consumer to specify paging boundaries.
+    /// </summary>
+    protected bool RequirePagingBoundaries { get; }
+
+    /// <summary>
+    /// Result should include total count.
+    /// </summary>
+    protected bool IncludeTotalCount { get; }
+
+    /// <summary>
+    /// Defines if backward pagination is allowed or deactivated.
+    /// </summary>
+    protected bool AllowBackwardPagination { get; }
+
+    public void ValidateContext(IResolverContext context)
+    {
+        var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
+        var last = AllowBackwardPagination
+            ? context.ArgumentValue<int?>(CursorPagingArgumentNames.Last)
+            : null;
+
+        if (RequirePagingBoundaries && first is null && last is null)
+        {
+            throw ThrowHelper.PagingHandler_NoBoundariesSet(
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (first > MaxPageSize)
+        {
+            throw ThrowHelper.PagingHandler_MaxPageSize(
+                (int)first,
+                MaxPageSize,
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (last > MaxPageSize)
+        {
+            throw ThrowHelper.PagingHandler_MaxPageSize(
+                (int)last,
+                MaxPageSize,
+                context.Selection.Field,
+                context.Path);
+        }
+    }
+
+    async ValueTask<IPage> IPagingHandler.SliceAsync(
+        IResolverContext context,
+        object source)
+    {
+        var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
+        var last = AllowBackwardPagination
+            ? context.ArgumentValue<int?>(CursorPagingArgumentNames.Last)
+            : null;
+
+        if (first is null && last is null)
+        {
+            first = DefaultPageSize;
+        }
+
+        var arguments = new CursorPagingArguments(
+            first,
+            last,
+            context.ArgumentValue<string?>(CursorPagingArgumentNames.After),
+            AllowBackwardPagination
+                ? context.ArgumentValue<string?>(CursorPagingArgumentNames.Before)
+                : null);
+
+        return await SliceAsync(context, source, arguments).ConfigureAwait(false);
+    }
+
+    protected abstract ValueTask<Connection> SliceAsync(
+        IResolverContext context,
+        object source,
+        CursorPagingArguments arguments);
 }

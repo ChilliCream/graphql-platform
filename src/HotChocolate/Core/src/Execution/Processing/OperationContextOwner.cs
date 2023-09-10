@@ -1,45 +1,56 @@
 using System;
-using System.Threading;
 using Microsoft.Extensions.ObjectPool;
+using static System.Threading.Interlocked;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+/// <summary>
+/// The operation context owner abstracts the interaction of resolving of
+/// an <see cref="OperationContext"/> instance from its pool and returning to to
+/// the pool through the implementation of <see cref="IDisposable"/>.
+///
+/// In some cases its desirable to not call dispose and abandon a pooled
+/// <see cref="OperationContext"/>.
+/// </summary>
+internal sealed class OperationContextOwner : IDisposable
 {
-    internal class OperationContextOwner : IOperationContextOwner
+    private readonly ObjectPool<OperationContext> _pool;
+    private readonly OperationContext _context;
+    private int _disposed;
+
+    public OperationContextOwner(ObjectPool<OperationContext> operationContextPool)
     {
-        private readonly OperationContext _operationContext;
-        private readonly ObjectPool<OperationContext> _operationContextPool;
-        private int _disposed;
+        _pool = operationContextPool;
+        _context = operationContextPool.Get();
+    }
 
-        public OperationContextOwner(
-            OperationContext operationContext,
-            ObjectPool<OperationContext> operationContextPool)
+    /// <summary>
+    /// Gets the pooled <see cref="OperationContext"/>.
+    /// </summary>
+    /// <exception cref="ObjectDisposedException">
+    /// The operation context was already return to the pool.
+    /// </exception>
+    public OperationContext OperationContext
+    {
+        get
         {
-            _operationContext = operationContext;
-            _operationContextPool = operationContextPool;
-        }
-
-        public IOperationContext OperationContext
-        {
-            get
+            if (_disposed == 1)
             {
-                if (_disposed == 1)
-                {
-                    throw new ObjectDisposedException(nameof(OperationContextOwner));
-                }
-
-                return _operationContext;
+                throw new ObjectDisposedException(nameof(OperationContextOwner));
             }
+
+            return _context;
         }
+    }
 
-        public void Dispose()
+    /// <summary>
+    /// Returns the <see cref="OperationContext"/> back to its pool.
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed == 0 && CompareExchange(ref _disposed, 1, 0) == 0)
         {
-            if (_disposed == 0)
-            {
-                if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
-                {
-                    _operationContextPool.Return(_operationContext);
-                }
-            }
+            _pool.Return(_context);
         }
     }
 }

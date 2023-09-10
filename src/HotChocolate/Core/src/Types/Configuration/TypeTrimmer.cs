@@ -2,194 +2,197 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class TypeTrimmer
 {
-    internal sealed class TypeTrimmer
+    private readonly HashSet<TypeSystemObjectBase> _touched = new();
+    private readonly List<ObjectType> _rootTypes = new();
+    private readonly List<TypeSystemObjectBase> _discoveredTypes;
+
+    public TypeTrimmer(IEnumerable<TypeSystemObjectBase> discoveredTypes)
     {
-        private readonly HashSet<TypeSystemObjectBase> _touched = new();
-        private readonly List<ObjectType> _rootTypes = new();
-        private readonly List<TypeSystemObjectBase> _discoveredTypes;
-
-        public TypeTrimmer(IEnumerable<TypeSystemObjectBase> discoveredTypes)
+        if (discoveredTypes is null)
         {
-            if (discoveredTypes is null)
-            {
-                throw new ArgumentNullException(nameof(discoveredTypes));
-            }
-
-            _discoveredTypes = discoveredTypes.ToList();
+            throw new ArgumentNullException(nameof(discoveredTypes));
         }
 
-        public void AddOperationType(ObjectType? operationType)
+        _discoveredTypes = discoveredTypes.ToList();
+    }
+
+    public void AddOperationType(ObjectType? operationType)
+    {
+        if (operationType is not null)
         {
-            if (operationType is not null)
-            {
-                _rootTypes.Add(operationType);
-            }
+            _rootTypes.Add(operationType);
         }
+    }
 
-        public IReadOnlyCollection<TypeSystemObjectBase> Trim()
+    public IReadOnlyCollection<TypeSystemObjectBase> Trim()
+    {
+        foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
         {
-            foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
+            if (directiveType.IsExecutableDirective ||
+                directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated) ||
+                directiveType.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy))
             {
-                if (directiveType.IsExecutableDirective)
-                {
-                    _touched.Add(directiveType);
-                }
-            }
-
-            foreach (ObjectType rootType in _rootTypes)
-            {
-                VisitRoot(rootType);
-            }
-
-            return _touched;
-        }
-
-        private void VisitRoot(ObjectType rootType)
-        {
-            Visit(rootType);
-        }
-
-        private void Visit(TypeSystemObjectBase type)
-        {
-            if (_touched.Add(type))
-            {
-                switch (type)
-                {
-                    case ScalarType s:
-                        VisitScalar(s);
-                        break;
-
-                    case EnumType e:
-                        VisitEnum(e);
-                        break;
-
-                    case ObjectType o:
-                        VisitObject(o);
-                        break;
-
-                    case UnionType u:
-                        VisitUnion(u);
-                        break;
-
-                    case InterfaceType i:
-                        VisitInterface(i);
-                        break;
-
-                    case DirectiveType d:
-                        VisitDirective(d);
-                        break;
-
-                    case InputObjectType i:
-                        VisitInput(i);
-                        break;
-                }
+                _touched.Add(directiveType);
+                VisitDirective(directiveType);
             }
         }
 
-        private void VisitScalar(ScalarType type)
+        foreach (var rootType in _rootTypes)
         {
-            VisitDirectives(type);
+            VisitRoot(rootType);
         }
 
-        private void VisitEnum(EnumType type)
-        {
-            VisitDirectives(type);
+        return _touched;
+    }
 
-            foreach (IEnumValue value in type.Values)
+    private void VisitRoot(ObjectType rootType)
+    {
+        Visit(rootType);
+    }
+
+    private void Visit(TypeSystemObjectBase type)
+    {
+        if (_touched.Add(type))
+        {
+            switch (type)
             {
-                VisitDirectives(value);
+                case ScalarType s:
+                    VisitScalar(s);
+                    break;
+
+                case EnumType e:
+                    VisitEnum(e);
+                    break;
+
+                case ObjectType o:
+                    VisitObject(o);
+                    break;
+
+                case UnionType u:
+                    VisitUnion(u);
+                    break;
+
+                case InterfaceType i:
+                    VisitInterface(i);
+                    break;
+
+                case DirectiveType d:
+                    VisitDirective(d);
+                    break;
+
+                case InputObjectType i:
+                    VisitInput(i);
+                    break;
             }
         }
+    }
 
-        private void VisitObject(ObjectType type)
+    private void VisitScalar(ScalarType type)
+    {
+        VisitDirectives(type);
+    }
+
+    private void VisitEnum(EnumType type)
+    {
+        VisitDirectives(type);
+
+        foreach (var value in type.Values)
         {
-            VisitDirectives(type);
+            VisitDirectives(value);
+        }
+    }
 
-            foreach (InterfaceType interfaceType in type.Implements)
-            {
-                Visit(interfaceType);
-            }
+    private void VisitObject(ObjectType type)
+    {
+        VisitDirectives(type);
 
-            foreach (ObjectField field in type.Fields)
-            {
-                VisitDirectives(field);
-                Visit((TypeSystemObjectBase)field.Type.NamedType());
-
-                foreach (Argument argument in field.Arguments)
-                {
-                    VisitDirectives(argument);
-                    Visit((TypeSystemObjectBase)argument.Type.NamedType());
-                }
-            }
+        foreach (var interfaceType in type.Implements)
+        {
+            Visit(interfaceType);
         }
 
-        private void VisitUnion(UnionType type)
+        foreach (var field in type.Fields)
         {
-            VisitDirectives(type);
+            VisitDirectives(field);
+            Visit((TypeSystemObjectBase)field.Type.NamedType());
 
-            foreach (ObjectType objectType in type.Types.Values)
+            foreach (var argument in field.Arguments)
             {
-                Visit(objectType);
+                VisitDirectives(argument);
+                Visit((TypeSystemObjectBase)argument.Type.NamedType());
             }
         }
+    }
 
-        private void VisitInterface(InterfaceType type)
+    private void VisitUnion(UnionType type)
+    {
+        VisitDirectives(type);
+
+        foreach (var objectType in type.Types.Values)
         {
-            VisitDirectives(type);
-
-            foreach (InterfaceField field in type.Fields)
-            {
-                VisitDirectives(field);
-                Visit((TypeSystemObjectBase)field.Type.NamedType());
-
-                foreach (Argument argument in field.Arguments)
-                {
-                    VisitDirectives(argument);
-                    Visit((TypeSystemObjectBase)argument.Type.NamedType());
-                }
-            }
-
-            foreach (IComplexOutputType complexType in
-                _discoveredTypes.OfType<IComplexOutputType>())
-            {
-                if (complexType.IsImplementing(type))
-                {
-                    Visit((TypeSystemObjectBase)complexType);
-                }
-            }
+            Visit(objectType);
         }
+    }
 
-        private void VisitInput(InputObjectType type)
+    private void VisitInterface(InterfaceType type)
+    {
+        VisitDirectives(type);
+
+        foreach (var field in type.Fields)
         {
-            VisitDirectives(type);
+            VisitDirectives(field);
+            Visit((TypeSystemObjectBase)field.Type.NamedType());
 
-            foreach (InputField field in type.Fields)
-            {
-                VisitDirectives(field);
-                Visit((TypeSystemObjectBase)field.Type.NamedType());
-            }
-        }
-
-        private void VisitDirective(DirectiveType type)
-        {
-            foreach (Argument argument in type.Arguments)
+            foreach (var argument in field.Arguments)
             {
                 VisitDirectives(argument);
                 Visit((TypeSystemObjectBase)argument.Type.NamedType());
             }
         }
 
-        private void VisitDirectives(IHasDirectives hasDirectives)
+        foreach (var complexType in
+            _discoveredTypes.OfType<IComplexOutputType>())
         {
-            foreach (DirectiveType type in hasDirectives.Directives.Select(t => t.Type))
+            if (complexType.IsImplementing(type))
             {
-                Visit(type);
+                Visit((TypeSystemObjectBase)complexType);
             }
+        }
+    }
+
+    private void VisitInput(InputObjectType type)
+    {
+        VisitDirectives(type);
+
+        foreach (var field in type.Fields)
+        {
+            VisitDirectives(field);
+            Visit((TypeSystemObjectBase)field.Type.NamedType());
+        }
+    }
+
+    private void VisitDirective(DirectiveType type)
+    {
+        foreach (var argument in type.Arguments)
+        {
+            VisitDirectives(argument);
+            Visit((TypeSystemObjectBase)argument.Type.NamedType());
+        }
+    }
+
+    private void VisitDirectives(IHasDirectives hasDirectives)
+    {
+        foreach (var type in hasDirectives.Directives.Select(t => t.Type))
+        {
+            Visit(type);
         }
     }
 }

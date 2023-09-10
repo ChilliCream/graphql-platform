@@ -7,7 +7,7 @@
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
-  guid(guid: Uuid!): Uuid! @delegate(schema: "contract")
+  guid(guid: UUID!): UUID! @delegate(schema: "contract")
   int(i: Int!): Int! @delegate(schema: "contract")
 }
 
@@ -33,7 +33,7 @@ type Customer @source(name: "Customer", schema: "customer") {
   kind: CustomerKind!
   name: String!
   say(input: SayInput!): String
-  someGuid: Uuid!
+  someGuid: UUID!
   someInt: Int!
   street: String!
 }
@@ -89,7 +89,7 @@ input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   id: String
   kind: CustomerKind!
   name: String
-  someGuid: Uuid!
+  someGuid: UUID!
   someInt: Int!
   street: String
 }

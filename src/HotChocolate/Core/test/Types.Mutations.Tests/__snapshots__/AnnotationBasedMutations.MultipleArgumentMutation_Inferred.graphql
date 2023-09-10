@@ -1,0 +1,16 @@
+schema {
+  mutation: MultipleArgumentMutation
+}
+
+type DoSomethingPayload {
+  string: String
+}
+
+type MultipleArgumentMutation {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+input DoSomethingInput {
+  something1: String!
+  something2: String!
+}

@@ -8,562 +8,561 @@ using HotChocolate.StarWars;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Analyzers;
+
+public class FragmentHelperTests
 {
-    public class FragmentHelperTests
+
+    [Fact]
+    public async Task GetReturnTypeName_Found()
     {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
 
-        [Fact]
-        public async Task GetReturnTypeName_Found()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
-                            ... Characters
-                        }
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                        ... Characters
                     }
+                }
 
-                    fragment Characters on Character {
-                        ... Human
-                        ... Droid
+                fragment Characters on Character {
+                    ... Human
+                    ... Droid
+                }
+
+                fragment Hero on Character {
+                    name
+                }
+
+                fragment Human on Human {
+                    ... Hero
+                    homePlanet
+                }
+
+                fragment Droid on Droid {
+                    ... Hero
+                    primaryFunction
+                }");
+
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+
+        // act
+        var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
+
+        // assert
+        Assert.Equal("Hero", returnTypeFragmentName);
+    }
+
+    [Fact]
+    public async Task GetReturnTypeName_Not_Found()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        ... Characters
                     }
+                }
 
-                    fragment Hero on Character {
+                fragment Characters on Character {
+                    ... Human
+                    ... Droid
+                }
+
+                fragment Hero on Character {
+                    name
+                }
+
+                fragment Human on Human {
+                    ... Hero
+                    homePlanet
+                }
+
+                fragment Droid on Droid {
+                    ... Hero
+                    primaryFunction
+                }");
+
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+
+        // act
+        var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
+
+        // assert
+        Assert.Null(returnTypeFragmentName);
+    }
+
+    [Fact]
+    public async Task GetFragment_From_FragmentTree_Found()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                        ... Characters
+                    }
+                }
+
+                fragment Characters on Character @remove {
+                    ... Human
+                    ... Droid
+                }
+
+                fragment Hero on Character {
+                    name
+                }
+
+                fragment Human on Human {
+                    ... Hero
+                    homePlanet
+                }
+
+                fragment Droid on Droid {
+                    ... Hero
+                    primaryFunction
+                }");
+
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
+
+        // act
+        var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
+        var returnTypeFragment = FragmentHelper.CreateFragmentNode(
+            selectionSetVariants.Variants[0],
+            fieldSelection.Path,
+            appendTypeName: true);
+        returnTypeFragment = FragmentHelper.GetFragment(
+            returnTypeFragment,
+            returnTypeFragmentName!);
+
+        // assert
+        Assert.NotNull(returnTypeFragment);
+        Assert.Equal("Hero", returnTypeFragment?.Fragment.Name);
+    }
+
+    [Fact]
+    public async Task Create_TypeModels_Infer_TypeStructure()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) {
                         name
                     }
+                }");
 
-                    fragment Human on Human {
-                        ... Hero
-                        homePlanet
-                    }
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
 
-                    fragment Droid on Droid {
-                        ... Hero
-                        primaryFunction
-                    }");
+        // act
+        var list = new List<OutputTypeModel>();
+        var returnTypeFragment = FragmentHelper.CreateFragmentNode(
+            selectionSetVariants.ReturnType,
+            fieldSelection.Path);
+        list.Add(FragmentHelper.CreateInterface(
+            context,
+            returnTypeFragment,
+            fieldSelection.Path));
 
-            var context = new DocumentAnalyzerContext(schema, document);
-            var selectionSetVariants = context.CollectFields();
-            var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-
-            // act
-            var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
-
-            // assert
-            Assert.Equal("Hero", returnTypeFragmentName);
-        }
-
-        [Fact]
-        public async Task GetReturnTypeName_Not_Found()
+        foreach (var selectionSet in
+                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) {
-                            ... Characters
-                        }
-                    }
-
-                    fragment Characters on Character {
-                        ... Human
-                        ... Droid
-                    }
-
-                    fragment Hero on Character {
-                        name
-                    }
-
-                    fragment Human on Human {
-                        ... Hero
-                        homePlanet
-                    }
-
-                    fragment Droid on Droid {
-                        ... Hero
-                        primaryFunction
-                    }");
-
-            var context = new DocumentAnalyzerContext(schema, document);
-            var selectionSetVariants = context.CollectFields();
-            var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-
-            // act
-            var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
-
-            // assert
-            Assert.Null(returnTypeFragmentName);
-        }
-
-         [Fact]
-        public async Task GetFragment_From_FragmentTree_Found()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
-                            ... Characters
-                        }
-                    }
-
-                    fragment Characters on Character @remove {
-                        ... Human
-                        ... Droid
-                    }
-
-                    fragment Hero on Character {
-                        name
-                    }
-
-                    fragment Human on Human {
-                        ... Hero
-                        homePlanet
-                    }
-
-                    fragment Droid on Droid {
-                        ... Hero
-                        primaryFunction
-                    }");
-
-            var context = new DocumentAnalyzerContext(schema, document);
-            var selectionSetVariants = context.CollectFields();
-            var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
-
-            // act
-            var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
-            var returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                selectionSetVariants.Variants[0],
+            returnTypeFragment = FragmentHelper.CreateFragmentNode(
+                selectionSet,
                 fieldSelection.Path,
                 appendTypeName: true);
-            returnTypeFragment = FragmentHelper.GetFragment(
-                returnTypeFragment,
-                returnTypeFragmentName!);
 
-            // assert
-            Assert.NotNull(returnTypeFragment);
-            Assert.Equal("Hero", returnTypeFragment?.Fragment.Name);
-        }
-
-        [Fact]
-        public async Task Create_TypeModels_Infer_TypeStructure()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) {
-                            name
-                        }
-                    }");
-
-            var context = new DocumentAnalyzerContext(schema, document);
-            var selectionSetVariants = context.CollectFields();
-            var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
-
-            // act
-            var list = new List<OutputTypeModel>();
-            var returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                selectionSetVariants.ReturnType,
-                fieldSelection.Path);
-            list.Add(FragmentHelper.CreateInterface(
+            var @interface = FragmentHelper.CreateInterface(
                 context,
                 returnTypeFragment,
-                fieldSelection.Path));
+                fieldSelection.Path,
+                new []{ list[0] });
 
-            foreach (SelectionSet selectionSet in
-                selectionSetVariants.Variants.OrderBy(t => t.Type.Name.Value))
-            {
-                returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                    selectionSet,
-                    fieldSelection.Path,
-                    appendTypeName: true);
-
-                OutputTypeModel @interface = FragmentHelper.CreateInterface(
-                    context,
-                    returnTypeFragment,
-                    fieldSelection.Path,
-                    new []{ list[0] });
-
-                OutputTypeModel @class = FragmentHelper.CreateClass(
-                    context,
-                    returnTypeFragment,
-                    selectionSet,
-                    @interface);
-
-                list.Add(@interface);
-                list.Add(@class);
-            }
-
-            // assert
-            Assert.Collection(
-                list,
-                type =>
-                {
-                    Assert.Equal("IGetHero_Hero", type.Name);
-
-                    Assert.Empty(type.Implements);
-
-                    Assert.Collection(
-                        type.Fields,
-                        field => Assert.Equal("Name", field.Name));
-                },
-                type =>
-                {
-                    Assert.Equal("IGetHero_Hero_Droid", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero", impl.Name));
-
-                    Assert.Empty(type.Fields);
-                },
-                type =>
-                {
-                    Assert.Equal("GetHero_Hero_Droid", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero_Droid", impl.Name));
-
-                    Assert.Collection(
-                        type.Fields,
-                        field => Assert.Equal("Name", field.Name));
-                },
-                type =>
-                {
-                    Assert.Equal("IGetHero_Hero_Human", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero", impl.Name));
-
-                    Assert.Empty(type.Fields);
-                },
-                type =>
-                {
-                    Assert.Equal("GetHero_Hero_Human", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero_Human", impl.Name));
-
-                    Assert.Collection(
-                        type.Fields,
-                        field => Assert.Equal("Name", field.Name));
-                });
-        }
-
-        [Fact]
-        public async Task Create_TypeModels_Infer_From_Fragments()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) {
-                            ... Hero
-                        }
-                    }
-
-                    fragment Hero on Character {
-                        name
-                        ... Human
-                        ... Droid
-                    }
-
-                    fragment Human on Human {
-                        homePlanet
-                    }
-
-                    fragment Droid on Droid {
-                        primaryFunction
-                    }");
-
-            var context = new DocumentAnalyzerContext(schema, document);
-            var selectionSetVariants = context.CollectFields();
-            var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
-
-            // act
-            var list = new List<OutputTypeModel>();
-            var returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                selectionSetVariants.ReturnType,
-                fieldSelection.Path);
-            list.Add(FragmentHelper.CreateInterface(
+            var @class = FragmentHelper.CreateClass(
                 context,
                 returnTypeFragment,
-                fieldSelection.Path));
+                selectionSet,
+                @interface);
 
-            foreach (SelectionSet selectionSet in
-                selectionSetVariants.Variants.OrderBy(t => t.Type.Name.Value))
-            {
-                returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                    selectionSet,
-                    fieldSelection.Path,
-                    appendTypeName: true);
-
-                OutputTypeModel @interface = FragmentHelper.CreateInterface(
-                    context,
-                    returnTypeFragment,
-                    fieldSelection.Path,
-                    new []{ list[0] });
-
-                OutputTypeModel @class = FragmentHelper.CreateClass(
-                    context,
-                    returnTypeFragment,
-                    selectionSet,
-                    @interface);
-
-                list.Add(@interface);
-                list.Add(@class);
-            }
-
-            // assert
-            Assert.Collection(
-                list,
-                type =>
-                {
-                    Assert.Equal("IGetHero_Hero", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IHero", impl.Name));
-
-                    Assert.Empty(type.Fields);
-                },
-                type =>
-                {
-                    Assert.Equal("IGetHero_Hero_Droid", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero", impl.Name),
-                        impl => Assert.Equal("IDroid", impl.Name));
-
-                    Assert.Empty(type.Fields);
-                },
-                type =>
-                {
-                    Assert.Equal("GetHero_Hero_Droid", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero_Droid", impl.Name));
-
-                    Assert.Collection(
-                        type.Fields,
-                        field => Assert.Equal("Name", field.Name),
-                        field => Assert.Equal("PrimaryFunction", field.Name));
-                },
-                type =>
-                {
-                    Assert.Equal("IGetHero_Hero_Human", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero", impl.Name),
-                        impl => Assert.Equal("IHuman", impl.Name));
-
-                    Assert.Empty(type.Fields);
-                },
-                type =>
-                {
-                    Assert.Equal("GetHero_Hero_Human", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero_Human", impl.Name));
-
-                    Assert.Collection(
-                        type.Fields,
-                        field => Assert.Equal("Name", field.Name),
-                        field => Assert.Equal("HomePlanet", field.Name));
-                });
+            list.Add(@interface);
+            list.Add(@class);
         }
 
-        [Fact]
-        public async Task Create_TypeModels_Infer_From_Fragments_With_HoistedFragment()
+        // assert
+        Assert.Collection(
+            list,
+            type =>
+            {
+                Assert.Equal("IGetHero_Hero", type.Name);
+
+                Assert.Empty(type.Implements);
+
+                Assert.Collection(
+                    type.Fields,
+                    field => Assert.Equal("Name", field.Name));
+            },
+            type =>
+            {
+                Assert.Equal("IGetHero_Hero_Droid", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero", impl.Name));
+
+                Assert.Empty(type.Fields);
+            },
+            type =>
+            {
+                Assert.Equal("GetHero_Hero_Droid", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero_Droid", impl.Name));
+
+                Assert.Collection(
+                    type.Fields,
+                    field => Assert.Equal("Name", field.Name));
+            },
+            type =>
+            {
+                Assert.Equal("IGetHero_Hero_Human", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero", impl.Name));
+
+                Assert.Empty(type.Fields);
+            },
+            type =>
+            {
+                Assert.Equal("GetHero_Hero_Human", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero_Human", impl.Name));
+
+                Assert.Collection(
+                    type.Fields,
+                    field => Assert.Equal("Name", field.Name));
+            });
+    }
+
+    [Fact]
+    public async Task Create_TypeModels_Infer_From_Fragments()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        ... Hero
+                    }
+                }
+
+                fragment Hero on Character {
+                    name
+                    ... Human
+                    ... Droid
+                }
+
+                fragment Human on Human {
+                    homePlanet
+                }
+
+                fragment Droid on Droid {
+                    primaryFunction
+                }");
+
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
+
+        // act
+        var list = new List<OutputTypeModel>();
+        var returnTypeFragment = FragmentHelper.CreateFragmentNode(
+            selectionSetVariants.ReturnType,
+            fieldSelection.Path);
+        list.Add(FragmentHelper.CreateInterface(
+            context,
+            returnTypeFragment,
+            fieldSelection.Path));
+
+        foreach (var selectionSet in
+                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
-                            ... Characters
-                        }
-                    }
-
-                    fragment Characters on Character {
-                        ... Human
-                        ... Droid
-                    }
-
-                    fragment Hero on Character {
-                        name
-                    }
-
-                    fragment Human on Human {
-                        ... Hero
-                        homePlanet
-                    }
-
-                    fragment Droid on Droid {
-                        ... Hero
-                        primaryFunction
-                    }");
-
-            var context = new DocumentAnalyzerContext(schema, document);
-            var selectionSetVariants = context.CollectFields();
-            var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
-
-            // act
-            var list = new List<OutputTypeModel>();
-            var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
-            var returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                selectionSetVariants.Variants[0],
+            returnTypeFragment = FragmentHelper.CreateFragmentNode(
+                selectionSet,
                 fieldSelection.Path,
                 appendTypeName: true);
-            returnTypeFragment = FragmentHelper.GetFragment(
-                returnTypeFragment,
-                returnTypeFragmentName!);
-            list.Add(FragmentHelper.CreateInterface(
+
+            var @interface = FragmentHelper.CreateInterface(
                 context,
-                returnTypeFragment!,
-                fieldSelection.Path));
+                returnTypeFragment,
+                fieldSelection.Path,
+                new []{ list[0] });
 
-            foreach (SelectionSet selectionSet in
-                selectionSetVariants.Variants.OrderBy(t => t.Type.Name.Value))
-            {
-                returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                    selectionSet,
-                    fieldSelection.Path,
-                    appendTypeName: true);
+            var @class = FragmentHelper.CreateClass(
+                context,
+                returnTypeFragment,
+                selectionSet,
+                @interface);
 
-                returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
-
-                OutputTypeModel @interface = FragmentHelper.CreateInterface(
-                    context,
-                    returnTypeFragment,
-                    fieldSelection.Path,
-                    new []{ list[0] });
-
-                OutputTypeModel @class = FragmentHelper.CreateClass(
-                    context,
-                    returnTypeFragment,
-                    selectionSet,
-                    @interface);
-
-                list.Add(@interface);
-                list.Add(@class);
-            }
-
-            // assert
-            Assert.Collection(
-                list,
-                type =>
-                {
-                    Assert.Equal("IHero", type.Name);
-
-                    Assert.Empty(type.Implements);
-
-                    Assert.Collection(
-                        type.Fields,
-                        field => Assert.Equal("Name", field.Name));
-                },
-                type =>
-                {
-                    Assert.Equal("IGetHero_Hero_Droid", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("ICharacters_Droid", impl.Name));
-
-                    Assert.Empty(type.Fields);
-                },
-                type =>
-                {
-                    Assert.Equal("GetHero_Hero_Droid", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero_Droid", impl.Name));
-
-                    Assert.Collection(
-                        type.Fields,
-                        field => Assert.Equal("Name", field.Name),
-                        field => Assert.Equal("PrimaryFunction", field.Name));
-                },
-                type =>
-                {
-                    Assert.Equal("IGetHero_Hero_Human", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("ICharacters_Human", impl.Name));
-
-                    Assert.Empty(type.Fields);
-                },
-                type =>
-                {
-                    Assert.Equal("GetHero_Hero_Human", type.Name);
-
-                    Assert.Collection(
-                        type.Implements,
-                        impl => Assert.Equal("IGetHero_Hero_Human", impl.Name));
-
-                    Assert.Collection(
-                        type.Fields,
-                        field => Assert.Equal("Name", field.Name),
-                        field => Assert.Equal("HomePlanet", field.Name));
-                });
+            list.Add(@interface);
+            list.Add(@class);
         }
+
+        // assert
+        Assert.Collection(
+            list,
+            type =>
+            {
+                Assert.Equal("IGetHero_Hero", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IHero", impl.Name));
+
+                Assert.Empty(type.Fields);
+            },
+            type =>
+            {
+                Assert.Equal("IGetHero_Hero_Droid", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero", impl.Name),
+                    impl => Assert.Equal("IDroid", impl.Name));
+
+                Assert.Empty(type.Fields);
+            },
+            type =>
+            {
+                Assert.Equal("GetHero_Hero_Droid", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero_Droid", impl.Name));
+
+                Assert.Collection(
+                    type.Fields,
+                    field => Assert.Equal("Name", field.Name),
+                    field => Assert.Equal("PrimaryFunction", field.Name));
+            },
+            type =>
+            {
+                Assert.Equal("IGetHero_Hero_Human", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero", impl.Name),
+                    impl => Assert.Equal("IHuman", impl.Name));
+
+                Assert.Empty(type.Fields);
+            },
+            type =>
+            {
+                Assert.Equal("GetHero_Hero_Human", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero_Human", impl.Name));
+
+                Assert.Collection(
+                    type.Fields,
+                    field => Assert.Equal("Name", field.Name),
+                    field => Assert.Equal("HomePlanet", field.Name));
+            });
+    }
+
+    [Fact]
+    public async Task Create_TypeModels_Infer_From_Fragments_With_HoistedFragment()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                        ... Characters
+                    }
+                }
+
+                fragment Characters on Character {
+                    ... Human
+                    ... Droid
+                }
+
+                fragment Hero on Character {
+                    name
+                }
+
+                fragment Human on Human {
+                    ... Hero
+                    homePlanet
+                }
+
+                fragment Droid on Droid {
+                    ... Hero
+                    primaryFunction
+                }");
+
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
+
+        // act
+        var list = new List<OutputTypeModel>();
+        var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
+        var returnTypeFragment = FragmentHelper.CreateFragmentNode(
+            selectionSetVariants.Variants[0],
+            fieldSelection.Path,
+            appendTypeName: true);
+        returnTypeFragment = FragmentHelper.GetFragment(
+            returnTypeFragment,
+            returnTypeFragmentName!);
+        list.Add(FragmentHelper.CreateInterface(
+            context,
+            returnTypeFragment!,
+            fieldSelection.Path));
+
+        foreach (var selectionSet in
+                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
+        {
+            returnTypeFragment = FragmentHelper.CreateFragmentNode(
+                selectionSet,
+                fieldSelection.Path,
+                appendTypeName: true);
+
+            returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
+
+            var @interface = FragmentHelper.CreateInterface(
+                context,
+                returnTypeFragment,
+                fieldSelection.Path,
+                new []{ list[0] });
+
+            var @class = FragmentHelper.CreateClass(
+                context,
+                returnTypeFragment,
+                selectionSet,
+                @interface);
+
+            list.Add(@interface);
+            list.Add(@class);
+        }
+
+        // assert
+        Assert.Collection(
+            list,
+            type =>
+            {
+                Assert.Equal("IHero", type.Name);
+
+                Assert.Empty(type.Implements);
+
+                Assert.Collection(
+                    type.Fields,
+                    field => Assert.Equal("Name", field.Name));
+            },
+            type =>
+            {
+                Assert.Equal("IGetHero_Hero_Droid", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("ICharacters_Droid", impl.Name));
+
+                Assert.Empty(type.Fields);
+            },
+            type =>
+            {
+                Assert.Equal("GetHero_Hero_Droid", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero_Droid", impl.Name));
+
+                Assert.Collection(
+                    type.Fields,
+                    field => Assert.Equal("Name", field.Name),
+                    field => Assert.Equal("PrimaryFunction", field.Name));
+            },
+            type =>
+            {
+                Assert.Equal("IGetHero_Hero_Human", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("ICharacters_Human", impl.Name));
+
+                Assert.Empty(type.Fields);
+            },
+            type =>
+            {
+                Assert.Equal("GetHero_Hero_Human", type.Name);
+
+                Assert.Collection(
+                    type.Implements,
+                    impl => Assert.Equal("IGetHero_Hero_Human", impl.Name));
+
+                Assert.Collection(
+                    type.Fields,
+                    field => Assert.Equal("Name", field.Name),
+                    field => Assert.Equal("HomePlanet", field.Name));
+            });
     }
 }

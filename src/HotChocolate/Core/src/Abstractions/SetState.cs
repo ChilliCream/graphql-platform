@@ -1,6 +1,5 @@
-namespace HotChocolate
-{
-    public delegate void SetState<T>(T value);
+namespace HotChocolate;
 
-    public delegate void SetState(object value);
-}
+public delegate void SetState<T>(T value);
+
+public delegate void SetState(object value);

@@ -1,51 +1,53 @@
-﻿using System;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Factories
+namespace HotChocolate.Types.Factories;
+
+internal sealed class UnionTypeFactory
+    : ITypeFactory<UnionTypeDefinitionNode, UnionType>
+    , ITypeFactory<UnionTypeExtensionNode, UnionTypeExtension>
 {
-    internal sealed class UnionTypeFactory
-        : ITypeFactory<UnionTypeDefinitionNode, UnionType>
+    public UnionType Create(IDescriptorContext context, UnionTypeDefinitionNode node)
     {
-        public UnionType Create(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions,
-            UnionTypeDefinitionNode node)
+        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        var path = context.GetOrCreateDefinitionStack();
+        path.Clear();
+
+        var typeDefinition = new UnionTypeDefinition(node.Name.Value, node.Description?.Value);
+
+        typeDefinition.BindTo = node.GetBindingValue();
+
+        if (preserveSyntaxNodes)
         {
-            if (bindingLookup is null)
-            {
-                throw new ArgumentNullException(nameof(bindingLookup));
-            }
-
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            ITypeBindingInfo bindingInfo =
-                bindingLookup.GetBindingInfo(node.Name.Value);
-
-            return new UnionType(d =>
-            {
-                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
-                    .Name(node.Name.Value)
-                    .Description(node.Description?.Value);
-
-                if (bindingInfo.SourceType != null)
-                {
-                    d.Extend().OnBeforeCreate(t => t.RuntimeType = bindingInfo.SourceType);
-                }
-
-                foreach (NamedTypeNode namedType in node.Types)
-                {
-                    d.Type(namedType);
-                }
-
-                foreach (DirectiveNode directive in node.Directives)
-                {
-                    d.Directive(directive);
-                }
-            });
+            typeDefinition.SyntaxNode = node;
         }
+
+        foreach (var namedType in node.Types)
+        {
+            typeDefinition.Types.Add(TypeReference.Create(namedType));
+        }
+
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
+
+        return UnionType.CreateUnsafe(typeDefinition);
+    }
+
+    public UnionTypeExtension Create(IDescriptorContext context, UnionTypeExtensionNode node)
+    {
+        var path = context.GetOrCreateDefinitionStack();
+        path.Clear();
+
+        var typeDefinition = new UnionTypeDefinition(node.Name.Value);
+        typeDefinition.BindTo = node.GetBindingValue();
+
+        foreach (var namedType in node.Types)
+        {
+            typeDefinition.Types.Add(TypeReference.Create(namedType));
+        }
+
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
+
+        return UnionTypeExtension.CreateUnsafe(typeDefinition);
     }
 }

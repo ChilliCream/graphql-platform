@@ -4,245 +4,245 @@ using System.Threading;
 using System.Threading.Tasks;
 using static HotChocolate.Execution.Properties.Resources;
 
-namespace HotChocolate.Execution
+// ReSharper disable once CheckNamespace
+namespace HotChocolate.Execution;
+
+public static class ExecutionRequestExecutorExtensions
 {
-    public static class ExecutionRequestExecutorExtensions
+    public static Task<IExecutionResult> ExecuteAsync(
+        this IRequestExecutor executor,
+        IQueryRequest request)
     {
-        public static Task<IExecutionResult> ExecuteAsync(
-            this IRequestExecutor executor,
-            IReadOnlyQueryRequest request)
+        if (executor is null)
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return executor.ExecuteAsync(
-                request,
-                CancellationToken.None);
+            throw new ArgumentNullException(nameof(executor));
         }
 
-        public static Task<IExecutionResult> ExecuteAsync(
-            this IRequestExecutor executor,
-            string query)
+        if (request is null)
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (string.IsNullOrEmpty(query))
-            {
-                throw new ArgumentException(
-                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
-                    nameof(query));
-            }
-
-            return executor.ExecuteAsync(
-                QueryRequestBuilder.New().SetQuery(query).Create(),
-                CancellationToken.None);
+            throw new ArgumentNullException(nameof(request));
         }
 
-        public static Task<IExecutionResult> ExecuteAsync(
-            this IRequestExecutor executor,
-            string query,
-            CancellationToken cancellationToken)
+        return executor.ExecuteAsync(
+            request,
+            CancellationToken.None);
+    }
+
+    public static Task<IExecutionResult> ExecuteAsync(
+        this IRequestExecutor executor,
+        string query)
+    {
+        if (executor is null)
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (string.IsNullOrEmpty(query))
-            {
-                throw new ArgumentException(
-                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
-                    nameof(query));
-            }
-
-            return executor.ExecuteAsync(
-                QueryRequestBuilder.New().SetQuery(query).Create(),
-                cancellationToken);
+            throw new ArgumentNullException(nameof(executor));
         }
 
-        public static Task<IExecutionResult> ExecuteAsync(
-            this IRequestExecutor executor,
-            string query,
-            IReadOnlyDictionary<string, object?> variableValues)
+        if (string.IsNullOrEmpty(query))
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (string.IsNullOrEmpty(query))
-            {
-                throw new ArgumentException(
-                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
-                    nameof(query));
-            }
-
-            if (variableValues is null)
-            {
-                throw new ArgumentNullException(nameof(variableValues));
-            }
-
-            return executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(query)
-                    .SetVariableValues(variableValues)
-                    .Create(),
-                CancellationToken.None);
+            throw new ArgumentException(
+                ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
+                nameof(query));
         }
 
-        public static Task<IExecutionResult> ExecuteAsync(
-            this IRequestExecutor executor,
-            string query,
-            IReadOnlyDictionary<string, object?> variableValues,
-            CancellationToken cancellationToken)
+        return executor.ExecuteAsync(
+            QueryRequestBuilder.New().SetQuery(query).Create(),
+            CancellationToken.None);
+    }
+
+    public static Task<IExecutionResult> ExecuteAsync(
+        this IRequestExecutor executor,
+        string query,
+        CancellationToken cancellationToken)
+    {
+        if (executor is null)
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (string.IsNullOrEmpty(query))
-            {
-                throw new ArgumentException(
-                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
-                    nameof(query));
-            }
-
-            if (variableValues is null)
-            {
-                throw new ArgumentNullException(nameof(variableValues));
-            }
-
-            return executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(query)
-                    .SetVariableValues(variableValues)
-                    .Create(),
-                cancellationToken);
+            throw new ArgumentNullException(nameof(executor));
         }
 
-        public static IExecutionResult Execute(
-            this IRequestExecutor executor,
-            IReadOnlyQueryRequest request)
+        if (string.IsNullOrEmpty(query))
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return Task.Factory.StartNew(
-                () => ExecuteAsync(executor, request))
-                .Unwrap()
-                .GetAwaiter()
-                .GetResult();
+            throw new ArgumentException(
+                ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
+                nameof(query));
         }
 
-        public static IExecutionResult Execute(
-            this IRequestExecutor executor,
-            string query)
+        return executor.ExecuteAsync(
+            QueryRequestBuilder.New().SetQuery(query).Create(),
+            cancellationToken);
+    }
+
+    public static Task<IExecutionResult> ExecuteAsync(
+        this IRequestExecutor executor,
+        string query,
+        Dictionary<string, object?> variableValues)
+    {
+        if (executor is null)
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (string.IsNullOrEmpty(query))
-            {
-                throw new ArgumentException(
-                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
-                    nameof(query));
-            }
-
-            return executor.Execute(
-                QueryRequestBuilder.New()
-                    .SetQuery(query)
-                    .Create());
+            throw new ArgumentNullException(nameof(executor));
         }
 
-        public static IExecutionResult Execute(
-            this IRequestExecutor executor,
-            string query,
-            IReadOnlyDictionary<string, object?> variableValues)
+        if (string.IsNullOrEmpty(query))
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (string.IsNullOrEmpty(query))
-            {
-                throw new ArgumentException(
-                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
-                    nameof(query));
-            }
-
-            if (variableValues is null)
-            {
-                throw new ArgumentNullException(nameof(variableValues));
-            }
-
-            return executor.Execute(
-                QueryRequestBuilder.New()
-                    .SetQuery(query)
-                    .SetVariableValues(variableValues)
-                    .Create());
+            throw new ArgumentException(
+                ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
+                nameof(query));
         }
 
-        public static Task<IExecutionResult> ExecuteAsync(
-            this IRequestExecutor executor,
-            Action<IQueryRequestBuilder> buildRequest,
-            CancellationToken cancellationToken)
+        if (variableValues is null)
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (buildRequest is null)
-            {
-                throw new ArgumentNullException(nameof(buildRequest));
-            }
-
-            var builder = new QueryRequestBuilder();
-            buildRequest(builder);
-
-            return executor.ExecuteAsync(
-                builder.Create(),
-                cancellationToken);
+            throw new ArgumentNullException(nameof(variableValues));
         }
 
-        public static Task<IExecutionResult> ExecuteAsync(
-            this IRequestExecutor executor,
-            Action<IQueryRequestBuilder> buildRequest)
+        return executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(query)
+                .SetVariableValues(variableValues)
+                .Create(),
+            CancellationToken.None);
+    }
+
+    public static Task<IExecutionResult> ExecuteAsync(
+        this IRequestExecutor executor,
+        string query,
+        IReadOnlyDictionary<string, object?> variableValues,
+        CancellationToken cancellationToken)
+    {
+        if (executor is null)
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            if (buildRequest is null)
-            {
-                throw new ArgumentNullException(nameof(buildRequest));
-            }
-
-            return executor.ExecuteAsync(
-                buildRequest,
-                CancellationToken.None);
+            throw new ArgumentNullException(nameof(executor));
         }
+
+        if (string.IsNullOrEmpty(query))
+        {
+            throw new ArgumentException(
+                ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
+                nameof(query));
+        }
+
+        if (variableValues is null)
+        {
+            throw new ArgumentNullException(nameof(variableValues));
+        }
+
+        return executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(query)
+                .SetVariableValues(variableValues)
+                .Create(),
+            cancellationToken);
+    }
+
+    public static IExecutionResult Execute(
+        this IRequestExecutor executor,
+        IQueryRequest request)
+    {
+        if (executor is null)
+        {
+            throw new ArgumentNullException(nameof(executor));
+        }
+
+        if (request is null)
+        {
+            throw new ArgumentNullException(nameof(request));
+        }
+
+        return Task.Factory.StartNew(
+            () => ExecuteAsync(executor, request))
+            .Unwrap()
+            .GetAwaiter()
+            .GetResult();
+    }
+
+    public static IExecutionResult Execute(
+        this IRequestExecutor executor,
+        string query)
+    {
+        if (executor is null)
+        {
+            throw new ArgumentNullException(nameof(executor));
+        }
+
+        if (string.IsNullOrEmpty(query))
+        {
+            throw new ArgumentException(
+                ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
+                nameof(query));
+        }
+
+        return executor.Execute(
+            QueryRequestBuilder.New()
+                .SetQuery(query)
+                .Create());
+    }
+
+    public static IExecutionResult Execute(
+        this IRequestExecutor executor,
+        string query,
+        IReadOnlyDictionary<string, object?> variableValues)
+    {
+        if (executor is null)
+        {
+            throw new ArgumentNullException(nameof(executor));
+        }
+
+        if (string.IsNullOrEmpty(query))
+        {
+            throw new ArgumentException(
+                ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
+                nameof(query));
+        }
+
+        if (variableValues is null)
+        {
+            throw new ArgumentNullException(nameof(variableValues));
+        }
+
+        return executor.Execute(
+            QueryRequestBuilder.New()
+                .SetQuery(query)
+                .SetVariableValues(variableValues)
+                .Create());
+    }
+
+    public static Task<IExecutionResult> ExecuteAsync(
+        this IRequestExecutor executor,
+        Action<IQueryRequestBuilder> buildRequest,
+        CancellationToken cancellationToken)
+    {
+        if (executor is null)
+        {
+            throw new ArgumentNullException(nameof(executor));
+        }
+
+        if (buildRequest is null)
+        {
+            throw new ArgumentNullException(nameof(buildRequest));
+        }
+
+        var builder = new QueryRequestBuilder();
+        buildRequest(builder);
+
+        return executor.ExecuteAsync(
+            builder.Create(),
+            cancellationToken);
+    }
+
+    public static Task<IExecutionResult> ExecuteAsync(
+        this IRequestExecutor executor,
+        Action<IQueryRequestBuilder> buildRequest)
+    {
+        if (executor is null)
+        {
+            throw new ArgumentNullException(nameof(executor));
+        }
+
+        if (buildRequest is null)
+        {
+            throw new ArgumentNullException(nameof(buildRequest));
+        }
+
+        return executor.ExecuteAsync(
+            buildRequest,
+            CancellationToken.None);
     }
 }

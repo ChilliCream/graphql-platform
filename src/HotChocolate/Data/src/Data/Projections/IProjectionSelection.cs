@@ -1,9 +1,8 @@
 using HotChocolate.Execution.Processing;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public interface IProjectionSelection : ISelection
 {
-    public interface IProjectionSelection : ISelection
-    {
-        IProjectionFieldHandler Handler { get; }
-    }
+    IProjectionFieldHandler Handler { get; }
 }

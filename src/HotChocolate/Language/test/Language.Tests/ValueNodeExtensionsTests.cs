@@ -1,46 +1,45 @@
-﻿using Xunit;
+using Xunit;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public class ValueNodeExtensionsTests
 {
-    public class ValueNodeExtensionsTests
+    [Fact]
+    public static void IsNull_Null_True()
     {
-        [Fact]
-        public static void IsNull_Null_True()
-        {
-            // arrange
-            var value = default(IValueNode);
+        // arrange
+        var value = default(IValueNode);
 
-            // act
-            bool result = value.IsNull();
+        // act
+        var result = value.IsNull();
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public static void IsNull_NullValueNode_True()
-        {
-            // arrange
-            IValueNode value = NullValueNode.Default;
+    [Fact]
+    public static void IsNull_NullValueNode_True()
+    {
+        // arrange
+        IValueNode value = NullValueNode.Default;
 
-            // act
-            bool result = value.IsNull();
+        // act
+        var result = value.IsNull();
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public static void IsNull_StringValueNode_False()
-        {
-            // arrange
-            IValueNode value = new StringValueNode("foo");
+    [Fact]
+    public static void IsNull_StringValueNode_False()
+    {
+        // arrange
+        IValueNode value = new StringValueNode("foo");
 
-            // act
-            bool result = value.IsNull();
+        // act
+        var result = value.IsNull();
 
-            // assert
-            Assert.False(result);
-        }
+        // assert
+        Assert.False(result);
     }
 }

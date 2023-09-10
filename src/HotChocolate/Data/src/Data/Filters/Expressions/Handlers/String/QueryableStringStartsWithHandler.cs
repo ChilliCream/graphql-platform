@@ -1,25 +1,31 @@
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
-namespace HotChocolate.Data.Filters.Expressions
+namespace HotChocolate.Data.Filters.Expressions;
+
+public class QueryableStringStartsWithHandler : QueryableStringOperationHandler
 {
-    public class QueryableStringStartsWithHandler : QueryableStringOperationHandler
+    public QueryableStringStartsWithHandler(InputParser inputParser) : base(inputParser)
     {
-        public QueryableStringStartsWithHandler()
+        CanBeNull = false;
+    }
+
+    protected override int Operation => DefaultFilterOperations.StartsWith;
+
+    public override Expression HandleOperation(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        IValueNode value,
+        object? parsedValue)
+    {
+        var property = context.GetInstance();
+
+        if (parsedValue is null)
         {
-            CanBeNull = false;
+            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
         }
 
-        protected override int Operation => DefaultFilterOperations.StartsWith;
-
-        public override Expression HandleOperation(
-            QueryableFilterContext context,
-            IFilterOperationField field,
-            IValueNode value,
-            object parsedValue)
-        {
-            Expression property = context.GetInstance();
-            return FilterExpressionBuilder.StartsWith(property, parsedValue);
-        }
+        return FilterExpressionBuilder.StartsWith(property, parsedValue);
     }
 }

@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching
     public class RemoteSchemaDefinition
     {
         public RemoteSchemaDefinition(
-            NameString name,
+            string name,
             DocumentNode document,
             IEnumerable<DocumentNode>? extensionDocuments = null)
         {
@@ -23,7 +23,7 @@ namespace HotChocolate.Stitching
         /// <summary>
         /// Gets the name of the schema.
         /// </summary>
-        public NameString Name { get; }
+        public string Name { get; }
 
         /// <summary>
         /// Gets the main schema documents.

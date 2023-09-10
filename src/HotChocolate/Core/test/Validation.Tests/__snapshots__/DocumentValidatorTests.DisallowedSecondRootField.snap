@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "Subscription operations must have exactly one root field.",
     "Code": null,
@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Single-root-field"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Single-root-field"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -47,6 +47,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -60,6 +61,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 93,
@@ -83,6 +85,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 122,
@@ -126,6 +129,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 171,
@@ -163,13 +167,14 @@
       "type": "Subscription",
       "field": "disallowedSecondRootFieldNonExisting",
       "responseName": "disallowedSecondRootFieldNonExisting",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "Field",
       "Alias": null,
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 171,

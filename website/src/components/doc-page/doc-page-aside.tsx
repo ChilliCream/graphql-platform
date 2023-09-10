@@ -1,17 +1,18 @@
-import React, { FC, useCallback } from "react";
+import React, { FC, ReactNode, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import {
-  BoxShadow,
-  IsSmallDesktop,
-  SmallDesktopBreakpointNumber,
-} from "../../shared-style";
-import { State } from "../../state";
-import { toggleAside } from "../../state/common";
-import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
 
-export const DocPageAside: FC = ({ children }) => {
+import { BoxShadow, IsSmallDesktop } from "@/shared-style";
+import { State } from "@/state";
+import { toggleAside } from "@/state/common";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
+import { DocPageStickySideBarStyle } from "./doc-page-styles";
+
+export interface DocPageAsideProps {
+  readonly children: ReactNode;
+}
+
+export const DocPageAside: FC<DocPageAsideProps> = ({ children }) => {
   const showAside = useSelector<State, boolean>(
     (state) => state.common.showAside
   );
@@ -27,11 +28,10 @@ export const DocPageAside: FC = ({ children }) => {
   }, []);
 
   return (
-    <Aside calculatedHeight={height} className={showAside ? "show" : ""}>
-      <BodyStyle disableScrolling={showAside} />
+    <Aside height={height} show={showAside}>
       <DocPagePaneHeader
         title="About this article"
-        showWhenScreenWidthIsSmallerThan={SmallDesktopBreakpointNumber}
+        showWhenScreenWidthIsSmallerThan={1280}
         onClose={handleCloseAside}
       />
       {children}
@@ -39,25 +39,31 @@ export const DocPageAside: FC = ({ children }) => {
   );
 };
 
-export const Aside = styled.aside<{ calculatedHeight: string }>`
+export interface AsideProps {
+  readonly height: string;
+  readonly show: boolean;
+}
+
+export const Aside = styled.aside<AsideProps>`
   ${DocPageStickySideBarStyle}
 
   margin-left: 0;
   transition: transform 250ms;
   background-color: white;
   padding: 25px 0 0;
+  overflow-y: hidden;
+  margin-bottom: 50px;
+  display: flex;
+  flex-direction: column;
 
-  &.show {
-    transform: none;
-  }
-
-  ${({ calculatedHeight }) =>
+  ${({ height, show }) =>
     IsSmallDesktop(`
-      transform: translateX(100%);
-      height: ${calculatedHeight};
+      transform: ${show ? "none" : "translateX(100%)"};
+      height: ${height};
       position: fixed;
       top: 60px;
       right: 0;
+
       ${BoxShadow}
     `)}
 `;

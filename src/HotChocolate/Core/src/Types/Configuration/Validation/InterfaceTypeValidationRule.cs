@@ -1,26 +1,29 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types;
-using static HotChocolate.Configuration.Validation.ComplexOutputTypeValidationHelper;
+using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 
 #nullable enable
 
-namespace HotChocolate.Configuration.Validation
+namespace HotChocolate.Configuration.Validation;
+
+internal sealed class InterfaceTypeValidationRule : ISchemaValidationRule
 {
-    public class InterfaceTypeValidationRule : ISchemaValidationRule
+    public void Validate(
+        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
+        IReadOnlySchemaOptions options,
+        ICollection<ISchemaError> errors)
     {
-        public void Validate(
-            IReadOnlyList<ITypeSystemObject> typeSystemObjects,
-            IReadOnlySchemaOptions options,
-            ICollection<ISchemaError> errors)
+        if (options.StrictValidation)
         {
-            if (options.StrictValidation)
+            foreach (var type in typeSystemObjects)
             {
-                foreach (InterfaceType type in typeSystemObjects.OfType<InterfaceType>())
+                if (type is InterfaceType interfaceType)
                 {
-                    EnsureTypeHasFields(type, errors);
-                    EnsureFieldNamesAreValid(type, errors);
-                    EnsureInterfacesAreCorrectlyImplemented(type, errors);
+                    EnsureTypeHasFields(interfaceType, errors);
+                    EnsureFieldNamesAreValid(interfaceType, errors);
+                    EnsureInterfacesAreCorrectlyImplemented(interfaceType, errors);
+                    EnsureArgumentDeprecationIsValid(interfaceType, errors);
                 }
             }
         }

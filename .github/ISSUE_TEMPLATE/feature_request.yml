@@ -1,0 +1,30 @@
+name: Feature Request
+description: Suggest an idea for one of our products.
+labels: [🎉 enhancement]
+body:
+  - type: dropdown
+    id: product
+    attributes:
+      label: Product
+      description: Which of our products does this relate to?
+      options:
+        - Hot Chocolate
+        - Strawberry Shake
+        - Banana Cake Pop
+        - Green Donut
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem is.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: The solution you'd like
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: true

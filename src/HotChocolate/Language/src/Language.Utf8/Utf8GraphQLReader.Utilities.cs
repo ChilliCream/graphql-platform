@@ -1,175 +1,141 @@
-using System.Buffers;
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Globalization;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public ref partial struct Utf8GraphQLReader
 {
-    public ref partial struct Utf8GraphQLReader
+    public string GetString()
+        => _value.Length == 0
+            ? string.Empty
+            : GetString(_value, _kind == TokenKind.BlockString);
+
+    public static string GetString(
+        ReadOnlySpan<byte> escapedValue,
+        bool isBlockString)
     {
-        public string GetString()
+        if (escapedValue.Length == 0)
         {
-            return _value.Length == 0
-                ? string.Empty
-                : GetString(_value, _kind == TokenKind.BlockString);
+            return string.Empty;
         }
 
-        public static string GetString(
-            ReadOnlySpan<byte> escapedValue,
-            bool isBlockString)
+        var length = escapedValue.Length;
+        byte[]? unescapedArray = null;
+
+        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+            ? stackalloc byte[length]
+            : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
+
+        try
         {
-            if (escapedValue.Length == 0)
+            UnescapeValue(escapedValue, ref unescapedSpan, isBlockString);
+            return GetString(unescapedSpan);
+        }
+        finally
+        {
+            if (unescapedArray != null)
             {
-                return string.Empty;
-            }
-
-            var length = escapedValue.Length;
-            byte[]? unescapedArray = null;
-
-            Span<byte> unescapedSpan = length <= GraphQLConstants.StackallocThreshold
-                ? stackalloc byte[length]
-                : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
-
-            try
-            {
-                UnescapeValue(escapedValue, ref unescapedSpan, isBlockString);
-                return GetString(unescapedSpan);
-            }
-            finally
-            {
-                if (unescapedArray != null)
-                {
-                    unescapedSpan.Clear();
-                    ArrayPool<byte>.Shared.Return(unescapedArray);
-                }
+                unescapedSpan.Clear();
+                ArrayPool<byte>.Shared.Return(unescapedArray);
             }
         }
+    }
 
-        internal static string GetScalarValue(ReadOnlySpan<byte> unescapedValue) =>
-            GetString(unescapedValue);
-
-        public static unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
+    public static unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
+    {
+        if (unescapedValue.Length == 0)
         {
-            if (unescapedValue.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            fixed (byte* bytePtr = unescapedValue)
-            {
-                return StringHelper.UTF8Encoding.GetString(bytePtr, unescapedValue.Length);
-            }
+            return string.Empty;
         }
 
-        public string GetComment()
+        fixed (byte* bytePtr = unescapedValue)
         {
-            if (_value.Length != 0)
-            {
-                StringHelper.TrimStringToken(ref _value);
-            }
+            return StringHelper.UTF8Encoding.GetString(bytePtr, unescapedValue.Length);
+        }
+    }
 
-            return GetString(_value);
+    public string GetComment()
+    {
+        if (_value.Length != 0)
+        {
+            StringHelper.TrimStringToken(ref _value);
         }
 
-        public string GetName() => GetString(_value);
-        public string GetScalarValue() => GetString(_value);
+        return GetString(_value);
+    }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void UnescapeValue(
-            in ReadOnlySpan<byte> escaped,
-            ref Span<byte> unescapedValue,
-            bool isBlockString)
+    public string GetName() => GetString(_value);
+    public string GetScalarValue() => GetString(_value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void UnescapeValue(
+        in ReadOnlySpan<byte> escaped,
+        ref Span<byte> unescapedValue,
+        bool isBlockString)
+    {
+        Utf8Helper.Unescape(
+            in escaped,
+            ref unescapedValue,
+            isBlockString);
+
+        if (isBlockString)
         {
-            Utf8Helper.Unescape(
-                in escaped,
+            StringHelper.TrimBlockStringToken(
+                unescapedValue, ref unescapedValue);
+        }
+    }
+
+    public void UnescapeValue(ref Span<byte> unescapedValue)
+    {
+        if (_value.Length == 0)
+        {
+            unescapedValue = unescapedValue.Slice(0, 0);
+        }
+        else
+        {
+            UnescapeValue(
+                in _value,
                 ref unescapedValue,
-                isBlockString);
-
-            if (isBlockString)
-            {
-                StringHelper.TrimBlockStringToken(
-                    unescapedValue, ref unescapedValue);
-            }
+                _kind == TokenKind.BlockString);
         }
+    }
 
-        public void UnescapeValue(ref Span<byte> unescapedValue)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool MoveNext()
+    {
+        bool read;
+
+        do
         {
-            if (_value.Length == 0)
-            {
-                unescapedValue = unescapedValue.Slice(0, 0);
-            }
-            else
-            {
-                UnescapeValue(
-                    in _value,
-                    ref unescapedValue,
-                    _kind == TokenKind.BlockString);
-            }
-        }
+            read = Read();
+        } while (read && _kind == TokenKind.Comment);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool MoveNext()
+        return read;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool Skip(TokenKind kind)
+    {
+        if (_kind == kind)
         {
-            while (Read() && _kind == TokenKind.Comment)
-            { }
-            return !IsEndOfStream();
+            MoveNext();
+            return true;
         }
+        return false;
+    }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool Skip(TokenKind kind)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal ReadOnlySpan<byte> Expect(TokenKind kind)
+    {
+        var value = Value;
+
+        if (!Skip(kind))
         {
-            if (_kind == kind)
-            {
-                MoveNext();
-                return true;
-            }
-            return false;
+            throw new SyntaxException(this, Parser_InvalidToken, kind, Kind);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool SkipKeyword(ReadOnlySpan<byte> keyword)
-        {
-            if (Kind == TokenKind.Name && Value.SequenceEqual(keyword))
-            {
-                MoveNext();
-                return true;
-            }
-            return false;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal ReadOnlySpan<byte> Expect(TokenKind kind)
-        {
-            ReadOnlySpan<byte> value = Value;
-
-            if (!Skip(kind))
-            {
-                throw new SyntaxException(this,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidToken,
-                        kind,
-                        Kind));
-            }
-
-            return value;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void ExpectKeyword(ReadOnlySpan<byte> keyword)
-        {
-            if (!SkipKeyword(keyword))
-            {
-                string found = Kind == TokenKind.Name
-                    ? GetName()
-                    : Kind.ToString();
-
-                throw new SyntaxException(this,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidToken,
-                        Utf8GraphQLReader.GetString(keyword),
-                        found));
-            }
-        }
+        return value;
     }
 }

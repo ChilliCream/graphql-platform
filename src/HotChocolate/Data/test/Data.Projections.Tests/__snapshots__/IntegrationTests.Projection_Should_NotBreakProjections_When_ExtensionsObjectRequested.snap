@@ -1,0 +1,18 @@
+{
+  "data": {
+    "foos": [
+      {
+        "bar": "A",
+        "nested": {
+          "bar": "C"
+        }
+      },
+      {
+        "bar": "B",
+        "nested": {
+          "bar": "C"
+        }
+      }
+    ]
+  }
+}

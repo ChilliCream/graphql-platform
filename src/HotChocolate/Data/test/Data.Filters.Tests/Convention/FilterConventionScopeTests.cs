@@ -1,108 +1,76 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public class FilterConventionScopeTests
 {
-    public class FilterConventionScopeTests
+    [Fact]
+    public void FilterConvention_Should_Work_When_ConfiguredWithAttributes()
     {
-        [Fact]
-        public void FilterConvention_Should_Work_When_ConfiguredWithAttributes()
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
+            .AddQueryType<Query1>()
+            .AddFiltering()
+            .Create();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterConvention_Should_Work_When_ConfiguredWithType()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
+            .AddQueryType<QueryType>()
+            .AddFiltering()
+            .Create();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    public class QueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
-                .AddQueryType<Query1>()
-                .AddFiltering()
-                .Create();
+            descriptor.Field("foos")
+                .Resolve(Array.Empty<Foo>().AsQueryable())
+                .UseFiltering();
 
-            // assert
-            schema.ToString().MatchSnapshot();
+            descriptor.Field("foosBar")
+                .Resolve(Array.Empty<Foo>().AsQueryable())
+                .UseFiltering("Bar");
         }
+    }
 
-        [Fact]
-        public void FilterConvention_Should_Work_When_ConfiguredWithType()
+    public class Query1
+    {
+        [UseFiltering]
+        public IQueryable<Foo> Foos() => Array.Empty<Foo>().AsQueryable();
+
+        [UseFiltering(Scope = "Bar")]
+        public IQueryable<Foo> FoosBar() => Array.Empty<Foo>().AsQueryable();
+    }
+
+    public class BarFilterConvention : FilterConvention
+    {
+        protected override void Configure(IFilterConventionDescriptor descriptor)
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
-                .AddQueryType<QueryType>()
-                .AddFiltering()
-                .Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
+            descriptor.AddDefaults();
+            descriptor.Operation(DefaultFilterOperations.Equals).Name("EQUALS");
         }
+    }
 
-        public class QueryType : ObjectType
-        {
-            protected override void Configure(IObjectTypeDescriptor descriptor)
-            {
-                descriptor.Field("foos").Resolve(new Foo[0].AsQueryable()).UseFiltering();
-                descriptor.Field("foosBar").Resolve(new Foo[0].AsQueryable()).UseFiltering("Bar");
-            }
-        }
-
-        public class Query1
-        {
-            [UseFiltering]
-            public IQueryable<Foo> Foos() => new Foo[0].AsQueryable();
-
-            [UseFiltering(Scope = "Bar")]
-            public IQueryable<Foo> FoosBar() => new Foo[0].AsQueryable();
-        }
-
-        public class BarFilterConvention : FilterConvention
-        {
-            protected override void Configure(IFilterConventionDescriptor descriptor)
-            {
-                descriptor.AddDefaults();
-                descriptor.Operation(DefaultFilterOperations.Equals).Name("EQUALS");
-            }
-        }
-
-
-        public class TestOperationFilterInputType : StringOperationFilterInputType
-        {
-            protected override void Configure(IFilterInputTypeDescriptor descriptor)
-            {
-                descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
-                descriptor.AllowAnd(false).AllowOr(false);
-            }
-        }
-
-        public class FailingCombinator
-            : FilterOperationCombinator<FilterVisitorContext<string>, string>
-        {
-            public override bool TryCombineOperations(
-                FilterVisitorContext<string> context,
-                Queue<string> operations,
-                FilterCombinator combinator,
-                out string combined)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public class Foo
-        {
-            public string Bar { get; set; }
-        }
-
-        public class FooFilterInput
-            : FilterInputType<Foo>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Field(t => t.Bar);
-                descriptor.AllowAnd(false).AllowOr(false);
-            }
-        }
+    public class Foo
+    {
+        public string Bar { get; set; } = default!;
     }
 }

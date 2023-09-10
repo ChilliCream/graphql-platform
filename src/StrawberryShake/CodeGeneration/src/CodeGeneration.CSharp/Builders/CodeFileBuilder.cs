@@ -2,116 +2,115 @@ using System;
 using System.Collections.Generic;
 using StrawberryShake.Properties;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class CodeFileBuilder : ICodeBuilder
 {
-    public class CodeFileBuilder : ICodeBuilder
+    private readonly List<string> _usings = new();
+    private string? _namespace;
+    private readonly List<ITypeBuilder> _types = new();
+
+    public static CodeFileBuilder New() => new();
+
+    public CodeFileBuilder AddUsing(string value)
     {
-        private readonly List<string> _usings = new();
-        private string? _namespace;
-        private readonly List<ITypeBuilder> _types = new();
-
-        public static CodeFileBuilder New() => new();
-
-        public CodeFileBuilder AddUsing(string value)
+        if (string.IsNullOrEmpty(value))
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                throw new ArgumentException(
-                    Resources.CodeFileBuilder_NamespaceCannotBeNull,
-                    nameof(value));
-            }
-
-            _usings.Add(value);
-            return this;
+            throw new ArgumentException(
+                Resources.CodeFileBuilder_NamespaceCannotBeNull,
+                nameof(value));
         }
 
-        public CodeFileBuilder SetNamespace(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                throw new ArgumentException(
-                    Resources.CodeFileBuilder_NamespaceCannotBeNull,
-                    nameof(value));
-            }
+        _usings.Add(value);
+        return this;
+    }
 
-            _namespace = value;
-            return this;
+    public CodeFileBuilder SetNamespace(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            throw new ArgumentException(
+                Resources.CodeFileBuilder_NamespaceCannotBeNull,
+                nameof(value));
         }
 
-        public CodeFileBuilder AddType(ITypeBuilder value)
-        {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+        _namespace = value;
+        return this;
+    }
 
-            _types.Add(value);
-            return this;
+    public CodeFileBuilder AddType(ITypeBuilder value)
+    {
+        if (value is null)
+        {
+            throw new ArgumentNullException(nameof(value));
         }
 
-        public void Build(CodeWriter writer)
+        _types.Add(value);
+        return this;
+    }
+
+    public void Build(CodeWriter writer)
+    {
+        if (writer is null)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (_types.Count == 0 && _usings.Count == 0)
-            {
-                return;
-            }
-
-            if (_namespace is null)
-            {
-                throw new CodeGeneratorException(
-                    Resources.CodeFileBuilder_NamespaceCannotBeNull);
-            }
-
-            BuildInternal(writer);
+            throw new ArgumentNullException(nameof(writer));
         }
 
-        private void BuildInternal(CodeWriter writer)
+        if (_types.Count == 0 && _usings.Count == 0)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
+            return;
+        }
 
-            if (_types.Count == 0 && _usings.Count == 0)
-            {
-                return;
-            }
+        if (_namespace is null)
+        {
+            throw new CodeGeneratorException(
+                Resources.CodeFileBuilder_NamespaceCannotBeNull);
+        }
 
-            if (_namespace is null)
-            {
-                throw new CodeGeneratorException(
-                    Resources.CodeFileBuilder_NamespaceCannotBeNull);
-            }
+        BuildInternal(writer);
+    }
 
-            if (_usings.Count > 0)
-            {
-                foreach (string u in _usings)
-                {
-                    writer.WriteIndentedLine($"using {u};");
-                }
-                writer.WriteLine();
-            }
+    private void BuildInternal(CodeWriter writer)
+    {
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
 
-            writer.WriteIndentedLine("#nullable enable");
+        if (_types.Count == 0 && _usings.Count == 0)
+        {
+            return;
+        }
+
+        if (_namespace is null)
+        {
+            throw new CodeGeneratorException(
+                Resources.CodeFileBuilder_NamespaceCannotBeNull);
+        }
+
+        if (_usings.Count > 0)
+        {
+            foreach (var u in _usings)
+            {
+                writer.WriteIndentedLine($"using {u};");
+            }
             writer.WriteLine();
-
-            writer.WriteIndentedLine($"namespace {_namespace}");
-            writer.WriteIndentedLine("{");
-
-            using (writer.IncreaseIndent())
-            {
-                foreach (ITypeBuilder type in _types)
-                {
-                    type.Build(writer);
-                }
-            }
-
-            writer.WriteIndentedLine("}");
         }
+
+        writer.WriteIndentedLine("#nullable enable");
+        writer.WriteLine();
+
+        writer.WriteIndentedLine($"namespace {_namespace}");
+        writer.WriteIndentedLine("{");
+
+        using (writer.IncreaseIndent())
+        {
+            foreach (var type in _types)
+            {
+                type.Build(writer);
+            }
+        }
+
+        writer.WriteIndentedLine("}");
     }
 }

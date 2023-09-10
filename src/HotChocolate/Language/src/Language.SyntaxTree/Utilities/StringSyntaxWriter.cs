@@ -1,80 +1,79 @@
 using System.Text;
 
-namespace HotChocolate.Language.Utilities
+namespace HotChocolate.Language.Utilities;
+
+public class StringSyntaxWriter : ISyntaxWriter
 {
-    public class StringSyntaxWriter : ISyntaxWriter
+    private static readonly StringSyntaxWriterPool _pool = new();
+    private readonly StringBuilder _stringBuilder = new();
+    private int _indent;
+
+    public static StringSyntaxWriter Rent()
     {
-        private static readonly StringSyntaxWriterPool _pool = new();
-        private readonly StringBuilder _stringBuilder = new();
-        private int _indent;
+        return _pool.Get();
+    }
 
-        public static StringSyntaxWriter Rent()
+    public static void Return(StringSyntaxWriter writer)
+    {
+        _pool.Return(writer);
+    }
+
+    internal StringBuilder StringBuilder => _stringBuilder;
+
+    public void Indent()
+    {
+        _indent++;
+    }
+
+    public void Unindent()
+    {
+        if (_indent > 0)
         {
-            return _pool.Get();
+            _indent--;
         }
+    }
 
-        public static void Return(StringSyntaxWriter writer)
+    public void Write(char c)
+    {
+        _stringBuilder.Append(c);
+    }
+
+    public void Write(string s)
+    {
+        _stringBuilder.Append(s);
+    }
+
+    public void WriteIndent(bool condition = true)
+    {
+        if (condition && _indent > 0)
         {
-            _pool.Return(writer);
+            _stringBuilder.Append(' ', 2 * _indent);
         }
+    }
 
-        internal StringBuilder StringBuilder => _stringBuilder;
-
-        public void Indent()
+    public void WriteLine(bool condition = true)
+    {
+        if (condition)
         {
-            _indent++;
+            _stringBuilder.AppendLine();
         }
+    }
 
-        public void Unindent()
+    public void WriteSpace(bool condition = true)
+    {
+        if (condition)
         {
-            if (_indent > 0)
-            {
-                _indent--;
-            }
+            _stringBuilder.Append(' ');
         }
+    }
 
-        public void Write(char c)
-        {
-            _stringBuilder.Append(c);
-        }
+    public void Clear()
+    {
+        _stringBuilder.Clear();
+    }
 
-        public void Write(string s)
-        {
-            _stringBuilder.Append(s);
-        }
-
-        public void WriteIndent(bool condition = true)
-        {
-            if (condition && _indent > 0)
-            {
-                _stringBuilder.Append(' ', 2 * _indent);
-            }
-        }
-
-        public void WriteLine(bool condition = true)
-        {
-            if (condition)
-            {
-                _stringBuilder.AppendLine();
-            }
-        }
-
-        public void WriteSpace(bool condition = true)
-        {
-            if (condition)
-            {
-                _stringBuilder.Append(' ');
-            }
-        }
-
-        public void Clear()
-        {
-            _stringBuilder.Clear();
-        }
-
-        public override string ToString()
-        {
-            return _stringBuilder.ToString();
-        }
+    public override string ToString()
+    {
+        return _stringBuilder.ToString();
     }
 }

@@ -1,36 +1,33 @@
 using System.Collections.Concurrent;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Execution.Batching
+namespace HotChocolate.Execution.Batching;
+
+internal static class ExportDirectiveHelper
 {
-    internal static class ExportDirectiveHelper
+    public const string Name = "export";
+    public const string ExportedVariables = "HC.ExportedVariables";
+
+    public static T AddExportedVariables<T>(
+        this T builder,
+        ConcurrentBag<ExportedVariable> exportedVariables)
+        where T : IQueryRequestBuilder
     {
-        public const string Name = "export";
-        public const string ExportedVariables = "HC.ExportedVariables";
+        builder.SetGlobalState(ExportedVariables, exportedVariables);
+        return builder;
+    }
 
-        public static T AddExportedVariables<T>(
-            this T builder,
-            ConcurrentBag<ExportedVariable> exportedVariables)
-            where T : IQueryRequestBuilder
+    public static void ExportValueAsVariable(
+        this IMiddlewareContext context,
+        ExportDirective directive)
+    {
+        if (context.ContextData.TryGetValue(ExportedVariables, out var o)
+            && o is ConcurrentBag<ExportedVariable> exp)
         {
-            builder.SetProperty(
-                ExportedVariables,
-                exportedVariables);
-            return builder;
-        }
-
-        public static void ExportValueAsVariable(
-            this IDirectiveContext context)
-        {
-            if (context.ContextData.TryGetValue(ExportedVariables, out object? o)
-                && o is ConcurrentBag<ExportedVariable> exp)
-            {
-                exp.Add(new ExportedVariable(
-                    context.Directive.ToObject<ExportDirective>().As
-                        ?? context.Field.Name.Value,
-                    context.Field.Type,
-                    context.Result));
-            }
+            exp.Add(new ExportedVariable(
+                directive.As ?? context.Selection.Field.Name,
+                context.Selection.Type,
+                context.Result));
         }
     }
 }

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.AutoMapper</PackageId>
+    <AssemblyName>HotChocolate.Data.AutoMapper</AssemblyName>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <Description>Contains extensions for easier integration of AutoMapper into HotChocolate</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>

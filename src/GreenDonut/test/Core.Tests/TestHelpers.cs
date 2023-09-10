@@ -1,31 +1,47 @@
 using System;
 using System.Threading.Tasks;
 
-namespace GreenDonut
+namespace GreenDonut;
+
+internal static class TestHelpers
 {
-    internal static class TestHelpers
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>()
     {
-        public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>()
-        {
-            return async (keys, cancellationToken) => await Task.FromResult(new Result<TValue>[0]);
-        }
+        return (_, _, _) => default;
+    }
 
-        public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(Exception error)
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(Exception error)
+    {
+        return (_, results, _) =>
         {
-            return async (keys, cancellationToken) =>
-                await Task.FromResult(new[] { (Result<TValue>)error });
-        }
+            results.Span[0] = error;
+            return default;
+        };
+    }
 
-        public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
-            Result<TValue> value)
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
+        Result<TValue> value)
+    {
+        return (_, results, _) =>
         {
-            return async (keys, cancellationToken) => await Task.FromResult(new[] { value });
-        }
+            results.Span[0] = value;
+            return default;
+        };
+    }
 
-        public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
-            Result<TValue>[] values)
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
+        Result<TValue>[] values)
+    {
+        return (_, results, _) =>
         {
-            return async (keys, cancellationToken) => await Task.FromResult(values);
-        }
+            var span = results.Span;
+
+            for (var i = 0; i < results.Length; i++)
+            {
+                span[i] = values[i];
+            }
+
+            return default;
+        };
     }
 }

@@ -1,24 +1,22 @@
 using System;
-using HotChocolate.Data.Filters;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Tests
+namespace HotChocolate.Data.Tests;
+
+public abstract class FilterTestBase
 {
-    public abstract class FilterTestBase
+    public ISchema CreateSchema(Action<ISchemaBuilder> configure)
     {
-        public ISchema CreateSchema(Action<ISchemaBuilder> configure)
-        {
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolver("bar"));
+        var builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(c =>
+                c.Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"));
 
-            configure(builder);
+        configure(builder);
 
-            return builder.Create();
-        }
+        return builder.Create();
     }
 }

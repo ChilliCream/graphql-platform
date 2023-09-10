@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+public interface ITypeInfo
 {
-    public interface ITypeInfo
-    {
-        ITypeDefinitionNode Definition { get; }
+    ITypeDefinitionNode Definition { get; }
 
-        ISchemaInfo Schema { get; }
+    ISchemaInfo Schema { get; }
 
-        bool IsRootType { get; }
-    }
+    bool IsRootType { get; }
 }

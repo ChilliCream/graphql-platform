@@ -2,159 +2,133 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using System.Runtime.InteropServices;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IField
 {
-    public class FieldCollection<T>
-        : IFieldCollection<T>
-        where T : class, IField
+    private readonly Dictionary<string, T> _fieldsLookup;
+    private readonly T[] _fields;
+
+    internal FieldCollection(T[] fields)
     {
-        private readonly Dictionary<NameString, T> _fieldsLookup;
+        _fields = fields ?? throw new ArgumentNullException(nameof(fields));
+        _fieldsLookup = new Dictionary<string, T>(_fields.Length, StringComparer.Ordinal);
+
+        foreach (var field in _fields)
+        {
+            _fieldsLookup.Add(field.Name, field);
+        }
+    }
+
+    public T this[string fieldName] => _fieldsLookup[fieldName];
+
+    public T this[int index] => _fields[index];
+
+    public int Count => _fields.Length;
+
+    public bool ContainsField(string fieldName)
+    {
+        if (string.IsNullOrEmpty(fieldName))
+        {
+            throw new ArgumentNullException(fieldName);
+        }
+
+        return _fieldsLookup.ContainsKey(fieldName);
+    }
+
+    public bool TryGetField(string fieldName, [NotNullWhen(true)] out T? field)
+    {
+        if (string.IsNullOrEmpty(fieldName))
+        {
+            throw new ArgumentNullException(nameof(fieldName));
+        }
+
+        if (_fieldsLookup.TryGetValue(fieldName, out var item))
+        {
+            field = item;
+            return true;
+        }
+
+        field = default;
+        return false;
+    }
+
+    internal ReadOnlySpan<T> AsSpan() => _fields;
+
+    internal ref T GetReference()
+#if NET6_0_OR_GREATER
+        => ref MemoryMarshal.GetArrayDataReference(_fields);
+#else
+        => ref MemoryMarshal.GetReference(_fields.AsSpan());
+#endif
+
+    public IEnumerator<T> GetEnumerator()
+        => _fields.Length == 0
+            ? EmptyFieldEnumerator.Instance
+            : new FieldEnumerator(_fields);
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
+
+    private sealed class FieldEnumerator : IEnumerator<T>
+    {
         private readonly T[] _fields;
+        private int _index = -1;
 
-        public FieldCollection(IEnumerable<T> fields, bool sortByName = false)
+        public FieldEnumerator(T[] fields)
         {
-            if (fields is null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            _fields = sortByName
-                ? fields.OrderBy(t => t.Name).ToArray()
-                : fields is T[] array ? array : fields.ToArray();
-
-            _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
-
-            foreach (var field in _fields)
-            {
-                _fieldsLookup.Add(field.Name, field);
-            }
+            _fields = fields;
         }
 
-        public T this[string fieldName] => _fieldsLookup[fieldName];
+        public T Current { get; private set; } = default!;
 
-        public T this[int index] => _fields[index];
+        object IEnumerator.Current => Current;
 
-        public int Count => _fields.Length;
-
-        [Obsolete("This method will be removed soon.")]
-        public int IndexOfField(NameString fieldName)
+        public bool MoveNext()
         {
-            for (var i = 0; i < _fields.Length; i++)
+            _index++;
+
+            if (_index < _fields.Length)
             {
-                if (fieldName.Equals(_fields[i].Name))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        public bool ContainsField(NameString fieldName) =>
-            _fieldsLookup.ContainsKey(fieldName.EnsureNotEmpty(nameof(fieldName)));
-
-        public bool TryGetField(NameString fieldName, [NotNullWhen(true)] out T? field)
-        {
-            if (_fieldsLookup.TryGetValue(
-                fieldName.EnsureNotEmpty(nameof(fieldName)),
-                out var item))
-            {
-                field = item;
+                Current = _fields[_index];
                 return true;
             }
 
-            field = default;
+            Current = default!;
             return false;
         }
 
-        public IEnumerator<T> GetEnumerator() =>
-            _fields.Length == 0
-                ? EmptyFieldEnumerator.Instance
-                : new FieldEnumerator(_fields);
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public static FieldCollection<T> From(IEnumerable<T> fields, bool sortByName = false)
+        public void Reset()
         {
-            if (fields is IReadOnlyCollection<T> collection)
-            {
-                if (collection.Count == 0)
-                {
-                    return Empty;
-                }
-
-                return new FieldCollection<T>(fields, sortByName);
-            }
-
-            if (fields.Any())
-            {
-                return new FieldCollection<T>(fields, sortByName);
-            }
-
-            return Empty;
+            Current = default!;
+            _index = -1;
         }
 
-        public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
-
-        private sealed class FieldEnumerator : IEnumerator<T>
+        public void Dispose()
         {
-            private readonly T[] _fields;
-            private int _index = -1;
-
-            public FieldEnumerator(T[] fields)
-            {
-                _fields = fields;
-            }
-
-            public T Current { get; private set; } = default!;
-
-            object? IEnumerator.Current => Current;
-
-            public bool MoveNext()
-            {
-                _index++;
-
-                if (_index < _fields.Length)
-                {
-                    Current = _fields[_index];
-                    return true;
-                }
-
-                Current = default!;
-                return false;
-            }
-
-            public void Reset()
-            {
-                Current = default!;
-                _index = -1;
-            }
-
-            public void Dispose()
-            {
-                Reset();
-            }
+            Reset();
         }
+    }
 
-        private sealed class EmptyFieldEnumerator : IEnumerator<T>
-        {
-            private EmptyFieldEnumerator() { }
+    private sealed class EmptyFieldEnumerator : IEnumerator<T>
+    {
+        private EmptyFieldEnumerator() { }
 
-            public bool MoveNext() => false;
+        public bool MoveNext() => false;
 
-            public void Reset() { }
+        public void Reset() { }
 
-            public T Current { get; } = default!;
+        public T Current => default!;
 
-            object IEnumerator.Current => Current;
+        object IEnumerator.Current => Current;
 
-            public void Dispose() { }
+        public void Dispose() { }
 
-            internal static readonly EmptyFieldEnumerator Instance = new();
-        }
+        internal static readonly EmptyFieldEnumerator Instance = new();
     }
 }

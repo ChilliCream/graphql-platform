@@ -9,13 +9,13 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import { Helmet } from "react-helmet";
 
-interface SEOProps {
-  description?: string;
-  imageUrl?: string;
-  isArticle?: boolean;
-  lang?: string;
-  meta?: JSX.IntrinsicElements["meta"][];
-  title: string;
+export interface SEOProps {
+  readonly description?: string;
+  readonly imageUrl?: string;
+  readonly isArticle?: boolean;
+  readonly lang?: string;
+  readonly meta?: JSX.IntrinsicElements["meta"][];
+  readonly title: string;
 }
 
 export const SEO: FC<SEOProps> = ({
@@ -28,11 +28,12 @@ export const SEO: FC<SEOProps> = ({
 }) => {
   const { site, image } = useStaticQuery(
     graphql`
-      query {
+      query SEO {
         site {
           siteMetadata {
             title
             description
+            company
             author
             siteUrl
           }
@@ -42,21 +43,21 @@ export const SEO: FC<SEOProps> = ({
           sourceInstanceName: { eq: "images" }
         ) {
           childImageSharp {
-            gatsbyImageData(
-              layout: FIXED
-              width: 1200
-            )
+            gatsbyImageData(layout: FIXED, width: 1200, quality: 100)
           }
         }
       }
     `
   );
 
+  const metaSiteUrl = site.siteMetadata.siteUrl;
   const metaAuthor = `@${site.siteMetadata.author}`;
+  const metaCompany = site.siteMetadata.company;
   const metaDescription = description || site.siteMetadata.description;
-  const metaImageUrl = `${site.siteMetadata.siteUrl}${
-    imageUrl || image?.childImageSharp!.gatsbyImageData!.src
+  const metaImageUrl = `${metaSiteUrl}${
+    imageUrl ?? image?.childImageSharp!.gatsbyImageData!.images.fallback.src
   }`;
+  const metaType = isArticle ? "article" : "website";
 
   return (
     <Helmet
@@ -64,7 +65,7 @@ export const SEO: FC<SEOProps> = ({
         lang,
       }}
       title={title}
-      titleTemplate={`%s | ${site.siteMetadata.title}`}
+      titleTemplate={`%s - ${site.siteMetadata.title}`}
       meta={[
         {
           name: `description`,
@@ -72,7 +73,7 @@ export const SEO: FC<SEOProps> = ({
         },
         {
           property: `og:url`,
-          content: site.siteMetadata.siteUrl,
+          content: metaSiteUrl,
         },
         {
           property: `og:title`,
@@ -84,7 +85,7 @@ export const SEO: FC<SEOProps> = ({
         },
         {
           property: `og:type`,
-          content: !!isArticle ? `article` : `website`,
+          content: metaType,
         },
         {
           property: `og:image`,
@@ -112,7 +113,26 @@ export const SEO: FC<SEOProps> = ({
         },
         ...meta!,
       ]}
-    />
+    >
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org/",
+          "@type": metaType,
+          "@id": metaSiteUrl,
+          headline: title,
+          description: metaDescription,
+          author: {
+            "@type": "Organization",
+            name: metaCompany,
+            contactPoint: {
+              "@type": "ContactPoint",
+              email: "mailto:contact@chillicream.com",
+              contactType: "Customer Support",
+            },
+          },
+        })}
+      </script>
+    </Helmet>
   );
 };
 

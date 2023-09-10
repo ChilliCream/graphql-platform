@@ -119,7 +119,7 @@ Let us say we want to create a simple middleware that can be put on properties a
 ```csharp
 public sealed class ToUpperAttribute : ObjectFieldDescriptorAttribute
 {
-    protected override void OnConfigure(IObjectFieldDescriptor descriptor)
+    public override void OnConfigure(IObjectFieldDescriptor descriptor)
     {
         descriptor.Use(next => async ctx =>
         {
@@ -243,4 +243,4 @@ I hope you are as exited as I am about this. Happy Thanksgiving :) and get a sup
 If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

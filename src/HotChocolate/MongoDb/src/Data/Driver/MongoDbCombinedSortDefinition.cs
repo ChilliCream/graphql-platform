@@ -4,44 +4,43 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb;
+
+/// <summary>
+/// This class was ported over from the official mongo db driver
+/// </summary>
+public sealed class MongoDbCombinedSortDefinition : MongoDbSortDefinition
 {
-    /// <summary>
-    /// This class was ported over from the official mongo db driver
-    /// </summary>
-    internal sealed class MongoDbCombinedSortDefinition : MongoDbSortDefinition
+    private readonly MongoDbSortDefinition[] _sorts;
+
+    public MongoDbCombinedSortDefinition(params MongoDbSortDefinition[] sorts)
     {
-        private readonly MongoDbSortDefinition[] _sorts;
+        _sorts = sorts;
+    }
 
-        public MongoDbCombinedSortDefinition(params MongoDbSortDefinition[] sorts)
+    public MongoDbCombinedSortDefinition(IEnumerable<MongoDbSortDefinition> sorts)
+    {
+        _sorts = Ensure.IsNotNull(sorts, nameof(sorts)).ToArray();
+    }
+
+    public override BsonDocument Render(
+        IBsonSerializer documentSerializer,
+        IBsonSerializerRegistry serializerRegistry)
+    {
+        var document = new BsonDocument();
+
+        foreach (var sort in _sorts)
         {
-            _sorts = sorts;
-        }
+            var renderedSort = sort.Render(documentSerializer, serializerRegistry);
 
-        public MongoDbCombinedSortDefinition(IEnumerable<MongoDbSortDefinition> sorts)
-        {
-            _sorts = Ensure.IsNotNull(sorts, nameof(sorts)).ToArray();
-        }
-
-        public override BsonDocument Render(
-            IBsonSerializer documentSerializer,
-            IBsonSerializerRegistry serializerRegistry)
-        {
-            var document = new BsonDocument();
-
-            foreach (var sort in _sorts)
+            foreach (var element in renderedSort.Elements)
             {
-                BsonDocument renderedSort = sort.Render(documentSerializer, serializerRegistry);
-
-                foreach (BsonElement element in renderedSort.Elements)
-                {
-                    // the last sort always wins, and we need to make sure that order is preserved.
-                    document.Remove(element.Name);
-                    document.Add(element);
-                }
+                // the last sort always wins, and we need to make sure that order is preserved.
+                document.Remove(element.Name);
+                document.Add(element);
             }
-
-            return document;
         }
+
+        return document;
     }
 }

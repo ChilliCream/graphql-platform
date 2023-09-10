@@ -1,276 +1,236 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class InputCoercionTests
 {
-    public class InputCoercionTests
+    /// <summary>
+    /// Converts according to input coercion rules.
+    /// </summary>
+    [Fact]
+    public void ConvertAccordingToInputCoercionRules()
     {
-        /// <summary>
-        /// Converts according to input coercion rules.
-        /// </summary>
-        [Fact]
-        public void ConvertAccordingToInputCoercionRules()
-        {
-            InputIsCoercedCorrectly<BooleanType, BooleanValueNode, bool>(
-                new BooleanValueNode(true), true);
-            InputIsCoercedCorrectly<BooleanType, BooleanValueNode, bool>(
-                new BooleanValueNode(false), false);
-            InputIsCoercedCorrectly<IntType, IntValueNode, int>(
-                new IntValueNode(123), 123);
-            InputIsCoercedCorrectly<FloatType, IntValueNode, double>(
-                new IntValueNode(123), 123d);
-            InputIsCoercedCorrectly<FloatType, FloatValueNode, double>(
-                new FloatValueNode(123.456d), 123.456d);
-            InputIsCoercedCorrectly<StringType, StringValueNode, string>(
-                new StringValueNode("abc123"), "abc123");
-            InputIsCoercedCorrectly<IdType, StringValueNode, string>(
-                new StringValueNode("123456"), "123456");
-        }
+        InputIsCoercedCorrectly<BooleanType, BooleanValueNode, bool>(
+            new BooleanValueNode(true), true);
+        InputIsCoercedCorrectly<BooleanType, BooleanValueNode, bool>(
+            new BooleanValueNode(false), false);
+        InputIsCoercedCorrectly<IntType, IntValueNode, int>(
+            new IntValueNode(123), 123);
+        InputIsCoercedCorrectly<FloatType, IntValueNode, double>(
+            new IntValueNode(123), 123d);
+        InputIsCoercedCorrectly<FloatType, FloatValueNode, double>(
+            new FloatValueNode(123.456d), 123.456d);
+        InputIsCoercedCorrectly<StringType, StringValueNode, string>(
+            new StringValueNode("abc123"), "abc123");
+        InputIsCoercedCorrectly<IdType, StringValueNode, string>(
+            new StringValueNode("123456"), "123456");
+    }
 
-        /// <summary>
-        /// Does not convert when input coercion rules reject a value.
-        /// </summary>
-        [Fact]
-        public void ConvertAccordingToInputCoercionRules2()
-        {
-            InputCannotBeCoercedCorrectly<BooleanType, IntValueNode>(
-                new IntValueNode(123));
-            InputCannotBeCoercedCorrectly<IntType, FloatValueNode>(
-                new FloatValueNode(123.123d));
-            InputCannotBeCoercedCorrectly<IntType, BooleanValueNode>(
-                new BooleanValueNode(true));
-            InputCannotBeCoercedCorrectly<IntType, StringValueNode>(
-                new StringValueNode("123.123"));
-            InputCannotBeCoercedCorrectly<FloatType, StringValueNode>(
-                new StringValueNode("123"));
-            InputCannotBeCoercedCorrectly<StringType, FloatValueNode>(
-                new FloatValueNode(123.456d));
-            InputCannotBeCoercedCorrectly<StringType, BooleanValueNode>(
-                new BooleanValueNode(false));
-            InputIsCoercedCorrectly<IdType, StringValueNode, string>(
-                new StringValueNode("123456"), "123456");
-        }
+    /// <summary>
+    /// Does not convert when input coercion rules reject a value.
+    /// </summary>
+    [Fact]
+    public void ConvertAccordingToInputCoercionRules2()
+    {
+        InputCannotBeCoercedCorrectly<BooleanType, IntValueNode>(
+            new IntValueNode(123));
+        InputCannotBeCoercedCorrectly<IntType, FloatValueNode>(
+            new FloatValueNode(123.123d));
+        InputCannotBeCoercedCorrectly<IntType, BooleanValueNode>(
+            new BooleanValueNode(true));
+        InputCannotBeCoercedCorrectly<IntType, StringValueNode>(
+            new StringValueNode("123.123"));
+        InputCannotBeCoercedCorrectly<FloatType, StringValueNode>(
+            new StringValueNode("123"));
+        InputCannotBeCoercedCorrectly<StringType, FloatValueNode>(
+            new FloatValueNode(123.456d));
+        InputCannotBeCoercedCorrectly<StringType, BooleanValueNode>(
+            new BooleanValueNode(false));
+        InputIsCoercedCorrectly<IdType, StringValueNode, string>(
+            new StringValueNode("123456"), "123456");
+    }
 
-        [Fact]
-        public void InputListIsInstanceOf()
-        {
-            InputListIsInstanceOfInternal<BooleanType>(
-                new ListValueNode(new BooleanValueNode(true)));
-            InputListIsInstanceOfInternal<BooleanType>(
-                new BooleanValueNode(true));
+    [Fact]
+    public void ListCanBeCoercedFromListValue()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        var type = (IInputType)new ListType(new BooleanType());
+        var list = new ListValueNode(new BooleanValueNode(true), new BooleanValueNode(false));
 
-            InputListIsNotInstanceOfInternal<BooleanType>(
-                new ListValueNode(new IValueNode[] {
-                    new BooleanValueNode(true),
-                    new StringValueNode("123") }));
-            InputListIsNotInstanceOfInternal<BooleanType>(
-                new StringValueNode("123"));
-        }
+        // act
+        var coercedValue =
+            inputParser.ParseLiteral(list, type, Path.Root.Append("root"));
 
-        [Fact]
-        public void ListCanBeCoercedFromListValue()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new BooleanType());
-            var list = new ListValueNode(
-                new[] {
-                    new BooleanValueNode(true),
-                    new BooleanValueNode(false)});
+        // assert
+        Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True, Assert.False);
+    }
 
-            // act
-            object coercedValue = type.ParseLiteral(list);
+    /// <summary>
+    /// Expected Type:  [[Boolean]]
+    /// Provided Value: [[true], [true, false]]
+    /// Coerced Value:  [[true], [true, false]]
+    /// </summary>
+    [Fact]
+    public void Matrix_Can_Be_Coerced_From_Matrix()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        var type = (IInputType)new ListType(new ListType(new BooleanType()));
+        var value = new ListValueNode(
+            new ListValueNode(new BooleanValueNode(true)),
+            new ListValueNode(new BooleanValueNode(true), new BooleanValueNode(false)));
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<bool?>>(coercedValue),
-                t => Assert.True(t),
-                t => Assert.False(t));
-        }
+        // act
+        var coercedValue =
+            inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
-        /// <summary>
-        /// Expected Type:  [[Boolean]]
-        /// Provided Value: [[true], [true, false]]
-        /// Coerced Value:  [[true], [true, false]]
-        /// </summary>
-        [Fact]
-        public void Matrix_Can_Be_Coerced_From_Matrix()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new ListType(new BooleanType()));
-            var value = new ListValueNode(
-                new ListValueNode(new BooleanValueNode(true)),
-                new ListValueNode(new BooleanValueNode(true), new BooleanValueNode(false)));
+        // assert
+        coercedValue.MatchSnapshot();
+    }
 
-            // act
-            object coercedValue = type.ParseLiteral(value);
+    /// <summary>
+    /// Expected Type:  [[Boolean]]
+    /// Provided Value: true
+    /// Coerced Value:  [[true]]
+    /// </summary>
+    [Fact]
+    public void Matrix_Can_Be_Coerced_From_Single_Value()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        var type = (IInputType)new ListType(new ListType(new BooleanType()));
+        var value = new BooleanValueNode(true);
 
-            // assert
-            coercedValue.MatchSnapshot();
-        }
+        // act
+        var coercedValue =
+            inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
-        /// <summary>
-        /// Expected Type:  [[Boolean]]
-        /// Provided Value: true
-        /// Coerced Value:  [[true]]
-        /// </summary>
-        [Fact]
-        public void Matrix_Can_Be_Coerced_From_Single_Value()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new ListType(new BooleanType()));
-            var value = new BooleanValueNode(true);
+        // assert
+        coercedValue.MatchSnapshot();
+    }
 
-            // act
-            object coercedValue = type.ParseLiteral(value);
+    /// <summary>
+    /// Expected Type:  [[Boolean]]
+    /// Provided Value: null
+    /// Coerced Value:  null
+    /// </summary>
+    [Fact]
+    public void Matrix_Can_Be_Coerced_From_Null()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        var type = (IInputType)new ListType(new ListType(new BooleanType()));
+        var value = NullValueNode.Default;
 
-            // assert
-            coercedValue.MatchSnapshot();
-        }
+        // act
+        var coercedValue =
+            inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
-        /// <summary>
-        /// Expected Type:  [[Boolean]]
-        /// Provided Value: null
-        /// Coerced Value:  null
-        /// </summary>
-        [Fact]
-        public void Matrix_Can_Be_Coerced_From_Null()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new ListType(new BooleanType()));
-            var value = NullValueNode.Default;
+        // assert
+        Assert.Null(coercedValue);
+    }
 
-            // act
-            object coercedValue = type.ParseLiteral(value);
+    /// <summary>
+    /// Expected Type:  [[Boolean]]
+    /// Provided Value: [true]
+    /// Coerced Value:  Error: Incorrect item value
+    /// </summary>
+    [Fact]
+    public void Matrix_Cannot_Be_Coerced_From_List()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        var type = (IInputType)new ListType(new ListType(new BooleanType()));
+        var value = new ListValueNode(new BooleanValueNode(true));
 
-            // assert
-            Assert.Null(coercedValue);
-        }
+        // act
+        void Action() =>
+            inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
-        /// <summary>
-        /// Expected Type:  [[Boolean]]
-        /// Provided Value: [true]
-        /// Coerced Value:  Error: Incorrect item value
-        /// </summary>
-        [Fact]
-        public void Matrix_Cannot_Be_Coerced_From_List()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new ListType(new BooleanType()));
-            var value = new ListValueNode(new BooleanValueNode(true));
+        // assert
+        Assert.Throws<SerializationException>(Action);
+    }
 
-            // act
-            Action action = () => type.ParseLiteral(value);
+    [Fact]
+    public void ListCanBeCoercedFromListElementValue()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        var type = (IInputType)new ListType(new BooleanType());
+        var element = new BooleanValueNode(true);
 
-            // assert
-            Assert.Throws<SerializationException>(action);
-        }
+        // act
+        var coercedValue =
+            inputParser.ParseLiteral(element, type, Path.Root.Append("root"));
 
-        [Fact]
-        public void ListCanBeCoercedFromListElementValue()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new BooleanType());
-            var element = new BooleanValueNode(true);
+        // assert
+        Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True);
+    }
 
-            // act
-            object coercedValue = type.ParseLiteral(element);
+    [Fact]
+    public void ListCannotBeCoercedFromMixedList()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        var type = (IInputType)new ListType(new BooleanType());
+        var list = new ListValueNode(new BooleanValueNode(true), new StringValueNode("foo"));
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<bool?>>(coercedValue),
-                t => Assert.True(t));
-        }
+        // act
+        void Action() =>
+            inputParser.ParseLiteral(list, type, Path.Root.Append("root"));
 
-        [Fact]
-        public void ListCannotBeCoercedFromMixedList()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new BooleanType());
-            var list = new ListValueNode(
-                    new BooleanValueNode(true),
-                    new StringValueNode("foo"));
+        // assert
+        Assert.Throws<SerializationException>(Action);
+    }
 
-            // act
-            Action action = () => type.ParseLiteral(list);
+    [Fact]
+    public void ListCannotBeCoercedIfElementTypeDoesNotMatch()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        var type = (IInputType)new ListType(new BooleanType());
+        var element = new StringValueNode("foo");
 
-            // assert
-            Assert.Throws<SerializationException>(action);
-        }
+        // act
+        void Action() =>
+            inputParser.ParseLiteral(element, type, Path.Root.Append("root"));
 
-        [Fact]
-        public void ListCannotBeCoercedIfElementTypeDoesNotMatch()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new BooleanType());
-            var element = new StringValueNode("foo");
+        // assert
+        Assert.Throws<SerializationException>(Action);
+    }
 
-            // act
-            Action action = () => type.ParseLiteral(element);
+    private void InputIsCoercedCorrectly<TType, TLiteral, TExpected>(
+        TLiteral literal, TExpected expectedValue)
+        where TType : ScalarType, new()
+        where TLiteral : IValueNode
+    {
+        // arrange
+        var type = new TType();
 
-            // assert
-            Assert.Throws<SerializationException>(action);
-        }
+        // act
+        var coercedValue = type.ParseLiteral(literal);
 
-        private void InputIsCoercedCorrectly<TType, TLiteral, TExpected>(
-            TLiteral literal, TExpected expectedValue)
-            where TType : ScalarType, new()
-            where TLiteral : IValueNode
-        {
-            // arrange
-            var type = new TType();
+        // assert
+        Assert.IsType<TExpected>(coercedValue);
+        Assert.Equal(expectedValue, coercedValue);
+    }
 
-            // act
-            object coercedValue = type.ParseLiteral(literal);
+    private void InputCannotBeCoercedCorrectly<TType, TLiteral>(
+        TLiteral literal)
+        where TType : ScalarType, new()
+        where TLiteral : IValueNode
+    {
+        // arrange
+        var type = new TType();
 
-            // assert
-            Assert.IsType<TExpected>(coercedValue);
-            Assert.Equal(expectedValue, coercedValue);
-        }
+        // act
+        void Action() => type.ParseLiteral(literal);
 
-        private void InputCannotBeCoercedCorrectly<TType, TLiteral>(
-            TLiteral literal)
-            where TType : ScalarType, new()
-            where TLiteral : IValueNode
-        {
-            // arrange
-            var type = new TType();
-
-            // act
-            Action action = () => type.ParseLiteral(literal);
-
-            // assert
-            Assert.Throws<SerializationException>(action);
-        }
-
-        private void InputListIsInstanceOfInternal<TElement>(
-           IValueNode literal)
-           where TElement : ScalarType, new()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new TElement());
-
-            // act
-            bool isInstanceOfType = type.IsInstanceOfType(literal);
-
-            // assert
-            Assert.True(isInstanceOfType);
-        }
-
-        private void InputListIsNotInstanceOfInternal<TElement>(
-           IValueNode literal)
-           where TElement : ScalarType, new()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new TElement());
-
-            // act
-            bool isInstanceOfType = type.IsInstanceOfType(literal);
-
-            // assert
-            Assert.False(isInstanceOfType);
-        }
+        // assert
+        Assert.Throws<SerializationException>(Action);
     }
 }

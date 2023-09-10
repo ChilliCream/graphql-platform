@@ -1,27 +1,26 @@
-﻿using System;
+using System;
 
-namespace HotChocolate.Execution.Errors
+namespace HotChocolate.Execution.Errors;
+
+internal class FuncErrorFilterWrapper
+    : IErrorFilter
 {
-    internal class FuncErrorFilterWrapper
-        : IErrorFilter
+    private readonly Func<IError, IError> _errorFilter;
+
+    public FuncErrorFilterWrapper(
+        Func<IError, IError> errorFilter)
     {
-        private readonly Func<IError, IError> _errorFilter;
+        _errorFilter = errorFilter
+            ?? throw new ArgumentNullException(nameof(errorFilter));
+    }
 
-        public FuncErrorFilterWrapper(
-            Func<IError, IError> errorFilter)
+    public IError OnError(IError error)
+    {
+        if (error is null)
         {
-            _errorFilter = errorFilter
-                ?? throw new ArgumentNullException(nameof(errorFilter));
+            throw new ArgumentNullException(nameof(error));
         }
 
-        public IError OnError(IError error)
-        {
-            if (error is null)
-            {
-                throw new ArgumentNullException(nameof(error));
-            }
-
-            return _errorFilter(error);
-        }
+        return _errorFilter(error);
     }
 }

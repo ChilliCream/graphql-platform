@@ -1,30 +1,38 @@
 import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FC, useCallback, useEffect, useRef } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch } from "react-redux";
-import styled from "styled-components";
-import { DocPageFragment } from "../../../graphql-types";
-import ListAltIconSvg from "../../images/list-alt.svg";
-import NewspaperIconSvg from "../../images/newspaper.svg";
+import semverCoerce from "semver/functions/coerce";
+import semverCompare from "semver/functions/compare";
+import styled, { css } from "styled-components";
+
+import { Article } from "@/components/articles/article";
+import { ArticleComments } from "@/components/articles/article-comments";
+import { ArticleContentFooter } from "@/components/articles/article-content-footer";
+import {
+  ArticleContent,
+  ArticleHeader,
+  ArticleTitle,
+  ScrollContainer,
+} from "@/components/articles/article-elements";
+import { ArticleSections } from "@/components/articles/article-sections";
+import { TabGroupProvider } from "@/components/mdx/tabs";
+import { DocPageFragment, DocsJson, Maybe } from "@/graphql-types";
 import {
   DocPageDesktopGridColumns,
   IsDesktop,
   IsPhablet,
   IsSmallDesktop,
   IsTablet,
-} from "../../shared-style";
-import { useObservable } from "../../state";
-import { toggleAside, toggleTOC } from "../../state/common";
-import { Article } from "../articles/article";
-import { ArticleComments } from "../articles/article-comments";
-import { ArticleContentFooter } from "../articles/article-content-footer";
-import {
-  ArticleContent,
-  ArticleHeader,
-  ArticleTitle,
-} from "../articles/article-elements";
-import { ArticleSections } from "../articles/article-sections";
-import { TabGroupProvider } from "../mdx/tabs/tab-groups";
+  THEME_COLORS,
+} from "@/shared-style";
+import { useObservable } from "@/state";
+import { toggleAside, toggleTOC } from "@/state/common";
+
+// Icons
+import ListAltIconSvg from "@/images/list-alt.svg";
+import NewspaperIconSvg from "@/images/newspaper.svg";
+
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -34,7 +42,7 @@ import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
 import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
-interface DocPageProps {
+export interface DocPageProps {
   readonly data: DocPageFragment;
   readonly originPath: string;
 }
@@ -46,8 +54,9 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const { fields, frontmatter, body } = data.file!.childMdx!;
   const slug = fields!.slug!;
   const title = frontmatter!.title!;
+  const description = frontmatter!.description;
 
-  const product = useProductInformation(slug);
+  const product = useProductInformation(slug, data.productsConfig?.products);
 
   const hasScrolled$ = useObservable((state) => {
     return state.common.yScrollPosition > 20;
@@ -62,13 +71,8 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   }, []);
 
   useEffect(() => {
-    const classes = responsiveMenuRef.current?.className ?? "";
-
     const subscription = hasScrolled$.subscribe((hasScrolled) => {
-      if (responsiveMenuRef.current) {
-        responsiveMenuRef.current.className =
-          classes + (hasScrolled ? " scrolled" : "");
-      }
+      responsiveMenuRef.current?.classList.toggle("scrolled", hasScrolled);
     });
 
     return () => {
@@ -88,7 +92,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
         <DocPageNavigation
           data={data}
           selectedPath={slug}
-          selectedProduct={product.name}
+          selectedProduct={product.path}
           selectedVersion={product.version}
         />
         <ArticleWrapper>
@@ -109,12 +113,12 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
                     </Button>
                   </ResponsiveMenu>
                 </ResponsiveMenuWrapper>
-                <DocumentationNotes product={product} />
+                <DocumentationNotes product={product} slug={slug} />
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
+                {description && <p>{description}</p>}
                 <MDXRenderer>{body}</MDXRenderer>
-
                 <ArticleContentFooter
                   lastUpdated={fields!.lastUpdated!}
                   lastAuthorName={fields!.lastAuthorName!}
@@ -126,7 +130,9 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
         </ArticleWrapper>
         <DocPageAside>
           <DocPageCommunity data={data} originPath={originPath} />
-          <ArticleSections data={data.file!.childMdx!} />
+          <ScrollContainer>
+            <ArticleSections data={data.file!.childMdx!} />
+          </ScrollContainer>
         </DocPageAside>
       </Container>
     </TabGroupProvider>
@@ -147,9 +153,22 @@ export const DocPageGraphQLFragment = graphql`
         }
         frontmatter {
           title
+          description
         }
         body
         ...ArticleSections
+      }
+    }
+    productsConfig: file(
+      sourceInstanceName: { eq: "docs" }
+      relativePath: { eq: "docs.json" }
+    ) {
+      products: childrenDocsJson {
+        path
+        title
+        description
+        metaDescription
+        latestStableVersion
       }
     }
     ...ArticleComments
@@ -161,11 +180,22 @@ export const DocPageGraphQLFragment = graphql`
 const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
 
 interface ProductInformation {
-  readonly name: string;
+  readonly path: string;
+  readonly name: string | null;
   readonly version: string;
+  readonly stableVersion: string;
+  readonly description: string | null;
 }
 
-function useProductInformation(slug: string): ProductInformation | null {
+type Product = Pick<
+  DocsJson,
+  "path" | "title" | "description" | "metaDescription" | "latestStableVersion"
+>;
+
+export function useProductInformation(
+  slug: string,
+  products: Maybe<Array<Maybe<Product>>> | undefined
+): ProductInformation | null {
   if (!slug) {
     return null;
   }
@@ -176,9 +206,22 @@ function useProductInformation(slug: string): ProductInformation | null {
     return null;
   }
 
+  const selectedPath = result[1] || "";
+  const selectedVersion = result[2] || "";
+  let stableVersion = "";
+
+  const selectedProduct = products?.find((p) => p?.path === selectedPath);
+
+  if (selectedProduct) {
+    stableVersion = selectedProduct.latestStableVersion || "";
+  }
+
   return {
-    name: result[1] || "",
-    version: result[2] || "",
+    path: selectedPath,
+    name: selectedProduct?.title ?? "",
+    version: selectedVersion,
+    stableVersion,
+    description: selectedProduct?.metaDescription || null,
   };
 }
 
@@ -193,11 +236,11 @@ const ArticleContainer = styled.div`
   grid-row: 1;
   grid-column: 3;
 
-  ${IsSmallDesktop(`
-      grid-column: 1;
+  ${IsSmallDesktop(css`
+    grid-column: 1;
   `)};
 
-  ${IsPhablet(`
+  ${IsPhablet(css`
     width: 100%;
     padding: 0;
   `)}
@@ -205,13 +248,15 @@ const ArticleContainer = styled.div`
 
 const Container = styled.div`
   display: grid;
+
   ${DocPageDesktopGridColumns};
-  ${IsSmallDesktop(`
+
+  ${IsSmallDesktop(css`
     grid-template-columns: 250px 1fr;
     width: auto;
   `)}
 
-  ${IsTablet(`
+  ${IsTablet(css`
     grid-template-columns: 1fr;
   `)}
 
@@ -224,7 +269,7 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 2;
 
-    ${IsSmallDesktop(`
+    ${IsSmallDesktop(css`
       grid-column: 1;
     `)}
   }
@@ -233,11 +278,11 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 1 / 6;
 
-    ${IsSmallDesktop(`
+    ${IsSmallDesktop(css`
       grid-column: 2 / 5;
     `)}
 
-    ${IsTablet(`
+    ${IsTablet(css`
       grid-column: 1 / 5;
     `)}
   }
@@ -246,7 +291,7 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 4;
 
-    ${IsPhablet(`
+    ${IsPhablet(css`
       grid-column: 1;
     `)}
   }
@@ -274,28 +319,28 @@ const ResponsiveMenu = styled.div`
 
   &.scrolled {
     top: 60px;
+    border-radius: 0;
   }
 
-  ${IsPhablet(`
+  ${IsPhablet(css`
     left: 0;
     width: auto;
     right: 0;
-    margin-left: 0;
-    margin-right: 0;
+    margin: 0;
     top: 60px;
   `)}
 
-  ${IsDesktop(`
+  ${IsDesktop(css`
     display: none;
   `)}
 
-  ${IsSmallDesktop(`
+  ${IsSmallDesktop(css`
     > .toc-toggle {
       display: none;
     }
   `)}
 
-  ${IsTablet(`
+  ${IsTablet(css`
     > .toc-toggle {
       display: initial;
     }
@@ -306,7 +351,7 @@ const Button = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
 
   &.aside-toggle {
@@ -325,15 +370,15 @@ const Button = styled.button`
     margin-right: 5px;
     width: 16px;
     height: 16px;
-    fill: var(--text-color);
+    fill: ${THEME_COLORS.text};
     transition: fill 0.2s ease-in-out;
   }
 `;
 
-const OutdatedDocumentationWarning = styled.div`
+const DocumentationVersionWarning = styled.div`
   padding: 20px 20px;
-  background-color: var(--warning-color);
-  color: var(--text-color-contrast);
+  background-color: ${THEME_COLORS.warning};
+  color: ${THEME_COLORS.textContrast};
   line-height: 1.4;
 
   > br {
@@ -342,31 +387,78 @@ const OutdatedDocumentationWarning = styled.div`
 
   > a {
     color: white !important;
-    font-weight: bold;
+    font-weight: 600;
     text-decoration: underline;
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     padding: 20px 50px;
   }
 `;
 
 interface DocumentationNotesProps {
   readonly product: ProductInformation;
+  readonly slug: string;
 }
 
-const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
-  if (product.version === "") {
+type DocumentationVersionType = "stable" | "experimental" | "outdated" | null;
+
+const DocumentationNotes: FC<DocumentationNotesProps> = ({ product, slug }) => {
+  const versionType = useMemo<DocumentationVersionType>(() => {
+    const parsedCurrentVersion = semverCoerce(product.version);
+    const parsedStableVersion = semverCoerce(product.stableVersion);
+
+    if (parsedCurrentVersion && parsedStableVersion) {
+      const curVersion = parsedCurrentVersion.version;
+      const stableVersion = parsedStableVersion.version;
+
+      const result = semverCompare(curVersion, stableVersion);
+
+      if (result === 0) {
+        return "stable";
+      }
+
+      if (result === 1) {
+        return "experimental";
+      }
+
+      if (result === -1) {
+        return "outdated";
+      }
+    }
+
     return null;
+  }, [product.stableVersion, product.version]);
+
+  if (versionType !== null) {
+    const stableDocsUrl = slug.replace(
+      "/" + product.version,
+      "/" + product.stableVersion
+    );
+
+    if (versionType === "experimental") {
+      return (
+        <DocumentationVersionWarning>
+          This is documentation for <strong>{product.version}</strong>, which is
+          currently in preview.
+          <br />
+          See the <Link to={stableDocsUrl}>latest stable version</Link> instead.
+        </DocumentationVersionWarning>
+      );
+    }
+
+    if (versionType === "outdated") {
+      return (
+        <DocumentationVersionWarning>
+          This is documentation for <strong>{product.version}</strong>, which is
+          no longer actively maintained.
+          <br />
+          For up-to-date documentation, see the{" "}
+          <Link to={stableDocsUrl}>latest stable version</Link>.
+        </DocumentationVersionWarning>
+      );
+    }
   }
 
-  return (
-    <OutdatedDocumentationWarning>
-      This is documentation for <strong>{product.version}</strong>, which is no
-      longer actively maintained.
-      <br />
-      For up-to-date documentation, see the{" "}
-      <Link to={`/docs/${product.name}`}>latest version</Link>.
-    </OutdatedDocumentationWarning>
-  );
+  return null;
 };

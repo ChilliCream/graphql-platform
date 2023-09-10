@@ -1,43 +1,42 @@
-using System;
-
 #nullable enable
 
-namespace HotChocolate
+using System;
+
+namespace HotChocolate;
+
+public partial class SchemaBuilder
 {
-    public partial class SchemaBuilder
+    public sealed class LazySchema
     {
-        public sealed class LazySchema
+        public event EventHandler? Completed;
+
+        private ISchema? _schema;
+        private bool _isSet;
+
+        public ISchema Schema
         {
-            public event EventHandler? Completed;
-
-            private ISchema? _schema;
-            private bool _isSet;
-
-            public ISchema Schema
+            get
             {
-                get
+                if (!_isSet || _schema is null)
                 {
-                    if (!_isSet || _schema is null)
-                    {
-                        throw new InvalidOperationException(
-                            "The schema does not yet exist.");
-                    }
-
-                    return _schema;
+                    throw new InvalidOperationException(
+                        "The schema does not yet exist.");
                 }
-                set
+
+                return _schema;
+            }
+            set
+            {
+                if (_isSet)
                 {
-                    if (_isSet)
-                    {
-                        throw new InvalidOperationException(
-                            "The schema was already created.");
-                    }
-
-                    _schema = value ?? throw new ArgumentNullException(nameof(value));
-                    _isSet = true;
-                    Completed?.Invoke(this, EventArgs.Empty);
-                    Completed = null;
+                    throw new InvalidOperationException(
+                        "The schema was already created.");
                 }
+
+                _schema = value ?? throw new ArgumentNullException(nameof(value));
+                _isSet = true;
+                Completed?.Invoke(this, EventArgs.Empty);
+                Completed = null;
             }
         }
     }

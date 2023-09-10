@@ -1,8 +1,7 @@
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data.Sorting;
+
+public static class DefaultSortOperations
 {
-    public static class DefaultSortOperations
-    {
-        public const int Ascending = 0;
-        public const int Descending = 1;
-    }
+    public const int Ascending = 0;
+    public const int Descending = 1;
 }

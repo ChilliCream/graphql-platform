@@ -1,0 +1,11 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  bar: String
+}
+
+input Foo {
+  bar: Int @deprecated(reason: "b")
+}

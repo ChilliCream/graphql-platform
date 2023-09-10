@@ -45,18 +45,6 @@
               "DeprecationReason": null
             },
             {
-              "Name": "isRepeatable",
-              "Description": null,
-              "Args": [],
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "Boolean",
-                "OfType": null
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            },
-            {
               "Name": "locations",
               "Description": null,
               "Args": [],
@@ -82,7 +70,18 @@
             {
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -97,6 +96,22 @@
                       "Name": "__InputValue"
                     }
                   }
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "isRepeatable",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
                 }
               },
               "IsDeprecated": false,
@@ -384,7 +399,18 @@
             {
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -506,6 +532,34 @@
             {
               "Name": "defaultValue",
               "Description": "A GraphQL-formatted string representing the default value for this input value.",
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "deprecationReason",
+              "Description": null,
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
@@ -780,7 +834,18 @@
             {
               "Name": "inputFields",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "List",
                 "Name": null,
@@ -1123,6 +1188,37 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "Name": "complete",
+              "Description": null,
+              "Args": [
+                {
+                  "Name": "episode",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Enum",
+                      "Name": "Episode",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -1231,7 +1327,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1241,7 +1337,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1251,7 +1347,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1261,7 +1357,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1272,7 +1368,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1396,7 +1492,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1406,7 +1502,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1416,7 +1512,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1426,7 +1522,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1437,7 +1533,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1592,7 +1688,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1602,7 +1698,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1612,7 +1708,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1622,7 +1718,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1633,7 +1729,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1727,6 +1823,18 @@
           "Description": null,
           "Fields": [
             {
+              "Name": "commentary",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
               "Name": "stars",
               "Description": null,
               "Args": [],
@@ -1738,18 +1846,6 @@
                   "Name": "Int",
                   "OfType": null
                 }
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            },
-            {
-              "Name": "commentary",
-              "Description": null,
-              "Args": [],
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "String",
-                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -1807,7 +1903,7 @@
         },
         {
           "Kind": "Object",
-          "Name": "CharacterConnection",
+          "Name": "FriendsConnection",
           "Description": "A connection to a list of items.",
           "Fields": [
             {
@@ -1838,7 +1934,7 @@
                   "Name": null,
                   "OfType": {
                     "Kind": "Object",
-                    "Name": "CharacterEdge",
+                    "Name": "FriendsEdge",
                     "OfType": null
                   }
                 }
@@ -2040,7 +2136,7 @@
         },
         {
           "Kind": "Object",
-          "Name": "CharacterEdge",
+          "Name": "FriendsEdge",
           "Description": "An edge in a connection.",
           "Fields": [
             {
@@ -2079,52 +2175,6 @@
         }
       ],
       "Directives": [
-        {
-          "Name": "skip",
-          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
-          "Args": [
-            {
-              "Name": "if",
-              "Description": "Skipped when true.",
-              "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "Name": "include",
-          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
-          "Args": [
-            {
-              "Name": "if",
-              "Description": "Included when true.",
-              "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
         {
           "Name": "defer",
           "Description": "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.",
@@ -2180,11 +2230,30 @@
                   "OfType": null
                 }
               },
-              "DefaultValue": null
+              "DefaultValue": "0"
             },
             {
               "Name": "if",
               "Description": "Streamed when true.",
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "Boolean",
+                "OfType": null
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": true
+        },
+        {
+          "Name": "skip",
+          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
+          "Args": [
+            {
+              "Name": "if",
+              "Description": "Skipped when true.",
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -2198,8 +2267,50 @@
             }
           ],
           "OnOperation": false,
-          "OnFragment": false,
+          "OnFragment": true,
           "OnField": true
+        },
+        {
+          "Name": "include",
+          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
+          "Args": [
+            {
+              "Name": "if",
+              "Description": "Included when true.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
+          "OnField": true
+        },
+        {
+          "Name": "deprecated",
+          "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
+          "Args": [
+            {
+              "Name": "reason",
+              "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "String",
+                "OfType": null
+              },
+              "DefaultValue": "\"No longer supported.\""
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
         },
         {
           "Name": "export",
@@ -2219,25 +2330,6 @@
           "OnOperation": false,
           "OnFragment": false,
           "OnField": true
-        },
-        {
-          "Name": "deprecated",
-          "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
-          "Args": [
-            {
-              "Name": "reason",
-              "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "String",
-                "OfType": null
-              },
-              "DefaultValue": "\"No longer supported\""
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": false
         }
       ]
     }
@@ -2341,26 +2433,6 @@
             },
             {
               "__typename": "__Field",
-              "Name": "isRepeatable",
-              "Description": null,
-              "Args": [],
-              "Type": {
-                "__typename": "__Type",
-                "Name": "Boolean",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            },
-            {
-              "__typename": "__Field",
               "Name": "locations",
               "Description": null,
               "Args": [],
@@ -2416,7 +2488,26 @@
               "__typename": "__Field",
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -2460,6 +2551,37 @@
                       "OfType": null
                     }
                   }
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "isRepeatable",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
                 }
               },
               "IsDeprecated": false,
@@ -2887,7 +3009,26 @@
               "__typename": "__Field",
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -3117,6 +3258,57 @@
               "__typename": "__Field",
               "Name": "defaultValue",
               "Description": "A GraphQL-formatted string representing the default value for this input value.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "deprecationReason",
+              "Description": null,
               "Args": [],
               "Type": {
                 "__typename": "__Type",
@@ -3637,7 +3829,26 @@
               "__typename": "__Field",
               "Name": "inputFields",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -4243,6 +4454,67 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "complete",
+              "Description": null,
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "episode",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Episode",
+                      "Kind": "Enum",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -4432,7 +4704,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4450,7 +4722,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4468,7 +4740,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4486,7 +4758,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4504,7 +4776,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -4723,7 +4995,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4741,7 +5013,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4759,7 +5031,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4777,7 +5049,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4795,7 +5067,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -5033,7 +5305,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -5051,7 +5323,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -5069,7 +5341,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -5087,7 +5359,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -5105,7 +5377,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -5277,6 +5549,26 @@
           "Fields": [
             {
               "__typename": "__Field",
+              "Name": "commentary",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
               "Name": "stars",
               "Description": null,
               "Args": [],
@@ -5302,26 +5594,6 @@
                   "PossibleTypes": null,
                   "OfType": null
                 }
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            },
-            {
-              "__typename": "__Field",
-              "Name": "commentary",
-              "Description": null,
-              "Args": [],
-              "Type": {
-                "__typename": "__Type",
-                "Name": "String",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -5407,7 +5679,7 @@
         },
         {
           "__typename": "__Type",
-          "Name": "CharacterConnection",
+          "Name": "FriendsConnection",
           "Kind": "Object",
           "Description": "A connection to a list of items.",
           "Fields": [
@@ -5469,7 +5741,7 @@
                   "PossibleTypes": null,
                   "OfType": {
                     "__typename": "__Type",
-                    "Name": "CharacterEdge",
+                    "Name": "FriendsEdge",
                     "Kind": "Object",
                     "Description": null,
                     "Fields": null,
@@ -5803,7 +6075,7 @@
         },
         {
           "__typename": "__Type",
-          "Name": "CharacterEdge",
+          "Name": "FriendsEdge",
           "Kind": "Object",
           "Description": "An edge in a connection.",
           "Fields": [
@@ -5867,84 +6139,6 @@
         }
       ],
       "Directives": [
-        {
-          "__typename": "__Directive",
-          "Name": "skip",
-          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "if",
-              "Description": "Skipped when true.",
-              "Type": {
-                "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "__typename": "__Directive",
-          "Name": "include",
-          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "if",
-              "Description": "Included when true.",
-              "Type": {
-                "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
         {
           "__typename": "__Directive",
           "Name": "defer",
@@ -6041,12 +6235,40 @@
                   "OfType": null
                 }
               },
-              "DefaultValue": null
+              "DefaultValue": "0"
             },
             {
               "__typename": "__InputValue",
               "Name": "if",
               "Description": "Streamed when true.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Boolean",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": true
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "skip",
+          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "if",
+              "Description": "Skipped when true.",
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -6074,8 +6296,75 @@
             }
           ],
           "OnOperation": false,
-          "OnFragment": false,
+          "OnFragment": true,
           "OnField": true
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "include",
+          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "if",
+              "Description": "Included when true.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
+          "OnField": true
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "deprecated",
+          "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "reason",
+              "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
+              "Type": {
+                "__typename": "__Type",
+                "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "DefaultValue": "\"No longer supported.\""
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
         },
         {
           "__typename": "__Directive",
@@ -6104,34 +6393,6 @@
           "OnOperation": false,
           "OnFragment": false,
           "OnField": true
-        },
-        {
-          "__typename": "__Directive",
-          "Name": "deprecated",
-          "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "reason",
-              "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
-              "Type": {
-                "__typename": "__Type",
-                "Name": "String",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
-              },
-              "DefaultValue": "\"No longer supported\""
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": false
         }
       ]
     },

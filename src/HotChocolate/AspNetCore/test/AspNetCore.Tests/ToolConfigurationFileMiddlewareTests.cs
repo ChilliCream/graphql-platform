@@ -1,103 +1,188 @@
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
-using HotChocolate.AspNetCore.Utilities;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public class ToolConfigurationFileMiddlewareTests : ServerTestBase
 {
-    public class ToolConfigurationFileMiddlewareTests
-        : ServerTestBase
+    public ToolConfigurationFileMiddlewareTests(TestServerFactory serverFactory)
+        : base(serverFactory)
     {
-        public ToolConfigurationFileMiddlewareTests(TestServerFactory serverFactory)
-            : base(serverFactory)
+    }
+
+    [Fact]
+    public async Task Fetch_Tool_Config_Without_Options()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result = await GetBcpConfigAsync(server);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
+    {
+        // arrange
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(builder => builder.MapBananaCakePop().WithOptions(options));
+
+        // act
+        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
+    {
+        // arrange
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(builder =>
         {
-        }
+            builder.MapGraphQLHttp();
+            builder.MapBananaCakePop().WithOptions(options);
+        });
 
-        [Fact]
-        public async Task Fetch_Tool_Config_Without_Options()
+        // act
+        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
+    {
+        // arrange
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar").WithOptions(options));
+
+        // act
+        var result = await GetBcpConfigAsync(server, "/foo/bar");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData("embedded")]
+    [InlineData("latest")]
+    [InlineData("insider")]
+    [InlineData("1.0.0")]
+    public async Task Fetch_Tool_When_Disabled(string version)
+    {
+        // arrange
+        var options = new GraphQLServerOptions
         {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false }
+        };
+        var server = CreateStarWarsServer(configureConventions: e => e.WithOptions(options));
 
-            // act
-            Result result = await GetAsync(server);
+        // act
+        var result = await GetAsync(server, "/graphql/index.html");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Fetch_Tool_When_Disabled()
+    [Fact]
+    public async Task Fetch_Tool_Config_With_Options()
+    {
+        // arrange
+        var options = new GraphQLServerOptions
         {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions
-                    {
-                        Tool = { Enable = false }
-                    }));
-
-            // act
-            Result result = await GetAsync(server);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Fetch_Tool_Config_With_Options()
-        {
-            // arrange
-            var options = new GraphQLServerOptions
+            Tool =
             {
-                Tool =
-                {
-                    Document = "# foo",
-                    Credentials = DefaultCredentials.SameOrigin,
-                    HttpHeaders = new HeaderDictionary
-                    {
-                        { "Content-Type", "application/json" }
-                    },
-                    HttpMethod = DefaultHttpMethod.Get
-                }
-            };
-            TestServer server = CreateStarWarsServer("/graphql",
-                configureConventions: builder => builder.WithOptions(options));
+                ServeMode = GraphQLToolServeMode.Embedded,
+                Document = "# foo",
+                IncludeCookies = true,
+                HttpHeaders =
+                    new HeaderDictionary { { "Content-Type", "application/json" } },
+                HttpMethod = DefaultHttpMethod.Get,
+                Enable = true,
+                Title = "Hello",
+                GaTrackingId = "GA-FOO",
+                GraphQLEndpoint = "/foo/bar",
+                UseBrowserUrlAsGraphQLEndpoint = true,
+                DisableTelemetry = true
+            }
+        };
+        
+        var server = CreateStarWarsServer("/graphql", configureConventions: builder => builder.WithOptions(options));
 
-            // act
-            Result result = await GetAsync(server);
+        // act
+        var result = await GetBcpConfigAsync(server);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        private async Task<Result> GetAsync(TestServer server)
+    [Fact]
+    public async Task Fetch_MapBananaCakePop_Tool_Config()
+    {
+        // arrange
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
+
+        // act
+        var result = await GetBcpConfigAsync(server, "/graphql/ui");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_MapBananaCakePop_Tool_FromCdn()
+    {
+        // arrange
+        var options = new GraphQLToolOptions
         {
-            HttpResponseMessage response = await server.CreateClient().GetAsync(
-                TestServerExtensions.CreateUrl("/graphql/bcp-config.json"));
-            var content = await response.Content.ReadAsStringAsync();
+            ServeMode = GraphQLToolServeMode.Version("5.0.8")
+        };
+        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
 
-            return new Result
-            {
-                Content = content,
-                ContentType = response.Content.Headers.ContentType,
-                StatusCode = response.StatusCode,
-            };
-        }
+        // act
+        var result = await GetAsync(server, "/graphql/ui/index.html");
 
-        private class Result
+        // assert
+        Assert.Contains("static/js/main.98391269.js", result.Content);
+    }
+
+    private Task<Result> GetBcpConfigAsync(TestServer server, string url = "/graphql")
+    {
+        return GetAsync(server, $"{url}/bcp-config.json");
+    }
+
+    private async Task<Result> GetAsync(TestServer server, string url = "/graphql")
+    {
+        var response = await server.CreateClient()
+            .GetAsync(TestServerExtensions.CreateUrl(url));
+        var content = await response.Content.ReadAsStringAsync();
+
+        return new Result
         {
-            public string Content { get; set; }
+            Content = content,
+            ContentType = response.Content.Headers.ContentType!,
+            StatusCode = response.StatusCode,
+        };
+    }
 
-            public MediaTypeHeaderValue ContentType { get; set; }
+    private sealed class Result
+    {
+        public string Content { get; set; } = default!;
 
-            public HttpStatusCode StatusCode { get; set; }
-        }
+        public MediaTypeHeaderValue ContentType { get; set; } = default!;
+
+        public HttpStatusCode StatusCode { get; set; }
     }
 }

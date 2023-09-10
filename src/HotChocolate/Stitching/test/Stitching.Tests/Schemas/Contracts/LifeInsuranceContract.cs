@@ -1,11 +1,10 @@
-namespace HotChocolate.Stitching.Schemas.Contracts
+namespace HotChocolate.Stitching.Schemas.Contracts;
+
+public class LifeInsuranceContract : IContract
 {
-    public class LifeInsuranceContract : IContract
-    {
-        public string Id { get; set; }
+    public string Id { get; set; } = default!;
 
-        public string CustomerId { get; set; }
+    public string CustomerId { get; set; } = default!;
 
-        public double Premium { get; set; }
-    }
+    public double Premium { get; set; }
 }

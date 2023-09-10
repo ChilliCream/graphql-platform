@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.MongoDb</PackageId>
+    <AssemblyName>HotChocolate.Types.MongoDb</AssemblyName>
+    <RootNamespace>HotChocolate.Types.MongoDb</RootNamespace>
+    <Description>Contains common HotChocolate types for MongoDb</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.19.1"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\MongoDbTypesResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MongoDbTypeResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\MongoDbTypesResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MongoDbTypeResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

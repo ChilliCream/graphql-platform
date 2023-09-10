@@ -3,75 +3,74 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class CodeBlockBuilder : ICode
 {
-    public class CodeBlockBuilder : ICode
+    private readonly List<ICodeBuilder> _blockParts = new List<ICodeBuilder>();
+
+    public static CodeBlockBuilder New() => new CodeBlockBuilder();
+
+    public static CodeBlockBuilder From(StringBuilder sourceText)
     {
-        private readonly List<ICodeBuilder> _blockParts = new List<ICodeBuilder>();
+        var builder = New();
 
-        public static CodeBlockBuilder New() => new CodeBlockBuilder();
+        using var stringReader = new StringReader(sourceText.ToString());
 
-        public static CodeBlockBuilder From(StringBuilder sourceText)
+        string? line = null;
+
+        do
         {
-            var builder = New();
+            line = stringReader.ReadLine();
 
-            using var stringReader = new StringReader(sourceText.ToString());
-
-            string? line = null;
-
-            do
+            if (line is not null)
             {
-                line = stringReader.ReadLine();
-
-                if (line is not null)
-                {
-                    builder.AddCode(CodeLineBuilder.From(line));
-                }
-
-            } while (line is not null);
-
-            return builder;
-        }
-
-        public CodeBlockBuilder AddCode(ICodeBuilder value)
-        {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
+                builder.AddCode(CodeLineBuilder.From(line));
             }
 
-            _blockParts.Add(value);
-            return this;
+        } while (line is not null);
+
+        return builder;
+    }
+
+    public CodeBlockBuilder AddCode(ICodeBuilder value)
+    {
+        if (value is null)
+        {
+            throw new ArgumentNullException(nameof(value));
         }
 
-        public CodeBlockBuilder AddCode(string value)
-        {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+        _blockParts.Add(value);
+        return this;
+    }
 
-            _blockParts.Add(CodeInlineBuilder.New().SetText(value));
-            return this;
+    public CodeBlockBuilder AddCode(string value)
+    {
+        if (value is null)
+        {
+            throw new ArgumentNullException(nameof(value));
         }
 
-        public CodeBlockBuilder AddEmptyLine()
+        _blockParts.Add(CodeInlineBuilder.New().SetText(value));
+        return this;
+    }
+
+    public CodeBlockBuilder AddEmptyLine()
+    {
+        _blockParts.Add(CodeLineBuilder.New());
+        return this;
+    }
+
+    public void Build(CodeWriter writer)
+    {
+        if (writer is null)
         {
-            _blockParts.Add(CodeLineBuilder.New());
-            return this;
+            throw new ArgumentNullException(nameof(writer));
         }
 
-        public void Build(CodeWriter writer)
+        foreach (var code in _blockParts)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            foreach (var code in _blockParts)
-            {
-                code.Build(writer);
-            }
+            code.Build(writer);
         }
     }
 }

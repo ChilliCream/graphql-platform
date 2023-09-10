@@ -2,35 +2,34 @@ using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake.Transport.WebSockets;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// Extensions methods to configure an <see cref="IServiceCollection"/> for
+/// <see cref="ISessionPool"/>.
+/// </summary>
+public static class WebSocketClientPoolServiceCollectionExtensions
 {
     /// <summary>
-    /// Extensions methods to configure an <see cref="IServiceCollection"/> for
-    /// <see cref="ISessionPool"/>.
+    /// Registers the <see cref="ISessionPool"/> on the <see cref="IServiceCollection"/>
     /// </summary>
-    public static class WebSocketClientPoolServiceCollectionExtensions
+    /// <param name="services">
+    /// The <see cref="IServiceCollection"/>
+    /// </param>
+    /// <returns>
+    /// The <see cref="IServiceCollection"/>
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws when <paramref name="services"/> is <c>null</c>
+    /// </exception>
+    public static IServiceCollection AddWebSocketClientPool(this IServiceCollection services)
     {
-        /// <summary>
-        /// Registers the <see cref="ISessionPool"/> on the <see cref="IServiceCollection"/>
-        /// </summary>
-        /// <param name="services">
-        /// The <see cref="IServiceCollection"/>
-        /// </param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// Throws when <paramref name="services"/> is <c>null</c>
-        /// </exception>
-        public static IServiceCollection AddWebSocketClientPool(this IServiceCollection services)
+        if (services is null)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            services.TryAddSingleton<ISessionPool, SessionPool>();
-            return services;
+            throw new ArgumentNullException(nameof(services));
         }
+
+        services.TryAddSingleton<ISessionPool, SessionPool>();
+        return services;
     }
 }

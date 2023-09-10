@@ -1,37 +1,49 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using HotChocolate.Types.NodaTime.Properties;
 using NodaTime;
 using NodaTime.Text;
 
-namespace HotChocolate.Types.NodaTime
+namespace HotChocolate.Types.NodaTime;
+
+/// <summary>
+/// LocalTime is an immutable struct representing a time of day,
+/// with no reference to a particular calendar, time zone or date.
+/// </summary>
+public class LocalTimeType : StringToStructBaseType<LocalTime>
 {
+    private readonly IPattern<LocalTime>[] _allowedPatterns;
+    private readonly IPattern<LocalTime> _serializationPattern;
+
     /// <summary>
-    /// LocalTime is an immutable struct representing a time of day,
-    /// with no reference to a particular calendar, time zone or date.
+    /// Initializes a new instance of <see cref="LocalTimeType"/>.
     /// </summary>
-    public class LocalTimeType : StringToStructBaseType<LocalTime>
+    public LocalTimeType() : this(LocalTimePattern.ExtendedIso)
     {
-        /// <summary>
-        /// Initializes a new instance of <see cref="LocalTimeType"/>.
-        /// </summary>
-        public LocalTimeType() : base("LocalTime")
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="LocalTimeType"/>.
+    /// </summary>
+    public LocalTimeType(params IPattern<LocalTime>[] allowedPatterns) : base("LocalTime")
+    {
+        if (allowedPatterns.Length == 0)
         {
-            Description = NodaTimeResources.LocalTimeType_Description;
+            throw ThrowHelper.PatternCannotBeEmpty(this);
         }
 
-        /// <inheritdoc />
-        protected override string Serialize(LocalTime runtimeValue)
-            => LocalTimePattern.ExtendedIso
-                .WithCulture(CultureInfo.InvariantCulture)
-                .Format(runtimeValue);
-
-        /// <inheritdoc />
-        protected override bool TryDeserialize(
-            string resultValue,
-            [NotNullWhen(true)] out LocalTime? runtimeValue)
-            => LocalTimePattern.ExtendedIso
-                .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(resultValue, out runtimeValue);
+        _allowedPatterns = allowedPatterns;
+        _serializationPattern = allowedPatterns[0];
+        Description = NodaTimeResources.LocalTimeType_Description;
     }
+
+    /// <inheritdoc />
+    protected override string Serialize(LocalTime runtimeValue)
+        => _serializationPattern
+            .Format(runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryDeserialize(
+        string resultValue,
+        [NotNullWhen(true)] out LocalTime? runtimeValue)
+        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
 }

@@ -1,61 +1,62 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
+using HotChocolate.Subscriptions.Diagnostics;
 using StackExchange.Redis;
 
-namespace HotChocolate.Subscriptions.Redis
+namespace HotChocolate.Subscriptions.Redis;
+
+/// <summary>
+/// The redis pub/sub provider implementation.
+/// </summary>
+internal sealed class RedisPubSub : DefaultPubSub
 {
-    public class RedisPubSub
-        : ITopicEventReceiver
-        , ITopicEventSender
+    private readonly IConnectionMultiplexer _connection;
+    private readonly IMessageSerializer _serializer;
+    private readonly string _completed;
+    private readonly int _topicBufferCapacity;
+    private readonly TopicBufferFullMode _topicBufferFullMode;
+    public RedisPubSub(
+        IConnectionMultiplexer connection,
+        IMessageSerializer serializer,
+        SubscriptionOptions options,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
+        : base(options, diagnosticEvents)
     {
-        internal const string Completed = "{completed}";
-
-        private readonly IConnectionMultiplexer _connection;
-        private readonly IMessageSerializer _messageSerializer;
-
-        public RedisPubSub(IConnectionMultiplexer connection, IMessageSerializer messageSerializer)
-        {
-            _connection = connection ??
-                throw new ArgumentNullException(nameof(connection));
-            _messageSerializer = messageSerializer ??
-                throw new ArgumentNullException(nameof(messageSerializer));
-        }
-
-        public async ValueTask SendAsync<TTopic, TMessage>(
-            TTopic topic,
-            TMessage message,
-            CancellationToken cancellationToken = default)
-            where TTopic : notnull
-        {
-            ISubscriber subscriber = _connection.GetSubscriber();
-            var serializedTopic = topic is string s ? s : _messageSerializer.Serialize(topic);
-            var serializedMessage = _messageSerializer.Serialize(message);
-            await subscriber.PublishAsync(serializedTopic, serializedMessage).ConfigureAwait(false);
-        }
-
-        public async ValueTask CompleteAsync<TTopic>(TTopic topic)
-            where TTopic : notnull
-        {
-            ISubscriber subscriber = _connection.GetSubscriber();
-            var serializedTopic = topic is string s ? s : _messageSerializer.Serialize(topic);
-            await subscriber.PublishAsync(serializedTopic, Completed).ConfigureAwait(false);
-        }
-
-        public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TTopic, TMessage>(
-            TTopic topic,
-            CancellationToken cancellationToken = default)
-            where TTopic : notnull
-        {
-            ISubscriber subscriber = _connection.GetSubscriber();
-            var serializedTopic = topic is string s ? s : _messageSerializer.Serialize(topic);
-
-            ChannelMessageQueue channel = await subscriber
-                .SubscribeAsync(serializedTopic)
-                .ConfigureAwait(false);
-
-            return new RedisEventStream<TMessage>(channel, _messageSerializer);
-        }
+        _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+        _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+        _topicBufferCapacity = options.TopicBufferCapacity;
+        _topicBufferFullMode = options.TopicBufferFullMode;
+        _completed = serializer.CompleteMessage;
     }
+
+    protected override async ValueTask OnSendAsync<TMessage>(
+        string formattedTopic,
+        TMessage message,
+        CancellationToken cancellationToken = default)
+    {
+        var serialized = _serializer.Serialize(message);
+
+        // The object returned from GetSubscriber is a cheap pass-thru object that does not need
+        // to be stored.
+        var subscriber = _connection.GetSubscriber();
+        await subscriber.PublishAsync(formattedTopic, serialized).ConfigureAwait(false);
+    }
+
+    protected override async ValueTask OnCompleteAsync(string formattedTopic)
+    {
+        // The object returned from GetSubscriber is a cheap pass-thru object that does not need
+        // to be stored.
+        var subscriber = _connection.GetSubscriber();
+        await subscriber.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
+    }
+
+    protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(
+        string formattedTopic,
+        int? bufferCapacity,
+        TopicBufferFullMode? bufferFullMode)
+        => new RedisTopic<TMessage>(
+            formattedTopic,
+            _connection,
+            _serializer,
+            bufferCapacity ?? _topicBufferCapacity,
+            bufferFullMode ?? _topicBufferFullMode,
+            DiagnosticEvents);
 }

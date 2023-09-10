@@ -3,54 +3,53 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Filters.Expressions
+namespace HotChocolate.Types.Filters.Expressions;
+
+[Obsolete("Use HotChocolate.Data.")]
+public class ArrayAnyOperationHandler
+    : IExpressionOperationHandler
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public class ArrayAnyOperationHandler
-        : IExpressionOperationHandler
+    public bool TryHandle(
+        FilterOperation operation,
+        IInputType type,
+        IValueNode value,
+        IQueryableFilterVisitorContext context,
+        [NotNullWhen(true)] out Expression? expression)
     {
-        public bool TryHandle(
-            FilterOperation operation,
-            IInputType type,
-            IValueNode value,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)] out Expression? expression)
+        if (operation.Kind == FilterOperationKind.ArrayAny &&
+            type.IsInstanceOfType(value) &&
+            context.InputParser.ParseLiteral(value, type) is bool parsedValue)
         {
-            if (operation.Kind == FilterOperationKind.ArrayAny &&
-                type.IsInstanceOfType(value) &&
-                type.ParseLiteral(value) is bool parsedValue)
+            var property =
+                Expression.Property(context.GetInstance(), operation.Property);
+            var propertyType = operation.Type;
+
+            if (operation.TryGetSimpleFilterBaseType(out var baseType))
             {
-                MemberExpression property =
-                    Expression.Property(context.GetInstance(), operation.Property);
-                Type propertType = operation.Type;
-
-                if (operation.TryGetSimpleFilterBaseType(out Type? baseType))
-                {
-                    propertType = baseType;
-                }
-
-                if (parsedValue)
-                {
-                    expression = FilterExpressionBuilder.Any(
-                        propertType,
-                        property);
-                }
-                else
-                {
-                    expression = FilterExpressionBuilder.Not(
-                        FilterExpressionBuilder.Any(
-                            propertType,
-                            property));
-                }
-                if (context.InMemory)
-                {
-                    expression =
-                        FilterExpressionBuilder.NotNullAndAlso(property, expression);
-                }
-                return true;
+                propertyType = baseType;
             }
-            expression = null;
-            return false;
+
+            if (parsedValue)
+            {
+                expression = FilterExpressionBuilder.Any(
+                    propertyType,
+                    property);
+            }
+            else
+            {
+                expression = FilterExpressionBuilder.Not(
+                    FilterExpressionBuilder.Any(
+                        propertyType,
+                        property));
+            }
+            if (context.InMemory)
+            {
+                expression =
+                    FilterExpressionBuilder.NotNullAndAlso(property, expression);
+            }
+            return true;
         }
+        expression = null;
+        return false;
     }
 }

@@ -1,215 +1,216 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.ObjectPool;
-using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using static HotChocolate.Execution.GraphQLRequestFlags;
 using static HotChocolate.Execution.ThrowHelper;
 
-namespace HotChocolate.Execution.Pipeline
-{
-    internal sealed class OperationExecutionMiddleware
-    {
-        private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly ObjectPool<OperationContext> _operationContextPool;
-        private readonly QueryExecutor _queryExecutor;
-        private readonly MutationExecutor _mutationExecutor;
-        private readonly SubscriptionExecutor _subscriptionExecutor;
-        private readonly ITransactionScopeHandler _transactionScopeHandler;
-        private object? _cachedQuery;
-        private object? _cachedMutation;
+namespace HotChocolate.Execution.Pipeline;
 
-        public OperationExecutionMiddleware(
-            RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
-            ObjectPool<OperationContext> operationContextPool,
-            QueryExecutor queryExecutor,
-            MutationExecutor mutationExecutor,
-            SubscriptionExecutor subscriptionExecutor,
-            [SchemaService] ITransactionScopeHandler transactionScopeHandler)
+internal sealed class OperationExecutionMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly IFactory<OperationContextOwner> _contextFactory;
+    private readonly QueryExecutor _queryExecutor;
+    private readonly SubscriptionExecutor _subscriptionExecutor;
+    private readonly ITransactionScopeHandler _transactionScopeHandler;
+    private object? _cachedQuery;
+    private object? _cachedMutation;
+
+    public OperationExecutionMiddleware(
+        RequestDelegate next,
+        IFactory<OperationContextOwner> contextFactory,
+        QueryExecutor queryExecutor,
+        SubscriptionExecutor subscriptionExecutor,
+        [SchemaService] ITransactionScopeHandler transactionScopeHandler)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _contextFactory = contextFactory ??
+            throw new ArgumentNullException(nameof(contextFactory));
+        _queryExecutor = queryExecutor ??
+            throw new ArgumentNullException(nameof(queryExecutor));
+        _subscriptionExecutor = subscriptionExecutor ??
+            throw new ArgumentNullException(nameof(subscriptionExecutor));
+        _transactionScopeHandler = transactionScopeHandler ??
+            throw new ArgumentNullException(nameof(transactionScopeHandler));
+    }
+
+    public async ValueTask InvokeAsync(
+        IRequestContext context,
+        IBatchDispatcher? batchDispatcher)
+    {
+        if (batchDispatcher is null)
         {
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            _operationContextPool = operationContextPool ??
-                throw new ArgumentNullException(nameof(operationContextPool));
-            _queryExecutor = queryExecutor ??
-                throw new ArgumentNullException(nameof(queryExecutor));
-            _mutationExecutor = mutationExecutor ??
-                throw new ArgumentNullException(nameof(mutationExecutor));
-            _subscriptionExecutor = subscriptionExecutor ??
-                throw new ArgumentNullException(nameof(subscriptionExecutor));
-            _transactionScopeHandler = transactionScopeHandler ??
-                throw new ArgumentNullException(nameof(transactionScopeHandler));
+            throw OperationExecutionMiddleware_NoBatchDispatcher();
         }
 
-        public async ValueTask InvokeAsync(
-            IRequestContext context,
-            IBatchDispatcher? batchDispatcher)
+        if (context.Operation is not null && context.Variables is not null)
         {
-            if (batchDispatcher is null)
+            if (IsOperationAllowed(context.Operation, context.Request))
             {
-                throw OperationExecutionMiddleware_NoBatchDispatcher();
-            }
-
-            if (context is { Operation: not null, Variables: not null })
-            {
-                if (IsOperationAllowed(context))
+                using (context.DiagnosticEvents.ExecuteOperation(context))
                 {
-                    await ExecuteOperationAsync(
-                        context, batchDispatcher, context.Operation)
+                    await ExecuteOperationAsync(context, batchDispatcher, context.Operation)
                         .ConfigureAwait(false);
-                }
-                else
-                {
-                    context.Result = ErrorHelper.OperationKindNotAllowed();
                 }
             }
             else
             {
-                context.Result = ErrorHelper.StateInvalidForOperationExecution();
+                context.Result = ErrorHelper.OperationKindNotAllowed();
             }
         }
-
-        private async Task ExecuteOperationAsync(
-            IRequestContext context,
-            IBatchDispatcher batchDispatcher,
-            IPreparedOperation operation)
+        else
         {
-            if (operation.Definition.Operation == OperationType.Subscription)
+            context.Result = ErrorHelper.StateInvalidForOperationExecution();
+        }
+    }
+
+    private async Task ExecuteOperationAsync(
+        IRequestContext context,
+        IBatchDispatcher batchDispatcher,
+        IOperation operation)
+    {
+        if (operation.Definition.Operation == OperationType.Subscription)
+        {
+            // since the request context is pooled we need to clone the context for
+            // long running executions.
+            var cloned = context.Clone();
+
+            context.Result = await _subscriptionExecutor
+                .ExecuteAsync(cloned, () => GetQueryRootValue(cloned))
+                .ConfigureAwait(false);
+
+            await _next(cloned).ConfigureAwait(false);
+        }
+        else
+        {
+            var operationContextOwner = _contextFactory.Create();
+            var operationContext = operationContextOwner.OperationContext;
+
+            try
             {
-                context.Result = await _subscriptionExecutor
-                    .ExecuteAsync(context, () => GetQueryRootValue(context))
+                await ExecuteQueryOrMutationAsync(
+                        context,
+                        batchDispatcher,
+                        operation,
+                        operationContext)
                     .ConfigureAwait(false);
+
+                if (operationContext.DeferredScheduler.HasResults &&
+                    context.Result is IQueryResult result)
+                {
+                    var results = operationContext.DeferredScheduler.CreateResultStream(result);
+                    var responseStream = new ResponseStream(
+                        () => results,
+                        ExecutionResultKind.DeferredResult);
+                    responseStream.RegisterForCleanup(result);
+                    responseStream.RegisterForCleanup(operationContextOwner);
+                    context.Result = responseStream;
+                    operationContextOwner = null;
+                }
 
                 await _next(context).ConfigureAwait(false);
             }
-            else
+            catch (OperationCanceledException)
             {
-                OperationContext? operationContext = _operationContextPool.Get();
+                // if an operation is canceled we will abandon the the rented operation context
+                // to ensure that that abandoned tasks to not leak execution into new operations.
+                operationContextOwner = null;
 
-                try
-                {
-                    await ExecuteQueryOrMutationAsync(
-                        context, batchDispatcher, operation, operationContext)
-                        .ConfigureAwait(false);
-
-                    if(!operationContext.Execution.DeferredTaskBacklog.IsEmpty &&
-                       context.Result is IQueryResult result)
-                    {
-                        // if we have deferred query task we will take ownership
-                        // of the life time handling and return the operation context
-                        // once we handled all deferred tasks.
-                        var operationContextOwner = new OperationContextOwner(
-                            operationContext, _operationContextPool);
-                        operationContext = null;
-
-                        context.Result = new DeferredQueryResult
-                        (
-                            result,
-                            new DeferredTaskExecutor(operationContextOwner),
-                            session: operationContextOwner
-                        );
-                    }
-
-                    await _next(context).ConfigureAwait(false);
-                }
-                finally
-                {
-                    if (operationContext is not null)
-                    {
-                        _operationContextPool.Return(operationContext);
-                    }
-                }
+                // we rethrow so that another middleware can deal with the cancellation.
+                throw;
+            }
+            finally
+            {
+                operationContextOwner?.Dispose();
             }
         }
+    }
 
-        private async Task ExecuteQueryOrMutationAsync(
-            IRequestContext context,
-            IBatchDispatcher batchDispatcher,
-            IPreparedOperation operation,
-            OperationContext operationContext)
+    private async Task ExecuteQueryOrMutationAsync(
+        IRequestContext context,
+        IBatchDispatcher batchDispatcher,
+        IOperation operation,
+        OperationContext operationContext)
+    {
+        if (operation.Definition.Operation is OperationType.Query)
         {
-            if (operation.Definition.Operation == OperationType.Query)
-            {
-                object? query = GetQueryRootValue(context);
+            var query = GetQueryRootValue(context);
 
-                operationContext.Initialize(
-                    context,
-                    context.Services,
-                    batchDispatcher,
-                    operation,
-                    context.Variables!,
-                    query,
-                    () => query);
-
-                context.Result = await _queryExecutor
-                    .ExecuteAsync(operationContext)
-                    .ConfigureAwait(false);
-            }
-            else if (operation.Definition.Operation == OperationType.Mutation)
-            {
-                using ITransactionScope transactionScope =
-                    _transactionScopeHandler.Create(context);
-
-                object? mutation = GetMutationRootValue(context);
-
-                operationContext.Initialize(
-                    context,
-                    context.Services,
-                    batchDispatcher,
-                    operation,
-                    context.Variables!,
-                    mutation,
-                    () => GetQueryRootValue(context));
-
-                context.Result = await _mutationExecutor
-                    .ExecuteAsync(operationContext)
-                    .ConfigureAwait(false);
-
-                transactionScope.Complete();
-            }
-        }
-
-        private object? GetQueryRootValue(IRequestContext context) =>
-            RootValueResolver.Resolve(
+            operationContext.Initialize(
                 context,
                 context.Services,
-                context.Schema.QueryType,
-                ref _cachedQuery);
+                batchDispatcher,
+                operation,
+                context.Variables!,
+                query,
+                () => query);
 
-        private object? GetMutationRootValue(IRequestContext context) =>
-            RootValueResolver.Resolve(
+            context.Result = await _queryExecutor
+                .ExecuteAsync(operationContext)
+                .ConfigureAwait(false);
+        }
+        else if (operation.Definition.Operation is OperationType.Mutation)
+        {
+            using var transactionScope =
+                _transactionScopeHandler.Create(context);
+
+            var mutation = GetMutationRootValue(context);
+
+            operationContext.Initialize(
                 context,
                 context.Services,
-                context.Schema.MutationType!,
-                ref _cachedMutation);
+                batchDispatcher,
+                operation,
+                context.Variables!,
+                mutation,
+                () => GetQueryRootValue(context));
 
-        private bool IsOperationAllowed(IRequestContext context)
-        {
-            if (context.Request.AllowedOperations is null or { Length: 0 })
-            {
-                return true;
-            }
+            context.Result = await _queryExecutor
+                .ExecuteAsync(operationContext)
+                .ConfigureAwait(false);
 
-            if (context.Request.AllowedOperations is { Length: 1 } allowed &&
-                allowed[0] == context.Operation?.Type)
-            {
-                return true;
-            }
-
-            for (var i = 0; i < context.Request.AllowedOperations.Length; i++)
-            {
-                if (context.Request.AllowedOperations[i] == context.Operation?.Type)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            transactionScope.Complete();
         }
+    }
+
+    private object? GetQueryRootValue(IRequestContext context)
+        => RootValueResolver.Resolve(
+            context,
+            context.Services,
+            context.Schema.QueryType,
+            ref _cachedQuery);
+
+    private object? GetMutationRootValue(IRequestContext context)
+        => RootValueResolver.Resolve(
+            context,
+            context.Services,
+            context.Schema.MutationType!,
+            ref _cachedMutation);
+
+    private static bool IsOperationAllowed(IOperation operation, IQueryRequest request)
+    {
+        if (request.Flags is AllowAll)
+        {
+            return true;
+        }
+
+        var allowed = operation.Definition.Operation switch
+        {
+            OperationType.Query => (request.Flags & AllowQuery) == AllowQuery,
+            OperationType.Mutation => (request.Flags & AllowMutation) == AllowMutation,
+            OperationType.Subscription => (request.Flags & AllowSubscription) == AllowSubscription,
+            _ => true
+        };
+
+        if (allowed && operation.HasIncrementalParts)
+        {
+            return allowed && (request.Flags & AllowStreams) == AllowStreams;
+        }
+
+        return allowed;
     }
 }

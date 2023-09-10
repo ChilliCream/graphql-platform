@@ -1,111 +1,141 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+#if NET6_0_OR_GREATER
+using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
+#endif
 
 #nullable enable
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public static class ServiceProviderExtensions
 {
-    public static class ServiceProviderExtensions
+    public static IServiceProvider Include(
+        this IServiceProvider first,
+        IServiceProvider second) =>
+        new CombinedServiceProvider(first, second);
+
+#if NET6_0_OR_GREATER
+    public static T? GetOrCreateService<T>(
+        this IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type)
+#else
+    public static T? GetOrCreateService<T>(
+        this IServiceProvider services,
+        Type type)
+#endif
     {
-        public static IServiceProvider Include(
-            this IServiceProvider first,
-            IServiceProvider second) =>
-            new CombinedServiceProvider(first, second);
-
-        [return: MaybeNull]
-        public static T GetOrCreateService<T>(this IServiceProvider services, Type type)
+        if (services == null)
         {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (services.GetService(type) is T s)
-            {
-                return s;
-            }
-
-            return CreateInstance<T>(services, type);
+            throw new ArgumentNullException(nameof(services));
         }
 
-        public static bool TryGetOrCreateService<T>(
-            this IServiceProvider services,
-            Type type,
-            [NotNullWhen(true)] out T service)
+        if (services.GetService(type) is T s)
         {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (services.GetService(type) is T s)
-            {
-                service = s;
-                return true;
-            }
-
-            return TryCreateInstance<T>(services, type, out service);
+            return s;
         }
 
-        [return: MaybeNull]
-        public static T CreateInstance<T>(this IServiceProvider services, Type type)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
+        return CreateInstance<T>(services, type);
+    }
 
-            var factory = new ServiceFactory { Services = services };
-            if (factory.CreateInstance(type) is T casted)
-            {
-                return casted;
-            }
-            return default;
+#if NET6_0_OR_GREATER
+    public static bool TryGetOrCreateService<T>(
+        this IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type,
+        [NotNullWhen(true)] out T service)
+#else
+    public static bool TryGetOrCreateService<T>(
+        this IServiceProvider services,
+        Type type,
+        [NotNullWhen(true)] out T service)
+#endif
+    {
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
         }
 
-        public static bool TryCreateInstance<T>(
-            this IServiceProvider services,
-            Type type,
-            [NotNullWhen(true)] out T service)
+        if (services.GetService(type) is T s)
         {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            var factory = new ServiceFactory { Services = services };
-            if (factory.CreateInstance(type) is T casted)
-            {
-                service = casted;
-                return true;
-            }
-
-            service = default!;
-            return false;
+            service = s;
+            return true;
         }
 
-        public static bool TryGetService(
-            this IServiceProvider services,
-            Type type,
-            out object? service)
-        {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
+        return TryCreateInstance(services, type, out service);
+    }
 
-            try
-            {
-                service = services.GetService(type);
-                return service is not null;
-            }
+#if NET6_0_OR_GREATER
+    public static T? CreateInstance<T>(
+        this IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type)
+#else
+    public static T? CreateInstance<T>(this IServiceProvider services, Type type)
+#endif
+    {
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        var factory = new ServiceFactory { Services = services };
+        if (factory.CreateInstance(type) is T casted)
+        {
+            return casted;
+        }
+        return default;
+    }
+
+#if NET6_0_OR_GREATER
+    public static bool TryCreateInstance<T>(
+        this IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type,
+        [NotNullWhen(true)] out T service)
+#else
+    public static bool TryCreateInstance<T>(
+        this IServiceProvider services,
+        Type type,
+        [NotNullWhen(true)] out T service)
+#endif
+    {
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        var factory = new ServiceFactory { Services = services };
+        if (factory.CreateInstance(type) is T casted)
+        {
+            service = casted;
+            return true;
+        }
+
+        service = default!;
+        return false;
+    }
+
+    public static bool TryGetService(
+        this IServiceProvider services,
+        Type type,
+        out object? service)
+    {
+        if (services is null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        try
+        {
+            service = services.GetService(type);
+            return service is not null;
+        }
+#pragma warning disable CA1031
+        catch
+        {
             // azure functions does not honor the interface and throws if the service
             // is not known.
-            catch
-            {
-                service = null;
-                return false;
-            }
+            service = null;
+            return false;
         }
+#pragma warning restore CA1031
     }
 }

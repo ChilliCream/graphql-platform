@@ -1,0 +1,4 @@
+﻿input FieldNameInput {
+  yourFieldName: String
+  yourFieldname: String!
+}

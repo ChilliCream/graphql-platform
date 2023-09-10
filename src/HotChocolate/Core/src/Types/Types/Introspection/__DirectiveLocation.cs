@@ -1,122 +1,107 @@
 #pragma warning disable IDE1006 // Naming Styles
-using HotChocolate.Properties;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
 using Lang = HotChocolate.Language.DirectiveLocation;
 
 #nullable enable
-namespace HotChocolate.Types.Introspection
+namespace HotChocolate.Types.Introspection;
+
+[Introspection]
+// ReSharper disable once InconsistentNaming
+internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
 {
-    [Introspection]
-    internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
+    protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+        => new(
+            Names.__DirectiveLocation,
+            DirectiveLocation_Description,
+            typeof(DirectiveLocation))
+        {
+            Values =
+            {
+                new EnumValueDefinition(
+                    Lang.Query.Value,
+                    DirectiveLocation_Query,
+                    DirectiveLocation.Query),
+                new EnumValueDefinition(
+                    Lang.Mutation.Value,
+                    DirectiveLocation_Mutation,
+                    DirectiveLocation.Mutation),
+                new EnumValueDefinition(
+                    Lang.Subscription.Value,
+                    DirectiveLocation_Subscription,
+                    DirectiveLocation.Subscription),
+                new EnumValueDefinition(
+                    Lang.Field.Value,
+                    DirectiveLocation_Field,
+                    DirectiveLocation.Field),
+                new EnumValueDefinition(
+                    Lang.FragmentDefinition.Value,
+                    DirectiveLocation_FragmentDefinition,
+                    DirectiveLocation.FragmentDefinition),
+                new EnumValueDefinition(
+                    Lang.FragmentSpread.Value,
+                    DirectiveLocation_FragmentSpread,
+                    DirectiveLocation.FragmentSpread),
+                new EnumValueDefinition(
+                    Lang.InlineFragment.Value,
+                    DirectiveLocation_InlineFragment,
+                    DirectiveLocation.InlineFragment),
+                new EnumValueDefinition(
+                    Lang.VariableDefinition.Value,
+                    DirectiveLocation_VariableDefinition,
+                    DirectiveLocation.VariableDefinition),
+                new EnumValueDefinition(
+                    Lang.Schema.Value,
+                    DirectiveLocation_Schema,
+                    DirectiveLocation.Schema),
+                new EnumValueDefinition(
+                    Lang.Scalar.Value,
+                    DirectiveLocation_Scalar,
+                    DirectiveLocation.Scalar),
+                new EnumValueDefinition(
+                    Lang.Object.Value,
+                    DirectiveLocation_Object,
+                    DirectiveLocation.Object),
+                new EnumValueDefinition(
+                    Lang.FieldDefinition.Value,
+                    DirectiveLocation_FieldDefinition,
+                    DirectiveLocation.FieldDefinition),
+                new EnumValueDefinition(
+                    Lang.ArgumentDefinition.Value,
+                    DirectiveLocation_ArgumentDefinition,
+                    DirectiveLocation.ArgumentDefinition),
+                new EnumValueDefinition(
+                    Lang.Interface.Value,
+                    DirectiveLocation_Interface,
+                    DirectiveLocation.Interface),
+                new EnumValueDefinition(
+                    Lang.Union.Value,
+                    DirectiveLocation_Union,
+                    DirectiveLocation.Union),
+                new EnumValueDefinition(
+                    Lang.Enum.Value,
+                    DirectiveLocation_Enum,
+                    DirectiveLocation.Enum),
+                new EnumValueDefinition(
+                    Lang.EnumValue.Value,
+                    DirectiveLocation_EnumValue,
+                    DirectiveLocation.EnumValue),
+                new EnumValueDefinition(
+                    Lang.InputObject.Value,
+                    DirectiveLocation_InputObject,
+                    DirectiveLocation.InputObject),
+                new EnumValueDefinition(
+                    Lang.InputFieldDefinition.Value,
+                    DirectiveLocation_InputFieldDefinition,
+                    DirectiveLocation.InputFieldDefinition),
+            }
+        };
+
+    public static class Names
     {
-        protected override void Configure(IEnumTypeDescriptor<DirectiveLocation> descriptor)
-        {
-            descriptor
-                .Name(Names.__DirectiveLocation)
-                .Description(TypeResources.DirectiveLocation_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindValues(BindingBehavior.Explicit);
-
-            descriptor
-                .Value(DirectiveLocation.Query)
-                .Name(Lang.Query.Value)
-                .Description(TypeResources.DirectiveLocation_Query);
-
-            descriptor
-                .Value(DirectiveLocation.Mutation)
-                .Name(Lang.Mutation.Value)
-                .Description(TypeResources.DirectiveLocation_Mutation);
-
-            descriptor
-                .Value(DirectiveLocation.Subscription)
-                .Name(Lang.Subscription.Value)
-                .Description(TypeResources.DirectiveLocation_Subscription);
-
-            descriptor
-                .Value(DirectiveLocation.Field)
-                .Name(Lang.Field.Value)
-                .Description(TypeResources.DirectiveLocation_Field);
-
-            descriptor
-                .Value(DirectiveLocation.FragmentDefinition)
-                .Name(Lang.FragmentDefinition.Value)
-                .Description(TypeResources.DirectiveLocation_FragmentDefinition);
-
-            descriptor
-                .Value(DirectiveLocation.FragmentSpread)
-                .Name(Lang.FragmentSpread.Value)
-                .Description(TypeResources.DirectiveLocation_FragmentSpread);
-
-            descriptor
-                .Value(DirectiveLocation.InlineFragment)
-                .Name(Lang.InlineFragment.Value)
-                .Description(TypeResources.DirectiveLocation_InlineFragment);
-
-            descriptor
-                .Value(DirectiveLocation.VariableDefinition)
-                .Name(Lang.VariableDefinition.Value)
-                .Description("Location adjacent to a variable definition.");
-
-            descriptor
-                .Value(DirectiveLocation.Schema)
-                .Name(Lang.Schema.Value)
-                .Description(TypeResources.DirectiveLocation_Schema);
-
-            descriptor
-                .Value(DirectiveLocation.Scalar)
-                .Name(Lang.Scalar.Value)
-                .Description(TypeResources.DirectiveLocation_Scalar);
-
-            descriptor
-                .Value(DirectiveLocation.Object)
-                .Name(Lang.Object.Value)
-                .Description(TypeResources.DirectiveLocation_Object);
-
-            descriptor
-                .Value(DirectiveLocation.FieldDefinition)
-                .Name(Lang.FieldDefinition.Value)
-                .Description(TypeResources.DirectiveLocation_FieldDefinition);
-
-            descriptor
-                .Value(DirectiveLocation.ArgumentDefinition)
-                .Name(Lang.ArgumentDefinition.Value)
-                .Description(TypeResources.DirectiveLocation_ArgumentDefinition);
-
-            descriptor
-                .Value(DirectiveLocation.Interface)
-                .Name(Lang.Interface.Value)
-                .Description(TypeResources.DirectiveLocation_Interface);
-
-            descriptor
-                .Value(DirectiveLocation.Union)
-                .Name(Lang.Union.Value)
-                .Description(TypeResources.DirectiveLocation_Union);
-
-            descriptor
-                .Value(DirectiveLocation.Enum)
-                .Name(Lang.Enum.Value)
-                .Description(TypeResources.DirectiveLocation_Enum);
-
-            descriptor
-                .Value(DirectiveLocation.EnumValue)
-                .Name(Lang.EnumValue.Value)
-                .Description(TypeResources.DirectiveLocation_EnumValue);
-
-            descriptor
-                .Value(DirectiveLocation.InputObject)
-                .Name(Lang.InputObject.Value)
-                .Description(TypeResources.DirectiveLocation_InputObject);
-
-            descriptor
-                .Value(DirectiveLocation.InputFieldDefinition)
-                .Name(Lang.InputFieldDefinition.Value)
-                .Description(TypeResources.DirectiveLocation_InputFieldDefinition);
-        }
-
-        public static class Names
-        {
-            public const string __DirectiveLocation = "__DirectiveLocation";
-        }
+        // ReSharper disable once InconsistentNaming
+        public const string __DirectiveLocation = "__DirectiveLocation";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

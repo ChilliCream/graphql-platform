@@ -1,146 +1,150 @@
 using System;
 using System.Collections.Generic;
-using Xunit;
 
-namespace StrawberryShake.Extensions
+namespace StrawberryShake.Extensions;
+
+public class OperationResultExtensionTests
 {
-    public class OperationResultExtensionTests
+    [Fact]
+    public void EnsureNoErrors_WithNoErrors()
     {
-        [Fact]
-        public void EnsureNoErrors_WithNoErrors()
+        // arrange
+        var successResult = new ResultMock();
+
+        // act
+        successResult.EnsureNoErrors();
+
+        // assert
+        // did not throw!
+    }
+
+    [Fact]
+    public void EnsureNoErrors_WithErrors()
+    {
+        // arrange
+        var clientError = new ClientError("test");
+        var successResult = new ResultMock(clientError);
+
+        // act
+        void Throws() => successResult.EnsureNoErrors();
+
+        // assert
+        Assert.Collection(
+            Assert.Throws<GraphQLClientException>(Throws).Errors,
+            item => Assert.Same(clientError, item));
+    }
+
+    [Fact]
+    public void EnsureNoErrors_ResultNull()
+    {
+        // arrange
+        // act
+        void Throws() => default(ResultMock)!.EnsureNoErrors();
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Throws);
+    }
+
+    [Fact]
+    public void HasErrors_WithNoErrors()
+    {
+        // arrange
+        var successResult = new ResultMock();
+
+        // act
+        var hasErrors = successResult.IsErrorResult();
+
+        // assert
+        Assert.False(hasErrors!);
+    }
+
+    [Fact]
+    public void HasErrors_WithErrors()
+    {
+        // arrange
+        var clientError = new ClientError("test");
+        var successResult = new ResultMock(clientError);
+
+        // act
+        var hasErrors = successResult.IsErrorResult();
+
+        // assert
+        Assert.True(hasErrors);
+    }
+
+    [Fact]
+    public void HasErrors_ResultNull()
+    {
+        // arrange
+        // act
+        void Throws() => default(ResultMock)!.IsErrorResult();
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Throws);
+    }
+
+    [Fact]
+    public void IsSuccessResult_WithNoErrors()
+    {
+        // arrange
+        var successResult = new ResultMock();
+
+        // act
+        var hasErrors = successResult.IsSuccessResult();
+
+        // assert
+        Assert.True(hasErrors!);
+    }
+
+    [Fact]
+    public void IsSuccessResult_WithErrors()
+    {
+        // arrange
+        var clientError = new ClientError("test");
+        var successResult = new ResultMock(clientError);
+
+        // act
+        var hasErrors = successResult.IsSuccessResult();
+
+        // assert
+        Assert.False(hasErrors);
+    }
+
+    [Fact]
+    public void IsSuccessResult_ResultNull()
+    {
+        // arrange
+        // act
+        void Throws() => default(ResultMock)!.IsSuccessResult();
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Throws);
+    }
+
+    private sealed class ResultMock : IOperationResult
+    {
+        public ResultMock()
         {
-            // arrange
-            var successResult = new ResultMock();
-
-            // act
-            successResult.EnsureNoErrors();
-
-            // assert
-            // did not throw!
+            Errors = Array.Empty<IClientError>();
         }
 
-        [Fact]
-        public void EnsureNoErrors_WithErrors()
+        public ResultMock(IClientError error)
         {
-            // arrange
-            var clientError = new ClientError("test");
-            var successResult = new ResultMock(clientError);
-
-            // act
-            void Throws() => successResult.EnsureNoErrors();
-
-            // assert
-            Assert.Collection(
-                Assert.Throws<GraphQLClientException>(Throws).Errors,
-                item => Assert.Same(clientError, item));
+            Errors = new[] { error };
         }
 
-        [Fact]
-        public void EnsureNoErrors_ResultNull()
-        {
-            // arrange
-            // act
-            void Throws() => default(ResultMock)!.EnsureNoErrors();
+        public object? Data => default!;
 
-            // assert
-            Assert.Throws<ArgumentNullException>(Throws);
-        }
+        public Type DataType => default!;
 
-        [Fact]
-        public void HasErrors_WithNoErrors()
-        {
-            // arrange
-            var successResult = new ResultMock();
+        public IOperationResultDataInfo? DataInfo => default!;
 
-            // act
-            var hasErrors = successResult.IsErrorResult();
+        public object DataFactory => default!;
 
-            // assert
-            Assert.False(hasErrors!);
-        }
+        public IReadOnlyList<IClientError> Errors { get; }
 
-        [Fact]
-        public void HasErrors_WithErrors()
-        {
-            // arrange
-            var clientError = new ClientError("test");
-            var successResult = new ResultMock(clientError);
+        public IReadOnlyDictionary<string, object?> Extensions => default!;
 
-            // act
-            var hasErrors = successResult.IsErrorResult();
-
-            // assert
-            Assert.True(hasErrors);
-        }
-
-        [Fact]
-        public void HasErrors_ResultNull()
-        {
-            // arrange
-            // act
-            void Throws() => default(ResultMock)!.IsErrorResult();
-
-            // assert
-            Assert.Throws<ArgumentNullException>(Throws);
-        }
-
-        [Fact]
-        public void IsSuccessResult_WithNoErrors()
-        {
-            // arrange
-            var successResult = new ResultMock();
-
-            // act
-            var hasErrors = successResult.IsSuccessResult();
-
-            // assert
-            Assert.True(hasErrors!);
-        }
-
-        [Fact]
-        public void IsSuccessResult_WithErrors()
-        {
-            // arrange
-            var clientError = new ClientError("test");
-            var successResult = new ResultMock(clientError);
-
-            // act
-            var hasErrors = successResult.IsSuccessResult();
-
-            // assert
-            Assert.False(hasErrors);
-        }
-
-        [Fact]
-        public void IsSuccessResult_ResultNull()
-        {
-            // arrange
-            // act
-            void Throws() => default(ResultMock)!.IsSuccessResult();
-
-            // assert
-            Assert.Throws<ArgumentNullException>(Throws);
-        }
-
-        private class ResultMock : IOperationResult
-        {
-            public ResultMock()
-            {
-                Errors = Array.Empty<IClientError>();
-            }
-
-            public ResultMock(IClientError error)
-            {
-                Errors = new[] { error };
-            }
-
-            public object? Data { get; } = default!;
-            public Type DataType { get; } = default!;
-            public IOperationResultDataInfo? DataInfo { get; } = default!;
-            public object DataFactory { get; } = default!;
-            public IReadOnlyList<IClientError> Errors { get; }
-            public IReadOnlyDictionary<string, object?> Extensions { get; } = default!;
-            public IReadOnlyDictionary<string, object?> ContextData { get; } = default!;
-        }
+        public IReadOnlyDictionary<string, object?> ContextData => default!;
     }
 }

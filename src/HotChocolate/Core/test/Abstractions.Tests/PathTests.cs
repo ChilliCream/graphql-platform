@@ -1,85 +1,96 @@
-﻿using System.Collections.Generic;
-using Snapshooter.Xunit;
-using Xunit;
+﻿using Snapshooter.Xunit;
 
-namespace HotChocolate.Execution.Instrumentation
+namespace HotChocolate.Execution.Instrumentation;
+
+public class PathExtensionsTests
 {
-    public class PathExtensionsTests
+    [Fact]
+    public void GetHashCode_Test()
     {
-        [Fact]
-        public void Path_ToString()
-        {
-            // arrange
-            Path path = Path
-                .New("hero")
-                .Append("friends")
-                .Append(0)
-                .Append("name");
+        var path = Path.Root.Append("hero");
+        Assert.NotEqual(0, path.GetHashCode());
+    }
+    
+    [Fact]
+    public void GetHashCode_Root_Test()
+    {
+        Assert.Equal(0, Path.Root.GetHashCode());
+    }
+    
+    [Fact]
+    public void Path_ToString()
+    {
+        // arrange
+        var path = Path.Root.Append("hero");
+        path = path.Append("friends");
+        path = path.Append(0);
+        path = path.Append("name");
 
-            // act
-            string result = path.ToString();
+        // act
+        var result = path.ToString();
 
-            // assert
-            Assert.Equal("/hero/friends[0]/name", result);
-        }
+        // assert
+        Assert.Equal("/hero/friends[0]/name", result);
+    }
 
-        [Fact]
-        public void Path_ToList()
-        {
-            // arrange
-            Path path = Path
-                .New("hero")
-                .Append("friends")
-                .Append(0)
-                .Append("name");
+    [Fact]
+    public void Path_ToList()
+    {
+        // arrange
+        var path = Path.Root.Append("hero");
+        path = path.Append("friends");
+        path = path.Append(0);
+        path = path.Append("name");
 
-            // act
-            IReadOnlyList<object> result = path.ToList();
+        // act
+        var result = path.ToList();
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Path_Equals_Null()
-        {
-            // arrange
-            Path hero = Path.New("hero");
-            Path friends = null;
+    [Fact]
+    public void Path_Equals_Null()
+    {
+        // arrange
+        var hero = Path.Root.Append("hero");
+        Path friends = null;
 
-            // act
-            var areEqual = hero.Equals(friends);
+        // act
+        var areEqual = hero.Equals(friends);
 
-            // assert
-            Assert.False(areEqual);
-        }
+        // assert
+        Assert.False(areEqual);
+    }
 
-        [Fact]
-        public void Path_Equals_False()
-        {
-            // arrange
-            Path hero = Path.New("hero");
-            Path friends = Path.New("hero").Append("friends");
+    [Fact]
+    public void Path_Equals_False()
+    {
+        // arrange
+        var hero = Path.Root.Append("hero");
+        var friends = Path.Root.Append("hero");
+        friends = friends.Append("friends");
 
-            // act
-            var areEqual = hero.Equals(friends);
+        // act
+        var areEqual = hero.Equals(friends);
 
-            // assert
-            Assert.False(areEqual);
-        }
+        // assert
+        Assert.False(areEqual);
+    }
 
-        [Fact]
-        public void Path_Equals_True()
-        {
-            // arrange
-            Path friends1 = Path.New("hero").Append("friends");
-            Path friends2 = Path.New("hero").Append("friends");
+    [Fact]
+    public void Path_Equals_True()
+    {
+        // arrange
+        var friends1 = Path.Root.Append("hero");
+        friends1 = friends1.Append("friends");
+        var friends2 = Path.Root.Append("hero");
+        friends2 = friends2.Append("friends");
 
-            // act
-            var areEqual = friends1.Equals(friends2);
+        // act
+        var areEqual = friends1.Equals(friends2);
 
-            // assert
-            Assert.True(areEqual);
-        }
+        // assert
+        Assert.True(areEqual);
     }
 }

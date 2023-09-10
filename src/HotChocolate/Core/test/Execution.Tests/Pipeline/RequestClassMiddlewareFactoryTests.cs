@@ -1,100 +1,76 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
-using HotChocolate.Utilities;
-using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using static HotChocolate.Execution.Pipeline.RequestClassMiddlewareFactory;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Pipeline;
+
+public class RequestClassMiddlewareFactoryTests
 {
-    public class RequestClassMiddlewareFactoryTests
+    [Fact]
+    public async Task Create_CoreMiddleware_InjectOptimizers()
     {
-        [Fact]
-        public async Task Create_CoreMiddleware_InjectOptimizers()
+        // arrange
+        var middleware = Create<StubMiddleware<IEnumerable<IOperationCompilerOptimizer>>>();
+        var applicationServices = new ServiceCollection().BuildServiceProvider();
+        var schemaServices = new ServiceCollection()
+            .AddSingleton<IOperationCompilerOptimizer, StubOptimizer>()
+            .BuildServiceProvider();
+        var schemaName = "_Default";
+        IRequestExecutorOptionsAccessor optionsAccessor = new RequestExecutorOptions();
+        var factoryContext = new RequestCoreMiddlewareContext(
+            schemaName,
+            applicationServices,
+            schemaServices,
+            optionsAccessor);
+        var context = new RequestContext(
+            new Mock<ISchema>().Object,
+            1,
+            new Mock<IErrorHandler>().Object,
+            new Mock<IActivator>().Object,
+            new Mock<IExecutionDiagnosticEvents>().Object);
+
+        context.Initialize(
+            new Mock<IQueryRequest>().Object,
+            new Mock<IServiceProvider>().Object);
+
+        // act
+        var compiledMiddleware = middleware(factoryContext, _ => default);
+        await compiledMiddleware(context);
+
+        // assert
+        Assert.Single((context.ContextData["result"] as IEnumerable<IOperationCompilerOptimizer>)!);
+    }
+
+    private sealed class StubMiddleware<T>
+    {
+        private readonly RequestDelegate _next;
+        private readonly T _injectedValue;
+
+        public StubMiddleware(RequestDelegate next, T injectedValue)
         {
-            // arrange
-            RequestCoreMiddleware middleware = RequestClassMiddlewareFactory
-                .Create<StubMiddleware<IEnumerable<ISelectionOptimizer>>>();
-            var applicationServices = new ServiceCollection().BuildServiceProvider();
-            ServiceProvider schemaServices = new ServiceCollection()
-                .AddSingleton<ISelectionOptimizer, StubOptimizer>()
-                .BuildServiceProvider();
-            var schemaName = "_Default";
-            IRequestExecutorOptionsAccessor optionsAccessor = new RequestExecutorOptions();
-            var factoryContext = new RequestCoreMiddlewareContext(
-                schemaName,
-                applicationServices,
-                schemaServices,
-                optionsAccessor);
-            var context = new RequestContext(
-                new Mock<ISchema>().Object,
-                1,
-                new Mock<IServiceProvider>().Object,
-                new Mock<IErrorHandler>().Object,
-                new Mock<ITypeConverter>().Object,
-                new Mock<IActivator>().Object,
-                new Mock<IDiagnosticEvents>().Object,
-                new Mock<IQueryRequest>().Object);
-
-            // act
-            RequestDelegate compiledMiddleware = middleware(factoryContext, context => default);
-            await compiledMiddleware(context);
-
-
-            // assert
-            Assert.Single(
-                (context.ContextData["result"] as IEnumerable<ISelectionOptimizer>)!);
+            _next = next ?? throw new ArgumentNullException(nameof(next));
+            _injectedValue = injectedValue;
         }
 
-        public class StubMiddleware<T>
+        public ValueTask InvokeAsync(IRequestContext context)
         {
-            private readonly RequestDelegate _next;
-            private readonly T _injectedValue;
-
-            public StubMiddleware(
-                RequestDelegate next,
-                T injectedValue)
-            {
-                _next = next ??
-                    throw new ArgumentNullException(nameof(next));
-                _injectedValue = injectedValue;
-            }
-
-            public ValueTask InvokeAsync(IRequestContext context)
-            {
-                context.ContextData["result"] = _injectedValue;
-                return default;
-            }
+            context.ContextData["result"] = _injectedValue;
+            return _next(context);
         }
+    }
 
-        public class StubOptimizer : ISelectionOptimizer
+    private sealed class StubOptimizer : ISelectionSetOptimizer
+    {
+        public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
         {
-            public void OptimizeSelectionSet(SelectionOptimizerContext context)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool AllowFragmentDeferral(
-                SelectionOptimizerContext context,
-                InlineFragmentNode fragment)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool AllowFragmentDeferral(
-                SelectionOptimizerContext context,
-                FragmentSpreadNode fragmentSpread,
-                FragmentDefinitionNode fragmentDefinition)
-            {
-                throw new NotImplementedException();
-            }
+            throw new NotImplementedException();
         }
     }
 }

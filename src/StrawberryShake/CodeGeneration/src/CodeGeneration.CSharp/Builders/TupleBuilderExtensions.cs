@@ -1,31 +1,30 @@
 using System.Collections.Generic;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public static class TupleBuilderExtensions
 {
-    public static class TupleBuilderExtensions
+    public static TupleBuilder AddMemberRange(
+        this TupleBuilder builder,
+        IEnumerable<string> range)
     {
-        public static TupleBuilder AddMemberRange(
-            this TupleBuilder builder,
-            IEnumerable<string> range)
+        foreach (var member in range)
         {
-            foreach (var member in range)
-            {
-                builder.AddMember(member);
-            }
-
-            return builder;
+            builder.AddMember(member);
         }
 
-        public static TupleBuilder AddMemberRange(
-            this TupleBuilder builder,
-            IEnumerable<ICode> range)
-        {
-            foreach (ICode member in range)
-            {
-                builder.AddMember(member);
-            }
+        return builder;
+    }
 
-            return builder;
+    public static TupleBuilder AddMemberRange(
+        this TupleBuilder builder,
+        IEnumerable<ICode> range)
+    {
+        foreach (var member in range)
+        {
+            builder.AddMember(member);
         }
+
+        return builder;
     }
 }

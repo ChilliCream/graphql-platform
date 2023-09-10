@@ -1,11 +1,16 @@
-﻿[
+[
   {
     "Message": "There can be only one input field named `name`.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "findDog"
+      "Name": "findDog",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -15,7 +20,7 @@
     ],
     "Extensions": {
       "field": "name",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Uniqueness"
     },
     "Exception": null,
     "SyntaxNode": {

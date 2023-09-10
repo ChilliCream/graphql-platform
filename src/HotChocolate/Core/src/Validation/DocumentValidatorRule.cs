@@ -1,32 +1,34 @@
 using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public class DocumentValidatorRule<TVisitor>
+    : IDocumentValidatorRule
+    where TVisitor : DocumentValidatorVisitor
 {
-    public class DocumentValidatorRule<TVisitor>
-        : IDocumentValidatorRule
-        where TVisitor : DocumentValidatorVisitor
+    private readonly TVisitor _visitor;
+
+    public DocumentValidatorRule(TVisitor visitor, bool isCacheable = true)
     {
-        private readonly TVisitor _visitor;
+        _visitor = visitor;
+        IsCacheable = isCacheable;
+    }
 
-        public DocumentValidatorRule(TVisitor visitor)
+    public bool IsCacheable { get; }
+
+    public void Validate(IDocumentValidatorContext context, DocumentNode document)
+    {
+        if (context is null)
         {
-            _visitor = visitor;
+            throw new ArgumentNullException(nameof(context));
         }
 
-        public void Validate(IDocumentValidatorContext context, DocumentNode document)
+        if (document is null)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            _visitor.Visit(document, context);
+            throw new ArgumentNullException(nameof(document));
         }
+
+        _visitor.Visit(document, context);
     }
 }

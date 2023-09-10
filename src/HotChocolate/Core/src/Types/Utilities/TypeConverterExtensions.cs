@@ -1,49 +1,48 @@
 using System;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public static class TypeConverterExtensions
 {
-    public static class TypeConverterExtensions
+    public static bool TryConvert(
+        this ITypeConverter typeConverter,
+        Type to,
+        object source,
+        out object converted) =>
+        typeConverter.TryConvert(typeof(object), to, source, out converted);
+
+    public static bool TryConvert<TFrom, TTo>(
+        this ITypeConverter typeConverter,
+        TFrom source, out TTo converted)
     {
-        public static bool TryConvert(
-            this ITypeConverter typeConverter,
-            Type to,
-            object source, 
-            out object converted) =>
-            typeConverter.TryConvert(typeof(object), to, source, out converted);
-
-        public static bool TryConvert<TFrom, TTo>(
-            this ITypeConverter typeConverter,
-            TFrom source, out TTo converted)
+        if (typeConverter is null)
         {
-            if (typeConverter is null)
-            {
-                throw new ArgumentNullException(nameof(typeConverter));
-            }
-
-            if (typeConverter.TryConvert(
-                typeof(TFrom), typeof(TTo),
-                source, out object conv)
-                && conv is TTo convcasted)
-            {
-                converted = convcasted;
-                return true;
-            }
-
-            converted = default;
-            return false;
+            throw new ArgumentNullException(nameof(typeConverter));
         }
 
-        public static TTo Convert<TFrom, TTo>(
-            this ITypeConverter typeConverter,
-            object source)
+        if (typeConverter.TryConvert(
+            typeof(TFrom), typeof(TTo),
+            source, out var conv)
+            && conv is TTo convcasted)
         {
-            if (typeConverter is null)
-            {
-                throw new ArgumentNullException(nameof(typeConverter));
-            }
-
-            return (TTo)typeConverter.Convert(
-                typeof(TFrom), typeof(TTo), source);
+            converted = convcasted;
+            return true;
         }
+
+        converted = default;
+        return false;
+    }
+
+    public static TTo Convert<TFrom, TTo>(
+        this ITypeConverter typeConverter,
+        object source)
+    {
+        if (typeConverter is null)
+        {
+            throw new ArgumentNullException(nameof(typeConverter));
+        }
+
+        return (TTo)typeConverter.Convert(
+            typeof(TFrom), typeof(TTo), source);
     }
 }

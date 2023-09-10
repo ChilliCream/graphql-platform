@@ -1,7 +1,12 @@
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+/// <summary>
+/// Provides the well known tool directories.
+/// </summary>
+public static class WellKnownDirectories
 {
-    public class WellKnownDirectories
-    {
-        public const string Generated = "Generated";
-    }
+    /// <summary>
+    /// The directory name of the generated code files.
+    /// </summary>
+    public const string Generated = "Generated";
 }

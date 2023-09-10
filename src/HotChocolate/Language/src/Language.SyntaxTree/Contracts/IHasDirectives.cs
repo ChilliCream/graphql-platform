@@ -1,9 +1,14 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+/// <summary>
+/// Represents a syntax node that has directives.
+/// </summary>
+public interface IHasDirectives
 {
-    public interface IHasDirectives
-    {
-        IReadOnlyList<DirectiveNode> Directives { get; }
-    }
+    /// <summary>
+    /// Gets the directives of a syntax node.
+    /// </summary>
+    IReadOnlyList<DirectiveNode> Directives { get; }
 }

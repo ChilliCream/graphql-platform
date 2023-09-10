@@ -8,24 +8,12 @@
 
   <PropertyGroup>
     <Product>Strawberry Shake</Product>
-    <Authors>ChilliCream authors and contributors</Authors>
-    <Company>ChilliCream</Company>
-    <Copyright>Copyright &#169; 2019 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
-    <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
-    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
-    <PackageTags>GraphQL ChilliCream</PackageTags>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://chillicream.com/resources/strawberryshake-signet.png</PackageIconUrl>
+    <PackageIcon>strawberryshake-signet.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TestTargetFrameworks>net5.0; netcoreapp3.1</TestTargetFrameworks>
-    <LibraryTargetFrameworks>net5.0; netcoreapp3.1; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
-    <ToolingTargetFrameworks>net5.0; netcoreapp3.1; netcoreapp2.1</ToolingTargetFrameworks>
-    <!--TestTargetFrameworks>net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
-    <LibraryTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
-    <ToolingTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netcoreapp2.1</ToolingTargetFrameworks-->
+    <LibraryTargetFrameworks>net8.0; net7.0; net6.0; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
+    <ToolingTargetFrameworks>net8.0; net7.0; net6.0</ToolingTargetFrameworks>
   </PropertyGroup>
 
 </Project>

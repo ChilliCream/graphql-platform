@@ -1,0 +1,12 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: Simple
+}
+
+enum Simple {
+  ONE
+  TWO
+}

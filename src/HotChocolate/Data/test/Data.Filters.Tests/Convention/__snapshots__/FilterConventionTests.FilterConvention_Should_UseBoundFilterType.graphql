@@ -1,0 +1,21 @@
+schema {
+  query: Query
+}
+
+type Foo {
+  bar: String!
+}
+
+type Query {
+  foos(where: FooFilterInput): [Foo]
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  bar: TestOperationFilterInput
+}
+
+input TestOperationFilterInput {
+  eq: String
+}

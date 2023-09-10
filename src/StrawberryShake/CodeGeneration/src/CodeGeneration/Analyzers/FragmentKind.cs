@@ -1,9 +1,8 @@
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Analyzers;
+
+public enum FragmentKind
 {
-    public enum FragmentKind
-    {
-        Structure,
-        Named,
-        Inline
-    }
+    Structure,
+    Named,
+    Inline
 }

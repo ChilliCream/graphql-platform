@@ -1,0 +1,18 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooFilterInput): String
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  boolean: BooleanOperationFilterInput
+}

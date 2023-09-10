@@ -1,18 +1,17 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
-namespace HotChocolate.Execution.Options
+namespace HotChocolate.Execution.Options;
+
+/// <summary>
+/// Represents a dedicated options accessor to read the error handler
+/// configuration.
+/// </summary>
+public interface IErrorHandlerOptionsAccessor
 {
     /// <summary>
-    /// Represents a dedicated options accessor to read the error handler
-    /// configuration.
+    /// Gets a value indicating whether the <c>GraphQL</c> errors should be
+    /// extended with exception details. The default value is
+    /// <see cref="Debugger.IsAttached"/>.
     /// </summary>
-    public interface IErrorHandlerOptionsAccessor
-    {
-        /// <summary>
-        /// Gets a value indicating whether the <c>GraphQL</c> errors should be
-        /// extended with exception details. The default value is
-        /// <see cref="Debugger.IsAttached"/>.
-        /// </summary>
-        bool IncludeExceptionDetails { get; }
-    }
+    bool IncludeExceptionDetails { get; }
 }

@@ -1,469 +1,464 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using HotChocolate.Utilities.Introspection;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching.Delegation;
+
+public partial class ExtractFieldQuerySyntaxRewriter
+    : SyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
 {
-    public partial class ExtractFieldQuerySyntaxRewriter
-        : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
+    private readonly ISchema _schema;
+    private readonly FieldDependencyResolver _dependencyResolver;
+    private readonly IQueryDelegationRewriter[] _rewriters;
+
+    public ExtractFieldQuerySyntaxRewriter(
+        ISchema schema,
+        IEnumerable<IQueryDelegationRewriter> rewriters)
     {
-        private readonly ISchema _schema;
-        private readonly FieldDependencyResolver _dependencyResolver;
-        private readonly IQueryDelegationRewriter[] _rewriters;
+        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+        _dependencyResolver = new FieldDependencyResolver(schema);
+        _rewriters = rewriters.ToArray();
+    }
 
-        public ExtractFieldQuerySyntaxRewriter(
-            ISchema schema,
-            IEnumerable<IQueryDelegationRewriter> rewriters)
+    public ExtractedField ExtractField(
+        string sourceSchema,
+        DocumentNode document,
+        OperationDefinitionNode operation,
+        ISelection selection,
+        INamedOutputType declaringType)
+    {
+        if (document == null)
         {
-            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
-            _dependencyResolver = new FieldDependencyResolver(schema);
-            _rewriters = rewriters.ToArray();
+            throw new ArgumentNullException(nameof(document));
         }
 
-        protected override bool VisitFragmentDefinitions => false;
-
-        public ExtractedField ExtractField(
-            NameString sourceSchema,
-            DocumentNode document,
-            OperationDefinitionNode operation,
-            IFieldSelection selection,
-            INamedOutputType declaringType)
+        if (operation == null)
         {
-            if (document == null)
+            throw new ArgumentNullException(nameof(operation));
+        }
+
+        if (selection == null)
+        {
+            throw new ArgumentNullException(nameof(selection));
+        }
+
+        if (declaringType == null)
+        {
+            throw new ArgumentNullException(nameof(declaringType));
+        }
+
+        if (string.IsNullOrEmpty(sourceSchema))
+        {
+            throw new ArgumentNullException(nameof(sourceSchema));
+        }
+
+        var context = new Context(
+            sourceSchema,
+            declaringType,
+            document,
+            operation);
+
+        var syntaxNodes = new List<FieldNode>();
+
+        var syntaxNode = selection.SyntaxNode;
+
+        var field = RewriteField(syntaxNode, context);
+
+        if (selection.Field.Type.NamedType().IsLeafType() ||
+            (field.SelectionSet is not null &&
+                field.SelectionSet.Selections.Count > 0))
+        {
+            syntaxNodes.Add(field);
+        }
+
+        return new ExtractedField(
+            syntaxNodes,
+            context.Variables.Values.ToList(),
+            context.Fragments.Values.ToList());
+    }
+
+    public IValueNode RewriteValueNode(
+        string sourceSchema,
+        IInputType inputType,
+        IValueNode value)
+    {
+        sourceSchema.EnsureGraphQLName(nameof(sourceSchema));
+
+        var context = new Context(sourceSchema, null, null, null) { InputType = inputType };
+        return (IValueNode)Rewrite(value, context)!;
+    }
+
+    protected override FieldNode RewriteField(
+        FieldNode node,
+        Context context)
+    {
+        if (context.TypeContext is IComplexOutputType type &&
+            type.Fields.TryGetField(node.Name.Value, out var field))
+        {
+            var cloned = context.Clone();
+            cloned.OutputField = field;
+
+            var name = node.Name;
+            var alias = node.Alias;
+
+            if (field.TryGetSourceDirective(cloned.Schema, out var sourceDirective))
             {
-                throw new ArgumentNullException(nameof(document));
+                alias ??= name;
+                name = new NameNode(sourceDirective.Name);
             }
 
-            if (operation == null)
+            var directives = node.Directives;
+
+            if (directives.Count > 0)
             {
-                throw new ArgumentNullException(nameof(operation));
-            }
+                List<DirectiveNode>? temp = null;
 
-            if (selection == null)
-            {
-                throw new ArgumentNullException(nameof(selection));
-            }
-
-            if (declaringType == null)
-            {
-                throw new ArgumentNullException(nameof(declaringType));
-            }
-
-            sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
-
-            var context = new Context(
-                sourceSchema, declaringType,
-                document, operation);
-
-            var syntaxNodes = new List<FieldNode>();
-
-            foreach (FieldNode syntaxNode in selection.SyntaxNodes)
-            {
-                FieldNode field = RewriteField(syntaxNode, context);
-
-                if (selection.Field.Type.NamedType().IsLeafType() || 
-                    (field.SelectionSet is not null && 
-                    field.SelectionSet.Selections.Count > 0))
+                foreach (var directive in directives)
                 {
-                    syntaxNodes.Add(field);
+                    if (BuiltInTypes.IsBuiltInType(directive.Name.Value))
+                    {
+                        temp ??= new List<DirectiveNode>(directives);
+                        temp.Remove(directive);
+                    }
                 }
-            }
 
-            return new ExtractedField(
-                syntaxNodes,
-                context.Variables.Values.ToList(),
-                context.Fragments.Values.ToList());
-        }
-
-        public IValueNode RewriteValueNode(
-            NameString sourceSchema,
-            IInputType inputType,
-            IValueNode value)
-        {
-            sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
-
-            var context = new Context(sourceSchema, null, null, null);
-            context.InputType = inputType;
-            return RewriteValue(value, context);
-        }
-
-        protected override FieldNode RewriteField(
-            FieldNode node,
-            Context context)
-        {
-            FieldNode current = node;
-
-            if (context.TypeContext is IComplexOutputType type
-                && type.Fields.TryGetField(current.Name.Value, out IOutputField? field))
-            {
-                Context cloned = context.Clone();
-                cloned.OutputField = field;
-
-                current = RewriteFieldName(current, field, context);
-                current = Rewrite(current, current.Arguments, cloned,
-                    (p, c) => RewriteMany(p, c, RewriteArgument),
-                    current.WithArguments);
-                current = RewriteFieldSelectionSet(current, field, context);
-                current = Rewrite(current, current.Directives, context,
-                    (p, c) => RewriteMany(p, c, RewriteDirective),
-                    current.WithDirectives);
-                current = OnRewriteField(current, cloned);
-            }
-
-            return current;
-        }
-
-        private static FieldNode RewriteFieldName(
-            FieldNode node,
-            IOutputField field,
-            Context context)
-        {
-            FieldNode current = node;
-
-            if (field.TryGetSourceDirective(context.Schema,
-                out SourceDirective? sourceDirective))
-            {
-                if (current.Alias == null)
+                if (temp is not null)
                 {
-                    current = current.WithAlias(current.Name);
+                    directives = temp;
                 }
+
+                directives = RewriteList(directives, cloned);
+            }
+
+            var required = RewriteNodeOrDefault(node.Required, cloned);
+            var arguments = RewriteList(node.Arguments, cloned);
+            var selectionSet = node.SelectionSet;
+
+            if (node.SelectionSet is not null && field.Type.NamedType() is INamedOutputType n)
+            {
+                var selectionSetContext = cloned.Clone();
+                selectionSetContext.TypeContext = n;
+                selectionSet = RewriteNodeOrDefault(node.SelectionSet, selectionSetContext);
+            }
+
+            if (!ReferenceEquals(name, node.Name) ||
+                !ReferenceEquals(alias, node.Alias) ||
+                !ReferenceEquals(required, node.Required) ||
+                !ReferenceEquals(directives, node.Directives) ||
+                !ReferenceEquals(arguments, node.Arguments) ||
+                !ReferenceEquals(selectionSet, node.SelectionSet))
+            {
+                node = new FieldNode(
+                    node.Location,
+                    name,
+                    alias,
+                    required,
+                    directives,
+                    arguments,
+                    selectionSet);
+            }
+
+            return OnRewriteField(node, cloned);
+        }
+
+        return node;
+    }
+
+    private FieldNode OnRewriteField(
+        FieldNode node,
+        Context context)
+    {
+        if (_rewriters.Length == 0)
+        {
+            return node;
+        }
+
+        var current = node;
+
+        for (var i = 0; i < _rewriters.Length; i++)
+        {
+            current = _rewriters[i].OnRewriteField(
+                context.Schema,
+                context.TypeContext!,
+                context.OutputField!,
+                current);
+        }
+
+        return current;
+    }
+
+    protected override SelectionSetNode RewriteSelectionSet(
+        SelectionSetNode node,
+        Context context)
+    {
+        var current = node;
+
+        var selections = new List<ISelectionNode>(current.Selections);
+
+        var dependencies =
+            _dependencyResolver.GetFieldDependencies(
+                context.Document!,
+                current,
+                context.TypeContext!);
+
+        RemoveDelegationFields(current, context, selections);
+        AddDependencies(context.TypeContext!, selections, dependencies);
+
+        if (selections.OfType<FieldNode>().All(n => n.Name.Value != WellKnownFieldNames.TypeName))
+        {
+            selections.Add(CreateField(WellKnownFieldNames.TypeName));
+        }
+
+        current = current.WithSelections(selections);
+        current = base.RewriteSelectionSet(current, context);
+        current = OnRewriteSelectionSet(current!, context);
+
+        return current;
+    }
+
+    protected override DirectiveNode? RewriteDirective(DirectiveNode node, Context context)
+    {
+        if (node.Arguments.Count > 0)
+        {
+            var arguments = RewriteList(node.Arguments, context);
+            if (!ReferenceEquals(arguments, node.Arguments))
+            {
+                return node.WithArguments(arguments);
+            }
+        }
+
+        return base.RewriteDirective(node, context);
+    }
+
+    private SelectionSetNode OnRewriteSelectionSet(
+        SelectionSetNode node,
+        Context context)
+    {
+        if (_rewriters.Length == 0)
+        {
+            return node;
+        }
+
+        var current = node;
+
+        for (var i = 0; i < _rewriters.Length; i++)
+        {
+            current = _rewriters[i].OnRewriteSelectionSet(
+                context.Schema,
+                context.TypeContext!,
+                context.OutputField!,
+                current);
+        }
+
+        return current;
+    }
+
+    protected override ArgumentNode? RewriteArgument(
+        ArgumentNode node,
+        Context context)
+    {
+        var current = node;
+
+        if (context.OutputField != null &&
+            context.OutputField.Arguments.TryGetField(
+                current.Name.Value,
+                out var inputField))
+        {
+            var cloned = context.Clone();
+            cloned.InputField = inputField;
+            cloned.InputType = inputField.Type;
+
+            if (inputField.TryGetSourceDirective(
+                    context.Schema,
+                    out var sourceDirective) &&
+                !sourceDirective.Name.Equals(current.Name.Value))
+            {
+                current = current.WithName(new NameNode(sourceDirective.Name));
+            }
+
+            return base.RewriteArgument(current, cloned);
+        }
+
+        return base.RewriteArgument(current, context);
+    }
+
+    protected override ObjectFieldNode? RewriteObjectField(
+        ObjectFieldNode node,
+        Context context)
+    {
+        var current = node;
+
+        if (context.InputType?.NamedType() is InputObjectType inputType &&
+            inputType.Fields.TryGetField(current.Name.Value, out var inputField))
+        {
+            var cloned = context.Clone();
+            cloned.InputField = inputField;
+            cloned.InputType = inputField.Type;
+
+            if (inputField.TryGetSourceDirective(context.Schema, out var sourceDirective) &&
+                !sourceDirective.Name.Equals(current.Name.Value))
+            {
                 current = current.WithName(
                     new NameNode(sourceDirective.Name));
             }
 
-            return current;
+            Rewrite(node.Value, context);
+
+            return base.RewriteObjectField(current, cloned);
         }
 
-        private FieldNode RewriteFieldSelectionSet(
-            FieldNode node,
-            IOutputField field,
-            Context context)
+        return base.RewriteObjectField(current, context);
+    }
+
+    private static void RemoveDelegationFields(
+        SelectionSetNode node,
+        Context context,
+        ICollection<ISelectionNode> selections)
+    {
+        if (context.TypeContext is IComplexOutputType type)
         {
-            FieldNode current = node;
-
-            if (current.SelectionSet != null
-                && field.Type.NamedType() is INamedOutputType n)
+            foreach (var selection in node.Selections.OfType<FieldNode>())
             {
-                Context cloned = context.Clone();
-                cloned.TypeContext = n;
-
-                current = Rewrite
-                (
-                    current,
-                    current.SelectionSet,
-                    cloned,
-                    RewriteSelectionSet,
-                    current.WithSelectionSet
-                );
-            }
-
-            return current;
-        }
-
-        private FieldNode OnRewriteField(
-            FieldNode node,
-            Context context)
-        {
-            if (_rewriters.Length == 0)
-            {
-                return node;
-            }
-
-            FieldNode current = node;
-
-            for (var i = 0; i < _rewriters.Length; i++)
-            {
-                current = _rewriters[i].OnRewriteField(
-                    context.Schema,
-                    context.TypeContext!,
-                    context.OutputField!,
-                    current);
-            }
-
-            return current;
-        }
-
-        protected override SelectionSetNode RewriteSelectionSet(
-            SelectionSetNode node,
-            Context context)
-        {
-            SelectionSetNode current = node;
-
-            var selections = new List<ISelectionNode>(current.Selections);
-
-            ISet<FieldDependency> dependencies =
-                _dependencyResolver.GetFieldDependencies(
-                    context.Document!, current, context.TypeContext!);
-
-            RemoveDelegationFields(current, context, selections);
-            AddDependencies(context.TypeContext!, selections, dependencies);
-
-            if (!selections.OfType<FieldNode>().Any(n => n.Name.Value == WellKnownFieldNames.TypeName))
-            {
-                selections.Add(CreateField(WellKnownFieldNames.TypeName));
-            }
-
-            current = current.WithSelections(selections);
-            current = base.RewriteSelectionSet(current, context);
-            current = OnRewriteSelectionSet(current, context);
-
-            return current;
-        }
-
-        private SelectionSetNode OnRewriteSelectionSet(
-            SelectionSetNode node,
-            Context context)
-        {
-            if (_rewriters.Length == 0)
-            {
-                return node;
-            }
-
-            SelectionSetNode current = node;
-
-            for (int i = 0; i < _rewriters.Length; i++)
-            {
-                current = _rewriters[i].OnRewriteSelectionSet(
-                    context.Schema,
-                    context.TypeContext!,
-                    context.OutputField!,
-                    current);
-            }
-
-            return current;
-        }
-
-        protected override ArgumentNode RewriteArgument(
-            ArgumentNode node,
-            Context context)
-        {
-            ArgumentNode current = node;
-
-            if (context.OutputField != null
-                && context.OutputField.Arguments.TryGetField(
-                    current.Name.Value,
-                    out IInputField? inputField))
-            {
-                Context cloned = context.Clone();
-                cloned.InputField = inputField;
-                cloned.InputType = inputField.Type;
-
-                if (inputField.TryGetSourceDirective(
-                    context.Schema,
-                    out SourceDirective? sourceDirective)
-                    && !sourceDirective.Name.Equals(current.Name.Value))
+                if (type.Fields.TryGetField(selection.Name.Value, out var field) &&
+                    IsDelegationField(field.Directives))
                 {
-                    current = current.WithName(
-                        new NameNode(sourceDirective.Name));
-                }
-
-                return base.RewriteArgument(current, cloned);
-            }
-
-            return base.RewriteArgument(current, context);
-        }
-
-        protected override ObjectFieldNode RewriteObjectField(
-            ObjectFieldNode node,
-            Context context)
-        {
-            ObjectFieldNode current = node;
-
-            if (context.InputType != null
-                && context.InputType.NamedType() is InputObjectType inputType
-                && inputType.Fields.TryGetField(current.Name.Value,
-                out InputField? inputField))
-            {
-                Context cloned = context.Clone();
-                cloned.InputField = inputField;
-                cloned.InputType = inputField.Type;
-
-                if (inputField.TryGetSourceDirective(context.Schema,
-                    out SourceDirective? sourceDirective)
-                    && !sourceDirective.Name.Equals(current.Name.Value))
-                {
-                    current = current.WithName(
-                        new NameNode(sourceDirective.Name));
-                }
-
-                Rewrite(node.Value, context);
-
-                return base.RewriteObjectField(current, cloned);
-            }
-
-            return base.RewriteObjectField(current, context);
-        }
-
-        private static void RemoveDelegationFields(
-            SelectionSetNode node,
-            Context context,
-            ICollection<ISelectionNode> selections)
-        {
-            if (context.TypeContext is IComplexOutputType type)
-            {
-                foreach (FieldNode selection in node.Selections.OfType<FieldNode>())
-                {
-                    if (type.Fields.TryGetField(selection.Name.Value, out IOutputField? field)
-                        && IsDelegationField(field.Directives))
-                    {
-                        selections.Remove(selection);
-                    }
+                    selections.Remove(selection);
                 }
             }
         }
+    }
 
-        protected override DirectiveNode RewriteDirective(
-            DirectiveNode node,
-            Context context)
+    private static bool IsDelegationField(IDirectiveCollection directives)
+        => directives.ContainsDirective(DirectiveNames.Delegate) ||
+            directives.ContainsDirective(DirectiveNames.Computed);
+
+    private static void AddDependencies(
+        Types.IHasName typeContext,
+        List<ISelectionNode> selections,
+        IEnumerable<FieldDependency> dependencies)
+    {
+        foreach (var typeGroup in dependencies.GroupBy(t => t.TypeName))
         {
-            DirectiveNode current = node;
+            var fields = new List<FieldNode>();
 
-            current = Rewrite(current, current.Arguments, context,
-                (p, c) => RewriteMany(p, c, RewriteArgument),
-                current.WithArguments);
-
-            return current;
-        }
-
-        private static bool IsDelegationField(IDirectiveCollection directives)
-        {
-            return directives.Contains(DirectiveNames.Delegate)
-                || directives.Contains(DirectiveNames.Computed);
-        }
-
-        private static void AddDependencies(
-            Types.IHasName typeContext,
-            List<ISelectionNode> selections,
-            IEnumerable<FieldDependency> dependencies)
-        {
-            foreach (var typeGroup in dependencies.GroupBy(t => t.TypeName))
+            foreach (var fieldName in typeGroup.Select(t => t.FieldName))
             {
-                var fields = new List<FieldNode>();
+                fields.Add(CreateField(fieldName));
+            }
 
-                foreach (NameString fieldName in typeGroup.Select(t => t.FieldName))
-                {
-                    fields.Add(CreateField(fieldName));
-                }
-
-                if (typeGroup.Key.Equals(typeContext.Name))
-                {
-                    selections.AddRange(fields);
-                }
-                else
-                {
-                    selections.Add(new InlineFragmentNode
-                    (
+            if (typeGroup.Key.Equals(typeContext.Name))
+            {
+                selections.AddRange(fields);
+            }
+            else
+            {
+                selections.Add(
+                    new InlineFragmentNode(
                         null,
                         new NamedTypeNode(null, new NameNode(typeGroup.Key)),
                         Array.Empty<DirectiveNode>(),
-                        new SelectionSetNode(null, fields)
-                    ));
-                }
+                        new SelectionSetNode(null, fields)));
             }
         }
+    }
 
-        private static FieldNode CreateField(string fieldName)
+    private static FieldNode CreateField(string fieldName)
+        => new(null,
+            new NameNode(fieldName),
+            null,
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            null);
+
+    protected override VariableNode? RewriteVariable(
+        VariableNode node,
+        Context context)
+    {
+        if (!context.Variables.ContainsKey(node.Name.Value))
         {
-            return new FieldNode
-            (
-                null,
-                new NameNode(fieldName),
-                null,
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
-                null
-            );
+            var variableDefinition =
+                context.Operation!.VariableDefinitions
+                    .First(t => t.Variable.Name.Value.EqualsOrdinal(node.Name.Value));
+            context.Variables[node.Name.Value] = variableDefinition;
         }
 
-        protected override VariableNode RewriteVariable(
-            VariableNode node,
-            Context context)
+        return base.RewriteVariable(node, context);
+    }
+
+    protected override FragmentSpreadNode? RewriteFragmentSpread(
+        FragmentSpreadNode node,
+        Context context)
+    {
+        var name = node.Name.Value;
+
+        if (!context.Fragments.TryGetValue(name, out var fragment))
         {
-            if (!context.Variables.ContainsKey(node.Name.Value))
-            {
-                VariableDefinitionNode? variableDefinition =
-                    context.Operation!.VariableDefinitions
-                        .First(t => t.Variable.Name.Value.EqualsOrdinal(node.Name.Value));
-                context.Variables[node.Name.Value] = variableDefinition!;
-            }
-
-            return base.RewriteVariable(node, context);
+            fragment = context.Document!.Definitions
+                .OfType<FragmentDefinitionNode>()
+                .First(t => t.Name.Value.EqualsOrdinal(name));
+            fragment = RewriteFragmentDefinition(fragment, context);
+            context.Fragments[name] = fragment!;
         }
 
-        protected override FragmentSpreadNode RewriteFragmentSpread(
-            FragmentSpreadNode node,
-            Context context)
+        return base.RewriteFragmentSpread(node, context);
+    }
+
+    protected override FragmentDefinitionNode? RewriteFragmentDefinition(
+        FragmentDefinitionNode node,
+        Context context)
+    {
+        var currentContext = context;
+        var current = node;
+
+        if (currentContext.FragmentPath.Contains(current.Name.Value))
         {
-            string name = node.Name.Value;
-            if (!context.Fragments.TryGetValue(name, out FragmentDefinitionNode? fragment))
-            {
-                fragment = context.Document!.Definitions
-                    .OfType<FragmentDefinitionNode>()
-                    .First(t => t.Name.Value.EqualsOrdinal(name));
-                fragment = RewriteFragmentDefinition(fragment, context);
-                context.Fragments[name] = fragment;
-            }
-
-            return base.RewriteFragmentSpread(node, context);
+            return node;
         }
 
-        protected override FragmentDefinitionNode RewriteFragmentDefinition(
-            FragmentDefinitionNode node,
-            Context context)
+        if (_schema.TryGetType<IComplexOutputType>(current.TypeCondition.Name.Value, out var type))
         {
-            Context currentContext = context;
-            FragmentDefinitionNode current = node;
+            currentContext = currentContext.Clone();
+            currentContext.TypeContext = type;
+            currentContext.FragmentPath = currentContext.FragmentPath.Add(current.Name.Value);
 
-            if (currentContext.FragmentPath.Contains(current.Name.Value))
+            if (type.TryGetSourceDirective(context.Schema, out var sourceDirective))
             {
-                return node;
+                current = current.WithTypeCondition(
+                    current.TypeCondition.WithName(
+                        new NameNode(sourceDirective.Name)));
             }
-
-            if (_schema.TryGetType(current.TypeCondition.Name.Value, out IComplexOutputType type))
-            {
-                currentContext = currentContext.Clone();
-                currentContext.TypeContext = type;
-                currentContext.FragmentPath = currentContext.FragmentPath.Add(current.Name.Value);
-
-                if (type.TryGetSourceDirective(context.Schema, out SourceDirective? sourceDirective))
-                {
-                    current = current.WithTypeCondition(
-                        current.TypeCondition.WithName(
-                            new NameNode(sourceDirective.Name)));
-                }
-            }
-
-            return base.RewriteFragmentDefinition(current, currentContext);
         }
 
-        protected override InlineFragmentNode RewriteInlineFragment(
-            InlineFragmentNode node,
-            Context context)
+        return base.RewriteFragmentDefinition(current, currentContext);
+    }
+
+    protected override InlineFragmentNode? RewriteInlineFragment(
+        InlineFragmentNode node,
+        Context context)
+    {
+        var currentContext = context;
+        var current = node;
+
+        if (_schema.TryGetType<IComplexOutputType>(current.TypeCondition!.Name.Value, out var type))
         {
-            Context currentContext = context;
-            InlineFragmentNode current = node;
+            currentContext = currentContext.Clone();
+            currentContext.TypeContext = type;
 
-            if (_schema.TryGetType(current.TypeCondition!.Name.Value, out IComplexOutputType type))
+            if (type.TryGetSourceDirective(
+                context.Schema,
+                out var sourceDirective))
             {
-                currentContext = currentContext.Clone();
-                currentContext.TypeContext = type;
-
-                if (type.TryGetSourceDirective(
-                    context.Schema, 
-                    out SourceDirective? sourceDirective))
-                {
-                    current = current.WithTypeCondition(
-                        current.TypeCondition.WithName(
-                            new NameNode(sourceDirective.Name)));
-                }
+                current = current.WithTypeCondition(
+                    current.TypeCondition.WithName(
+                        new NameNode(sourceDirective.Name)));
             }
-
-            return base.RewriteInlineFragment(current, currentContext);
         }
+
+        return base.RewriteInlineFragment(current, currentContext);
     }
 }

@@ -1,0 +1,3 @@
+﻿For more details look at the `Errors` property.
+
+1. The type UnionTypeOfFoo is invalid because the runtime type is a HotChocolate.Types.UnionType`1[[HotChocolate.Types.UnionTypeTests+Foo, HotChocolate.Types.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]. It is not supported to have type system members as runtime types. (HotChocolate.Types.UnionType<HotChocolate.Types.UnionType<HotChocolate.Types.UnionTypeTests.Foo>>)

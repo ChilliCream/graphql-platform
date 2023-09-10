@@ -1,43 +1,78 @@
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.Execution;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
 {
-    public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
+    public virtual ValueTask<ConnectionStatus> OnConnectAsync(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage,
+        CancellationToken cancellationToken = default)
+        => new(ConnectionStatus.Accept());
+
+    public virtual ValueTask OnRequestAsync(
+        ISocketSession session,
+        string operationSessionId,
+        IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken = default)
     {
-        public virtual ValueTask<ConnectionStatus> OnConnectAsync(
-            ISocketConnection connection,
-            InitializeConnectionMessage message,
-            CancellationToken cancellationToken) =>
-            new ValueTask<ConnectionStatus>(ConnectionStatus.Accept());
+        var context = session.Connection.HttpContext;
+        var userState = new UserState(context.User);
 
-        public virtual ValueTask OnRequestAsync(
-            ISocketConnection connection,
-            IQueryRequestBuilder requestBuilder,
-            CancellationToken cancellationToken)
+        requestBuilder.TrySetServices(session.Connection.RequestServices);
+        requestBuilder.TryAddGlobalState(nameof(CancellationToken), session.Connection.RequestAborted);
+        requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
+        requestBuilder.TryAddGlobalState(nameof(ISocketSession), session);
+        requestBuilder.TryAddGlobalState(OperationSessionId, operationSessionId);
+
+        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
+        requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
+
+        if (context.IsTracingEnabled())
         {
-            HttpContext context = connection.HttpContext;
-            requestBuilder.TrySetServices(connection.RequestServices);
-            requestBuilder.TryAddProperty(nameof(CancellationToken), connection.RequestAborted);
-            requestBuilder.TryAddProperty(nameof(HttpContext), context);
-            requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-
-            if (connection.HttpContext.IsTracingEnabled())
-            {
-                requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
-            }
-
-            return default;
+            requestBuilder.TryAddGlobalState(EnableTracing, true);
         }
 
-        public virtual ValueTask OnCloseAsync(
-            ISocketConnection connection,
-            CancellationToken cancellationToken) =>
-            default;
+        if (context.IncludeQueryPlan())
+        {
+            requestBuilder.TryAddGlobalState(IncludeQueryPlan, true);
+        }
+
+        return default;
     }
+
+    public virtual ValueTask<IQueryResult> OnResultAsync(
+        ISocketSession session,
+        string operationSessionId,
+        IQueryResult result,
+        CancellationToken cancellationToken = default)
+        => new(result);
+
+    public virtual ValueTask OnCompleteAsync(
+        ISocketSession session,
+        string operationSessionId,
+        CancellationToken cancellationToken = default)
+        => default;
+
+    public virtual ValueTask<IReadOnlyDictionary<string, object?>?> OnPingAsync(
+        ISocketSession session,
+        IOperationMessagePayload pingMessage,
+        CancellationToken cancellationToken = default)
+        => new(default(IReadOnlyDictionary<string, object?>?));
+
+
+    public virtual ValueTask OnPongAsync(
+        ISocketSession session,
+        IOperationMessagePayload pongMessage,
+        CancellationToken cancellationToken = default)
+        => default;
+
+    public virtual ValueTask OnCloseAsync(
+        ISocketSession session,
+        CancellationToken cancellationToken = default)
+        => default;
 }

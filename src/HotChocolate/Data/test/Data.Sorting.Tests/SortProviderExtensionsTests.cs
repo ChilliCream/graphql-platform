@@ -6,94 +6,93 @@ using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data;
+
+public class SortProviderExtensionsTests
 {
-    public class SortProviderExtensionsTests
+    [Fact]
+    public void Merge_Should_Merge_OperationHandlersAndPrependExtensionHandlers()
     {
-        [Fact]
-        public void Merge_Should_Merge_OperationHandlersAndPrependExtensionHandlers()
+        // arrange
+        var firstFieldHandler = new QueryableAscendingSortOperationHandler();
+        var extensionFieldHandler = new QueryableDescendingSortOperationHandler();
+        var convention = new MockProvider(x => x.AddOperationHandler(firstFieldHandler));
+        var extension = new MockProviderExtensions(
+            x => x.AddOperationHandler(extensionFieldHandler));
+        var context = new ConventionContext(
+            "Scope",
+            new ServiceCollection().BuildServiceProvider(),
+            DescriptorContext.Create());
+
+        convention.Initialize(context);
+        extension.Initialize(context);
+
+        // act
+        extension.Merge(context, convention);
+
+        // assert
+        Assert.NotNull(convention.DefinitionAccessor);
+        Assert.Collection(
+            convention.DefinitionAccessor!.OperationHandlers,
+            x => Assert.Equal(extensionFieldHandler, x.HandlerInstance),
+            x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
+    }
+
+    [Fact]
+    public void Merge_Should_Merge_HandlersAndPrependExtensionHandlers()
+    {
+        // arrange
+        var firstFieldHandler = new QueryableDefaultSortFieldHandler();
+        var extensionFieldHandler = new MockFieldHandler();
+        var convention = new MockProvider(x => x.AddFieldHandler(firstFieldHandler));
+        var extension = new MockProviderExtensions(
+            x => x.AddFieldHandler(extensionFieldHandler));
+        var context = new ConventionContext(
+            "Scope",
+            new ServiceCollection().BuildServiceProvider(),
+            DescriptorContext.Create());
+
+        convention.Initialize(context);
+        extension.Initialize(context);
+
+        // act
+        extension.Merge(context, convention);
+
+        // assert
+        Assert.NotNull(convention.DefinitionAccessor);
+        Assert.Collection(
+            convention.DefinitionAccessor!.Handlers,
+            x => Assert.Equal(extensionFieldHandler, x.HandlerInstance),
+            x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
+    }
+
+    private sealed class MockFieldHandler : QueryableDefaultSortFieldHandler
+    {
+
+    }
+
+    private sealed class MockProviderExtensions
+        : SortProviderExtensions<QueryableSortContext>
+    {
+        public MockProviderExtensions(
+            Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+            : base(configure)
         {
-            // arrange
-            var firstFieldHandler = new QueryableAscendingSortOperationHandler();
-            var extensionFieldHandler = new QueryableDescendingSortOperationHandler();
-            var convention = new MockProvider(x => x.AddOperationHandler(firstFieldHandler));
-            var extension = new MockProviderExtensions(
-                x => x.AddOperationHandler(extensionFieldHandler));
-            var context = new ConventionContext(
-                "Scope",
-                new ServiceCollection().BuildServiceProvider(),
-                DescriptorContext.Create());
+        }
+    }
 
-            convention.Initialize(context);
-            extension.Initialize(context);
+    private sealed class MockProvider : SortProvider<QueryableSortContext>
+    {
+        public SortProviderDefinition? DefinitionAccessor => base.Definition;
 
-            // act
-            extension.Merge(context, convention);
-
-            // assert
-            Assert.NotNull(convention.DefinitionAccessor);
-            Assert.Collection(
-                convention.DefinitionAccessor!.OperationHandlers,
-                x => Assert.Equal(extensionFieldHandler, x.HandlerInstance),
-                x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
+        public MockProvider(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+            : base(configure)
+        {
         }
 
-        [Fact]
-        public void Merge_Should_Merge_HandlersAndPrependExtensionHandlers()
+        public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
         {
-            // arrange
-            var firstFieldHandler = new QueryableDefaultSortFieldHandler();
-            var extensionFieldHandler = new MockFieldHandler();
-            var convention = new MockProvider(x => x.AddFieldHandler(firstFieldHandler));
-            var extension = new MockProviderExtensions(
-                x => x.AddFieldHandler(extensionFieldHandler));
-            var context = new ConventionContext(
-                "Scope",
-                new ServiceCollection().BuildServiceProvider(),
-                DescriptorContext.Create());
-
-            convention.Initialize(context);
-            extension.Initialize(context);
-
-            // act
-            extension.Merge(context, convention);
-
-            // assert
-            Assert.NotNull(convention.DefinitionAccessor);
-            Assert.Collection(
-                convention.DefinitionAccessor!.Handlers,
-                x => Assert.Equal(extensionFieldHandler, x.HandlerInstance),
-                x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
-        }
-
-        private class MockFieldHandler : QueryableDefaultSortFieldHandler
-        {
-
-        }
-
-        private class MockProviderExtensions
-            : SortProviderExtensions<QueryableSortContext>
-        {
-            public MockProviderExtensions(
-                Action<ISortProviderDescriptor<QueryableSortContext>> configure)
-                : base(configure)
-            {
-            }
-        }
-
-        private class MockProvider : SortProvider<QueryableSortContext>
-        {
-            public SortProviderDefinition? DefinitionAccessor => base.Definition;
-
-            public MockProvider(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
-                : base(configure)
-            {
-            }
-
-            public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
-            {
-                throw new NotImplementedException();
-            }
+            throw new NotImplementedException();
         }
     }
 }

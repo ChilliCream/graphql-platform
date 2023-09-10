@@ -1,0 +1,22 @@
+schema {
+  query: Query
+}
+
+type FooBool {
+  bar: Boolean!
+}
+
+type Query {
+  root(where: FooBoolFilterInput): [FooBool]
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input FooBoolFilterInput {
+  and: [FooBoolFilterInput!]
+  or: [FooBoolFilterInput!]
+  bar: BooleanOperationFilterInput
+}

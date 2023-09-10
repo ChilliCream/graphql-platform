@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <PackageTags>DataLoader Batching Caching GraphQL ChilliCream Facebook</PackageTags>
-    <PackageIconUrl>https://chillicream.com/resources/greendonut-signet.png</PackageIconUrl>
+    <PackageIcon>greendonut-signet.png</PackageIcon>
   </PropertyGroup>
 
 </Project>

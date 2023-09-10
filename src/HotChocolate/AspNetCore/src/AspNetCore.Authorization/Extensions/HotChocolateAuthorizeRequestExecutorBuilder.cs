@@ -1,29 +1,67 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
 using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Execution.Configuration;
 
-namespace Microsoft.Extensions.DependencyInjection
-{
-    public static class HotChocolateAuthorizeRequestExecutorBuilder
-    {
-        /// <summary>
-        /// Adds the authorization types to the schema.
-        /// </summary>
-        /// <param name="builder">
-        /// The <see cref="IRequestExecutorBuilder"/>.
-        /// </param>
-        /// <returns>
-        /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
-        /// </returns>
-        public static IRequestExecutorBuilder AddAuthorization(
-            this IRequestExecutorBuilder builder) =>
-            builder.ConfigureSchema(sb => sb.AddAuthorizeDirectiveType());
+namespace Microsoft.Extensions.DependencyInjection;
 
-        [Obsolete("Use AddAuthorization()")]
-        public static IRequestExecutorBuilder AddAuthorizeDirectiveType(
-            this IRequestExecutorBuilder builder) =>
-            AddAuthorization(builder);
+/// <summary>
+/// Provides extension methods for the GraphQL builder.
+/// </summary>
+public static class HotChocolateAuthorizeRequestExecutorBuilder
+{
+    /// <summary>
+    /// Adds the default authorization support to the schema that
+    /// uses Microsoft.AspNetCore.Authorization.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
+    /// </returns>
+    public static IRequestExecutorBuilder AddAuthorization(
+        this IRequestExecutorBuilder builder)
+    {
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.AddAuthorization();
+        builder.AddAuthorizationHandler<DefaultAuthorizationHandler>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds the default authorization support to the schema that
+    /// uses Microsoft.AspNetCore.Authorization.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// An action delegate to configure the provided
+    /// <see cref="Microsoft.AspNetCore.Authorization.AuthorizationOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
+    /// </returns>
+    public static IRequestExecutorBuilder AddAuthorization(
+        this IRequestExecutorBuilder builder,
+        Action<AspNetCore.Authorization.AuthorizationOptions> configure)
+    {
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        builder.Services.AddAuthorization(configure);
+        builder.AddAuthorizationHandler<DefaultAuthorizationHandler>();
+        return builder;
     }
 }

@@ -10,7 +10,7 @@ type Expense {
   category: ExpenseCategory!
   date: DateTime!
   description: String
-  id: Uuid!
+  id: UUID!
   paymentMethod: PaymentMethod!
   tags: [Tag]
 }
@@ -20,7 +20,7 @@ type Income {
   category: IncomeCategory!
   date: DateTime!
   description: String
-  id: Uuid!
+  id: UUID!
   paymentMethod: PaymentMethod!
   tags: [Tag]
 }
@@ -28,8 +28,8 @@ type Income {
 type Receipt {
   "The expense this receipt belongs to"
   expense: Expense
-  expenseId: Uuid!
-  id: Uuid!
+  expenseId: UUID!
+  id: UUID!
   uploadDate: DateTime!
   imageName: String
 }
@@ -76,7 +76,7 @@ enum ExpenseCategory {
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
 
-scalar Uuid
+scalar UUID
 
 enum PaymentMethod {
   UNKNOWN_PAYMENT_METHOD
@@ -198,18 +198,18 @@ input StringOperationFilterInput {
 }
 
 input ComparableGuidOperationFilterInput {
-  eq: Uuid
-  neq: Uuid
-  in: [Uuid!]
-  nin: [Uuid!]
-  gt: Uuid
-  ngt: Uuid
-  gte: Uuid
-  ngte: Uuid
-  lt: Uuid
-  nlt: Uuid
-  lte: Uuid
-  nlte: Uuid
+  eq: UUID
+  neq: UUID
+  in: [UUID!]
+  nin: [UUID!]
+  gt: UUID
+  ngt: UUID
+  gte: UUID
+  ngte: UUID
+  lt: UUID
+  nlt: UUID
+  lte: UUID
+  nlte: UUID
 }
 
 input PaymentMethodOperationFilterInput {
@@ -262,7 +262,7 @@ input ReceiptFilterInput {
 }
 
 input DeleteIncomeInput {
-  id: Uuid!
+  id: UUID!
 }
 
 input AddIncomeInput {
@@ -275,7 +275,7 @@ input AddIncomeInput {
 }
 
 input DeleteExpenseInput {
-  id: Uuid!
+  id: UUID!
 }
 
 input AddExpenseInput {

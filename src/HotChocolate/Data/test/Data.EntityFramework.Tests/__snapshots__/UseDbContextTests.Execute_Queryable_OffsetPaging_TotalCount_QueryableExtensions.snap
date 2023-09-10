@@ -1,0 +1,19 @@
+{
+  "data": {
+    "queryableExtensionsOffset": {
+      "items": [
+        {
+          "name": "foo"
+        },
+        {
+          "name": "bar"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false
+      },
+      "totalCount": 2
+    }
+  }
+}

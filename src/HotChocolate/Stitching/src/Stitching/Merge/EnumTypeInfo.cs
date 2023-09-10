@@ -1,15 +1,14 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+internal class EnumTypeInfo
+    : TypeInfo<EnumTypeDefinitionNode>
 {
-    internal class EnumTypeInfo
-        : TypeInfo<EnumTypeDefinitionNode>
+    public EnumTypeInfo(
+        EnumTypeDefinitionNode typeDefinition,
+        ISchemaInfo schema)
+        : base(typeDefinition, schema)
     {
-        public EnumTypeInfo(
-            EnumTypeDefinitionNode typeDefinition,
-            ISchemaInfo schema)
-            : base(typeDefinition, schema)
-        {
-        }
     }
 }

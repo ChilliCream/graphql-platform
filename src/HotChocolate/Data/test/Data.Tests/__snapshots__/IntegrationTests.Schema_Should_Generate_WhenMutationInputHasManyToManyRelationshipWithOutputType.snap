@@ -1,0 +1,60 @@
+schema {
+  query: FirstOrDefaulQuery
+  mutation: FirstOrDefaultMutation_ManyToMany
+}
+
+type Author {
+  id: Int!
+  name: String
+  books: [Book!]!
+  publishers: [Publisher!]!
+}
+
+type Book {
+  id: Int!
+  authorId: Int!
+  title: String
+  author: Author
+  publisher: Publisher
+}
+
+type FirstOrDefaulQuery {
+  books(book: BookInput!): Book
+}
+
+type FirstOrDefaultMutation_ManyToMany {
+  addPublisher(publisher: PublisherInput!): Author
+}
+
+type Publisher {
+  id: Int!
+  name: String!
+  address: String!
+  zipcode: String!
+  books: [Book!]!
+  authors: [Author!]!
+}
+
+input AuthorInput {
+  id: Int!
+  name: String
+  books: [BookInput!]!
+  publishers: [PublisherInput!]!
+}
+
+input BookInput {
+  id: Int!
+  authorId: Int!
+  title: String
+  author: AuthorInput
+  publisher: PublisherInput
+}
+
+input PublisherInput {
+  id: Int!
+  name: String!
+  address: String!
+  zipcode: String!
+  books: [BookInput!]!
+  authors: [AuthorInput!]!
+}

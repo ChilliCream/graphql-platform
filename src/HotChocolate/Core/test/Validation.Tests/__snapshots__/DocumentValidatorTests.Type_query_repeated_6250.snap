@@ -1,0 +1,238 @@
+[
+  {
+    "Message": "GraphQL allows a short‐hand form for defining query operations when only that one operation exists in the document.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 49993
+      }
+    ],
+    "Extensions": {
+      "operations": 6250,
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 49992,
+        "End": 50001,
+        "Line": 1,
+        "Column": 49993
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 49992,
+          "End": 50001,
+          "Line": 1,
+          "Column": 49993
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "Required": null,
+            "SelectionSet": null,
+            "Location": {
+              "Start": 49993,
+              "End": 50000,
+              "Line": 1,
+              "Column": 49994
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 49993,
+                "End": 50000,
+                "Line": 1,
+                "Column": 49994
+              },
+              "Value": "__type"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Message": "`__type` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 2
+      }
+    ],
+    "Extensions": {
+      "declaringType": "Query",
+      "field": "__type",
+      "type": "__Type",
+      "responseName": "__type",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 1,
+        "End": 8,
+        "Line": 1,
+        "Column": 2
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 1,
+          "End": 8,
+          "Line": 1,
+          "Column": 2
+        },
+        "Value": "__type"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "`__type` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 10
+      }
+    ],
+    "Extensions": {
+      "declaringType": "Query",
+      "field": "__type",
+      "type": "__Type",
+      "responseName": "__type",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 9,
+        "End": 16,
+        "Line": 1,
+        "Column": 10
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 9,
+          "End": 16,
+          "Line": 1,
+          "Column": 10
+        },
+        "Value": "__type"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "`__type` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 18
+      }
+    ],
+    "Extensions": {
+      "declaringType": "Query",
+      "field": "__type",
+      "type": "__Type",
+      "responseName": "__type",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 17,
+        "End": 24,
+        "Line": 1,
+        "Column": 18
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 17,
+          "End": 24,
+          "Line": 1,
+          "Column": 18
+        },
+        "Value": "__type"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "`__type` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 26
+      }
+    ],
+    "Extensions": {
+      "declaringType": "Query",
+      "field": "__type",
+      "type": "__Type",
+      "responseName": "__type",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 25,
+        "End": 32,
+        "Line": 1,
+        "Column": 26
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 25,
+          "End": 32,
+          "Line": 1,
+          "Column": 26
+        },
+        "Value": "__type"
+      },
+      "Directives": []
+    }
+  }
+]

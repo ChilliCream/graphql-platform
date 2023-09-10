@@ -2,94 +2,95 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 
-namespace StrawberryShake.Serialization
+namespace StrawberryShake.Serialization;
+
+/// <summary>
+/// This serializer handles time-span scalars.
+/// </summary>
+public class TimeSpanSerializer : ScalarSerializer<string, TimeSpan>
 {
-    public class TimeSpanSerializer
-        : ScalarSerializer<string, TimeSpan>
+    private readonly TimeSpanFormat _format;
+
+    public TimeSpanSerializer(
+        string typeName = BuiltInScalarNames.TimeSpan,
+        TimeSpanFormat format = TimeSpanFormat.Iso8601)
+        : base(typeName)
     {
-        private readonly TimeSpanFormat _format;
+        _format = format;
+    }
 
-        public TimeSpanSerializer(
-            string typeName = BuiltInScalarNames.TimeSpan,
-            TimeSpanFormat format = TimeSpanFormat.Iso8601)
-            : base(typeName)
+    public override TimeSpan Parse(string serializedValue)
+    {
+        if (TryDeserializeFromString(serializedValue, _format, out var timeSpan))
         {
-            _format = format;
+            return timeSpan!.Value;
         }
 
-        public override TimeSpan Parse(string serializedValue)
+        throw ThrowHelper.TimeSpanSerializer_CouldNotParseValue(serializedValue, _format);
+    }
+
+    protected override string Format(TimeSpan runtimeValue)
+    {
+        if (TrySerialize(runtimeValue, out var serializedValue))
         {
-            if (TryDeserializeFromString(serializedValue, _format, out TimeSpan? timeSpan))
+            return serializedValue;
+        }
+
+        throw ThrowHelper.TimeSpanSerializer_CouldNotFormatValue(runtimeValue, _format);
+    }
+
+    private static bool TryDeserializeFromString(
+        string serialized,
+        TimeSpanFormat format,
+        out TimeSpan? value)
+    {
+        return format == TimeSpanFormat.Iso8601
+            ? TryDeserializeIso8601(serialized, out value)
+            : TryDeserializeDotNet(serialized, out value);
+    }
+
+    private bool TrySerialize(
+        object? runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        if (runtimeValue is TimeSpan timeSpan)
+        {
+            if (_format == TimeSpanFormat.Iso8601)
             {
-                return timeSpan!.Value;
-            }
-
-            throw ThrowHelper.TimeSpanSerializer_CouldNotParseValue(serializedValue, _format);
-        }
-
-        protected override string Format(TimeSpan runtimeValue)
-        {
-            if (TrySerialize(runtimeValue, out var serializedValue))
-            {
-                return serializedValue;
-            }
-
-            throw ThrowHelper.TimeSpanSerializer_CouldNotFormatValue(runtimeValue, _format);
-        }
-
-        private static bool TryDeserializeFromString(
-            string serialized,
-            TimeSpanFormat format,
-            out TimeSpan? value)
-        {
-            return format == TimeSpanFormat.Iso8601
-                ? TryDeserializeIso8601(serialized, out value)
-                : TryDeserializeDotNet(serialized, out value);
-        }
-
-        private bool TrySerialize(
-            object? runtimeValue,
-            [NotNullWhen(true)] out string? resultValue)
-        {
-            if (runtimeValue is TimeSpan timeSpan)
-            {
-                if (_format == TimeSpanFormat.Iso8601)
-                {
-                    resultValue = XmlConvert.ToString(timeSpan);
-                    return true;
-                }
-
-                resultValue = timeSpan.ToString("c");
+                resultValue = XmlConvert.ToString(timeSpan);
                 return true;
             }
 
-            resultValue = null;
-            return false;
+            resultValue = timeSpan.ToString("c");
+            return true;
         }
 
-        private static bool TryDeserializeIso8601(string serialized, out TimeSpan? value)
+        resultValue = null;
+        return false;
+    }
+
+    private static bool TryDeserializeIso8601(string serialized, out TimeSpan? value)
+    {
+        try
         {
-            try
-            {
-                return Iso8601Duration.TryParse(serialized, out value);
-            }
-            catch (FormatException)
-            {
-                value = null;
-                return false;
-            }
+            return Iso8601Duration.TryParse(serialized, out value);
         }
-
-        private static bool TryDeserializeDotNet(string serialized, out TimeSpan? value)
+        catch (FormatException)
         {
-            if (TimeSpan.TryParse(serialized, out TimeSpan timeSpan))
-            {
-                value = timeSpan;
-                return true;
-            }
-
             value = null;
             return false;
         }
+    }
+
+    private static bool TryDeserializeDotNet(string serialized, out TimeSpan? value)
+    {
+        if (TimeSpan.TryParse(serialized, out var timeSpan))
+        {
+            value = timeSpan;
+            return true;
+        }
+
+        value = null;
+        return false;
     }
 }

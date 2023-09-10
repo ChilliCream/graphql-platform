@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Properties {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HHotChocolate.Types.Pagination.Properties.CursorResources", typeof(CursorResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.Pagination.Properties.CursorResources", typeof(CursorResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -54,6 +54,48 @@ namespace HotChocolate.Types.Properties {
         internal static string PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid {
             get {
                 return ResourceManager.GetString("PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid", resourceCulture);
+            }
+        }
+        
+        internal static string PagingArguments_First_Description {
+            get {
+                return ResourceManager.GetString("PagingArguments_First_Description", resourceCulture);
+            }
+        }
+        
+        internal static string PagingArguments_After_Description {
+            get {
+                return ResourceManager.GetString("PagingArguments_After_Description", resourceCulture);
+            }
+        }
+        
+        internal static string PagingArguments_Last_Description {
+            get {
+                return ResourceManager.GetString("PagingArguments_Last_Description", resourceCulture);
+            }
+        }
+        
+        internal static string PagingArguments_Before_Description {
+            get {
+                return ResourceManager.GetString("PagingArguments_Before_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_PagingHandler_MaxPageSize {
+            get {
+                return ResourceManager.GetString("ThrowHelper_PagingHandler_MaxPageSize", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_PagingHandler_NoBoundariesSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_PagingHandler_NoBoundariesSet", resourceCulture);
+            }
+        }
+        
+        internal static string Edge_Cursor_CursorAndResolverNull {
+            get {
+                return ResourceManager.GetString("Edge_Cursor_CursorAndResolverNull", resourceCulture);
             }
         }
     }

@@ -1,152 +1,149 @@
-using System;
-using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
-using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Data.Projections.WellKnownProjectionFields;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class ProjectionVisitor<TContext>
+    : SelectionVisitor<TContext>
+    where TContext : IProjectionVisitorContext
 {
-    public class ProjectionVisitor<TContext>
-        : SelectionVisitor<TContext>
-        where TContext : IProjectionVisitorContext
+    public virtual void Visit(TContext context)
     {
-        public virtual void Visit(TContext context)
+        Visit(context, context.ResolverContext.Selection);
+    }
+
+    public virtual void Visit(TContext context, ISelection selection)
+    {
+        context.Selection.Push(selection);
+        Visit(selection.Field, context);
+    }
+
+    protected override TContext OnBeforeLeave(ISelection selection, TContext localContext)
+    {
+        if (selection is IProjectionSelection projectionSelection &&
+            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
         {
-            SelectionSetNode selectionSet =
-                context.Context.Selection.SyntaxNode.SelectionSet ?? throw new Exception();
-            context.SelectionSetNodes.Push(selectionSet);
-            Visit(context.Context.Field, context);
+            return handler.OnBeforeLeave(localContext, selection);
         }
 
-        protected override TContext OnBeforeLeave(ISelection selection, TContext localContext)
-        {
-            if (selection is IProjectionSelection projectionSelection &&
-                projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
-            {
-                return handler.OnBeforeLeave(localContext, selection);
-            }
+        return localContext;
+    }
 
-            return localContext;
+    protected override TContext OnAfterLeave(
+        ISelection selection,
+        TContext localContext,
+        ISelectionVisitorAction result)
+    {
+        if (selection is IProjectionSelection projectionSelection &&
+            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        {
+            return handler.OnAfterLeave(localContext, selection, result);
         }
 
-        protected override TContext OnAfterLeave(
-            ISelection selection,
-            TContext localContext,
-            ISelectionVisitorAction result)
-        {
-            if (selection is IProjectionSelection projectionSelection &&
-                projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
-            {
-                return handler.OnAfterLeave(localContext, selection, result);
-            }
+        return localContext;
+    }
 
-            return localContext;
+    protected override TContext OnAfterEnter(
+        ISelection selection,
+        TContext localContext,
+        ISelectionVisitorAction result)
+    {
+        if (selection is IProjectionSelection projectionSelection &&
+            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        {
+            return handler.OnAfterEnter(localContext, selection, result);
         }
 
-        protected override TContext OnAfterEnter(
-            ISelection selection,
-            TContext localContext,
-            ISelectionVisitorAction result)
-        {
-            if (selection is IProjectionSelection projectionSelection &&
-                projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
-            {
-                return handler.OnAfterEnter(localContext, selection, result);
-            }
+        return localContext;
+    }
 
-            return localContext;
+    protected override TContext OnBeforeEnter(ISelection selection, TContext context)
+    {
+        if (selection is IProjectionSelection projectionSelection &&
+            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
+        {
+            return handler.OnBeforeEnter(context, selection);
         }
 
-        protected override TContext OnBeforeEnter(ISelection selection, TContext context)
-        {
-            if (selection is IProjectionSelection projectionSelection &&
-                projectionSelection.Handler is IProjectionFieldHandler<TContext> handler)
-            {
-                return handler.OnBeforeEnter(context, selection);
-            }
+        return context;
+    }
 
-            return context;
+    protected override ISelectionVisitorAction Enter(
+        ISelection selection,
+        TContext context)
+    {
+        base.Enter(selection, context);
+
+        if (selection is IProjectionSelection projectionSelection &&
+            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler &&
+            handler.TryHandleEnter(
+                context,
+                selection,
+                out var handlerResult))
+        {
+            return handlerResult;
         }
 
-        protected override ISelectionVisitorAction Enter(
-            ISelection selection,
-            TContext context)
+        return SkipAndLeave;
+    }
+
+    protected override ISelectionVisitorAction Leave(
+        ISelection selection,
+        TContext context)
+    {
+        base.Leave(selection, context);
+
+        if (selection is IProjectionSelection projectionSelection &&
+            projectionSelection.Handler is IProjectionFieldHandler<TContext> handler &&
+            handler.TryHandleLeave(
+                context,
+                selection,
+                out var handlerResult))
         {
-            base.Enter(selection, context);
-
-            if (selection is IProjectionSelection projectionSelection &&
-                projectionSelection.Handler is IProjectionFieldHandler<TContext> handler &&
-                handler.TryHandleEnter(
-                    context,
-                    selection,
-                    out ISelectionVisitorAction? handlerResult))
-            {
-                return handlerResult;
-            }
-
-            return SkipAndLeave;
+            return handlerResult;
         }
 
-        protected override ISelectionVisitorAction Leave(
-            ISelection selection,
-            TContext context)
+        return SkipAndLeave;
+    }
+
+    protected override ISelectionVisitorAction Visit(ISelection selection, TContext context)
+    {
+        if (selection.Field.IsNotProjected())
         {
-            base.Leave(selection, context);
-
-            if (selection is IProjectionSelection projectionSelection &&
-                projectionSelection.Handler is IProjectionFieldHandler<TContext> handler &&
-                handler.TryHandleLeave(
-                    context,
-                    selection,
-                    out ISelectionVisitorAction? handlerResult))
-            {
-                return handlerResult;
-            }
-
-            return SkipAndLeave;
+            return Skip;
         }
 
-        protected override ISelectionVisitorAction Visit(ISelection selection, TContext context)
-        {
-            if (selection.Field.IsNotProjected())
-            {
-                return Skip;
-            }
+        return base.Visit(selection, context);
+    }
 
-            return base.Visit(selection, context);
+    protected override ISelectionVisitorAction Visit(IOutputField field, TContext context)
+    {
+        if (context.Selection.Count > 1 && field.IsNotProjected())
+        {
+            return Skip;
         }
 
-        protected override ISelectionVisitorAction Visit(IOutputField field, TContext context)
+        if (field.Type is IPageType and ObjectType pageType &&
+            context.Selection.Peek() is { } pagingFieldSelection)
         {
-            if (context.SelectionSetNodes.Count > 1 && field.HasProjectionMiddleware())
-            {
-                return Skip;
-            }
+            var selections =
+                context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
 
-            if (field.Type is IPageType and ObjectType pageType &&
-                context.SelectionSetNodes.Peek() is { } pagingFieldSelection)
+            for (var index = selections.Count - 1; index >= 0; index--)
             {
-                IReadOnlyList<IFieldSelection> selections =
-                    context.Context.GetSelections(pageType, pagingFieldSelection, true);
-
-                foreach (var selection in selections)
+                if (selections[index] is { ResponseName : CombinedEdgeField } selection)
                 {
-                    if (selection.ResponseName.Value is CombinedEdgeField)
-                    {
-                        context.SelectionSetNodes.Push(selection.SyntaxNode.SelectionSet);
+                    context.Selection.Push(selection);
 
-                        return base.Visit(selection.Field, context);
-                    }
+                    return base.Visit(selection.Field, context);
                 }
-
-                return Skip;
             }
 
-            return base.Visit(field, context);
+            return Skip;
         }
+
+        return base.Visit(field, context);
     }
 }

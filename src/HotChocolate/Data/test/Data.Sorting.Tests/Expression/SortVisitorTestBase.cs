@@ -1,48 +1,47 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Sorting.Expressions
+namespace HotChocolate.Data.Sorting.Expressions;
+
+public class SortVisitorTestBase
 {
-    public class SortVisitorTestBase
+    protected ExecutorBuilder CreateProviderTester<TRuntimeType>(
+        SortInputType<TRuntimeType> type,
+        SortConvention? convention = null)
     {
-        protected ExecutorBuilder CreateProviderTester<TRuntimeType>(
-            SortInputType<TRuntimeType> type,
-            SortConvention? convention = null)
-        {
-            convention ??=
-                new SortConvention(
-                    x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
+        convention ??=
+            new SortConvention(
+                x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
 
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddConvention<ISortConvention>(convention)
-                .TryAddTypeInterceptor<SortTypeInterceptor>()
-                .AddQueryType(
-                    c =>
-                        c.Name("Query")
-                            .Field("foo")
-                            .Type<StringType>()
-                            .Resolver("bar"))
-                .AddType(type);
+        var builder = SchemaBuilder.New()
+            .AddConvention<ISortConvention>(convention)
+            .TryAddTypeInterceptor<SortTypeInterceptor>()
+            .AddQueryType(
+                c =>
+                    c.Name("Query")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar"))
+            .AddType(type);
 
-            builder.Create();
+        builder.Create();
 
-            return new ExecutorBuilder(type);
-        }
+        return new ExecutorBuilder(type);
+    }
 
-        protected ISchema CreateSchema<T>(T type)
-            where T : ISortInputType
-        {
-            var convention = new SortConvention(x => x.AddDefaults());
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddConvention<ISortConvention>(convention)
-                .TryAddTypeInterceptor<SortTypeInterceptor>()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolver("bar"))
-                .AddType(type);
+    protected ISchema CreateSchema<T>(T type)
+        where T : ISortInputType
+    {
+        var convention = new SortConvention(x => x.AddDefaults());
+        var builder = SchemaBuilder.New()
+            .AddConvention<ISortConvention>(convention)
+            .TryAddTypeInterceptor<SortTypeInterceptor>()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddType(type);
 
-            return builder.Create();
-        }
+        return builder.Create();
     }
 }

@@ -1,19 +1,18 @@
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching;
+
+internal static class DirectiveNames
 {
-    internal static class DirectiveNames
-    {
-        public static NameString Delegate { get; } = "delegate";
+    public const string Delegate = "delegate";
 
-        public static NameString Computed { get; } = "computed";
+    public const string Computed = "computed";
 
-        public static NameString Source { get; } = "source";
+    public const string Source = "source";
 
-        public const string RemoveRootTypes = "_removeRootTypes";
+    public const string RemoveRootTypes = "_removeRootTypes";
 
-        public const string RemoveType = "_removeType";
+    public const string RemoveType = "_removeType";
 
-        public const string RenameType = "_renameType";
+    public const string RenameType = "_renameType";
 
-        public const string RenameField = "_renameField";
-    }
+    public const string RenameField = "_renameField";
 }

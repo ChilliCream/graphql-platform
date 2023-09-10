@@ -11,7 +11,7 @@
     ],
     "Extensions": {
       "field": "requiredField",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -56,7 +56,7 @@
     ],
     "Extensions": {
       "field": "intField",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
     },
     "Exception": null,
     "SyntaxNode": {

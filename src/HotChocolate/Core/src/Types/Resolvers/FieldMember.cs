@@ -1,149 +1,148 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers;
+
+public sealed class FieldMember
+    : FieldReferenceBase
+    , IEquatable<FieldMember>
 {
-    public sealed class FieldMember
-        : FieldReferenceBase
-        , IEquatable<FieldMember>
+    private FieldReference? _fieldReference;
+
+    public FieldMember(
+        string typeName,
+        string fieldName,
+        MemberInfo member)
+        : base(typeName, fieldName)
     {
-        private FieldReference? _fieldReference;
+        Member = member ?? throw new ArgumentNullException(nameof(member));
+    }
 
-        public FieldMember(
-            NameString typeName,
-            NameString fieldName,
-            MemberInfo member)
-            : base(typeName, fieldName)
+    public FieldMember(
+        string typeName,
+        string fieldName,
+        Expression expression)
+        : base(typeName, fieldName)
+    {
+        Expression = expression ?? throw new ArgumentNullException(nameof(expression));
+    }
+
+    private FieldMember(
+        string typeName,
+        string fieldName,
+        MemberInfo? member,
+        Expression? expression)
+        : base(typeName, fieldName)
+    {
+        Member = member;
+        Expression = expression;
+    }
+
+    public MemberInfo? Member { get; }
+
+    public Expression? Expression { get; }
+
+    public FieldMember WithTypeName(string typeName)
+    {
+        if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
         {
-            Member = member ?? throw new ArgumentNullException(nameof(member));
+            return this;
         }
 
-        public FieldMember(
-            NameString typeName,
-            NameString fieldName,
-            Expression expression)
-            : base(typeName, fieldName)
+        return new FieldMember(typeName, FieldName, Member, Expression);
+    }
+
+    public FieldMember WithFieldName(string fieldName)
+    {
+        if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
         {
-            Expression = expression ?? throw new ArgumentNullException(nameof(expression));
+            return this;
         }
 
-        private FieldMember(
-            NameString typeName,
-            NameString fieldName,
-            MemberInfo? member,
-            Expression? expression)
-            : base(typeName, fieldName)
+        return new FieldMember(TypeName, fieldName, Member, Expression);
+    }
+
+    public FieldMember WithMember(MemberInfo member)
+    {
+        if (Equals(Member, member))
         {
-            Member = member;
-            Expression = expression;
+            return this;
         }
 
-        public MemberInfo? Member { get; }
+        return new FieldMember(TypeName, FieldName, member);
+    }
 
-        public Expression? Expression { get; }
-
-        public FieldMember WithTypeName(NameString typeName)
+    public FieldMember WithExpression(Expression expression)
+    {
+        if (Equals(Expression, expression))
         {
-            if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
-            {
-                return this;
-            }
-
-            return new FieldMember(typeName, FieldName, Member, Expression);
+            return this;
         }
 
-        public FieldMember WithFieldName(NameString fieldName)
-        {
-            if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
-            {
-                return this;
-            }
+        return new FieldMember(TypeName, FieldName, expression);
+    }
 
-            return new FieldMember(TypeName, fieldName, Member, Expression);
+    public bool Equals(FieldMember? other)
+    {
+        return IsEqualTo(other);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
+        {
+            return false;
         }
 
-        public FieldMember WithMember(MemberInfo member)
+        if (IsReferenceEqualTo(obj))
         {
-            if (Equals(Member, member))
-            {
-                return this;
-            }
-
-            return new FieldMember(TypeName, FieldName, member);
+            return true;
         }
 
-        public FieldMember WithExpression(Expression expression)
-        {
-            if (Equals(Expression, expression))
-            {
-                return this;
-            }
+        return IsEqualTo(obj as FieldMember);
+    }
 
-            return new FieldMember(TypeName, FieldName, expression);
+    private bool IsEqualTo(FieldMember? other)
+    {
+        if (other is null)
+        {
+            return false;
         }
 
-        public bool Equals(FieldMember? other)
+        if (IsReferenceEqualTo(other))
         {
-            return IsEqualTo(other);
+            return true;
         }
 
-        public override bool Equals(object? obj)
+        return base.IsEqualTo(other)
+            && ReferenceEquals(other.Member, Member)
+            && ReferenceEquals(other.Expression, Expression);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
         {
-            if (obj is null)
-            {
-                return false;
-            }
-
-            if (IsReferenceEqualTo(obj))
-            {
-                return true;
-            }
-
-            return IsEqualTo(obj as FieldMember);
+            return (base.GetHashCode() * 397)
+                ^ (Member?.GetHashCode() ?? 0 * 17)
+                ^ (Expression?.GetHashCode() ?? 0 * 3);
         }
+    }
 
-        private bool IsEqualTo(FieldMember? other)
+    public override string ToString()
+    {
+        return $"{base.ToString()} => {Member?.Name ?? Expression!.ToString()}";
+    }
+
+    public FieldReference ToFieldReference()
+    {
+        if (_fieldReference is null)
         {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (IsReferenceEqualTo(other))
-            {
-                return true;
-            }
-
-            return base.IsEqualTo(other)
-                && ReferenceEquals(other.Member, Member)
-                && ReferenceEquals(other.Expression, Expression);
+            _fieldReference = new FieldReference(TypeName, FieldName);
         }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (base.GetHashCode() * 397)
-                    ^ (Member?.GetHashCode() ?? 0 * 17)
-                    ^ (Expression?.GetHashCode() ?? 0 * 3);
-            }
-        }
-
-        public override string ToString()
-        {
-            return $"{base.ToString()} => {Member?.Name ?? Expression!.ToString()}";
-        }
-
-        public FieldReference ToFieldReference()
-        {
-            if (_fieldReference is null)
-            {
-                _fieldReference = new FieldReference(TypeName, FieldName);
-            }
-            return _fieldReference;
-        }
+        return _fieldReference;
     }
 }

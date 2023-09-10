@@ -1,151 +1,140 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Properties.Resources;
+using static HotChocolate.Execution.ThrowHelper;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal sealed class Operation : IOperation
 {
-    internal sealed class Operation : IPreparedOperation
+    private readonly SelectionVariants[] _selectionVariants;
+    private readonly IncludeCondition[] _includeConditions;
+
+    public Operation(
+        string id,
+        DocumentNode document,
+        OperationDefinitionNode definition,
+        ObjectType rootType,
+        SelectionVariants[] selectionVariants,
+        IncludeCondition[] includeConditions,
+        Dictionary<string, object?> contextData,
+        bool hasIncrementalParts)
     {
-        private readonly IReadOnlyDictionary<SelectionSetNode, SelectionVariants> _selectionSets;
+        Id = id;
+        Document = document;
+        Definition = definition;
+        RootType = rootType;
+        ContextData = contextData;
+        Type = definition.Operation;
 
-        public Operation(
-            string id,
-            DocumentNode document,
-            OperationDefinitionNode definition,
-            ObjectType rootType,
-            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets)
+        if (definition.Name?.Value is { } name)
         {
-            Id = id;
-            Name = definition.Name?.Value;
-            Document = document;
-            Definition = definition;
-            RootSelectionVariants = selectionSets[definition.SelectionSet];
-            RootType = rootType;
-            Type = definition.Operation;
-            _selectionSets = selectionSets;
-            ProposedTaskCount = 1;
+            Name = name;
         }
 
-        public string Id { get; }
+        var root = selectionVariants[0];
+        RootSelectionSet = root.GetSelectionSet(rootType);
+        _selectionVariants = selectionVariants;
+        HasIncrementalParts = hasIncrementalParts;
+        _includeConditions = includeConditions;
+    }
 
-        public NameString? Name { get; }
+    public string Id { get; }
 
-        public DocumentNode Document { get; }
+    public DocumentNode Document { get; }
 
-        public OperationDefinitionNode Definition { get; }
+    public OperationDefinitionNode Definition { get; }
 
-        public ISelectionVariants RootSelectionVariants { get; }
+    public ObjectType RootType { get; }
 
-        public ObjectType RootType { get; }
+    public string? Name { get; }
 
-        public OperationType Type { get; }
+    public OperationType Type { get; }
 
-        public int ProposedTaskCount { get; }
+    public ISelectionSet RootSelectionSet { get; }
 
-        public IEnumerable<ISelectionVariants> SelectionVariants =>
-            _selectionSets.Values;
+    public IReadOnlyList<ISelectionVariants> SelectionVariants
+        => _selectionVariants;
 
-        public ISelectionSet GetRootSelectionSet() =>
-            RootSelectionVariants.GetSelectionSet(RootType);
+    public bool HasIncrementalParts { get; }
 
-        public ISelectionSet GetSelectionSet(
-            SelectionSetNode selectionSet,
-            IObjectType typeContext)
+    public IReadOnlyList<IncludeCondition> IncludeConditions
+        => _includeConditions;
+
+    public IReadOnlyDictionary<string, object?> ContextData { get; }
+
+    public ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext)
+    {
+        if (selection is null)
         {
-            return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
-                ? variants.GetSelectionSet(typeContext)
-                : SelectionSet.Empty;
+            throw new ArgumentNullException(nameof(selection));
         }
 
-        public IEnumerable<IObjectType> GetPossibleTypes(SelectionSetNode selectionSet)
+        if (typeContext is null)
         {
-            return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
-                ? variants.GetPossibleTypes()
-                : Enumerable.Empty<IObjectType>();
+            throw new ArgumentNullException(nameof(typeContext));
         }
 
-        public string Print()
+        var selectionSetId = ((Selection)selection).SelectionSetId;
+
+        if (selectionSetId is -1)
         {
-            OperationDefinitionNode operation =
-                Definition.WithSelectionSet(Visit(RootSelectionVariants));
-            var document = new DocumentNode(new[] { operation });
-            return document.ToString();
+            throw Operation_NoSelectionSet();
         }
 
-        public override string ToString() => Print();
+        return _selectionVariants[selectionSetId].GetSelectionSet(typeContext);
+    }
 
-        private SelectionSetNode Visit(ISelectionVariants selectionVariants)
+    public IEnumerable<IObjectType> GetPossibleTypes(ISelection selection)
+    {
+        if (selection is null)
         {
-            var fragments = new List<InlineFragmentNode>();
+            throw new ArgumentNullException(nameof(selection));
+        }
 
-            foreach (IObjectType objectType in selectionVariants.GetPossibleTypes())
+        var selectionSetId = ((Selection)selection).SelectionSetId;
+
+        if (selectionSetId == -1)
+        {
+            throw new ArgumentException(Operation_GetPossibleTypes_NoSelectionSet);
+        }
+
+        return _selectionVariants[selectionSetId].GetPossibleTypes();
+    }
+
+    public long CreateIncludeFlags(IVariableValueCollection variables)
+    {
+        long context = 0;
+
+        for (var i = 0; i < _includeConditions.Length; i++)
+        {
+            if (_includeConditions[i].IsIncluded(variables))
             {
-                var typeContext = (ObjectType) objectType;
-                var selections = new List<ISelectionNode>();
-
-                foreach (Selection selection in selectionVariants.GetSelectionSet(typeContext)
-                    .Selections.OfType<Selection>())
-                {
-                    var directives = new List<DirectiveNode>();
-
-                    if (selection.IncludeConditions is { })
-                    {
-                        foreach (SelectionIncludeCondition condition in selection.IncludeConditions)
-                        {
-                            if (condition.Skip is { })
-                            {
-                                directives.Add(
-                                    new DirectiveNode(
-                                        "skip",
-                                        new ArgumentNode("if", condition.Skip)));
-                            }
-
-                            if (condition.Include is { })
-                            {
-                                directives.Add(
-                                    new DirectiveNode(
-                                        "include",
-                                        new ArgumentNode("if", condition.Include)));
-                            }
-                        }
-                    }
-                    if (selection.IsInternal)
-                    {
-                        directives.Add(new DirectiveNode("_internal"));
-                    }
-
-                    if (selection.SelectionSet is null)
-                    {
-                        selections.Add(new FieldNode(
-                            null,
-                            selection.SyntaxNode.Name,
-                            selection.SyntaxNode.Alias,
-                            directives,
-                            selection.SyntaxNode.Arguments,
-                            null));
-                    }
-                    else
-                    {
-                        selections.Add(new FieldNode(
-                            null,
-                            selection.SyntaxNode.Name,
-                            selection.SyntaxNode.Alias,
-                            directives,
-                            selection.SyntaxNode.Arguments,
-                            Visit(_selectionSets[selection.SelectionSet])));
-                    }
-                }
-
-                fragments.Add(new InlineFragmentNode(
-                    null,
-                    new NamedTypeNode(typeContext.Name),
-                    Array.Empty<DirectiveNode>(),
-                    new SelectionSetNode(selections)));
+                long flag = 1;
+                flag <<= i;
+                context |= flag;
             }
+        }
 
-            return new SelectionSetNode(fragments);
+        return context;
+    }
+
+    public IEnumerator<ISelectionSet> GetEnumerator()
+    {
+        foreach (var selectionVariant in _selectionVariants)
+        {
+            foreach (var objectType in selectionVariant.GetPossibleTypes())
+            {
+                yield return selectionVariant.GetSelectionSet(objectType);
+            }
         }
     }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+    public override string ToString() => OperationPrinter.Print(this);
 }

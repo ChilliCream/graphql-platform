@@ -1,18 +1,17 @@
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+/// <summary>
+/// Represents a GraphQL subscription instance within the execution engine.
+/// </summary>
+public interface ISubscription
 {
     /// <summary>
-    /// Represents a GraphQL subscription instance within the execution engine.
+    /// Gets the internal subscription ID.
     /// </summary>
-    public interface ISubscription
-    {
-        /// <summary>
-        /// Gets the internal subscription ID.
-        /// </summary>
-        ulong Id { get; }
+    ulong Id { get; }
 
-        /// <summary>
-        /// The compiled subscription operation.
-        /// </summary>
-        IPreparedOperation Operation { get; }
-    }
+    /// <summary>
+    /// The compiled subscription operation.
+    /// </summary>
+    IOperation Operation { get; }
 }

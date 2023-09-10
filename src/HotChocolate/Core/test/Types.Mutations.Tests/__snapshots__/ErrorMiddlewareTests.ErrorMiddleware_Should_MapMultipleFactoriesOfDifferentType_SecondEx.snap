@@ -1,0 +1,49 @@
+result:
+---------------
+{
+  "data": {
+    "throw": {
+      "errors": [
+        {
+          "__typename": "CustomNullRef",
+          "message": "This is a null ref"
+        }
+      ]
+    }
+  }
+}
+---------------
+
+schema:
+---------------
+schema {
+  mutation: Mutation
+}
+
+interface Error {
+  message: String!
+}
+
+type CustomError implements Error {
+  message: String!
+}
+
+type CustomNullRef implements Error {
+  message: String!
+}
+
+type Mutation {
+  throw: ThrowPayload!
+}
+
+type Payload {
+  foo: String!
+}
+
+type ThrowPayload {
+  payload: Payload
+  errors: [ThrowError!]
+}
+
+union ThrowError = CustomError | CustomNullRef
+---------------

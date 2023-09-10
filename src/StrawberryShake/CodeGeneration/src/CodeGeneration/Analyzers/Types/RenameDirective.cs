@@ -1,12 +1,11 @@
-namespace StrawberryShake.CodeGeneration.Analyzers.Types
-{
-    public class RenameDirective
-    {
-        public RenameDirective(string name)
-        {
-            Name = name;
-        }
+namespace StrawberryShake.CodeGeneration.Analyzers.Types;
 
-        public string Name { get; }
+public class RenameDirective
+{
+    public RenameDirective(string name)
+    {
+        Name = name;
     }
+
+    public string Name { get; }
 }

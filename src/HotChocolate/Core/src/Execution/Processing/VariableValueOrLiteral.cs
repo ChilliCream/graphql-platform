@@ -1,24 +1,27 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Properties.Resources;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal readonly struct VariableValueOrLiteral
 {
-    internal readonly struct VariableValueOrLiteral
+    public VariableValueOrLiteral(IInputType type, object? value, IValueNode valueLiteral)
     {
-        public VariableValueOrLiteral(
-            IInputType type,
-            object? value,
-            IValueNode? valueLiteral)
+        if (value is null && valueLiteral.Kind != SyntaxKind.NullValue)
         {
-            Type = type;
-            Value = value;
-            ValueLiteral = valueLiteral;
+            throw new ArgumentException(VariableValueOrLiteral_NullNotAllowed);
         }
 
-        public IInputType Type { get; }
-
-        public object? Value { get; }
-
-        public IValueNode? ValueLiteral { get; }
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        Value = value;
+        ValueLiteral = valueLiteral;
     }
+
+    public IInputType Type { get; }
+
+    public object? Value { get; }
+
+    public IValueNode ValueLiteral { get; }
 }

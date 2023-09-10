@@ -1,7 +1,6 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+public class ContinueSyntaxVisitorAction : ISyntaxVisitorAction
 {
-    public class ContinueSyntaxVisitorAction : ISyntaxVisitorAction
-    {
-        public SyntaxVisitorActionKind Kind => SyntaxVisitorActionKind.Continue;
-    }
+    public SyntaxVisitorActionKind Kind => SyntaxVisitorActionKind.Continue;
 }

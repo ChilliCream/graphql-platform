@@ -1,7 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 // legacy
 [assembly: InternalsVisibleTo("HotChocolate.Types")]
+[assembly: InternalsVisibleTo("HotChocolate.Execution")]
 [assembly: InternalsVisibleTo("HotChocolate.Validation")]
 [assembly: InternalsVisibleTo("HotChocolate.Stitching")]
 

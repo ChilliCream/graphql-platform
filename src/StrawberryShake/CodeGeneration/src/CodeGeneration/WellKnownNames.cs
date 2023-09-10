@@ -1,7 +1,6 @@
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration;
+
+public static class WellKnownNames
 {
-    public static class WellKnownNames
-    {
-        public const string TypeName = "__typename";
-    }
+    public const string TypeName = "__typename";
 }

@@ -1,0 +1,399 @@
+schema {
+  query: query_root
+  mutation: mutation_root
+  subscription: subscription_root
+}
+
+"Boolean expression to compare columns of type \"String\". All fields are combined with logical 'AND'."
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+  "does the column match the given case-insensitive pattern"
+  _ilike: String
+  _in: [String!]
+  "does the column match the given POSIX regular expression, case insensitive"
+  _iregex: String
+  _is_null: Boolean
+  "does the column match the given pattern"
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+  "does the column NOT match the given case-insensitive pattern"
+  _nilike: String
+  _nin: [String!]
+  "does the column NOT match the given POSIX regular expression, case insensitive"
+  _niregex: String
+  "does the column NOT match the given pattern"
+  _nlike: String
+  "does the column NOT match the given POSIX regular expression, case sensitive"
+  _nregex: String
+  "does the column NOT match the given SQL regular expression"
+  _nsimilar: String
+  "does the column match the given POSIX regular expression, case sensitive"
+  _regex: String
+  "does the column match the given SQL regular expression"
+  _similar: String
+}
+
+"columns and relationships of \"cars\""
+type cars {
+  carName: String!
+  id: uuid!
+  ownerId: uuid!
+  "An object relationship"
+  person: people!
+}
+
+"aggregated selection of \"cars\""
+type cars_aggregate {
+  aggregate: cars_aggregate_fields
+  nodes: [cars!]!
+}
+
+"aggregate fields of \"cars\""
+type cars_aggregate_fields {
+  count(columns: [cars_select_column!] distinct: Boolean): Int!
+  max: cars_max_fields
+  min: cars_min_fields
+}
+
+"order by aggregate values of table \"cars\""
+input cars_aggregate_order_by {
+  count: order_by
+  max: cars_max_order_by
+  min: cars_min_order_by
+}
+
+"input type for inserting array relation for remote table \"cars\""
+input cars_arr_rel_insert_input {
+  data: [cars_insert_input!]!
+  "on conflict condition"
+  on_conflict: cars_on_conflict
+}
+
+"Boolean expression to filter rows from the table \"cars\". All fields are combined with a logical 'AND'."
+input cars_bool_exp {
+  _and: [cars_bool_exp!]
+  _not: cars_bool_exp
+  _or: [cars_bool_exp!]
+  carName: String_comparison_exp
+  id: uuid_comparison_exp
+  ownerId: uuid_comparison_exp
+  person: people_bool_exp
+}
+
+"unique or primary key constraints on table \"cars\""
+enum cars_constraint {
+  "unique or primary key constraint"
+  cars_pkey
+}
+
+"input type for inserting data into table \"cars\""
+input cars_insert_input {
+  carName: String
+  id: uuid
+  ownerId: uuid
+  person: people_obj_rel_insert_input
+}
+
+"aggregate max on columns"
+type cars_max_fields {
+  carName: String
+  id: uuid
+  ownerId: uuid
+}
+
+"order by max() on columns of table \"cars\""
+input cars_max_order_by {
+  carName: order_by
+  id: order_by
+  ownerId: order_by
+}
+
+"aggregate min on columns"
+type cars_min_fields {
+  carName: String
+  id: uuid
+  ownerId: uuid
+}
+
+"order by min() on columns of table \"cars\""
+input cars_min_order_by {
+  carName: order_by
+  id: order_by
+  ownerId: order_by
+}
+
+"response of any mutation on the table \"cars\""
+type cars_mutation_response {
+  "number of rows affected by the mutation"
+  affected_rows: Int!
+  "data from the rows affected by the mutation"
+  returning: [cars!]!
+}
+
+"on conflict condition type for table \"cars\""
+input cars_on_conflict {
+  constraint: cars_constraint!
+  update_columns: [cars_update_column!]! = [  ]
+  where: cars_bool_exp
+}
+
+"Ordering options when selecting data from \"cars\"."
+input cars_order_by {
+  carName: order_by
+  id: order_by
+  ownerId: order_by
+  person: people_order_by
+}
+
+"primary key columns input for table: cars"
+input cars_pk_columns_input {
+  id: uuid!
+}
+
+"select columns of table \"cars\""
+enum cars_select_column {
+  "column name"
+  carName
+  "column name"
+  id
+  "column name"
+  ownerId
+}
+
+"input type for updating data in table \"cars\""
+input cars_set_input {
+  carName: String
+  id: uuid
+  ownerId: uuid
+}
+
+"update columns of table \"cars\""
+enum cars_update_column {
+  "column name"
+  carName
+  "column name"
+  id
+  "column name"
+  ownerId
+}
+
+"mutation root"
+type mutation_root {
+  "delete data from the table: \"cars\""
+  delete_cars("filter the rows which have to be deleted" where: cars_bool_exp!): cars_mutation_response
+  "delete single row from the table: \"cars\""
+  delete_cars_by_pk(id: uuid!): cars
+  "delete data from the table: \"people\""
+  delete_people("filter the rows which have to be deleted" where: people_bool_exp!): people_mutation_response
+  "delete single row from the table: \"people\""
+  delete_people_by_pk(id: uuid!): people
+  "insert data into the table: \"cars\""
+  insert_cars("the rows to be inserted" objects: [cars_insert_input!]! "on conflict condition" on_conflict: cars_on_conflict): cars_mutation_response
+  "insert a single row into the table: \"cars\""
+  insert_cars_one("the row to be inserted" object: cars_insert_input! "on conflict condition" on_conflict: cars_on_conflict): cars
+  "insert data into the table: \"people\""
+  insert_people("the rows to be inserted" objects: [people_insert_input!]! "on conflict condition" on_conflict: people_on_conflict): people_mutation_response
+  "insert a single row into the table: \"people\""
+  insert_people_one("the row to be inserted" object: people_insert_input! "on conflict condition" on_conflict: people_on_conflict): people
+  "update data of the table: \"cars\""
+  update_cars("sets the columns of the filtered rows to the given values" _set: cars_set_input "filter the rows which have to be updated" where: cars_bool_exp!): cars_mutation_response
+  "update single row of the table: \"cars\""
+  update_cars_by_pk("sets the columns of the filtered rows to the given values" _set: cars_set_input pk_columns: cars_pk_columns_input!): cars
+  "update data of the table: \"people\""
+  update_people("sets the columns of the filtered rows to the given values" _set: people_set_input "filter the rows which have to be updated" where: people_bool_exp!): people_mutation_response
+  "update single row of the table: \"people\""
+  update_people_by_pk("sets the columns of the filtered rows to the given values" _set: people_set_input pk_columns: people_pk_columns_input!): people
+}
+
+"column ordering options"
+enum order_by {
+  "in ascending order, nulls last"
+  asc
+  "in ascending order, nulls first"
+  asc_nulls_first
+  "in ascending order, nulls last"
+  asc_nulls_last
+  "in descending order, nulls first"
+  desc
+  "in descending order, nulls first"
+  desc_nulls_first
+  "in descending order, nulls last"
+  desc_nulls_last
+}
+
+"columns and relationships of \"people\""
+type people {
+  "An array relationship"
+  cars("distinct select on columns" distinct_on: [cars_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [cars_order_by!] "filter the rows returned" where: cars_bool_exp): [cars!]!
+  "An aggregate relationship"
+  cars_aggregate("distinct select on columns" distinct_on: [cars_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [cars_order_by!] "filter the rows returned" where: cars_bool_exp): cars_aggregate!
+  firstName: String!
+  id: uuid!
+  lastName: String!
+}
+
+"aggregated selection of \"people\""
+type people_aggregate {
+  aggregate: people_aggregate_fields
+  nodes: [people!]!
+}
+
+"aggregate fields of \"people\""
+type people_aggregate_fields {
+  count(columns: [people_select_column!] distinct: Boolean): Int!
+  max: people_max_fields
+  min: people_min_fields
+}
+
+"Boolean expression to filter rows from the table \"people\". All fields are combined with a logical 'AND'."
+input people_bool_exp {
+  _and: [people_bool_exp!]
+  _not: people_bool_exp
+  _or: [people_bool_exp!]
+  cars: cars_bool_exp
+  firstName: String_comparison_exp
+  id: uuid_comparison_exp
+  lastName: String_comparison_exp
+}
+
+"unique or primary key constraints on table \"people\""
+enum people_constraint {
+  "unique or primary key constraint"
+  people_pkey
+}
+
+"input type for inserting data into table \"people\""
+input people_insert_input {
+  cars: cars_arr_rel_insert_input
+  firstName: String
+  id: uuid
+  lastName: String
+}
+
+"aggregate max on columns"
+type people_max_fields {
+  firstName: String
+  id: uuid
+  lastName: String
+}
+
+"aggregate min on columns"
+type people_min_fields {
+  firstName: String
+  id: uuid
+  lastName: String
+}
+
+"response of any mutation on the table \"people\""
+type people_mutation_response {
+  "number of rows affected by the mutation"
+  affected_rows: Int!
+  "data from the rows affected by the mutation"
+  returning: [people!]!
+}
+
+"input type for inserting object relation for remote table \"people\""
+input people_obj_rel_insert_input {
+  data: people_insert_input!
+  "on conflict condition"
+  on_conflict: people_on_conflict
+}
+
+"on conflict condition type for table \"people\""
+input people_on_conflict {
+  constraint: people_constraint!
+  update_columns: [people_update_column!]! = [  ]
+  where: people_bool_exp
+}
+
+"Ordering options when selecting data from \"people\"."
+input people_order_by {
+  cars_aggregate: cars_aggregate_order_by
+  firstName: order_by
+  id: order_by
+  lastName: order_by
+}
+
+"primary key columns input for table: people"
+input people_pk_columns_input {
+  id: uuid!
+}
+
+"select columns of table \"people\""
+enum people_select_column {
+  "column name"
+  firstName
+  "column name"
+  id
+  "column name"
+  lastName
+}
+
+"input type for updating data in table \"people\""
+input people_set_input {
+  firstName: String
+  id: uuid
+  lastName: String
+}
+
+"update columns of table \"people\""
+enum people_update_column {
+  "column name"
+  firstName
+  "column name"
+  id
+  "column name"
+  lastName
+}
+
+type query_root {
+  "An array relationship"
+  cars("distinct select on columns" distinct_on: [cars_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [cars_order_by!] "filter the rows returned" where: cars_bool_exp): [cars!]!
+  "An aggregate relationship"
+  cars_aggregate("distinct select on columns" distinct_on: [cars_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [cars_order_by!] "filter the rows returned" where: cars_bool_exp): cars_aggregate!
+  "fetch data from the table: \"cars\" using primary key columns"
+  cars_by_pk(id: uuid!): cars
+  "fetch data from the table: \"people\""
+  people("distinct select on columns" distinct_on: [people_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [people_order_by!] "filter the rows returned" where: people_bool_exp): [people!]!
+  "fetch aggregated fields from the table: \"people\""
+  people_aggregate("distinct select on columns" distinct_on: [people_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [people_order_by!] "filter the rows returned" where: people_bool_exp): people_aggregate!
+  "fetch data from the table: \"people\" using primary key columns"
+  people_by_pk(id: uuid!): people
+}
+
+type subscription_root {
+  "An array relationship"
+  cars("distinct select on columns" distinct_on: [cars_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [cars_order_by!] "filter the rows returned" where: cars_bool_exp): [cars!]!
+  "An aggregate relationship"
+  cars_aggregate("distinct select on columns" distinct_on: [cars_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [cars_order_by!] "filter the rows returned" where: cars_bool_exp): cars_aggregate!
+  "fetch data from the table: \"cars\" using primary key columns"
+  cars_by_pk(id: uuid!): cars
+  "fetch data from the table: \"people\""
+  people("distinct select on columns" distinct_on: [people_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [people_order_by!] "filter the rows returned" where: people_bool_exp): [people!]!
+  "fetch aggregated fields from the table: \"people\""
+  people_aggregate("distinct select on columns" distinct_on: [people_select_column!] "limit the number of rows returned" limit: Int "skip the first n rows. Use only with order_by" offset: Int "sort the rows by one or more columns" order_by: [people_order_by!] "filter the rows returned" where: people_bool_exp): people_aggregate!
+  "fetch data from the table: \"people\" using primary key columns"
+  people_by_pk(id: uuid!): people
+}
+
+scalar uuid
+
+"Boolean expression to compare columns of type \"uuid\". All fields are combined with logical 'AND'."
+input uuid_comparison_exp {
+  _eq: uuid
+  _gt: uuid
+  _gte: uuid
+  _in: [uuid!]
+  _is_null: Boolean
+  _lt: uuid
+  _lte: uuid
+  _neq: uuid
+  _nin: [uuid!]
+}
+
+"whether this query should be cached (Hasura Cloud only)"
+directive @cached("measured in seconds" ttl: Int! = 60 "refresh the cache entry" refresh: Boolean! = false) on QUERY

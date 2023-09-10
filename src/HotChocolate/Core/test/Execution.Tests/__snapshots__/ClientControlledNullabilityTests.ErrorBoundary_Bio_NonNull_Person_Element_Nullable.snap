@@ -1,0 +1,30 @@
+﻿{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 5,
+          "column": 25
+        }
+      ],
+      "path": [
+        "persons",
+        1,
+        "bio"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    }
+  ],
+  "data": {
+    "persons": [
+      {
+        "name": "Abc",
+        "bio": "Def"
+      },
+      null
+    ]
+  }
+}

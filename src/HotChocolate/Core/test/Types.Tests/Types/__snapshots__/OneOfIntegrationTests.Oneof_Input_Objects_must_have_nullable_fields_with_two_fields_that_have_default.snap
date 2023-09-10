@@ -1,0 +1,9 @@
+﻿{
+  "message": "Oneof Input Object `FooInput` must only have nullable fields without default values. Edit your type and make the fields `a, b` nullable and remove any defaults.",
+  "type": "FooInput",
+  "extensions": {
+    "rfc": "https://github.com/graphql/graphql-spec/pull/825",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
+  }
+}
+

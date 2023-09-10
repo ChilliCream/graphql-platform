@@ -3,9 +3,14 @@
     "Message": "The specified directive is not valid the current location.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "name"
+      "Name": "name",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -14,7 +19,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
     },
     "Exception": null,
     "SyntaxNode": {

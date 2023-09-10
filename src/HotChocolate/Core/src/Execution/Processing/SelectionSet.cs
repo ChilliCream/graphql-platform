@@ -1,70 +1,104 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+/// <summary>
+/// A selection set is primarily composed of field selections.
+/// When needed a selection set can preserve fragments so that the execution engine
+/// can branch the processing of these fragments.
+/// </summary>
+internal sealed class SelectionSet : ISelectionSet
 {
+    private static readonly Fragment[] _empty = Array.Empty<Fragment>();
+    private readonly Selection[] _selections;
+    private readonly Fragment[] _fragments;
+    private Flags _flags;
+
     /// <summary>
-    /// A selection set is primarily composed of field selections.
-    /// When needed a selection set can preserve fragments so that the execution engine
-    /// can branch the processing of these fragments.
+    /// Initializes a new instance of <see cref="SelectionSet"/>.
     /// </summary>
-    internal class SelectionSet : ISelectionSet
+    /// <param name="id">
+    /// The selection set unique id.
+    /// </param>
+    /// <param name="selections">
+    /// A list of executable field selections.
+    /// </param>
+    /// <param name="fragments">
+    /// A list of preserved fragments that can be used to branch of
+    /// some of the execution.
+    /// </param>
+    /// <param name="isConditional">
+    /// Defines if this list needs post processing for skip and include.
+    /// </param>
+    public SelectionSet(
+        int id,
+        Selection[] selections,
+        Fragment[]? fragments,
+        bool isConditional)
     {
-        private static readonly IFragment[] _empty = Array.Empty<IFragment>();
+        Id = id;
+        _selections = selections;
+        _fragments = fragments ?? _empty;
+        _flags = isConditional ? Flags.Conditional : Flags.None;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="SelectionSet"/>.
-        /// </summary>
-        /// <param name="selections">
-        /// A list of executable field selections.
-        /// </param>
-        /// <param name="isConditional">
-        /// Defines if this list needs post processing for skip and include.
-        /// </param>
-        public SelectionSet(
-            IReadOnlyList<ISelection> selections,
-            bool isConditional)
+    /// <inheritdoc />
+    public int Id { get; }
+
+    /// <inheritdoc />
+    public bool IsConditional => (_flags & Flags.Conditional) == Flags.Conditional;
+
+    /// <inheritdoc />
+    public IReadOnlyList<ISelection> Selections => _selections;
+
+    /// <inheritdoc />
+    public IReadOnlyList<IFragment> Fragments => _fragments;
+
+    /// <summary>
+    /// Completes the selection set without sealing it.
+    /// </summary>
+    internal void Complete()
+    {
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
-            Selections = selections;
-            Fragments = _empty;
-            IsConditional = isConditional;
+            for (var i = 0; i < _selections.Length; i++)
+            {
+                _selections[i].Complete(this);
+            }
         }
+    }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="SelectionSet"/>.
-        /// </summary>
-        /// <param name="selections">
-        /// A list of executable field selections.
-        /// </param>
-        /// <param name="fragments">
-        /// A list of preserved fragments that can be used to branch of
-        /// some of the execution.
-        /// </param>
-        /// <param name="isConditional">
-        /// Defines if this list needs post processing for skip and include.
-        /// </param>
-        public SelectionSet(
-            IReadOnlyList<ISelection> selections,
-            IReadOnlyList<IFragment>? fragments,
-            bool isConditional)
+    internal void Seal()
+    {
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
-            Selections = selections;
-            Fragments = fragments ?? _empty;
-            IsConditional = isConditional;
+            for (var i = 0; i < _selections.Length; i++)
+            {
+                _selections[i].Seal(this);
+            }
+
+            _flags |= Flags.Sealed;
         }
+    }
 
-        /// <inheritdoc />
-        public bool IsConditional { get; }
+    /// <summary>
+    /// Returns a reference to the 0th element of the underlying selections array.
+    /// If the selections array is empty, returns a reference to the location where the 0th element
+    /// would have been stored. Such a reference may or may not be null.
+    /// It can be used for pinning but must never be de-referenced.
+    /// This is only meant for use by the execution engine.
+    /// </summary>
+    internal ref Selection GetSelectionsReference()
+        => ref MemoryMarshal.GetReference(_selections.AsSpan());
 
-        /// <inheritdoc />
-        public IReadOnlyList<ISelection> Selections { get; }
-
-        /// <inheritdoc />
-        public IReadOnlyList<IFragment> Fragments { get; }
-
-        /// <summary>
-        /// Gets an empty selection set.
-        /// </summary>
-        public static SelectionSet Empty { get; } = new(Array.Empty<ISelection>(), false);
+    [Flags]
+    private enum Flags
+    {
+        None = 0,
+        Conditional = 1,
+        Sealed = 2
     }
 }

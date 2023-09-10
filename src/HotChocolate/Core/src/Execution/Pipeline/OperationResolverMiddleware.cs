@@ -2,82 +2,95 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Processing.OperationCompiler;
+using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Pipeline;
+
+internal sealed class OperationResolverMiddleware
 {
-    internal sealed class OperationResolverMiddleware
+    private readonly RequestDelegate _next;
+    private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
+    private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers;
+
+    public OperationResolverMiddleware(
+        RequestDelegate next,
+        ObjectPool<OperationCompiler> operationCompilerPool,
+        IEnumerable<IOperationCompilerOptimizer> optimizers)
     {
-        private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
-
-        public OperationResolverMiddleware(
-            RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
-            IEnumerable<ISelectionOptimizer> optimizers)
+        if (optimizers is null)
         {
-            if (optimizers is null)
-            {
-                throw new ArgumentNullException(nameof(optimizers));
-            }
-
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            _optimizers = optimizers.ToArray();
+            throw new ArgumentNullException(nameof(optimizers));
         }
 
-        public async ValueTask InvokeAsync(IRequestContext context)
+        _next = next ?? throw new ArgumentNullException(nameof(next));
+        _operationCompilerPool = operationCompilerPool;
+        _optimizers = optimizers.ToArray();
+    }
+
+    public async ValueTask InvokeAsync(IRequestContext context)
+    {
+        if (context.Operation is not null)
         {
-            if (context.Operation is not null)
+            await _next(context).ConfigureAwait(false);
+        }
+        else if (context.Document is not null && context.IsValidDocument)
+        {
+            using (context.DiagnosticEvents.CompileOperation(context))
             {
-                await _next(context).ConfigureAwait(false);
-            }
-            else if (context.Document is not null &&
-                context.ValidationResult is { HasErrors: false })
-            {
-                OperationDefinitionNode operation =
-                    context.Document.GetOperation(context.Request.OperationName);
+                var operationDef = context.Document.GetOperation(context.Request.OperationName);
+                var operationType = ResolveOperationType(operationDef.Operation, context.Schema);
 
-                ObjectType? rootType = ResolveRootType(operation.Operation, context.Schema);
-
-                if (rootType is null)
+                if (operationType is null)
                 {
-                    context.Result = ErrorHelper.RootTypeNotFound(operation.Operation);
+                    context.Result = ErrorHelper.RootTypeNotFound(operationDef.Operation);
                     return;
                 }
 
-                context.Operation = Compile(
+                context.Operation = CompileOperation(
+                    context,
                     context.OperationId ?? Guid.NewGuid().ToString("N"),
-                    context.Document,
-                    operation,
-                    context.Schema,
-                    rootType,
-                    _optimizers);
+                    operationDef,
+                    operationType);
                 context.OperationId = context.Operation.Id;
+            }
 
-                await _next(context).ConfigureAwait(false);
-            }
-            else
-            {
-                context.Result = ErrorHelper.StateInvalidForOperationResolver();
-            }
+            await _next(context).ConfigureAwait(false);
         }
-
-        private static ObjectType? ResolveRootType(
-            OperationType operationType, ISchema schema) =>
-            operationType switch
-            {
-                OperationType.Query => schema.QueryType,
-                OperationType.Mutation => schema.MutationType,
-                OperationType.Subscription => schema.SubscriptionType,
-                _ => throw ThrowHelper.RootTypeNotSupported(operationType)
-            };
+        else
+        {
+            context.Result = ErrorHelper.StateInvalidForOperationResolver();
+        }
     }
+
+    private IOperation CompileOperation(
+        IRequestContext context,
+        string operationId,
+        OperationDefinitionNode operationDefinition,
+        ObjectType operationType)
+    {
+        var compiler = _operationCompilerPool.Get();
+        var operation = compiler.Compile(
+            operationId,
+            operationDefinition,
+            operationType,
+            context.Document!,
+            context.Schema,
+            _optimizers);
+        _operationCompilerPool.Return(compiler);
+        return operation;
+    }
+
+    private static ObjectType? ResolveOperationType(
+        OperationType operationType,
+        ISchema schema)
+        => operationType switch
+        {
+            OperationType.Query => schema.QueryType,
+            OperationType.Mutation => schema.MutationType,
+            OperationType.Subscription => schema.SubscriptionType,
+            _ => throw ThrowHelper.RootTypeNotSupported(operationType)
+        };
 }

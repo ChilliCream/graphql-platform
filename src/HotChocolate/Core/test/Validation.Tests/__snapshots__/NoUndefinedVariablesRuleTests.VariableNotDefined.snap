@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -58,8 +58,7 @@
                 "Column": 28
               },
               "Value": "a"
-            },
-            "Value": "a"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -108,8 +107,7 @@
                 "Column": 40
               },
               "Value": "b"
-            },
-            "Value": "b"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -158,8 +156,7 @@
                 "Column": 52
               },
               "Value": "c"
-            },
-            "Value": "c"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -233,8 +230,7 @@
                       "Column": 31
                     },
                     "Value": "a"
-                  },
-                  "Value": "a"
+                  }
                 }
               },
               {
@@ -272,8 +268,7 @@
                       "Column": 38
                     },
                     "Value": "b"
-                  },
-                  "Value": "b"
+                  }
                 }
               },
               {
@@ -311,8 +306,7 @@
                       "Column": 45
                     },
                     "Value": "c"
-                  },
-                  "Value": "c"
+                  }
                 }
               },
               {
@@ -350,11 +344,11 @@
                       "Column": 52
                     },
                     "Value": "d"
-                  },
-                  "Value": "d"
+                  }
                 }
               }
             ],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 85,

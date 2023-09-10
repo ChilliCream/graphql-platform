@@ -1,19 +1,18 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+public class DirectiveTypeInfo : IDirectiveTypeInfo
 {
-    public class DirectiveTypeInfo : IDirectiveTypeInfo
+    public DirectiveTypeInfo(
+        DirectiveDefinitionNode definition,
+        ISchemaInfo schema)
     {
-        public DirectiveTypeInfo(
-            DirectiveDefinitionNode definition,
-            ISchemaInfo schema)
-        {
-            Definition = definition;
-            Schema = schema;
-        }
-
-        public DirectiveDefinitionNode Definition { get; }
-
-        public ISchemaInfo Schema { get; }
+        Definition = definition;
+        Schema = schema;
     }
+
+    public DirectiveDefinitionNode Definition { get; }
+
+    public ISchemaInfo Schema { get; }
 }

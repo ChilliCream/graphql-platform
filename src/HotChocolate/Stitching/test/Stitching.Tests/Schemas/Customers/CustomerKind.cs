@@ -1,8 +1,7 @@
-namespace HotChocolate.Stitching.Schemas.Customers
+namespace HotChocolate.Stitching.Schemas.Customers;
+
+public enum CustomerKind
 {
-    public enum CustomerKind
-    {
-        Standard,
-        Premium
-    }
+    Standard,
+    Premium
 }

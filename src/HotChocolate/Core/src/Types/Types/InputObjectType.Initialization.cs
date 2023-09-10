@@ -1,124 +1,145 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
-using HotChocolate.Utilities.Serialization;
-using static HotChocolate.Utilities.Serialization.InputObjectParserHelper;
-using static HotChocolate.Utilities.Serialization.InputObjectConstructorResolver;
+using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Represents a GraphQL input object type
+/// </summary>
+public partial class InputObjectType
 {
-    /// <summary>
-    /// Represents a GraphQL input object type
-    /// </summary>
-    public partial class InputObjectType
+    private Action<IInputObjectTypeDescriptor>? _configure;
+    private Func<object?[], object> _createInstance = default!;
+    private Action<object, object?[]> _getFieldValues = default!;
+
+    protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        private Action<IInputObjectTypeDescriptor>? _configure;
-        private InputObjectToObjectValueConverter _objectToValueConverter = default!;
-        private InputObjectToDictionaryConverter _objectToDictionary = default!;
-        private Func<ObjectValueNode, object> _parseLiteral = default!;
-        private Func<IReadOnlyDictionary<string, object>, object> _deserialize = default!;
-
-        protected InputObjectType()
+        try
         {
-            _configure = Configure;
+            if (Definition is null)
+            {
+                var descriptor = InputObjectTypeDescriptor.FromSchemaType(
+                    context.DescriptorContext,
+                    GetType());
+                _configure!(descriptor);
+                return descriptor.CreateDefinition();
+            }
+
+            return Definition;
         }
-
-        public InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        finally
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
-        }
-
-        /// <summary>
-        /// Override this in order to specify the type configuration explicitly.
-        /// </summary>
-        /// <param name="descriptor">
-        /// The descriptor of this type lets you express the type configuration.
-        /// </param>
-        protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
-        {
-        }
-
-        protected override InputObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
-        {
-            var descriptor =
-                InputObjectTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
-
-            _configure!(descriptor);
             _configure = null;
+        }
+    }
 
-            return descriptor.CreateDefinition();
+    protected override void OnRegisterDependencies(
+        ITypeDiscoveryContext context,
+        InputObjectTypeDefinition definition)
+    {
+        base.OnRegisterDependencies(context, definition);
+        context.RegisterDependencies(definition);
+        SetTypeIdentity(typeof(InputObjectType<>));
+    }
+
+    protected override void OnCompleteType(
+        ITypeCompletionContext context,
+        InputObjectTypeDefinition definition)
+    {
+        base.OnCompleteType(context, definition);
+
+        SyntaxNode = definition.SyntaxNode;
+        Fields = OnCompleteFields(context, definition);
+
+        _createInstance = OnCompleteCreateInstance(context, definition);
+        _getFieldValues = OnCompleteGetFieldValues(context, definition);
+    }
+
+    protected virtual FieldCollection<InputField> OnCompleteFields(
+        ITypeCompletionContext context,
+        InputObjectTypeDefinition definition)
+    {
+        return CompleteFields(context, this, definition.Fields, CreateField);
+        static InputField CreateField(InputFieldDefinition fieldDef, int index)
+            => new(fieldDef, index);
+    }
+
+    protected virtual Func<object?[], object> OnCompleteCreateInstance(
+        ITypeCompletionContext context,
+        InputObjectTypeDefinition definition)
+    {
+        Func<object?[], object>? createInstance = null;
+
+        if (definition.CreateInstance is not null)
+        {
+            createInstance = definition.CreateInstance;
         }
 
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            InputObjectTypeDefinition definition)
+        if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
         {
-            base.OnRegisterDependencies(context, definition);
-            context.RegisterDependencies(definition);
-            SetTypeIdentity(typeof(InputObjectType<>));
+            createInstance ??= CreateDictionaryInstance;
+        }
+        else
+        {
+            createInstance ??= CompileFactory(this);
         }
 
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            InputObjectTypeDefinition definition)
+        return createInstance;
+    }
+
+    protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
+        ITypeCompletionContext context,
+        InputObjectTypeDefinition definition)
+    {
+        Action<object, object?[]>? getFieldValues = null;
+
+        if (definition.GetFieldData is not null)
         {
-            base.OnCompleteType(context, definition);
-
-            ITypeConverter converter = context.Services.GetTypeConverter();
-
-            _objectToValueConverter = new InputObjectToObjectValueConverter(converter);
-            _objectToDictionary = new InputObjectToDictionaryConverter(converter);
-
-            SyntaxNode = definition.SyntaxNode;
-
-            var fields = new List<InputField>();
-            OnCompleteFields(context, definition, fields);
-
-            Fields = FieldCollection<InputField>.From(
-                fields,
-                context.DescriptorContext.Options.SortFieldsByName);
-            FieldInitHelper.CompleteFields(context, definition, Fields);
-
-            if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
-            {
-                _parseLiteral = ov => ParseLiteralToDictionary(this, ov, converter);
-                _deserialize = map => DeserializeToDictionary(this, map, converter);
-            }
-            else
-            {
-                IEnumerable<PropertyInfo> properties = Fields.Select(t => t.Property!);
-                ConstructorInfo? constructor = GetConstructor(RuntimeType, properties);
-                InputObjectFactory factory = CompileFactory(this, constructor);
-
-                _parseLiteral =
-                    ov => InputObjectParserHelper.ParseLiteral(this, ov, factory, converter);
-                _deserialize =
-                    map => InputObjectParserHelper.Deserialize(this, map, factory, converter);
-            }
+            getFieldValues = definition.GetFieldData;
         }
 
-        protected virtual void OnCompleteFields(
-            ITypeCompletionContext context,
-            InputObjectTypeDefinition definition,
-            ICollection<InputField> fields)
+        if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
         {
-            foreach (var fieldDefinition in definition.Fields.Where(t => !t.Ignore))
+            getFieldValues ??= CreateDictionaryGetValues;
+        }
+        else
+        {
+            getFieldValues ??= CompileGetFieldValues(this);
+        }
+
+        return getFieldValues;
+    }
+
+    private object CreateDictionaryInstance(object?[] fieldValues)
+    {
+        var dictionary = new Dictionary<string, object?>();
+
+        foreach (var field in Fields.AsSpan())
+        {
+            dictionary.Add(field.Name, fieldValues[field.Index]);
+        }
+
+        return dictionary;
+    }
+
+    private void CreateDictionaryGetValues(object obj, object?[] fieldValues)
+    {
+        var map = (Dictionary<string, object?>)obj;
+
+        foreach (var field in Fields.AsSpan())
+        {
+            if (map.TryGetValue(field.Name, out var val))
             {
-                fields.Add(new InputField(
-                    fieldDefinition,
-                    new FieldCoordinate(Name, fieldDefinition.Name)));
+                fieldValues[field.Index] = val;
             }
         }
     }

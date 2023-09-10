@@ -1,176 +1,176 @@
 using HotChocolate;
+using HotChocolate.Execution;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Analyzers;
+
+internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
 {
-    internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
+    public override OutputTypeModel Analyze(
+        IDocumentAnalyzerContext context,
+        FieldSelection fieldSelection,
+        SelectionSetVariants selectionVariants)
     {
-        public override OutputTypeModel Analyze(
-            IDocumentAnalyzerContext context,
-            FieldSelection fieldSelection,
-            SelectionSetVariants selectionVariants)
+        var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
+
+        if (returnTypeFragmentName is null)
         {
-            var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
-
-            if (returnTypeFragmentName is null)
-            {
-                return AnalyzeWithDefaults(
-                    context,
-                    fieldSelection,
-                    selectionVariants);
-            }
-
-            return AnalyzeWithHoistedFragment(
+            return AnalyzeWithDefaults(
                 context,
                 fieldSelection,
-                selectionVariants,
-                returnTypeFragmentName);
+                selectionVariants);
         }
 
-        public OutputTypeModel AnalyzeOperation(
-            IDocumentAnalyzerContext context,
-            SelectionSetVariants selectionSetVariants)
-        {
-            Path rootSelectionPath = Path.Root.Append(context.OperationName);
+        return AnalyzeWithHoistedFragment(
+            context,
+            fieldSelection,
+            selectionVariants,
+            returnTypeFragmentName);
+    }
 
-            FragmentNode returnTypeFragment =
-                FragmentHelper.CreateFragmentNode(
-                    context.OperationType,
-                    rootSelectionPath,
-                    selectionSetVariants.ReturnType);
+    public OutputTypeModel AnalyzeOperation(
+        IDocumentAnalyzerContext context,
+        SelectionSetVariants selectionSetVariants)
+    {
+        Path rootSelectionPath = Path.Root.Append(context.OperationName);
+
+        var returnTypeFragment =
+            FragmentHelper.CreateFragmentNode(
+                context.OperationType,
+                rootSelectionPath,
+                selectionSetVariants.ReturnType);
+
+        returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
+
+        var returnType =
+            FragmentHelper.CreateInterface(
+                context,
+                returnTypeFragment,
+                rootSelectionPath);
+
+        FragmentHelper.CreateClass(
+            context,
+            returnTypeFragment,
+            selectionSetVariants.ReturnType,
+            returnType);
+
+        return returnType;
+    }
+
+    private OutputTypeModel AnalyzeWithDefaults(
+        IDocumentAnalyzerContext context,
+        FieldSelection fieldSelection,
+        SelectionSetVariants selectionVariants)
+    {
+        var returnTypeFragment =
+            FragmentHelper.CreateFragmentNode(
+                selectionVariants.ReturnType,
+                fieldSelection.Path);
+
+        var returnType =
+            FragmentHelper.CreateInterface(
+                context,
+                returnTypeFragment,
+                fieldSelection.Path);
+
+        context.RegisterSelectionSet(
+            returnType.Type,
+            selectionVariants.ReturnType.SyntaxNode,
+            returnType.SelectionSet);
+
+        foreach (var selectionSet in selectionVariants.Variants)
+        {
+            returnTypeFragment = FragmentHelper.CreateFragmentNode(
+                selectionSet,
+                fieldSelection.Path,
+                appendTypeName: true);
 
             returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
 
-            OutputTypeModel returnType =
+            var @interface =
                 FragmentHelper.CreateInterface(
                     context,
                     returnTypeFragment,
-                    rootSelectionPath);
+                    fieldSelection.Path,
+                    new[] { returnType });
 
-            FragmentHelper.CreateClass(
-                context,
-                returnTypeFragment,
-                selectionSetVariants.ReturnType,
-                returnType);
+            var @class =
+                FragmentHelper.CreateClass(
+                    context,
+                    returnTypeFragment,
+                    selectionSet,
+                    @interface);
 
-            return returnType;
+            context.RegisterSelectionSet(
+                selectionSet.Type,
+                selectionSet.SyntaxNode,
+                @class.SelectionSet);
         }
 
-        private OutputTypeModel AnalyzeWithDefaults(
-            IDocumentAnalyzerContext context,
-            FieldSelection fieldSelection,
-            SelectionSetVariants selectionVariants)
-        {
-            FragmentNode returnTypeFragment =
-                FragmentHelper.CreateFragmentNode(
-                    selectionVariants.ReturnType,
-                    fieldSelection.Path);
+        return returnType;
+    }
 
-            OutputTypeModel returnType =
+    private OutputTypeModel AnalyzeWithHoistedFragment(
+        IDocumentAnalyzerContext context,
+        FieldSelection fieldSelection,
+        SelectionSetVariants selectionVariants,
+        string fragmentName)
+    {
+        var returnTypeFragment =
+            FragmentHelper.CreateFragmentNode(
+                selectionVariants.Variants[0],
+                fieldSelection.Path,
+                appendTypeName: true);
+
+        returnTypeFragment = FragmentHelper.GetFragment(returnTypeFragment, fragmentName);
+
+        if (returnTypeFragment is null)
+        {
+            throw ThrowHelper.ReturnFragmentDoesNotExist();
+        }
+
+        var returnType =
+            FragmentHelper.CreateInterface(context, returnTypeFragment, fieldSelection.Path);
+
+        context.RegisterSelectionSet(
+            returnType.Type,
+            selectionVariants.ReturnType.SyntaxNode,
+            returnType.SelectionSet);
+
+        foreach (var selectionSet in selectionVariants.Variants)
+        {
+            returnTypeFragment = FragmentHelper.CreateFragmentNode(
+                selectionSet,
+                fieldSelection.Path,
+                appendTypeName: true);
+
+            returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
+
+            if (FragmentHelper.GetFragment(returnTypeFragment, fragmentName) is null)
+            {
+                throw ThrowHelper.FragmentMustBeImplementedByAllTypeFragments();
+            }
+
+            var @interface =
                 FragmentHelper.CreateInterface(
                     context,
                     returnTypeFragment,
-                    fieldSelection.Path);
+                    fieldSelection.Path,
+                    new[] { returnType });
+
+            var @class =
+                FragmentHelper.CreateClass(
+                    context,
+                    returnTypeFragment,
+                    selectionSet,
+                    @interface);
 
             context.RegisterSelectionSet(
-                returnType.Type,
-                selectionVariants.ReturnType.SyntaxNode,
-                returnType.SelectionSet);
-
-            foreach (SelectionSet selectionSet in selectionVariants.Variants)
-            {
-                returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                    selectionSet,
-                    fieldSelection.Path,
-                    appendTypeName: true);
-
-                returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
-
-                OutputTypeModel @interface =
-                    FragmentHelper.CreateInterface(
-                        context,
-                        returnTypeFragment,
-                        fieldSelection.Path,
-                        new[] { returnType });
-
-                OutputTypeModel @class =
-                    FragmentHelper.CreateClass(
-                        context,
-                        returnTypeFragment,
-                        selectionSet,
-                        @interface);
-
-                context.RegisterSelectionSet(
-                    selectionSet.Type,
-                    selectionSet.SyntaxNode,
-                    @class.SelectionSet);
-            }
-
-            return returnType;
+                selectionSet.Type,
+                selectionSet.SyntaxNode,
+                @class.SelectionSet);
         }
 
-        private OutputTypeModel AnalyzeWithHoistedFragment(
-            IDocumentAnalyzerContext context,
-            FieldSelection fieldSelection,
-            SelectionSetVariants selectionVariants,
-            string fragmentName)
-        {
-            FragmentNode? returnTypeFragment =
-                FragmentHelper.CreateFragmentNode(
-                    selectionVariants.Variants[0],
-                    fieldSelection.Path,
-                    appendTypeName: true);
-
-            returnTypeFragment = FragmentHelper.GetFragment(returnTypeFragment, fragmentName);
-
-            if (returnTypeFragment is null)
-            {
-                throw ThrowHelper.ReturnFragmentDoesNotExist();
-            }
-
-            OutputTypeModel returnType =
-                FragmentHelper.CreateInterface(context, returnTypeFragment, fieldSelection.Path);
-
-            context.RegisterSelectionSet(
-                returnType.Type,
-                selectionVariants.ReturnType.SyntaxNode,
-                returnType.SelectionSet);
-
-            foreach (SelectionSet selectionSet in selectionVariants.Variants)
-            {
-                returnTypeFragment = FragmentHelper.CreateFragmentNode(
-                    selectionSet,
-                    fieldSelection.Path,
-                    appendTypeName: true);
-
-                returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
-
-                if (FragmentHelper.GetFragment(returnTypeFragment, fragmentName) is null)
-                {
-                    throw ThrowHelper.FragmentMustBeImplementedByAllTypeFragments();
-                }
-
-                OutputTypeModel @interface =
-                    FragmentHelper.CreateInterface(
-                        context,
-                        returnTypeFragment,
-                        fieldSelection.Path,
-                        new[] { returnType });
-
-                OutputTypeModel @class =
-                    FragmentHelper.CreateClass(
-                        context,
-                        returnTypeFragment,
-                        selectionSet,
-                        @interface);
-
-                context.RegisterSelectionSet(
-                    selectionSet.Type,
-                    selectionSet.SyntaxNode,
-                    @class.SelectionSet);
-            }
-
-            return returnType;
-        }
+        return returnType;
     }
 }

@@ -1,0 +1,10 @@
+﻿{
+  "message": "Required argument DeprecatedNonNullInterface.deprecated(deprecated) cannot be deprecated.",
+  "type": "DeprecatedNonNullInterface",
+  "extensions": {
+    "argument": "deprecated",
+    "field": "deprecated",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/805",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Interfaces.Type-Validation"
+  }
+}

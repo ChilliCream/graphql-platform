@@ -1,0 +1,27 @@
+{
+  "data": {
+    "allCars": [
+      {
+        "id": "cars/1-A",
+        "name": "Subaru",
+        "engine": {
+          "cylinderCount": 6
+        }
+      },
+      {
+        "id": "cars/2-A",
+        "name": "Toyota",
+        "engine": {
+          "cylinderCount": 4
+        }
+      },
+      {
+        "id": "cars/3-A",
+        "name": "Telsa",
+        "engine": {
+          "cylinderCount": 0
+        }
+      }
+    ]
+  }
+}

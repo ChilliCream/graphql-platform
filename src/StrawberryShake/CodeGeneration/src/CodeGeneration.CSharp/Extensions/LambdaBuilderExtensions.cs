@@ -1,12 +1,11 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+internal static class LambdaBuilderExtensions
 {
-    internal static class LambdaBuilderExtensions
+    public static LambdaBuilder SetCode(this LambdaBuilder builder, string code)
     {
-        public static LambdaBuilder SetCode(this LambdaBuilder builder, string code)
-        {
-            return builder.SetCode(CodeInlineBuilder.From(code));
-        }
+        return builder.SetCode(CodeInlineBuilder.From(code));
     }
 }

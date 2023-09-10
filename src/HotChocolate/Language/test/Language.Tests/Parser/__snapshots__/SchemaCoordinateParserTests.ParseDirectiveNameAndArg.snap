@@ -1,0 +1,31 @@
+﻿{
+  "Location": {
+    "Start": 0,
+    "End": 10,
+    "Line": 1,
+    "Column": 1
+  },
+  "Kind": "SchemaCoordinate",
+  "OfDirective": true,
+  "Name": {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1,
+      "End": 5,
+      "Line": 1,
+      "Column": 2
+    },
+    "Value": "foo"
+  },
+  "MemberName": null,
+  "ArgumentName": {
+    "Kind": "Name",
+    "Location": {
+      "Start": 5,
+      "End": 9,
+      "Line": 1,
+      "Column": 6
+    },
+    "Value": "arg"
+  }
+}

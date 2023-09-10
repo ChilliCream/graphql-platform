@@ -1,29 +1,32 @@
-﻿using HotChocolate.Language;
-
 #nullable enable
 
-namespace HotChocolate.Types
+using System.Reflection;
+
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Represents an input field. Input fields can be arguments of fields
+/// or fields of an input objects.
+/// </summary>
+public interface IInputField : IField, IInputFieldInfo
 {
-    /// <summary>
-    /// Represents an input field. Input fields can be arguments of fields
-    /// or fields of an input objects.
-    /// </summary>
-    public interface IInputField
-        : IField
-    {
-        /// <summary>
-        /// Gets the type of this input field.
-        /// </summary>
-        IInputType Type { get; }
+     /// <summary>
+     /// Defines if this field is deprecated.
+     /// </summary>
+     bool IsDeprecated { get; }
 
-        /// <summary>
-        /// Gets the default value literal of this field.
-        /// </summary>
-        IValueNode? DefaultValue { get; }
+     /// <summary>
+     /// Gets the deprecation reason.
+     /// </summary>
+     string? DeprecationReason { get; }
+}
 
-        /// <summary>
-        /// Gets a formatter that shall intercept deserialized values and reformat them.
-        /// </summary>
-        IInputValueFormatter? Formatter { get; }
-    }
+internal interface IHasProperty
+{
+    PropertyInfo? Property { get; }
+}
+
+internal interface IHasOptional
+{
+    bool IsOptional { get; }
 }

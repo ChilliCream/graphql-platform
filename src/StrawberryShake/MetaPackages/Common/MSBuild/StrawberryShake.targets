@@ -1,0 +1,86 @@
+<Project>
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.xaml" />
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.ContentType.xaml" />
+    <AvailableItemName Include="GraphQL"/>
+    <GenerateGraphQLCodeItems Include="@(GraphQL)" />
+    <GenerateGraphQLCodeItems Include="$(MSBuildProjectFullPath)" />
+    <GenerateGraphQLCodeItems Include="$(MSBuildThisFileFullPath)" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CoreCompileDependsOn>
+      GenerateGraphQLCode;
+      $(CoreCompileDependsOn)
+    </CoreCompileDependsOn>
+  </PropertyGroup>
+
+  <Target
+    Name="GenerateGraphQLCode"
+    BeforeTargets="BeforeBuild"
+    DependsOnTargets="_GraphQLCodeGenerationRoot; _GenerateGraphQLCode"
+    Condition="'@(GraphQLCodeGenerationRoot)' != ''">
+    <ItemGroup>
+      <Compile Include="$(GraphQLCodeGenerationRoot)\**\*.cs" />
+    </ItemGroup>
+  </Target>
+
+  <Target
+    Name="_GraphQLCodeGenerationRoot">
+    <PropertyGroup>
+      <GraphQLCodeGenerationRoot>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)berry'))</GraphQLCodeGenerationRoot>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_ParseVersion">
+    <Exec Command="dotnet --version" StandardOutputImportance="Low" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="DotNetVersion" />
+    </Exec>
+  </Target>
+
+  <Target
+    Name="_GenerateGraphQLCode"
+    Inputs="@(GenerateGraphQLCodeItems)"
+    Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
+    DependsOnTargets="_ParseVersion;_GraphQLCodeGenerationRoot"
+    Condition="'@(GraphQL)' != ''">
+
+    <PropertyGroup>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 6))">6</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 7))">7</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 8))">8</DotNetMajor>
+    </PropertyGroup>
+
+    <Error
+      Text="The Strawberry Shake code generation requires .NET SDK 6, .NET SDK 7 or .NET SDK 8 to work."
+      Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7' AND '$(DotNetMajor)' != '8'" />
+
+    <PropertyGroup>
+      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput.TrimEnd('/').TrimEnd('\'))</GraphQLQueryGenerationRoot>
+      <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
+      <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
+      <GenTool Condition="'$(DotNetMajor)' == '8'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net8", "dotnet-graphql.dll"))</GenTool>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <GenCommand>dotnet &quot;$(GenTool)&quot; generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
+      <GenCommand>$(GenCommand) -o &quot;$(GraphQLCodeGenerationRoot)&quot;</GenCommand>
+      <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n $(RootNamespace)</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q &quot;$(GraphQLQueryGenerationRoot)&quot;</GenCommand>
+      <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a $(GraphQLRequestHash)</GenCommand>
+      <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
+      <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>
+      <GenCommand Condition="'$(GraphQLRazorComponents)' == 'enable'">$(GenCommand) -r</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryFormat)' == 'relay'">$(GenCommand) --relayFormat</GenCommand>
+    </PropertyGroup>
+
+    <Message Text="MSBuildProjectDirectory: $(MSBuildProjectDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
+    <Message Text="MSBuildThisFileDirectory: $(MSBuildThisFileDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
+    <Message Text="$(GenCommand)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
+    <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
+
+    <MakeDir Directories="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry" Condition="!EXISTS('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info')" />
+    <Touch Files="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info" AlwaysCreate="true" />
+  </Target>
+
+</Project>

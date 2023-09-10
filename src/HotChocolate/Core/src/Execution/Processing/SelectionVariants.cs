@@ -1,105 +1,190 @@
+using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Properties.Resources;
+using static HotChocolate.Execution.ThrowHelper;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal sealed class SelectionVariants : ISelectionVariants
 {
-    internal sealed class SelectionVariants : ISelectionVariants
+    private IObjectType? _firstType;
+    private SelectionSet? _firstSelectionSet;
+    private IObjectType? _secondType;
+    private SelectionSet? _secondSelectionSet;
+    private Dictionary<IObjectType, SelectionSet>? _map;
+    private bool _readOnly;
+
+    public SelectionVariants(int id)
     {
-        private IObjectType? _firstType;
-        private ISelectionSet? _firstSelections;
-        private IObjectType? _secondType;
-        private ISelectionSet? _secondSelections;
-        private Dictionary<IObjectType, ISelectionSet>? _map;
+        Id = id;
+    }
 
-        public SelectionVariants(SelectionSetNode selectionSet)
+    public int Id { get; }
+
+    public IEnumerable<IObjectType> GetPossibleTypes()
+        => _map?.Keys ?? GetPossibleTypesLazy();
+
+    public bool IsPossibleType(IObjectType typeContext)
+    {
+        if(_map is not null)
         {
-            SelectionSet = selectionSet;
+            return _map.ContainsKey(typeContext);
+        }
+        
+        if (ReferenceEquals(_firstType, typeContext))
+        {
+            return true;
+        }
+        
+        if (ReferenceEquals(_secondType, typeContext))
+        {
+            return true;
+        }
+        
+        return false;
+    }
+
+    private IEnumerable<IObjectType> GetPossibleTypesLazy()
+    {
+        yield return _firstType!;
+
+        if (_secondType is not null)
+        {
+            yield return _secondType;
+        }
+    }
+
+    public ISelectionSet GetSelectionSet(IObjectType typeContext)
+    {
+        if (_map is not null)
+        {
+            return _map.TryGetValue(typeContext, out var selections)
+                ? selections
+                : throw SelectionSet_TypeContextInvalid(typeContext);
         }
 
-        public SelectionSetNode SelectionSet { get; }
-
-        public IEnumerable<IObjectType> GetPossibleTypes()
+        if (ReferenceEquals(_firstType, typeContext))
         {
-            if (_map is { })
+            return _firstSelectionSet!;
+        }
+
+        if (ReferenceEquals(_secondType, typeContext))
+        {
+            return _secondSelectionSet!;
+        }
+
+        throw SelectionSet_TypeContextInvalid(typeContext);
+    }
+
+    internal bool ContainsSelectionSet(IObjectType typeContext)
+    {
+        if (_map is not null)
+        {
+            return _map.ContainsKey(typeContext);
+        }
+
+        if (ReferenceEquals(_firstType, typeContext))
+        {
+            return true;
+        }
+
+        if (ReferenceEquals(_secondType, typeContext))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    internal void AddSelectionSet(
+        int id,
+        ObjectType typeContext,
+        Selection[] selections,
+        Fragment[]? fragments,
+        bool isConditional)
+    {
+        if (_readOnly)
+        {
+            throw new NotSupportedException(SelectionVariants_ReadOnly);
+        }
+
+        var selectionSet = new SelectionSet(id, selections, fragments, isConditional);
+
+        if (_map is not null)
+        {
+            _map[typeContext] = selectionSet;
+        }
+        else
+        {
+            if (_firstType is null)
             {
-                foreach (IObjectType possibleType in _map.Keys)
+                _firstType = typeContext;
+                _firstSelectionSet = selectionSet;
+            }
+            else if (_secondType is null)
+            {
+                if (typeContext == _firstType)
                 {
-                    yield return possibleType;
+                    throw SelectionSet_TypeAlreadyAdded(typeContext);
                 }
+
+                _secondType = typeContext;
+                _secondSelectionSet = selectionSet;
             }
             else
             {
-                yield return _firstType!;
-
-                if (_secondType is { })
+                _map = new Dictionary<IObjectType, SelectionSet>
                 {
-                    yield return _secondType;
+                    { _firstType, _firstSelectionSet! },
+                    { _secondType, _secondSelectionSet! },
+                    { typeContext, selectionSet }
+                };
+
+                _firstType = null;
+                _firstSelectionSet = null;
+                _secondType = null;
+                _secondSelectionSet = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Completes the selection variant without sealing it.
+    /// </summary>
+    internal void Complete()
+    {
+        if (!_readOnly)
+        {
+            _firstSelectionSet?.Complete();
+            _secondSelectionSet?.Complete();
+
+            if (_map is not null)
+            {
+                foreach (var selectionSet in _map.Values)
+                {
+                    selectionSet.Complete();
                 }
             }
         }
+    }
 
-        public ISelectionSet GetSelectionSet(IObjectType typeContext)
+    internal void Seal()
+    {
+        if (!_readOnly)
         {
-            if (_map is { })
-            {
-                return _map.TryGetValue(typeContext, out ISelectionSet? selections)
-                    ? selections
-                    : Processing.SelectionSet.Empty;
-            }
+            _firstSelectionSet?.Seal();
+            _secondSelectionSet?.Seal();
 
-            if (ReferenceEquals(_firstType, typeContext))
+            if (_map is not null)
             {
-                return _firstSelections!;
-            }
-
-            if (ReferenceEquals(_secondType, typeContext))
-            {
-                return _secondSelections!;
-            }
-
-            return Processing.SelectionSet.Empty;
-        }
-
-        public void AddSelectionSet(
-            IObjectType typeContext, 
-            IReadOnlyList<ISelection> selections,
-            IReadOnlyList<IFragment>? fragments,
-            bool isConditional)
-        {
-            var selectionSet = new SelectionSet(selections, fragments, isConditional);
-
-            if (_map is { })
-            {
-                _map[typeContext] = selectionSet;
-            }
-            else
-            {
-                if (_firstType is null)
+                foreach (var selectionSet in _map.Values)
                 {
-                    _firstType = typeContext;
-                    _firstSelections = selectionSet;
-                }
-                else if (_secondType is null)
-                {
-                    _secondType = typeContext;
-                    _secondSelections = selectionSet;
-                }
-                else
-                {
-                    _map = new Dictionary<IObjectType, ISelectionSet>
-                    {
-                        { _firstType, _firstSelections! },
-                        { _secondType, _secondSelections! },
-                        { typeContext, selectionSet }
-                    };
-
-                    _firstType = null;
-                    _firstSelections = null;
-                    _secondType = null;
-                    _secondSelections = null;
+                    selectionSet.Seal();
                 }
             }
+
+            _readOnly = true;
         }
     }
 }

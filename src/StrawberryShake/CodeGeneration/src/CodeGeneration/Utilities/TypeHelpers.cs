@@ -1,13 +1,12 @@
 using System;
 using HotChocolate.Types;
 
-namespace StrawberryShake.CodeGeneration.Utilities
+namespace StrawberryShake.CodeGeneration.Utilities;
+
+internal static class TypeHelpers
 {
-    internal static class TypeHelpers
+    public static bool DoesTypeApply(IType typeCondition, INamedType current)
     {
-        public static bool DoesTypeApply(IType typeCondition, INamedType current)
-        {
-            return typeCondition.NamedType().IsAssignableFrom(current);
-        }
+        return typeCondition.NamedType().IsAssignableFrom(current);
     }
 }

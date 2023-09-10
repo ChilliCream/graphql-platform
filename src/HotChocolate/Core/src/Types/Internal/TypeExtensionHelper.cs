@@ -5,193 +5,204 @@ using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Internal
+#nullable enable
+
+namespace HotChocolate.Internal;
+
+public static class TypeExtensionHelper
 {
-    public static class TypeExtensionHelper
+    public static void MergeInterfaceFields(
+        ITypeCompletionContext context,
+        IList<InterfaceFieldDefinition> extensionFields,
+        IList<InterfaceFieldDefinition> typeFields)
     {
-        public static void MergeInterfaceFields(
-            ITypeCompletionContext context,
-            IList<InterfaceFieldDefinition> extensionFields,
-            IList<InterfaceFieldDefinition> typeFields)
-        {
-            MergeOutputFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) => { });
-        }
+        MergeOutputFields(context, extensionFields, typeFields,
+            (_, _, _) => { });
+    }
 
-        public static void MergeInputObjectFields(
-            ITypeCompletionContext context,
-            IList<InputFieldDefinition> extensionFields,
-            IList<InputFieldDefinition> typeFields)
-        {
-            MergeFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) => { });
-        }
+    public static void MergeInputObjectFields(
+        ITypeCompletionContext context,
+        IList<InputFieldDefinition> extensionFields,
+        IList<InputFieldDefinition> typeFields)
+    {
+        MergeFields(context, extensionFields, typeFields,
+             (_, extensionField, typeField) =>
+             {
+                 if (extensionField.IsDeprecated)
+                 {
+                     typeField.DeprecationReason = extensionField.DeprecationReason;
+                 }
+             });
+    }
 
-        private static void MergeOutputFields<T>(
-            ITypeCompletionContext context,
-            IList<T> extensionFields,
-            IList<T> typeFields,
-            Action<IList<T>, T, T> action,
-            Action<T> onBeforeAdd = null)
-            where T : OutputFieldDefinitionBase
-        {
-            MergeFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) =>
-                {
-                    if (extensionField.IsDeprecated)
-                    {
-                        typeField.DeprecationReason =
-                            extensionField.DeprecationReason;
-                    }
-
-                    MergeFields(
-                        context,
-                        extensionField.Arguments,
-                        typeField.Arguments,
-                        (args, extensionArg, typeArg) => { });
-
-                    action(fields, extensionField, typeField);
-                },
-                onBeforeAdd);
-        }
-
-        private static void MergeFields<T>(
-            ITypeCompletionContext context,
-            IList<T> extensionFields,
-            IList<T> typeFields,
-            Action<IList<T>, T, T> action,
-            Action<T> onBeforeAdd = null)
-            where T : FieldDefinitionBase
-        {
-            foreach (T extensionField in extensionFields)
+    private static void MergeOutputFields<T>(
+        ITypeCompletionContext context,
+        IList<T> extensionFields,
+        IList<T> typeFields,
+        Action<IList<T>, T, T> action,
+        Action<T>? onBeforeAdd = null)
+        where T : OutputFieldDefinitionBase
+    {
+        MergeFields(context, extensionFields, typeFields,
+            (fields, extensionField, typeField) =>
             {
-                T typeField = typeFields.FirstOrDefault(
-                    t => t.Name.Equals(extensionField.Name));
-
-                if (typeField is null)
+                if (extensionField.IsDeprecated)
                 {
-                    onBeforeAdd?.Invoke(extensionField);
-                    typeFields.Add(extensionField);
+                    typeField.DeprecationReason =
+                        extensionField.DeprecationReason;
                 }
-                else
-                {
-                    MergeDirectives(
-                        context,
-                        extensionField.Directives,
-                        typeField.Directives);
 
-                    MergeContextData(extensionField, typeField);
+                MergeFields(
+                    context,
+                    extensionField.Arguments,
+                    typeField.Arguments,
+                    (_, _, _) => { });
 
-                    action(typeFields, extensionField, typeField);
-                }
+                action(fields, extensionField, typeField);
+            },
+            onBeforeAdd);
+    }
+
+    private static void MergeFields<T>(
+        ITypeCompletionContext context,
+        IList<T> extensionFields,
+        IList<T> typeFields,
+        Action<IList<T>, T, T> action,
+        Action<T>? onBeforeAdd = null)
+        where T : FieldDefinitionBase
+    {
+        foreach (var extensionField in extensionFields)
+        {
+            var typeField = typeFields.FirstOrDefault(
+                t => t.Name.EqualsOrdinal(extensionField.Name));
+
+            if (typeField is null)
+            {
+                onBeforeAdd?.Invoke(extensionField);
+                typeFields.Add(extensionField);
+            }
+            else
+            {
+                MergeDirectives(
+                    context,
+                    extensionField.Directives,
+                    typeField.Directives);
+
+                MergeContextData(extensionField, typeField);
+
+                action(typeFields, extensionField, typeField);
             }
         }
+    }
 
-        public static void MergeDirectives(
-            ITypeCompletionContext context,
-            IList<DirectiveDefinition> extension,
-            IList<DirectiveDefinition> type)
+    public static void MergeDirectives(
+        ITypeCompletionContext context,
+        IList<DirectiveDefinition> extension,
+        IList<DirectiveDefinition> type)
+    {
+        var directives = new List<(DirectiveType type, DirectiveDefinition def)>();
+
+        foreach (var directive in type)
         {
-            var directives = new List<(DirectiveType type, DirectiveDefinition def)>();
-
-            foreach (DirectiveDefinition directive in type)
+            if (context.TryGetDirectiveType(directive.Type, out var directiveType))
             {
-                DirectiveType directiveType = context.GetDirectiveType(directive.Reference);
                 directives.Add((directiveType, directive));
             }
-
-            foreach (DirectiveDefinition directive in extension)
-            {
-                MergeDirective(context, directives, directive);
-            }
-
-            type.Clear();
-
-            foreach (DirectiveDefinition directive in directives.Select(t => t.def))
-            {
-                type.Add(directive);
-            }
         }
 
-        private static void MergeDirective(
-            ITypeCompletionContext context,
-            IList<(DirectiveType type, DirectiveDefinition def)> directives,
-            DirectiveDefinition directive)
+        foreach (var directive in extension)
         {
-            if (context.TryGetDirectiveType(directive.Reference, out DirectiveType? directiveType))
+            MergeDirective(context, directives, directive);
+        }
+
+        type.Clear();
+
+        foreach (var directive in directives.Select(t => t.def))
+        {
+            type.Add(directive);
+        }
+    }
+
+    private static void MergeDirective(
+        ITypeCompletionContext context,
+        IList<(DirectiveType type, DirectiveDefinition def)> directives,
+        DirectiveDefinition directive)
+    {
+        if (context.TryGetDirectiveType(directive.Type, out var directiveType))
+        {
+            if (directiveType.IsRepeatable)
             {
-                if (directiveType.IsRepeatable)
+                directives.Add((directiveType, directive));
+            }
+            else
+            {
+                var entry = directives.FirstOrDefault(t => t.type == directiveType);
+                if (entry == default)
                 {
                     directives.Add((directiveType, directive));
                 }
                 else
                 {
-                    var entry = directives.FirstOrDefault(t => t.type == directiveType);
-                    if (entry == default)
-                    {
-                        directives.Add((directiveType, directive));
-                    }
-                    else
-                    {
-                        int index = directives.IndexOf(entry);
-                        directives[index] = (directiveType, directive);
-                    }
+                    var index = directives.IndexOf(entry);
+                    directives[index] = (directiveType, directive);
                 }
             }
         }
+    }
 
-        public static void MergeContextData(
-            DefinitionBase extension,
-            DefinitionBase type)
+    public static void MergeContextData(
+        DefinitionBase extension,
+        DefinitionBase type)
+    {
+        if (extension.GetContextData().Count > 0)
         {
-            if (extension.GetContextData().Count > 0)
+            type.ContextData.AddRange(extension.GetContextData());
+        }
+    }
+
+    public static void MergeInterfaces(
+        ObjectTypeDefinition extension,
+        ObjectTypeDefinition type)
+    {
+        if (extension.GetInterfaces().Count > 0)
+        {
+            foreach (var interfaceReference in extension.GetInterfaces())
             {
-                type.ContextData.AddRange(extension.GetContextData());
+                type.Interfaces.Add(interfaceReference);
             }
         }
 
-        public static void MergeInterfaces(
-            ObjectTypeDefinition extension,
-            ObjectTypeDefinition type)
+        if (extension.FieldBindingType != null &&
+            extension.FieldBindingType != typeof(object))
         {
-            if (extension.GetInterfaces().Count > 0)
-            {
-                foreach (ITypeReference interfaceReference in extension.GetInterfaces())
-                {
-                    type.Interfaces.Add(interfaceReference);
-                }
-            }
+            type.KnownRuntimeTypes.Add(extension.FieldBindingType);
+        }
+    }
 
-            if (extension.FieldBindingType != typeof(object))
+    public static void MergeTypes(
+        ICollection<TypeReference> extensionTypes,
+        ICollection<TypeReference> typeTypes)
+    {
+        var set = new HashSet<TypeReference>(typeTypes);
+
+        foreach (var reference in extensionTypes)
+        {
+            if (set.Add(reference))
             {
-                type.KnownRuntimeTypes.Add(extension.FieldBindingType);
+                typeTypes.Add(reference);
             }
         }
+    }
 
-        public static void MergeTypes(
-            ICollection<ITypeReference> extensionTypes,
-            ICollection<ITypeReference> typeTypes)
+    public static void MergeConfigurations(
+        ICollection<ITypeSystemMemberConfiguration> extensionConfigurations,
+        ICollection<ITypeSystemMemberConfiguration> typeConfigurations)
+    {
+        foreach (var configuration in extensionConfigurations)
         {
-            var set = new HashSet<ITypeReference>(typeTypes);
-
-            foreach (ITypeReference reference in extensionTypes)
-            {
-                if (set.Add(reference))
-                {
-                    typeTypes.Add(reference);
-                }
-            }
-        }
-
-        public static void MergeConfigurations(
-            ICollection<ILazyTypeConfiguration> extensionConfigurations,
-            ICollection<ILazyTypeConfiguration> typeConfigurations)
-        {
-            foreach (ILazyTypeConfiguration configuration in extensionConfigurations)
-            {
-                typeConfigurations.Add(configuration);
-            }
+            typeConfigurations.Add(configuration);
         }
     }
 }

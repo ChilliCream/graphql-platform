@@ -1,0 +1,14 @@
+"🌶️ green donut":
+  - "src/GreenDonut/**/*"
+"🌶️ hot chocolate":
+  - "src/HotChocolate/**/*"
+"🌶️ strawberry shake":
+  - "src/StrawberryShake/**/*"
+"🌶️ website":
+  - any: ['website/**/*', '!website/src/docs/**/*.md']
+"📚 documentation":
+  - "website/src/docs/**/*.md"
+"🧰 maintenance":
+  - ".build/**/*"
+  - ".github/**/*"
+  - ".devops/**/*"

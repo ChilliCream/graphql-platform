@@ -249,6 +249,18 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string Sorting_SortingWasNotFound {
+            get {
+                return ResourceManager.GetString("Sorting_SortingWasNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Sorting_TypeMissmatch {
+            get {
+                return ResourceManager.GetString("Sorting_TypeMissmatch", resourceCulture);
+            }
+        }
+        
         internal static string FilterConvention_NoProviderFound {
             get {
                 return ResourceManager.GetString("FilterConvention_NoProviderFound", resourceCulture);
@@ -288,6 +300,18 @@ namespace HotChocolate.Data {
         internal static string FilterProvider_NoHandlersConfigured {
             get {
                 return ResourceManager.GetString("FilterProvider_NoHandlersConfigured", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_FilteringWasNotFound {
+            get {
+                return ResourceManager.GetString("Filtering_FilteringWasNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_TypeMissmatch {
+            get {
+                return ResourceManager.GetString("Filtering_TypeMissmatch", resourceCulture);
             }
         }
         
@@ -417,15 +441,183 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string ProjectionConvention_NodeFieldWasInInvalidState {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_NodeFieldWasInInvalidState", resourceCulture);
+            }
+        }
+        
         internal static string ProjectionVisitor_NodeFieldWasNotFound {
             get {
                 return ResourceManager.GetString("ProjectionVisitor_NodeFieldWasNotFound", resourceCulture);
             }
         }
         
+        internal static string Projection_ProjectionWasNotFound {
+            get {
+                return ResourceManager.GetString("Projection_ProjectionWasNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Projection_TypeMissmatch {
+            get {
+                return ResourceManager.GetString("Projection_TypeMissmatch", resourceCulture);
+            }
+        }
+        
         internal static string FilterConvention_ProviderHasToBeInitializedByConvention {
             get {
                 return ResourceManager.GetString("FilterConvention_ProviderHasToBeInitializedByConvention", resourceCulture);
+            }
+        }
+        
+        internal static string UseProjection_CannotHandleType {
+            get {
+                return ResourceManager.GetString("UseProjection_CannotHandleType", resourceCulture);
+            }
+        }
+        
+        internal static string PagingProjectionOptimizer_NotAPagingField {
+            get {
+                return ResourceManager.GetString("PagingProjectionOptimizer_NotAPagingField", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_CouldNotParseValue {
+            get {
+                return ResourceManager.GetString("Filtering_CouldNotParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableFiltering_MemberInvalid {
+            get {
+                return ResourceManager.GetString("QueryableFiltering_MemberInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableFiltering_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableFiltering_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableFilterProvider_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableFilterProvider_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableFiltering_NoMemberDeclared {
+            get {
+                return ResourceManager.GetString("QueryableFiltering_NoMemberDeclared", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_QueryableCombinator_QueueEmpty {
+            get {
+                return ResourceManager.GetString("Filtering_QueryableCombinator_QueueEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_QueryableCombinator_InvalidCombinator {
+            get {
+                return ResourceManager.GetString("Filtering_QueryableCombinator_InvalidCombinator", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_MemberInvalid {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_MemberInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_NoMemberFound {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_NoMemberFound", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_InvalidState_NoParentScope {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_InvalidState_NoParentScope", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_NoConstructorFoundForSet {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_NoConstructorFoundForSet", resourceCulture);
+            }
+        }
+        
+        internal static string Sorting_InvalidState_ParentIsNoFieldSelector {
+            get {
+                return ResourceManager.GetString("Sorting_InvalidState_ParentIsNoFieldSelector", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSorting_MemberInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSorting_MemberInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSorting_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSorting_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSortProvider_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSortProvider_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSorting_NoMemberDeclared {
+            get {
+                return ResourceManager.GetString("QueryableSorting_NoMemberDeclared", resourceCulture);
+            }
+        }
+        
+        internal static string SortField_ArgumentInvalid_NoHandlerWasFound {
+            get {
+                return ResourceManager.GetString("SortField_ArgumentInvalid_NoHandlerWasFound", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_CouldNotUnwrapType {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_CouldNotUnwrapType", resourceCulture);
+            }
+        }
+        
+        internal static string GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId {
+            get {
+                return ResourceManager.GetString("GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId", resourceCulture);
+            }
+        }
+        
+        internal static string GlobalIdInputValueFormatter_IdsHaveInvalidFormat {
+            get {
+                return ResourceManager.GetString("GlobalIdInputValueFormatter_IdsHaveInvalidFormat", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionContext_NoTypeForAbstractFieldProvided {
+            get {
+                return ResourceManager.GetString("SelectionContext_NoTypeForAbstractFieldProvided", resourceCulture);
+            }
+        }
+        
+        internal static string NameHelpers_UppercaseFirstLetter {
+            get {
+                return ResourceManager.GetString("NameHelpers_UppercaseFirstLetter", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed {
+            get {
+                return ResourceManager.GetString("ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed", resourceCulture);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "A document containing TypeSystemDefinition is invalid for execution.",
     "Code": null,
@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Executable-Definitions"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Executable-Definitions"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -82,9 +82,14 @@
     "Message": "The field `color` does not exist on the type `Dog`.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "dog"
+      "Name": "dog",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -96,13 +101,14 @@
       "type": "Dog",
       "field": "color",
       "responseName": "color",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "Field",
       "Alias": null,
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 115,

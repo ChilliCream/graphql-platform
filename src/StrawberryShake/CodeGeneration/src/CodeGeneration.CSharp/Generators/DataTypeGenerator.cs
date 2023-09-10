@@ -8,144 +8,146 @@ using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Generators
+namespace StrawberryShake.CodeGeneration.CSharp.Generators;
+
+public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
 {
-    public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
+    protected override CSharpSyntaxGeneratorResult Generate(
+        DataTypeDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
     {
-        protected override CSharpSyntaxGeneratorResult Generate(
-            DataTypeDescriptor descriptor,
-            CSharpSyntaxGeneratorSettings settings)
-        {
-            if (descriptor.IsInterface)
-            {
-                return GenerateDataInterface(descriptor);
-            }
+        var modifier = settings.AccessModifier == AccessModifier.Public
+            ? SyntaxKind.PublicKeyword
+            : SyntaxKind.InternalKeyword;
 
-            return GenerateDataClass(descriptor, settings);
-        }
+        return descriptor.IsInterface
+            ? GenerateDataInterface(descriptor, modifier)
+            : GenerateDataClass(descriptor, modifier, settings.EntityRecords);
+    }
 
-        private CSharpSyntaxGeneratorResult GenerateDataInterface(
-            DataTypeDescriptor descriptor)
+    private CSharpSyntaxGeneratorResult GenerateDataInterface(
+        DataTypeDescriptor descriptor,
+        SyntaxKind accessModifier)
+    {
+        var interfaceDeclaration =
+            InterfaceDeclaration(descriptor.RuntimeType.Name)
+                .AddModifiers(
+                    Token(accessModifier),
+                    Token(SyntaxKind.PartialKeyword))
+                .AddGeneratedAttribute()
+                .AddSummary(descriptor.Documentation)
+                .AddImplements(descriptor.Implements.Select(CreateDataTypeName).ToArray());
+
+        interfaceDeclaration = interfaceDeclaration.AddTypeProperty();
+
+        ForEachProperty(
+            descriptor,
+            p => interfaceDeclaration = interfaceDeclaration.AddStateProperty(p));
+
+        return new(
+            descriptor.RuntimeType.Name,
+            State,
+            descriptor.RuntimeType.NamespaceWithoutGlobal,
+            interfaceDeclaration);
+    }
+
+    private CSharpSyntaxGeneratorResult GenerateDataClass(
+        DataTypeDescriptor descriptor,
+        SyntaxKind accessModifier,
+        bool hasEntityRecords)
+    {
+        if (hasEntityRecords)
         {
-            InterfaceDeclarationSyntax interfaceDeclaration =
-                InterfaceDeclaration(descriptor.RuntimeType.Name)
+            var recordDeclarationSyntax =
+                RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.RuntimeType.Name)
                     .AddModifiers(
-                        Token(SyntaxKind.PublicKeyword),
+                        Token(accessModifier),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
                     .AddSummary(descriptor.Documentation)
-                    .AddImplements(descriptor.Implements.Select(CreateDataTypeName).ToArray());
+                    .AddImplements(descriptor.Implements.Select(CreateDataTypeName).ToArray())
+                    .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 
-            interfaceDeclaration = interfaceDeclaration.AddTypeProperty();
+            // Adds the constructor
+            var constructor =
+                ConstructorDeclaration(descriptor.RuntimeType.Name)
+                    .AddModifiers(Token(SyntaxKind.PublicKeyword));
+
+            constructor = constructor.AddTypeParameter();
 
             ForEachProperty(
                 descriptor,
-                p => interfaceDeclaration = interfaceDeclaration.AddStateProperty(p));
+                p => constructor = constructor.AddStateParameter(p));
+
+            recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(constructor);
+
+            // Adds the property
+            recordDeclarationSyntax = recordDeclarationSyntax.AddTypeProperty();
+
+            ForEachProperty(
+                descriptor,
+                p => recordDeclarationSyntax = recordDeclarationSyntax.AddStateProperty(p));
+
+            recordDeclarationSyntax = recordDeclarationSyntax.WithCloseBraceToken(
+                Token(SyntaxKind.CloseBraceToken));
 
             return new(
                 descriptor.RuntimeType.Name,
                 State,
                 descriptor.RuntimeType.NamespaceWithoutGlobal,
-                interfaceDeclaration);
+                recordDeclarationSyntax);
         }
-
-        private CSharpSyntaxGeneratorResult GenerateDataClass(
-            DataTypeDescriptor descriptor,
-            CSharpSyntaxGeneratorSettings settings)
+        else
         {
-            if (settings.EntityRecords)
-            {
-                RecordDeclarationSyntax recordDeclarationSyntax =
-                    RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.RuntimeType.Name)
-                        .AddModifiers(
-                            Token(SyntaxKind.PublicKeyword),
-                            Token(SyntaxKind.PartialKeyword))
-                        .AddGeneratedAttribute()
-                        .AddSummary(descriptor.Documentation)
-                        .AddImplements(descriptor.Implements.Select(CreateDataTypeName).ToArray())
-                        .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
+            var classDeclaration =
+                ClassDeclaration(descriptor.RuntimeType.Name)
+                    .AddModifiers(
+                        Token(accessModifier),
+                        Token(SyntaxKind.PartialKeyword))
+                    .AddGeneratedAttribute()
+                    .AddSummary(descriptor.Documentation)
+                    .AddImplements(descriptor.Implements.Select(CreateDataTypeName).ToArray());
 
-                // Adds the constructor
-                ConstructorDeclarationSyntax constructor =
-                    ConstructorDeclaration(descriptor.RuntimeType.Name)
-                        .AddModifiers(Token(SyntaxKind.PublicKeyword));
+            // Adds the constructor
+            var constructor =
+                ConstructorDeclaration(descriptor.RuntimeType.Name)
+                    .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
-                constructor = constructor.AddTypeParameter();
+            constructor = constructor.AddTypeParameter();
 
-                ForEachProperty(
-                    descriptor,
-                    p => constructor = constructor.AddStateParameter(p));
+            ForEachProperty(
+                descriptor,
+                p => constructor = constructor.AddStateParameter(p));
 
-                recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(constructor);
+            classDeclaration = classDeclaration.AddMembers(constructor);
 
-                // Adds the property
-                recordDeclarationSyntax = recordDeclarationSyntax.AddTypeProperty();
+            // Adds the property
+            classDeclaration = classDeclaration.AddTypeProperty();
 
-                ForEachProperty(
-                    descriptor,
-                    p => recordDeclarationSyntax = recordDeclarationSyntax.AddStateProperty(p));
+            ForEachProperty(
+                descriptor,
+                p => classDeclaration = classDeclaration.AddStateProperty(p));
 
-                recordDeclarationSyntax = recordDeclarationSyntax.WithCloseBraceToken(
-                    Token(SyntaxKind.CloseBraceToken));
-
-                return new(
-                    descriptor.RuntimeType.Name,
-                    State,
-                    descriptor.RuntimeType.NamespaceWithoutGlobal,
-                    recordDeclarationSyntax);
-            }
-            else
-            {
-                ClassDeclarationSyntax classDeclaration =
-                    ClassDeclaration(descriptor.RuntimeType.Name)
-                        .AddModifiers(
-                            Token(SyntaxKind.PublicKeyword),
-                            Token(SyntaxKind.PartialKeyword))
-                        .AddGeneratedAttribute()
-                        .AddSummary(descriptor.Documentation)
-                        .AddImplements(descriptor.Implements.Select(CreateDataTypeName).ToArray());
-
-                // Adds the constructor
-                ConstructorDeclarationSyntax constructor =
-                    ConstructorDeclaration(descriptor.RuntimeType.Name)
-                        .AddModifiers(Token(SyntaxKind.PublicKeyword));
-
-                constructor = constructor.AddTypeParameter();
-
-                ForEachProperty(
-                    descriptor,
-                    p => constructor = constructor.AddStateParameter(p));
-
-                classDeclaration = classDeclaration.AddMembers(constructor);
-
-                // Adds the property
-                classDeclaration = classDeclaration.AddTypeProperty();
-
-                ForEachProperty(
-                    descriptor,
-                    p => classDeclaration = classDeclaration.AddStateProperty(p));
-
-                return new(
-                    descriptor.RuntimeType.Name,
-                    State,
-                    descriptor.RuntimeType.NamespaceWithoutGlobal,
-                    classDeclaration);
-            }
+            return new(
+                descriptor.RuntimeType.Name,
+                State,
+                descriptor.RuntimeType.NamespaceWithoutGlobal,
+                classDeclaration);
         }
+    }
 
-        public void ForEachProperty(
-            DataTypeDescriptor descriptor,
-            Action<PropertyDescriptor> action)
+    public void ForEachProperty(
+        DataTypeDescriptor descriptor,
+        Action<PropertyDescriptor> action)
+    {
+        foreach (var property in descriptor.Properties)
         {
-            foreach (PropertyDescriptor property in descriptor.Properties)
+            if (property.Name.EqualsOrdinal(WellKnownNames.TypeName))
             {
-                if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
-                {
-                    continue;
-                }
-
-                action(property);
+                continue;
             }
+
+            action(property);
         }
     }
 }

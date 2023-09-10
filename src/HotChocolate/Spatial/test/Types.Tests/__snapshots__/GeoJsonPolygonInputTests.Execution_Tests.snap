@@ -1,11 +1,22 @@
-﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
-    "test": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+{
+  "errors": [
+    {
+      "message": "The specified value type of field \u0060coordinates\u0060 does not match the field type.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 42
+        }
+      ],
+      "path": [
+        "test"
+      ],
+      "extensions": {
+        "fieldName": "coordinates",
+        "fieldType": "[[Position]]",
+        "locationType": "[[Position]]",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      }
+    }
+  ]
 }

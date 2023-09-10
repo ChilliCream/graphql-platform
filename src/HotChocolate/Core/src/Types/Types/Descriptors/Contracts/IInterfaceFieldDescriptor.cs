@@ -2,51 +2,50 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface IInterfaceFieldDescriptor
+    : IDescriptor<InterfaceFieldDefinition>
+    , IFluent
 {
-    public interface IInterfaceFieldDescriptor
-        : IDescriptor<InterfaceFieldDefinition>
-        , IFluent
-    {
-        IInterfaceFieldDescriptor SyntaxNode(
-            FieldDefinitionNode fieldDefinitionNode);
+    IInterfaceFieldDescriptor SyntaxNode(
+        FieldDefinitionNode fieldDefinition);
 
-        IInterfaceFieldDescriptor Name(NameString value);
+    IInterfaceFieldDescriptor Name(string value);
 
-        IInterfaceFieldDescriptor Description(string value);
+    IInterfaceFieldDescriptor Description(string value);
 
-        [Obsolete("Use `Deprecated`.")]
-        IInterfaceFieldDescriptor DeprecationReason(
-            string reason);
+    [Obsolete("Use `Deprecated`.")]
+    IInterfaceFieldDescriptor DeprecationReason(
+        string reason);
 
-        IInterfaceFieldDescriptor Deprecated(string reason);
+    IInterfaceFieldDescriptor Deprecated(string reason);
 
-        IInterfaceFieldDescriptor Deprecated();
+    IInterfaceFieldDescriptor Deprecated();
 
-        IInterfaceFieldDescriptor Type<TOutputType>()
-            where TOutputType : IOutputType;
+    IInterfaceFieldDescriptor Type<TOutputType>()
+        where TOutputType : IOutputType;
 
-        IInterfaceFieldDescriptor Type<TOutputType>(TOutputType type)
-            where TOutputType : class, IOutputType;
+    IInterfaceFieldDescriptor Type<TOutputType>(TOutputType type)
+        where TOutputType : class, IOutputType;
 
-        IInterfaceFieldDescriptor Type(ITypeNode type);
+    IInterfaceFieldDescriptor Type(ITypeNode type);
 
-        IInterfaceFieldDescriptor Type(Type type);
+    IInterfaceFieldDescriptor Type(Type type);
 
-        IInterfaceFieldDescriptor Ignore(bool ignore = true);
+    IInterfaceFieldDescriptor Ignore(bool ignore = true);
 
-        IInterfaceFieldDescriptor Argument(
-            NameString name,
-            Action<IArgumentDescriptor> argument);
+    IInterfaceFieldDescriptor Argument(
+        string name,
+        Action<IArgumentDescriptor> argument);
 
-        IInterfaceFieldDescriptor Directive<T>(T directiveInstance)
-            where T : class;
+    IInterfaceFieldDescriptor Directive<T>(T directiveInstance)
+        where T : class;
 
-        IInterfaceFieldDescriptor Directive<T>()
-            where T : class, new();
+    IInterfaceFieldDescriptor Directive<T>()
+        where T : class, new();
 
-        IInterfaceFieldDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
-    }
+    IInterfaceFieldDescriptor Directive(
+        string name,
+        params ArgumentNode[] arguments);
 }

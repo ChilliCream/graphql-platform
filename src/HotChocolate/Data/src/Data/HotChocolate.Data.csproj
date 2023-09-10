@@ -4,8 +4,6 @@
     <PackageId>HotChocolate.Data</PackageId>
     <AssemblyName>HotChocolate.Data</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CA1062</NoWarn>
     <Description>Contains ready to use extensions for data management in HotChocolate. This includes filtering, projections and sorting</Description>
   </PropertyGroup>
 
@@ -15,18 +13,28 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.InMemory.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.SqlLite.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.InMemory.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.SqlServer.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="DataResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DataResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="DataResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>DataResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.props" Pack="true" PackagePath="build/HotChocolate.Data.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.targets" Pack="true" PackagePath="build/HotChocolate.Data.targets" Visible="false" />
   </ItemGroup>
 
 </Project>

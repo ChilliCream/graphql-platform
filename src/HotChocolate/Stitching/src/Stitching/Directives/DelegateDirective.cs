@@ -1,11 +1,14 @@
-using HotChocolate.Language;
+namespace HotChocolate.Stitching;
 
-namespace HotChocolate.Stitching
+public sealed class DelegateDirective
 {
-    public class DelegateDirective
+    public DelegateDirective(string? path, string schema)
     {
-        public string? Path { get; set; }
-
-        public NameString Schema { get; set; }
+        Path = path;
+        Schema = schema;
     }
+
+    public string? Path { get; }
+
+    public string Schema { get; }
 }

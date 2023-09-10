@@ -3,19 +3,19 @@ using System.Threading.Tasks;
 using HotChocolate.Tests;
 using Xunit;
 
-namespace HotChocolate.Execution
-{
-    public class NullErrorPropagation
-    {
-        [Fact]
-        public async Task Lists_NullableElementIsNull()
-        {
-            // arrange
-            IRequestExecutor executor = CreateExecutor();
+namespace HotChocolate.Execution;
 
-            IReadOnlyQueryRequest request =
-                QueryRequestBuilder.New()
-                    .SetQuery(@"
+public class NullErrorPropagation
+{
+    [Fact]
+    public async Task Lists_NullableElementIsNull()
+    {
+        // arrange
+        var executor = CreateExecutor();
+
+        var request =
+            QueryRequestBuilder.New()
+                .SetQuery(@"
                         {
                             foo {
                                 nullable_list_nullable_element
@@ -40,113 +40,112 @@ namespace HotChocolate.Execution
                                 }
                             }
                         }")
-                    .AddProperty("a", null)
-                    .AddProperty("b", "not_null")
-                    .Create();
+                .AddGlobalState("a", null)
+                .AddGlobalState("b", "not_null")
+                .Create();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                request, CancellationToken.None);
+        // act
+        var result = await executor.ExecuteAsync(
+            request, CancellationToken.None);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [InlineData("nullable_list_nullable_element")]
-        [InlineData("nonnull_list_nullable_element")]
-        [InlineData("nullable_list_nonnull_element")]
-        [InlineData("nonnull_list_nonnull_element")]
-        [Theory]
-        public async Task List_NonNullElementIsNull(string fieldType)
-        {
-            // arrange
-            IRequestExecutor executor = CreateExecutor();
+    [InlineData("nullable_list_nullable_element")]
+    [InlineData("nonnull_list_nullable_element")]
+    [InlineData("nullable_list_nonnull_element")]
+    [InlineData("nonnull_list_nonnull_element")]
+    [Theory]
+    public async Task List_NonNullElementIsNull(string fieldType)
+    {
+        // arrange
+        var executor = CreateExecutor();
 
-            IReadOnlyQueryRequest request =
-                QueryRequestBuilder.New()
-                    .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
-                    .AddProperty("b", null)
-                    .Create();
+        var request =
+            QueryRequestBuilder.New()
+                .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
+                .AddGlobalState("b", null)
+                .Create();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                request, CancellationToken.None);
+        // act
+        var result = await executor.ExecuteAsync(
+            request, CancellationToken.None);
 
-            // assert
-            result.MatchSnapshot(fieldType);
-        }
+        // assert
+        result.MatchSnapshot(fieldType);
+    }
 
-        [InlineData("nullable_list_nullable_element")]
-        [InlineData("nullable_list_nonnull_element")]
-        [InlineData("nonnull_list_nullable_element")]
-        [InlineData("nonnull_list_nonnull_element")]
-        [Theory]
-        public async Task List_NonNullElementHasError(string fieldType)
-        {
-            // arrange
-            IRequestExecutor executor = CreateExecutor();
+    [InlineData("nullable_list_nullable_element")]
+    [InlineData("nullable_list_nonnull_element")]
+    [InlineData("nonnull_list_nullable_element")]
+    [InlineData("nonnull_list_nonnull_element")]
+    [Theory]
+    public async Task List_NonNullElementHasError(string fieldType)
+    {
+        // arrange
+        var executor = CreateExecutor();
 
-            IReadOnlyQueryRequest request =
-                QueryRequestBuilder.New()
-                    .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
-                    .AddProperty("b", null)
-                    .Create();
+        var request =
+            QueryRequestBuilder.New()
+                .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
+                .AddGlobalState("b", null)
+                .Create();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                request, CancellationToken.None);
+        // act
+        var result = await executor.ExecuteAsync(request, CancellationToken.None);
 
-            // assert
-            result.MatchSnapshot(fieldType);
-        }
+        // assert
+        result.MatchSnapshot(fieldType);
+    }
 
-        [InlineData("nonnull_prop")]
-        [InlineData("nullable_prop")]
-        [Theory]
-        public async Task Object_NonNullElementIsNull(string fieldType)
-        {
-            // arrange
-            IRequestExecutor executor = CreateExecutor();
+    [InlineData("nonnull_prop")]
+    [InlineData("nullable_prop")]
+    [Theory]
+    public async Task Object_NonNullElementIsNull(string fieldType)
+    {
+        // arrange
+        var executor = CreateExecutor();
 
-            IReadOnlyQueryRequest request =
-                QueryRequestBuilder.New()
-                    .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
-                    .AddProperty("b", null)
-                    .Create();
+        var request =
+            QueryRequestBuilder.New()
+                .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
+                .AddGlobalState("b", null)
+                .Create();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                request, CancellationToken.None);
+        // act
+        var result = await executor.ExecuteAsync(
+            request, CancellationToken.None);
 
-            // assert
-            result.MatchSnapshot(fieldType);
-        }
+        // assert
+        result.MatchSnapshot(fieldType);
+    }
 
-        [InlineData("nonnull_prop")]
-        [InlineData("nullable_prop")]
-        [Theory]
-        public async Task Object_NonNullElementHasError(string fieldType)
-        {
-            // arrange
-            IRequestExecutor executor = CreateExecutor();
+    [InlineData("nonnull_prop")]
+    [InlineData("nullable_prop")]
+    [Theory]
+    public async Task Object_NonNullElementHasError(string fieldType)
+    {
+        // arrange
+        var executor = CreateExecutor();
 
-            IReadOnlyQueryRequest request =
-                QueryRequestBuilder.New()
-                    .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
-                    .AddProperty("b", null)
-                    .Create();
+        var request =
+            QueryRequestBuilder.New()
+                .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
+                .AddGlobalState("b", null)
+                .Create();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                request, CancellationToken.None);
+        // act
+        var result = await executor.ExecuteAsync(
+            request, CancellationToken.None);
 
-            // assert
-            result.MatchSnapshot(fieldType);
-        }
+        // assert
+        result.MatchSnapshot(fieldType);
+    }
 
-        private IRequestExecutor CreateExecutor()
-        {
-            string schema = @"
+    private IRequestExecutor CreateExecutor()
+    {
+        var schema = @"
                 type Query {
                     foo: Foo
                 }
@@ -167,30 +166,19 @@ namespace HotChocolate.Execution
                 }
                 ";
 
-            return Schema.Create(schema, c =>
-            {
-                c.BindResolver(ctx => new object())
-                    .To("Query", "foo");
-                c.BindResolver(ctx => new[] { new object() })
-                    .To("Foo", "nullable_list_nullable_element");
-                c.BindResolver(ctx => new[] { new object() })
-                    .To("Foo", "nonnull_list_nullable_element");
-                c.BindResolver(ctx => new[] { new object() })
-                    .To("Foo", "nullable_list_nonnull_element");
-                c.BindResolver(ctx => new[] { new object() })
-                    .To("Foo", "nonnull_list_nonnull_element");
-                c.BindResolver(ctx => new object())
-                    .To("Foo", "nonnull_prop");
-                c.BindResolver(ctx => new object())
-                    .To("Foo", "nullable_prop");
-                c.BindResolver(ctx => ctx.GetGlobalValue<string>("a"))
-                    .To("Bar", "a");
-                c.BindResolver(ctx => ctx.GetGlobalValue<string>("b"))
-                    .To("Bar", "b");
-                c.BindResolver(ctx => ErrorBuilder.New()
-                    .SetMessage("ERROR").Build())
-                    .To("Bar", "c");
-            }).MakeExecutable();
-        }
+        return SchemaBuilder.New()
+            .AddDocumentFromString(schema)
+            .AddResolver("Query.foo", _ => new(new object()))
+            .AddResolver("Foo.nullable_list_nullable_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo.nonnull_list_nullable_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo.nullable_list_nonnull_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo.nonnull_list_nonnull_element", _ => new(new[] { new object() }))
+            .AddResolver("Foo.nonnull_prop", _ => new(new object()))
+            .AddResolver("Foo.nullable_prop", _ => new(new object()))
+            .AddResolver("Bar.a", c => new(c.GetGlobalStateOrDefault<string>("a")))
+            .AddResolver("Bar.b", c => new(c.GetGlobalStateOrDefault<string>("b")))
+            .AddResolver("Bar.c", _ => throw new GraphQLException("ERROR"))
+            .Create()
+            .MakeExecutable();
     }
 }

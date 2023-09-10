@@ -1,0 +1,27 @@
+schema {
+  query: Query
+}
+
+"Information about the offset pagination."
+type CollectionSegmentInfo {
+  "Indicates whether more items exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more items exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+}
+
+type Foo {
+  bar: String!
+}
+
+type Query {
+  root(skip: Int take: Int): RootCollectionSegment
+}
+
+"A segment of a collection."
+type RootCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [Foo]
+}

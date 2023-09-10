@@ -1,12 +1,14 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+/// <summary>
+/// Represents type definition syntax.
+/// </summary>
+public interface ITypeDefinitionNode
+    : ITypeSystemDefinitionNode
+    , INamedSyntaxNode
 {
     /// <summary>
-    /// Represents type definition that has a name like <see cref="ObejctTypeDefinitionNode" />.
+    /// Gets the description of the type definition.
     /// </summary>
-    public interface ITypeDefinitionNode
-        : ITypeSystemDefinitionNode
-        , INamedSyntaxNode
-    {
-        StringValueNode? Description { get; }
-    }
+    StringValueNode? Description { get; }
 }

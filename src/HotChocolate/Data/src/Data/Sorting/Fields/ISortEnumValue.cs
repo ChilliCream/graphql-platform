@@ -2,12 +2,11 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Sorting
-{
-    public interface ISortEnumValue : IEnumValue
-    {
-        ISortOperationHandler Handler { get; }
+namespace HotChocolate.Data.Sorting;
 
-        int Operation { get; }
-    }
+public interface ISortEnumValue : IEnumValue
+{
+    ISortOperationHandler Handler { get; }
+
+    int Operation { get; }
 }

@@ -1,0 +1,25 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooFilterInput): String
+}
+
+input FooBarOperationFilterInput {
+  eq: FooBar
+  neq: FooBar
+  in: [FooBar!]
+  nin: [FooBar!]
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  comparable: FooBarOperationFilterInput
+}
+
+enum FooBar {
+  FOO
+  BAR
+}

@@ -1,0 +1,13 @@
+{
+  "id": "abc",
+  "type": "error",
+  "payload": {
+    "message": "Unexpected token: }.",
+    "locations": [
+      {
+        "line": 1,
+        "column": 1
+      }
+    ]
+  }
+}

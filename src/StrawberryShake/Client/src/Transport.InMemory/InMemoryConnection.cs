@@ -6,32 +6,51 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
-using StrawberryShake.Properties;
+using StrawberryShake.Internal;
+using static System.Text.Json.JsonDocument;
+using static StrawberryShake.Properties.Resources;
 
-namespace StrawberryShake.Transport.InMemory
+namespace StrawberryShake.Transport.InMemory;
+
+public class InMemoryConnection : IInMemoryConnection
 {
-    public class InMemoryConnection : IInMemoryConnection
+    private readonly Func<CancellationToken, ValueTask<IInMemoryClient>> _createClientAsync;
+
+    public InMemoryConnection(
+        Func<CancellationToken, ValueTask<IInMemoryClient>> createClientAsync)
+    {
+        _createClientAsync = createClientAsync ??
+            throw new ArgumentNullException(nameof(createClientAsync));
+    }
+
+    public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
+        OperationRequest request)
+        => new ResponseStream(_createClientAsync, request);
+
+    private sealed class ResponseStream : IAsyncEnumerable<Response<JsonDocument>>
     {
         private readonly Func<CancellationToken, ValueTask<IInMemoryClient>> _createClientAsync;
+        private readonly OperationRequest _request;
 
-        public InMemoryConnection(
-            Func<CancellationToken, ValueTask<IInMemoryClient>> createClientAsync)
+        public ResponseStream(
+            Func<CancellationToken, ValueTask<IInMemoryClient>> createClientAsync,
+            OperationRequest request)
         {
-            _createClientAsync = createClientAsync ??
-                throw new ArgumentNullException(nameof(createClientAsync));
+            _createClientAsync = createClientAsync;
+            _request = request;
         }
 
-        public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
-            OperationRequest request,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerator<Response<JsonDocument>> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
         {
-            IInMemoryClient client = await _createClientAsync(cancellationToken);
+            var client = await _createClientAsync(cancellationToken);
 
             Exception? exception = null;
             IExecutionResult? result = null;
+
             try
             {
-                result = await client.ExecuteAsync(request, cancellationToken);
+                result = await client.ExecuteAsync(_request, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -40,10 +59,13 @@ namespace StrawberryShake.Transport.InMemory
 
             if (exception is not null || result is null)
             {
-                yield return new Response<JsonDocument>(null, exception);
+                exception ??= new InvalidOperationException("No result found!");
+
+                yield return new Response<JsonDocument>(
+                    ResponseHelper.CreateBodyFromException(exception),
+                    exception);
                 yield break;
             }
-
 
             await foreach (var response in ProcessResultAsync(result, cancellationToken)
                 .ConfigureAwait(false))
@@ -52,36 +74,44 @@ namespace StrawberryShake.Transport.InMemory
             }
         }
 
-
         private async IAsyncEnumerable<Response<JsonDocument>> ProcessResultAsync(
             IExecutionResult executionResult,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
+            using var writer = new ArrayWriter();
+
             switch (executionResult)
             {
                 case IQueryResult queryResult:
-                    yield return new Response<JsonDocument>(
-                        JsonDocument.Parse(await queryResult.ToJsonAsync()),
-                        null);
+                {
+                    queryResult.WriteTo(writer);
+                    yield return new Response<JsonDocument>(Parse(writer.Body), null);
                     break;
-                case SubscriptionResult streamResult:
-                    await foreach (var result in streamResult.ReadResultsAsync()
-                        .WithCancellation(cancellationToken))
+                }
+
+                case HotChocolate.Execution.ResponseStream streamResult:
+                {
+                    await foreach (var result in
+                        streamResult.ReadResultsAsync().WithCancellation(cancellationToken))
                     {
-                        await foreach (var response in ProcessResultAsync(result, cancellationToken)
-                            .ConfigureAwait(false))
-                        {
-                            yield return response;
-                        }
+                        result.WriteTo(writer);
+                        var document = Parse(writer.Body);
+                        writer.Clear();
+
+                        yield return new Response<JsonDocument>(document, null);
                     }
+                }
 
                     break;
+
                 default:
+                {
+                    var ex = new GraphQLClientException(InMemoryConnection_InvalidResponseFormat);
                     yield return new Response<JsonDocument>(
-                        null,
-                        new GraphQLClientException(
-                            Resources.InMemoryConnection_InvalidResponseFormat));
+                        ResponseHelper.CreateBodyFromException(ex),
+                        ex);
                     yield break;
+                }
             }
         }
     }

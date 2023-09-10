@@ -1,59 +1,135 @@
-using HotChocolate.Types;
-using Xunit;
-using Snapshooter.Xunit;
-using HotChocolate.Configuration;
 using System;
+using HotChocolate.Execution;
+using HotChocolate.Types;
+using Snapshooter.Xunit;
+using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration;
+
+public class ReadOnlySchemaOptionsTests
 {
-    public class ReadOnlySchemaOptionsTests
+    [Fact]
+    public void Copy_Options()
     {
-        [Fact]
-        public void Copy_Options()
+        // arrange
+        var options = new SchemaOptions
         {
-            // arrange
-            var options = new SchemaOptions
-            {
-                QueryTypeName = "A",
-                MutationTypeName = "B",
-                SubscriptionTypeName = "C",
-                StrictValidation = false,
-                SortFieldsByName = true,
-                UseXmlDocumentation = false,
-                DefaultBindingBehavior = BindingBehavior.Explicit,
-                FieldMiddleware = FieldMiddlewareApplication.AllFields,
-                PreserveSyntaxNodes = true
-            };
+            QueryTypeName = "A",
+            MutationTypeName = "B",
+            SubscriptionTypeName = "C",
+            StrictValidation = false,
+            SortFieldsByName = true,
+            UseXmlDocumentation = false,
+            DefaultBindingBehavior = BindingBehavior.Explicit,
+            FieldMiddleware = FieldMiddlewareApplication.AllFields,
+            PreserveSyntaxNodes = true,
+            StrictRuntimeTypeValidation = true,
+            MaxAllowedNodeBatchSize = 20,
+            EnableOneOf = true,
+            DefaultDirectiveVisibility = DirectiveVisibility.Public,
+            EnableDirectiveIntrospection = true,
+            DefaultFieldBindingFlags = FieldBindingFlags.InstanceAndStatic,
+            ValidatePipelineOrder = true,
+            EnableDefer = true,
+            EnableStream = true,
+            EnableFlagEnums = true,
+            EnsureAllNodesCanBeResolved = true,
+            RemoveUnreachableTypes = true,
+            DefaultResolverStrategy = ExecutionStrategy.Serial
+        };
 
-            // act
-            var copied = new ReadOnlySchemaOptions(options);
+        // act
+        var copied = new ReadOnlySchemaOptions(options);
+        var writableCopy = SchemaOptions.FromOptions(copied);
 
-            // assert
-            copied.MatchSnapshot();
-        }
+        // assert
+        copied.MatchSnapshot();
+        writableCopy.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Copy_Options_Defaults()
+    [Fact]
+    public void Copy_Options_EnableOneOf_EnableDirectiveIntrospection()
+    {
+        // arrange
+        var options = new SchemaOptions
         {
-            // arrange
-            var options = new SchemaOptions();
+            QueryTypeName = "A",
+            MutationTypeName = "B",
+            SubscriptionTypeName = "C",
+            StrictValidation = false,
+            SortFieldsByName = true,
+            UseXmlDocumentation = false,
+            DefaultBindingBehavior = BindingBehavior.Explicit,
+            FieldMiddleware = FieldMiddlewareApplication.AllFields,
+            PreserveSyntaxNodes = true,
+            EnableOneOf = true,
+            EnableDirectiveIntrospection = true
+        };
 
-            // act
-            var copied = new ReadOnlySchemaOptions(options);
+        // act
+        var copied = new ReadOnlySchemaOptions(options);
+        var writableCopy = SchemaOptions.FromOptions(copied);
 
-            // assert
-            copied.MatchSnapshot();
-        }
+        // assert
+        copied.MatchSnapshot();
+        writableCopy.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Create_Options_Null()
+    [Fact]
+    public void Copy_Options_ResolveXmlDocumentationFileName()
+    {
+        // arrange
+        var options = new SchemaOptions
         {
-            // arrange
-            // act
-            Action action = () => new ReadOnlySchemaOptions(null);
+            QueryTypeName = "A",
+            MutationTypeName = "B",
+            SubscriptionTypeName = "C",
+            StrictValidation = false,
+            SortFieldsByName = true,
+            UseXmlDocumentation = false,
+            ResolveXmlDocumentationFileName = assembly => "docs.xml",
+            DefaultBindingBehavior = BindingBehavior.Explicit,
+            FieldMiddleware = FieldMiddlewareApplication.AllFields,
+            PreserveSyntaxNodes = true
+        };
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // act
+        var copied = new ReadOnlySchemaOptions(options);
+        var writableCopy = SchemaOptions.FromOptions(copied);
+
+        // assert
+        Assert.Same(
+            options.ResolveXmlDocumentationFileName,
+            copied.ResolveXmlDocumentationFileName);
+
+        Assert.Same(
+            copied.ResolveXmlDocumentationFileName,
+            writableCopy.ResolveXmlDocumentationFileName);
+    }
+
+    [Fact]
+    public void Copy_Options_Defaults()
+    {
+        // arrange
+        var options = new SchemaOptions();
+
+        // act
+        var copied = new ReadOnlySchemaOptions(options);
+        var writableCopy = SchemaOptions.FromOptions(copied);
+
+        // assert
+        copied.MatchSnapshot();
+        writableCopy.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Create_Options_Null()
+    {
+        // arrange
+        // act
+        Action action = () => new ReadOnlySchemaOptions(null);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
     }
 }

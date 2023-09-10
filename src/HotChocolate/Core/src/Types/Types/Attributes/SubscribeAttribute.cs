@@ -1,127 +1,185 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Resolvers.Expressions;
+using HotChocolate.Resolvers;
+using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
+using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 {
-    [AttributeUsage(
-        AttributeTargets.Method,
-        Inherited = true,
-        AllowMultiple = false)]
-    public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
+    private static readonly MethodInfo _subscribeFactory =
+        typeof(SubscribeAttribute).GetMethod(nameof(SubscribeFactory), NonPublic | Static)!;
+
+    /// <summary>
+    /// The type of the message.
+    /// </summary>
+    public Type? MessageType { get; set; }
+
+    /// <summary>
+    /// The method that shall be used to subscribe to the pub/sub system.
+    /// </summary>
+    public string? With { get; set; }
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IObjectFieldDescriptor descriptor,
+        MemberInfo member)
     {
-        private const string _methodName = "SubscribeToTopic";
+        var method = (MethodInfo)member;
 
-        private static readonly MethodInfo _constantTopic =
-            typeof(SubscribeResolverObjectFieldDescriptorExtensions)
-                .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .Single(m =>
-                    m.Name.Equals(_methodName) &&
-                    m.IsGenericMethod &&
-                    m.GetGenericArguments().Length == 1);
-
-        private static readonly MethodInfo _argumentTopic =
-            typeof(SubscribeResolverObjectFieldDescriptorExtensions)
-                .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .Single(m =>
-                    m.Name.Equals(_methodName) &&
-                    m.IsGenericMethod &&
-                    m.GetGenericArguments().Length == 2 &&
-                    m.GetParameters().Length == 2 &&
-                    m.GetParameters()[1].ParameterType == typeof(string));
-
-        /// <summary>
-        /// The type of the message.
-        /// </summary>
-        public Type? MessageType { get; set; }
-
-        /// <summary>
-        /// The method that shall be used to subscribe to the pub/sub system.
-        /// </summary>
-        public string? With { get; set; }
-
-        public override void OnConfigure(
-            IDescriptorContext context,
-            IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+        if (MessageType is null)
         {
-            var method = (MethodInfo)member;
+            var messageParameter =
+                method.GetParameters()
+                    .FirstOrDefault(t => t.IsDefined(typeof(EventMessageAttribute)));
 
-            if (MessageType is null)
+            if (messageParameter is null)
             {
-                ParameterInfo? messageParameter =
-                    method.GetParameters()
-                        .FirstOrDefault(t => t.IsDefined(typeof(EventMessageAttribute)));
-
-                if (messageParameter is null)
-                {
-                    throw SubscribeAttribute_MessageTypeUnspecified(member);
-                }
-
-                MessageType = messageParameter.ParameterType;
+                throw SubscribeAttribute_MessageTypeUnspecified(member);
             }
 
-            if (string.IsNullOrEmpty(With))
-            {
-                (string? name, string? value, Type type) topic = ResolveTopic(method);
+            MessageType = messageParameter.ParameterType;
+        }
 
-                if (topic.value is { })
+        if (string.IsNullOrEmpty(With))
+        {
+            var topicString = ResolveTopicString(method);
+
+            descriptor.Extend().OnBeforeNaming(
+                (_, fieldDef) =>
                 {
-                    MethodInfo config = _constantTopic.MakeGenericMethod(MessageType);
-                    config.Invoke(null, new object?[] { descriptor, topic.value });
-                }
-                else
+                    var factory = _subscribeFactory.MakeGenericMethod(MessageType);
+                    factory.Invoke(null, new object[] { fieldDef, topicString });
+                });
+        }
+        else
+        {
+            descriptor.Extend().OnBeforeNaming(
+                (c, d) =>
                 {
-                    MethodInfo config = _argumentTopic.MakeGenericMethod(topic.type, MessageType);
-                    config.Invoke(null, new object?[] { descriptor, topic.name });
-                }
-            }
-            else
-            {
-                descriptor.Extend().OnBeforeCreate(d =>
-                {
-                    MethodInfo? subscribeResolver = member.DeclaringType?.GetMethod(
-                        With, BindingFlags.Public | BindingFlags.Instance);
-                    
+                    var subscribeResolver = member.DeclaringType?.GetMethod(
+                        With!,
+                        Public | NonPublic | Instance | Static);
+
                     if (subscribeResolver is null)
                     {
                         throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
                     }
 
-                    d.SubscribeResolver = ResolverCompiler.Subscribe.Compile(
-                        d.SourceType!, d.ResolverType, subscribeResolver);
+                    var map = TypeMemHelper.RentArgumentNameMap();
+
+                    foreach (var argument in d.Arguments)
+                    {
+                        if (argument.Parameter is not null)
+                        {
+                            map[argument.Parameter] = argument.Name;
+                        }
+                    }
+
+                    d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
+                        subscribeResolver,
+                        d.SourceType!,
+                        d.ResolverType,
+                        map,
+                        d.GetParameterExpressionBuilders());
+
+                    TypeMemHelper.Return(map);
                 });
-            }
         }
+    }
 
-        private (string? name, string? value, Type type) ResolveTopic(MethodInfo method)
+    private static string ResolveTopicString(MethodInfo method)
+    {
+        if (method.IsDefined(typeof(TopicAttribute)))
         {
-            ParameterInfo? topicParameter =
-                method.GetParameters()
-                    .FirstOrDefault(t => t.IsDefined(typeof(TopicAttribute)));
-
-            if (method.IsDefined(typeof(TopicAttribute)))
-            {
-                if (topicParameter is null)
-                {
-                    string name = method.GetCustomAttribute<TopicAttribute>()?.Name ?? method.Name;
-                    return (null, name, typeof(string));
-                }
-
-                throw SubscribeAttribute_TopicOnParameterAndMethod(method);
-            }
-
-            if (topicParameter is { })
-            {
-                return (topicParameter.Name, null, topicParameter.ParameterType);
-            }
-
-            return (null, method.Name, typeof(string));
+            return method.GetCustomAttribute<TopicAttribute>()?.Name ?? method.Name;
         }
+
+        return method.Name;
+    }
+
+    private static void SubscribeFactory<TMessage>(
+        ObjectFieldDefinition fieldDef,
+        string topicString)
+    {
+        var arg = false;
+
+        if (topicString.Contains('{'))
+        {
+            for (var i = 0; i < fieldDef.Arguments.Count; i++)
+            {
+                var argument = fieldDef.Arguments[i];
+                var argumentPlaceholder = $"{{{argument.Name}}}";
+
+                if (topicString.Contains(argumentPlaceholder))
+                {
+                    topicString = topicString.Replace(argumentPlaceholder, $"{{{i}}}");
+                    arg = true;
+                }
+            }
+        }
+
+        if (arg)
+        {
+            fieldDef.SubscribeResolver = CreateArgumentSubscribeResolver<TMessage>(topicString);
+        }
+        else
+        {
+            fieldDef.SubscribeResolver = CreateSubscribeResolver<TMessage>(topicString);
+        }
+    }
+
+    private static SubscribeResolverDelegate CreateSubscribeResolver<TMessage>(
+        string topicString)
+    {
+        return async ctx =>
+        {
+            var ct = ctx.RequestAborted;
+            var receiver = ctx.Service<ITopicEventReceiver>();
+            return await receiver.SubscribeAsync<TMessage>(
+                    topicString,
+                    null,
+                    null,
+                    ct)
+                .ConfigureAwait(false);
+        };
+    }
+
+    private static SubscribeResolverDelegate CreateArgumentSubscribeResolver<TMessage>(
+        string topicFormatString)
+    {
+        return async ctx =>
+        {
+            var ct = ctx.RequestAborted;
+            var arguments = ctx.Selection.Field.Arguments;
+            var argumentValues = new object[arguments.Count];
+
+            // first we capture the argument values.
+            for (var i = 0; i < arguments.Count; i++)
+            {
+                argumentValues[i] = ctx.ArgumentValue<object>(arguments[i].Name);
+            }
+
+            // next we create from it the topic string.
+            var topicString = string.Format(topicFormatString, argumentValues);
+
+            // last we subscribe with the topic string.
+            var receiver = ctx.Service<ITopicEventReceiver>();
+            return await receiver.SubscribeAsync<TMessage>(
+                    topicString,
+                    null,
+                    null,
+                    ct)
+                .ConfigureAwait(false);
+        };
     }
 }

@@ -1,12 +1,12 @@
-using System.Runtime.CompilerServices;
+namespace StrawberryShake.Serialization;
 
-namespace StrawberryShake.Serialization
+/// <summary>
+/// This serializer handles string scalars.
+/// </summary>
+public class StringSerializer : ScalarSerializer<string>
 {
-    public class StringSerializer : ScalarSerializer<string>
+    public StringSerializer(string typeName = BuiltInScalarNames.String)
+        : base(typeName)
     {
-        public StringSerializer(string typeName = BuiltInScalarNames.String)
-            : base(typeName)
-        {
-        }
     }
 }

@@ -3,9 +3,14 @@
     "Message": "The specified fragment `bar` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "human"
+      "Name": "human",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -15,7 +20,7 @@
     ],
     "Extensions": {
       "fragment": "bar",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -51,7 +56,7 @@
     ],
     "Extensions": {
       "fragment": "foo",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -89,6 +94,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 190,

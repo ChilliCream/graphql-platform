@@ -3,9 +3,14 @@
     "Message": "The parent type does not match the type condition on the fragment.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "catOrDog"
+      "Name": "catOrDog",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -17,7 +22,7 @@
       "typeCondition": "HumanOrAlien",
       "selectionSetType": "CatOrDog",
       "fragment": "humanOrAlienFragment",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -55,6 +60,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 295,

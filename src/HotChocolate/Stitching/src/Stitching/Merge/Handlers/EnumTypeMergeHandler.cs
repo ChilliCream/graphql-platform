@@ -1,125 +1,121 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge.Handlers
+namespace HotChocolate.Stitching.Merge.Handlers;
+
+internal class EnumTypeMergeHandler
+    : ITypeMergeHandler
 {
-    internal class EnumTypeMergeHandler
-        : ITypeMergeHandler
+    private readonly MergeTypeRuleDelegate _next;
+
+    public EnumTypeMergeHandler(MergeTypeRuleDelegate next)
     {
-        private readonly MergeTypeRuleDelegate _next;
+        _next = next ?? throw new ArgumentNullException(nameof(next));
+    }
 
-        public EnumTypeMergeHandler(MergeTypeRuleDelegate next)
+    public void Merge(
+        ISchemaMergeContext context,
+        IReadOnlyList<ITypeInfo> types)
+    {
+        if (types.OfType<EnumTypeInfo>().Any())
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-        }
+            var notMerged = types.OfType<EnumTypeInfo>().ToList();
+            var hasLeftovers = types.Count > notMerged.Count;
 
-        public void Merge(
-            ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types)
-        {
-            if (types.OfType<EnumTypeInfo>().Any())
+            while (notMerged.Count > 0)
             {
-                var notMerged = types.OfType<EnumTypeInfo>().ToList();
-                bool hasLeftovers = types.Count > notMerged.Count;
-
-                while (notMerged.Count > 0)
-                {
-                    MergeNextType(context, notMerged);
-                }
-
-                if (hasLeftovers)
-                {
-                    _next.Invoke(context, types.NotOfType<EnumTypeInfo>());
-                }
+                MergeNextType(context, notMerged);
             }
-            else
+
+            if (hasLeftovers)
             {
-                _next.Invoke(context, types);
+                _next.Invoke(context, types.NotOfType<EnumTypeInfo>());
             }
         }
-
-        private static void MergeNextType(
-            ISchemaMergeContext context,
-            List<EnumTypeInfo> notMerged)
+        else
         {
-            EnumTypeInfo left = notMerged[0];
+            _next.Invoke(context, types);
+        }
+    }
 
-            var leftValueSet = new HashSet<string>(
+    private static void MergeNextType(
+        ISchemaMergeContext context,
+        List<EnumTypeInfo> notMerged)
+    {
+        var left = notMerged[0];
+
+        var leftValueSet = new HashSet<string>(
             left.Definition.Values.Select(t => t.Name.Value));
 
-            var readyToMerge = new List<EnumTypeInfo>();
-            readyToMerge.Add(left);
+        var readyToMerge = new List<EnumTypeInfo>();
+        readyToMerge.Add(left);
 
-            for (int i = 1; i < notMerged.Count; i++)
+        for (var i = 1; i < notMerged.Count; i++)
+        {
+            if (CanBeMerged(leftValueSet, notMerged[i].Definition))
             {
-                if (CanBeMerged(leftValueSet, notMerged[i].Definition))
-                {
-                    readyToMerge.Add(notMerged[i]);
-                }
+                readyToMerge.Add(notMerged[i]);
             }
-
-            MergeType(context, readyToMerge);
-            notMerged.RemoveAll(readyToMerge.Contains);
         }
 
-        private static void MergeType(
-            ISchemaMergeContext context,
-            IReadOnlyList<EnumTypeInfo> types)
-        {
-            var definition = types[0].Definition;
+        MergeType(context, readyToMerge);
+        notMerged.RemoveAll(readyToMerge.Contains);
+    }
 
-            EnumTypeDefinitionNode descriptionDef =
-                types.Select(t => t.Definition)
+    private static void MergeType(
+        ISchemaMergeContext context,
+        IReadOnlyList<EnumTypeInfo> types)
+    {
+        var definition = types[0].Definition;
+
+        var descriptionDef =
+            types.Select(t => t.Definition)
                 .FirstOrDefault(t => t.Description != null);
 
-            if (descriptionDef != null)
-            {
-                definition = definition.WithDescription(
-                    descriptionDef.Description);
-            }
-
-            context.AddType(definition.Rename(
-                TypeMergeHelpers.CreateName(context, types),
-                types.Select(t => t.Schema.Name)));
+        if (descriptionDef != null)
+        {
+            definition = definition.WithDescription(
+                descriptionDef.Description);
         }
 
-        internal static bool CanBeMerged(
-            EnumTypeDefinitionNode left,
-            EnumTypeDefinitionNode right)
+        context.AddType(definition.Rename(
+            TypeMergeHelpers.CreateName(context, types),
+            types.Select(t => t.Schema.Name)));
+    }
+
+    internal static bool CanBeMerged(
+        EnumTypeDefinitionNode left,
+        EnumTypeDefinitionNode right)
+    {
+        if (left == null)
         {
-            if (left == null)
-            {
-                throw new ArgumentNullException(nameof(left));
-            }
-
-            if (right == null)
-            {
-                throw new ArgumentNullException(nameof(right));
-            }
-
-            var leftValueSet = new HashSet<string>(
-                left.Values.Select(t => t.Name.Value));
-            return CanBeMerged(leftValueSet, right);
+            throw new ArgumentNullException(nameof(left));
         }
 
-        private static bool CanBeMerged(
-            ICollection<string> left,
-            EnumTypeDefinitionNodeBase right)
+        if (right == null)
         {
-            if (left.Count == right.Values.Count)
+            throw new ArgumentNullException(nameof(right));
+        }
+
+        var leftValueSet = new HashSet<string>(
+            left.Values.Select(t => t.Name.Value));
+        return CanBeMerged(leftValueSet, right);
+    }
+
+    private static bool CanBeMerged(
+        ICollection<string> left,
+        EnumTypeDefinitionNodeBase right)
+    {
+        if (left.Count == right.Values.Count)
+        {
+            for (var i = 0; i < right.Values.Count; i++)
             {
-                for (int i = 0; i < right.Values.Count; i++)
+                if (!left.Contains(right.Values[i].Name.Value))
                 {
-                    if (!left.Contains(right.Values[i].Name.Value))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                return true;
             }
-            return false;
+            return true;
         }
+        return false;
     }
 }

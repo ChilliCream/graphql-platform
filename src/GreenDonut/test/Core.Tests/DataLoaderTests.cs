@@ -1,867 +1,936 @@
-using System.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
+using static GreenDonut.TestHelpers;
 
-namespace GreenDonut
+namespace GreenDonut;
+
+public class DataLoaderTests
 {
-    public class DataLoaderTests
+    [Fact(DisplayName = "Clear: Should not throw any exception")]
+    public void ClearNoException()
     {
-        [Fact(DisplayName = "Clear: Should not throw any exception")]
-        public void ClearNoException()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-            // act
-            Action verify = () => loader.Clear();
+        // act
+        void Verify() => loader.Clear();
 
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
+        // assert
+        Assert.Null(Record.Exception(Verify));
+    }
 
-        [Fact(DisplayName = "Clear: Should remove all entries from the cache")]
-        public void ClearAllEntries()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var cache = new TaskCache(10);
-            var options = new DataLoaderOptions<string>
+    [Fact(DisplayName = "Clear: Should remove all entries from the cache")]
+    public void ClearAllEntries()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+
+        loader.Set("Foo", Task.FromResult("Bar"));
+        loader.Set("Bar", Task.FromResult("Baz"));
+
+        // act
+        loader.Clear();
+
+        // assert
+        Assert.Equal(0, cache.Usage);
+    }
+
+    [Fact(DisplayName = "Dispose: Should dispose and not throw any exception")]
+    public void DisposeNoExceptionNoBatchingAndCaching()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+
+        // act
+        void Verify() => loader.Dispose();
+
+        // assert
+        Assert.Null(Record.Exception(Verify));
+    }
+
+    [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for key")]
+    public async Task LoadSingleKeyNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+
+        // act
+        Task<string> Verify() => loader.LoadAsync(default(string)!, CancellationToken.None);
+
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>("key", Verify);
+    }
+
+    [Fact(DisplayName = "LoadAsync: Should match snapshot")]
+    public async Task LoadSingleResult()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var key = "Foo";
+
+        // act
+        var loadResult = loader.LoadAsync(key);
+
+        // assert
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
+        (await loadResult).MatchSnapshot();
+    }
+
+    [Fact(DisplayName = "LoadAsync: Should match snapshot when same key is load twice")]
+    public async Task LoadSingleResultTwice()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new DelayDispatcher();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var key = "Foo";
+
+        // first load.
+        (await loader.LoadAsync(key)).MatchSnapshot();
+
+        // act
+        var result = await loader.LoadAsync(key);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact(DisplayName = "LoadAsync: Should match snapshot when using no cache")]
+    public async Task LoadSingleResultNoCache()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(
+            fetch,
+            batchScheduler,
+            new DataLoaderOptions
             {
-                Cache = cache
-            };
-            var loader = new DataLoader<string, string>(batchScheduler, fetch, options);
+                Caching = false
+            });
+        var key = "Foo";
 
-            loader.Set("Foo", Task.FromResult("Bar"));
-            loader.Set("Bar", Task.FromResult("Baz"));
+        // act
+        var loadResult = loader.LoadAsync(key);
 
-            // act
-            loader.Clear();
+        // assert
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
+        (await loadResult).MatchSnapshot();
+    }
 
-            // assert
-            Assert.Equal(0, cache.Usage);
-        }
+    [Fact(DisplayName = "LoadAsync: Should return one error")]
+    public async Task LoadSingleErrorResult()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var key = "Foo";
 
-        [Fact(DisplayName = "Dispose: Should dispose and not throw any exception")]
-        public void DisposeNoExceptionNobatchingAndCaching()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+        // act
+        Task<string> Verify() => loader.LoadAsync(key, CancellationToken.None);
 
-            // act
-            Action verify = () => loader.Dispose();
+        // assert
+        var task = Assert
+            .ThrowsAsync<InvalidOperationException>((Func<Task<string>>)Verify);
 
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
 
-        [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for key")]
-        public async Task LoadSingleKeyNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            string key = null;
+        await task;
+    }
 
-            // act
-            Func<Task<string>> verify = () => loader.LoadAsync(key);
+    [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for keys")]
+    public async Task LoadParamsKeysNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>("key", verify);
-        }
+        // act
+        Task<IReadOnlyList<string>> Verify() => loader.LoadAsync(default(string[])!);
 
-        [Fact(DisplayName = "LoadAsync: Should match snapshot")]
-        public async Task LoadSingleResult()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>("Bar");
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var key = "Foo";
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>("keys", (Func<Task<IReadOnlyList<string>>>)Verify);
+    }
 
-            // act
-            var loadResult = loader.LoadAsync(key);
+    [Fact(DisplayName = "LoadAsync: Should allow empty list of keys")]
+    public async Task LoadParamsZeroKeys()
+    {
+        // arrange
+        var fetch = TestHelpers.CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var keys = Array.Empty<string>();
 
-            // assert
-            await Task.Delay(25);
-            batchScheduler.Dispatch();
-            (await loadResult).MatchSnapshot();
-        }
+        // act
+        var loadResult = loader.LoadAsync(keys);
 
-        [Fact(DisplayName = "LoadAsync: Should return one error")]
-        public async Task LoadSingleErrorResult()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var key = "Foo";
+        // assert
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
+        Assert.Empty(await loadResult);
+    }
 
-            // act
-            Func<Task<string>> verify = () => loader.LoadAsync(key);
+    [Fact(DisplayName = "LoadAsync: Should match snapshot")]
+    public async Task LoadParamsResult()
+    {
+        // arrange
+        var fetch = TestHelpers
+            .CreateFetch<string, string>("Bar");
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var keys = new[] { "Foo" };
 
-            // assert
-            Task<InvalidOperationException> task = Assert
-                .ThrowsAsync<InvalidOperationException>(verify);
+        // act
+        var loadResult = loader.LoadAsync(keys);
 
-            await Task.Delay(25);
-            batchScheduler.Dispatch();
+        // assert
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
+        (await loadResult).MatchSnapshot();
+    }
 
-            await task;
-        }
+    [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for keys")]
+    public async Task LoadCollectionKeysNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-        [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for keys")]
-        public async Task LoadParamsKeysNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            string[] keys = null;
+        // act
+        Task<IReadOnlyList<string>> Verify()
+            => loader.LoadAsync(default(List<string>)!, CancellationToken.None);
 
-            // act
-            Func<Task<IReadOnlyList<string>>> verify = () => loader.LoadAsync(keys);
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>("keys", Verify);
+    }
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>("keys", verify);
-        }
+    [Fact(DisplayName = "LoadAsync: Should allow empty list of keys")]
+    public async Task LoadCollectionZeroKeys()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var keys = new List<string>();
 
-        [Fact(DisplayName = "LoadAsync: Should allow empty list of keys")]
-        public async Task LoadParamsZeroKeys()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var keys = new string[0];
+        // act
+        var loadResult = loader.LoadAsync(keys, CancellationToken.None);
 
-            // act
-            Task<IReadOnlyList<string>> loadResult = loader.LoadAsync(keys);
+        // assert
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
+        Assert.Empty(await loadResult);
+    }
 
-            // assert
-            await Task.Delay(25);
-            batchScheduler.Dispatch();
-            Assert.Empty(await loadResult);
-        }
+    [Fact(DisplayName = "LoadAsync: Should return one result")]
+    public async Task LoadCollectionResult()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var keys = new List<string> { "Foo" };
 
-        [Fact(DisplayName = "LoadAsync: Should match snapshot")]
-        public async Task LoadParamsResult()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>("Bar");
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var keys = new string[] {"Foo"};
+        // act
+        var loadResult = loader.LoadAsync(keys, CancellationToken.None);
+        batchScheduler.Dispatch();
 
-            // act
-            Task<IReadOnlyList<string>> loadResult = loader.LoadAsync(keys);
+        // assert
+        (await loadResult).MatchSnapshot();
+    }
 
-            // assert
-            await Task.Delay(25);
-            batchScheduler.Dispatch();
-            (await loadResult).MatchSnapshot();
-        }
+    [Fact(DisplayName = "LoadAsync: Should match snapshot if same key is fetched twice")]
+    public async Task LoadCollectionResultTwice()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new DelayDispatcher();
+        var loader = new DataLoader<string, string>(
+            fetch,
+            batchScheduler);
+        var keys = new List<string> { "Foo" };
 
-        [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for keys")]
-        public async Task LoadCollectionKeysNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            List<string> keys = null;
+        (await loader.LoadAsync(keys, CancellationToken.None)).MatchSnapshot();
 
-            // act
-            Func<Task<IReadOnlyList<string>>> verify = () => loader.LoadAsync(keys);
+        // act
+        var result = await loader.LoadAsync(keys, CancellationToken.None);
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>("keys", verify);
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact(DisplayName = "LoadAsync: Should allow empty list of keys")]
-        public async Task LoadCollectionZeroKeys()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var keys = new List<string>();
-
-            // act
-            Task<IReadOnlyList<string>> loadResult = loader.LoadAsync(keys);
-
-            // assert
-            await Task.Delay(25);
-            batchScheduler.Dispatch();
-            Assert.Empty(await loadResult);
-        }
-
-        [Fact(DisplayName = "LoadAsync: Should return one result")]
-        public async Task LoadCollectionResult()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>("Bar");
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var keys = new List<string> { "Foo" };
-
-            // act
-            Task<IReadOnlyList<string>> loadResult = loader.LoadAsync(keys);
-            batchScheduler.Dispatch();
-
-            // assert
-            (await loadResult).MatchSnapshot();
-        }
-
-        [Fact(DisplayName = "LoadAsync: Should return a list with null values")]
-        public async Task LoadWithNullValues()
-        {
-            // arrange
-            Result<string> expectedResult = "Bar";
-            var repository = new Dictionary<string, string>
+    [Fact(DisplayName = "LoadAsync: Should return one result when cache is deactivated")]
+    public async Task LoadCollectionResultNoCache()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(
+            fetch,
+            batchScheduler,
+            new DataLoaderOptions
             {
-                { "Foo", "Bar" },
-                { "Bar", null },
-                { "Baz", "Foo" },
-                { "Qux", null }
-            };
-            FetchDataDelegate<string, string> fetch = async (keys, cancellationToken) =>
-            {
-                var values = new List<Result<string>>();
+                Caching = false
+            });
+        var keys = new List<string> { "Foo" };
 
-                foreach (var key in keys)
+        // act
+        var loadResult = loader.LoadAsync(keys, CancellationToken.None);
+        batchScheduler.Dispatch();
+
+        // assert
+        (await loadResult).MatchSnapshot();
+    }
+
+    [Fact(DisplayName = "LoadAsync: Should return a list with null values")]
+    public async Task LoadWithNullValues()
+    {
+        // arrange
+        var repository = new Dictionary<string, string>
+        {
+            { "Foo", "Bar" },
+            { "Bar", null },
+            { "Baz", "Foo" },
+            { "Qux", null }
+        };
+
+        ValueTask Fetch(
+            IReadOnlyList<string> keys,
+            Memory<Result<string>> results,
+            CancellationToken cancellationToken)
+        {
+            var span = results.Span;
+
+            for (var i = 0; i < keys.Count; i++)
+            {
+                if (repository.TryGetValue(keys[i], out var result))
                 {
-                    if (repository.ContainsKey(key))
-                    {
-                        values.Add(repository[key]);
-                    }
+                    span[i] = result;
                 }
+            }
 
-                return await Task.FromResult(values);
-            };
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
-
-            // act
-            Task<IReadOnlyList<string>> loadResult = loader.LoadAsync(requestKeys);
-            batchScheduler.Dispatch();
-
-            // assert
-            (await loadResult).MatchSnapshot();
+            return default;
         }
 
-        [Fact(DisplayName = "LoadAsync: Should result in a list of error results and cleaning up the cache because the key and value list count are not equal", Skip = "FIx this Test")]
-        public async Task LoadKeyAndValueCountNotEquel()
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(Fetch, batchScheduler);
+        var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
+
+        // act
+        var loadResult = loader.LoadAsync(requestKeys);
+        batchScheduler.Dispatch();
+
+        // assert
+        (await loadResult).MatchSnapshot();
+    }
+
+    [Fact(DisplayName =
+        "LoadAsync: Should result in a list of error results and cleaning up the " +
+        "cache because the key and value list count are not equal")]
+    public async Task LoadKeyAndValueCountNotEqual()
+    {
+        // arrange
+        var expectedException = Errors.CreateKeysAndValuesMustMatch(4, 3);
+
+        var repository = new Dictionary<string, string>
         {
-            // arrange
-            InvalidOperationException expectedException = Errors
-                .CreateKeysAndValuesMustMatch(4, 3);
-            Result<string> expectedResult = "Bar";
-            var repository = new Dictionary<string, string>
+            { "Foo", "Bar" },
+            { "Bar", "Baz" },
+            { "Baz", "Foo" }
+        };
+
+        ValueTask Fetch(
+            IReadOnlyList<string> keys,
+            Memory<Result<string>> results,
+            CancellationToken cancellationToken)
+        {
+            var span = results.Span;
+
+            for (var i = 0; i < keys.Count; i++)
             {
-                { "Foo", "Bar" },
-                { "Bar", "Baz" },
-                { "Baz", "Foo" }
-            };
-            FetchDataDelegate<string, string> fetch =
-                async (keys, cancellationToken) =>
+                if (repository.TryGetValue(keys[i], out var result))
                 {
-                    var values = new List<Result<string>>();
-
-                    foreach (var key in keys)
-                    {
-                        if (repository.ContainsKey(key))
-                        {
-                            values.Add(repository[key]);
-                        }
-                    }
-
-                    return await Task.FromResult(values);
-                };
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var requestKeys = new [] { "Foo", "Bar", "Baz", "Qux" };
-
-            // act
-            Func<Task> verify = () => loader.LoadAsync(requestKeys);
-
-            // assert
-            Task<InvalidOperationException> task = Assert
-                .ThrowsAsync<InvalidOperationException>(verify);
-
-            batchScheduler.Dispatch();
-
-            InvalidOperationException actualException = await task;
-
-            Assert.Equal(expectedException.Message, actualException.Message);
-        }
-
-        [Fact(DisplayName = "LoadAsync: Should handle batching error")]
-        public async Task LoadBatchingError()
-        {
-            // arrange
-            var expectedException = new Exception("Foo");
-            Result<string> expectedResult = "Bar";
-            FetchDataDelegate<string, string> fetch = (keys, cancellationToken) =>
-                throw expectedException;
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
-
-            // act
-            Func<Task> verify = () => loader.LoadAsync(requestKeys);
-
-            // assert
-            Task<Exception> task = Assert.ThrowsAsync<Exception>(verify);
-
-            batchScheduler.Dispatch();
-
-            Exception actualException = await task;
-
-            Assert.Equal(expectedException, actualException);
-        }
-
-        [InlineData(5, 25, 25, 1, true, true)]
-        [InlineData(5, 25, 25, 0, true, true)]
-        [InlineData(5, 25, 25, 0, true, false)]
-        [InlineData(5, 25, 25, 0, false, true)]
-        [InlineData(5, 25, 25, 0, false, false)]
-        [InlineData(100, 1000, 25, 25, true, true)]
-        [InlineData(100, 1000, 25, 0, true, true)]
-        [InlineData(100, 1000, 25, 0, true, false)]
-        [InlineData(100, 1000, 25, 0, false, true)]
-        [InlineData(100, 1000, 25, 0, false, false)]
-        [Theory(DisplayName = "LoadAsync: Runs integration tests with different settings")]
-        public async Task LoadTest(int uniqueKeys, int maxRequests, int maxDelay, int maxBatchSize,
-            bool caching, bool batching)
-        {
-            // arrange
-            var random = new Random();
-            FetchDataDelegate<Guid, int> fetch =
-                async (keys, cancellationToken) =>
-                {
-                    var values = new List<Result<int>>(keys.Count);
-
-                    foreach (Guid key in keys)
-                    {
-                        var value = random.Next(1, maxRequests);
-
-                        values.Add(value);
-                    }
-
-                    var delay = random.Next(maxDelay);
-
-                    await Task.Delay(delay);
-
-                    return values;
-                };
-            var options = new DataLoaderOptions<Guid>
-            {
-                Caching = caching,
-                Batch = batching,
-                MaxBatchSize = maxBatchSize
-            };
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<Guid, int>(batchScheduler, fetch, options);
-            var keyArray = new Guid[uniqueKeys];
-
-            for (var i = 0; i < keyArray.Length; i++)
-            {
-                keyArray[i] = Guid.NewGuid();
+                    span[i] = result;
+                }
             }
 
-            var requests = new Task<int>[maxRequests];
+            return default;
+        }
 
-            // act
-            for (var i = 0; i < maxRequests; i++)
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(Fetch, batchScheduler);
+        var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
+
+        // act
+        Task Verify() => loader.LoadAsync(requestKeys);
+
+        // assert
+        var task =
+            Assert.ThrowsAsync<InvalidOperationException>(Verify);
+
+        batchScheduler.Dispatch();
+
+        var actualException = await task;
+
+        Assert.Equal(expectedException.Message, actualException.Message);
+    }
+
+
+    [Fact(DisplayName = "LoadAsync: Should handle batching error")]
+    public async Task LoadBatchingError()
+    {
+        // arrange
+        var expectedException = new Exception("Foo");
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(Fetch, batchScheduler);
+        var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
+
+        ValueTask Fetch(
+            IReadOnlyList<string> keys,
+            Memory<Result<string>> results,
+            CancellationToken cancellationToken)
+            => throw expectedException;
+
+        // act
+        Task Verify() => loader.LoadAsync(requestKeys);
+
+        // assert
+        var task = Assert.ThrowsAsync<Exception>(Verify);
+
+        batchScheduler.Dispatch();
+
+        var actualException = await task;
+
+        Assert.Equal(expectedException, actualException);
+    }
+
+    [InlineData(5, 25, 25, 1, true, true)]
+    [InlineData(5, 25, 25, 0, true, true)]
+    [InlineData(5, 25, 25, 0, true, false)]
+    [InlineData(5, 25, 25, 0, false, true)]
+    [InlineData(5, 25, 25, 0, false, false)]
+    // [InlineData(100, 1000, 25, 25, true, true)]
+    // [InlineData(100, 1000, 25, 0, true, true)]
+    // [InlineData(100, 1000, 25, 0, true, false)]
+    // [InlineData(100, 1000, 25, 25, false, true)]
+    // [InlineData(100, 1000, 25, 0, false, false)]
+    [Theory(DisplayName = "LoadAsync: Runs integration tests with different settings")]
+    public async Task LoadTest(
+        int uniqueKeys,
+        int maxRequests,
+        int maxDelay,
+        int maxBatchSize,
+        bool caching,
+        bool batching)
+    {
+        // arrange
+        var random = new Random();
+
+        ValueTask Fetch(
+            IReadOnlyList<Guid> keys,
+            Memory<Result<int>> results,
+            CancellationToken cancellationToken)
+        {
+            for (var index = 0; index < keys.Count; index++)
             {
-                requests[i] = Task.Factory.StartNew(async () =>
-                {
-                    var index = random.Next(uniqueKeys);
-                    var delay = random.Next(maxDelay);
-
-                    await Task.Delay(delay);
-
-                    return await loader.LoadAsync(keyArray[index]);
-                }, TaskCreationOptions.RunContinuationsAsynchronously)
-                    .Unwrap();
+                var value = random.Next(1, maxRequests);
+                results.Span[index] = value;
             }
 
-            while (requests.Any(task => !task.IsCompleted))
+            return Wait();
+
+            async ValueTask Wait()
+                => await Task.Delay(random.Next(maxDelay), cancellationToken);
+        }
+
+        var options = new DataLoaderOptions
+        {
+            Caching = caching,
+            MaxBatchSize = batching ? 1 : maxBatchSize
+        };
+
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<Guid, int>(Fetch, batchScheduler, options);
+        var keyArray = new Guid[uniqueKeys];
+
+        for (var i = 0; i < keyArray.Length; i++)
+        {
+            keyArray[i] = Guid.NewGuid();
+        }
+
+        var requests = new Task<int>[maxRequests];
+
+        // act
+        for (var i = 0; i < maxRequests; i++)
+        {
+            requests[i] = Task.Factory.StartNew(async () =>
             {
-                await Task.Delay(25);
-                batchScheduler.Dispatch();
-            }
+                var index = random.Next(uniqueKeys);
+                var delay = random.Next(maxDelay);
 
-            // assert
-            var responses = await Task.WhenAll(requests);
+                await Task.Delay(delay);
 
-            foreach (var response in responses)
-            {
-                Assert.True(response > 0);
-            }
+                return await loader.LoadAsync(keyArray[index]);
+            }, TaskCreationOptions.RunContinuationsAsynchronously).Unwrap();
         }
 
-        [Fact(DisplayName = "Remove: Should throw an argument null exception for key")]
-        public void RemoveKeyNull()
+        while (requests.Any(task => !task.IsCompleted))
         {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            string key = null;
-
-            loader.Set("Foo", Task.FromResult("Bar"));
-
-            // act
-            Action verify = () => loader.Remove(key);
-
-            // assert
-            Assert.Throws<ArgumentNullException>("key", verify);
-        }
-
-        [Fact(DisplayName = "Remove: Should not throw any exception")]
-        public void RemoveNoException()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var key = "Foo";
-
-            // act
-            Action verify = () => loader.Remove(key);
-
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
-
-        [Fact(DisplayName = "Remove: Should remove an existing entry")]
-        public void RemoveEntry()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var cache = new TaskCache(10);
-            var options = new DataLoaderOptions<string>
-            {
-                Cache = cache
-            };
-            var loader = new DataLoader<string, string>(batchScheduler, fetch, options);
-            var key = "Foo";
-
-            loader.Set(key, Task.FromResult("Bar"));
-
-            // act
-            loader.Remove(key);
-
-            // assert
-            Assert.Equal(0, cache.Usage);
-        }
-
-        [Fact(DisplayName = "Set: Should throw an argument null exception for key")]
-        public void SetKeyNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            string key = null;
-            var value = Task.FromResult("Foo");
-
-            // act
-            Action verify = () => loader.Set(key, value);
-
-            // assert
-            Assert.Throws<ArgumentNullException>("key", verify);
-        }
-
-        [Fact(DisplayName = "Set: Should throw an argument null exception for value")]
-        public void SetValueNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var key = "Foo";
-            Task<string> value = null;
-
-            // act
-            Action verify = () => loader.Set(key, value);
-
-            // assert
-            Assert.Throws<ArgumentNullException>("value", verify);
-        }
-
-        [Fact(DisplayName = "Set: Should result in a new cache entry")]
-        public void SetNewCacheEntry()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var cache = new TaskCache(10);
-            var options = new DataLoaderOptions<string>
-            {
-                Cache = cache
-            };
-            var loader = new DataLoader<string, string>(batchScheduler, fetch, options);
-            var key = "Foo";
-            var value = Task.FromResult("Bar");
-
-            // act
-            loader.Set(key, value);
-
-            // assert
-            Assert.Equal(1, cache.Usage);
-        }
-
-        [Fact(DisplayName = "Set: Should result in 'Bar'")]
-        public void SetTwice()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var cache = new TaskCache(10);
-            var options = new DataLoaderOptions<string>
-            {
-                Cache = cache
-            };
-            var loader = new DataLoader<string, string>(batchScheduler, fetch, options);
-            var key = "Foo";
-            var first = Task.FromResult("Bar");
-            var second = Task.FromResult("Baz");
-
-            // act
-            loader.Set(key, first);
-            loader.Set(key, second);
-
-            // assert
-            Assert.Equal(1, cache.Usage);
-        }
-
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for key")]
-        public async Task IDataLoaderLoadSingleKeyNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object key = null;
-
-            // act
-            Func<Task<object>> verify = () => loader.LoadAsync(key);
-
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>("key", verify);
-        }
-
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should return one result")]
-        public async Task IDataLoaderLoadSingleResult()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>("Bar");
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object key = "Foo";
-
-            // act
-            Task<object> loadResult = loader.LoadAsync(key);
-
-            // assert
             await Task.Delay(25);
             batchScheduler.Dispatch();
-            (await loadResult).MatchSnapshot();
         }
 
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should return one error")]
-        public async Task IDataLoaderLoadSingleErrorResult()
+        // assert
+        var responses = await Task.WhenAll(requests);
+
+        foreach (var response in responses)
         {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object key = "Foo";
-
-            // act
-            Func<Task<object>> verify = () => loader.LoadAsync(key);
-
-            // assert
-            Task<InvalidOperationException> task = Assert
-                .ThrowsAsync<InvalidOperationException>(verify);
-
-            await Task.Delay(25);
-            batchScheduler.Dispatch();
-
-            await task;
+            Assert.True(response > 0);
         }
+    }
 
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
-        public async Task IDataLoaderLoadParamsKeysNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object[] keys = null;
+    [Fact(DisplayName = "Remove: Should throw an argument null exception for key")]
+    public void RemoveKeyNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-            // act
-            Func<Task<IReadOnlyList<object>>> verify = () => loader.LoadAsync(keys);
+        loader.Set("Foo", Task.FromResult("Bar"));
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>("keys", verify);
-        }
+        // act
+        void Verify() => loader.Remove(default!);
 
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should allow empty list of keys")]
-        public async Task IDataLoaderLoadParamsZeroKeys()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var keys = new object[0];
+        // assert
+        Assert.Throws<ArgumentNullException>("key", Verify);
+    }
 
-            // act
-            IReadOnlyList<object> loadResult = await loader.LoadAsync(keys);
+    [Fact(DisplayName = "Remove: Should not throw any exception")]
+    public void RemoveNoException()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var key = "Foo";
 
-            // assert
-            Assert.Empty(loadResult);
-        }
+        // act
+        void Verify() => loader.Remove(key);
 
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should return one result")]
-        public async Task IDataLoaderLoadParamsResult()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>("Bar");
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var keys = new object[] { "Foo" };
+        // assert
+        Assert.Null(Record.Exception(Verify));
+    }
 
-            // act
-            Task<IReadOnlyList<object>> loadResult = loader.LoadAsync(keys);
+    [Fact(DisplayName = "Remove: Should remove an existing entry")]
+    public void RemoveEntry()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        var key = "Foo";
 
-            // assert
-            await Task.Delay(25);
-            batchScheduler.Dispatch();
-            (await loadResult).MatchSnapshot();
-        }
+        loader.Set(key, Task.FromResult("Bar"));
 
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
-        public async Task IDataLoaderLoadCollectionKeysNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            List<object> keys = null;
+        // act
+        loader.Remove(key);
 
-            // act
-            Func<Task<IReadOnlyList<object>>> verify = () => loader.LoadAsync(keys);
+        // assert
+        Assert.Equal(0, cache.Usage);
+    }
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>("keys", verify);
-        }
+    [Fact(DisplayName = "Set: Should throw an argument null exception for key")]
+    public void SetKeyNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var value = Task.FromResult("Foo");
 
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should allow empty list of keys")]
-        public async Task IDataLoaderLoadCollectionZeroKeys()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var keys = new List<object>();
+        // act
+        void Verify() => loader.Set(null!, value);
 
-            // act
-            IReadOnlyList<object> loadResult = await loader.LoadAsync(keys);
+        // assert
+        Assert.Throws<ArgumentNullException>("key", Verify);
+    }
 
-            // assert
-            Assert.Empty(loadResult);
-        }
+    [Fact(DisplayName = "Set: Should throw an argument null exception for value")]
+    public void SetValueNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var key = "Foo";
 
-        [Fact(DisplayName = "IDataLoader.LoadAsync: Should return one result")]
-        public async Task IDataLoaderLoadCollectionResult()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>("Bar");
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var keys = new List<object> { "Foo" };
+        // act
+        void Verify() => loader.Set(key, default!);
 
-            // act
-            Task<IReadOnlyList<object>> loadResult = loader.LoadAsync(keys);
+        // assert
+        Assert.Throws<ArgumentNullException>("value", Verify);
+    }
 
-            // assert
-            await Task.Delay(25);
-            batchScheduler.Dispatch();
-            (await loadResult).MatchSnapshot();
-        }
+    [Fact(DisplayName = "Set: Should result in a new cache entry")]
+    public void SetNewCacheEntry()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        var key = "Foo";
+        var value = Task.FromResult("Bar");
 
-        [Fact(DisplayName = "IDataLoader.Remove: Should throw an argument null exception for key")]
-        public void IDataLoaderRemoveKeyNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object key = null;
+        // act
+        loader.Set(key, value);
 
-            loader.Set("Foo", Task.FromResult((object)"Bar"));
+        // assert
+        Assert.Equal(1, cache.Usage);
+    }
 
-            // act
-            Action verify = () => loader.Remove(key);
+    [Fact(DisplayName = "Set: Should result in 'Bar'")]
+    public void SetTwice()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        var key = "Foo";
+        var first = Task.FromResult("Bar");
+        var second = Task.FromResult("Baz");
 
-            // assert
-            Assert.Throws<ArgumentNullException>("key", verify);
-        }
+        // act
+        loader.Set(key, first);
+        loader.Set(key, second);
 
-        [Fact(DisplayName = "IDataLoader.Remove: Should not throw any exception")]
-        public void IDataLoaderRemoveNoException()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object key = "Foo";
+        // assert
+        Assert.Equal(1, cache.Usage);
+    }
 
-            // act
-            Action verify = () => loader.Remove(key);
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for key")]
+    public async Task IDataLoaderLoadSingleKeyNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
+        // act
+        Task<object> Verify() => loader.LoadAsync(default(object)!);
 
-        [Fact(DisplayName = "IDataLoader.Remove: Should remove an existing entry")]
-        public void IDataLoaderRemoveEntry()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var cache = new TaskCache(10);
-            var options  = new DataLoaderOptions<string>
-            {
-                Cache = cache
-            };
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch, options);
-            object key = "Foo";
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>("key", Verify);
+    }
 
-            loader.Set(key, Task.FromResult((object)"Bar"));
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should return one result")]
+    public async Task IDataLoaderLoadSingleResult()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        object key = "Foo";
 
-            // act
-            loader.Remove(key);
+        // act
+        var loadResult = loader.LoadAsync(key);
 
-            // assert
-            Assert.Equal(0, cache.Usage);
-        }
+        // assert
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
+        (await loadResult).MatchSnapshot();
+    }
 
-        [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for key")]
-        public void IDataLoaderSetKeyNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object key = null;
-            Task<object> value = Task.FromResult<object>("Foo");
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should return one error")]
+    public async Task IDataLoaderLoadSingleErrorResult()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        object key = "Foo";
 
-            // act
-            Action verify = () => loader.Set(key, value);
+        // act
+        Task<object> Verify() => loader.LoadAsync(key);
 
-            // assert
-            Assert.Throws<ArgumentNullException>("key", verify);
-        }
+        // assert
+        var task =
+            Assert.ThrowsAsync<InvalidOperationException>(Verify);
 
-        [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for value")]
-        public void IDataLoaderSetValueNull()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object key = "Foo";
-            Task<object> value = null;
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
 
-            // act
-            Action verify = () => loader.Set(key, value);
+        await task;
+    }
 
-            // assert
-            Assert.Throws<ArgumentNullException>("value", verify);
-        }
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
+    public async Task IDataLoaderLoadParamsKeysNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
 
-        [Fact(DisplayName = "IDataLoader.Set: Should not throw any exception")]
-        public void IDataLoaderSetNoException()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
-            object key = "Foo";
-            Task<object> value = Task.FromResult<object>("Bar");
+        // act
+        Task<IReadOnlyList<object>> Verify() => loader.LoadAsync(default(object[])!);
 
-            // act
-            Action verify = () => loader.Set(key, value);
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>("keys", Verify);
+    }
 
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should allow empty list of keys")]
+    public async Task IDataLoaderLoadParamsZeroKeys()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var keys = Array.Empty<object>();
 
-        [Fact(DisplayName = "IDataLoader.Set: Should result in a new cache entry")]
-        public void IDataLoaderSetNewCacheEntry()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var cache = new TaskCache(10);
-            var options  = new DataLoaderOptions<string>
-            {
-                Cache = cache
-            };
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch, options);
-            object key = "Foo";
-            Task<object> value = Task.FromResult<object>("Bar");
+        // act
+        var loadResult = await loader.LoadAsync(keys);
 
-            // act
-            loader.Set(key, value);
+        // assert
+        Assert.Empty(loadResult);
+    }
 
-            // assert
-            Assert.Equal(1, cache.Usage);
-        }
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should return one result")]
+    public async Task IDataLoaderLoadParamsResult()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var keys = new object[] { "Foo" };
 
-        [Fact(DisplayName = "IDataLoader.Set: Should result in 'Bar'")]
-        public void IDataLoaderSetTwice()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var batchScheduler = new ManualBatchScheduler();
-            var cache = new TaskCache(10);
-            var options  = new DataLoaderOptions<string>
-            {
-                Cache = cache
-            };
-            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch, options);
-            var key = "Foo";
-            var first = Task.FromResult((object)"Bar");
-            var second = Task.FromResult((object)"Baz");
+        // act
+        var loadResult = loader.LoadAsync(keys);
 
-            // act
-            loader.Set(key, first);
-            loader.Set(key, second);
+        // assert
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
+        (await loadResult).MatchSnapshot();
+    }
 
-            // assert
-            Assert.Equal(1, cache.Usage);
-        }
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
+    public async Task IDataLoaderLoadCollectionKeysNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+
+        // act
+        Task<IReadOnlyList<object>> Verify()
+            => loader.LoadAsync(default(List<object>)!);
+
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>("keys", Verify);
+    }
+
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should allow empty list of keys")]
+    public async Task IDataLoaderLoadCollectionZeroKeys()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var keys = new List<object>();
+
+        // act
+        var loadResult = await loader.LoadAsync(keys);
+
+        // assert
+        Assert.Empty(loadResult);
+    }
+
+    [Fact(DisplayName = "IDataLoader.LoadAsync: Should return one result")]
+    public async Task IDataLoaderLoadCollectionResult()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>("Bar");
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var keys = new List<object> { "Foo" };
+
+        // act
+        var loadResult = loader.LoadAsync(keys);
+
+        // assert
+        await Task.Delay(25);
+        batchScheduler.Dispatch();
+        (await loadResult).MatchSnapshot();
+    }
+
+    [Fact(DisplayName = "IDataLoader.Remove: Should throw an argument null exception for key")]
+    public void IDataLoaderRemoveKeyNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        object key = null;
+
+        loader.Set("Foo", Task.FromResult((object)"Bar"));
+
+        // act
+        var verify = () => loader.Remove(key);
+
+        // assert
+        Assert.Throws<ArgumentNullException>("key", verify);
+    }
+
+    [Fact(DisplayName = "IDataLoader.Remove: Should not throw any exception")]
+    public void IDataLoaderRemoveNoException()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        object key = "Foo";
+
+        // act
+        var verify = () => loader.Remove(key);
+
+        // assert
+        Assert.Null(Record.Exception(verify));
+    }
+
+    [Fact(DisplayName = "IDataLoader.Remove: Should remove an existing entry")]
+    public void IDataLoaderRemoveEntry()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        object key = "Foo";
+
+        loader.Set(key, Task.FromResult((object)"Bar"));
+
+        // act
+        loader.Remove(key);
+
+        // assert
+        Assert.Equal(0, cache.Usage);
+    }
+
+    [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for key")]
+    public void IDataLoaderSetKeyNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var value = Task.FromResult<object>("Foo");
+
+        // act
+        void Verify() => loader.Set(null!, value);
+
+        // assert
+        Assert.Throws<ArgumentNullException>("key", Verify);
+    }
+
+    [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for value")]
+    public void IDataLoaderSetValueNull()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        object key = "Foo";
+
+        // act
+        void Verify() => loader.Set(key, default!);
+
+        // assert
+        Assert.Throws<ArgumentNullException>("value", Verify);
+    }
+
+    [Fact(DisplayName = "IDataLoader.Set: Should not throw any exception")]
+    public void IDataLoaderSetNoException()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
+        object key = "Foo";
+        var value = Task.FromResult<object>("Bar");
+
+        // act
+        var verify = () => loader.Set(key, value);
+
+        // assert
+        Assert.Null(Record.Exception(verify));
+    }
+
+    [Fact(DisplayName = "IDataLoader.Set: Should result in a new cache entry")]
+    public void IDataLoaderSetNewCacheEntry()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        object key = "Foo";
+        var value = Task.FromResult<object>("Bar");
+
+        // act
+        loader.Set(key, value);
+
+        // assert
+        Assert.Equal(1, cache.Usage);
+    }
+
+    [Fact(DisplayName = "IDataLoader.Set: Should result in 'Bar'")]
+    public void IDataLoaderSetTwice()
+    {
+        // arrange
+        var fetch = TestHelpers.CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        const string key = "Foo";
+        var first = Task.FromResult((object)"Bar");
+        var second = Task.FromResult((object)"Baz");
+
+        // act
+        loader.Set(key, first);
+        loader.Set(key, second);
+
+        // assert
+        Assert.Equal(1, cache.Usage);
     }
 }

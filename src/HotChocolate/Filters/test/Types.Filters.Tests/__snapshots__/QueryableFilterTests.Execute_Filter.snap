@@ -1,4 +1,5 @@
 ﻿{
+  "Kind": "SingleResult",
   "Label": null,
   "Path": null,
   "Data": {
@@ -17,8 +18,10 @@
       }
     ]
   },
+  "Items": null,
   "Errors": null,
   "Extensions": null,
+  "Incremental": null,
   "ContextData": null,
   "HasNext": null
 }

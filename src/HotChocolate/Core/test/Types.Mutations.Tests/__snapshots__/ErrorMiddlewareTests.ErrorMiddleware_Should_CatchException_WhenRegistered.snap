@@ -1,0 +1,45 @@
+result:
+---------------
+{
+  "data": {
+    "throw": {
+      "errors": [
+        {
+          "__typename": "InvalidOperationError",
+          "message": "Operation is not valid due to the current state of the object."
+        }
+      ]
+    }
+  }
+}
+---------------
+
+schema:
+---------------
+schema {
+  mutation: Mutation
+}
+
+interface Error {
+  message: String!
+}
+
+type InvalidOperationError implements Error {
+  message: String!
+}
+
+type Mutation {
+  throw: ThrowPayload!
+}
+
+type Payload {
+  foo: String!
+}
+
+type ThrowPayload {
+  payload: Payload
+  errors: [ThrowError!]
+}
+
+union ThrowError = InvalidOperationError
+---------------

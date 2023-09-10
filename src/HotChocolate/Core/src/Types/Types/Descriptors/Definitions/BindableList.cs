@@ -2,111 +2,124 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public sealed class BindableList<T> : IBindableList<T>
 {
-    public sealed class BindableList<T>
-        : IBindableList<T>
+#if NET6_0_OR_GREATER
+    private static readonly T[] _empty = new T[0];
+#endif
+
+    private List<T>? _list;
+
+    public BindingBehavior BindingBehavior { get; set; }
+
+    public int Count => _list?.Count ?? 0;
+
+    public bool IsReadOnly => false;
+
+    public void Add(T item)
     {
-        private List<T>? _list;
+        _list ??= new List<T>();
+        _list.Add(item);
+    }
 
-        public BindingBehavior BindingBehavior { get; set; }
+    public void AddRange(IEnumerable<T> items)
+    {
+        _list ??= new List<T>();
+        _list.AddRange(items);
+    }
 
-        public int Count => _list?.Count ?? 0;
+    public void Clear()
+    {
+        _list?.Clear();
+        _list = null;
+    }
 
-        public bool IsReadOnly => false;
+    public bool Contains(T item)
+        => _list is not null && _list.Contains(item);
 
-        public void Add(T item)
+    public void CopyTo(T[] array, int arrayIndex)
+        => _list?.CopyTo(array, arrayIndex);
+
+    public bool Remove(T item)
+    {
+        if (_list is null)
         {
-            _list ??= new List<T>();
-            _list.Add(item);
+            return false;
         }
 
-        public void AddRange(IEnumerable<T> items)
-        {
-            _list ??= new List<T>();
-            _list.AddRange(items);
-        }
+        var result = _list.Remove(item);
 
-        public void Clear()
+        if (_list.Count == 0)
         {
-            _list?.Clear();
             _list = null;
         }
 
-        public bool Contains(T item)
+        return result;
+    }
+
+    public int IndexOf(T item)
+    {
+        if (_list is null)
         {
-            return _list is not null && _list.Contains(item);
+            return -1;
         }
 
-        public void CopyTo(T[] array, int arrayIndex)
+        return _list.IndexOf(item);
+    }
+
+    public void Insert(int index, T item)
+    {
+        _list ??= new List<T>();
+        _list.Insert(index, item);
+    }
+
+    public void RemoveAt(int index)
+        => _list?.RemoveAt(index);
+
+    public T this[int index]
+    {
+        get
         {
-            _list?.CopyTo(array, arrayIndex);
+            return _list is not null
+                ? _list[index]
+                : throw new IndexOutOfRangeException();
         }
 
-        public bool Remove(T item)
-        {
-            if (_list is null)
-            {
-                return false;
-            }
-
-            var result = _list.Remove(item);
-
-            if (_list.Count == 0)
-            {
-                _list = null;
-            }
-
-            return result;
-        }
-
-        public int IndexOf(T item)
-        {
-            if (_list is null)
-            {
-                return -1;
-            }
-
-            return _list.IndexOf(item);
-        }
-
-        public void Insert(int index, T item)
+        set
         {
             _list ??= new List<T>();
-            _list.Insert(index, item);
-        }
-
-        public void RemoveAt(int index)
-        {
-            _list?.RemoveAt(index);
-        }
-
-        public T this[int index]
-        {
-            get => _list is not null ? _list[index] : throw new ArgumentOutOfRangeException();
-            set
-            {
-                _list ??= new List<T>();
-                _list[index] = value;
-            }
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            if (_list is null)
-            {
-                return Enumerable.Empty<T>().GetEnumerator();
-            }
-
-            return _list.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            _list[index] = value;
         }
     }
+
+#if NET6_0_OR_GREATER
+    internal ReadOnlySpan<T> AsSpan()
+    {
+        if (_list is null)
+        {
+            return _empty;
+        }
+
+        return CollectionsMarshal.AsSpan(_list);
+    }
+#endif
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        if (_list is null)
+        {
+            return Enumerable.Empty<T>().GetEnumerator();
+        }
+
+        return _list.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 }

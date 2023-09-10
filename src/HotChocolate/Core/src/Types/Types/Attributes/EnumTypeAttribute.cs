@@ -1,34 +1,48 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+[AttributeUsage(
+    AttributeTargets.Enum |
+    AttributeTargets.Class |
+    AttributeTargets.Struct)]
+public sealed class EnumTypeAttribute
+    : EnumTypeDescriptorAttribute
+    , ITypeAttribute
 {
-    [AttributeUsage(
-        AttributeTargets.Enum | AttributeTargets.Class | AttributeTargets.Struct,
-        Inherited = true,
-        AllowMultiple = false)]
-    public sealed class EnumTypeAttribute
-        : EnumTypeDescriptorAttribute
+    public EnumTypeAttribute(string? name = null)
     {
-        public EnumTypeAttribute(string? name = null)
-        {
-            Name = name;
-        }
-
-        public string? Name { get; set; }
-
-        public override void OnConfigure(
-            IDescriptorContext context,
-            IEnumTypeDescriptor descriptor,
-            Type type)
-        {
-            if (!string.IsNullOrEmpty(Name))
-            {
-                descriptor.Name(Name);
-            }
-        }
+        Name = name;
     }
 
+    /// <summary>
+    /// Gets or sets the GraphQL type name.
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// Defines if this attribute is inherited. The default is <c>false</c>.
+    /// </summary>
+    public bool Inherited { get; set; }
+
+    TypeKind ITypeAttribute.Kind => TypeKind.Enum;
+
+    bool ITypeAttribute.IsTypeExtension => false;
+
+    protected override void OnConfigure(
+        IDescriptorContext context,
+        IEnumTypeDescriptor descriptor,
+        Type type)
+    {
+        if (!string.IsNullOrEmpty(Name))
+        {
+            descriptor.Name(Name);
+        }
+
+        descriptor.BindValuesImplicitly();
+    }
 }

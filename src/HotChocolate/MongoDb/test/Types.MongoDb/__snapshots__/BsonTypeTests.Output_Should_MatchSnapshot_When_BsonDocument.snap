@@ -1,0 +1,25 @@
+{
+  "data": {
+    "document": {
+      "Int32": 42,
+      "Int64": 42,
+      "Decimal": "42.123456789123456789123456789",
+      "Double": 42.23,
+      "DateTime": "1970-01-19T23:02:27.536Z",
+      "Timestamp": 1638147536,
+      "ObjectId": "6124e80f3f5fc839830c1f6b",
+      "BinaryData": "AQIDBAUG",
+      "Boolean": true,
+      "BsonArray": [
+        false,
+        true
+      ],
+      "String": "String",
+      "Null": null,
+      "Nested": {
+        "Int32": 42,
+        "Int64": 42
+      }
+    }
+  }
+}

@@ -1,15 +1,20 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { DocPageCommunityFragment } from "../../../graphql-types";
-import GitHubIconSvg from "../../images/github.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
 
-interface DocPageCommunityProps {
-  data: DocPageCommunityFragment;
-  originPath: string;
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { Brand } from "@/components/sprites";
+import { DocPageCommunityFragment } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
+
+// Brands
+import GitHubIconSvg from "@/images/brands/github.svg";
+import SlackIconSvg from "@/images/brands/slack.svg";
+
+export interface DocPageCommunityProps {
+  readonly data: DocPageCommunityFragment;
+  readonly originPath: string;
 }
 
 export const DocPageCommunity: FC<DocPageCommunityProps> = ({
@@ -26,7 +31,7 @@ export const DocPageCommunity: FC<DocPageCommunityProps> = ({
         <CommunityItem>
           <CommunityLink to={docPath}>
             <IconContainer>
-              <GitHubIconSvg />
+              <Brand {...GitHubIconSvg} />
             </IconContainer>
             Edit on GitHub
           </CommunityLink>
@@ -34,7 +39,7 @@ export const DocPageCommunity: FC<DocPageCommunityProps> = ({
         <CommunityItem>
           <CommunityLink to={metadata.tools!.slack!}>
             <IconContainer>
-              <SlackIconSvg />
+              <Brand {...SlackIconSvg} />
             </IconContainer>
             Discuss on Slack
           </CommunityLink>
@@ -91,13 +96,13 @@ const CommunityItem = styled.li`
 
 const CommunityLink = styled(Link)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   > ${IconContainer} {
     margin-right: 10px;
 
     > svg {
-      fill: var(--text-color);
+      fill: ${THEME_COLORS.text};
     }
   }
 

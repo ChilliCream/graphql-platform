@@ -1,75 +1,74 @@
 using System;
-using HotChocolate.Execution.Properties;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Properties.Resources;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+/// <summary>
+/// This helper will resolve the initial value for the execution engine.
+/// </summary>
+internal static class RootValueResolver
 {
-    /// <summary>
-    /// This helper will resolve the initial value for the execution engine.
-    /// </summary>
-    internal static class RootValueResolver
+    public static object? Resolve(
+        IRequestContext context,
+        IServiceProvider services,
+        ObjectType rootType,
+        ref object? cachedValue)
     {
-        public static object? Resolve(
-            IRequestContext context,
-            IServiceProvider services,
-            ObjectType rootType,
-            ref object? cachedValue)
+        if (context.ContextData.TryGetValue(WellKnownContextData.InitialValue, out var o) &&
+            o is not null)
         {
-            // if an initial value was passed in with the request by the user, we will use that
-            // as root value on which the execution engine starts executing.
-            if (context.Request.InitialValue is not null)
-            {
-                return context.Request.InitialValue;
-            }
-
-            // if the initial value is a singleton and was already resolved,
-            // we will use this instance.
-            if (cachedValue is not null)
-            {
-                return cachedValue;
-            }
-
-            // if the operation type has a proper runtime representation we will try to resolve
-            // that from the request services.
-            if (rootType.RuntimeType != typeof(object))
-            {
-                services.TryGetService(rootType.RuntimeType, out object? rootValue);
-
-                // if the request services did not provide a rootValue and the runtime
-                // representation is a instantiatable class we will create a singleton ourselfs
-                // and store it as cached value in order to reuse it.
-                if (rootValue is null &&
-                    !rootType.RuntimeType.IsAbstract &&
-                    !rootType.RuntimeType.IsInterface)
-                {
-                    try
-                    {
-                        rootValue = context.Activator.CreateInstance(
-                            rootType.RuntimeType,
-                            context.Services);
-                        cachedValue = rootValue;
-                    }
-                    catch
-                    {
-                        throw new GraphQLException(
-                            ErrorBuilder.New()
-                                .SetMessage(
-                                    RootValueResolver_Resolve_CannotCreateInstance,
-                                    rootType.Name.Value,
-                                    rootType.RuntimeType.FullName ?? rootType.RuntimeType.Name)
-                                .SetCode(ErrorCodes.Execution.CannotCreateRootValue)
-                                .SetExtension("operationType", rootType.Name)
-                                .SetExtension("runtimeType", rootType.RuntimeType.FullName)
-                                .Build());
-                    }
-                }
-
-                return rootValue;
-            }
-
-            return null;
+            return o;
         }
+
+        // if the initial value is a singleton and was already resolved,
+        // we will use this instance.
+        if (cachedValue is not null)
+        {
+            return cachedValue;
+        }
+
+        // if the operation type has a proper runtime representation we will try to resolve
+        // that from the request services.
+        if (rootType.RuntimeType != typeof(object))
+        {
+            services.TryGetService(rootType.RuntimeType, out var rootValue);
+
+            // if the request services did not provide a rootValue and the runtime
+            // representation is a instantiatable class we will create a singleton ourselfs
+            // and store it as cached value in order to reuse it.
+            if (rootValue is null &&
+                !rootType.RuntimeType.IsAbstract &&
+                !rootType.RuntimeType.IsInterface)
+            {
+                try
+                {
+                    rootValue = context.Activator.CreateInstance(
+                        rootType.RuntimeType,
+                        context.Services);
+                    cachedValue = rootValue;
+                }
+                catch (Exception ex)
+                {
+                    throw new GraphQLException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                RootValueResolver_Resolve_CannotCreateInstance,
+                                rootType.Name,
+                                rootType.RuntimeType.FullName ?? rootType.RuntimeType.Name)
+                            .SetCode(ErrorCodes.Execution.CannotCreateRootValue)
+                            .SetExtension("operationType", rootType.Name)
+                            .SetExtension("runtimeType", rootType.RuntimeType.FullName)
+                            .SetException(ex)
+                            .Build());
+                }
+            }
+
+            return rootValue;
+        }
+
+        return null;
     }
 }

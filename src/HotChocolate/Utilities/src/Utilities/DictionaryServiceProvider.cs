@@ -2,65 +2,64 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public sealed class DictionaryServiceProvider : IServiceProvider
 {
-    public sealed class DictionaryServiceProvider : IServiceProvider
+    private readonly Dictionary<Type, object> _services;
+
+    public DictionaryServiceProvider(Type service, object instance)
     {
-        private readonly Dictionary<Type, object> _services;
-
-        public DictionaryServiceProvider(Type service, object instance)
+        if (service == null)
         {
-            if (service == null)
-            {
-                throw new ArgumentNullException(nameof(service));
-            }
-
-            if (instance == null)
-            {
-                throw new ArgumentNullException(nameof(instance));
-            }
-
-            _services = new Dictionary<Type, object> { { service, instance } };
+            throw new ArgumentNullException(nameof(service));
         }
 
-        public DictionaryServiceProvider(params KeyValuePair<Type, object>[] services)
+        if (instance == null)
         {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            _services = services.ToDictionary(t => t.Key, t => t.Value);
+            throw new ArgumentNullException(nameof(instance));
         }
 
-        public DictionaryServiceProvider(params (Type, object)[] services)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
+        _services = new Dictionary<Type, object> { { service, instance } };
+    }
 
-            _services = services.ToDictionary(t => t.Item1, t => t.Item2);
+    public DictionaryServiceProvider(params KeyValuePair<Type, object>[] services)
+    {
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
         }
 
-        public DictionaryServiceProvider(IEnumerable<KeyValuePair<Type, object>> services)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
+        _services = services.ToDictionary(t => t.Key, t => t.Value);
+    }
 
-            _services = services.ToDictionary(t => t.Key, t => t.Value);
+    public DictionaryServiceProvider(params (Type, object)[] services)
+    {
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
         }
 
-        public object? GetService(Type serviceType)
-        {
-            if (_services.TryGetValue(serviceType, out object? service))
-            {
-                return service;
-            }
+        _services = services.ToDictionary(t => t.Item1, t => t.Item2);
+    }
 
-            return null;
+    public DictionaryServiceProvider(IEnumerable<KeyValuePair<Type, object>> services)
+    {
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
         }
+
+        _services = services.ToDictionary(t => t.Key, t => t.Value);
+    }
+
+    public object? GetService(Type serviceType)
+    {
+        if (_services.TryGetValue(serviceType, out var service))
+        {
+            return service;
+        }
+
+        return null;
     }
 }

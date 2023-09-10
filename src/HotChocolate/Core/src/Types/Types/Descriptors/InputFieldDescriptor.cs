@@ -2,164 +2,219 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.MemberKind;
 
-namespace HotChocolate.Types.Descriptors
+#nullable enable
+
+namespace HotChocolate.Types.Descriptors;
+
+public class InputFieldDescriptor
+    : ArgumentDescriptorBase<InputFieldDefinition>
+    , IInputFieldDescriptor
 {
-    public class InputFieldDescriptor
-        : ArgumentDescriptorBase<InputFieldDefinition>
-        , IInputFieldDescriptor
+    /// <summary>
+    ///  Creates a new instance of <see cref="InputFieldDescriptor"/>
+    /// </summary>
+    protected internal InputFieldDescriptor(
+        IDescriptorContext context,
+        string fieldName)
+        : base(context)
     {
-        protected internal InputFieldDescriptor(
-            IDescriptorContext context,
-            NameString fieldName)
-            : base(context)
-        {
-            Definition.Name = fieldName;
-        }
-
-        protected internal InputFieldDescriptor(
-            IDescriptorContext context,
-            InputFieldDefinition definition)
-            : base(context)
-        {
-            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        }
-
-        protected internal InputFieldDescriptor(
-            IDescriptorContext context,
-            PropertyInfo property)
-            : base(context)
-        {
-            Definition.Property = property
-                ?? throw new ArgumentNullException(nameof(property));
-            Definition.Name = context.Naming.GetMemberName(
-                property, MemberKind.InputObjectField);
-            Definition.Description = context.Naming.GetMemberDescription(
-                property, MemberKind.InputObjectField);
-            Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
-
-            if (context.TypeInspector.TryGetDefaultValue(property, out object defaultValue))
-            {
-                Definition.NativeDefaultValue = defaultValue;
-            }
-        }
-
-        protected override void OnCreateDefinition(InputFieldDefinition definition)
-        {
-            if (!Definition.AttributesAreApplied && Definition.Property is not null)
-            {
-                Context.TypeInspector.ApplyAttributes(
-                    Context,
-                    this,
-                    Definition.Property);
-                Definition.AttributesAreApplied = true;
-            }
-
-            base.OnCreateDefinition(definition);
-        }
-
-        public new IInputFieldDescriptor SyntaxNode(
-            InputValueDefinitionNode inputValueDefinition)
-        {
-            base.SyntaxNode(inputValueDefinition);
-            return this;
-        }
-
-        public IInputFieldDescriptor Name(NameString value)
-        {
-            Definition.Name = value.EnsureNotEmpty(nameof(value));
-            return this;
-        }
-
-        public new IInputFieldDescriptor Description(string value)
-        {
-            base.Description(value);
-            return this;
-        }
-
-        public new IInputFieldDescriptor Type<TInputType>()
-            where TInputType : IInputType
-        {
-            base.Type<TInputType>();
-            return this;
-        }
-
-        public new IInputFieldDescriptor Type<TInputType>(
-            TInputType inputType)
-            where TInputType : class, IInputType
-        {
-            base.Type(inputType);
-            return this;
-        }
-
-        public new IInputFieldDescriptor Type(ITypeNode typeNode)
-        {
-            base.Type(typeNode);
-            return this;
-        }
-
-        public new IInputFieldDescriptor Type(Type type)
-        {
-            base.Type(type);
-            return this;
-        }
-
-        public IInputFieldDescriptor Ignore(bool ignore = true)
-        {
-            Definition.Ignore = ignore;
-            return this;
-        }
-
-        public new IInputFieldDescriptor DefaultValue(
-            IValueNode value)
-        {
-            base.DefaultValue(value);
-            return this;
-        }
-
-        public new IInputFieldDescriptor DefaultValue(
-            object value)
-        {
-            base.DefaultValue(value);
-            return this;
-        }
-
-        public new IInputFieldDescriptor Directive<TDirective>(
-            TDirective directiveInstance)
-            where TDirective : class
-        {
-            base.Directive(directiveInstance);
-            return this;
-        }
-
-        public new IInputFieldDescriptor Directive<TDirective>()
-            where TDirective : class, new()
-        {
-            base.Directive<TDirective>();
-            return this;
-        }
-
-        public new IInputFieldDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            base.Directive(name, arguments);
-            return this;
-        }
-
-        public static InputFieldDescriptor New(
-            IDescriptorContext context,
-            NameString fieldName) =>
-            new InputFieldDescriptor(context, fieldName);
-
-        public static InputFieldDescriptor New(
-            IDescriptorContext context,
-            PropertyInfo property) =>
-            new InputFieldDescriptor(context, property);
-
-        public static InputFieldDescriptor From(
-            IDescriptorContext context,
-            InputFieldDefinition definition) =>
-            new InputFieldDescriptor(context, definition);
+        Definition.Name = fieldName;
     }
+
+    /// <summary>
+    ///  Creates a new instance of <see cref="InputFieldDescriptor"/>
+    /// </summary>
+    protected internal InputFieldDescriptor(
+        IDescriptorContext context,
+        InputFieldDefinition definition)
+        : base(context)
+    {
+        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+    }
+
+    /// <summary>
+    ///  Creates a new instance of <see cref="InputFieldDescriptor"/>
+    /// </summary>
+    protected internal InputFieldDescriptor(
+        IDescriptorContext context,
+        PropertyInfo property)
+        : base(context)
+    {
+        Definition.Property = property
+            ?? throw new ArgumentNullException(nameof(property));
+        Definition.Name = context.Naming.GetMemberName(property, InputObjectField);
+        Definition.Description = context.Naming.GetMemberDescription(property, InputObjectField);
+        Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
+
+        if (context.TypeInspector.TryGetDefaultValue(property, out var defaultValue))
+        {
+            Definition.RuntimeDefaultValue = defaultValue;
+        }
+
+        if (context.Naming.IsDeprecated(property, out var reason))
+        {
+            Deprecated(reason);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnCreateDefinition(InputFieldDefinition definition)
+    {
+        if (!Definition.AttributesAreApplied && Definition.Property is not null)
+        {
+            Context.TypeInspector.ApplyAttributes(
+                Context,
+                this,
+                Definition.Property);
+            Definition.AttributesAreApplied = true;
+        }
+
+        base.OnCreateDefinition(definition);
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition)
+    {
+        base.SyntaxNode(inputValueDefinition);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IInputFieldDescriptor Name(string value)
+    {
+        Definition.Name = value;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Deprecated(string? reason)
+    {
+        base.Deprecated(reason);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Deprecated()
+    {
+        base.Deprecated();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Description(string value)
+    {
+        base.Description(value);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Type<TInputType>()
+        where TInputType : IInputType
+    {
+        base.Type<TInputType>();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Type<TInputType>(TInputType inputType)
+        where TInputType : class, IInputType
+    {
+        base.Type(inputType);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Type(ITypeNode typeNode)
+    {
+        base.Type(typeNode);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Type(Type type)
+    {
+        base.Type(type);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor DefaultValue(IValueNode value)
+    {
+        base.DefaultValue(value);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor DefaultValue(object value)
+    {
+        base.DefaultValue(value);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IInputFieldDescriptor Ignore(bool ignore = true)
+    {
+        Definition.Ignore = ignore;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Directive<TDirective>(TDirective directiveInstance)
+        where TDirective : class
+    {
+        base.Directive(directiveInstance);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Directive<TDirective>()
+        where TDirective : class, new()
+    {
+        base.Directive<TDirective>();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IInputFieldDescriptor Directive(
+        string name,
+        params ArgumentNode[] arguments)
+    {
+        base.Directive(name, arguments);
+        return this;
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="InputFieldDescriptor "/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="fieldName">The name of the field</param>
+    /// <returns>An instance of <see cref="InputFieldDescriptor "/></returns>
+    public static InputFieldDescriptor New(
+        IDescriptorContext context,
+        string fieldName) =>
+        new(context, fieldName);
+
+    /// <summary>
+    /// Creates a new instance of <see cref="InputFieldDescriptor "/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="property">The property this parameter is used for</param>
+    /// <returns>An instance of <see cref="InputFieldDescriptor "/></returns>
+    public static InputFieldDescriptor New(
+        IDescriptorContext context,
+        PropertyInfo property) =>
+        new(context, property);
+
+    /// <summary>
+    /// Creates a new instance of <see cref="InputFieldDescriptor "/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="definition">The definition of the argument</param>
+    /// <returns>An instance of <see cref="InputFieldDescriptor "/></returns>
+    public static InputFieldDescriptor From(
+        IDescriptorContext context,
+        InputFieldDefinition definition) =>
+        new(context, definition);
 }

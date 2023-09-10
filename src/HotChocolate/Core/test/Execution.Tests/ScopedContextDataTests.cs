@@ -2,59 +2,57 @@ using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class ScopedContextDataTests
 {
-    public class ScopedContextDataTests
+    [Fact]
+    public async Task ScopedContextDataIsPassedAlongCorrectly()
     {
-        [Fact]
-        public async Task ScopedContextDataIsPassedAlongCorrectly()
-        {
-            // arrange
-            ISchema schema = Schema.Create(
-                @"
-                type Query {
-                    root: Level1
-                }
-
-                type Level1 {
-                    a: Level2
-                    b: Level2
-                }
-
-                type Level2
-                {
-                    foo: String
-                }
-                ",
-                c => c.Use(_ => context =>
-                {
-                    if (context.ScopedContextData
-                        .TryGetValue("field", out var o)
-                        && o is string s)
-                    {
-                        s += "/" + context.Field.Name;
-                    }
-                    else
-                    {
-                        s = "./" + context.Field.Name;
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
+                        root: Level1
                     }
 
-                    context.ScopedContextData = context.ScopedContextData
-                        .SetItem("field", s);
+                    type Level1 {
+                        a: Level2
+                        b: Level2
+                    }
 
-                    context.Result = s;
+                    type Level2
+                    {
+                        foo: String
+                    }")
+            .Use(_ => context =>
+            {
+                if (context.ScopedContextData.TryGetValue("field", out var o) &&
+                    o is string s)
+                {
+                    s += "/" + context.Selection.Field.Name;
+                }
+                else
+                {
+                    s = "./" + context.Selection.Field.Name;
+                }
 
-                    return default;
-                }));
+                context.ScopedContextData = context.ScopedContextData
+                    .SetItem("field", s);
 
-            IRequestExecutor executor = schema.MakeExecutable();
+                context.Result = s;
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                "{ root { a { foo } b { foo } } }");
+                return default;
+            })
+            .Create();
 
-            // assert
-            result.MatchSnapshot();
-        }
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ root { a { foo } b { foo } } }");
+
+        // assert
+        result.MatchSnapshot();
     }
 }

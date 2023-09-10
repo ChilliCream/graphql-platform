@@ -4,259 +4,228 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Discovery
+namespace HotChocolate.Configuration;
+
+public class SchemaTypeDiscoveryTests
 {
-    public class SchemaTypeDiscoveryTests
+    [Fact]
+    public void DiscoverInputArgumentTypes()
     {
-        [Fact]
-        public void DiscoverInputArgumentTypes()
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryFieldArgument>()
+            .Create();
+
+        // assert
+        Assert.NotNull(schema.GetType<INamedOutputType>("Foo"));
+        Assert.NotNull(schema.GetType<INamedOutputType>("Bar"));
+        Assert.NotNull(schema.GetType<INamedInputType>("FooInput"));
+        Assert.NotNull(schema.GetType<INamedInputType>("BarInput"));
+    }
+
+    [Fact]
+    public void DiscoverOutputGraphFromMethod()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryField>()
+            .Create();
+
+        // assert
+        var query = schema.GetType<ObjectType>("QueryField");
+        Assert.NotNull(query);
+        Assert.Collection(
+            query.Fields.Where(t => !t.IsIntrospectionField),
+            t => Assert.Equal("foo", t.Name));
+        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+    }
+
+    [Fact]
+    public void DiscoverOutputGraphFromProperty()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryProperty>()
+            .Create();
+
+        // assert
+        var query = schema.GetType<ObjectType>("QueryProperty");
+        Assert.NotNull(query);
+        Assert.Collection(
+            query.Fields.Where(t => !t.IsIntrospectionField),
+            t => Assert.Equal("foo", t.Name));
+        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+    }
+
+    [Fact]
+    public void DiscoverOutputGraphAndIgnoreVoidMethods()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryMethodVoid>()
+            .Create();
+
+        // assert
+        var query = schema.GetType<ObjectType>("QueryMethodVoid");
+        Assert.NotNull(query);
+        Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
+            t => Assert.Equal("foo", t.Name));
+        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+    }
+
+    [Fact]
+    public void InferEnumAsEnumType()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddType<FooBar>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        // assert
+        var fooBar = schema.GetType<EnumType>("FooBar");
+        Assert.NotNull(fooBar);
+        Assert.Collection(fooBar.Values,
+            t => Assert.Equal("FOO", t.Name),
+            t => Assert.Equal("BAR", t.Name));
+    }
+
+    [Fact]
+    public void InferCustomScalarTypes()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithCustomScalar>()
+            .AddType<ByteArrayType>()
+            .Create();
+
+        // assert
+        var fooByte = schema.GetType<ObjectType>("FooByte");
+        Assert.NotNull(fooByte);
+
+        var field = fooByte.Fields["bar"];
+        Assert.Equal("ByteArray", field.Type.NamedType().Name);
+    }
+
+    public class QueryFieldArgument
+    {
+        public Bar Bar { get; }
+
+        public Foo GetFoo(Foo foo)
         {
-            // arrange
-            // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryFieldArgument>();
-            });
+            return foo;
+        }
+    }
 
-            // assert
-            INamedOutputType foo =
-                schema.GetType<INamedOutputType>("Foo");
-            Assert.NotNull(foo);
+    public class QueryField
+    {
+        public Foo GetFoo()
+        {
+            return null;
+        }
+    }
 
-            INamedOutputType bar =
-                schema.GetType<INamedOutputType>("Bar");
-            Assert.NotNull(foo);
+    public class QueryProperty
+    {
+        public Foo Foo { get; }
+    }
 
-            INamedInputType fooInput =
-                schema.GetType<INamedInputType>("FooInput");
-            Assert.NotNull(fooInput);
-
-            INamedInputType barInput =
-                schema.GetType<INamedInputType>("BarInput");
-            Assert.NotNull(barInput);
+    public class QueryMethodVoid
+    {
+        public Foo GetFoo()
+        {
+            return null;
         }
 
-        [Fact]
-        public void DiscoverOutputGraphFromMethod()
+        public void GetBar()
         {
-            // arrange
-            // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryField>();
-            });
+        }
+    }
 
-            // assert
-            ObjectType query = schema.GetType<ObjectType>("QueryField");
-            Assert.NotNull(query);
-            Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
-                t => Assert.Equal("foo", t.Name));
+    public class QueryWithCustomScalar
+    {
+        public FooByte GetFoo(FooByte foo)
+        {
+            return null;
+        }
+    }
 
-            ObjectType foo = schema.GetType<ObjectType>("Foo");
-            Assert.NotNull(foo);
+    public class Foo
+    {
+        public Bar Bar { get; set; }
+    }
 
-            ObjectType bar = schema.GetType<ObjectType>("Bar");
-            Assert.NotNull(foo);
+    public class FooByte
+    {
+        public byte[] Bar { get; set; }
+    }
+
+    public class Bar
+    {
+        public string Baz { get; set; }
+    }
+
+    public enum FooBar
+    {
+        Foo,
+        Bar
+    }
+
+    public class ByteArrayType : ScalarType
+    {
+        public ByteArrayType() : base("ByteArray", BindingBehavior.Implicit)
+        {
         }
 
-        [Fact]
-        public void DiscoverOutputGraphFromProperty()
+        public override Type RuntimeType => typeof(byte[]);
+
+        public override bool IsInstanceOfType(IValueNode literal)
         {
-            // arrange
-            // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryProperty>();
-            });
-
-            // assert
-            ObjectType query = schema.GetType<ObjectType>("QueryProperty");
-            Assert.NotNull(query);
-            Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
-                t => Assert.Equal("foo", t.Name));
-
-            ObjectType foo = schema.GetType<ObjectType>("Foo");
-            Assert.NotNull(foo);
-
-            ObjectType bar = schema.GetType<ObjectType>("Bar");
-            Assert.NotNull(foo);
+            throw new NotSupportedException();
         }
 
-        [Fact]
-        public void DiscoverOutputGraphAndIgnoreVoidMethods()
+        public override object ParseLiteral(IValueNode literal)
         {
-            // arrange
-            // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryMethodVoid>();
-            });
-
-            // assert
-            ObjectType query = schema.GetType<ObjectType>("QueryMethodVoid");
-            Assert.NotNull(query);
-            Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
-                t => Assert.Equal("foo", t.Name));
-
-            ObjectType foo = schema.GetType<ObjectType>("Foo");
-            Assert.NotNull(foo);
-
-            ObjectType bar = schema.GetType<ObjectType>("Bar");
-            Assert.NotNull(foo);
+            throw new NotSupportedException();
         }
 
-        [Fact]
-        public void InferEnumAsEnumType()
+        public override IValueNode ParseValue(object value)
         {
-            // arrange
-            // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterType<FooBar>();
-                c.Options.StrictValidation = false;
-            });
-
-            // assert
-            EnumType fooBar = schema.GetType<EnumType>("FooBar");
-            Assert.NotNull(fooBar);
-            Assert.Collection(fooBar.Values,
-                t => Assert.Equal("FOO", t.Name),
-                t => Assert.Equal("BAR", t.Name));
+            throw new NotSupportedException();
         }
 
-        [Fact]
-        public void InferCustomScalarTypes()
+        public override IValueNode ParseResult(object resultValue)
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryWithCustomScalar>()
-                .AddType<ByteArrayType>()
-                .Create();
-
-            // assert
-            ObjectType fooByte = schema.GetType<ObjectType>("FooByte");
-            Assert.NotNull(fooByte);
-
-            ObjectField field = fooByte.Fields["bar"];
-            Assert.Equal("ByteArray", field.Type.NamedType().Name);
+            throw new NotSupportedException();
         }
 
-        public class QueryFieldArgument
+        public override object Serialize(object runtimeValue)
         {
-            public Bar Bar { get; }
-
-            public Foo GetFoo(Foo foo)
-            {
-                return foo;
-            }
+            throw new NotSupportedException();
         }
 
-        public class QueryField
+        public override object Deserialize(object resultValue)
         {
-            public Foo GetFoo()
-            {
-                return null;
-            }
+            throw new NotSupportedException();
         }
 
-        public class QueryProperty
+        public override bool TryDeserialize(object resultValue, out object runtimeValue)
         {
-            public Foo Foo { get; }
+            throw new NotSupportedException();
         }
 
-        public class QueryMethodVoid
+        public override bool TrySerialize(object runtimeValue, out object resultValue)
         {
-            public Foo GetFoo()
-            {
-                return null;
-            }
-
-            public void GetBar()
-            {
-            }
-        }
-
-        public class QueryWithCustomScalar
-        {
-            public FooByte GetFoo(FooByte foo)
-            {
-                return null;
-            }
-        }
-
-        public class Foo
-        {
-            public Bar Bar { get; set; }
-        }
-
-        public class FooByte
-        {
-            public byte[] Bar { get; set; }
-        }
-
-        public class Bar
-        {
-            public string Baz { get; set; }
-        }
-
-        public enum FooBar
-        {
-            Foo,
-            Bar
-        }
-
-        public class ByteArrayType
-            : ScalarType
-        {
-            public ByteArrayType()
-                : base("ByteArray", BindingBehavior.Implicit)
-            {
-            }
-
-            public override Type RuntimeType => typeof(byte[]);
-
-            public override bool IsInstanceOfType(IValueNode literal)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override IValueNode ParseValue(object value)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override IValueNode ParseResult(object resultValue)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override object Serialize(object runtimeValue)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override object Deserialize(object resultValue)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override bool TryDeserialize(
-                object resultValue, out object runtimeValue)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override bool TrySerialize(
-                object runtimeValue, out object resultValue)
-            {
-                throw new NotSupportedException();
-            }
+            throw new NotSupportedException();
         }
     }
 }

@@ -1,15 +1,21 @@
-﻿[
+[
   {
     "Message": "The specified directive `foo` is not supported by the current schema.",
     "Code": null,
     "Path": {
+      "Name": "name",
       "Parent": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "dog"
+        "Name": "dog",
+        "Parent": {
+          "Parent": null,
+          "Length": 0,
+          "IsRoot": true
+        },
+        "Length": 1,
+        "IsRoot": false
       },
-      "Depth": 1,
-      "Name": "name"
+      "Length": 2,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -18,7 +24,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Directives-Are-Defined"
     },
     "Exception": null,
     "SyntaxNode": {

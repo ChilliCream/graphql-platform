@@ -1,18 +1,14 @@
-﻿using System;
+using System;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public class Utf8EncodingException : Exception
 {
-#if netstandard1_4
-    [Serializable]
-#endif
-    public class Utf8EncodingException
-        : Exception
-    {
-        public Utf8EncodingException() { }
-        public Utf8EncodingException(string message)
-            : base(message) { }
-        public Utf8EncodingException(string message, Exception inner)
-            : base(message, inner) { }
-    }
+    public Utf8EncodingException() { }
 
+    public Utf8EncodingException(string message)
+        : base(message) { }
+
+    public Utf8EncodingException(string message, Exception inner)
+        : base(message, inner) { }
 }

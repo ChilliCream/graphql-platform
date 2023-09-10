@@ -141,7 +141,9 @@
               },
               "Directives": []
             }
-          ]
+          ],
+          "Count": 7,
+          "FieldsCount": 0
         },
         "Types": {
           "A": {

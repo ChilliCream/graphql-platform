@@ -1,11 +1,8 @@
-﻿using System;
+using System;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Field)]
+public sealed class GraphQLIgnoreAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Property
-        | AttributeTargets.Method)]
-    public sealed class GraphQLIgnoreAttribute
-        : Attribute
-    {
-    }
 }

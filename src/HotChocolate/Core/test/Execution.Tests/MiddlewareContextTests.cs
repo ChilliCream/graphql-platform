@@ -1,73 +1,81 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
-using HotChocolate.Tests;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class MiddlewareContextTests
 {
-    public class MiddlewareContextTests
+    [Fact]
+    public async Task AccessVariables()
     {
-        [Fact]
-        public async Task AccessVariables()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    "type Query { foo(bar: String) : String }")
-                .AddResolver("Query", "foo", ctx =>
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                "type Query { foo(bar: String) : String }")
+            .AddResolver(
+                "Query",
+                "foo",
+                ctx =>
                     ctx.Variables.GetVariable<string>("abc"))
-                .Create();
+            .Create();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("query abc($abc: String){ foo(bar: $abc) }")
-                .SetVariableValue("abc", "def")
-                .Create();
+        var request = QueryRequestBuilder.New()
+            .SetQuery("query abc($abc: String){ foo(bar: $abc) }")
+            .SetVariableValue("abc", "def")
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(request);
+        // act
+        var result = await schema.MakeExecutable().ExecuteAsync(request);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AccessVariables_Fails_When_Variable_Not_Exists()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    "type Query { foo(bar: String) : String }")
-                .AddResolver("Query", "foo", ctx =>
+    [Fact]
+    public async Task AccessVariables_Fails_When_Variable_Not_Exists()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                "type Query { foo(bar: String) : String }")
+            .AddResolver(
+                "Query",
+                "foo",
+                ctx =>
                     ctx.Variables.GetVariable<string>("abc"))
-                .Create();
+            .Create();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("query abc($def: String){ foo(bar: $def) }")
-                .SetVariableValue("def", "ghi")
-                .Create();
+        var request = QueryRequestBuilder.New()
+            .SetQuery("query abc($def: String){ foo(bar: $def) }")
+            .SetVariableValue("def", "ghi")
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(request);
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(request);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task CollectFields()
-        {
-            // arrange
-            var list = new List<IFieldSelection>();
+    [Fact]
+    public async Task CollectFields()
+    {
+        // arrange
+        var list = new List<ISelection>();
 
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    @"
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"
                     type Query {
                         foo: Foo
                     }
@@ -79,21 +87,22 @@ namespace HotChocolate.Execution
                     type Bar {
                         baz: String
                     }")
-                .Use(next => context =>
+            .Use(
+                _ => context =>
                 {
-                    if (context.Field.Type.NamedType() is ObjectType type)
+                    if (context.Selection.Type.NamedType() is ObjectType type)
                     {
-                        foreach (IFieldSelection selection in context.GetSelections(type))
+                        foreach (var selection in context.GetSelections(type))
                         {
                             CollectSelections(context, selection, list);
                         }
                     }
-                    return default(ValueTask);
+                    return default;
                 })
-                .Create();
+            .Create();
 
-            // act
-            await schema.MakeExecutable().ExecuteAsync(
+        // act
+        await schema.MakeExecutable().ExecuteAsync(
             @"{
                 foo {
                     bar {
@@ -102,28 +111,531 @@ namespace HotChocolate.Execution
                 }
             }");
 
-            // assert
-            list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
-        }
+        // assert
+        list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
+    }
 
-        private static void CollectSelections(
-            IResolverContext context,
-            IFieldSelection selection,
-            ICollection<IFieldSelection> collected)
+    [Fact]
+    public async Task CustomServiceProvider()
+    {
+        // arrange
+        var services = new DictionaryServiceProvider(typeof(string), "hello");
+
+        // assert
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    d =>
+                    {
+                        d.Name(OperationTypeNames.Query);
+
+                        d.Field("foo")
+                            .Resolve(ctx => ctx.Service<string>())
+                            .Use(
+                                next => async context =>
+                                {
+                                    context.Services = services;
+                                    await next(context);
+                                });
+                    })
+                .ExecuteRequestAsync("{ foo }");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ReplaceArguments_Delegate()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                var original =
+                                    context.ReplaceArguments(
+                                        current =>
+                                        {
+                                            var arguments = new Dictionary<string, ArgumentValue>();
+
+                                            foreach (var argumentValue in current.Values)
+                                            {
+                                                if (argumentValue.Type.RuntimeType ==
+                                                    typeof(string) &&
+                                                    argumentValue
+                                                        .ValueLiteral is StringValueNode sv)
+                                                {
+                                                    sv = sv.WithValue(sv.Value.Trim());
+                                                    var trimmedArgument = new ArgumentValue(
+                                                        argumentValue,
+                                                        ValueKind.String,
+                                                        false,
+                                                        false,
+                                                        null,
+                                                        sv);
+                                                    arguments.Add(
+                                                        argumentValue.Name,
+                                                        trimmedArgument);
+                                                }
+                                                else
+                                                {
+                                                    arguments.Add(
+                                                        argumentValue.Name,
+                                                        argumentValue);
+                                                }
+                                            }
+
+                                            return arguments;
+                                        });
+
+                                await next(context);
+
+                                context.ReplaceArguments(original);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc   \") }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ReplaceArguments_Delegate_ReplaceWithNull_ShouldFail()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                var original = context.ReplaceArguments(_ => null);
+
+                                await next(context);
+
+                                context.ReplaceArguments(original);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc   \") }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SetResultContextData()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetResultState("abc", "def");
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData.TryGetValue("abc", out var value));
+        Assert.Equal("def", value);
+    }
+
+    [Fact]
+    public async Task SetResultContextData_Delegate_IntValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetResultState("abc", 1);
+                                context.OperationResult.SetResultState("abc",
+                                    (_, c) =>
+                                    {
+                                        if (c is int i)
+                                        {
+                                            return ++i;
+                                        }
+                                        return 0;
+                                    });
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData.TryGetValue("abc", out var value));
+        Assert.Equal(2, value);
+    }
+
+    [Fact]
+    public async Task SetResultContextData_Delegate_IntValue_When_Deferred()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        var ct = cts.Token;
+
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetResultState("abc", 1);
+                                context.OperationResult.SetResultState("abc",
+                                    (_, c) =>
+                                    {
+                                        if (c is int i)
+                                        {
+                                            return ++i;
+                                        }
+                                        return 0;
+                                    });
+                                await next(context);
+                            });
+                })
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
+            .ExecuteRequestAsync("{ ... @defer { abc(a: \"abc\") } }", cancellationToken: ct);
+
+        var first = true;
+
+        await foreach (var queryResult in result.ExpectResponseStream()
+            .ReadResultsAsync().WithCancellation(cancellationToken: ct))
         {
-            if (selection.Field.Type.IsLeafType())
+            if (first)
             {
-                collected.Add(selection);
+                first = false;
+                continue;
             }
 
-            if (selection.Field.Type.NamedType() is ObjectType objectType)
-            {
-                foreach (IFieldSelection child in context.GetSelections(
-                    objectType, selection.SyntaxNode.SelectionSet))
+            Assert.NotNull(queryResult.Incremental?[0].ContextData);
+            Assert.True(queryResult.Incremental[0].ContextData.TryGetValue("abc", out var value));
+            Assert.Equal(2, value);
+        }
+    }
+
+    [Fact]
+    public async Task SetResultContextData_Delegate_IntValue_WithState()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
                 {
-                    CollectSelections(context, child, collected);
-                }
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetResultState("abc", 1);
+                                context.OperationResult.SetResultState("abc", 5,
+                                    (_, c, s) =>
+                                    {
+                                        if (c is int i)
+                                        {
+                                            return i + s;
+                                        }
+                                        return 0;
+                                    });
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData.TryGetValue("abc", out var value));
+        Assert.Equal(6, value);
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_IntValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", 1);
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": 1
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_Delegate_IntValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", 1);
+                                context.OperationResult.SetExtension<int>("abc", (_, v) => 1 + v);
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": 2
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_Delegate_IntValue_With_State()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", 1);
+                                context.OperationResult.SetExtension<int, int>(
+                                    key: "abc",
+                                    state: 5,
+                                    (_, v, s) => s + v);
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": 6
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_Delegate_NoDefaultValue_IntValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension<int>("abc", (_, v) => 1 + v);
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": 1
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_ObjectValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", new SomeData("def"));
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": {
+                      ""someField"": ""def""
+                    }
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_ObjectValue_WhenDeferred()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        var ct = cts.Token;
+
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", new SomeData("def"));
+                                await next(context);
+                            });
+                })
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
+            .ExecuteRequestAsync("{ ... @defer { abc(a: \"abc\") } }", cancellationToken: ct);
+
+        var first = true;
+        await foreach (var queryResult in result.ExpectResponseStream()
+            .ReadResultsAsync().WithCancellation(ct))
+        {
+            if (first)
+            {
+                first = false;
+                continue;
+            }
+
+            Snapshot
+                .Create()
+                .AddResult(queryResult)
+                .MatchInline(
+                    @"{
+                      ""incremental"": [
+                        {
+                          ""data"": {
+                            ""abc"": ""abc""
+                          },
+                          ""extensions"": {
+                            ""abc"": {
+                              ""someField"": ""def""
+                            }
+                          },
+                          ""path"": []
+                        }
+                      ],
+                      ""hasNext"": false
+                    }");
+        }
+    }
+
+    private static void CollectSelections(
+        IResolverContext context,
+        ISelection selection,
+        ICollection<ISelection> collected)
+    {
+        if (selection.Type.IsLeafType())
+        {
+            collected.Add(selection);
+        }
+
+        if (selection.Type.NamedType() is ObjectType objectType)
+        {
+            foreach (var child in context.GetSelections(objectType, selection))
+            {
+                CollectSelections(context, child, collected);
             }
         }
     }
+
+    private record SomeData(string SomeField);
 }

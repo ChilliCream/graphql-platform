@@ -1,137 +1,136 @@
-﻿using ChilliCream.Testing;
+using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Language.Utilities
+namespace HotChocolate.Language.Utilities;
+
+public class SyntaxPrinterTests
 {
-    public class SyntaxPrinterTests
+    [Fact]
+    public void Serialize_ShortHandQueryNoIndentation_InOutShouldBeTheSame()
     {
-        [Fact]
-        public void Serialize_ShortHandQueryNoIndentation_InOutShouldBeTheSame()
-        {
-            // arrange
-            var query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
+        // arrange
+        var query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
 
-            // act
-            var printed = Utf8GraphQLParser.Parse(query).Print(false);
+        // act
+        var printed = Utf8GraphQLParser.Parse(query).Print(false);
 
-            // assert
-            Assert.Equal(query, printed);
-        }
+        // assert
+        Assert.Equal(query, printed);
+    }
 
-        [Fact]
-        public void Serialize_ShortHandQueryWithIndentation_OutputIsFormatted()
-        {
-            // arrange
-            var query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
+    [Fact]
+    public void Serialize_ShortHandQueryWithIndentation_OutputIsFormatted()
+    {
+        // arrange
+        var query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
 
-            // act
-            var printed = Utf8GraphQLParser.Parse(query).Print(true);
+        // act
+        var printed = Utf8GraphQLParser.Parse(query).Print(true);
 
-            // assert
-            printed.MatchSnapshot();
-        }
+        // assert
+        printed.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Serialize_ShortHandQueryWithIndentation_LineBetweenFields()
-        {
-            // arrange
-            var query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
+    [Fact]
+    public void Serialize_ShortHandQueryWithIndentation_LineBetweenFields()
+    {
+        // arrange
+        var query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
 
-            // act
-            var printed = Utf8GraphQLParser.Parse(query).Print(true);
+        // act
+        var printed = Utf8GraphQLParser.Parse(query).Print(true);
 
-            // assert
-            printed.MatchSnapshot();
-        }
+        // assert
+        printed.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Serialize_KitchenSinkWithIndentation_OutputIsFormatted()
-        {
-            // arrange
-            var query = FileResource.Open("kitchen-sink.graphql");
+    [Fact]
+    public void Serialize_KitchenSinkWithIndentation_OutputIsFormatted()
+    {
+        // arrange
+        var query = FileResource.Open("kitchen-sink.graphql");
 
-            // act
-            var printed = Utf8GraphQLParser.Parse(query).Print(true);
+        // act
+        var printed = Utf8GraphQLParser.Parse(query).Print(true);
 
-            // assert
-            printed.MatchSnapshot();
-        }
+        // assert
+        printed.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Serialize_KitchenSinkWithoutIndentation_OutputIsOneLine()
-        {
-            // arrange
-            var query = FileResource.Open("kitchen-sink.graphql");
+    [Fact]
+    public void Serialize_KitchenSinkWithoutIndentation_OutputIsOneLine()
+    {
+        // arrange
+        var query = FileResource.Open("kitchen-sink.graphql");
 
-            // act
-            var printed = Utf8GraphQLParser.Parse(query).Print(false);
+        // act
+        var printed = Utf8GraphQLParser.Parse(query).Print(false);
 
-            // assert
-            printed.MatchSnapshot();
-        }
+        // assert
+        printed.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Serialize_KitchenSinkWithIndentation_CanBeParsed()
-        {
-            // arrange
-            var query = FileResource.Open("kitchen-sink.graphql");
+    [Fact]
+    public void Serialize_KitchenSinkWithIndentation_CanBeParsed()
+    {
+        // arrange
+        var query = FileResource.Open("kitchen-sink.graphql");
 
-            // act
-            var printed = Utf8GraphQLParser.Parse(query).Print();
+        // act
+        var printed = Utf8GraphQLParser.Parse(query).Print();
 
-            // assert
-            DocumentNode document = Utf8GraphQLParser.Parse(printed);
-            Assert.Equal(printed, document.ToString());
-        }
+        // assert
+        var document = Utf8GraphQLParser.Parse(printed);
+        Assert.Equal(printed, document.ToString());
+    }
 
-        [Fact]
-        public void Serialize_KitchenSinkWithoutIndentation_CanBeParsed()
-        {
-            // arrange
-            var query = FileResource.Open("kitchen-sink.graphql");
+    [Fact]
+    public void Serialize_KitchenSinkWithoutIndentation_CanBeParsed()
+    {
+        // arrange
+        var query = FileResource.Open("kitchen-sink.graphql");
 
-            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+        var queryDocument = Utf8GraphQLParser.Parse(query);
 
-            // act
-            var serializedQuery = queryDocument.Print();
+        // act
+        var serializedQuery = queryDocument.Print();
 
-            // assert
-            DocumentNode parsedQuery = Utf8GraphQLParser.Parse(serializedQuery);
-            Assert.Equal(serializedQuery, parsedQuery.Print());
-        }
+        // assert
+        var parsedQuery = Utf8GraphQLParser.Parse(serializedQuery);
+        Assert.Equal(serializedQuery, parsedQuery.Print());
+    }
 
-        [Fact]
-        public void Serialize_QueryWithVarDeclaration_InOutShouldBeTheSame()
-        {
-            // arrange
-            var query =
-                "query Foo($bar: [String!]!) { foo(s: \"String\") " +
-                "{ bar @foo { baz @foo @bar } } }";
+    [Fact]
+    public void Serialize_QueryWithVarDeclaration_InOutShouldBeTheSame()
+    {
+        // arrange
+        var query =
+            "query Foo($bar: [String!]!) { foo(s: \"String\") " +
+            "{ bar @foo { baz @foo @bar } } }";
 
-            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+        var queryDocument = Utf8GraphQLParser.Parse(query);
 
-            // act
-            var printed = queryDocument.Print(false);
+        // act
+        var printed = queryDocument.Print(false);
 
-            // assert
-            Assert.Equal(query, printed);
-        }
+        // assert
+        Assert.Equal(query, printed);
+    }
 
-        [Fact]
-        public void Serialize_FragmentWithVariableDefs_InOutShouldBeTheSame()
-        {
-            // arrange
-            var query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
+    [Fact]
+    public void Serialize_FragmentWithVariableDefs_InOutShouldBeTheSame()
+    {
+        // arrange
+        var query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
 
-            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query,
-                new ParserOptions(allowFragmentVariables: true));
+        var queryDocument = Utf8GraphQLParser.Parse(query,
+            new ParserOptions(allowFragmentVariables: true));
 
-            // act
-            var printed = queryDocument.Print(false);
+        // act
+        var printed = queryDocument.Print(false);
 
-            // assert
-            Assert.Equal(query, printed);
-        }
+        // assert
+        Assert.Equal(query, printed);
     }
 }

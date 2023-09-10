@@ -1,0 +1,22 @@
+{
+  "data": {
+    "foos": [
+      {
+        "bar": "A",
+        "nestedList": [
+          {
+            "bar": "C"
+          }
+        ]
+      },
+      {
+        "bar": "B",
+        "nestedList": [
+          {
+            "bar": "C"
+          }
+        ]
+      }
+    ]
+  }
+}

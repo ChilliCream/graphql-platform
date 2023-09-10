@@ -2,29 +2,27 @@
 using System;
 using HotChocolate.Execution.Options;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+internal sealed class RequestCoreMiddlewareContext : IRequestCoreMiddlewareContext
 {
-    internal sealed class RequestCoreMiddlewareContext
-        : IRequestCoreMiddlewareContext
+    public RequestCoreMiddlewareContext(
+        string schemaName,
+        IServiceProvider services,
+        IServiceProvider schemaServices,
+        IRequestExecutorOptionsAccessor options)
     {
-        public RequestCoreMiddlewareContext(
-            NameString schemaName,
-            IServiceProvider services,
-            IServiceProvider schemaServices,
-            IRequestExecutorOptionsAccessor options)
-        {
-            SchemaName = schemaName;
-            Services = services;
-            SchemaServices = schemaServices;
-            Options = options;
-        }
-
-        public NameString SchemaName { get; }
-
-        public IServiceProvider Services { get; }
-
-        public IServiceProvider SchemaServices { get; }
-
-        public IRequestExecutorOptionsAccessor Options { get; }
+        SchemaName = schemaName;
+        Services = services;
+        SchemaServices = schemaServices;
+        Options = options;
     }
+
+    public string SchemaName { get; }
+
+    public IServiceProvider Services { get; }
+
+    public IServiceProvider SchemaServices { get; }
+
+    public IRequestExecutorOptionsAccessor Options { get; }
 }

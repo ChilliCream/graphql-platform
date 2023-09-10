@@ -8,16 +8,26 @@
     <PackageId>HotChocolate.Fetching</PackageId>
     <AssemblyName>HotChocolate.Fetching</AssemblyName>
     <RootNamespace>HotChocolate.Fetching</RootNamespace>
-    <Description></Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GreenDonut\src\Core\GreenDonut.csproj" />
-    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
+    <EmbeddedResource Update="Properties\FetchingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FetchingResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\FetchingResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FetchingResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

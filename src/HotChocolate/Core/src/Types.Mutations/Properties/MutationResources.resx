@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="ThrowHelper_ErrorObjectType_TypeInspectorCouldNotBeLoaded" xml:space="preserve">
+    <value>Could not load the type inspector while building type {0}</value>
+  </data>
+  <data name="ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError" xml:space="preserve">
+    <value>Error while building type {0}. The runtime type {1} does not defined a property `Message`</value>
+  </data>
+  <data name="ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory" xml:space="preserve">
+    <value>The error type {0} does not expose any error factory.</value>
+  </data>
+  <data name="ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch" xml:space="preserve">
+    <value>Could not find a unique type name for input type of the argument {0} on field {1}. The type name {2} collides with {3}.
+Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "{2}")` on type {4} for naming collisions.</value>
+  </data>
+  <data name="InputParameterExpressionBuilder_Build_NoAttribute" xml:space="preserve">
+    <value>Could not find the InputAttribute</value>
+  </data>
+  <data name="ThrowHelper_CannotResolvePayloadType" xml:space="preserve">
+    <value>Cannot Resolve PayLoad Type</value>
+  </data>
+  <data name="ThrowHelper_NonMutationFields" xml:space="preserve">
+    <value>There are mutation annotations on non mutation fields. The mutation conventions can only be applied to fields of the mutation type.</value>
+  </data>
+  <data name="ThrowHelper_MutationPayloadMustBeObject" xml:space="preserve">
+    <value>The mutation payload type `{0}` must be an object type.</value>
+  </data>
+  <data name="ThrowHelper_MutationConvDirective_In_Wrong_Location" xml:space="preserve">
+    <value>The schema building directive `@mutation` can only be applied on object fields.</value>
+  </data>
+  <data name="ThrowHelper_DirectiveArgument_Unexpected_Value" xml:space="preserve">
+    <value>The argument `{0}` of the `@mutation` directive must be null or a {1} value.</value>
+  </data>
+  <data name="ThrowHelper_UnknownDirectiveArgument" xml:space="preserve">
+    <value>`{0}` is not a valid argument of the directive `@mutation`.</value>
+  </data>
+</root>

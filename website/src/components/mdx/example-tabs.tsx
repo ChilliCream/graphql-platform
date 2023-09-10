@@ -1,37 +1,28 @@
 import React, { FC } from "react";
-import { Tabs } from "./tabs";
 
-export interface ExampleTabsComposition {
-  Annotation: FC;
-  Code: FC;
-  Schema: FC;
-}
+import { List, Panel, Tab, Tabs } from "./tabs";
 
-export const ExampleTabs: FC & ExampleTabsComposition = ({ children }) => {
+export const ExampleTabs: FC = ({ children }) => {
   return (
     <Tabs defaultValue={"annotation"} groupId="code-style">
-      <Tabs.List>
-        <Tabs.Tab value="annotation">Annotation-based</Tabs.Tab>
-        <Tabs.Tab value="code">Code-first</Tabs.Tab>
-        <Tabs.Tab value="schema">Schema-first</Tabs.Tab>
-      </Tabs.List>
+      <List>
+        <Tab value="annotation">Annotation-based</Tab>
+        <Tab value="code">Code-first</Tab>
+        <Tab value="schema">Schema-first</Tab>
+      </List>
       {children}
     </Tabs>
   );
 };
 
-const Annotation: FC = ({ children }) => (
-  <Tabs.Panel value="annotation">{children}</Tabs.Panel>
+export const Annotation: FC = ({ children }) => (
+  <Panel value="annotation">{children}</Panel>
 );
 
-const Code: FC = ({ children }) => (
-  <Tabs.Panel value="code">{children}</Tabs.Panel>
+export const Code: FC = ({ children }) => (
+  <Panel value="code">{children}</Panel>
 );
 
-const Schema: FC = ({ children }) => (
-  <Tabs.Panel value="schema">{children}</Tabs.Panel>
+export const Schema: FC = ({ children }) => (
+  <Panel value="schema">{children}</Panel>
 );
-
-ExampleTabs.Annotation = Annotation;
-ExampleTabs.Code = Code;
-ExampleTabs.Schema = Schema;

@@ -1,9 +1,10 @@
-using System;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using HotChocolate;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Stitching.Redis;
 using HotChocolate.Stitching.Requests;
+using HotChocolate.Utilities;
 using StackExchange.Redis;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -12,7 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddRemoteSchemasFromRedis(
             this IRequestExecutorBuilder builder,
-            NameString configurationName,
+            string configurationName,
             Func<IServiceProvider, IConnectionMultiplexer> connectionFactory)
         {
             if (connectionFactory is null)
@@ -20,13 +21,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
 
-            configurationName.EnsureNotEmpty(nameof(configurationName));
+            configurationName.EnsureGraphQLName(nameof(configurationName));
 
             builder.Services.AddSingleton<IRequestExecutorOptionsProvider>(sp =>
             {
-                IConnectionMultiplexer connection = connectionFactory(sp);
-                IDatabase database = connection.GetDatabase();
-                ISubscriber subscriber = connection.GetSubscriber();
+                var connection = connectionFactory(sp);
+                var database = connection.GetDatabase();
+                var subscriber = connection.GetSubscriber();
                 return new RedisExecutorOptionsProvider(
                     builder.Name, configurationName, database, subscriber);
             });
@@ -34,7 +35,15 @@ namespace Microsoft.Extensions.DependencyInjection
             // Last but not least, we will setup the stitching context which will
             // provide access to the remote executors which in turn use the just configured
             // request executor proxies to send requests to the downstream services.
-            builder.Services.TryAddScoped<IStitchingContext, StitchingContext>();
+            builder.ConfigureSchemaServices(
+                c => c.TryAddSingleton<IRequestContextEnricher, StitchingContextEnricher>());
+
+            if (builder.Services.All(t => t.ImplementationType !=
+                typeof(StitchingContextParameterExpressionBuilder)))
+            {
+                builder.Services.AddSingleton<IParameterExpressionBuilder,
+                    StitchingContextParameterExpressionBuilder>();
+            }
 
             return builder;
         }

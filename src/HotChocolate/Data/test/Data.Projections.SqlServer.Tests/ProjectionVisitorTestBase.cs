@@ -9,170 +9,172 @@ using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class ProjectionVisitorTestBase
 {
-    public class ProjectionVisitorTestBase
+    protected string? FileName { get; set; } = Guid.NewGuid().ToString("N") + ".db";
+
+    private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+        Action<ModelBuilder>? onModelCreating = null,
+        params TResult[] results)
+        where TResult : class
     {
-        protected string? FileName { get; set; } = Guid.NewGuid().ToString("N") + ".db";
-
-        private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
-            Action<ModelBuilder>? onModelCreating = null,
-            params TResult[] results)
-            where TResult : class
+        if (FileName is null)
         {
-            if (FileName is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var dbContext = new DatabaseContext<TResult>(FileName, onModelCreating);
-            dbContext.Database.EnsureDeleted();
-            dbContext.Database.EnsureCreated();
-            dbContext.AddRange(results);
-
-            try
-            {
-                dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-            }
-
-            return ctx => dbContext.Data.AsQueryable();
+            throw new InvalidOperationException();
         }
 
-        protected T[] CreateEntity<T>(params T[] entities) => entities;
+        var dbContext = new DatabaseContext<TResult>(FileName, onModelCreating);
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
 
-        public IRequestExecutor CreateSchema<TEntity>(
-            TEntity[] entities,
-            ProjectionProvider? provider = null,
-            Action<ModelBuilder>? onModelCreating = null,
-            bool usePaging = false,
-            bool useOffsetPaging = false,
-            ObjectType<TEntity>? objectType = null)
-            where TEntity : class
+        var set = dbContext.Set<TResult>();
+
+        foreach (var result in results)
         {
-            provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
-            var convention = new ProjectionConvention(x => x.Provider(provider));
+            set.Add(result);
+            dbContext.SaveChanges();
+        }
 
-            Func<IResolverContext, IQueryable<TEntity>> resolver = BuildResolver(
-                onModelCreating,
-                entities);
+        return ctx => dbContext.Data.AsQueryable();
+    }
 
-            ISchemaBuilder builder = SchemaBuilder.New();
+    protected T[] CreateEntity<T>(params T[] entities) => entities;
 
-            if (objectType is {})
-            {
-                builder.AddType(objectType);
-            }
+    public IRequestExecutor CreateSchema<TEntity>(
+        TEntity[] entities,
+        ProjectionProvider? provider = null,
+        Action<ModelBuilder>? onModelCreating = null,
+        bool usePaging = false,
+        bool useOffsetPaging = false,
+        INamedType? objectType = null,
+        Action<ISchemaBuilder>? configure = null,
+        Type? schemaType = null)
+        where TEntity : class
+    {
+        provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
+        var convention = new ProjectionConvention(x => x.Provider(provider));
 
-            builder
-                .AddConvention<IProjectionConvention>(convention)
-                .AddProjections()
-                .AddFiltering()
-                .AddSorting()
-                .AddQueryType(
-                    new ObjectType<StubObject<TEntity>>(
-                        c =>
-                        {
-                            c.Name("Query");
-                            ApplyConfigurationToFieldDescriptor<TEntity>(
-                                c.Field(x => x.Root).Resolver(resolver),
-                                usePaging,
-                                useOffsetPaging);
+        var resolver =
+            BuildResolver(onModelCreating, entities);
 
-                            ApplyConfigurationToFieldDescriptor<TEntity>(
-                                c.Field("rootExecutable")
-                                    .Resolver(ctx => resolver(ctx).AsExecutable()),
-                                usePaging,
-                                useOffsetPaging);
-                        }));
+        ISchemaBuilder builder = SchemaBuilder.New();
 
-            ISchema schema = builder.Create();
+        if (objectType is not null)
+        {
+            builder.AddType(objectType);
+        }
 
-            return new ServiceCollection()
-                .Configure<RequestExecutorSetup>(
-                    Schema.DefaultName,
-                    o => o.Schema = schema)
-                .AddGraphQL()
-                .UseRequest(
-                    next => async context =>
+        configure?.Invoke(builder);
+
+        builder
+            .AddConvention<IProjectionConvention>(convention)
+            .AddProjections()
+            .AddFiltering()
+            .AddSorting()
+            .AddQueryType(
+                new ObjectType<StubObject<TEntity>>(
+                    c =>
                     {
-                        await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("sql", out object? queryString))
-                        {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(result)
-                                    .SetContextData("sql", queryString)
-                                    .Create();
-                        }
-                    })
-                .UseDefaultPipeline()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .Result;
-        }
+                        c.Name("Query");
 
-        private static void ApplyConfigurationToFieldDescriptor<TEntity>(
-            IObjectFieldDescriptor descriptor,
-            bool usePaging = false,
-            bool useOffsetPaging = false)
-        {
-            if (usePaging)
-            {
-                descriptor.UsePaging<ObjectType<TEntity>>();
-            }
+                        ApplyConfigurationToFieldDescriptor<TEntity>(
+                            c.Field(x => x.Root).Resolve(resolver),
+                            schemaType,
+                            usePaging,
+                            useOffsetPaging);
 
-            if (useOffsetPaging)
-            {
-                descriptor.UseOffsetPaging<ObjectType<TEntity>>();
-            }
+                        ApplyConfigurationToFieldDescriptor<TEntity>(
+                            c.Field("rootExecutable")
+                                .Resolve(ctx => resolver(ctx).AsExecutable()),
+                            schemaType,
+                            usePaging,
+                            useOffsetPaging);
+                    }));
 
-            descriptor
-                .Use(
-                    next => async context =>
+        builder.ModifyOptions(o => o.ValidatePipelineOrder = false);
+
+        var schema = builder.Create();
+
+        return new ServiceCollection()
+            .Configure<RequestExecutorSetup>(Schema.DefaultName, o => o.Schema = schema)
+            .AddGraphQL()
+            .UseRequest(
+                next => async context =>
+                {
+                    await next(context);
+                    if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        await next(context);
+                        context.Result = QueryResultBuilder
+                            .FromResult(context.Result!.ExpectQueryResult())
+                            .SetContextData("sql", queryString)
+                            .Create();
+                    }
+                })
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync()
+            .Result;
+    }
 
-                        if (context.Result is IQueryable<TEntity> queryable)
-                        {
-                            try
-                            {
-                                context.ContextData["sql"] =
-                                    queryable.ToQueryString();
-                            }
-                            catch (Exception ex)
-                            {
-                                context.ContextData["sql"] = ex.Message;
-                            }
-
-                            context.Result = await queryable.ToListAsync();
-                        }
-
-                        if (context.Result is IExecutable executable)
-                        {
-                            try
-                            {
-                                context.ContextData["sql"] = executable.Print();
-                            }
-                            catch (Exception ex)
-                            {
-                                context.ContextData["sql"] = ex.Message;
-                            }
-                        }
-                    })
-                .UseFiltering()
-                .UseSorting()
-                .UseProjection();
-        }
-
-        public class StubObject<T>
+    private static void ApplyConfigurationToFieldDescriptor<TEntity>(
+        IObjectFieldDescriptor descriptor,
+        Type? type,
+        bool usePaging = false,
+        bool useOffsetPaging = false)
+    {
+        if (usePaging)
         {
-            public T Root { get; set; }
+            descriptor.UsePaging(nodeType: type ?? typeof(ObjectType<TEntity>));
         }
+
+        if (useOffsetPaging)
+        {
+            descriptor.UseOffsetPaging(type ?? typeof(ObjectType<TEntity>));
+        }
+
+        descriptor
+            .Use(
+                next => async context =>
+                {
+                    await next(context);
+
+                    if (context.Result is IQueryable<TEntity> queryable)
+                    {
+                        try
+                        {
+                            context.ContextData["sql"] = queryable.ToQueryString();
+                        }
+                        catch (Exception ex)
+                        {
+                            context.ContextData["sql"] = ex.Message;
+                        }
+
+                        context.Result = await queryable.ToListAsync();
+                    }
+
+                    if (context.Result is IExecutable executable)
+                    {
+                        try
+                        {
+                            context.ContextData["sql"] = executable.Print();
+                        }
+                        catch (Exception ex)
+                        {
+                            context.ContextData["sql"] = ex.Message;
+                        }
+                    }
+                })
+            .UseProjection()
+            .UseFiltering()
+            .UseSorting();
+    }
+
+    public class StubObject<T>
+    {
+        public T? Root { get; set; }
     }
 }

@@ -1,60 +1,55 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb.Filters
+namespace HotChocolate.Data.MongoDb.Filters;
+
+/// <inheritdoc />
+public class MongoDbFilterCombinator
+    : FilterOperationCombinator<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
 {
     /// <inheritdoc />
-    public class MongoDbFilterCombinator
-        : FilterOperationCombinator<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
+    public override bool TryCombineOperations(
+        MongoDbFilterVisitorContext context,
+        Queue<MongoDbFilterDefinition> operations,
+        FilterCombinator combinator,
+        [NotNullWhen(true)] out MongoDbFilterDefinition? combined)
     {
-        /// <inheritdoc />
-        public override bool TryCombineOperations(
-            MongoDbFilterVisitorContext context,
-            Queue<MongoDbFilterDefinition> operations,
-            FilterCombinator combinator,
-            [NotNullWhen(true)] out MongoDbFilterDefinition combined)
+        if (operations.Count == 0)
         {
-            if (operations.Count < 1)
-            {
-                throw new InvalidOperationException();
-            }
-
-            combined = combinator switch
-            {
-                FilterCombinator.And => CombineWithAnd(context, operations),
-                FilterCombinator.Or => CombineWithOr(context, operations),
-                _ => throw new InvalidOperationException()
-            };
-
-            return true;
+            combined = default;
+            return false;
         }
 
-        private static MongoDbFilterDefinition CombineWithAnd(
-            MongoDbFilterVisitorContext context,
-            Queue<MongoDbFilterDefinition> operations)
+        combined = combinator switch
         {
-            if (operations.Count < 0)
-            {
-                throw new InvalidOperationException();
-            }
+            FilterCombinator.And => CombineWithAnd(operations),
+            FilterCombinator.Or => CombineWithOr(operations),
+            _ => throw ThrowHelper
+                .Filtering_MongoDbCombinator_InvalidCombinator(this, combinator)
+        };
 
-            return new AndFilterDefinition(operations.ToArray());
+        return true;
+    }
+
+    private static MongoDbFilterDefinition CombineWithAnd(
+        Queue<MongoDbFilterDefinition> operations)
+    {
+        if (operations.Count == 0)
+        {
+            throw new InvalidOperationException();
         }
 
-        private static MongoDbFilterDefinition CombineWithOr(
-            MongoDbFilterVisitorContext context,
-            Queue<MongoDbFilterDefinition> operations)
-        {
-            if (operations.Count < 0)
-            {
-                throw new InvalidOperationException();
-            }
+        return new AndFilterDefinition(operations.ToArray());
+    }
 
-            return new OrMongoDbFilterDefinition(operations.ToArray());
+    private static MongoDbFilterDefinition CombineWithOr(
+        Queue<MongoDbFilterDefinition> operations)
+    {
+        if (operations.Count == 0)
+        {
+            throw new InvalidOperationException();
         }
+
+        return new OrMongoDbFilterDefinition(operations.ToArray());
     }
 }

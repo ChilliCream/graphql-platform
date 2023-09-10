@@ -1,0 +1,29 @@
+schema {
+  query: Query
+}
+
+type Query {
+  test(arg: GeoJSONMultiPolygonInput): String
+}
+
+input GeoJSONMultiPolygonInput {
+  "The geometry type of the GeoJson object"
+  type: GeoJSONGeometryType
+  "The \"coordinates\" field is an array of Polygon coordinate arrays."
+  coordinates: Coordinates
+  "The coordinate reference system integer identifier"
+  crs: Int
+}
+
+enum GeoJSONGeometryType {
+  Point
+  MultiPoint
+  LineString
+  MultiLineString
+  Polygon
+  MultiPolygon
+  GeometryCollection
+}
+
+"A coordinate is an array of positions."
+scalar Coordinates

@@ -1,15 +1,14 @@
-﻿#nullable enable
+#nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// GraphQL type system members that have a description.
+/// </summary>
+public interface IHasDescription
 {
     /// <summary>
-    /// GraphQL type system members that have a description.
+    /// Gets the description of the type system member.
     /// </summary>
-    public interface IHasDescription
-    {
-        /// <summary>
-        /// Gets the description of the object.
-        /// </summary>
-        string? Description { get; }
-    }
+    string? Description { get; }
 }

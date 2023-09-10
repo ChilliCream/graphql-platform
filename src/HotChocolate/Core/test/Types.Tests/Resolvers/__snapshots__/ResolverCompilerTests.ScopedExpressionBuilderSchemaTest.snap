@@ -1,0 +1,7 @@
+﻿schema {
+  query: QueryWithScopedExpressionBuilder
+}
+
+type QueryWithScopedExpressionBuilder {
+  bar: String!
+}

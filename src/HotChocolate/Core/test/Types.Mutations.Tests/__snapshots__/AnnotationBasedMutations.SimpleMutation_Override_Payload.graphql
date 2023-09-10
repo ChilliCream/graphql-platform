@@ -1,0 +1,16 @@
+schema {
+  mutation: SimpleMutationPayloadOverride
+}
+
+type DoSomethingPayload {
+  myResult1: String!
+  myResult2: String!
+}
+
+type SimpleMutationPayloadOverride {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+input DoSomethingInput {
+  something: String!
+}

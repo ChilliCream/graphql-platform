@@ -1,83 +1,113 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Configuration;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public abstract class FieldBase<TDefinition>
+    : IField
+    , IFieldCompletion
+    where TDefinition : FieldDefinitionBase, IHasSyntaxNode
 {
-    public abstract class FieldBase<TType, TDefinition> : IField
-        where TType : IType
-        where TDefinition : FieldDefinitionBase, IHasSyntaxNode
+    private TDefinition? _definition;
+    private FieldFlags _flags;
+
+    protected FieldBase(TDefinition definition, int index)
     {
-        private readonly ISyntaxNode? _syntaxNode;
-        private TDefinition? _definition;
+        _definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Index = index;
 
-        protected FieldBase(TDefinition definition, FieldCoordinate fieldCoordinate)
+        SyntaxNode = definition.SyntaxNode;
+        Name = definition.Name.EnsureGraphQLName();
+        Description = definition.Description;
+        Flags = definition.Flags;
+        DeclaringType = default!;
+        ContextData = default!;
+        Directives = default!;
+    }
+
+    /// <inheritdoc />
+    public string Name { get; }
+
+    /// <inheritdoc />
+    public string? Description { get; }
+
+    /// <inheritdoc />
+    public ISyntaxNode? SyntaxNode { get; }
+
+    /// <inheritdoc />
+    public ITypeSystemObject DeclaringType { get; private set; }
+
+    /// <inheritdoc />
+    public FieldCoordinate Coordinate { get; private set; }
+
+    /// <inheritdoc />
+    public int Index { get; }
+
+    /// <inheritdoc />
+    public IDirectiveCollection Directives { get; private set; }
+
+    /// <inheritdoc />
+    public abstract Type RuntimeType { get; }
+
+    internal FieldFlags Flags
+    {
+        get => _flags;
+        set
         {
-            _definition = definition ?? throw new ArgumentNullException(nameof(definition));
-            _syntaxNode = definition.SyntaxNode;
-
-            Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));
-            Description = definition.Description;
-            Coordinate = fieldCoordinate.HasValue
-                ? fieldCoordinate
-                : FieldCoordinate.CreateWithoutType(definition.Name);
-
-            DeclaringType = default!;
-            Type = default!;
-            ContextData = default!;
-            Directives = default!;
-            RuntimeType = default!;
+            AssertMutable();
+            _flags = value;
         }
+    }
 
-        ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
+    /// <inheritdoc />
+    public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
 
-        public ITypeSystemObject DeclaringType { get; private set; }
+    internal void CompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember)
+    {
+        AssertMutable();
 
-        public FieldCoordinate Coordinate { get; protected set; }
+        OnCompleteField(context, declaringMember, _definition!);
 
-        public NameString Name { get; }
+        ContextData = _definition!.GetContextData();
+        _definition = null;
+        _flags |= FieldFlags.Sealed;
+    }
 
-        public string? Description { get; }
+    protected virtual void OnCompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        TDefinition definition)
+    {
+        DeclaringType = context.Type;
+        Coordinate = declaringMember is IField field
+            ? new FieldCoordinate(context.Type.Name, field.Name, definition.Name)
+            : new FieldCoordinate(context.Type.Name, definition.Name);
 
-        public TType Type { get; private set; }
+        Directives = DirectiveCollection.CreateAndComplete(
+            context, this, definition.GetDirectives());
+        Flags = definition.Flags;
+    }
 
-        public IDirectiveCollection Directives { get; private set; }
+    void IFieldCompletion.CompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember)
+        => CompleteField(context, declaringMember);
 
-        public virtual Type RuntimeType { get; private set; }
-
-        public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
-
-        internal void CompleteField(ITypeCompletionContext context)
+    private void AssertMutable()
+    {
+        if ((_flags & FieldFlags.Sealed) == FieldFlags.Sealed)
         {
-            OnCompleteField(context, _definition!);
-
-            ContextData = _definition!.GetContextData();
-            _definition = null;
-        }
-
-        protected virtual void OnCompleteField(
-            ITypeCompletionContext context,
-            TDefinition definition)
-        {
-            DeclaringType = context.Type;
-            Type = context.GetType<TType>(definition.Type!);
-            RuntimeType = Type is IHasRuntimeType hasClrType
-                ? hasClrType.RuntimeType
-                : typeof(object);
-
-            Directives =
-                DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
-
-
-            if (!DeclaringType.Name.Equals(Coordinate.TypeName))
-            {
-                Coordinate = Coordinate.With(typeName: DeclaringType.Name);
-            }
+            throw ThrowHelper.FieldBase_Sealed();
         }
     }
 }

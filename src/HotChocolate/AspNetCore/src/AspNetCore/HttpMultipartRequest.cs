@@ -1,18 +1,14 @@
-using System.Collections.Generic;
-using HotChocolate.Types;
+namespace HotChocolate.AspNetCore;
 
-namespace HotChocolate.AspNetCore
+internal sealed class HttpMultipartRequest
 {
-    internal class HttpMultipartRequest
+    public HttpMultipartRequest(string operations, IDictionary<string, IFile> fileMap)
     {
-        public HttpMultipartRequest(string operations, IDictionary<string, IFile> fileMap)
-        {
-            Operations = operations;
-            FileMap = fileMap;
-        }
-
-        public string Operations { get; set; }
-
-        public IDictionary<string, IFile> FileMap { get; set; }
+        Operations = operations;
+        FileMap = fileMap;
     }
+
+    public string Operations { get; set; }
+
+    public IDictionary<string, IFile> FileMap { get; set; }
 }

@@ -1,38 +1,40 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IQueryResultBuilder
 {
-    public interface IQueryResultBuilder
-    {
-        IQueryResultBuilder SetData(
-            IReadOnlyDictionary<string, object?>? data,
-            IDisposable? disposable = null);
+    IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data);
 
-        IQueryResultBuilder AddError(IError error);
+    IQueryResultBuilder SetItems(IReadOnlyList<object?>? items);
 
-        IQueryResultBuilder AddErrors(IEnumerable<IError> errors);
+    IQueryResultBuilder AddError(IError error);
 
-        IQueryResultBuilder AddExtension(string key, object? data);
+    IQueryResultBuilder AddErrors(IEnumerable<IError> errors);
 
-        IQueryResultBuilder SetExtension(string key, object? data);
+    IQueryResultBuilder AddExtension(string key, object? data);
 
-        IQueryResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions);
+    IQueryResultBuilder SetExtension(string key, object? data);
 
-        IQueryResultBuilder AddContextData(string key, object? data);
+    IQueryResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions);
 
-        IQueryResultBuilder SetContextData(string key, object? data);
+    IQueryResultBuilder AddContextData(string key, object? data);
 
-        IQueryResultBuilder ClearContextData();
+    IQueryResultBuilder SetContextData(string key, object? data);
 
-        IQueryResultBuilder SetLabel(string? label);
+    IQueryResultBuilder SetContextData(IReadOnlyDictionary<string, object?>? contextData);
 
-        IQueryResultBuilder SetPath(Path? path);
+    IQueryResultBuilder SetLabel(string? label);
 
-        IQueryResultBuilder SetHasNext(bool? hasNext);
+    IQueryResultBuilder SetPath(Path? path);
 
-        IQueryResult Create();
-    }
+    IQueryResultBuilder SetHasNext(bool? hasNext);
+
+    IQueryResultBuilder RegisterForCleanup(Func<ValueTask> clean);
+
+    IQueryResult Create();
 }

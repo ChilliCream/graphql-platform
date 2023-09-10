@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Blazor</PackageId>
+    <AssemblyName>StrawberryShake.Blazor</AssemblyName>
+    <RootNamespace>StrawberryShake.Blazor</RootNamespace>
+    <Description>StrawberryShake GraphQL Client for Blazor.</Description>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <IncludeSymbols>false</IncludeSymbols>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\Client\src\Razor\StrawberryShake.Razor.csproj" />
+    <ProjectReference Include="..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\Client\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
+    <ProjectReference Include="..\..\Tooling\src\dotnet-graphql\dotnet-graphql.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)MSBuild\StrawberryShake.Blazor.props" Pack="true" PackagePath="build/StrawberryShake.Blazor.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\StrawberryShake.targets" Pack="true" PackagePath="build/StrawberryShake.Blazor.targets" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\StrawberryShake.MSBuild.ContentType.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.ContentType.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\StrawberryShake.MSBuild.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\Common\MSBuild\global.json" Pack="true" PackagePath="build/global.json" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net6.0\**\*.*" Pack="true" PackagePath="tools/net6" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net7.0\**\*.*" Pack="true" PackagePath="tools/net7" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net8.0\**\*.*" Pack="true" PackagePath="tools/net8" Visible="false" />
+  </ItemGroup>
+
+</Project>

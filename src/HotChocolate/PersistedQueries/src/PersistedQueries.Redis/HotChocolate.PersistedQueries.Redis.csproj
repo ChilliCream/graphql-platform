@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.PersistedQueries.Redis</AssemblyName>
     <RootNamespace>HotChocolate.PersistedQueries.Redis</RootNamespace>
     <Description>An implementation of Hot Chocolate persisted queries using the Redis cache.</Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="2.1.30" />
+    <PackageReference Include="StackExchange.Redis" Version="2.6.80" />
   </ItemGroup>
 
   <ItemGroup>

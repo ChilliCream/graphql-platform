@@ -1,0 +1,25 @@
+﻿schema {
+  query: Query
+}
+
+type Product {
+  name: String!
+}
+
+type Query {
+  someField(a: Int): Review
+}
+
+type Review @key(fields: "id") {
+  id: Int!
+  product: Product! @provides(fields: "name")
+}
+
+"Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
+directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+
+"Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
+directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+
+"Scalar representing a set of fields."
+scalar _FieldSet

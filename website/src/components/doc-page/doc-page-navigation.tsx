@@ -9,25 +9,30 @@ import React, {
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled, { css } from "styled-components";
-import { DocPageNavigationFragment } from "../../../graphql-types";
-import ArrowDownIconSvg from "../../images/arrow-down.svg";
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
-import ProductSwitcherIconSvg from "../../images/th-large.svg";
-import { BoxShadow, IsTablet } from "../../shared-style";
-import { State } from "../../state";
-import { closeTOC } from "../../state/common";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { DocPageNavigationFragment } from "@/graphql-types";
+import { BoxShadow, IsTablet, THEME_COLORS } from "@/shared-style";
+import { State } from "@/state";
+import { closeTOC } from "@/state/common";
+
+// Icons
+import ArrowDownIconSvg from "@/images/arrow-down.svg";
+import ArrowUpIconSvg from "@/images/arrow-up.svg";
+import ProductSwitcherIconSvg from "@/images/th-large.svg";
+
+import { ScrollContainer } from "@/components/articles/article-elements";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
 import {
   DocPageStickySideBarStyle,
   MostProminentSection,
-} from "./doc-page-elements";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
+} from "./doc-page-styles";
 
 interface NavigationContainerProps {
-  basePath: string;
-  selectedPath: string;
-  items: Item[];
+  readonly basePath: string;
+  readonly selectedPath: string;
+  readonly items: Item[];
 }
 
 const NavigationContainer: FC<NavigationContainerProps> = ({
@@ -111,11 +116,11 @@ const NavigationContainer: FC<NavigationContainerProps> = ({
   );
 };
 
-interface DocPageNavigationProps {
-  data: DocPageNavigationFragment;
-  selectedPath: string;
-  selectedProduct: string;
-  selectedVersion: string;
+export interface DocPageNavigationProps {
+  readonly data: DocPageNavigationFragment;
+  readonly selectedPath: string;
+  readonly selectedProduct: string;
+  readonly selectedVersion: string;
 }
 
 export const DocPageNavigation: FC<DocPageNavigationProps> = ({
@@ -187,6 +192,10 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
           : undefined,
       })) ?? [];
 
+  const basePath = `/docs/${activeProduct!.path!}${
+    !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
+  }`;
+
   return (
     <Navigation height={height} show={showTOC}>
       <DocPagePaneHeader
@@ -196,7 +205,10 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
       />
 
       <ProductSwitcher>
-        <ProductSwitcherButton onClick={toggleProductSwitcher}>
+        <ProductSwitcherButton
+          fullWidth={!hasVersions}
+          onClick={toggleProductSwitcher}
+        >
           {activeProduct?.title}
 
           <IconContainer size={16}>
@@ -204,18 +216,15 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
           </IconContainer>
         </ProductSwitcherButton>
 
-        <ProductSwitcherButton
-          disabled={!hasVersions}
-          onClick={toggleVersionSwitcher}
-        >
-          {activeVersion?.title}
+        {hasVersions && (
+          <ProductSwitcherButton onClick={toggleVersionSwitcher}>
+            {activeVersion?.title}
 
-          {hasVersions && (
-            <IconContainer size={12}>
+            <IconContainer size={16}>
               {versionSwitcherOpen ? <ArrowUpIconSvg /> : <ArrowDownIconSvg />}
             </IconContainer>
-          )}
-        </ProductSwitcherButton>
+          </ProductSwitcherButton>
+        )}
       </ProductSwitcher>
 
       <ProductSwitcherDialog
@@ -231,7 +240,7 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
             <ProductLink
               active={product === activeProduct}
               key={product.path!}
-              to={`/docs/${product.path!}`}
+              to={`/docs/${product.path!}/${product.latestStableVersion}`}
             >
               <ProductTitle>{product.title!}</ProductTitle>
               <ProductDescription>{product.description!}</ProductDescription>
@@ -244,26 +253,30 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
         open={versionSwitcherOpen}
         onClick={() => dispatch(closeTOC())}
       >
-        {activeProduct?.versions?.map((version, index) => (
-          <VersionLink
-            key={version!.path! + index}
-            to={`/docs/${activeProduct.path}/${version!.path!}`}
-          >
-            {version!.title!}
-          </VersionLink>
-        ))}
+        {activeProduct?.versions?.map((version, index) => {
+          const newVersionUrl = selectedPath.replace(
+            "/" + selectedVersion,
+            "/" + version!.path
+          );
+
+          return (
+            <VersionLink key={version!.path! + index} to={newVersionUrl}>
+              {version!.title!}
+            </VersionLink>
+          );
+        })}
       </ProductVersionDialog>
 
       {!productSwitcherOpen && activeVersion?.items && (
-        <MostProminentSection>
-          <NavigationContainer
-            basePath={`/docs/${activeProduct!.path!}${
-              !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
-            }`}
-            items={subItems}
-            selectedPath={selectedPath}
-          />
-        </MostProminentSection>
+        <ScrollContainer>
+          <MostProminentSection>
+            <NavigationContainer
+              basePath={basePath}
+              items={subItems}
+              selectedPath={selectedPath}
+            />
+          </MostProminentSection>
+        </ScrollContainer>
       )}
     </Navigation>
   );
@@ -287,6 +300,7 @@ export const DocPageNavigationGraphQLFragment = graphql`
         path
         title
         description
+        latestStableVersion
         versions {
           path
           title
@@ -314,48 +328,60 @@ type EnhancedItem = Item & {
   fullpath: string;
 };
 
-export const Navigation = styled.nav<{ height: string; show: boolean }>`
+export interface NavigationProps {
+  readonly height: string;
+  readonly show: boolean;
+}
+
+export const Navigation = styled.nav<NavigationProps>`
   ${DocPageStickySideBarStyle}
+
   padding: 25px 0 0;
   transition: margin-left 250ms;
   background-color: white;
+  overflow-y: hidden;
+  margin-bottom: 50px;
+  display: flex;
+  flex-direction: column;
 
   ${({ show }) => show && `margin-left: 0 !important;`}
 
   ${({ height }) =>
     IsTablet(`
-      margin-left: -105%;
+      margin-left: -100%;
       height: ${height};
       position: fixed;
       top: 60px;
       left: 0;
+
       ${BoxShadow}
   `)}
 `;
 
-const ProductSwitcherButton = styled.button`
+const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  border: 1px solid var(--box-border-color);
+  border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--border-radius);
   padding: 7px 10px;
   height: 38px;
   font-size: 0.833em;
   transition: background-color 0.2s ease-in-out;
+  ${({ fullWidth }) => fullWidth && `width: 100%;`}
 
   > ${IconContainer} {
     margin-left: auto;
     padding-left: 6px;
 
     > svg {
-      fill: var(--text-color);
+      fill: ${THEME_COLORS.text};
     }
   }
 
   :hover:enabled {
-    background-color: var(--box-highlight-color);
+    background-color: ${THEME_COLORS.boxHighlight};
   }
 
   :disabled {
@@ -368,6 +394,7 @@ const ProductSwitcher = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 
   > ${ProductSwitcherButton}:not(:last-child) {
     margin-right: 4px;
@@ -384,7 +411,7 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   flex: 1 1 100%;
   flex-direction: column;
   padding: 0 10px;
-  background-color: var(--text-color-contrast);
+  background-color: ${THEME_COLORS.textContrast};
 
   @media only screen and (min-width: 1070px) {
     top: 135px;
@@ -404,10 +431,10 @@ const ProductVersionDialog = styled.div<{ open: boolean }>`
   display: ${({ open }) => (open ? "flex" : "none")};
   flex-direction: column;
   padding: 10px;
-  background-color: var(--text-color-contrast);
+  background-color: ${THEME_COLORS.textContrast};
   position: absolute;
   border-radius: var(--border-radius);
-  border: 1px solid var(--box-border-color);
+  border: 1px solid ${THEME_COLORS.boxBorder};
   top: 110px;
   right: 14px;
 
@@ -425,14 +452,18 @@ interface LinkProps {
   readonly active: boolean;
 }
 
-const ProductLink = styled(Link)<LinkProps>`
+const ProductLink = styled(Link).withConfig<LinkProps>({
+  shouldForwardProp(prop, defaultValidatorFn) {
+    return prop === "active" ? false : defaultValidatorFn(prop);
+  },
+})`
   flex: 0 0 auto;
-  border: 1px solid var(--box-border-color);
+  border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--border-radius);
   margin: 5px;
   padding: 10px;
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
   cursor: pointer;
 
   @media only screen and (min-width: 1070px) {
@@ -441,23 +472,27 @@ const ProductLink = styled(Link)<LinkProps>`
 
   transition: background-color 0.2s ease-in-out;
 
-  ${({ active }) => active && `background-color: var(--box-highlight-color);`}
+  ${({ active }) =>
+    active &&
+    css`
+      background-color: ${THEME_COLORS.boxHighlight};
+    `}
 
   :hover {
-    background-color: var(--box-highlight-color);
+    background-color: ${THEME_COLORS.boxHighlight};
   }
 `;
 
 const VersionLink = styled(Link)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
   cursor: pointer;
   padding: 6px 9px;
   transition: background-color 0.2s ease-in-out;
   border-radius: var(--border-radius);
 
   :hover {
-    background-color: var(--box-highlight-color);
+    background-color: ${THEME_COLORS.boxHighlight};
   }
 `;
 
@@ -473,12 +508,12 @@ const NavigationList = styled.ol`
   display: flex;
   flex-direction: column;
   margin: 0;
-  padding: 0 18px 20px;
+  padding: 0 18px 0px;
   list-style-type: none;
 
   @media only screen and (min-width: 1070px) {
     display: flex;
-    padding: 0 4px 20px;
+    padding: 0 4px 0px;
   }
 `;
 
@@ -510,19 +545,19 @@ const NavigationGroup = styled.div<{ expanded: boolean }>`
 
     > .arrow-down {
       display: ${({ expanded }) => (expanded ? "none" : "initial")};
-      fill: var(--text-color);
+      fill: ${THEME_COLORS.text};
     }
 
     > .arrow-up {
       display: ${({ expanded }) => (expanded ? "initial" : "none")};
-      fill: var(--text-color);
+      fill: ${THEME_COLORS.text};
     }
   }
 `;
 
 const NavigationLink = styled(Link)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   :hover {
     color: #000;
@@ -540,7 +575,7 @@ const NavigationItem = styled.li<{ active: boolean }>`
     active &&
     css`
       > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
-        font-weight: bold;
+        font-weight: 600;
       }
     `}
 `;

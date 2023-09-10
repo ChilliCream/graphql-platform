@@ -1,4 +1,11 @@
 ﻿{
-  "Message": "Foo",
+  "Payload": {
+    "Message": "Foo",
+    "Code": null,
+    "Path": null,
+    "Locations": null,
+    "Exception": null,
+    "Extensions": null
+  },
   "Type": "Error"
 }

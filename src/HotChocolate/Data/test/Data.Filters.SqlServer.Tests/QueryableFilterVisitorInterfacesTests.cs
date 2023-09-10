@@ -1,110 +1,105 @@
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Expressions
+namespace HotChocolate.Data.Filters;
+
+public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 {
-    public class QueryableFilterVisitorInterfacesTests
-        : IClassFixture<SchemaCache>
+    private static readonly BarInterface[] _barEntities =
     {
-        private static readonly BarInterface[] _barEntities =
-        {
-            new BarInterface { Test = new InterfaceImpl1 { Prop = "a" } },
-            new BarInterface { Test = new InterfaceImpl1 { Prop = "b" } }
-        };
+        new() { Test = new InterfaceImpl1 { Prop = "a" } },
+        new() { Test = new InterfaceImpl1 { Prop = "b" } }
+    };
 
+    private readonly SchemaCache _cache;
 
-        private readonly SchemaCache _cache;
+    public QueryableFilterVisitorInterfacesTests(SchemaCache cache)
+    {
+        _cache = cache;
+    }
 
-        public QueryableFilterVisitorInterfacesTests(
-            SchemaCache cache)
-        {
-            _cache = cache;
-        }
+    [Fact]
+    public async Task Create_InterfaceStringEqual_Expression()
+    {
+        // arrange
+        var tester = _cache
+            .CreateSchema<BarInterface, FilterInputType<BarInterface>>(
+                _barEntities,
+                configure: Configure,
+                onModelCreating: OnModelCreating);
 
-        [Fact]
-        public async Task Create_InterfaceStringEqual_Expression()
-        {
-            // arrange
-            IRequestExecutor tester = _cache
-                .CreateSchema<BarInterface, FilterInputType<BarInterface>>(
-                    _barEntities,
-                    configure: Configure,
-                    onModelCreating: OnModelCreating);
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
+                    "{ test{ prop }}}")
+                .Create());
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
-                        "{ test{ prop }}}")
-                    .Create());
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
+                    "{ test{ prop }}}")
+                .Create());
 
-            res1.MatchSnapshot("a");
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { test: { prop: { eq: null}}}) " +
+                    "{ test{ prop}}}")
+                .Create());
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
-                        "{ test{ prop }}}")
-                    .Create());
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "ba")
+            .AddResult(res3, "null")
+            .MatchAsync();
 
-            res2.MatchSnapshot("b");
+    }
 
-            IExecutionResult res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { test: { prop: { eq: null}}}) " +
-                        "{ test{ prop}}}")
-                    .Create());
+    private static void Configure(ISchemaBuilder builder)
+        => builder
+            .AddObjectType<InterfaceImpl1>(x => x.Implements<InterfaceType<Test>>())
+            .AddObjectType<InterfaceImpl2>(x => x.Implements<InterfaceType<Test>>())
+            .AddInterfaceType<Test>();
 
-            res3.MatchSnapshot("null");
-        }
+    private static void OnModelCreating(ModelBuilder builder)
+        => builder
+            .Entity<Test>()
+            .HasDiscriminator<string>("_t")
+            .HasValue<InterfaceImpl1>(nameof(InterfaceImpl1))
+            .HasValue<InterfaceImpl2>(nameof(InterfaceImpl2));
 
-        public static void Configure(ISchemaBuilder builder)
-        {
-            builder.AddObjectType<InterfaceImpl1>(x => x.Implements<InterfaceType<Test>>());
-            builder.AddObjectType<InterfaceImpl2>(x => x.Implements<InterfaceType<Test>>());
-            builder.AddInterfaceType<Test>();
-        }
+    public abstract class Test
+    {
+        [Key]
+        public int Id { get; set; }
 
-        public static void OnModelCreating(ModelBuilder builder)
-        {
-            builder.Entity<Test>()
-                .HasDiscriminator<string>("_t")
-                .HasValue<InterfaceImpl1>(nameof(InterfaceImpl1))
-                .HasValue<InterfaceImpl2>(nameof(InterfaceImpl2));
-        }
+        public string Prop { get; set; } = default!;
+    }
 
-        public abstract class Test
-        {
-            [Key]
-            public int Id { get; set; }
+    public class InterfaceImpl1 : Test
+    {
+        public string Specific1 { get; set; } = default!;
+    }
 
-            public string Prop { get; set; }
-        }
+    public class InterfaceImpl2 : Test
+    {
+        public string Specific2 { get; set; } = default!;
+    }
 
-        public class InterfaceImpl1 : Test
-        {
-            public string Specific1 { get; set; }
-        }
+    public class BarInterface
+    {
+        [Key]
+        public int Id { get; set; }
 
-        public class InterfaceImpl2 : Test
-        {
-            public string Specific2 { get; set; }
-        }
-
-        public class BarInterface
-        {
-            [Key]
-            public int Id { get; set; }
-
-            public Test Test { get; set; }
-        }
+        public Test Test { get; set; } = default!;
     }
 }

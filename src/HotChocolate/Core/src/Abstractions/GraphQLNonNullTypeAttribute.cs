@@ -1,28 +1,24 @@
-﻿using System;
+using System;
 
 #nullable enable
 
-namespace HotChocolate
+namespace HotChocolate;
+
+[AttributeUsage(
+    AttributeTargets.Property
+    | AttributeTargets.Method
+    | AttributeTargets.Parameter)]
+public sealed class GraphQLNonNullTypeAttribute : Attribute
 {
-    [AttributeUsage(
-        AttributeTargets.Property
-        | AttributeTargets.Method
-        | AttributeTargets.Parameter)]
-    public sealed class GraphQLNonNullTypeAttribute
-        : Attribute
+    public GraphQLNonNullTypeAttribute()
     {
-        public GraphQLNonNullTypeAttribute()
-        {
-            Nullable =  new[] { false };
-        }
-
-        public GraphQLNonNullTypeAttribute(params bool[] nullable)
-        {
-            Nullable = nullable.Length == 0
-                ? new[] { false }
-                : nullable;
-        }
-
-        public bool[] Nullable { get; }
+        Nullable = new[] { false };
     }
+
+    public GraphQLNonNullTypeAttribute(params bool[] nullable)
+    {
+        Nullable = nullable.Length == 0 ? new[] { false } : nullable;
+    }
+
+    internal bool[] Nullable { get; }
 }

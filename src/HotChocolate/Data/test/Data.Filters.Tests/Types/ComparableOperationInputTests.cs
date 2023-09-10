@@ -1,102 +1,120 @@
+using System;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public class ComparableOperationInputTests
 {
-    public class ComparableOperationInputTests
+    [Fact]
+    public void Create_OperationType()
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<ComparableOperationFilterInputType<int>>()))
+            .AddFiltering()
+            .Create()
+            .MatchSnapshot();
+
+    [Fact]
+    public void Create_Implicit_Operation()
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+            .AddFiltering(compatabilityMode: true)
+            .Create()
+            .MatchSnapshot();
+
+    [Fact]
+    public void Create_Implicit_Operation_Normalized()
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+            .AddFiltering()
+            .Create()
+            .MatchSnapshot();
+
+    [Fact]
+    public void Create_Explicit_Operation()
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<FooFilterInput>()))
+            .TryAddConvention<IFilterConvention>(_ => new FilterConvention(x => x.UseMock()))
+            .AddFiltering()
+            .Create()
+            .MatchSnapshot();
+
+    public class FooFilterInput : FilterInputType
     {
-        [Fact]
-        public void Create_OperationType()
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(
-                    t => t
-                        .Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolver("foo")
-                        .Argument("test", a => a.Type<ComparableOperationFilterInputType<int>>()))
-                .AddFiltering()
-                .Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
+            descriptor.Field("comparable").Type<ComparableOperationFilterInputType<int>>();
         }
+    }
 
-        [Fact]
-        public void Create_Implicit_Operation()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(
-                    t => t
-                        .Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolver("foo")
-                        .Argument("test", a => a.Type<FilterInputType<Foo>>()))
-                .AddFiltering()
-                .Create();
+    public class Foo
+    {
+        public short BarShort { get; set; }
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        public int BarInt { get; set; }
 
-        [Fact]
-        public void Create_Explicit_Operation()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(
-                    t => t
-                        .Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolver("foo")
-                        .Argument("test", a => a.Type<FooFilterInput>()))
-                .TryAddConvention<IFilterConvention>(
-                    (sp) => new FilterConvention(x => x.UseMock()))
-                .AddFiltering()
-                .Create();
+        public long BarLong { get; set; }
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        public float BarFloat { get; set; }
 
-        public class FooFilterInput : FilterInputType
-        {
-            protected override void Configure(IFilterInputTypeDescriptor descriptor)
-            {
-                descriptor.Field("comparable").Type<ComparableOperationFilterInputType<int>>();
-            }
-        }
+        public double BarDouble { get; set; }
 
-        public class Foo
-        {
-            public short BarShort { get; set; }
-            public int BarInt { get; set; }
-            public long BarLong { get; set; }
-            public float BarFloat { get; set; }
-            public double BarDouble { get; set; }
-            public decimal BarDecimal { get; set; }
-            public short? BarShortNullable { get; set; }
-            public int? BarIntNullable { get; set; }
-            public long? BarLongNullable { get; set; }
-            public float? BarFloatNullable { get; set; }
-            public double? BarDoubleNullable { get; set; }
-            public decimal? BarDecimalNullable { get; set; }
-            public FooBar FooBar { get; set; }
-        }
+        public decimal BarDecimal { get; set; }
 
-        public enum FooBar
-        {
-            Foo,
-            Bar
-        }
+        public Uri BarUri { get; set; } = default!;
+
+        public byte BarByte { get; set; } = default!;
+
+        public Uri? BarUriNullable { get; set; }
+
+        public short? BarShortNullable { get; set; }
+
+        public int? BarIntNullable { get; set; }
+
+        public long? BarLongNullable { get; set; }
+
+        public float? BarFloatNullable { get; set; }
+
+        public double? BarDoubleNullable { get; set; }
+
+        public decimal? BarDecimalNullable { get; set; }
+
+        public byte? BarByteNullable { get; set; } = default!;
+
+        public FooBar FooBar { get; set; }
+
+        public DateOnly DateOnly { get; set; }
+
+        public DateOnly? DateOnlyNullable { get; set; }
+
+        public TimeOnly TimeOnly { get; set; }
+
+        public TimeOnly? TimeOnlyNullable { get; set; }
+    }
+
+    public enum FooBar
+    {
+        Foo,
+        Bar
     }
 }

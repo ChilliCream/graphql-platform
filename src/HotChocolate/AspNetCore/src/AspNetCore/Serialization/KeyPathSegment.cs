@@ -1,15 +1,14 @@
-namespace HotChocolate.AspNetCore.Serialization
+namespace HotChocolate.AspNetCore.Serialization;
+
+internal class KeyPathSegment : IVariablePathSegment
 {
-    internal class KeyPathSegment : IVariablePathSegment
+    public KeyPathSegment(string value, IVariablePathSegment? next)
     {
-        public KeyPathSegment(string value, IVariablePathSegment? next)
-        {
-            Value = value;
-            Next = next;
-        }
-
-        public string Value { get; }
-
-        public IVariablePathSegment? Next { get; }
+        Value = value;
+        Next = next;
     }
+
+    public string Value { get; }
+
+    public IVariablePathSegment? Next { get; }
 }

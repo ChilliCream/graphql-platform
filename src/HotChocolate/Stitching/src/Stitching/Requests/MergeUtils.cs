@@ -1,21 +1,12 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Requests
-{
-    internal static class MergeUtils
-    {
-        public static NameNode CreateNewName(
-            this NameNode name,
-            NameString requestName)
-        {
-            return new NameNode($"{requestName}_{name.Value}");
-        }
+namespace HotChocolate.Stitching.Requests;
 
-        public static NameString CreateNewName(
-            this NameString name,
-            NameString requestName)
-        {
-            return $"{requestName}_{name.Value}";
-        }
-    }
+internal static class MergeUtils
+{
+    public static NameNode CreateNewName(this NameNode name, string requestName)
+        => new($"{requestName}_{name.Value}");
+
+    public static string CreateNewName(this string name, string requestName)
+        => $"{requestName}_{name}";
 }

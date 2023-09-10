@@ -1,113 +1,160 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.Serialization;
-using HotChocolate.Language;
+using HotChocolate.Properties;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// The cost directive can be used to express the expected
+/// cost that a resolver incurs on the system.
+/// </summary>
+#if NET6_0_OR_GREATER
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+#endif
+public sealed class CostDirective
 {
-    [Serializable]
-    public sealed class CostDirective
-        : ISerializable
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostDirective"/>.
+    /// </summary>
+    public CostDirective()
     {
-        [NonSerialized]
-        private readonly int _complexity;
-
-        [NonSerialized]
-        private readonly IReadOnlyList<MultiplierPathString> _multipliers;
-
-        public CostDirective()
-        {
-            _complexity = 1;
-            _multipliers = Array.Empty<MultiplierPathString>();
-        }
-
-        public CostDirective(int complexity)
-        {
-            if (complexity <= 0)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(complexity),
-                    complexity,
-                    "The complexity cannot be below one.");
-            }
-
-            _complexity = complexity;
-            _multipliers = Array.Empty<MultiplierPathString>();
-        }
-
-        public CostDirective(
-            int complexity,
-            params MultiplierPathString[] multipliers)
-        {
-            if (complexity <= 0)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(complexity),
-                    complexity,
-                    "The complexity cannot be below one.");
-            }
-
-            if (multipliers is null)
-            {
-                throw new ArgumentNullException(nameof(multipliers));
-            }
-
-            _complexity = complexity;
-            _multipliers = multipliers.Where(t => t.HasValue).ToArray();
-        }
-
-        private CostDirective(
-            SerializationInfo info,
-            StreamingContext context)
-        {
-            var node = info.GetValue(
-                nameof(DirectiveNode),
-                typeof(DirectiveNode))
-                as DirectiveNode;
-
-            if (node is null)
-            {
-                _complexity = info.GetInt32(nameof(Complexity));
-                _multipliers = ((string[])info
-                    .GetValue(nameof(Multipliers), typeof(string[])))
-                    .Where(s => !string.IsNullOrEmpty(s))
-                    .Select(s => new MultiplierPathString(s))
-                    .ToArray();
-            }
-            else
-            {
-                ArgumentNode complexityArgument = node.Arguments
-                    .FirstOrDefault(t => t.Name.Value == "complexity");
-                ArgumentNode multipliersArgument = node.Arguments
-                    .FirstOrDefault(t => t.Name.Value == "multipliers");
-
-                _complexity = (complexityArgument != null
-                    && complexityArgument.Value is IntValueNode iv)
-                    ? int.Parse(iv.Value)
-                    : 1;
-
-                _multipliers = (multipliersArgument != null
-                    && multipliersArgument.Value is ListValueNode lv)
-                    ? lv.Items.OfType<StringValueNode>()
-                        .Select(t => t.Value?.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .Select(s => new MultiplierPathString(s))
-                        .ToArray()
-                    : Array.Empty<MultiplierPathString>();
-            }
-        }
-
-        public int Complexity => _complexity;
-
-        public IReadOnlyList<MultiplierPathString> Multipliers => _multipliers;
-
-        public void GetObjectData(
-            SerializationInfo info,
-            StreamingContext context)
-        {
-            info.AddValue(nameof(Complexity), Complexity);
-            info.AddValue(nameof(Multipliers), Multipliers.ToArray());
-        }
+        Complexity = 1;
+        Multipliers = Array.Empty<MultiplierPathString>();
     }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostDirective"/>.
+    /// </summary>
+    /// <param name="complexity">
+    /// The complexity of the field.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="complexity"/> is less than 0.
+    /// </exception>
+    public CostDirective(int complexity)
+    {
+        if (complexity < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(complexity),
+                complexity,
+                TypeResources.CostDirective_ComplexityCannotBeBelowOne);
+        }
+
+        Complexity = complexity;
+        Multipliers = Array.Empty<MultiplierPathString>();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostDirective"/>.
+    /// </summary>
+    /// <param name="complexity">
+    /// The complexity of the field.
+    /// </param>
+    /// <param name="multipliers">
+    /// The multiplier paths.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="complexity"/> is less than 0.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="multipliers"/> is <c>null</c>.
+    /// </exception>
+    public CostDirective(
+        int complexity,
+        params MultiplierPathString[] multipliers)
+    {
+        if (complexity < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(complexity),
+                complexity,
+                TypeResources.CostDirective_ComplexityCannotBeBelowOne);
+        }
+
+        if (multipliers is null)
+        {
+            throw new ArgumentNullException(nameof(multipliers));
+        }
+
+        Complexity = complexity;
+        Multipliers = multipliers.Where(t => t.HasValue).ToArray();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostDirective"/>.
+    /// </summary>
+    /// <param name="complexity">
+    /// The complexity of the field.
+    /// </param>
+    /// <param name="defaultMultiplier">
+    /// The default multiplier.
+    /// </param>
+    /// <param name="multipliers">
+    /// The multiplier paths.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="complexity"/> is less than 0.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="multipliers"/> is <c>null</c>.
+    /// </exception>
+    public CostDirective(
+        int complexity,
+        int defaultMultiplier,
+        params MultiplierPathString[] multipliers)
+    {
+        if (complexity < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(complexity),
+                complexity,
+                TypeResources.CostDirective_ComplexityCannotBeBelowOne);
+        }
+
+        if (defaultMultiplier <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(defaultMultiplier),
+                defaultMultiplier,
+                TypeResources.CostDirective_DefaultMultiplierCannotBeBelowTwo);
+        }
+
+        if (multipliers is null)
+        {
+            throw new ArgumentNullException(nameof(multipliers));
+        }
+
+        Complexity = complexity;
+        DefaultMultiplier = defaultMultiplier;
+        Multipliers = multipliers.Where(t => t.HasValue).ToArray();
+    }
+
+    // this constructor is used for serialization.
+    private CostDirective(
+        int complexity,
+        IReadOnlyList<MultiplierPathString> multipliers,
+        int? defaultMultiplier)
+    {
+        Complexity = complexity;
+        Multipliers = multipliers;
+        DefaultMultiplier = defaultMultiplier;
+    }
+
+    /// <summary>
+    /// Gets the complexity of the field.
+    /// </summary>
+    public int Complexity { get; }
+
+    /// <summary>
+    /// Gets the multiplier paths.
+    /// </summary>
+    public IReadOnlyList<MultiplierPathString> Multipliers { get; }
+
+    /// <summary>
+    /// Gets the default multiplier.
+    /// </summary>
+    public int? DefaultMultiplier { get; }
 }

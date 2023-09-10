@@ -1,0 +1,11 @@
+﻿schema {
+  query: QueryWithInterfaceInput
+}
+
+type QueryWithInterfaceInput {
+  test(input: InputWithInterfaceInput): String
+}
+
+input InputWithInterfaceInput {
+  works: String
+}

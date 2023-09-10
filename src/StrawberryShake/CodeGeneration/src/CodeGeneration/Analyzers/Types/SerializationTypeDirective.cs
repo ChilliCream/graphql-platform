@@ -1,15 +1,14 @@
-namespace StrawberryShake.CodeGeneration.Analyzers.Types
+namespace StrawberryShake.CodeGeneration.Analyzers.Types;
+
+public class SerializationTypeDirective
 {
-    public class SerializationTypeDirective
+    public SerializationTypeDirective(string name, bool? isValueType)
     {
-        public SerializationTypeDirective(string name, bool? isValueType)
-        {
-            Name = name;
-            ValueType = isValueType;
-        }
-
-        public string Name { get; }
-
-        public bool? ValueType { get; }
+        Name = name;
+        ValueType = isValueType;
     }
+
+    public string Name { get; }
+
+    public bool? ValueType { get; }
 }

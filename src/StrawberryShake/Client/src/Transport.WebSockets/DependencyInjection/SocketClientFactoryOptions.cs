@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets;
+
+/// <summary>
+/// Options of a <see cref="ISocketClient"/>
+/// </summary>
+public class SocketClientFactoryOptions
 {
     /// <summary>
-    /// Options of a <see cref="ISocketClient"/>
+    /// Gets a list of operations used to configure an <see cref="ISocketClient"/>.
     /// </summary>
-    public class SocketClientFactoryOptions
-    {
-        /// <summary>
-        /// Gets a list of operations used to configure an <see cref="ISocketClient"/>.
-        /// </summary>
-        public IList<Action<ISocketClient>> SocketClientActions { get; } =
-            new List<Action<ISocketClient>>();
-    }
+    public IList<Action<ISocketClient>> SocketClientActions { get; } =
+        new List<Action<ISocketClient>>();
 }

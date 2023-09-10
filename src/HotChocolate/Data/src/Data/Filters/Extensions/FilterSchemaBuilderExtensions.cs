@@ -2,74 +2,75 @@ using System;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+/// <summary>
+/// Provides filtering extensions for the <see cref="ISchemaBuilder"/>.
+/// </summary>
+public static class FilterSchemaBuilderExtensions
 {
     /// <summary>
-    /// Provides filtering extensions for the <see cref="ISchemaBuilder"/>.
+    /// Adds filtering support.
     /// </summary>
-    public static class FilterSchemaBuilderExtensions
-    {
-        /// <summary>
-        /// Adds filtering support.
-        /// </summary>
-        /// <param name="builder">
-        /// The <see cref="ISchemaBuilder"/>.
-        /// </param>
-        /// <param name="name">
-        /// The filter convention name.
-        /// </param>
-        /// <returns>
-        /// Returns the <see cref="ISchemaBuilder"/>.
-        /// </returns>
-        public static ISchemaBuilder AddFiltering(
-            this ISchemaBuilder builder,
-            string? name = null) =>
-            AddFiltering(builder, x => x.AddDefaults(), name);
+    /// <param name="builder">
+    /// The <see cref="ISchemaBuilder"/>.
+    /// </param>
+    /// <param name="name">
+    /// The filter convention name.
+    /// </param>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <returns>
+    /// Returns the <see cref="ISchemaBuilder"/>.
+    /// </returns>
+    public static ISchemaBuilder AddFiltering(
+        this ISchemaBuilder builder,
+        string? name = null,
+        bool compatabilityMode = false) =>
+        AddFiltering(builder, x => x.AddDefaults(compatabilityMode), name);
 
-        /// <summary>
-        /// Adds filtering support.
-        /// </summary>
-        /// <param name="builder">
-        /// The <see cref="ISchemaBuilder"/>.
-        /// </param>
-        /// <param name="configure">
-        /// Configures the convention.
-        /// </param>
-        /// <param name="name">
-        /// The filter convention name.
-        /// </param>
-        /// <returns>
-        /// Returns the <see cref="ISchemaBuilder"/>.
-        /// </returns>
-        public static ISchemaBuilder AddFiltering(
-            this ISchemaBuilder builder,
-            Action<IFilterConventionDescriptor> configure,
-            string? name = null) =>
-            builder
-                .TryAddConvention<IFilterConvention>(sp => new FilterConvention(configure), name)
-                .TryAddTypeInterceptor<FilterTypeInterceptor>();
+    /// <summary>
+    /// Adds filtering support.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="ISchemaBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// Configures the convention.
+    /// </param>
+    /// <param name="name">
+    /// The filter convention name.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="ISchemaBuilder"/>.
+    /// </returns>
+    public static ISchemaBuilder AddFiltering(
+        this ISchemaBuilder builder,
+        Action<IFilterConventionDescriptor> configure,
+        string? name = null) =>
+        builder
+            .TryAddConvention<IFilterConvention>(sp => new FilterConvention(configure), name)
+            .TryAddTypeInterceptor<FilterTypeInterceptor>();
 
-        /// <summary>
-        /// Adds filtering support.
-        /// </summary>
-        /// <param name="builder">
-        /// The <see cref="ISchemaBuilder"/>.
-        /// </param>
-        /// <param name="name">
-        /// The filter convention name.
-        /// </param>
-        /// <typeparam name="TConvention">
-        /// The concrete filter convention type.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the <see cref="ISchemaBuilder"/>.
-        /// </returns>
-        public static ISchemaBuilder AddFiltering<TConvention>(
-            this ISchemaBuilder builder,
-            string? name = null)
-            where TConvention : class, IFilterConvention =>
-            builder
-                .TryAddConvention<IFilterConvention, TConvention>(name)
-                .TryAddTypeInterceptor<FilterTypeInterceptor>();
-    }
+    /// <summary>
+    /// Adds filtering support.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="ISchemaBuilder"/>.
+    /// </param>
+    /// <param name="name">
+    /// The filter convention name.
+    /// </param>
+    /// <typeparam name="TConvention">
+    /// The concrete filter convention type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="ISchemaBuilder"/>.
+    /// </returns>
+    public static ISchemaBuilder AddFiltering<TConvention>(
+        this ISchemaBuilder builder,
+        string? name = null)
+        where TConvention : class, IFilterConvention =>
+        builder
+            .TryAddConvention<IFilterConvention, TConvention>(name)
+            .TryAddTypeInterceptor<FilterTypeInterceptor>();
 }

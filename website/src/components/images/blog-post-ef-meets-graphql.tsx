@@ -2,7 +2,8 @@ import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetBlogPostEfMeetsGraphQlImageQuery } from "../../../graphql-types";
+
+import { GetBlogPostEfMeetsGraphQlImageQuery } from "@/graphql-types";
 
 export const BlogPostEFMeetsGraphQL: FC = () => {
   const data = useStaticQuery<GetBlogPostEfMeetsGraphQlImageQuery>(graphql`
@@ -14,10 +15,7 @@ export const BlogPostEFMeetsGraphQL: FC = () => {
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          gatsbyImageData(
-            layout: CONSTRAINED
-            width: 1200
-          )
+          gatsbyImageData(layout: CONSTRAINED, width: 1200, quality: 100)
         }
       }
     }

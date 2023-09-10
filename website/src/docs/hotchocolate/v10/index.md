@@ -132,7 +132,7 @@ public class PersonResolvers
 
 ## Support for Custom Directives
 
-Implement your own directives and change the execution behaviour of your types.
+Implement your own directives and change the execution behavior of your types.
 
 ```sdl
 type Query {
@@ -288,8 +288,8 @@ In order to get you even faster started we are providing templates for the dotne
 
 [Learn more](/docs/hotchocolate/v10/advanced/dotnet-cli)
 
-## We provide awesome tooling so you can test your server.
+## We provide awesome tooling so you can test your server
 
 ![Banana Cake Pop](../../shared/bcp_6.png)
 
-[Learn more](/docs/bananacakepop)
+[Learn more](/products/bananacakepop)

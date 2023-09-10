@@ -1,257 +1,231 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
-using static HotChocolate.Utilities.ThrowHelper;
+using Microsoft.Extensions.DependencyInjection;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed partial class TypeRegistrar : ITypeRegistrar
 {
-    internal sealed class TypeRegistrar
-        : ITypeRegistrar
+    private readonly HashSet<TypeReference> _unresolved = new();
+    private readonly HashSet<RegisteredType> _handled = new();
+    private readonly TypeRegistry _typeRegistry;
+    private readonly TypeLookup _typeLookup;
+    private readonly IDescriptorContext _context;
+    private readonly TypeInterceptor _interceptor;
+    private readonly IServiceProvider _schemaServices;
+    private readonly IServiceProvider? _applicationServices;
+
+    public TypeRegistrar(
+        IDescriptorContext context,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeInterceptor typeInterceptor)
     {
-        private readonly ServiceFactory _serviceFactory = new();
-        private readonly HashSet<ITypeReference> _unresolved = new();
-        private readonly HashSet<RegisteredType> _handled = new();
-        private readonly TypeRegistry _typeRegistry;
-        private readonly TypeLookup _typeLookup;
-        private readonly IDescriptorContext _context;
-        private readonly ITypeInterceptor _interceptor;
+        _context = context ??
+            throw new ArgumentNullException(nameof(context));
+        _typeRegistry = typeRegistry ??
+            throw new ArgumentNullException(nameof(typeRegistry));
+        _typeLookup = typeLookup ??
+            throw new ArgumentNullException(nameof(typeLookup));
+        _interceptor = typeInterceptor ??
+            throw new ArgumentNullException(nameof(typeInterceptor));
+        _schemaServices = context.Services;
+        _applicationServices = context.Services.GetService<IApplicationServiceProvider>();
+    }
 
-        public TypeRegistrar(
-            IDescriptorContext context,
-            TypeRegistry typeRegistry,
-            TypeLookup typeLookup,
-            ITypeInterceptor typeInterceptor)
+    public void Register(
+        TypeSystemObjectBase obj,
+        string? scope,
+        bool inferred = false,
+        Action<RegisteredType>? configure = null)
+    {
+        if (obj is null)
         {
-            _context = context ??
-                throw new ArgumentNullException(nameof(context));
-            _typeRegistry = typeRegistry ??
-                throw new ArgumentNullException(nameof(typeRegistry));
-            _typeLookup = typeLookup ??
-                throw new ArgumentNullException(nameof(typeLookup));
-            _interceptor = typeInterceptor ??
-                throw new ArgumentNullException(nameof(typeInterceptor));
-            _serviceFactory.Services = context.Services;
+            throw new ArgumentNullException(nameof(obj));
         }
 
-        public void Register(
-            TypeSystemObjectBase typeSystemObject,
-            string? scope,
-            bool isInferred = false)
+        var registeredType = InitializeType(obj, scope, inferred);
+
+        configure?.Invoke(registeredType);
+
+        if (registeredType.References.Count > 0)
         {
-            if (typeSystemObject is null)
+            RegisterTypeAndResolveReferences(registeredType);
+
+            if (obj is IHasRuntimeType hasRuntimeType
+                && hasRuntimeType.RuntimeType != typeof(object))
             {
-                throw new ArgumentNullException(nameof(typeSystemObject));
-            }
+                var runtimeTypeRef =
+                    _context.TypeInspector.GetTypeRef(
+                        hasRuntimeType.RuntimeType,
+                        SchemaTypeReference.InferTypeContext(obj),
+                        scope);
 
-            RegisteredType registeredType = InitializeType(typeSystemObject, scope, isInferred);
+                var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
 
-            if (registeredType.References.Count > 0)
-            {
-                ResolveReferences(registeredType);
-
-                if (typeSystemObject is IHasRuntimeType hasRuntimeType
-                    && hasRuntimeType.RuntimeType != typeof(object))
+                if (!explicitBind)
                 {
-                    ExtendedTypeReference runtimeTypeRef =
-                        _context.TypeInspector.GetTypeRef(
-                            hasRuntimeType.RuntimeType,
-                            SchemaTypeReference.InferTypeContext(typeSystemObject),
-                            scope: scope);
+                    MarkResolved(runtimeTypeRef);
+                    _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
+                }
+            }
+        }
+    }
 
-                    var explicitBind = typeSystemObject is ScalarType scalar
-                        && scalar.Bind == BindingBehavior.Explicit;
+    private void RegisterTypeAndResolveReferences(RegisteredType registeredType)
+    {
+        _typeRegistry.Register(registeredType);
 
-                    if (!explicitBind)
+        foreach (var typeReference in registeredType.References)
+        {
+            MarkResolved(typeReference);
+        }
+    }
+
+    public void MarkUnresolved(TypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        _unresolved.Add(typeReference);
+    }
+
+    public void MarkResolved(TypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        _unresolved.Remove(typeReference);
+    }
+
+    public bool IsResolved(TypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        return _typeRegistry.IsRegistered(typeReference);
+    }
+
+    public IReadOnlyCollection<TypeReference> Unresolved => _unresolved;
+
+    public IReadOnlyCollection<TypeReference> GetUnhandled()
+    {
+        // we are having a list and the hashset here to keep the order.
+        var unhandled = new List<TypeReference>();
+        var registered = new HashSet<TypeReference>();
+
+        foreach (var type in _typeRegistry.Types)
+        {
+            if (_handled.Add(type))
+            {
+                foreach (var typeDep in type.Dependencies)
+                {
+                    if (registered.Add(typeDep.Type))
                     {
-                        MarkResolved(runtimeTypeRef);
-                        _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
+                        unhandled.Add(typeDep.Type);
                     }
                 }
             }
         }
 
-        private void ResolveReferences(RegisteredType registeredType)
+        return unhandled;
+    }
+
+    private RegisteredType InitializeType(
+        TypeSystemObjectBase typeSystemObject,
+        string? scope,
+        bool isInferred)
+    {
+        try
         {
-            _typeRegistry.Register(registeredType);
+            // first we create a reference to this type-system-object and ensure that we have
+            // not already registered it.
+            TypeReference instanceRef = TypeReference.Create(typeSystemObject, scope);
 
-            foreach (ITypeReference typeReference in registeredType.References)
+            if (_typeRegistry.TryGetType(instanceRef, out var registeredType))
             {
-                MarkResolved(typeReference);
-            }
-        }
-
-        public void MarkUnresolved(ITypeReference typeReference)
-        {
-            if (typeReference is null)
-            {
-                throw new ArgumentNullException(nameof(typeReference));
-            }
-
-            _unresolved.Add(typeReference);
-        }
-
-        public void MarkResolved(ITypeReference typeReference)
-        {
-            if (typeReference is null)
-            {
-                throw new ArgumentNullException(nameof(typeReference));
+                // if we already no this object we will short-circuit here and just return the
+                // already registered instance.
+                return registeredType;
             }
 
-            _unresolved.Remove(typeReference);
-        }
+            registeredType = new RegisteredType(
+                typeSystemObject,
+                isInferred,
+                _typeRegistry,
+                _typeLookup,
+                _context,
+                _interceptor,
+                scope);
 
-        public bool IsResolved(ITypeReference typeReference)
-        {
-            if (typeReference is null)
+            // if the type-system-object is not yet pre-initialized we will start the
+            // standard initialization flow.
+            if (!typeSystemObject.IsInitialized)
             {
-                throw new ArgumentNullException(nameof(typeReference));
+                typeSystemObject.Initialize(registeredType);
             }
 
-            return _typeRegistry.IsRegistered(typeReference);
-        }
-
-        public TypeSystemObjectBase CreateInstance(Type namedSchemaType)
-        {
-            try
+            if (!isInferred)
             {
-                return (TypeSystemObjectBase)_serviceFactory.CreateInstance(namedSchemaType)!;
-            }
-            catch (Exception ex)
-            {
-                throw TypeRegistrar_CreateInstanceFailed(namedSchemaType, ex);
-            }
-        }
-
-        public IReadOnlyCollection<ITypeReference> GetUnresolved() => _unresolved.ToList();
-
-        public IReadOnlyCollection<ITypeReference> GetUnhandled()
-        {
-            // we are having a list and the hashset here to keep the order.
-            var unhandled = new List<ITypeReference>();
-            var registered = new HashSet<ITypeReference>();
-
-            foreach (RegisteredType type in _typeRegistry.Types)
-            {
-                if (_handled.Add(type))
-                {
-                    foreach (ITypeReference typeReference in type.DiscoveryContext
-                        .TypeDependencies.Select(t => t.TypeReference))
-                    {
-                        if (registered.Add(typeReference))
-                        {
-                            unhandled.Add(typeReference);
-                        }
-                    }
-                }
+                registeredType.References.TryAdd(instanceRef);
             }
 
-            return unhandled;
-        }
-
-        private RegisteredType InitializeType(
-            TypeSystemObjectBase typeSystemObject,
-            string? scope,
-            bool isInferred)
-        {
-            try
+            if (!ExtendedType.Tools.IsNonGenericBaseType(typeSystemObject.GetType()))
             {
-                // first we create a reference to this type-system-object and ensure that we have
-                // not already registered it.
-                TypeReference instanceRef = TypeReference.Create(typeSystemObject, scope);
-
-                if (_typeRegistry.TryGetType(
-                    instanceRef,
-                    out RegisteredType? registeredType))
-                {
-                    // if we already no this object we will short-circuit here and just return the
-                    // already registered instance.
-                    return registeredType;
-                }
-
-                var discoveryContext = new TypeDiscoveryContext(
-                    typeSystemObject,
-                    _typeRegistry,
-                    _typeLookup,
-                    _context,
-                    _interceptor,
-                    scope);
-
-                // if the type-system-object is not yet pre-initialized we will start the
-                // standard initialization flow.
-                if (!typeSystemObject.IsInitialized)
-                {
-                    typeSystemObject.Initialize(discoveryContext);
-                }
-
-                // if it is a yet unknown type we will go on with our
-                var references = new List<ITypeReference>();
-
-                if (!isInferred)
-                {
-                    references.Add(instanceRef);
-                }
-
-                if (!ExtendedType.Tools.IsNonGenericBaseType(typeSystemObject.GetType()))
-                {
-                    references.Add(_context.TypeInspector.GetTypeRef(
+                registeredType.References.TryAdd(
+                    _context.TypeInspector.GetTypeRef(
                         typeSystemObject.GetType(),
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope));
-                }
-
-                if (typeSystemObject is IHasTypeIdentity hasTypeIdentity &&
-                    hasTypeIdentity.TypeIdentity is not null)
-                {
-                    ExtendedTypeReference reference =
-                        _context.TypeInspector.GetTypeRef(
-                            hasTypeIdentity.TypeIdentity,
-                            SchemaTypeReference.InferTypeContext(typeSystemObject),
-                            scope);
-
-                    if (!references.Contains(reference))
-                    {
-                        references.Add(reference);
-                    }
-                }
-
-                registeredType = new RegisteredType(
-                    typeSystemObject,
-                    references,
-                    CollectDependencies(discoveryContext),
-                    discoveryContext,
-                    isInferred);
-
-                return registeredType;
             }
-            catch (Exception ex)
+
+            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
             {
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(ex.Message)
-                        .SetException(ex)
-                        .SetTypeSystemObject(typeSystemObject)
-                        .Build());
+                var reference =
+                    _context.TypeInspector.GetTypeRef(
+                        typeIdentity,
+                        SchemaTypeReference.InferTypeContext(typeSystemObject),
+                        scope);
+
+                registeredType.References.TryAdd(reference);
             }
+
+            if (registeredType.IsDirectiveType && registeredType.RuntimeType != typeof(object))
+            {
+                var runtimeType = _context.TypeInspector.GetType(registeredType.RuntimeType);
+                var runtimeTypeRef = TypeReference.CreateDirective(runtimeType);
+                registeredType.References.TryAdd(runtimeTypeRef);
+            }
+
+            if (_interceptor.TryCreateScope(
+                registeredType,
+                out var dependencies))
+            {
+                registeredType.Dependencies.Clear();
+                registeredType.Dependencies.AddRange(dependencies);
+            }
+
+            return registeredType;
         }
-
-        private IReadOnlyList<TypeDependency> CollectDependencies(
-            ITypeDiscoveryContext discoveryContext)
+        catch (Exception ex)
         {
-            if (discoveryContext.TypeInterceptor.TryCreateScope(
-                discoveryContext,
-                out IReadOnlyList<TypeDependency>? dependencies))
-            {
-                return dependencies;
-            }
-
-            return discoveryContext.TypeDependencies;
+            throw new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(ex.Message)
+                    .SetException(ex)
+                    .SetTypeSystemObject(typeSystemObject)
+                    .Build());
         }
     }
 }

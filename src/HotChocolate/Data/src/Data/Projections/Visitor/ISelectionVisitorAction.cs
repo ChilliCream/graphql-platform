@@ -1,7 +1,6 @@
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public interface ISelectionVisitorAction
 {
-    public interface ISelectionVisitorAction
-    {
-        SelectionVisitorActionKind Kind { get; }
-    }
+    SelectionVisitorActionKind Kind { get; }
 }

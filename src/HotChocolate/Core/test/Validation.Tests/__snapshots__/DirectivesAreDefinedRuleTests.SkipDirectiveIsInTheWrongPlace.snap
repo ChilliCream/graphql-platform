@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -67,8 +67,7 @@
                 "Column": 34
               },
               "Value": "foo"
-            },
-            "Value": "foo"
+            }
           }
         }
       ]

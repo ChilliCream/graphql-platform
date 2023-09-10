@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+[AttributeUsage(AttributeTargets.Parameter)]
+public sealed class DirectiveAttribute
+    : Attribute
 {
-    [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class DirectiveAttribute
-        : Attribute
-    {
-    }
 }

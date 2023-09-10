@@ -1,7 +1,8 @@
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
-import { GetHotChocolateImageQuery } from "../../../graphql-types";
+
+import { GetHotChocolateImageQuery } from "@/graphql-types";
 
 export const HotChocolate: FC = () => {
   const data = useStaticQuery<GetHotChocolateImageQuery>(graphql`
@@ -11,10 +12,7 @@ export const HotChocolate: FC = () => {
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {
-          gatsbyImageData(
-            layout: CONSTRAINED
-            width: 1200
-          )
+          gatsbyImageData(layout: CONSTRAINED, width: 1200, quality: 100)
         }
       }
     }

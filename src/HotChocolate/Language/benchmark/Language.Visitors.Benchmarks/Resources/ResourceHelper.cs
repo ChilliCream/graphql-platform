@@ -2,37 +2,34 @@
 using System.Reflection;
 using System.Text;
 
-namespace HotChocolate.Language.Visitors.Benchmarks.Resources
+namespace HotChocolate.Language.Visitors.Benchmarks.Resources;
+
+public class ResourceHelper
 {
-    public class ResourceHelper
+    private const string _resourcePath = "HotChocolate.Language.Visitors.Benchmarks.Resources";
+    private readonly Assembly _assembly;
+
+    public ResourceHelper()
     {
-        private const string _resourcePath = "HotChocolate.Language.Visitors.Benchmarks.Resources";
-        private Assembly _assembly;
+        _assembly = GetType().Assembly;
+    }
 
-        public ResourceHelper()
+    public string GetResourceString(string fileName)
+    {
+        Stream stream = GetResourceStream(fileName);
+        if (stream != null)
         {
-            _assembly = GetType().Assembly;
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            return reader.ReadToEnd();
         }
+        throw new FileNotFoundException(
+            "Could not find the specified resource file",
+            fileName);
+    }
 
-        public string GetResourceString(string fileName)
-        {
-            Stream stream = GetResourceStream(fileName);
-            if (stream != null)
-            {
-                using (var reader = new StreamReader(stream, Encoding.UTF8))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
-            throw new FileNotFoundException(
-                "Could not find the specified resource file",
-                fileName);
-        }
-
-        private Stream GetResourceStream(string fileName)
-        {
-            return _assembly.GetManifestResourceStream(
-                $"{_resourcePath}.{fileName}");
-        }
+    private Stream GetResourceStream(string fileName)
+    {
+        return _assembly.GetManifestResourceStream(
+            $"{_resourcePath}.{fileName}");
     }
 }

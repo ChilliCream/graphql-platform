@@ -1,0 +1,10 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  field(a: Int): String @external
+}
+
+"Directive to indicate that a field is owned by another service, for example via Apollo federation."
+directive @external on FIELD_DEFINITION

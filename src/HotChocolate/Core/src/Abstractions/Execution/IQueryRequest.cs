@@ -1,31 +1,59 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+/// <summary>
+/// Representation of a GraphQL request.
+/// </summary>
+public interface IQueryRequest
 {
-    public interface IQueryRequest
-    {
-        IQuery? Query { get; }
+    /// <summary>
+    /// Gets the GraphQL request document.
+    /// </summary>
+    IQuery? Query { get; }
 
-        string? QueryId { get; }
+    /// <summary>
+    /// Gets the GraphQL request document ID.
+    /// </summary>
+    string? QueryId { get; }
 
-        string? QueryHash { get; }
+    /// <summary>
+    /// Gets GraphQL request document hash.
+    /// </summary>
+    string? QueryHash { get; }
 
-        string? OperationName { get; }
+    /// <summary>
+    /// A name of an operation in the GraphQL request document that shall be executed;
+    /// or, <c>null</c> if the document only contains a single operation.
+    /// </summary>
+    string? OperationName { get; }
 
-        IReadOnlyDictionary<string, object?>? VariableValues { get; }
+    /// <summary>
+    /// Gets the variable values for the GraphQL request.
+    /// </summary>
+    IReadOnlyDictionary<string, object?>? VariableValues { get; }
 
-        object? InitialValue { get; }
+    /// <summary>
+    /// Gets the GraphQL request extension data.
+    /// </summary>
+    IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-        IReadOnlyDictionary<string, object?>? ContextData { get; }
+    /// <summary>
+    /// Gets the initial request state.
+    /// </summary>
+    IReadOnlyDictionary<string, object?>? ContextData { get; }
 
-        IReadOnlyDictionary<string, object?>? Extensions { get; }
+    /// <summary>
+    /// Gets the services that shall be used while executing the GraphQL request.
+    /// </summary>
+    IServiceProvider? Services { get; }
 
-        IServiceProvider? Services { get; }
-
-        OperationType[]? AllowedOperations { get; }
-    }
+    /// <summary>
+    /// GraphQL request flags allow to limit the GraphQL executor capabilities.
+    /// </summary>
+    GraphQLRequestFlags Flags { get; }
 }

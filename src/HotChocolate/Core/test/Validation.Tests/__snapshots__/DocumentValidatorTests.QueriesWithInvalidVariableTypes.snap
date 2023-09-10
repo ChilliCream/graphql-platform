@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "Operation `takesCat` has a empty selection set. Root types without subfields are disallowed.",
     "Code": null,
@@ -12,7 +12,7 @@
     "Extensions": {
       "operation": "takesCat",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -60,8 +60,7 @@
                 "Column": 33
               },
               "Value": "cat"
-            },
-            "Value": "cat"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -112,7 +111,7 @@
     "Extensions": {
       "operation": "takesDogBang",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -160,8 +159,7 @@
                 "Column": 37
               },
               "Value": "dog"
-            },
-            "Value": "dog"
+            }
           },
           "Type": {
             "Kind": "NonNullType",
@@ -221,7 +219,7 @@
     "Extensions": {
       "operation": "takesListOfPet",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -269,8 +267,7 @@
                 "Column": 39
               },
               "Value": "pets"
-            },
-            "Value": "pets"
+            }
           },
           "Type": {
             "Kind": "ListType",
@@ -330,14 +327,14 @@
     "Extensions": {
       "operation": "takesCatOrDog",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "OperationDefinition",
       "Location": {
         "Start": 298,
-        "End": 397,
+        "End": 384,
         "Line": 14,
         "Column": 17
       },
@@ -378,8 +375,7 @@
                 "Column": 38
               },
               "Value": "catOrDog"
-            },
-            "Value": "catOrDog"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -409,7 +405,7 @@
         "Kind": "SelectionSet",
         "Location": {
           "Start": 339,
-          "End": 397,
+          "End": 384,
           "Line": 14,
           "Column": 58
         },
@@ -430,7 +426,7 @@
     "Extensions": {
       "variable": "cat",
       "variableType": "Cat",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -458,8 +454,7 @@
             "Column": 33
           },
           "Value": "cat"
-        },
-        "Value": "cat"
+        }
       },
       "Type": {
         "Kind": "NamedType",
@@ -495,7 +490,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -543,8 +538,7 @@
                 "Column": 33
               },
               "Value": "cat"
-            },
-            "Value": "cat"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -595,7 +589,7 @@
     "Extensions": {
       "variable": "dog",
       "variableType": "Dog!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -623,8 +617,7 @@
             "Column": 37
           },
           "Value": "dog"
-        },
-        "Value": "dog"
+        }
       },
       "Type": {
         "Kind": "NonNullType",
@@ -669,7 +662,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -717,8 +710,7 @@
                 "Column": 37
               },
               "Value": "dog"
-            },
-            "Value": "dog"
+            }
           },
           "Type": {
             "Kind": "NonNullType",
@@ -778,7 +770,7 @@
     "Extensions": {
       "variable": "pets",
       "variableType": "[Pet]",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -806,8 +798,7 @@
             "Column": 39
           },
           "Value": "pets"
-        },
-        "Value": "pets"
+        }
       },
       "Type": {
         "Kind": "ListType",
@@ -852,7 +843,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -900,8 +891,7 @@
                 "Column": 39
               },
               "Value": "pets"
-            },
-            "Value": "pets"
+            }
           },
           "Type": {
             "Kind": "ListType",
@@ -961,7 +951,7 @@
     "Extensions": {
       "variable": "catOrDog",
       "variableType": "CatOrDog",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -989,8 +979,7 @@
             "Column": 38
           },
           "Value": "catOrDog"
-        },
-        "Value": "catOrDog"
+        }
       },
       "Type": {
         "Kind": "NamedType",
@@ -1026,14 +1015,14 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "OperationDefinition",
       "Location": {
         "Start": 298,
-        "End": 397,
+        "End": 384,
         "Line": 14,
         "Column": 17
       },
@@ -1074,8 +1063,7 @@
                 "Column": 38
               },
               "Value": "catOrDog"
-            },
-            "Value": "catOrDog"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -1105,7 +1093,7 @@
         "Kind": "SelectionSet",
         "Location": {
           "Start": 339,
-          "End": 397,
+          "End": 384,
           "Line": 14,
           "Column": 58
         },

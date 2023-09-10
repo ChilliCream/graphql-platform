@@ -1,0 +1,2857 @@
+type Query {
+  bwr_TimeSeries(
+    lastId: String
+    pageSize: Int
+    listPagination: [PaginationInput]
+    validityDate: DateTime
+    allValidityPeriods: Boolean
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: bwr_TimeSeriesFilterInput
+    order: [bwr_TimeSeriesSortInput!]
+  ): Bwr_TimeSeriesConnection
+  bwr_GroupInstances(
+    lastId: String
+    pageSize: Int
+    listPagination: [PaginationInput]
+    validityDate: DateTime
+    allValidityPeriods: Boolean
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: bwr_GroupInstancesFilterInput
+    order: [bwr_GroupInstancesSortInput!]
+  ): Bwr_GroupInstancesConnection
+  bwr_Groups(
+    lastId: String
+    pageSize: Int
+    listPagination: [PaginationInput]
+    validityDate: DateTime
+    allValidityPeriods: Boolean
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: bwr_GroupsFilterInput
+    order: [bwr_GroupsSortInput!]
+  ): Bwr_GroupsConnection
+  test_GroupInstances(
+    lastId: String
+    pageSize: Int
+    listPagination: [PaginationInput]
+    validityDate: DateTime
+    allValidityPeriods: Boolean
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: test_GroupInstancesFilterInput
+    order: [test_GroupInstancesSortInput!]
+  ): Test_GroupInstancesConnection
+  GroupInstances(
+    lastId: String
+    pageSize: Int
+    listPagination: [PaginationInput]
+    validityDate: DateTime
+    allValidityPeriods: Boolean
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: GroupInstancesFilterInput
+    order: [GroupInstancesSortInput!]
+  ): GroupInstancesConnection
+  Groups(
+    lastId: String
+    pageSize: Int
+    listPagination: [PaginationInput]
+    validityDate: DateTime
+    allValidityPeriods: Boolean
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: GroupsFilterInput
+    order: [GroupsSortInput!]
+  ): GroupsConnection
+  units: [Unit]
+  baseUnits: [Unit]
+  unitsByBaseUnit(baseUnit: String): [Unit]
+  timeSeriesData(
+    inventoryItemIds: [String]!
+    input: ReadDataInput!
+    _inventoryId: String!
+  ): [TimeSeriesDataItem]
+  reducebwr_Groups(
+    input: ReadDataReducedInput!
+    _inventoryItemId: String!
+    sortBy: String
+  ): TimeSeriesDataItem
+  reduceGroups(
+    input: ReadDataReducedInput!
+    _inventoryItemId: String!
+    sortBy: String
+  ): TimeSeriesDataItem
+}
+
+type Mutation {
+  createbwr_TimeSeries(
+    input: [Createbwr_TimeSeriesInput!]!
+  ): Createbwr_TimeSeriesPayload!
+  updatebwr_TimeSeries(
+    input: [Updatebwr_TimeSeriesInput!]!
+  ): Updatebwr_TimeSeriesPayload!
+  updatebwr_TimeSeriesArrayProperties(
+    input: Updatebwr_TimeSeriesArrayPropertiesInput!
+  ): Updatebwr_TimeSeriesArrayPropertiesPayload!
+  deletebwr_TimeSeries(
+    input: [DeleteDynamicItemInput!]!
+  ): DeleteDynamicItemsPayload!
+  createbwr_GroupInstances(
+    input: [Createbwr_GroupInstancesInput!]!
+  ): Createbwr_GroupInstancesPayload!
+  updatebwr_GroupInstances(
+    input: [Updatebwr_GroupInstancesInput!]!
+  ): Updatebwr_GroupInstancesPayload!
+  deletebwr_GroupInstances(
+    input: [DeleteDynamicItemInput!]!
+  ): DeleteDynamicItemsPayload!
+  createbwr_Groups(
+    input: [Createbwr_GroupsInput!]!
+  ): Createbwr_GroupsPayload!
+  updatebwr_Groups(
+    input: [Updatebwr_GroupsInput!]!
+  ): Updatebwr_GroupsPayload!
+  updatebwr_GroupsArrayProperties(
+    input: Updatebwr_GroupsArrayPropertiesInput!
+  ): Updatebwr_GroupsArrayPropertiesPayload!
+  deletebwr_Groups(
+    input: [DeleteDynamicItemInput!]!
+  ): DeleteDynamicItemsPayload!
+  createtest_GroupInstances(
+    input: [Createtest_GroupInstancesInput!]!
+  ): Createtest_GroupInstancesPayload!
+  updatetest_GroupInstances(
+    input: [Updatetest_GroupInstancesInput!]!
+  ): Updatetest_GroupInstancesPayload!
+  deletetest_GroupInstances(
+    input: [DeleteDynamicItemInput!]!
+  ): DeleteDynamicItemsPayload!
+  createGroupInstances(
+    input: [CreateGroupInstancesInput!]!
+  ): CreateGroupInstancesPayload!
+  updateGroupInstances(
+    input: [UpdateGroupInstancesInput!]!
+  ): UpdateGroupInstancesPayload!
+  deleteGroupInstances(
+    input: [DeleteDynamicItemInput!]!
+  ): DeleteDynamicItemsPayload!
+  createGroups(
+    input: [CreateGroupsInput!]!
+  ): CreateGroupsPayload!
+  updateGroups(
+    input: [UpdateGroupsInput!]!
+  ): UpdateGroupsPayload!
+  updateGroupsArrayProperties(
+    input: UpdateGroupsArrayPropertiesInput!
+  ): UpdateGroupsArrayPropertiesPayload!
+  deleteGroups(
+    input: [DeleteDynamicItemInput!]!
+  ): DeleteDynamicItemsPayload!
+  createBaseUnit(input: CreateBaseUnitInput!): UnitPayload!
+  createUnit(input: CreateUnitInput!): UnitPayload!
+  createUnits(input: CreateUnitsInput!): UnitsPayload!
+  updateUnit(input: UpdateUnitInput!): UnitPayload!
+  deleteUnit(input: DeleteUnitInput!): DeleteUnitPayload!
+  setTimeSeriesData(input: [SetTimeSeriesDataInput!]): SetTimeSeriesDataPayload!
+  addTimeSeriesTobwr_Groups(
+    input: [AddTimeSeriesbwr_GroupInstancesToGroupInput!]!
+  ): Updatebwr_GroupsArrayPropertiesPayload!
+  addTimeSeriesToGroups(
+    input: [AddTimeSeriesGroupInstancesToGroupInput!]!
+  ): UpdateGroupsArrayPropertiesPayload!
+}
+
+"""
+The `DateTime` scalar represents an ISO-8601 compliant date time type.
+"""
+scalar DateTime
+
+"""
+The node interface is implemented by entities that have a global unique identifier.
+"""
+interface Node {
+  id: ID!
+}
+
+type StringCellValue implements ICellValue {
+  value: String
+  displayValue: String!
+  permissions: String!
+}
+
+type ListCellValue implements ICellValue {
+  listValue: [Any]
+  displayValue: String!
+  permissions: String!
+}
+
+type BooleanCellValue implements ICellValue {
+  value: Boolean
+  displayValue: String!
+  permissions: String!
+}
+
+type IntCellValue implements ICellValue {
+  value: Int
+  displayValue: String!
+  permissions: String!
+}
+
+type DecimalCellValue implements ICellValue {
+  value: Decimal
+  displayValue: String!
+  permissions: String!
+}
+
+type DateTimeCellValue implements ICellValue {
+  value: DateTime
+  displayValue: String!
+  permissions: String!
+}
+
+type ScalarTypeDescription implements ITypeDescription {
+  name: String!
+  isNonNullable: Boolean!
+}
+
+type ListTypeDescription implements ITypeDescription {
+  innerType: ITypeDescription!
+  name: String!
+  isNonNullable: Boolean!
+}
+
+type ObjectTypeDescription implements ITypeDescription {
+  fields: [GraphQlFieldDescription!]!
+  name: String!
+  isNonNullable: Boolean!
+}
+
+type EnumTypeDescription implements ITypeDescription {
+  values: [String!]!
+  name: String!
+  isNonNullable: Boolean!
+}
+
+type IScalarProperty implements IProperty {
+  dataType: DataType!
+  id: String!
+  name: String!
+  type: String!
+  isArray: Boolean!
+  nullable: Boolean!
+}
+
+type PropertyUniqueness implements IPropertyUniqueness {
+  """
+  This field is used to create a unique key to identify the property uniqueness constraint, e.g companyName_constraint
+  """
+  uniqueKey: String!
+
+  """
+  This field is used to create unique constraint on single or multiple properties of an inventory, e.g ['PropertyA_Name','PropertyB_Name']
+  """
+  properties: [String!]!
+}
+
+type IReferenceProperty implements IProperty {
+  inventoryId: String!
+  inventoryName: String!
+  id: String!
+  name: String!
+  type: String!
+  isArray: Boolean!
+  nullable: Boolean!
+}
+
+type IScalarVariantProperty implements IVariantProperty {
+  dataType: DataType!
+  id: String!
+  name: String!
+  type: String!
+  isArray: Boolean!
+  nullable: Boolean!
+}
+
+type IReferenceVariantProperty implements IVariantProperty {
+  inventoryId: String
+  inventoryName: String
+  variantId: String
+  variantName: String
+  id: String!
+  name: String!
+  type: String!
+  isArray: Boolean!
+  nullable: Boolean!
+}
+
+input InventoryFilterInput {
+  and: [InventoryFilterInput!]
+  or: [InventoryFilterInput!]
+  inventoryId: StringOperationFilterInput
+  isDomainUserType: BooleanOperationFilterInput
+  hasValidityPeriods: BooleanOperationFilterInput
+  historyEnabled: BooleanOperationFilterInput
+  properties: ListFilterInputTypeOfPropertyFilterInput
+  name: StringOperationFilterInput
+  displayName: StringOperationFilterInput
+  variant: VariantFilterInput
+}
+
+input InventorySortInput {
+  id: SortEnumType
+  inventoryId: SortEnumType
+  name: SortEnumType
+  displayName: SortEnumType
+  variant: VariantSortInput
+  isDomainUserType: SortEnumType
+  displayValue: SortEnumType
+  hasValidityPeriods: SortEnumType
+  historyEnabled: SortEnumType
+}
+
+type Inventory implements Node {
+  id: ID!
+  inventoryId: String!
+
+  """
+  The displayName has no special restrictions like the fieldName and can be renamed freely.It is used to display a respresentation of the field in UI clients.
+  """
+  name: String!
+
+  """
+  The displayName has no special restrictions like the fieldName and can be renamed freely.It is used to display a respresentation of the field in UI clients.
+  """
+  displayName: String
+  variant: Variant
+  isDomainUserType: Boolean!
+  hasValidityPeriods: Boolean!
+  historyEnabled: Boolean!
+  propertyUniqueness: [IPropertyUniqueness]
+
+  """
+  A list of propertyDefinitions describing the data model of an dynamicObjectType. A propertyDefinition itself is mainly a name and a valueType with some additional data and configuration depending on the propertyDefinition type.
+  """
+  properties: [IProperty]
+  displayValue: String
+}
+
+"""
+A connection to a list of items.
+"""
+type InventoriesConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [InventoriesEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [Inventory]
+}
+
+input VariantFilterInput {
+  and: [VariantFilterInput!]
+  or: [VariantFilterInput!]
+  variantId: StringOperationFilterInput
+  properties: ListFilterInputTypeOfIVariantPropertyFilterInput
+  name: StringOperationFilterInput
+  icon: StringOperationFilterInput
+}
+
+input VariantSortInput {
+  id: SortEnumType
+  icon: SortEnumType
+  variantId: SortEnumType
+  name: SortEnumType
+}
+
+type Variant implements Node {
+  id: ID!
+  variantId: String!
+
+  """
+  The displayName has no special restrictions like the fieldName and can be renamed freely.It is used to display a respresentation of the field in UI clients.
+  """
+  name: String!
+  icon: String
+
+  """
+  A list of propertyDefinitions describing the data model of an dynamicObjectType. A propertyDefinition itself is mainly a name and a valueType with some additional data and configuration depending on the propertyDefinition type.
+  """
+  properties: [IVariantProperty]
+  propertyUniqueness: [IPropertyUniqueness]
+}
+
+"""
+A connection to a list of items.
+"""
+type VariantsConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [VariantsEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [Variant]
+}
+
+input bwr_ImportSpecificationFilterInput {
+  and: [bwr_ImportSpecificationFilterInput!]
+  or: [bwr_ImportSpecificationFilterInput!]
+  name: StringOperationFilterInput
+  inventory: StringOperationFilterInput
+  variable: StringOperationFilterInput
+  fromPeriod: ComparableInt32OperationFilterInput
+  toPeriod: ComparableInt32OperationFilterInput
+  fromResolution: StringOperationFilterInput
+  toResolution: StringOperationFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input bwr_ImportSpecificationSortInput {
+  name: SortEnumType
+  inventory: SortEnumType
+  variable: SortEnumType
+  fromPeriod: SortEnumType
+  toPeriod: SortEnumType
+  fromResolution: SortEnumType
+  toResolution: SortEnumType
+  _inventoryItemId: SortEnumType
+}
+
+input bwr_ValidationCriteriaFilterInput {
+  and: [bwr_ValidationCriteriaFilterInput!]
+  or: [bwr_ValidationCriteriaFilterInput!]
+  name: StringOperationFilterInput
+  completeness: StringOperationFilterInput
+  lowerBound: ComparableDecimalOperationFilterInput
+  upperBound: ComparableDecimalOperationFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input bwr_ValidationCriteriaSortInput {
+  name: SortEnumType
+  completeness: SortEnumType
+  lowerBound: SortEnumType
+  upperBound: SortEnumType
+  _inventoryItemId: SortEnumType
+}
+
+input brw_ValidationResultsFilterInput {
+  and: [brw_ValidationResultsFilterInput!]
+  or: [brw_ValidationResultsFilterInput!]
+  fromTimepoint: ComparableDateTimeOperationFilterInput
+  toTimepoint: ComparableDateTimeOperationFilterInput
+  status: StringOperationFilterInput
+  details: StringOperationFilterInput
+  name: StringOperationFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input brw_ValidationResultsSortInput {
+  fromTimepoint: SortEnumType
+  toTimepoint: SortEnumType
+  status: SortEnumType
+  details: SortEnumType
+  name: SortEnumType
+  _inventoryItemId: SortEnumType
+}
+
+input bwr_TimeSeriesFilterInput {
+  and: [bwr_TimeSeriesFilterInput!]
+  or: [bwr_TimeSeriesFilterInput!]
+  name: StringOperationFilterInput
+  category: StringOperationFilterInput
+  specification: StringOperationFilterInput
+  commodity: StringOperationFilterInput
+  area: StringOperationFilterInput
+  source: StringOperationFilterInput
+  type: StringOperationFilterInput
+  resolution: StringOperationFilterInput
+  unit: StringOperationFilterInput
+  importSpecification: ReferenceTyOfbwr_TimeSeriesFilterInput
+  validationCriteria: ReferenceTyOfbwr_TimeSeriesFilterInput
+  validationResults: ListRefFilterTyOfbwr_TimeSeriesFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input bwr_TimeSeriesSortInput {
+  name: SortEnumType
+  category: SortEnumType
+  specification: SortEnumType
+  commodity: SortEnumType
+  area: SortEnumType
+  source: SortEnumType
+  type: SortEnumType
+  resolution: SortEnumType
+  unit: SortEnumType
+  importSpecification: ReferenceSortTypeSortInput
+  validationCriteria: ReferenceSortTypeSortInput
+  _inventoryItemId: SortEnumType
+}
+
+input bwr_GroupInstancesFilterInput {
+  and: [bwr_GroupInstancesFilterInput!]
+  or: [bwr_GroupInstancesFilterInput!]
+  name: StringOperationFilterInput
+  issueDate: ComparableDateTimeOffsetOperationFilterInput
+  resolution: StringOperationFilterInput
+  unit: StringOperationFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input bwr_GroupInstancesSortInput {
+  name: SortEnumType
+  issueDate: SortEnumType
+  resolution: SortEnumType
+  unit: SortEnumType
+  _inventoryItemId: SortEnumType
+}
+
+input bwr_GroupsFilterInput {
+  and: [bwr_GroupsFilterInput!]
+  or: [bwr_GroupsFilterInput!]
+  name: StringOperationFilterInput
+  category: StringOperationFilterInput
+  specification: StringOperationFilterInput
+  commodity: StringOperationFilterInput
+  area: StringOperationFilterInput
+  source: StringOperationFilterInput
+  type: StringOperationFilterInput
+  resolution: StringOperationFilterInput
+  unit: StringOperationFilterInput
+  importSpecification: ReferenceTyOfbwr_GroupsFilterInput
+  validationCriteria: ReferenceTyOfbwr_GroupsFilterInput
+  validationResults: ListRefFilterTyOfbwr_GroupsFilterInput
+  timeSeriesInstances: ListRefFilterTyOfbwr_GroupsFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input bwr_GroupsSortInput {
+  name: SortEnumType
+  category: SortEnumType
+  specification: SortEnumType
+  commodity: SortEnumType
+  area: SortEnumType
+  source: SortEnumType
+  type: SortEnumType
+  resolution: SortEnumType
+  unit: SortEnumType
+  importSpecification: ReferenceSortTypeSortInput
+  validationCriteria: ReferenceSortTypeSortInput
+  _inventoryItemId: SortEnumType
+}
+
+input test_GroupInstancesFilterInput {
+  and: [test_GroupInstancesFilterInput!]
+  or: [test_GroupInstancesFilterInput!]
+  name: StringOperationFilterInput
+  issueDate: ComparableDateTimeOffsetOperationFilterInput
+  resolution: StringOperationFilterInput
+  unit: StringOperationFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input test_GroupInstancesSortInput {
+  name: SortEnumType
+  issueDate: SortEnumType
+  resolution: SortEnumType
+  unit: SortEnumType
+  _inventoryItemId: SortEnumType
+}
+
+input GroupInstancesFilterInput {
+  and: [GroupInstancesFilterInput!]
+  or: [GroupInstancesFilterInput!]
+  name: StringOperationFilterInput
+  issueDate: ComparableDateTimeOffsetOperationFilterInput
+  resolution: StringOperationFilterInput
+  unit: StringOperationFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input GroupInstancesSortInput {
+  name: SortEnumType
+  issueDate: SortEnumType
+  resolution: SortEnumType
+  unit: SortEnumType
+  _inventoryItemId: SortEnumType
+}
+
+input GroupsFilterInput {
+  and: [GroupsFilterInput!]
+  or: [GroupsFilterInput!]
+  name: StringOperationFilterInput
+  category: StringOperationFilterInput
+  specification: StringOperationFilterInput
+  commodity: StringOperationFilterInput
+  area: StringOperationFilterInput
+  source: StringOperationFilterInput
+  type: StringOperationFilterInput
+  resolution: StringOperationFilterInput
+  unit: StringOperationFilterInput
+  timeSeriesInstances: ListRefFilterTyOfGroupsFilterInput
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input GroupsSortInput {
+  name: SortEnumType
+  category: SortEnumType
+  specification: SortEnumType
+  commodity: SortEnumType
+  area: SortEnumType
+  source: SortEnumType
+  type: SortEnumType
+  resolution: SortEnumType
+  unit: SortEnumType
+  _inventoryItemId: SortEnumType
+}
+
+"""
+A connection to a list of items.
+"""
+type Bwr_ImportSpecificationConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [Bwr_ImportSpecificationEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [bwr_ImportSpecification]
+}
+
+input PaginationInput {
+  propertyPath: String!
+  from: Int!
+  size: Int!
+}
+
+"""
+A connection to a list of items.
+"""
+type Bwr_ValidationCriteriaConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [Bwr_ValidationCriteriaEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [bwr_ValidationCriteria]
+}
+
+"""
+A connection to a list of items.
+"""
+type Brw_ValidationResultsConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [Brw_ValidationResultsEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [brw_ValidationResults]
+}
+
+"""
+A connection to a list of items.
+"""
+type Bwr_TimeSeriesConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [Bwr_TimeSeriesEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [bwr_TimeSeries]
+}
+
+"""
+A connection to a list of items.
+"""
+type Bwr_GroupInstancesConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [Bwr_GroupInstancesEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [bwr_GroupInstances]
+}
+
+"""
+A connection to a list of items.
+"""
+type Bwr_GroupsConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [Bwr_GroupsEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [bwr_Groups]
+}
+
+"""
+A connection to a list of items.
+"""
+type Test_GroupInstancesConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [Test_GroupInstancesEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [test_GroupInstances]
+}
+
+"""
+A connection to a list of items.
+"""
+type GroupInstancesConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [GroupInstancesEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [GroupInstances]
+}
+
+"""
+A connection to a list of items.
+"""
+type GroupsConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [GroupsEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [Groups]
+}
+
+interface ICellValue {
+  displayValue: String!
+  permissions: String!
+}
+
+scalar Any
+
+interface ITypeDescription {
+  name: String!
+  isNonNullable: Boolean!
+}
+
+input RelationDefinitionTypeFilterInput {
+  and: [RelationDefinitionTypeFilterInput!]
+  or: [RelationDefinitionTypeFilterInput!]
+  fieldPath: StringOperationFilterInput
+  name: StringOperationFilterInput
+  topLevelField: StringOperationFilterInput
+  type: RelationTypeOperationFilterInput
+}
+
+interface IProperty {
+  id: String!
+  name: String!
+  type: String!
+  isArray: Boolean!
+  nullable: Boolean!
+}
+
+interface IVariantProperty {
+  id: String!
+  name: String!
+  type: String!
+  isArray: Boolean!
+  nullable: Boolean!
+}
+
+type CreateInventoryPayload {
+  inventory: Inventory
+  errors: [UserError!]
+}
+
+input CreateInventoryInput {
+  """
+  From the fieldName we generate GraphQl fields in the schema as well as internal type representations. Therefor only alphanumeric characters and underscores are allowed. the first character has to be a lower case character or an underscore. Be caucius renaming fieldNames since clients that generate their data model from the schema will have to be rebuild.
+  """
+  name: String!
+  isDomainUserType: Boolean
+  variantId: String
+  displayValue: String
+  hasValidityPeriods: Boolean
+  historyEnabled: Boolean
+
+  """
+  A list of propertyDefinitions describing the data model of an dynamicObjectType. A propertyDefinition itself is mainly a name and a valueType with some additional data and configuration depending on the propertyDefinition type.
+  """
+  properties: [AddPropertyInput!]!
+  propertyUniqueness: [PropertyUniquenessInput!]
+}
+
+type UpdateInventoryPayload {
+  inventory: Inventory
+  errors: [UserError!]
+}
+
+input UpdateInventoryInput {
+  """
+  From the fieldName we generate GraphQl fields in the schema as well as internal type representations. Therefor only alphanumeric characters and underscores are allowed. the first character has to be a lower case character or an underscore. Be caucius renaming fieldNames since clients that generate their data model from the schema will have to be rebuild.
+  """
+  name: String
+  isDomainUserType: Boolean
+
+  """
+  A list of propertyDefinitions describing the data model of an dynamicObjectType. A propertyDefinition itself is mainly a name and a valueType with some additional data and configuration depending on the propertyDefinition type.
+  """
+  properties: [UpdatePropertyDefinitionInput]
+  inventoryId: String!
+  displayValue: String
+}
+
+type DeleteInventoryPayload {
+  errors: [UserError!]
+}
+
+input DeleteInventoryInput {
+  inventoryId: String!
+}
+
+type AddPropertyPayload {
+  inventory: Inventory
+  errors: [UserError!]
+}
+
+input AddPropertiesInput {
+  properties: [AddPropertyInput!]!
+  inventoryId: String!
+}
+
+type RemovePropertyPayload {
+  inventory: Inventory
+  errors: [UserError!]
+}
+
+type EnableHistoryPayload {
+  inventory: Inventory
+  errors: [UserError!]
+}
+
+type CreateVariantPayload {
+  variant: Variant
+  errors: [UserError!]
+}
+
+input CreateVariantInput {
+  """
+  From the fieldName we generate GraphQl fields in the schema as well as internal type representations. Therefor only alphanumeric characters and underscores are allowed. the first character has to be a lower case character or an underscore. Be caucius renaming fieldNames since clients that generate their data model from the schema will have to be rebuild.
+  """
+  name: String!
+  icon: String
+
+  """
+  A list of propertyDefinitions describing the data model of an dynamicObjectType. A propertyDefinition itself is mainly a name and a valueType with some additional data and configuration depending on the propertyDefinition type.
+  """
+  properties: [AddVariantPropertyInput!]!
+  propertyUniqueness: [PropertyUniquenessInput!]
+}
+
+type UpdateVariantPayload {
+  variant: Variant
+  errors: [UserError!]
+}
+
+input UpdateVariantInput {
+  """
+  From the fieldName we generate GraphQl fields in the schema as well as internal type representations. Therefor only alphanumeric characters and underscores are allowed. the first character has to be a lower case character or an underscore. Be caucius renaming fieldNames since clients that generate their data model from the schema will have to be rebuild.
+  """
+  name: String
+  icon: String
+
+  """
+  A list of propertyDefinitions describing the data model of an dynamicObjectType. A propertyDefinition itself is mainly a name and a valueType with some additional data and configuration depending on the propertyDefinition type.
+  """
+  properties: [UpdateVariantPropertyInput]
+  variantId: String!
+}
+
+type DeleteVariantPayload {
+  errors: [UserError!]
+}
+
+input DeleteVariantInput {
+  variantId: String!
+}
+
+type AddVariantPropertyPayload {
+  variant: Variant
+  errors: [UserError!]
+}
+
+input AddVariantPropertiesInput {
+  properties: [AddVariantPropertyInput!]!
+  variantId: String!
+}
+
+type RemoveVariantPropertyPayload {
+  variant: Variant
+  errors: [UserError!]
+}
+
+type Createbwr_ImportSpecificationPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input Createbwr_ImportSpecificationInput {
+  _inventoryItemId: String = null
+  name: String!
+  inventory: String!
+  variable: String!
+  fromPeriod: Int!
+  toPeriod: Int!
+  fromResolution: String!
+  toResolution: String!
+}
+
+type CreateNestedbwr_ImportSpecificationPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedbwr_ImportSpecificationInput {
+  _inventoryItemId: String = null
+  name: String!
+  inventory: String!
+  variable: String!
+  fromPeriod: Int!
+  toPeriod: Int!
+  fromResolution: String!
+  toResolution: String!
+}
+
+type Updatebwr_ImportSpecificationPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input Updatebwr_ImportSpecificationInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  name: String
+  inventory: String
+  variable: String
+  fromPeriod: Int
+  toPeriod: Int
+  fromResolution: String
+  toResolution: String
+}
+
+type UpdateNestedbwr_ImportSpecificationPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedbwr_ImportSpecificationInput {
+  _inventoryItemId: String!
+  _revision: Int
+  name: String
+  inventory: String
+  variable: String
+  fromPeriod: Int
+  toPeriod: Int
+  fromResolution: String
+  toResolution: String
+}
+
+type DeleteDynamicItemsPayload {
+  errors: [UserError!]
+}
+
+input DeleteDynamicItemInput {
+  _inventoryItemId: String!
+  _versionId: String
+}
+
+type Createbwr_ValidationCriteriaPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input Createbwr_ValidationCriteriaInput {
+  _inventoryItemId: String = null
+  name: String
+  completeness: String
+  lowerBound: Decimal
+  upperBound: Decimal
+}
+
+type CreateNestedbwr_ValidationCriteriaPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedbwr_ValidationCriteriaInput {
+  _inventoryItemId: String = null
+  name: String
+  completeness: String
+  lowerBound: Decimal
+  upperBound: Decimal
+}
+
+type Updatebwr_ValidationCriteriaPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input Updatebwr_ValidationCriteriaInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  name: String
+  completeness: String
+  lowerBound: Decimal
+  upperBound: Decimal
+}
+
+type UpdateNestedbwr_ValidationCriteriaPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedbwr_ValidationCriteriaInput {
+  _inventoryItemId: String!
+  _revision: Int
+  name: String
+  completeness: String
+  lowerBound: Decimal
+  upperBound: Decimal
+}
+
+type Createbrw_ValidationResultsPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input Createbrw_ValidationResultsInput {
+  _inventoryItemId: String = null
+  fromTimepoint: DateTime
+  toTimepoint: DateTime
+  status: String
+  details: String
+  name: String!
+}
+
+type CreateNestedbrw_ValidationResultsPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedbrw_ValidationResultsInput {
+  _inventoryItemId: String = null
+  fromTimepoint: DateTime
+  toTimepoint: DateTime
+  status: String
+  details: String
+  name: String!
+}
+
+type Updatebrw_ValidationResultsPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input Updatebrw_ValidationResultsInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  fromTimepoint: DateTime
+  toTimepoint: DateTime
+  status: String
+  details: String
+  name: String
+}
+
+type UpdateNestedbrw_ValidationResultsPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedbrw_ValidationResultsInput {
+  _inventoryItemId: String!
+  _revision: Int
+  fromTimepoint: DateTime
+  toTimepoint: DateTime
+  status: String
+  details: String
+  name: String
+}
+
+type Createbwr_TimeSeriesPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input Createbwr_TimeSeriesInput {
+  _inventoryItemId: String = null
+  name: String!
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String!
+  importSpecification: String
+  validationCriteria: String
+  validationResults: [String]
+}
+
+input ResolutionInput {
+  timeUnit: TimeUnit!
+  factor: Int!
+}
+
+type CreateNestedbwr_TimeSeriesPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedbwr_TimeSeriesInput {
+  _inventoryItemId: String = null
+  name: String!
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String!
+  importSpecification: Createbwr_ImportSpecificationReferenceInput
+  validationCriteria: Createbwr_ValidationCriteriaReferenceInput
+  validationResults: [Createbrw_ValidationResultsReferenceInput]
+}
+
+type Updatebwr_TimeSeriesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input Updatebwr_TimeSeriesInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String
+  importSpecification: String
+  validationCriteria: String
+  validationResults: [String]
+}
+
+type UpdateNestedbwr_TimeSeriesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedbwr_TimeSeriesInput {
+  _inventoryItemId: String!
+  _revision: Int
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String
+  importSpecification: Updatebwr_ImportSpecificationReferenceInput
+  validationCriteria: Updatebwr_ValidationCriteriaReferenceInput
+  validationResults: [Createbrw_ValidationResultsReferenceInput]
+}
+
+type Updatebwr_TimeSeriesArrayPropertiesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateArrayPayload]
+}
+
+input Updatebwr_TimeSeriesArrayPropertiesInput {
+  _inventoryItemId: String!
+  validationResults: ReferenceArrayPropertiesInputOfStringInput
+}
+
+type Createbwr_GroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input Createbwr_GroupInstancesInput {
+  _inventoryItemId: String = null
+  name: String!
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String!
+}
+
+type CreateNestedbwr_GroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedbwr_GroupInstancesInput {
+  _inventoryItemId: String = null
+  name: String!
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String!
+}
+
+type Updatebwr_GroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input Updatebwr_GroupInstancesInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  name: String
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String
+}
+
+type UpdateNestedbwr_GroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedbwr_GroupInstancesInput {
+  _inventoryItemId: String!
+  _revision: Int
+  name: String
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String
+}
+
+type Createbwr_GroupsPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input Createbwr_GroupsInput {
+  _inventoryItemId: String = null
+  name: String!
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String!
+  importSpecification: String
+  validationCriteria: String
+  validationResults: [String]
+  timeSeriesInstances: [String]
+}
+
+type CreateNestedbwr_GroupsPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedbwr_GroupsInput {
+  _inventoryItemId: String = null
+  name: String!
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String!
+  importSpecification: Createbwr_ImportSpecificationReferenceInput
+  validationCriteria: Createbwr_ValidationCriteriaReferenceInput
+  validationResults: [Createbrw_ValidationResultsReferenceInput]
+  timeSeriesInstances: [Createbwr_GroupInstancesReferenceInput]
+}
+
+type Updatebwr_GroupsPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input Updatebwr_GroupsInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String
+  importSpecification: String
+  validationCriteria: String
+  validationResults: [String]
+  timeSeriesInstances: [String]
+}
+
+type UpdateNestedbwr_GroupsPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedbwr_GroupsInput {
+  _inventoryItemId: String!
+  _revision: Int
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String
+  importSpecification: Updatebwr_ImportSpecificationReferenceInput
+  validationCriteria: Updatebwr_ValidationCriteriaReferenceInput
+  validationResults: [Createbrw_ValidationResultsReferenceInput]
+  timeSeriesInstances: [Createbwr_GroupInstancesReferenceInput]
+}
+
+type Updatebwr_GroupsArrayPropertiesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateArrayPayload]
+}
+
+input Updatebwr_GroupsArrayPropertiesInput {
+  _inventoryItemId: String!
+  validationResults: ReferenceArrayPropertiesInputOfStringInput
+  timeSeriesInstances: ReferenceArrayPropertiesInputOfStringInput
+}
+
+type Createtest_GroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input Createtest_GroupInstancesInput {
+  _inventoryItemId: String = null
+  name: String!
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String!
+}
+
+type CreateNestedtest_GroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedtest_GroupInstancesInput {
+  _inventoryItemId: String = null
+  name: String!
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String!
+}
+
+type Updatetest_GroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input Updatetest_GroupInstancesInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  name: String
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String
+}
+
+type UpdateNestedtest_GroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedtest_GroupInstancesInput {
+  _inventoryItemId: String!
+  _revision: Int
+  name: String
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String
+}
+
+type CreateGroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input CreateGroupInstancesInput {
+  _inventoryItemId: String = null
+  name: String!
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String!
+}
+
+type CreateNestedGroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedGroupInstancesInput {
+  _inventoryItemId: String = null
+  name: String!
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String!
+}
+
+type UpdateGroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input UpdateGroupInstancesInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  name: String
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String
+}
+
+type UpdateNestedGroupInstancesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedGroupInstancesInput {
+  _inventoryItemId: String!
+  _revision: Int
+  name: String
+  issueDate: DateTime
+  resolution: ResolutionInput
+  unit: String
+}
+
+type CreateGroupsPayload {
+  errors: [UserError!]
+  InventoryItems: [CreatePayload]
+}
+
+input CreateGroupsInput {
+  _inventoryItemId: String = null
+  name: String!
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String!
+  timeSeriesInstances: [String]
+}
+
+type CreateNestedGroupsPayload {
+  errors: [UserError!]
+  InventoryItems: [CreateNestedPayload]
+}
+
+input CreateNestedGroupsInput {
+  _inventoryItemId: String = null
+  name: String!
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String!
+  timeSeriesInstances: [CreateGroupInstancesReferenceInput]
+}
+
+type UpdateGroupsPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdatePayload]
+}
+
+input UpdateGroupsInput {
+  _inventoryItemId: String!
+  _revision: Int
+  _owner: String
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String
+  timeSeriesInstances: [String]
+}
+
+type UpdateNestedGroupsPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateNestedPayload]
+}
+
+input UpdateNestedGroupsInput {
+  _inventoryItemId: String!
+  _revision: Int
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: ResolutionInput
+  unit: String
+  timeSeriesInstances: [CreateGroupInstancesReferenceInput]
+}
+
+type UpdateGroupsArrayPropertiesPayload {
+  errors: [UserError!]
+  InventoryItems: [UpdateArrayPayload]
+}
+
+input UpdateGroupsArrayPropertiesInput {
+  _inventoryItemId: String!
+  timeSeriesInstances: ReferenceArrayPropertiesInputOfStringInput
+}
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input ListFilterInputTypeOfPropertyFilterInput {
+  all: PropertyFilterInput
+  none: PropertyFilterInput
+  some: PropertyFilterInput
+  any: Boolean
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+"""
+Information about pagination in a connection.
+"""
+type PageInfo {
+  """
+  Indicates whether more edges exist following the set defined by the clients arguments.
+  """
+  hasNextPage: Boolean!
+
+  """
+  Indicates whether more edges exist prior the set defined by the clients arguments.
+  """
+  hasPreviousPage: Boolean!
+
+  """
+  When paginating backwards, the cursor to continue.
+  """
+  startCursor: String
+
+  """
+  When paginating forwards, the cursor to continue.
+  """
+  endCursor: String
+}
+
+"""
+An edge in a connection.
+"""
+type InventoriesEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: Inventory
+}
+
+input ListFilterInputTypeOfIVariantPropertyFilterInput {
+  all: IVariantPropertyFilterInput
+  none: IVariantPropertyFilterInput
+  some: IVariantPropertyFilterInput
+  any: Boolean
+}
+
+"""
+An edge in a connection.
+"""
+type VariantsEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: Variant
+}
+
+input ComparableInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input ComparableDecimalOperationFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal!]
+  nin: [Decimal!]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
+}
+
+input ComparableDateTimeOperationFilterInput {
+  eq: DateTime
+  neq: DateTime
+  in: [DateTime!]
+  nin: [DateTime!]
+  gt: DateTime
+  ngt: DateTime
+  gte: DateTime
+  ngte: DateTime
+  lt: DateTime
+  nlt: DateTime
+  lte: DateTime
+  nlte: DateTime
+}
+
+input ReferenceTyOfbwr_TimeSeriesFilterInput {
+  and: [ReferenceTyOfbwr_TimeSeriesFilterInput!]
+  or: [ReferenceTyOfbwr_TimeSeriesFilterInput!]
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input ListRefFilterTyOfbwr_TimeSeriesFilterInput {
+  all: ReferenceTyOfbwr_TimeSeriesFilterInput
+  none: ReferenceTyOfbwr_TimeSeriesFilterInput
+  some: ReferenceTyOfbwr_TimeSeriesFilterInput
+  any: Boolean
+}
+
+input ReferenceSortTypeSortInput {
+  _inventoryItemId: SortEnumType
+}
+
+input ComparableDateTimeOffsetOperationFilterInput {
+  eq: DateTime
+  neq: DateTime
+  in: [DateTime!]
+  nin: [DateTime!]
+  gt: DateTime
+  ngt: DateTime
+  gte: DateTime
+  ngte: DateTime
+  lt: DateTime
+  nlt: DateTime
+  lte: DateTime
+  nlte: DateTime
+}
+
+input ReferenceTyOfbwr_GroupsFilterInput {
+  and: [ReferenceTyOfbwr_GroupsFilterInput!]
+  or: [ReferenceTyOfbwr_GroupsFilterInput!]
+  _inventoryItemId: StringOperationFilterInput
+}
+
+input ListRefFilterTyOfbwr_GroupsFilterInput {
+  all: ReferenceTyOfbwr_GroupsFilterInput
+  none: ReferenceTyOfbwr_GroupsFilterInput
+  some: ReferenceTyOfbwr_GroupsFilterInput
+  any: Boolean
+}
+
+input ListRefFilterTyOfGroupsFilterInput {
+  all: ReferenceTyOfGroupsFilterInput
+  none: ReferenceTyOfGroupsFilterInput
+  some: ReferenceTyOfGroupsFilterInput
+  any: Boolean
+}
+
+type bwr_ImportSpecification implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  name: String
+  inventory: String
+  variable: String
+  fromPeriod: Int
+  toPeriod: Int
+  fromResolution: String
+  toResolution: String
+}
+
+"""
+An edge in a connection.
+"""
+type Bwr_ImportSpecificationEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: bwr_ImportSpecification
+}
+
+type bwr_ValidationCriteria implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  name: String
+  completeness: String
+  lowerBound: Decimal
+  upperBound: Decimal
+}
+
+"""
+An edge in a connection.
+"""
+type Bwr_ValidationCriteriaEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: bwr_ValidationCriteria
+}
+
+type brw_ValidationResults implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  fromTimepoint: DateTime
+  toTimepoint: DateTime
+  status: String
+  details: String
+  name: String
+}
+
+"""
+An edge in a connection.
+"""
+type Brw_ValidationResultsEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: brw_ValidationResults
+}
+
+type bwr_TimeSeries implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: Resolution
+  unit: String
+  importSpecification(
+    where: bwr_ImportSpecificationFilterInput
+  ): bwr_ImportSpecification
+  validationCriteria(
+    where: bwr_ValidationCriteriaFilterInput
+  ): bwr_ValidationCriteria
+  validationResults(
+    where: brw_ValidationResultsFilterInput
+    order: brw_ValidationResultsSortInput
+  ): [brw_ValidationResults]
+  _dataPoints(input: ReadDataInput!): [DataPoint!]
+  _dataPeriod: DataPeriod
+}
+
+type Resolution {
+  timeUnit: TimeUnit!
+  factor: Int!
+}
+
+enum TimeUnit {
+  MILLISECOND
+  SECOND
+  MINUTE
+  HOUR
+  DAY
+  WEEK
+  MONTH
+  QUARTER
+  YEAR
+}
+
+"""
+An edge in a connection.
+"""
+type Bwr_TimeSeriesEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: bwr_TimeSeries
+}
+
+type bwr_GroupInstances implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  name: String
+  issueDate: DateTime
+  resolution: Resolution
+  unit: String
+  _dataPoints(input: ReadDataInput!): [DataPoint!]
+  _dataPeriod: DataPeriod
+}
+
+"""
+An edge in a connection.
+"""
+type Bwr_GroupInstancesEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: bwr_GroupInstances
+}
+
+type bwr_Groups implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: Resolution
+  unit: String
+  importSpecification(
+    where: bwr_ImportSpecificationFilterInput
+  ): bwr_ImportSpecification
+  validationCriteria(
+    where: bwr_ValidationCriteriaFilterInput
+  ): bwr_ValidationCriteria
+  validationResults(
+    where: brw_ValidationResultsFilterInput
+    order: brw_ValidationResultsSortInput
+  ): [brw_ValidationResults]
+  timeSeriesInstances(
+    where: bwr_GroupInstancesFilterInput
+    order: bwr_GroupInstancesSortInput
+  ): [bwr_GroupInstances]
+  _dataPoints(input: ReadDataInput!): [DataPoint!]
+  _dataPeriod: DataPeriod
+}
+
+"""
+An edge in a connection.
+"""
+type Bwr_GroupsEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: bwr_Groups
+}
+
+type test_GroupInstances implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  name: String
+  issueDate: DateTime
+  resolution: Resolution
+  unit: String
+  _dataPoints(input: ReadDataInput!): [DataPoint!]
+  _dataPeriod: DataPeriod
+}
+
+"""
+An edge in a connection.
+"""
+type Test_GroupInstancesEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: test_GroupInstances
+}
+
+type GroupInstances implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  name: String
+  issueDate: DateTime
+  resolution: Resolution
+  unit: String
+  _dataPoints(input: ReadDataInput!): [DataPoint!]
+  _dataPeriod: DataPeriod
+}
+
+"""
+An edge in a connection.
+"""
+type GroupInstancesEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: GroupInstances
+}
+
+type Groups implements Node {
+  id: ID!
+  _revision: Int!
+  _owner: String
+  _inventoryItemId: String
+  _displayValue: String
+  _propertyPermissions: [FilteredPermission]
+  name: String
+  category: String
+  specification: String
+  commodity: String
+  area: String
+  source: String
+  type: String
+  resolution: Resolution
+  unit: String
+  timeSeriesInstances(
+    where: GroupInstancesFilterInput
+    order: GroupInstancesSortInput
+  ): [GroupInstances]
+  _dataPoints(input: ReadDataInput!): [DataPoint!]
+  _dataPeriod: DataPeriod
+}
+
+"""
+An edge in a connection.
+"""
+type GroupsEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: Groups
+}
+
+input RelationTypeOperationFilterInput {
+  eq: RelationType
+  neq: RelationType
+  in: [RelationType!]
+  nin: [RelationType!]
+}
+
+input AddPropertyInput {
+  """
+  From the fieldName we generate GraphQl fields in the schema as well as internal type representations. Therefor only alphanumeric characters and underscores are allowed. the first character has to be a lower case character or an underscore. Be caucius renaming fieldNames since clients that generate their data model from the schema will have to be rebuild.
+  """
+  name: String!
+
+  """
+  This field is used to identify the scalar or referece property type.
+  """
+  isReference: Boolean
+
+  """
+  This field is used for data type of a scalar peroperty.
+  """
+  dataType: DataType
+  isArray: Boolean
+  nullable: Boolean
+  inventoryId: String
+}
+
+input UpdatePropertyDefinitionInput {
+  id: String!
+  name: String
+  nullable: Boolean
+}
+
+input AddVariantPropertyInput {
+  """
+  From the fieldName we generate GraphQl fields in the schema as well as internal type representations. Therefor only alphanumeric characters and underscores are allowed. the first character has to be a lower case character or an underscore. Be caucius renaming fieldNames since clients that generate their data model from the schema will have to be rebuild.
+  """
+  name: String!
+
+  """
+  This field is used to identify the scalar or referece property type.
+  """
+  isReference: Boolean
+
+  """
+  This field is used for data type of a scalar peroperty.
+  """
+  dataType: DataType
+  variantId: String
+  isArray: Boolean!
+  nullable: Boolean!
+  inventoryId: String
+}
+
+input UpdateVariantPropertyInput {
+  id: String!
+  name: String
+  nullable: Boolean
+}
+
+type CreatePayload {
+  _inventoryItemId: String!
+}
+
+type CreateNestedPayload {
+  _inventoryItemId: String!
+  _inventoryName: String!
+  _path: String!
+}
+
+type UpdatePayload {
+  _inventoryItemId: String!
+  _revision: Int!
+}
+
+type UpdateNestedPayload {
+  _inventoryItemId: String!
+  _revision: Int!
+  _inventoryName: String!
+  _path: String!
+  _operation: String!
+}
+
+"""
+The built-in `Decimal` scalar type.
+"""
+scalar Decimal
+
+input Createbwr_ImportSpecificationReferenceInput {
+  _inventoryItemId: String = null
+  create: CreateNestedbwr_ImportSpecificationInput
+}
+
+input Createbwr_ValidationCriteriaReferenceInput {
+  _inventoryItemId: String = null
+  create: CreateNestedbwr_ValidationCriteriaInput
+}
+
+input Createbrw_ValidationResultsReferenceInput {
+  _inventoryItemId: String = null
+  create: CreateNestedbrw_ValidationResultsInput
+}
+
+input Updatebwr_ImportSpecificationReferenceInput {
+  _inventoryItemId: String = null
+  create: CreateNestedbwr_ImportSpecificationInput
+  update: UpdateNestedbwr_ImportSpecificationInput
+}
+
+input Updatebwr_ValidationCriteriaReferenceInput {
+  _inventoryItemId: String = null
+  create: CreateNestedbwr_ValidationCriteriaInput
+  update: UpdateNestedbwr_ValidationCriteriaInput
+}
+
+type UpdateArrayPayload {
+  _inventoryItemId: String!
+}
+
+input ReferenceArrayPropertiesInputOfStringInput {
+  removeByIndex: [Int!]
+  removeById: [String!]
+  insert: [ArrayInsertOfStringInput!]
+  cascadeDelete: Boolean
+}
+
+input Createbwr_GroupInstancesReferenceInput {
+  _inventoryItemId: String = null
+  create: CreateNestedbwr_GroupInstancesInput
+}
+
+input CreateGroupInstancesReferenceInput {
+  _inventoryItemId: String = null
+  create: CreateNestedGroupInstancesInput
+}
+
+input PropertyFilterInput {
+  and: [PropertyFilterInput!]
+  or: [PropertyFilterInput!]
+  id: StringOperationFilterInput
+  name: StringOperationFilterInput
+  type: StringOperationFilterInput
+  isArray: BooleanOperationFilterInput
+  nullable: BooleanOperationFilterInput
+}
+
+input IVariantPropertyFilterInput {
+  and: [IVariantPropertyFilterInput!]
+  or: [IVariantPropertyFilterInput!]
+  id: StringOperationFilterInput
+  name: StringOperationFilterInput
+  type: StringOperationFilterInput
+  isArray: BooleanOperationFilterInput
+  nullable: BooleanOperationFilterInput
+}
+
+input ReferenceTyOfGroupsFilterInput {
+  and: [ReferenceTyOfGroupsFilterInput!]
+  or: [ReferenceTyOfGroupsFilterInput!]
+  _inventoryItemId: StringOperationFilterInput
+}
+
+enum DataType {
+  STRING
+  INT
+  LONG
+  DECIMAL
+  DATE_TIME
+  DATE_TIME_OFFSET
+  BOOLEAN
+}
+
+type ServiceInfo {
+  name: String!
+  version: String
+  informationalVersion: String
+}
+
+type GraphQlMetaQueryType {
+  topLevelFieldNames(operationType: OperationType! = QUERY): [String!]!
+  typeDescription(typeName: String!): ITypeDescription
+  query: GraphQlMetaQueryOperationsType!
+  mutation: GraphQlMetaMutationQuery!
+  schema: String!
+  relations(
+    where: RelationDefinitionTypeFilterInput
+  ): [RelationDefinitionType!]!
+}
+
+type GraphQlFieldDescription {
+  name: String!
+  type: ITypeDescription!
+}
+
+type RelationDefinitionType {
+  fieldPath: String!
+  name: String!
+  topLevelField: String!
+  type: RelationType!
+}
+
+type GraphQlMetaMutationType {
+  invokeMutation(
+    mutation: String!
+    variables: [VariableValueInput!]
+    pathsToExclude: [String!]
+    nestingLevel: Int! = 2147483647
+    nestingPlusOneFields: [String!]
+    listNestingLevel: Int! = 2147483647
+    addSelectVariables: Boolean! = false
+    exposeArguments: Boolean! = true
+    inputTypesToExpand: [String!]
+  ): GraphQlOperationResult!
+}
+
+type AddRelationResult {
+  relation: RelationDefinitionType
+}
+
+input VariableWithPlaceholderInput {
+  name: String!
+  getValue: String!
+}
+
+type RemoveRelationResult {
+  removed: Boolean!
+}
+
+input RemovePropertyInput {
+  inventoryId: String!
+  propertyKeys: [String!]!
+}
+
+input EnableHistoryInput {
+  inventoryId: String!
+}
+
+input DisableHistoryInput {
+  inventoryId: String!
+}
+
+input RemoveVariantPropertyInput {
+  variantId: String!
+  propertyKeys: [String!]!
+}
+
+interface IPropertyUniqueness {
+  uniqueKey: String!
+  properties: [String!]!
+}
+
+type UserError {
+  message: String
+  code: String
+}
+
+input PropertyUniquenessInput {
+  uniqueKey: String!
+  properties: [String!]!
+}
+
+type FilteredPermission {
+  name: String
+  permissions: [String]
+}
+
+enum RelationType {
+  QUERY
+  MUTATION
+}
+
+input ArrayInsertOfStringInput {
+  value: String
+  index: Int
+}
+
+input VariableValueInput {
+  name: String!
+  value: String!
+}
+
+type GraphQlOperationResult {
+  grid: Grid!
+  plain: String!
+}
+
+type GraphQlMetaMutationQuery {
+  topLevel(
+    topLevelField: String!
+    pathsToExclude: [String!]
+    nestingLevel: Int! = 2147483647
+    nestingPlusOneFields: [String!]
+    listNestingLevel: Int! = 2147483647
+    addSelectVariables: Boolean! = false
+    exposeArguments: Boolean! = true
+    inputTypesToExpand: [String!]
+  ): GraphQlMutationOperation!
+}
+
+type GraphQlMetaQueryOperationsType {
+  dynamicItem(
+    topLevelField: String!
+    pathsToExclude: [String!]
+    nestingLevel: Int! = 3
+    nestingPlusOneFields: [String!]
+    listNestingLevel: Int! = 1
+    addSelectVariables: Boolean! = false
+    compactList: Boolean! = false
+  ): GraphQlQueryOperation!
+  topLevel(
+    topLevelField: String!
+    pathsToExclude: [String!]
+    nestingLevel: Int! = 2147483647
+    nestingPlusOneFields: [String!]
+    listNestingLevel: Int! = 2147483647
+    addSelectVariables: Boolean! = true
+    exposeArguments: Boolean! = true
+    inputTypesToExpand: [String!]
+  ): GraphQlQueryOperation!
+  fromSource(source: String!): GraphQlQueryOperation!
+}
+
+enum OperationType {
+  QUERY
+  MUTATION
+}
+
+type GraphQlQueryOperation {
+  result(variables: [VariableValueInput!]): GraphQlOperationResult!
+  plain: String!
+  variableInfos: [GraphQlVariableInfo!]!
+}
+
+type GraphQlMutationOperation {
+  plain: String!
+  variableInfos: [GraphQlVariableInfo!]!
+}
+
+type Grid {
+  relations: [GraphQlRelation!]!
+  operations: [GraphQlRelation!]!
+  columns: [GridColumn!]!
+  rows: [GridRow!]!
+}
+
+type GridRow {
+  relations: [GraphQlRelation!]!
+  operations: [GraphQlRelation!]!
+  values: [ICellValue!]!
+}
+
+type GridColumn {
+  path: String!
+  type: ITypeDescription!
+  graphQlPath: String!
+  kind: GridColumnKind!
+}
+
+type GraphQlRelation {
+  name: String!
+  link: GraphQlLink!
+}
+
+type GraphQlVariableInfo {
+  name: String!
+  type: ITypeDescription!
+  columnName: String!
+  kind: VariableKind!
+}
+
+enum VariableKind {
+  EXPOSED_ARGUMENT
+  SELECT
+  OTHER
+}
+
+type GraphQlLink {
+  variables: [VariableValue!]!
+  topLevelField: String!
+  listNestingLevel: Int!
+  nestingLevel: Int!
+}
+
+enum GridColumnKind {
+  STANDARD
+  TS_TIMESTAMP
+  TS_VALUE
+  TS_VALUE_FLAG
+  PAGING
+}
+
+type VariableValue {
+  name: String!
+  value: String!
+}
+
+type Unit {
+  aggregation: AggregationRule
+  isBaseUnit: Boolean!
+  name: String!
+  baseUnit: String!
+  factor: Float
+}
+
+type TimeSeriesDataItem {
+  _inventoryItemId: String
+  resolution: Resolution
+  unitName: String
+  dataPoints: [DataPoint!]
+}
+
+type TimeSeriesDataPeriodItem {
+  _inventoryItemId: String!
+  dataPeriod: DataPeriod
+}
+
+input ReadDataInput {
+  unit: String
+  from: DateTime!
+  to: DateTime!
+  resolution: ResolutionInput
+  aggregation: Aggregation
+}
+
+type TimeSeries {
+  _inventoryItemId: String!
+  unitName: String!
+  resolution: Resolution!
+}
+
+input ReadDataReducedInput {
+  unit: String
+  reducer: ReducerFunction
+  from: DateTime!
+  to: DateTime!
+  resolution: ResolutionInput
+}
+
+type UnitPayload {
+  unit: Unit
+  errors: [UserError!]
+}
+
+type UnitsPayload {
+  units: [Unit!]
+  errors: [UserError!]
+}
+
+type DeleteUnitPayload {
+  errors: [UserError!]
+}
+
+input CreateBaseUnitInput {
+  name: String
+  aggregation: AggregationRule!
+}
+
+input CreateUnitInput {
+  name: String
+  baseUnit: String
+  factor: Float!
+  aggregation: AggregationRule!
+}
+
+input CreateUnitsInput {
+  units: [CreateUnitInput]
+}
+
+input UpdateUnitInput {
+  name: String
+  baseUnit: String
+  factor: Float
+  aggregation: AggregationRule
+}
+
+input DeleteUnitInput {
+  name: String!
+}
+
+type SetTimeSeriesDataPayload {
+  errors: [UserErrorWithId!]
+}
+
+input SetTimeSeriesDataInput {
+  _inventoryId: String
+  _inventoryItemId: String
+  data: DataInput!
+}
+
+type CreateTimeSeriesPayload {
+  InventoryItems: [TimeseriesItem!]
+  errors: [UserError!]
+}
+
+type UpdateTimeSeriesPayload {
+  InventoryItems: [TimeseriesItem!]
+  errors: [UserError!]
+}
+
+type DeleteTimeSeriesPayload {
+  errors: [UserError!]
+}
+
+input CreateTimeSeriesInput {
+  _inventoryItemId: String
+  resolution: ResolutionInput
+  unitName: String
+  formula: String
+}
+
+input UpdateTimeSeriesInput {
+  _inventoryItemId: String!
+  resolution: ResolutionInput
+  unitName: String
+  formula: String
+}
+
+input DeleteTimeSeriesInput {
+  _inventoryItemId: String
+}
+
+enum AggregationRule {
+  AVG
+  SUM
+}
+
+enum ReducerFunction {
+  SUM
+  AVG
+  LAST
+  FIRST
+  MIN
+  MAX
+}
+
+input DataInput {
+  unit: String
+  resolution: ResolutionInput
+  dataPoints: [DataPointInput]
+}
+
+type AuthorizeDirective {
+  policy: String
+  roles: [String!]
+  apply: ApplyPolicy!
+}
+
+type DataPoint {
+  timestamp: DateTime!
+  value: Float!
+  flag: DataFlag!
+}
+
+type DataPeriod {
+  from: DateTime
+  to: DateTime
+}
+
+enum Aggregation {
+  AVG
+  SUM
+  MIN
+  MAX
+}
+
+type UserErrorWithId {
+  message: String
+  code: String
+  inventoryItemId: String
+}
+
+type TimeseriesItem {
+  _inventoryItemId: String
+}
+
+input DataPointInput {
+  timestamp: DateTime!
+  value: Float!
+  flag: DataFlag
+}
+
+enum DataFlag {
+  NO_VALUE
+  VALID
+  MISSING
+}
+
+input AddTimeSeriesbwr_GroupInstancesToGroupInput {
+  _groupInventoryItemId: String!
+  name: String!
+  issueDate: DateTime
+}
+
+input AddTimeSeriesGroupInstancesToGroupInput {
+  _groupInventoryItemId: String!
+  name: String!
+  issueDate: DateTime
+}

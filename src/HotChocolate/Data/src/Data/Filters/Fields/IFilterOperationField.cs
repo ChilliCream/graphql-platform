@@ -1,11 +1,10 @@
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public interface IFilterOperationField
+    : IFilterField
 {
-    public interface IFilterOperationField
-        : IFilterField
-    {
-        /// <summary>
-        /// Gets the internal operation ID.
-        /// </summary>
-        int Id { get; }
-    }
+    /// <summary>
+    /// Gets the internal operation ID.
+    /// </summary>
+    int Id { get; }
 }

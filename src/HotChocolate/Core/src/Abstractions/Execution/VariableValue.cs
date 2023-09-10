@@ -1,34 +1,34 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+/// <summary>
+/// Represents a variable value.
+/// </summary>
+public readonly struct VariableValue
 {
-    /// <summary>
-    /// Represents a variable value.
-    /// </summary>
-    public readonly struct VariableValue
+    public VariableValue(string name, IInputType type, IValueNode value)
     {
-        public VariableValue(NameString name, IInputType type, IValueNode value)
-        {
-            Name = name.EnsureNotEmpty(nameof(name));
-            Type = type ?? throw new ArgumentNullException(nameof(type));
-            Value = value ?? throw new ArgumentNullException(nameof(value));
-        }
-
-        /// <summary>
-        /// Gets the variable name.
-        /// </summary>
-        public NameString Name { get; }
-
-        /// <summary>
-        /// Gets the variable type.
-        /// </summary>
-        public IInputType Type { get; }
-
-        /// <summary>
-        /// Gets the variable value.
-        /// </summary>
-        public IValueNode Value { get; }
+        Name = name.EnsureGraphQLName();
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        Value = value ?? throw new ArgumentNullException(nameof(value));
     }
+
+    /// <summary>
+    /// Gets the variable name.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the variable type.
+    /// </summary>
+    public IInputType Type { get; }
+
+    /// <summary>
+    /// Gets the variable value.
+    /// </summary>
+    public IValueNode Value { get; }
 }

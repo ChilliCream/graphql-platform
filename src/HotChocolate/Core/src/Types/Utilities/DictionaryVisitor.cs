@@ -1,56 +1,55 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public class DictionaryVisitor<TContext>
 {
-    public class DictionaryVisitor<TContext>
+    protected DictionaryVisitor()
     {
-        protected DictionaryVisitor()
-        {
-        }
+    }
 
-        protected virtual void Visit(object value, TContext context)
+    protected virtual void Visit(object value, TContext context)
+    {
+        switch (value)
         {
-            switch (value)
-            {
-                case IReadOnlyDictionary<string, object> dictionary:
-                    VisitObject(dictionary, context);
-                    break;
-                case IReadOnlyList<object> list:
-                    VisitList(list, context);
-                    break;
-                default:
-                    VisitValue(value, context);
-                    break;
-            }
+            case IReadOnlyDictionary<string, object> dictionary:
+                VisitObject(dictionary, context);
+                break;
+            case IReadOnlyList<object> list:
+                VisitList(list, context);
+                break;
+            default:
+                VisitValue(value, context);
+                break;
         }
+    }
 
-        protected virtual void VisitObject(
-            IReadOnlyDictionary<string, object> dictionary,
-            TContext context)
+    protected virtual void VisitObject(
+        IReadOnlyDictionary<string, object> dictionary,
+        TContext context)
+    {
+        foreach (var field in dictionary)
         {
-            foreach (KeyValuePair<string, object> field in dictionary)
-            {
-                VisitField(field, context);
-            }
+            VisitField(field, context);
         }
+    }
 
-        protected virtual void VisitField(
-            KeyValuePair<string, object> field,
-            TContext context)
-        {
-            Visit(field.Value, context);
-        }
+    protected virtual void VisitField(
+        KeyValuePair<string, object> field,
+        TContext context)
+    {
+        Visit(field.Value, context);
+    }
 
-        protected virtual void VisitList(IReadOnlyList<object> list, TContext context)
+    protected virtual void VisitList(IReadOnlyList<object> list, TContext context)
+    {
+        for (var i = 0; i < list.Count; i++)
         {
-            for (var i = 0; i < list.Count; i++)
-            {
-                Visit(list[i], context);
-            }
+            Visit(list[i], context);
         }
+    }
 
-        protected virtual void VisitValue(object value, TContext context)
-        {
-        }
+    protected virtual void VisitValue(object value, TContext context)
+    {
     }
 }

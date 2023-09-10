@@ -1,7 +1,6 @@
-namespace HotChocolate.AspNetCore.Serialization
+namespace HotChocolate.AspNetCore.Serialization;
+
+internal interface IVariablePathSegment
 {
-    internal interface IVariablePathSegment
-    {
-        IVariablePathSegment? Next { get; }
-    }
+    IVariablePathSegment? Next { get; }
 }

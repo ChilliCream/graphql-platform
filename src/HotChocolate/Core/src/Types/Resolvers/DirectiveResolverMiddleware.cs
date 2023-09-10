@@ -1,30 +1,28 @@
-﻿using System;
+using System;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers;
+
+internal sealed class DirectiveDelegateMiddleware : IDirectiveMiddleware
 {
-    internal sealed class DirectiveDelegateMiddleware
-        : IDirectiveMiddleware
+    public DirectiveDelegateMiddleware(
+        string directiveName,
+        DirectiveMiddleware middleware)
     {
-        public DirectiveDelegateMiddleware(
-            string directiveName,
-            DirectiveMiddleware middleware)
+        if (string.IsNullOrEmpty(directiveName))
         {
-            if (string.IsNullOrEmpty(directiveName))
-            {
-                throw new ArgumentNullException(nameof(directiveName));
-            }
-
-            if (middleware is null)
-            {
-                throw new ArgumentNullException(nameof(middleware));
-            }
-
-            DirectiveName = directiveName;
-            Middleware = middleware;
+            throw new ArgumentNullException(nameof(directiveName));
         }
 
-        public NameString DirectiveName { get; }
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
 
-        public DirectiveMiddleware Middleware { get; }
+        DirectiveName = directiveName;
+        Middleware = middleware;
     }
+
+    public string DirectiveName { get; }
+
+    public DirectiveMiddleware Middleware { get; }
 }

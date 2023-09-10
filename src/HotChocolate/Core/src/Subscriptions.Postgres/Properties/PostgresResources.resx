@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root"
+              xmlns=""
+              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+              xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <data name="Subscription_UnsubscribedFromPostgres" xml:space="preserve">
+    <value>Unsubscribed from Postgres.</value>
+  </data>
+  <data name="PostgresTopic_ConnectAsync_SubscribedToPostgres" xml:space="preserve">
+    <value>Subscribed to Postgres.</value>
+  </data>
+  <data name="PostgresChannel_ConnectionEstablished" xml:space="preserve">
+    <value>The postgres channel has established a connection and is listening to events</value>
+  </data>
+  <data name="PostgresChannel_Disconnected" xml:space="preserve">
+    <value>The postgres channel has disconnected and is no longer listening to events</value>
+  </data>
+  <data name="ResilientConnection_FailedToConnect" xml:space="preserve">
+    <value>The connection failed to connect. Retrying in {0}ms. Error Message: {1}</value>
+  </data>
+  <data name="ResilientConnection_LostConnection" xml:space="preserve">
+    <value>The connection to postgres was lost. Reconnecting...</value>
+  </data>
+  <data name="ChannelWriter_ConnectionEstablished" xml:space="preserve">
+    <value>The postgres writer has established a connection and is ready to send messages over the channel</value>
+  </data>
+  <data name="ChannelWriter_Disconnectd" xml:space="preserve">
+    <value>The postgres writer is disconnected and is no longer sending messages over the channel</value>
+  </data>
+  <data name="ChannelWriter_FailedToSend" xml:space="preserve">
+    <value>The channel writer failed to send messages. Requeueing {0} messages. Error Message: {1}</value>
+  </data>
+</root>

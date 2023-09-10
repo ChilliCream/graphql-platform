@@ -1,211 +1,259 @@
 using System;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Collections.Generic;
+using System.Text;
 using GreenDonut;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Options;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
-using HotChocolate;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.ObjectPool;
 
-namespace Microsoft.Extensions.DependencyInjection
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static class RequestExecutorServiceCollectionExtensions
 {
-    public static class RequestExecutorServiceCollectionExtensions
+    /// <summary>
+    /// Adds the <see cref="IRequestExecutorResolver"/> and related services
+    /// to the <see cref="IServiceCollection"/>.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/>.</param>
+    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    public static IServiceCollection AddGraphQLCore(this IServiceCollection services)
     {
-        /// <summary>
-        /// Adds the <see cref="IRequestExecutorResolver"/> and related services
-        /// to the <see cref="IServiceCollection"/>.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/>.</param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddGraphQLCore(this IServiceCollection services)
+        if (services is null)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            services.AddOptions();
-
-            // core services
-            services
-                .TryAddRequestExecutorFactoryOptionsMonitor()
-                .TryAddTypeConverter()
-                .TryAddDefaultCaches()
-                .TryAddDefaultDocumentHashProvider()
-                .TryAddDefaultBatchDispatcher()
-                .TryAddRequestContextAccessor()
-                .TryAddDefaultDataLoaderRegistry()
-                .TryAddIdSerializer();
-
-            // pools
-            services
-                .TryAddResultPool()
-                .TryAddResolverTaskPool()
-                .TryAddOperationContextPool();
-
-            // global executor services
-            services
-                .TryAddVariableCoercion()
-                .TryAddRequestExecutorResolver();
-
-            // parser
-            services.TryAddSingleton(ParserOptions.Default);
-
-            return services;
+            throw new ArgumentNullException(nameof(services));
         }
 
-        /// <summary>
-        /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the
-        /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
-        /// </summary>
-        /// <param name="services">
-        /// The <see cref="IServiceCollection"/>.
-        /// </param>
-        /// <param name="schemaName">
-        /// The logical name of the <see cref="ISchema"/> to configure.
-        /// </param>
-        /// <returns>
-        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
-        /// </returns>
-        public static IRequestExecutorBuilder AddGraphQL(
-            this IServiceCollection services,
-            NameString schemaName = default)
+        services.AddOptions();
+
+        services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+        services.TryAddSingleton<DefaultRequestContextAccessor>();
+        services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
+
+        services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
         {
-            if (services is null)
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var policy = new StringBuilderPooledObjectPolicy();
+            return provider.Create(policy);
+        });
+
+        // core services
+        services
+            .TryAddRequestExecutorFactoryOptionsMonitor()
+            .TryAddTypeConverter()
+            .TryAddInputFormatter()
+            .TryAddInputParser()
+            .TryAddDefaultCaches()
+            .TryAddDefaultDocumentHashProvider()
+            .TryAddDefaultBatchDispatcher()
+            .TryAddDefaultDataLoaderRegistry()
+            .TryAddIdSerializer()
+            .TryAddDataLoaderParameterExpressionBuilder()
+            .TryAddDataLoaderOptions();
+
+        // pools
+        services
+            .TryAddResultPool()
+            .TryAddResolverTaskPool()
+            .TryAddOperationContextPool()
+            .TryAddDeferredWorkStatePool()
+            .TryAddDataLoaderTaskCachePool()
+            .TryAddOperationCompilerPool();
+
+        // global executor services
+        services
+            .TryAddVariableCoercion()
+            .TryAddRequestExecutorResolver();
+
+        // parser
+        services.TryAddSingleton(
+            sp =>
             {
-                throw new ArgumentNullException(nameof(services));
-            }
+                var modifiers = sp.GetService<IEnumerable<Action<RequestParserOptions>>?>();
 
-            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
-
-            services
-                .AddGraphQLCore()
-                .AddValidation(schemaName);
-
-            return CreateBuilder(services, schemaName);
-        }
-
-        /// <summary>
-        /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the
-        /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
-        /// </summary>
-        /// <param name="builder">
-        /// The <see cref="IRequestExecutorBuilder"/>.
-        /// </param>
-        /// <param name="schemaName">
-        /// The logical name of the <see cref="ISchema"/> to configure.
-        /// </param>
-        /// <returns>
-        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
-        /// </returns>
-        public static IRequestExecutorBuilder AddGraphQL(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName = default)
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
-
-            builder.Services.AddValidation(schemaName);
-
-            return CreateBuilder(builder.Services, schemaName);
-        }
-
-        private static IRequestExecutorBuilder CreateBuilder(
-            IServiceCollection services,
-            NameString schemaName)
-        {
-            var builder = new DefaultRequestExecutorBuilder(services, schemaName);
-
-            builder.Configure(
-                (sp, e) =>
+                if (modifiers is null)
                 {
-                    e.OnRequestExecutorEvicted.Add(
-                        // when ever we evict this schema we will clear the caches.
-                        new OnRequestExecutorEvictedAction(
-                            _ => sp.GetRequiredService<IPreparedOperationCache>().Clear()));
-                });
+                    return ParserOptions.Default;
+                }
 
-            builder.TryAddNoOpTransactionScopeHandler();
+                var options = new RequestParserOptions();
 
-            return builder;
-        }
+                foreach (var configure in modifiers)
+                {
+                    configure(options);
+                }
 
-        public static IServiceCollection AddDocumentCache(
-            this IServiceCollection services,
-            int capacity = 100)
+                return new ParserOptions(
+                    noLocations: !options.IncludeLocations,
+                    maxAllowedNodes: options.MaxAllowedNodes,
+                    maxAllowedTokens: options.MaxAllowedTokens,
+                    maxAllowedFields: options.MaxAllowedFields);
+            });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the
+    /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
+    /// </summary>
+    /// <param name="services">
+    /// The <see cref="IServiceCollection"/>.
+    /// </param>
+    /// <param name="schemaName">
+    /// The logical name of the <see cref="ISchema"/> to configure.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
+    /// </returns>
+    public static IRequestExecutorBuilder AddGraphQL(
+        this IServiceCollection services,
+        string? schemaName = default)
+    {
+        if (services is null)
         {
-            services.RemoveAll<IDocumentCache>();
-            services.AddSingleton<IDocumentCache>(
-                sp => new DefaultDocumentCache(capacity));
-            return services;
+            throw new ArgumentNullException(nameof(services));
         }
 
-        public static IServiceCollection AddOperationCache(
-            this IServiceCollection services,
-            int capacity = 100)
+        schemaName ??= Schema.DefaultName;
+
+        services
+            .AddGraphQLCore()
+            .AddValidation(schemaName);
+
+        return CreateBuilder(services, schemaName);
+    }
+
+    /// <summary>
+    /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the
+    /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="schemaName">
+    /// The logical name of the <see cref="ISchema"/> to configure.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
+    /// </returns>
+    public static IRequestExecutorBuilder AddGraphQL(
+        this IRequestExecutorBuilder builder,
+        string? schemaName = default)
+    {
+        if (builder is null)
         {
-            services.RemoveAll<IPreparedOperationCache>();
-            services.AddSingleton<IPreparedOperationCache>(
-                sp => new DefaultPreparedOperationCache(capacity));
-            return services;
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static IServiceCollection AddMD5DocumentHashProvider(
-            this IServiceCollection services,
-            HashFormat format = HashFormat.Base64)
-        {
-            services.RemoveAll<IDocumentHashProvider>();
-            services.AddSingleton<IDocumentHashProvider>(
-                new MD5DocumentHashProvider(format));
-            return services;
-        }
+        schemaName ??= Schema.DefaultName;
 
-        public static IServiceCollection AddSha1DocumentHashProvider(
-            this IServiceCollection services,
-            HashFormat format = HashFormat.Base64)
-        {
-            services.RemoveAll<IDocumentHashProvider>();
-            services.AddSingleton<IDocumentHashProvider>(
-                new Sha1DocumentHashProvider(format));
-            return services;
-        }
+        builder.Services.AddValidation(schemaName);
 
-        public static IServiceCollection AddSha256DocumentHashProvider(
-            this IServiceCollection services,
-            HashFormat format = HashFormat.Base64)
-        {
-            services.RemoveAll<IDocumentHashProvider>();
-            services.AddSingleton<IDocumentHashProvider>(
-                new Sha256DocumentHashProvider(format));
-            return services;
-        }
+        return CreateBuilder(builder.Services, schemaName);
+    }
 
-        public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
-            where T : class, IBatchDispatcher
-        {
-            services.RemoveAll<IBatchDispatcher>();
-            services.AddScoped<IBatchDispatcher, T>();
-            return services;
-        }
+    private static IRequestExecutorBuilder CreateBuilder(
+        IServiceCollection services,
+        string schemaName)
+    {
+        var builder = new DefaultRequestExecutorBuilder(services, schemaName);
 
-        public static IServiceCollection AddBatchScheduler<T>(this IServiceCollection services)
-            where T : class, IBatchScheduler
-        {
-            services.RemoveAll<IBatchScheduler>();
-            services.AddScoped<IBatchScheduler, T>();
-            return services;
-        }
+        builder.Configure(
+            (sp, e) =>
+            {
+                e.OnRequestExecutorEvictedHooks.Add(
+                    // when ever we evict this schema we will clear the caches.
+                    new OnRequestExecutorEvictedAction(
+                        _ => sp.GetRequiredService<IPreparedOperationCache>().Clear()));
+            });
 
-        public static IServiceCollection AddDefaultBatchDispatcher(this IServiceCollection services)
-        {
-            services.RemoveAll<IBatchScheduler>();
-            services.TryAddDefaultBatchDispatcher();
-            return services;
-        }
+        builder.TryAddNoOpTransactionScopeHandler();
+
+        return builder;
+    }
+
+    public static IServiceCollection AddDocumentCache(
+        this IServiceCollection services,
+        int capacity = 100)
+    {
+        services.RemoveAll<IDocumentCache>();
+        services.AddSingleton<IDocumentCache>(
+            _ => new DefaultDocumentCache(capacity));
+        return services;
+    }
+
+    public static IServiceCollection AddOperationCache(
+        this IServiceCollection services,
+        int capacity = 100)
+    {
+        services.RemoveAll<IPreparedOperationCache>();
+        services.RemoveAll<IComplexityAnalyzerCache>();
+
+        services.AddSingleton<IPreparedOperationCache>(
+            _ => new DefaultPreparedOperationCache(capacity));
+        services.AddSingleton<IComplexityAnalyzerCache>(
+            _ => new DefaultComplexityAnalyzerCache(capacity));
+
+        return services;
+    }
+
+    public static IServiceCollection AddMD5DocumentHashProvider(
+        this IServiceCollection services,
+        HashFormat format = HashFormat.Base64)
+    {
+        services.RemoveAll<IDocumentHashProvider>();
+        services.AddSingleton<IDocumentHashProvider>(
+            new MD5DocumentHashProvider(format));
+        return services;
+    }
+
+    public static IServiceCollection AddSha1DocumentHashProvider(
+        this IServiceCollection services,
+        HashFormat format = HashFormat.Base64)
+    {
+        services.RemoveAll<IDocumentHashProvider>();
+        services.AddSingleton<IDocumentHashProvider>(
+            new Sha1DocumentHashProvider(format));
+        return services;
+    }
+
+    public static IServiceCollection AddSha256DocumentHashProvider(
+        this IServiceCollection services,
+        HashFormat format = HashFormat.Base64)
+    {
+        services.RemoveAll<IDocumentHashProvider>();
+        services.AddSingleton<IDocumentHashProvider>(
+            new Sha256DocumentHashProvider(format));
+        return services;
+    }
+
+    public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
+        where T : class, IBatchDispatcher
+    {
+        services.RemoveAll<IBatchDispatcher>();
+        services.AddScoped<IBatchDispatcher, T>();
+        return services;
+    }
+
+    public static IServiceCollection AddBatchScheduler<T>(this IServiceCollection services)
+        where T : class, IBatchScheduler
+    {
+        services.RemoveAll<IBatchScheduler>();
+        services.AddScoped<IBatchScheduler, T>();
+        return services;
+    }
+
+    public static IServiceCollection AddDefaultBatchDispatcher(this IServiceCollection services)
+    {
+        services.RemoveAll<IBatchScheduler>();
+        services.TryAddDefaultBatchDispatcher();
+        return services;
     }
 }

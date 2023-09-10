@@ -1,0 +1,13 @@
+schema {
+  query: Query
+}
+
+type Book {
+  id: Int!
+  title: String!
+  isComic: Boolean!
+}
+
+type Query {
+  book: Book!
+}

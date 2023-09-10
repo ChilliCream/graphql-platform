@@ -1,8 +1,19 @@
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public class FilterOperationFieldDefinition
+    : FilterFieldDefinition
 {
-    public class FilterOperationFieldDefinition
-        : FilterFieldDefinition
+    public int Id { get; set; }
+
+    internal void CopyTo(FilterOperationFieldDefinition target)
     {
-        public int Id { get; set; }
+        base.CopyTo(target);
+        target.Id = Id;
+    }
+
+    internal void MergeInto(FilterOperationFieldDefinition target)
+    {
+        base.MergeInto(target);
+        target.Id = Id;
     }
 }

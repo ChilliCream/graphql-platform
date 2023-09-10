@@ -1,14 +1,25 @@
 using System;
-using HotChocolate.Execution;
+using System.Threading;
 
-namespace HotChocolate.Fetching
+namespace HotChocolate.Fetching;
+
+/// <summary>
+/// The execution engine batch dispatcher.
+/// </summary>
+public interface IBatchDispatcher
 {
-    public interface IBatchDispatcher
-    {
-        event EventHandler? TaskEnqueued;
+    /// <summary>
+    /// Signals that a batch task was enqueued.
+    /// </summary>
+    event EventHandler TaskEnqueued;
 
-        bool HasTasks { get; }
+    /// <summary>
+    /// Defines if the batch dispatcher shall dispatch tasks directly when they are enqueued.
+    /// </summary>
+    bool DispatchOnSchedule { get; set; }
 
-        void Dispatch(Action<IExecutionTaskDefinition> enqueue);
-    }
+    /// <summary>
+    /// Begins dispatching batched tasks.
+    /// </summary>
+    void BeginDispatch(CancellationToken cancellationToken = default);
 }

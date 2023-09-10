@@ -1,6 +1,5 @@
-namespace HotChocolate.Stitching.Schemas.Customers
+namespace HotChocolate.Stitching.Schemas.Customers;
+
+public interface ICustomerOrConsultant
 {
-    public interface ICustomerOrConsultant
-    {
-    }
 }

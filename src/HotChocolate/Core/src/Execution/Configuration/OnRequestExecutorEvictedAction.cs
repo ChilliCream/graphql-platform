@@ -2,26 +2,30 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Execution.Configuration
+namespace HotChocolate.Execution.Configuration;
+
+public readonly struct OnRequestExecutorEvictedAction
 {
-    public readonly struct OnRequestExecutorEvictedAction
+    public OnRequestExecutorEvictedAction(OnRequestExecutorEvicted evicted)
     {
-        public OnRequestExecutorEvictedAction(
-            Action<IRequestExecutor> action)
-        {
-            Action = action ?? throw new ArgumentNullException(nameof(action));
-            AsyncAction = default;
-        }
-
-        public OnRequestExecutorEvictedAction(
-            Func<IRequestExecutor, CancellationToken, ValueTask> asyncAction)
-        {
-            Action = default;
-            AsyncAction = asyncAction ?? throw new ArgumentNullException(nameof(asyncAction));
-        }
-
-        public Action<IRequestExecutor>? Action { get; }
-
-        public Func<IRequestExecutor, CancellationToken, ValueTask>? AsyncAction { get; }
+        Evicted = evicted ?? throw new ArgumentNullException(nameof(evicted));
+        EvictedAsync = default;
     }
+
+    public OnRequestExecutorEvictedAction(OnRequestExecutorEvictedAsync evictedAsync)
+    {
+        Evicted = default;
+        EvictedAsync = evictedAsync ?? throw new ArgumentNullException(nameof(evictedAsync));
+    }
+
+    public OnRequestExecutorEvicted? Evicted { get; }
+
+    public OnRequestExecutorEvictedAsync? EvictedAsync { get; }
 }
+
+public delegate void OnRequestExecutorEvicted(
+    IRequestExecutor executor);
+
+public delegate ValueTask OnRequestExecutorEvictedAsync(
+    IRequestExecutor executor,
+    CancellationToken cancellationToken);

@@ -1,114 +1,115 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.MongoDb.Sorting
+namespace HotChocolate.Data.MongoDb.Sorting;
+
+public class MongoDbSortVisitorStringTests
+    : SchemaCache,
+      IClassFixture<MongoResource>
 {
-    public class MongoDbSortVisitorStringTests
-        : SchemaCache,
-          IClassFixture<MongoResource>
+    private static readonly Foo[] _fooEntities =
     {
-        private static readonly Foo[] _fooEntities =
-        {
-            new Foo { Bar = "testatest" },
-            new Foo { Bar = "testbtest" }
-        };
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
+    };
 
-        private static readonly FooNullable[] _fooNullableEntities =
-        {
-            new FooNullable { Bar = "testatest" },
-            new FooNullable { Bar = "testbtest" },
-            new FooNullable { Bar = null }
-        };
+    private static readonly FooNullable[] _fooNullableEntities =
+    {
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
+    };
 
-        public MongoDbSortVisitorStringTests(MongoResource resource)
+    public MongoDbSortVisitorStringTests(MongoResource resource)
+    {
+        Init(resource);
+    }
+
+    [Fact]
+    public async Task Create_String_OrderBy()
+    {
+        // arrange
+        var tester = CreateSchema<Foo, FooSortType>(_fooEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
+                .Create());
+
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
+    }
+
+    [Fact]
+    public async Task Create_String_OrderBy_Nullable()
+    {
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableSortType>(
+            _fooNullableEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
+                .Create());
+
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
+    }
+
+    public class Foo
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        public string Bar { get; set; } = null!;
+    }
+
+    public class FooNullable
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        public string? Bar { get; set; }
+    }
+
+    public class FooSortType : SortInputType<Foo>
+    {
+        protected override void Configure(
+            ISortInputTypeDescriptor<Foo> descriptor)
         {
-            Init(resource);
+            descriptor.Field(t => t.Bar);
         }
+    }
 
-        [Fact]
-        public async Task Create_String_OrderBy()
+    public class FooNullableSortType : SortInputType<FooNullable>
+    {
+        protected override void Configure(
+            ISortInputTypeDescriptor<FooNullable> descriptor)
         {
-            // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooSortType>(_fooEntities);
-
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                    .Create());
-
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                    .Create());
-
-            // assert
-            res1.MatchDocumentSnapshot("ASC");
-            res2.MatchDocumentSnapshot("DESC");
-        }
-
-        [Fact]
-        public async Task Create_String_OrderBy_Nullable()
-        {
-            // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableSortType>(
-                _fooNullableEntities);
-
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                    .Create());
-
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                    .Create());
-
-            // assert
-            res1.MatchDocumentSnapshot("ASC");
-            res2.MatchDocumentSnapshot("DESC");
-        }
-
-        public class Foo
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
-
-            public string Bar { get; set; } = null!;
-        }
-
-        public class FooNullable
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
-
-            public string? Bar { get; set; }
-        }
-
-        public class FooSortType
-            : SortInputType<Foo>
-        {
-            protected override void Configure(
-                ISortInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Field(t => t.Bar);
-            }
-        }
-
-        public class FooNullableSortType
-            : SortInputType<FooNullable>
-        {
-            protected override void Configure(
-                ISortInputTypeDescriptor<FooNullable> descriptor)
-            {
-                descriptor.Field(t => t.Bar);
-            }
+            descriptor.Field(t => t.Bar);
         }
     }
 }

@@ -1,0 +1,18 @@
+﻿schema {
+  query: QueryDateTime2
+}
+
+type Bar {
+  time: TimeSpan!
+  date: Date!
+}
+
+type QueryDateTime2 {
+  bar: Bar
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+"The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
+scalar TimeSpan

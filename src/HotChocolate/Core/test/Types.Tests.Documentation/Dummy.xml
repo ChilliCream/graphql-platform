@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>HotChocolate.Types.Tests.Documentation</name>
+    </assembly>
+    <members>
+        <member name="T:HotChocolate.Types.Descriptors.BaseBaseClass">
+            <summary>
+            I am the most base class from dummy.
+            </summary>
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.BaseBaseClass.Foo">
+            <summary>Summary of foo.</summary>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.BaseBaseClass.Bar(System.String)">
+            <summary>Method doc.</summary>
+            <param name="baz">Parameter details.</param>
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.BaseClass.Foo">
+            <inheritdoc />
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.BaseClass.Bar(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.ClassWithInheritdoc.Foo">
+            <inheritdoc />
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.ClassWithInheritdoc.Bar(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.ClassWithInheritdocOnInterface.Foo">
+            <inheritdoc />
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.ClassWithInheritdocOnInterface.Bar(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.ClassWithInterfaceAndCustomSummaries.Foo">
+            <summary>
+            I am my own property.
+            </summary>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.ClassWithInterfaceAndCustomSummaries.Bar(System.String)">
+            <summary>
+            I am my own method.
+            </summary>
+            <param name="baz">I am my own parameter.</param>
+        </member>
+        <member name="T:HotChocolate.Types.Descriptors.ClassWithSummary">
+            <summary>
+            I am a test class.
+            </summary>
+        </member>
+        <member name="T:HotChocolate.Types.Descriptors.EnumWithDocEnum">
+            <summary>
+            Enum Documentation
+            </summary>
+        </member>
+        <member name="F:HotChocolate.Types.Descriptors.EnumWithDocEnum.Value1">
+            <summary>
+            Value1 Documentation
+            </summary>
+        </member>
+        <member name="F:HotChocolate.Types.Descriptors.EnumWithDocEnum.Value2">
+            <summary>
+            Value2 Documentation
+            </summary>
+        </member>
+        <member name="T:HotChocolate.Types.Descriptors.IBaseBaseInterface">
+            <summary>
+            I am an interface.
+            </summary>
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.IBaseBaseInterface.Foo">
+            <summary>Property summary.</summary>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.IBaseBaseInterface.Bar(System.String)">
+            <summary>Method summary.</summary>
+            <param name="baz">Parameter summary.</param>
+        </member>
+        <member name="T:HotChocolate.Types.Descriptors.QueryWithDocumentation">
+            <summary>
+            Query Documentation.
+            </summary>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.QueryWithDocumentation.Foo(System.String)">
+            <summary>
+            Foo Documentation-
+            </summary>
+            <param name="bar">
+            Bar Documentation.
+            </param>
+            <returns>
+            Bar Returns Documentation.
+            </returns>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.WithExceptionsXmlDoc.Foo">
+             <summary>
+             Query and manages users.
+            
+             You need one of the following role: Owner,
+             Editor, use XYZ to manage permissions.
+             </summary>
+             <returns>Bar</returns>
+             <exception cref="T:System.Exception" code="FOO_ERROR">Foo Error</exception>
+             <exception cref="T:System.Exception" code="BAR_ERROR">Bar Error</exception>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.WithExceptionsXmlDoc.Bar">
+             <summary>
+             Query and manages users.
+            
+             You need one of the following role: Owner,
+             Editor, use XYZ to manage permissions.
+             </summary>
+             <returns>Bar</returns>
+             <exception cref="T:System.Exception">Foo Error</exception>
+             <exception cref="T:System.Exception" code="FOO_ERROR">Foo Error</exception>
+             <exception cref="T:System.Exception" code="BAR_ERROR">Bar Error</exception>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.WithExceptionsXmlDoc.Baz">
+             <summary>
+             Query and manages users.
+            
+             You need one of the following role: Owner,
+             Editor, use XYZ to manage permissions.
+             </summary>
+             <returns>Bar</returns>
+             <exception cref="T:System.Exception">Foo Error</exception>
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.WithGenericTagsInXmlDoc.Foo">
+            <summary>These <c>are</c> <strong>some</strong> tags.</summary>
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.WithMultilineXmlDoc.Foo">
+             <summary>
+             Query and manages users.
+            
+             Please note:
+             * Users ...
+             * Users ...
+                 * Users ...
+                 * Users ...
+            
+             You need one of the following role: Owner,
+             Editor, use XYZ to manage permissions.
+             </summary>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.WithoutExceptionsXmlDoc.Foo">
+             <summary>
+             Query and manages users.
+            
+             You need one of the following role: Owner,
+             Editor, use XYZ to manage permissions.
+             </summary>
+             <returns>Bar</returns>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.WithoutReturnsXmlDoc.Foo">
+             <summary>
+             Query and manages users.
+            
+             You need one of the following role: Owner,
+             Editor, use XYZ to manage permissions.
+             </summary>
+        </member>
+        <member name="M:HotChocolate.Types.Descriptors.WithReturnsXmlDoc.Foo">
+             <summary>
+             Query and manages users.
+            
+             You need one of the following role: Owner,
+             Editor, use XYZ to manage permissions.
+             </summary>
+             <returns>Bar</returns>
+        </member>
+        <member name="P:HotChocolate.Types.Descriptors.WithSeeTagInXmlDoc.Foo">
+            <summary>
+            <see langword="null"/> for the default <see cref="!:Record"/>.
+            See <see cref="!:Record">this</see> and
+            <see href="https://foo.com/bar/baz">this</see> at
+            <see href="https://foo.com/bar/baz"/>.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,137 @@
+﻿[
+  {
+    "Message": "If a label is passed, it must be unique within all other @defer and @stream directives in the document.",
+    "Code": null,
+    "Path": {
+      "Name": "b",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
+    },
+    "Locations": [
+      {
+        "Line": 6,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directive-Labels-Are-Unique",
+      "label": "a"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 178,
+          "End": 248,
+          "Line": 6,
+          "Column": 48
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "Required": null,
+            "SelectionSet": null,
+            "Location": {
+              "Start": 204,
+              "End": 230,
+              "Line": 7,
+              "Column": 25
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 204,
+                "End": 230,
+                "Line": 7,
+                "Column": 25
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 151,
+        "End": 248,
+        "Line": 6,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 151,
+          "End": 159,
+          "Line": 6,
+          "Column": 21
+        },
+        "Value": "_types"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": {
+            "Start": 158,
+            "End": 179,
+            "Line": 6,
+            "Column": 28
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 159,
+              "End": 166,
+              "Line": 6,
+              "Column": 29
+            },
+            "Value": "stream"
+          },
+          "Arguments": [
+            {
+              "Kind": "Argument",
+              "Location": {
+                "Start": 166,
+                "End": 177,
+                "Line": 6,
+                "Column": 36
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 166,
+                  "End": 172,
+                  "Line": 6,
+                  "Column": 36
+                },
+                "Value": "label"
+              },
+              "Value": {
+                "Kind": "StringValue",
+                "Location": {
+                  "Start": 173,
+                  "End": 177,
+                  "Line": 6,
+                  "Column": 43
+                },
+                "Value": "a",
+                "Block": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -1,10 +1,9 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+public enum SyntaxVisitorActionKind
 {
-    public enum SyntaxVisitorActionKind
-    {
-        Continue,
-        Skip,
-        Break,
-        SkipAndLeave
-    }
+    Continue,
+    Skip,
+    Break,
+    SkipAndLeave
 }

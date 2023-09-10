@@ -1,35 +1,52 @@
-﻿using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.Properties.Resources;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
-namespace HotChocolate.Types.Spatial
+namespace HotChocolate.Types.Spatial;
+
+public sealed class GeoJsonPolygonType
+    : ObjectType<Polygon>
+    , IGeoJsonObjectType
 {
-    public sealed class GeoJsonPolygonType
-        : ObjectType<Polygon>
-        , IGeoJsonObjectType
+    protected override void Configure(IObjectTypeDescriptor<Polygon> descriptor)
     {
-        protected override void Configure(IObjectTypeDescriptor<Polygon> descriptor)
+        descriptor
+            .Name(PolygonTypeName)
+            .Implements<GeoJsonInterfaceType>()
+            .BindFieldsExplicitly();
+
+        descriptor
+            .Field<Resolvers>(x => x.GetCoordinates(default!))
+            .Name(WellKnownFields.CoordinatesFieldName)
+            .Description(GeoJson_Field_Coordinates_Description_Polygon)
+            .Type<ListType<ListType<GeoJsonPositionType>>>();
+
+        descriptor
+            .Field<GeoJsonResolvers>(x => x.GetType(default!))
+            .Description(GeoJson_Field_Type_Description);
+
+        descriptor
+            .Field<GeoJsonResolvers>(x => x.GetBbox(default!))
+            .Description(GeoJson_Field_Bbox_Description);
+
+        descriptor
+            .Field<GeoJsonResolvers>(x => x.GetCrs(default!))
+            .Description(GeoJson_Field_Crs_Description);
+    }
+
+    public class Resolvers
+    {
+        public Coordinate[][] GetCoordinates([Parent] Polygon polygon)
         {
-            descriptor
-                .Name(PolygonTypeName)
-                .Implements<GeoJsonInterfaceType>()
-                .BindFieldsExplicitly();
+            var coordinates = new Coordinate[polygon.NumInteriorRings + 1][];
+            coordinates[0] = polygon.ExteriorRing.Coordinates;
 
-            descriptor
-                .Field(x => x.Coordinates)
-                .Description(GeoJson_Field_Coordinates_Description_Polygon);
+            for (var i = 0; i < polygon.InteriorRings.Length; i++)
+            {
+                coordinates[i] = polygon.InteriorRings[i].Coordinates;
+            }
 
-            descriptor
-                .Field<GeoJsonResolvers>(x => x.GetType(default!))
-                .Description(GeoJson_Field_Type_Description);
-
-            descriptor
-                .Field<GeoJsonResolvers>(x => x.GetBbox(default!))
-                .Description(GeoJson_Field_Bbox_Description);
-
-            descriptor
-                .Field<GeoJsonResolvers>(x => x.GetCrs(default!))
-                .Description(GeoJson_Field_Crs_Description);
+            return coordinates;
         }
     }
 }

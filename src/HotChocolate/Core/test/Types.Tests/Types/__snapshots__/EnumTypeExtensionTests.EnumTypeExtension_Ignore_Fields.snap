@@ -1,0 +1,11 @@
+﻿schema {
+  query: DummyQuery
+}
+
+type DummyQuery {
+  foo: String
+}
+
+enum Foo {
+  BAZ
+}

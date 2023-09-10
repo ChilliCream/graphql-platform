@@ -1,0 +1,171 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface Contract @source(name: "Contract", schema: "contract") {
+  id: ID!
+  customerId: ID!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node @source(name: "Node", schema: "contract") @source(name: "Node", schema: "customer") {
+  id: ID!
+}
+
+type Consultant implements Node @source(name: "Consultant", schema: "customer") {
+  id: ID!
+  name: String!
+  customers("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CustomersConnection
+}
+
+type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "customer") {
+  customer: Customer!
+}
+
+type Customer implements Node @source(name: "Customer", schema: "customer") {
+  id: ID!
+  name: String!
+  street: String!
+  consultant: Consultant
+  say(input: SayInput!): String
+  complexArg(arg: ComplexInputType): String
+  someInt: Int!
+  someGuid: UUID!
+  kind: CustomerKind!
+  guid: UUID! @delegate(schema: "contract", path: "guid(guid:$fields:someGuid)")
+}
+
+"A connection to a list of items."
+type CustomersConnection @source(name: "CustomersConnection", schema: "customer") {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [CustomersEdge!]
+  "A flattened list of the nodes."
+  nodes: [Customer]
+}
+
+"An edge in a connection."
+type CustomersEdge @source(name: "CustomersEdge", schema: "customer") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Customer
+}
+
+type LifeInsuranceContract implements Node & Contract @source(name: "LifeInsuranceContract", schema: "contract") {
+  id: ID!
+  customerId: ID!
+  foo(bar: String): String
+  error: String
+  date_field: Date
+  date_time_field: DateTime
+  string_field: String
+  id_field: ID
+  byte_field: Byte
+  int_field: Int
+  long_field: Long
+  float_field(f: Float): Float
+  decimal_field: Decimal
+  premium: Float!
+}
+
+type Mutation {
+  createCustomer(input: CreateCustomerInput!): CreateCustomerPayload! @delegate(schema: "customer")
+  createCustomers(inputs: [CreateCustomerInput!]!): [CreateCustomerPayload!]! @delegate(schema: "customer")
+}
+
+"Information about pagination in a connection."
+type PageInfo @source(name: "PageInfo", schema: "customer") {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @delegate(schema: "contract")
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @delegate(schema: "contract")
+  contract(contractId: ID!): Contract @delegate(schema: "contract")
+  contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
+  extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
+  int(i: Int!): Int! @delegate(schema: "contract")
+  guid(guid: UUID!): UUID! @delegate(schema: "contract")
+  "Fetches an object given its ID."
+  customer_node("ID of the object." id: ID!): Node @delegate(schema: "customer", path: "node(id: $arguments:id)")
+  "Lookup nodes by a list of IDs."
+  customer_nodes("The list of node IDs." ids: [ID!]!): [Node]! @delegate(schema: "customer", path: "nodes(ids: $arguments:ids)")
+  customer(id: ID!): Customer @delegate(schema: "customer")
+  customers(ids: [ID!]!): [Customer] @delegate(schema: "customer")
+  consultant(id: ID!): Consultant @delegate(schema: "customer")
+  customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "customer")
+  customerByKind(kind: CustomerKind!): Customer @delegate(schema: "customer")
+  allCustomers: [Customer!]! @delegate(schema: "customer")
+}
+
+type SomeOtherContract implements Node & Contract @source(name: "SomeOtherContract", schema: "contract") {
+  id: ID!
+  customerId: ID!
+  expiryDate: DateTime!
+}
+
+union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "customer") = Customer | Consultant
+
+input ComplexInputType @source(name: "ComplexInputType", schema: "customer") {
+  value: String
+  deeper: ComplexInputType
+  valueArray: [String]
+  deeperArray: [ComplexInputType]
+}
+
+input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer") {
+  name: String
+  street: String
+  consultantId: String
+}
+
+input SayInput @source(name: "SayInput", schema: "customer") {
+  words: [String!]
+}
+
+enum CustomerKind @source(name: "CustomerKind", schema: "customer") {
+  STANDARD
+  PREMIUM
+}
+
+directive @computed("Specifies the fields on which a computed field is dependent on." dependantOn: [String!]) on FIELD_DEFINITION
+
+directive @custom(d: DateTime) on FIELD
+
+"Delegates a resolver to a remote schema."
+directive @delegate("The path to the field on the remote schema." path: String "The name of the schema to which this field shall be delegated to." schema: String!) on FIELD_DEFINITION
+
+"Annotates the original name of a type."
+directive @source("The original name of the annotated type." name: String! "The name of the schema to which this type belongs to." schema: String!) repeatable on OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+"The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
+scalar Byte
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")

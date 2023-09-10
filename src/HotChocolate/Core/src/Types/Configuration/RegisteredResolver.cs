@@ -3,50 +3,49 @@ using HotChocolate.Resolvers;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class RegisteredResolver
 {
-    internal sealed class RegisteredResolver
+    public RegisteredResolver(
+        Type? resolverType,
+        Type sourceType,
+        IFieldReference field)
     {
-        public RegisteredResolver(
-            Type? resolverType,
-            Type sourceType,
-            IFieldReference field)
+        ResolverType = resolverType ?? sourceType;
+        SourceType = sourceType ?? throw new ArgumentNullException(nameof(sourceType));
+        Field = field ?? throw new ArgumentNullException(nameof(field));
+    }
+
+    public Type ResolverType { get; }
+
+    public Type SourceType { get; }
+
+    public IFieldReference Field { get; }
+
+    public bool IsSourceResolver => ResolverType == SourceType;
+
+    public RegisteredResolver WithField(IFieldReference field)
+    {
+        if (field is null)
         {
-            ResolverType = resolverType ?? sourceType;
-            SourceType = sourceType ?? throw new ArgumentNullException(nameof(sourceType));
-            Field = field ?? throw new ArgumentNullException(nameof(field));
+            throw new ArgumentNullException(nameof(field));
         }
 
-        public Type ResolverType { get; }
+        return new RegisteredResolver(
+            ResolverType, SourceType,
+            field);
+    }
 
-        public Type SourceType { get; }
-
-        public IFieldReference Field { get; }
-
-        public bool IsSourceResolver => ResolverType == SourceType;
-
-        public RegisteredResolver WithField(IFieldReference field)
+    public RegisteredResolver WithSourceType(Type sourceType)
+    {
+        if (sourceType is null)
         {
-            if (field is null)
-            {
-                throw new ArgumentNullException(nameof(field));
-            }
-
-            return new RegisteredResolver(
-                ResolverType, SourceType,
-                field);
+            throw new ArgumentNullException(nameof(sourceType));
         }
 
-        public RegisteredResolver WithSourceType(Type sourceType)
-        {
-            if (sourceType is null)
-            {
-                throw new ArgumentNullException(nameof(sourceType));
-            }
-
-            return new RegisteredResolver(
-                ResolverType, sourceType,
-                Field);
-        }
+        return new RegisteredResolver(
+            ResolverType, sourceType,
+            Field);
     }
 }

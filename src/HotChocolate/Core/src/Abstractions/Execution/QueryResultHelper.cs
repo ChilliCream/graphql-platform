@@ -1,87 +1,85 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+internal static class QueryResultHelper
 {
-    internal static class QueryResultHelper
+    private const string _data = "data";
+    private const string _errors = "errors";
+    private const string _extensions = "extensions";
+    private const string _message = "message";
+    private const string _locations = "locations";
+    private const string _path = "path";
+    private const string _line = "line";
+    private const string _column = "column";
+
+    public static IReadOnlyDictionary<string, object?> ToDictionary(IQueryResult result)
     {
-        private const string _data = "data";
-        private const string _errors = "errors";
-        private const string _extensions = "extensions";
-        private const string _message = "message";
-        private const string _locations = "locations";
-        private const string _path = "path";
-        private const string _line = "line";
-        private const string _column = "column";
+        var formatted = new OrderedDictionary();
 
-        public static IReadOnlyDictionary<string, object> ToDictionary(
-            IReadOnlyQueryResult result)
+        if (result.Errors is { Count: > 0 })
         {
-            var formatted = new OrderedDictionary();
-
-            if (result.Errors is { } && result.Errors.Count > 0)
-            {
-                formatted[_errors] = SerializeErrors(result.Errors);
-            }
-
-            if (result.Data is { } && result.Data.Count > 0)
-            {
-                formatted[_data] = result.Data;
-            }
-
-            if (result.Extensions is { } && result.Extensions.Count > 0)
-            {
-                formatted[_extensions] = result.Extensions;
-            }
-
-            return formatted;
+            formatted[_errors] = SerializeErrors(result.Errors);
         }
 
-        private static ICollection<object> SerializeErrors(
-            IReadOnlyCollection<IError> errors)
+        if (result.Data is { Count: > 0 })
         {
-            var formattedErrors = new List<object>();
-
-            foreach (IError error in errors)
-            {
-                var formattedError = new OrderedDictionary {[_message] = error.Message};
-
-                if (error.Locations is { } && error.Locations.Count > 0)
-                {
-                    formattedError[_locations] = SerializeLocations(error.Locations);
-                }
-
-                if (error.Path is { })
-                {
-                    formattedError[_path] = error.Path.ToList();
-                }
-
-                if (error.Extensions is { } && error.Extensions.Count > 0)
-                {
-                    formattedError[_extensions] = error.Extensions;
-                }
-
-                formattedErrors.Add(formattedError);
-            }
-
-            return formattedErrors;
+            formatted[_data] = result.Data;
         }
 
-        private static IReadOnlyList<IReadOnlyDictionary<string, int>> SerializeLocations(
-            IReadOnlyList<Location> locations)
+        if (result.Extensions is { Count: > 0 })
         {
-            var serializedLocations = new IReadOnlyDictionary<string, int>[locations.Count];
+            formatted[_extensions] = result.Extensions;
+        }
 
-            for (var i = 0; i < locations.Count; i++)
+        return formatted;
+    }
+
+    private static ICollection<object> SerializeErrors(
+        IReadOnlyCollection<IError> errors)
+    {
+        var formattedErrors = new List<object>();
+
+        foreach (var error in errors)
+        {
+            var formattedError = new OrderedDictionary { [_message] = error.Message };
+
+            if (error.Locations is { Count: > 0 })
             {
-                Location location = locations[i];
-                serializedLocations[i] = new OrderedDictionary<string, int>
+                formattedError[_locations] = SerializeLocations(error.Locations);
+            }
+
+            if (error.Path is { })
+            {
+                formattedError[_path] = error.Path.ToList();
+            }
+
+            if (error.Extensions is { Count: > 0 })
+            {
+                formattedError[_extensions] = error.Extensions;
+            }
+
+            formattedErrors.Add(formattedError);
+        }
+
+        return formattedErrors;
+    }
+
+    private static IReadOnlyList<IReadOnlyDictionary<string, int>> SerializeLocations(
+        IReadOnlyList<Location> locations)
+    {
+        var serializedLocations = new IReadOnlyDictionary<string, int>[locations.Count];
+
+        for (var i = 0; i < locations.Count; i++)
+        {
+            var location = locations[i];
+            serializedLocations[i] = new OrderedDictionary<string, int>
                 {
                     { _line, location.Line },
                     { _column, location.Column }
                 };
-            }
-
-            return serializedLocations;
         }
+
+        return serializedLocations;
     }
 }

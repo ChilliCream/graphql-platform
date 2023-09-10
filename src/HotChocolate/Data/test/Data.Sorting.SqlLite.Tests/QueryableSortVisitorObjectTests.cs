@@ -1,398 +1,416 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using Xunit;
 
-namespace HotChocolate.Data.Sorting.Expressions
+namespace HotChocolate.Data.Sorting.Expressions;
+
+public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 {
-    public class QueryableSortVisitorObjectTests
-        : IClassFixture<SchemaCache>
+    private static readonly Bar[] _barEntities =
     {
-        private static readonly Bar[] _barEntities =
+        new()
         {
-            new Bar
+            Foo = new Foo
             {
-                Foo = new Foo
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                //ScalarArray = new[] { "c", "d", "a" },
+                ObjectArray = new List<Bar>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    //ScalarArray = new[] { "c", "d", "a" },
-                    ObjectArray = new List<Bar>
+                    new()
                     {
-                        new Bar
+                        Foo = new Foo
                         {
-                            Foo = new Foo
-                            {
-                                // ScalarArray = new[] { "c", "d", "a" }
-                                BarShort = 12, BarString = "a"
-                            }
+                            // ScalarArray = new[] { "c", "d", "a" }
+                            BarShort = 12, BarString = "a"
                         }
                     }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 14,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    //ScalarArray = new[] { "c", "d", "b" },
-                    ObjectArray = new List<Bar>
-                    {
-                        new Bar
-                        {
-                            Foo = new Foo
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = 14, BarString = "d"
-                            }
-                        }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testctest",
-                    //ScalarArray = null,
-                    ObjectArray = null,
                 }
             }
-        };
-
-        private static readonly BarNullable?[] _barNullableEntities =
+        },
+        new()
         {
-            new BarNullable
+            Foo = new Foo
             {
-                Foo = new FooNullable
+                BarShort = 14,
+                BarBool = true,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                //ScalarArray = new[] { "c", "d", "b" },
+                ObjectArray = new List<Bar>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    //ScalarArray = new[] { "c", "d", "a" },
-                    ObjectArray = new List<BarNullable>
+                    new()
                     {
-                        new BarNullable
+                        Foo = new Foo
                         {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "a" }
-                                BarShort = 12,
-                            }
+                            //ScalarArray = new[] { "c", "d", "b" }
+                            BarShort = 14, BarString = "d"
                         }
                     }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new Foo
             {
-                Foo = new FooNullable
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testctest",
+                //ScalarArray = null,
+                ObjectArray = null,
+            }
+        }
+    };
+
+    private static readonly BarNullable?[] _barNullableEntities =
+    {
+        new()
+        {
+            Foo = new FooNullable
+            {
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                //ScalarArray = new[] { "c", "d", "a" },
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = null,
-                    BarBool = null,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    //ScalarArray = new[] { "c", "d", "b" },
-                    ObjectArray = new List<BarNullable>
+                    new()
                     {
-                        new BarNullable
+                        Foo = new FooNullable
                         {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = null,
-                            }
+                            //ScalarArray = new[] { "c", "d", "a" }
+                            BarShort = 12,
                         }
                     }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = null,
+                BarBool = null,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                //ScalarArray = new[] { "c", "d", "b" },
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = 14,
-                    BarBool = false,
-                    BarEnum = BarEnum.QUX,
-                    BarString = "testctest",
-                    //ScalarArray = null,
-                    ObjectArray = new List<BarNullable>
+                    new()
                     {
-                        new BarNullable
+                        Foo = new FooNullable
                         {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = 14,
-                            }
+                            //ScalarArray = new[] { "c", "d", "b" }
+                            BarShort = null,
                         }
                     }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = 14,
+                BarBool = false,
+                BarEnum = BarEnum.QUX,
+                BarString = "testctest",
+                //ScalarArray = null,
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testdtest",
-                    //ScalarArray = null,
-                    ObjectArray = null
+                    new()
+                    {
+                        Foo = new FooNullable
+                        {
+                            //ScalarArray = new[] { "c", "d", "b" }
+                            BarShort = 14,
+                        }
+                    }
                 }
-            },
-            new BarNullable { Foo = null }
-        };
-
-        private readonly SchemaCache _cache;
-
-        public QueryableSortVisitorObjectTests(
-            SchemaCache cache)
+            }
+        },
+        new()
         {
-            _cache = cache;
-        }
+            Foo = new FooNullable
+            {
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testdtest",
+                //ScalarArray = null,
+                ObjectArray = null
+            }
+        },
+        new() { Foo = null }
+    };
 
-        [Fact]
-        public async Task Create_ObjectShort_OrderBy()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+    private readonly SchemaCache _cache;
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barShort: ASC}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
+    public QueryableSortVisitorObjectTests(SchemaCache cache)
+    {
+        _cache = cache;
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barShort: DESC}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ObjectShort_OrderBy()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
 
-            // assert
-            res1.MatchSqlSnapshot("ASC");
-            res2.MatchSqlSnapshot("DESC");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barShort: ASC}}) " +
+                    "{ foo{ barShort}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ObjectNullableShort_OrderBy()
-        {
-            // arrange
-            IRequestExecutor? tester =
-                _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barShort: DESC}}) " +
+                    "{ foo{ barShort}}}")
+                .Create());
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barShort: ASC}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barShort: DESC}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ObjectNullableShort_OrderBy()
+    {
+        // arrange
+        var tester =
+            _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
 
-            // assert
-            res1.MatchSqlSnapshot("ASC");
-            res2.MatchSqlSnapshot("13");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barShort: ASC}}) " +
+                    "{ foo{ barShort}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ObjectEnum_OrderBy()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barShort: DESC}}) " +
+                    "{ foo{ barShort}}}")
+                .Create());
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barEnum: ASC}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
+            .MatchAsync();
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barEnum: DESC}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ObjectEnum_OrderBy()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
 
-            // assert
-            res1.MatchSqlSnapshot("ASC");
-            res2.MatchSqlSnapshot("DESC");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barEnum: ASC}}) " +
+                    "{ foo{ barEnum}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ObjectNullableEnum_OrderBy()
-        {
-            // arrange
-            IRequestExecutor tester =
-                _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barEnum: DESC}}) " +
+                    "{ foo{ barEnum}}}")
+                .Create());
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barEnum: ASC}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barEnum: DESC}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ObjectNullableEnum_OrderBy()
+    {
+        // arrange
+        var tester =
+            _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
 
-            // assert
-            res1.MatchSqlSnapshot("ASC");
-            res2.MatchSqlSnapshot("13");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barEnum: ASC}}) " +
+                    "{ foo{ barEnum}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ObjectString_OrderBy()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barEnum: DESC}}) " +
+                    "{ foo{ barEnum}}}")
+                .Create());
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barString: ASC}}) " +
-                        "{ foo{ barString}}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
+            .MatchAsync();
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barString: DESC}}) " +
-                        "{ foo{ barString}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ObjectString_OrderBy()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
 
-            // assert
-            res1.MatchSqlSnapshot("ASC");
-            res2.MatchSqlSnapshot("DESC");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barString: ASC}}) " +
+                    "{ foo{ barString}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ObjectNullableString_OrderBy()
-        {
-            // arrange
-            IRequestExecutor tester =
-                _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barString: DESC}}) " +
+                    "{ foo{ barString}}}")
+                .Create());
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barString: ASC}}) " +
-                        "{ foo{ barString}}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barString: DESC}}) " +
-                        "{ foo{ barString}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ObjectNullableString_OrderBy()
+    {
+        // arrange
+        var tester =
+            _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
 
-            // assert
-            res1.MatchSqlSnapshot("ASC");
-            res2.MatchSqlSnapshot("13");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barString: ASC}}) " +
+                    "{ foo{ barString}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ObjectBool_OrderBy()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barString: DESC}}) " +
+                    "{ foo{ barString}}}")
+                .Create());
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barBool: ASC}}) " +
-                        "{ foo{ barBool}}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
+            .MatchAsync();
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barBool: DESC}}) " +
-                        "{ foo{ barBool}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ObjectBool_OrderBy()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
 
-            // assert
-            res1.MatchSqlSnapshot("ASC");
-            res2.MatchSqlSnapshot("DESC");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barBool: ASC}}) " +
+                    "{ foo{ barBool}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ObjectNullableBool_OrderBy()
-        {
-            // arrange
-            IRequestExecutor tester =
-                _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barBool: DESC}}) " +
+                    "{ foo{ barBool}}}")
+                .Create());
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barBool: ASC}}) " +
-                        "{ foo{ barBool}}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barBool: DESC}}) " +
-                        "{ foo{ barBool}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ObjectNullableBool_OrderBy()
+    {
+        // arrange
+        var tester =
+            _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
 
-            // assert
-            res1.MatchSqlSnapshot("ASC");
-            res2.MatchSqlSnapshot("13");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barBool: ASC}}) " +
+                    "{ foo{ barBool}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ObjectString_OrderBy_TwoProperties()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barBool: DESC}}) " +
+                    "{ foo{ barBool}}}")
+                .Create());
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) " +
-                        "{ foo{ barBool barShort}}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
+            .MatchAsync();
+    }
 
-            res1.MatchSnapshot("ASC");
+    [Fact]
+    public async Task Create_ObjectString_OrderBy_TwoProperties()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) " +
+                    "{ foo{ barBool barShort}}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root(order: [
                                 { foo: { barBool: ASC } },
@@ -404,23 +422,19 @@ namespace HotChocolate.Data.Sorting.Expressions
                             }
                         }
                         ")
-                    .Create());
+                .Create());
 
-            res2.MatchSnapshot("ASC");
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) " +
+                    "{ foo{ barBool barShort}}}")
+                .Create());
 
-            IExecutionResult res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) " +
-                        "{ foo{ barBool barShort}}}")
-                    .Create());
-
-            res3.MatchSnapshot("DESC");
-
-            IExecutionResult res4 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root(order: [
                                 { foo: { barBool: DESC } },
@@ -432,23 +446,29 @@ namespace HotChocolate.Data.Sorting.Expressions
                             }
                         }
                         ")
-                    .Create());
+                .Create());
 
-            res4.MatchSnapshot("DESC");
-        }
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "ASC"), res2, "ASC"), res3, "DESC"), res4, "DESC")
+            .MatchAsync();
+    }
 
-        [Fact]
-        public async Task Create_ObjectString_OrderBy_TwoProperties_Variables()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+    [Fact]
+    public async Task Create_ObjectString_OrderBy_TwoProperties_Variables()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                          query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
@@ -457,11 +477,11 @@ namespace HotChocolate.Data.Sorting.Expressions
                                 }
                             }
                         }")
-                    .SetVariableValue(
-                        "order",
-                        new List<Dictionary<string,object>>
-                        {
-                            new Dictionary<string,object>
+                .SetVariableValue(
+                    "order",
+                    new List<Dictionary<string, object>>
+                    {
+                            new()
                             {
                                 {
                                     "foo",
@@ -471,15 +491,13 @@ namespace HotChocolate.Data.Sorting.Expressions
                                     }
                                 }
                             }
-                        })
-                    .Create());
+                    })
+                .Create());
 
-            res1.MatchSqlSnapshot("ASC");
-
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                          query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
@@ -488,32 +506,31 @@ namespace HotChocolate.Data.Sorting.Expressions
                                 }
                             }
                         }")
-                    .SetVariableValue(
-                        "order",
-                        new List<Dictionary<string,object>>
-                        {
-                            new Dictionary<string,object>
+                .SetVariableValue(
+                    "order",
+                    new List<Dictionary<string, object>>
+                    {
+                            new()
                             {
                                 {
                                     "foo",
                                     new Dictionary<string,object> { { "barShort", "ASC" } }
                                 }
                             },
-                            new Dictionary<string,object>
+                            new()
                             {
                                 {
                                     "foo",
                                     new Dictionary<string,object> { { "barBool", "ASC" } }
                                 }
                             }
-                        })
-                    .Create());
-            res2.MatchSqlSnapshot("ASC");
+                    })
+                .Create());
 
-            IExecutionResult res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                          query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
@@ -522,11 +539,11 @@ namespace HotChocolate.Data.Sorting.Expressions
                                 }
                             }
                         }")
-                    .SetVariableValue(
-                        "order",
-                        new List<Dictionary<string,object>>
-                        {
-                            new Dictionary<string,object>
+                .SetVariableValue(
+                    "order",
+                    new List<Dictionary<string, object>>
+                    {
+                            new()
                             {
                                 {
                                     "foo",
@@ -536,15 +553,13 @@ namespace HotChocolate.Data.Sorting.Expressions
                                     }
                                 }
                             }
-                        })
-                    .Create());
+                    })
+                .Create());
 
-            res3.MatchSqlSnapshot("DESC");
-
-            IExecutionResult res4 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                          query testSort($order: [BarSortInput!]) {
                             root(order: $order) {
                                 foo {
@@ -553,96 +568,102 @@ namespace HotChocolate.Data.Sorting.Expressions
                                 }
                             }
                         }")
-                    .SetVariableValue(
-                        "order",
-                        new List<Dictionary<string, object>>
-                        {
-                            new Dictionary<string, object>
+                .SetVariableValue(
+                    "order",
+                    new List<Dictionary<string, object>>
+                    {
+                            new()
                             {
                                 {
                                     "foo",
                                     new Dictionary<string, object> { { "barShort", "DESC" } }
                                 }
                             },
-                            new Dictionary<string, object>
+                            new()
                             {
                                 {
                                     "foo",
                                     new Dictionary<string, object> { { "barBool", "DESC" } }
                                 }
                             }
-                        })
-                    .Create());
+                    })
+                .Create());
 
-            res4.MatchSqlSnapshot("DESC");
-        }
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "ASC"), res2, "ASC"), res3, "DESC"), res4, "DESC")
+            .MatchAsync();
+    }
 
-        public class Foo
-        {
-            public int Id { get; set; }
+    public class Foo
+    {
+        public int Id { get; set; }
 
-            public short BarShort { get; set; }
+        public short BarShort { get; set; }
 
-            public string BarString { get; set; } = "";
+        public string BarString { get; set; } = "";
 
-            public BarEnum BarEnum { get; set; }
+        public BarEnum BarEnum { get; set; }
 
-            public bool BarBool { get; set; }
+        public bool BarBool { get; set; }
 
-            //Not supported in SQL
-            //public string[] ScalarArray { get; set; }
+        //Not supported in SQL
+        //public string[] ScalarArray { get; set; }
 
-            public List<Bar> ObjectArray { get; set; } = new List<Bar>();
-        }
+        public List<Bar>? ObjectArray { get; set; } = new();
+    }
 
-        public class FooNullable
-        {
-            public int Id { get; set; }
+    public class FooNullable
+    {
+        public int Id { get; set; }
 
-            public short? BarShort { get; set; }
+        public short? BarShort { get; set; }
 
-            public string? BarString { get; set; }
+        public string? BarString { get; set; }
 
-            public BarEnum? BarEnum { get; set; }
+        public BarEnum? BarEnum { get; set; }
 
-            public bool? BarBool { get; set; }
+        public bool? BarBool { get; set; }
 
-            //Not supported in SQL
-            //public string?[] ScalarArray { get; set; }
+        //Not supported in SQL
+        //public string?[] ScalarArray { get; set; }
 
-            public List<BarNullable>? ObjectArray { get; set; }
-        }
+        public List<BarNullable>? ObjectArray { get; set; }
+    }
 
-        public class Bar
-        {
-            public int Id { get; set; }
+    public class Bar
+    {
+        public int Id { get; set; }
 
-            public Foo Foo { get; set; } = null!;
-        }
+        public Foo Foo { get; set; } = null!;
+    }
 
-        public class BarNullable
-        {
-            public int Id { get; set; }
+    public class BarNullable
+    {
+        public int Id { get; set; }
 
-            public FooNullable? Foo { get; set; }
-        }
+        public FooNullable? Foo { get; set; }
+    }
 
-        public class BarSortType
-            : SortInputType<Bar>
-        {
-        }
+    public class BarSortType
+        : SortInputType<Bar>
+    {
+    }
 
-        public class BarNullableSortType
-            : SortInputType<BarNullable>
-        {
-        }
+    public class BarNullableSortType
+        : SortInputType<BarNullable>
+    {
+    }
 
-        public enum BarEnum
-        {
-            FOO,
-            BAR,
-            BAZ,
-            QUX
-        }
+    public enum BarEnum
+    {
+        FOO,
+        BAR,
+        BAZ,
+        QUX
     }
 }

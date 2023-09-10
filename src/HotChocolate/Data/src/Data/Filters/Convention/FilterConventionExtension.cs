@@ -3,90 +3,89 @@ using HotChocolate.Data.Utilities;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.DataResources;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+/// <summary>
+/// The filter convention extension can be used to extend a convention.
+/// </summary>
+public class FilterConventionExtension
+    : ConventionExtension<FilterConventionDefinition>
 {
-    /// <summary>
-    /// The filter convention extension can be used to extend a convention.
-    /// </summary>
-    public class FilterConventionExtension
-        : ConventionExtension<FilterConventionDefinition>
+    private Action<IFilterConventionDescriptor>? _configure;
+
+    protected FilterConventionExtension()
     {
-        private Action<IFilterConventionDescriptor>? _configure;
+        _configure = Configure;
+    }
 
-        protected FilterConventionExtension()
+    public FilterConventionExtension(Action<IFilterConventionDescriptor> configure)
+    {
+        _configure = configure ??
+            throw new ArgumentNullException(nameof(configure));
+    }
+
+    protected override FilterConventionDefinition CreateDefinition(
+        IConventionContext context)
+    {
+        if (_configure is null)
         {
-            _configure = Configure;
+            throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
         }
 
-        public FilterConventionExtension(Action<IFilterConventionDescriptor> configure)
-        {
-            _configure = configure ??
-                throw new ArgumentNullException(nameof(configure));
-        }
+        var descriptor = FilterConventionDescriptor.New(
+            context.DescriptorContext,
+            context.Scope);
 
-        protected override FilterConventionDefinition CreateDefinition(
-            IConventionContext context)
+        _configure(descriptor);
+        _configure = null;
+
+        return descriptor.CreateDefinition();
+    }
+
+    protected internal new void Initialize(IConventionContext context)
+    {
+        base.Initialize(context);
+    }
+
+    protected virtual void Configure(IFilterConventionDescriptor descriptor)
+    {
+    }
+
+    public override void Merge(IConventionContext context, Convention convention)
+    {
+        if (convention is FilterConvention filterConvention &&
+            Definition is not null &&
+            filterConvention.Definition is not null)
         {
-            if (_configure is null)
+            ExtensionHelpers.MergeDictionary(
+                Definition.Bindings,
+                filterConvention.Definition.Bindings);
+
+            ExtensionHelpers.MergeListDictionary(
+                Definition.Configurations,
+                filterConvention.Definition.Configurations);
+
+            filterConvention.Definition.Operations.AddRange(Definition.Operations);
+
+            filterConvention.Definition.ProviderExtensions.AddRange(
+                Definition.ProviderExtensions);
+
+            filterConvention.Definition.ProviderExtensionsTypes.AddRange(
+                Definition.ProviderExtensionsTypes);
+
+            if (Definition.ArgumentName != FilterConventionDefinition.DefaultArgumentName)
             {
-                throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
+                filterConvention.Definition.ArgumentName = Definition.ArgumentName;
             }
 
-            var descriptor = FilterConventionDescriptor.New(
-                context.DescriptorContext,
-                context.Scope);
-
-            _configure(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
-        }
-
-        protected internal new void Initialize(IConventionContext context)
-        {
-            base.Initialize(context);
-        }
-
-        protected virtual void Configure(IFilterConventionDescriptor descriptor)
-        {
-        }
-
-        public override void Merge(IConventionContext context, Convention convention)
-        {
-            if (convention is FilterConvention filterConvention &&
-                Definition is not null &&
-                filterConvention.Definition is not null)
+            if (Definition.Provider is not null)
             {
-                ExtensionHelpers.MergeDictionary(
-                    Definition.Bindings,
-                    filterConvention.Definition.Bindings);
+                filterConvention.Definition.Provider = Definition.Provider;
+            }
 
-                ExtensionHelpers.MergeListDictionary(
-                    Definition.Configurations,
-                    filterConvention.Definition.Configurations);
-
-                filterConvention.Definition.Operations.AddRange(Definition.Operations);
-
-                filterConvention.Definition.ProviderExtensions.AddRange(
-                    Definition.ProviderExtensions);
-
-                filterConvention.Definition.ProviderExtensionsTypes.AddRange(
-                    Definition.ProviderExtensionsTypes);
-
-                if (Definition.ArgumentName != FilterConventionDefinition.DefaultArgumentName)
-                {
-                    filterConvention.Definition.ArgumentName = Definition.ArgumentName;
-                }
-
-                if (Definition.Provider is not null)
-                {
-                    filterConvention.Definition.Provider = Definition.Provider;
-                }
-
-                if (Definition.ProviderInstance is not null)
-                {
-                    filterConvention.Definition.ProviderInstance = Definition.ProviderInstance;
-                }
+            if (Definition.ProviderInstance is not null)
+            {
+                filterConvention.Definition.ProviderInstance = Definition.ProviderInstance;
             }
         }
     }

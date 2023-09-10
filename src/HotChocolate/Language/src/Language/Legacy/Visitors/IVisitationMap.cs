@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public interface IVisitationMap
 {
-    public interface IVisitationMap
-    {
-        void ResolveChildren(
-            ISyntaxNode node,
-            IList<SyntaxNodeInfo> children);
-    }
+    void ResolveChildren(
+        ISyntaxNode node,
+        IList<SyntaxNodeInfo> children);
 }

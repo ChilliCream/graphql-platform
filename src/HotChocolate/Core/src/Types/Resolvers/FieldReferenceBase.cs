@@ -1,73 +1,74 @@
-﻿using System;
+#nullable enable
 
-namespace HotChocolate.Resolvers
+using System;
+using HotChocolate.Utilities;
+
+namespace HotChocolate.Resolvers;
+
+public class FieldReferenceBase : IFieldReference
 {
-    public class FieldReferenceBase
-        : IFieldReference
+    protected FieldReferenceBase(string typeName, string fieldName)
     {
-        protected FieldReferenceBase(NameString typeName, NameString fieldName)
+        TypeName = typeName.EnsureGraphQLName();
+        FieldName = fieldName.EnsureGraphQLName();
+    }
+
+    protected FieldReferenceBase(FieldReferenceBase fieldReference)
+    {
+        if (fieldReference is null)
         {
-            TypeName = typeName.EnsureNotEmpty(nameof(typeName));
-            FieldName = fieldName.EnsureNotEmpty(nameof(fieldName));
+            throw new ArgumentNullException(nameof(fieldReference));
         }
 
-        protected FieldReferenceBase(FieldReferenceBase fieldReference)
-        {
-            if (fieldReference is null)
-            {
-                throw new ArgumentNullException(nameof(fieldReference));
-            }
+        TypeName = fieldReference.TypeName;
+        FieldName = fieldReference.FieldName;
+    }
 
-            TypeName = fieldReference.TypeName;
-            FieldName = fieldReference.FieldName;
+    public string TypeName { get; }
+
+    public string FieldName { get; }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
+        {
+            return false;
         }
 
-        public NameString TypeName { get; }
+        return IsReferenceEqualTo(obj)
+            || IsEqualTo(obj as FieldReferenceBase);
+    }
 
-        public NameString FieldName { get; }
-
-        public override bool Equals(object obj)
+    protected bool IsEqualTo(FieldReferenceBase? other)
+    {
+        if (other is null)
         {
-            if (obj is null)
-            {
-                return false;
-            }
-
-            return IsReferenceEqualTo(obj)
-                || IsEqualTo(obj as FieldReferenceBase);
+            return false;
         }
 
-        protected bool IsEqualTo(FieldReferenceBase other)
+        if (IsReferenceEqualTo(other))
         {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (IsReferenceEqualTo(other))
-            {
-                return true;
-            }
-
-            return other.TypeName.Equals(TypeName, StringComparison.Ordinal)
-                && other.FieldName.Equals(FieldName, StringComparison.Ordinal);
+            return true;
         }
 
-        protected bool IsReferenceEqualTo<T>(T value) where T : class
-            => ReferenceEquals(this, value);
+        return other.TypeName.Equals(TypeName, StringComparison.Ordinal)
+            && other.FieldName.Equals(FieldName, StringComparison.Ordinal);
+    }
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (TypeName.GetHashCode() * 397)
-                    ^ (FieldName.GetHashCode() * 17);
-            }
-        }
+    protected bool IsReferenceEqualTo<T>(T value) where T : class
+        => ReferenceEquals(this, value);
 
-        public override string ToString()
+    public override int GetHashCode()
+    {
+        unchecked
         {
-            return $"{TypeName}.{FieldName}";
+            return (TypeName.GetHashCode() * 397)
+                ^ (FieldName.GetHashCode() * 17);
         }
+    }
+
+    public override string ToString()
+    {
+        return $"{TypeName}.{FieldName}";
     }
 }

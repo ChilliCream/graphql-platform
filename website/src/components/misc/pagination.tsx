@@ -2,10 +2,12 @@ import { Link } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-interface PaginationProps {
-  currentPage: number;
-  linkPrefix: string;
-  totalPages: number;
+import { THEME_COLORS } from "@/shared-style";
+
+export interface PaginationProps {
+  readonly currentPage: number;
+  readonly linkPrefix: string;
+  readonly totalPages: number;
 }
 
 export const Pagination: FC<PaginationProps> = ({
@@ -47,11 +49,11 @@ const Page = styled.li`
   margin: 0 5px;
   border-radius: var(--border-radius);
   padding: 0;
-  background-color: var(--brand-color);
+  background-color: ${THEME_COLORS.primary};
 
   &.active,
   &:hover {
-    background-color: var(--brand-color-hover);
+    background-color: ${THEME_COLORS.secondary};
   }
 `;
 
@@ -62,5 +64,5 @@ const PageLink = styled(Link)`
   width: 30px;
   height: 30px;
   line-height: 30px;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
 `;

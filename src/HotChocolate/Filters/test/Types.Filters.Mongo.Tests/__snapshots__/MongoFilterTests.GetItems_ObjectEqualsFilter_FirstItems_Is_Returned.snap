@@ -1,7 +1,5 @@
 ﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
+  "data": {
     "items": [
       {
         "nested": {
@@ -11,9 +9,5 @@
         }
       }
     ]
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

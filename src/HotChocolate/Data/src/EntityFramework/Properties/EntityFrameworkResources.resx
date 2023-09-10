@@ -21,4 +21,7 @@
   <data name="UseDbContextAttribute_OnConfigure_NoDbContextType" xml:space="preserve">
     <value>The `{0}` must inherit from `Microsoft.EntityFrameworkCore`.</value>
   </data>
+  <data name="ResolverContext_DbContext_MissingFromLocalState" xml:space="preserve">
+    <value>A DbContext of type `{0}` could not be retrieved from the `LocalContextData`. Most likely the `UseDbContext&lt;{0}&gt;()` middleware is missing.</value>
+  </data>
 </root>

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "`field` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
     "Code": null,
@@ -14,13 +14,14 @@
       "field": "field",
       "type": "Query",
       "responseName": "field",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "Field",
       "Alias": null,
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 61,
@@ -52,7 +53,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -109,8 +110,7 @@
                 "Column": 34
               },
               "Value": "foo"
-            },
-            "Value": "foo"
+            }
           }
         }
       ]
@@ -127,7 +127,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -196,8 +196,7 @@
                     "Column": 34
                   },
                   "Value": "foo"
-                },
-                "Value": "foo"
+                }
               }
             }
           ]
@@ -216,6 +215,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 61,

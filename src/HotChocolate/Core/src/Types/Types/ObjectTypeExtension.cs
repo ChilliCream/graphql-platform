@@ -6,116 +6,154 @@ using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// <para>
+/// Object type extensions are used to represent a type which has been extended
+/// from some original type.
+/// </para>
+/// <para>
+/// For example, this might be used to represent local data, or by a GraphQL service
+/// which is itself an extension of another GraphQL service.
+/// </para>
+/// </summary>
+public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
 {
+    private Action<IObjectTypeDescriptor>? _configure;
+
     /// <summary>
-    /// This is not a full type and is used to split the type configuration into multiple part.
-    /// Any type extension instance is will not survive the initialization and instead is
-    /// merged into the target type.
+    /// Initializes a new  instance of <see cref="ObjectType"/>.
     /// </summary>
-    public class ObjectTypeExtension
-        : NamedTypeExtensionBase<ObjectTypeDefinition>
+    protected ObjectTypeExtension()
     {
-        private Action<IObjectTypeDescriptor>? _configure;
+        _configure = Configure;
+    }
 
-        protected ObjectTypeExtension()
+    /// <summary>
+    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// </summary>
+    /// <param name="configure">
+    /// A delegate to specify the properties of this type.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="configure"/> is <c>null</c>.
+    /// </exception>
+    public ObjectTypeExtension(Action<IObjectTypeDescriptor> configure)
+    {
+        _configure = configure;
+    }
+
+    /// <summary>
+    /// Create a object type from a type definition.
+    /// </summary>
+    /// <param name="definition">
+    /// The object type definition that specifies the properties of the
+    /// newly created object type.
+    /// </param>
+    /// <returns>
+    /// Returns the newly created object type.
+    /// </returns>
+    public static ObjectTypeExtension CreateUnsafe(ObjectTypeDefinition definition)
+        => new() { Definition = definition };
+
+    /// <inheritdoc />
+    public override TypeKind Kind => TypeKind.Object;
+
+    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    {
+        try
         {
-            _configure = Configure;
+            if (Definition is null)
+            {
+                var descriptor = ObjectTypeDescriptor.New(context.DescriptorContext);
+                _configure!(descriptor);
+                return descriptor.CreateDefinition();
+            }
+
+            return Definition;
         }
-
-        public ObjectTypeExtension(Action<IObjectTypeDescriptor> configure)
+        finally
         {
-            _configure = configure;
-        }
-
-        public override TypeKind Kind => TypeKind.Object;
-
-        protected override ObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
-        {
-            var descriptor =
-                ObjectTypeDescriptor.New(context.DescriptorContext);
-
-            _configure!(descriptor);
             _configure = null;
-
-            return descriptor.CreateDefinition();
         }
+    }
 
-        protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
+    protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            ObjectTypeDefinition definition)
+    protected override void OnRegisterDependencies(
+        ITypeDiscoveryContext context,
+        ObjectTypeDefinition definition)
+    {
+        base.OnRegisterDependencies(context, definition);
+        context.RegisterDependencies(definition);
+    }
+
+    protected override void Merge(
+        ITypeCompletionContext context,
+        INamedType type)
+    {
+        if (type is ObjectType objectType)
         {
-            base.OnRegisterDependencies(context, definition);
-            context.RegisterDependencies(definition);
+            // we first assert that extension and type are mutable and by
+            // this that they do have a type definition.
+            AssertMutable();
+            objectType.AssertMutable();
+
+            ApplyGlobalFieldIgnores(
+                Definition!,
+                objectType.Definition!);
+
+            Definition!.MergeInto(objectType.Definition!);
         }
-
-        protected override void Merge(
-            ITypeCompletionContext context,
-            INamedType type)
+        else
         {
-            if (type is ObjectType objectType)
-            {
-                // we first assert that extension and type are mutable and by
-                // this that they do have a type definition.
-                AssertMutable();
-                objectType.AssertMutable();
-
-                ApplyGlobalFieldIgnores(
-                    Definition!,
-                    objectType.Definition!);
-
-                Definition!.MergeInto(objectType.Definition!);
-            }
-            else
-            {
-                throw new ArgumentException(
-                    TypeResources.ObjectTypeExtension_CannotMerge,
-                    nameof(type));
-            }
+            throw new ArgumentException(
+                TypeResources.ObjectTypeExtension_CannotMerge,
+                nameof(type));
         }
+    }
 
-        private void ApplyGlobalFieldIgnores(
-            ObjectTypeDefinition extensionDef,
-            ObjectTypeDefinition typeDef)
+    private void ApplyGlobalFieldIgnores(
+        ObjectTypeDefinition extensionDef,
+        ObjectTypeDefinition typeDef)
+    {
+        var fieldIgnores = extensionDef.GetFieldIgnores();
+
+        if (fieldIgnores.Count > 0)
         {
-            IReadOnlyList<ObjectFieldBinding> fieldIgnores = extensionDef.GetFieldIgnores();
+            var fields = new List<ObjectFieldDefinition>();
 
-            if (fieldIgnores.Count > 0)
+            foreach (var binding in fieldIgnores)
             {
-                var fields = new List<ObjectFieldDefinition>();
-
-                foreach (ObjectFieldBinding binding in fieldIgnores)
+                switch (binding.Type)
                 {
-                    switch (binding.Type)
-                    {
-                        case ObjectFieldBindingType.Field:
-                            if (typeDef.Fields.FirstOrDefault(
-                                t => t.Name.Equals(binding.Name)) is { } f)
-                            {
-                                fields.Add(f);
-                            }
-                            break;
+                    case ObjectFieldBindingType.Field:
+                        if (typeDef.Fields.FirstOrDefault(
+                            t => t.Name.EqualsOrdinal(binding.Name)) is { } f)
+                        {
+                            fields.Add(f);
+                        }
+                        break;
 
-                        case ObjectFieldBindingType.Property:
-                            if (typeDef.Fields.FirstOrDefault(
-                                t => binding.Name.Equals(t.Member?.Name)) is { } p)
-                            {
-                                fields.Add(p);
-                            }
-                            break;
-                    }
+                    case ObjectFieldBindingType.Property:
+                        if (typeDef.Fields.FirstOrDefault(
+                            t => t.Member != null &&
+                                binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
+                        {
+                            fields.Add(p);
+                        }
+                        break;
                 }
+            }
 
-                foreach (var field in fields)
-                {
-                    typeDef.Fields.Remove(field);
-                }
+            foreach (var field in fields)
+            {
+                typeDef.Fields.Remove(field);
             }
         }
     }

@@ -3,124 +3,117 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public class InputObjectToDictionaryConverterTests
 {
-    public class InputObjectToDictionaryConverterTests
+    [Fact]
+    public void Convert_InputObject_Dictionary()
     {
-        [Fact]
-        public void Convert_InputObject_Dictionary()
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<DummyQuery>()
+            .AddType<InputObjectType<Foo>>()
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("FooInput");
+
+        var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
+        var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
+        var foo = new Foo
         {
-            // arrange
-            ISchema schema = Schema.Create(
-                c =>
-                {
-                    c.RegisterQueryType<DummyQuery>();
-                    c.RegisterType<InputObjectType<Foo>>();
-                });
+            Bar = bar1,
+            Bars = new List<Bar> { bar2, bar3 }
+        };
 
-            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
+        // act
+        var converter = new InputObjectToDictionaryConverter(
+            DefaultTypeConverter.Default);
+        var dict = converter.Convert(type, foo);
 
-            var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
-            var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
-            var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
-            var foo = new Foo
-            {
-                Bar = bar1,
-                Bars = new List<Bar> { bar2, bar3 }
-            };
+        // assert
+        dict.MatchSnapshot();
+    }
 
-            // act
-            var converter = new InputObjectToDictionaryConverter(
-                DefaultTypeConverter.Default);
-            Dictionary<string, object> dict = converter.Convert(type, foo);
+    [Fact]
+    public void Convert_InputObjectWithNullField_Dictionary()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<DummyQuery>()
+            .AddType<InputObjectType<Foo>>()
+            .Create();
 
-            // assert
-            dict.MatchSnapshot();
-        }
+        var type = schema.GetType<InputObjectType>("FooInput");
 
-        [Fact]
-        public void Convert_InputObjectWithNullField_Dictionary()
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
+        var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
+        var foo = new Foo
         {
-            // arrange
-            ISchema schema = Schema.Create(
-                c =>
-                {
-                    c.RegisterQueryType<DummyQuery>();
-                    c.RegisterType<InputObjectType<Foo>>();
-                });
+            Bar = null,
+            Bars = new List<Bar> { bar2, bar3 }
+        };
 
-            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
+        // act
+        var converter = new InputObjectToDictionaryConverter(
+            DefaultTypeConverter.Default);
+        var dict = converter.Convert(type, foo);
 
-            var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
-            var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
-            var foo = new Foo
-            {
-                Bar = null,
-                Bars = new List<Bar> { bar2, bar3 }
-            };
+        // assert
+        dict.MatchSnapshot();
+    }
 
-            // act
-            var converter = new InputObjectToDictionaryConverter(
-                DefaultTypeConverter.Default);
-            Dictionary<string, object> dict = converter.Convert(type, foo);
+    [Fact]
+    public void Convert_InputObjectWithNullElement_Dictionary()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<DummyQuery>()
+            .AddType<InputObjectType<Foo>>()
+            .Create();
 
-            // assert
-            dict.MatchSnapshot();
-        }
+        var type = schema.GetType<InputObjectType>("FooInput");
 
-        [Fact]
-        public void Convert_InputObjectWithNullElement_Dictionary()
+        var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
+        var foo = new Foo
         {
-            // arrange
-            ISchema schema = Schema.Create(
-                c =>
-                {
-                    c.RegisterQueryType<DummyQuery>();
-                    c.RegisterType<InputObjectType<Foo>>();
-                });
+            Bar = bar1,
+            Bars = new List<Bar> { bar2, null }
+        };
 
-            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
+        // act
+        var converter = new InputObjectToDictionaryConverter(
+            DefaultTypeConverter.Default);
+        var dict = converter.Convert(type, foo);
 
-            var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
-            var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
-            var foo = new Foo
-            {
-                Bar = bar1,
-                Bars = new List<Bar> { bar2, null }
-            };
+        // assert
+        dict.MatchSnapshot();
+    }
 
-            // act
-            var converter = new InputObjectToDictionaryConverter(
-                DefaultTypeConverter.Default);
-            Dictionary<string, object> dict = converter.Convert(type, foo);
+    public class Foo
+    {
+        public List<Bar> Bars { get; set; }
 
-            // assert
-            dict.MatchSnapshot();
-        }
+        public Bar Bar { get; set; }
+    }
 
-        public class Foo
-        {
-            public List<Bar> Bars { get; set; }
+    public class Bar
+    {
+        public int Number { get; set; }
 
-            public Bar Bar { get; set; }
-        }
+        public Baz Baz { get; set; }
+    }
 
-        public class Bar
-        {
-            public int Number { get; set; }
+    public enum Baz
+    {
+        Foo,
+        Bar
+    }
 
-            public Baz Baz { get; set; }
-        }
-
-        public enum Baz
-        {
-            Foo,
-            Bar
-        }
-
-        public class DummyQuery
-        {
-            public string Foo { get; set; }
-        }
+    public class DummyQuery
+    {
+        public string Foo { get; set; }
     }
 }

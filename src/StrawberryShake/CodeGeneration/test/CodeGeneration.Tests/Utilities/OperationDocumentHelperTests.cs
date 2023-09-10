@@ -8,94 +8,96 @@ using static ChilliCream.Testing.FileResource;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;
 
-namespace StrawberryShake.CodeGeneration.Utilities
+namespace StrawberryShake.CodeGeneration.Utilities;
+
+public class OperationDocumentHelperTests
 {
-    public class OperationDocumentHelperTests
+    // This test ensures that each operation becomes one document that
+    // only has the fragments needed by the extracted operation.
+    [Fact]
+    public void Extract_Operation_Documents()
     {
-        // This test ensures that each operation becomes one document that
-        // only has the fragments needed by the extracted operation.
-        [Fact]
-        public void Extract_Operation_Documents()
-        {
-            // arrange
-            DocumentNode query = Parse(Open("simple.query1.graphql"));
-            List<DocumentNode> queries = new() { query };
+        // arrange
+        var query = Parse(Open("simple.query1.graphql"));
+        List<DocumentNode> queries = new() { query };
 
-            // act
-            OperationDocuments operations = CreateOperationDocuments(queries);
+        // act
+        var operations = CreateOperationDocumentsAsync(queries).Result;
 
-            // assert
-            Assert.Collection(
-                operations.Operations,
-                t => Assert.Equal("GetBookTitles", t.Key),
-                t => Assert.Equal("GetBooksAndAuthor", t.Key));
+        // assert
+        Assert.Collection(
+            operations.Operations,
+            t => Assert.Equal("GetBookTitles", t.Key),
+            t => Assert.Equal("GetBooksAndAuthor", t.Key));
 
-            operations.Operations.Select(t => t.Value.ToString()).ToArray().MatchSnapshot();
-        }
+        operations.Operations.Select(t => t.Value.ToString()).ToArray().MatchSnapshot();
+    }
 
-        [Fact]
-        public void Merge_Multiple_Documents()
-        {
-            // arrange
-            DocumentNode query1 = Parse(Open("simple.query1.graphql"));
-            DocumentNode query2 = Parse(Open("simple.query2.graphql"));
-            List<DocumentNode> queries = new() { query1, query2 };
+    [Fact]
+    public void Merge_Multiple_Documents()
+    {
+        // arrange
+        var query1 = Parse(Open("simple.query1.graphql"));
+        var query2 = Parse(Open("simple.query2.graphql"));
+        List<DocumentNode> queries = new() { query1, query2 };
 
-            // act
-            OperationDocuments operations = CreateOperationDocuments(queries);
+        // act
+        var operations = CreateOperationDocumentsAsync(queries).Result;
 
-            // assert
-            Assert.Collection(
-                operations.Operations,
-                t => Assert.Equal("GetBookTitles", t.Key),
-                t => Assert.Equal("GetBooksAndAuthor", t.Key),
-                t => Assert.Equal("GetAuthorsAndBooks", t.Key));
+        // assert
+        Assert.Collection(
+            operations.Operations,
+            t => Assert.Equal("GetBookTitles", t.Key),
+            t => Assert.Equal("GetBooksAndAuthor", t.Key),
+            t => Assert.Equal("GetAuthorsAndBooks", t.Key));
 
-            operations.Operations.Select(t => t.Value.ToString()).ToArray().MatchSnapshot();
-        }
+        operations.Operations.Select(t => t.Value.ToString()).ToArray().MatchSnapshot();
+    }
 
-        [Fact]
-        public void No_Operation()
-        {
-            // arrange
-            DocumentNode query = new(new List<IDefinitionNode>());
-            List<DocumentNode> queries = new() { query };
+    [Fact]
+    public async Task No_Operation()
+    {
+        // arrange
+        DocumentNode query = new(new List<IDefinitionNode>());
+        List<DocumentNode> queries = new() { query };
 
-            // act
-            void Error() => CreateOperationDocuments(queries);
+        // act
+        async Task Error() => await CreateOperationDocumentsAsync(queries);
 
-            // assert
-            Assert.Throws<ArgumentException>(Error).Message.MatchSnapshot();
-        }
+        // assert
+        var error = await Assert.ThrowsAsync<ArgumentException>(Error);
+        error.Message.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Duplicate_Operation()
-        {
-            // arrange
-            DocumentNode query1 = Parse(Open("simple.query2.graphql"));
-            DocumentNode query2 = Parse(Open("simple.query2.graphql"));
-            List<DocumentNode> queries = new() { query1, query2 };
+    [Fact]
+    public async Task Duplicate_Operation()
+    {
+        // arrange
+        var query1 = Parse(Open("simple.query2.graphql"));
+        var query2 = Parse(Open("simple.query2.graphql"));
+        List<DocumentNode> queries = new() { query1, query2 };
 
-            // act
-            void Error() => CreateOperationDocuments(queries);
+        // act
+        async Task Error() => await CreateOperationDocumentsAsync(queries);
 
-            // assert
-            Assert.Throws<CodeGeneratorException>(Error).Message.MatchSnapshot();
-        }
+        // assert
+        var error = await Assert.ThrowsAsync<CodeGeneratorException>(Error);
+        error.Message.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Duplicate_Fragment()
-        {
-            // arrange
-            DocumentNode query1 = Parse(Open("simple.query1.graphql"));
-            DocumentNode query2 = query1.WithDefinitions(query1.Definitions.Skip(2).ToArray());
-            List<DocumentNode> queries = new() { query1, query2 };
+    [Fact]
+    public async Task Duplicate_Fragment()
+    {
+        // arrange
+        var query1 = Parse(Open("simple.query1.graphql"));
+        var query2 = query1.WithDefinitions(query1.Definitions.Skip(2).ToArray());
+        List<DocumentNode> queries = new() { query1, query2 };
 
-            // act
-            void Error() => CreateOperationDocuments(queries);
+        // act
+        async Task Error() => await CreateOperationDocumentsAsync(queries);
 
-            // assert
-            Assert.Throws<CodeGeneratorException>(Error).Message.MatchSnapshot();
-        }
+        // assert
+        var error = await Assert.ThrowsAsync<CodeGeneratorException>(Error);
+        error.Message.MatchSnapshot();
     }
 }

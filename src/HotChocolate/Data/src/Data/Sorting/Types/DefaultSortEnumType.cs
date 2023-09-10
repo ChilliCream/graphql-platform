@@ -1,12 +1,11 @@
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data.Sorting;
+
+public class DefaultSortEnumType : SortEnumType
 {
-    public class DefaultSortEnumType : SortEnumType
+    protected override void Configure(ISortEnumTypeDescriptor descriptor)
     {
-        protected override void Configure(ISortEnumTypeDescriptor descriptor)
-        {
-            descriptor.Name("SortEnumType");
-            descriptor.Operation(DefaultSortOperations.Ascending);
-            descriptor.Operation(DefaultSortOperations.Descending);
-        }
+        descriptor.Name("SortEnumType");
+        descriptor.Operation(DefaultSortOperations.Ascending);
+        descriptor.Operation(DefaultSortOperations.Descending);
     }
 }

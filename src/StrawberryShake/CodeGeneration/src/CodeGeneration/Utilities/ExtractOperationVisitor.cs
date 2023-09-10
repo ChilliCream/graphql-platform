@@ -1,39 +1,38 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
-namespace StrawberryShake.CodeGeneration.Utilities
+namespace StrawberryShake.CodeGeneration.Utilities;
+
+internal class ExtractOperationVisitor : SyntaxWalker<ExtractOperationContext>
 {
-    internal class ExtractOperationVisitor : SyntaxWalker<ExtractOperationContext>
+    protected override ISyntaxVisitorAction Enter(
+        FragmentDefinitionNode node,
+        ExtractOperationContext context)
     {
-        protected override ISyntaxVisitorAction Enter(
-            FragmentDefinitionNode node,
-            ExtractOperationContext context)
+        context.ExportedFragments.Add(node);
+        return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction VisitChildren(
+        FragmentSpreadNode node,
+        ExtractOperationContext context)
+    {
+        if (base.VisitChildren(node, context).IsBreak())
         {
-            context.ExportedFragments.Add(node);
-            return base.Enter(node, context);
+            return Break;
         }
 
-        protected override ISyntaxVisitorAction VisitChildren(
-            FragmentSpreadNode node,
-            ExtractOperationContext context)
+        if (context.AllFragments.TryGetValue(
+                node.Name.Value,
+                out var fragment) &&
+            context.VisitedFragments.Add(fragment.Name.Value))
         {
-            if (base.VisitChildren(node, context).IsBreak())
+            if (Visit(fragment, node, context).IsBreak())
             {
                 return Break;
             }
-
-            if (context.AllFragments.TryGetValue(
-                node.Name.Value,
-                out FragmentDefinitionNode? fragment) &&
-                context.VisitedFragments.Add(fragment.Name.Value))
-            {
-                if (Visit(fragment, node, context).IsBreak())
-                {
-                    return Break;
-                }
-            }
-
-            return DefaultAction;
         }
+
+        return DefaultAction;
     }
 }

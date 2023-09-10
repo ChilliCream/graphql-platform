@@ -1,0 +1,137 @@
+﻿[
+  {
+    "Message": "The Oneof Input Object `PetInput` requires that exactly one field must be supplied and that field must not be `null`.",
+    "Code": null,
+    "Path": {
+      "Name": "addPet",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 33
+      }
+    ],
+    "Extensions": {
+      "type": "PetInput",
+      "specifiedBy": "http://spec.graphql.org/draft/#sec-Oneof–Input-Objects-Have-Exactly-One-Field",
+      "rfc": "https://github.com/graphql/graphql-spec/pull/825"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectValue",
+      "Location": {
+        "Start": 83,
+        "End": 123,
+        "Line": 3,
+        "Column": 33
+      },
+      "Fields": [
+        {
+          "Kind": "ObjectField",
+          "Location": {
+            "Start": 85,
+            "End": 114,
+            "Line": 3,
+            "Column": 35
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 85,
+              "End": 89,
+              "Line": 3,
+              "Column": 35
+            },
+            "Value": "cat"
+          },
+          "Value": {
+            "Kind": "ObjectValue",
+            "Location": {
+              "Start": 90,
+              "End": 114,
+              "Line": 3,
+              "Column": 40
+            },
+            "Fields": [
+              {
+                "Kind": "ObjectField",
+                "Location": {
+                  "Start": 92,
+                  "End": 109,
+                  "Line": 3,
+                  "Column": 42
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 92,
+                    "End": 97,
+                    "Line": 3,
+                    "Column": 42
+                  },
+                  "Value": "name"
+                },
+                "Value": {
+                  "Kind": "StringValue",
+                  "Location": {
+                    "Start": 98,
+                    "End": 109,
+                    "Line": 3,
+                    "Column": 48
+                  },
+                  "Value": "Brontie",
+                  "Block": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Kind": "ObjectField",
+          "Location": {
+            "Start": 111,
+            "End": 122,
+            "Line": 3,
+            "Column": 61
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 111,
+              "End": 115,
+              "Line": 3,
+              "Column": 61
+            },
+            "Value": "dog"
+          },
+          "Value": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 116,
+              "End": 122,
+              "Line": 3,
+              "Column": 66
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 117,
+                "End": 122,
+                "Line": 3,
+                "Column": 67
+              },
+              "Value": "dog"
+            }
+          }
+        }
+      ]
+    }
+  }
+]

@@ -5,39 +5,38 @@ using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.CodeGeneration.Utilities;
 
-namespace StrawberryShake.CodeGeneration.Mappers
+namespace StrawberryShake.CodeGeneration.Mappers;
+
+public static class EntityIdFactoryDescriptorMapper
 {
-    public static class EntityIdFactoryDescriptorMapper
+    public static void Map(ClientModel model, IMapperContext context)
     {
-        public static void Map(ClientModel model, IMapperContext context)
+        var entities = new List<EntityIdDescriptor>();
+
+        foreach (var entity in model.Entities)
         {
-            var entities = new List<EntityIdDescriptor>();
+            var fields = new List<ScalarEntityIdDescriptor>();
 
-            foreach (var entity in model.Entities)
+            foreach (var field in entity.Fields)
             {
-                var fields = new List<ScalarEntityIdDescriptor>();
-
-                foreach (var field in entity.Fields)
+                if (field.Type.NamedType() is ILeafType leafType)
                 {
-                    if (field.Type.NamedType() is ILeafType leafType)
-                    {
-                        fields.Add(
-                            new ScalarEntityIdDescriptor(
-                                field.Name,
-                                leafType.Name,
-                                model.Schema.GetOrCreateTypeInfo(leafType.GetSerializationType())));
-                    }
+                    fields.Add(
+                        new ScalarEntityIdDescriptor(
+                            field.Name,
+                            leafType.Name,
+                            model.Schema.GetOrCreateTypeInfo(leafType.GetSerializationType())));
                 }
-
-                entities.Add(
-                    new EntityIdDescriptor(entity.Name, entity.Name, fields));
             }
 
-            context.Register(
-                new EntityIdFactoryDescriptor(
-                    context.ClientName + "EntityIdFactory",
-                    entities,
-                    NamingConventions.CreateStateNamespace(context.Namespace)));
+            entities.Add(
+                new EntityIdDescriptor(entity.Name, entity.Name, fields));
         }
+
+        context.Register(
+            new EntityIdFactoryDescriptor(
+                context.ClientName + "EntityIdFactory",
+                entities,
+                NamingConventions.CreateStateNamespace(context.Namespace)));
     }
 }

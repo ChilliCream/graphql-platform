@@ -1,73 +1,70 @@
-using Xunit;
+namespace StrawberryShake.Serialization;
 
-namespace StrawberryShake.Serialization
+public class ByteArraySerializerTests
 {
-    public class ByteArraySerializerTests
+    private ByteArraySerializer Serializer { get; } = new();
+
+    private ByteArraySerializer CustomSerializer { get; } = new("Abc");
+
+    [Fact]
+    public void Parse()
     {
-        private ByteArraySerializer Serializer { get; } = new();
+        // arrange
+        byte[] buffer = { 1 };
 
-        private ByteArraySerializer CustomSerializer { get; } = new("Abc");
+        // act
+        var result = Serializer.Parse(buffer);
 
-        [Fact]
-        public void Parse()
-        {
-            // arrange
-            byte[] buffer = { 1 };
+        // assert
+        Assert.Same(buffer, result);
+    }
 
-            // act
-            byte[] result = Serializer.Parse(buffer);
+    [Fact]
+    public void Format_Null()
+    {
+        // arrange
 
-            // assert
-            Assert.Same(buffer, result);
-        }
+        // act
+        var result = Serializer.Format(null);
 
-        [Fact]
-        public void Format_Null()
-        {
-            // arrange
+        // assert
+        Assert.Null(result);
+    }
 
-            // act
-            object? result = Serializer.Format(null);
+    [Fact]
+    public void Format_Value()
+    {
+        // arrange
+        byte[] buffer = { 1 };
 
-            // assert
-            Assert.Null(result);
-        }
+        // act
+        var result = Serializer.Format(buffer);
 
-        [Fact]
-        public void Format_Value()
-        {
-            // arrange
-            byte[] buffer = { 1 };
+        // assert
+        Assert.Same(buffer, result);
+    }
 
-            // act
-            object? result = Serializer.Format(buffer);
+    [Fact]
+    public void TypeName_Default()
+    {
+        // arrange
 
-            // assert
-            Assert.Same(buffer, result);
-        }
+        // act
+        var typeName = Serializer.TypeName;
 
-        [Fact]
-        public void TypeName_Default()
-        {
-            // arrange
+        // assert
+        Assert.Equal("ByteArray", typeName);
+    }
 
-            // act
-            string typeName = Serializer.TypeName;
+    [Fact]
+    public void TypeName_Custom()
+    {
+        // arrange
 
-            // assert
-            Assert.Equal("ByteArray", typeName);
-        }
+        // act
+        var typeName = CustomSerializer.TypeName;
 
-        [Fact]
-        public void TypeName_Custom()
-        {
-            // arrange
-
-            // act
-            string typeName = CustomSerializer.TypeName;
-
-            // assert
-            Assert.Equal("Abc", typeName);
-        }
+        // assert
+        Assert.Equal("Abc", typeName);
     }
 }

@@ -1,5 +1,5 @@
-﻿{
-  "ContentType": "application/json; charset=utf-8",
+{
+  "ContentType": "application/graphql-response+json; charset=utf-8",
   "StatusCode": "BadRequest",
   "Data": null,
   "Errors": [
@@ -12,7 +12,7 @@
         }
       ],
       "extensions": {
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
       }
     }
   ],

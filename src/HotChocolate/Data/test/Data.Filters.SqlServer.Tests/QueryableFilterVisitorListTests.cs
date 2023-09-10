@@ -1,246 +1,246 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Xunit;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public class QueryableFilterVisitorListTests
 {
-    public class QueryableFilterVisitorListTests
+    private static readonly Foo[] _fooEntities =
     {
-        private static readonly Foo[] _fooEntities =
+        new()
         {
-            new Foo
+            FooNested = new[]
             {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" }
-                }
-            },
-            new Foo
-            {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" }
-                }
-            },
-            new Foo
-            {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
-                }
-            },
-            new Foo
-            {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
-                }
-            },
-            new Foo
-            {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = null },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
-                }
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" }
             }
-        };
-
-        private readonly SchemaCache _cache = new SchemaCache();
-
-        [Fact]
-        public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
+        },
+        new()
         {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+            FooNested = new[]
+            {
+                new FooNested { Bar = "c" },
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" }
+            }
+        },
+        new()
+        {
+            FooNested = new[]
+            {
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
+        },
+        new()
+        {
+            FooNested = new[]
+            {
+                new FooNested { Bar = "c" },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
+        },
+        new()
+        {
+            FooNested = new[]
+            {
+                new FooNested { Bar = null },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
+        }
+    };
 
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                            root(where: {
-                                fooNested: {
-                                    some: {
-                                        bar: {
-                                            eq: ""a""
-                                        }
+    private readonly SchemaCache _cache = new();
+
+    [Fact]
+    public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                        root(where: {
+                            fooNested: {
+                                some: {
+                                    bar: {
+                                        eq: ""a""
                                     }
                                 }
-                            }){
-                                fooNested {
-                                    bar
-                                }
                             }
-                        }")
-                    .Create());
+                        }){
+                            fooNested {
+                                bar
+                            }
+                        }
+                    }")
+                .Create());
 
-            res1.MatchSqlSnapshot("a");
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
+                .Create());
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                    .Create());
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
+                .Create());
 
-            res2.MatchSqlSnapshot("d");
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "d")
+            .AddResult(res3, "null")
+            .MatchAsync();
+    }
 
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                    .Create());
+    [Fact]
+    public async Task Create_ArrayNoneObjectStringEqual_Expression()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
-            res3.MatchSqlSnapshot("null");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
+                .Create());
 
-        [Fact]
-        public async Task Create_ArrayNoneObjectStringEqual_Expression()
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
+                .Create());
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "d")
+            .AddResult(res3, "null")
+            .MatchAsync();
+    }
+
+    [Fact]
+    public async Task Create_ArrayAllObjectStringEqual_Expression()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
+                .Create());
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "d")
+            .AddResult(res3, "null")
+            .MatchAsync();
+    }
+
+    [Fact]
+    public async Task Create_ArrayAnyObjectStringEqual_Expression()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
+                .Create());
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1, "false")
+            .AddResult(res2, "true")
+            .AddResult(res3, "null")
+            .MatchAsync();
+    }
+
+    public class Foo
+    {
+        public int Id { get; set; }
+
+        public IEnumerable<FooNested?>? FooNested { get; set; }
+    }
+
+    public class FooSimple
+    {
+        public IEnumerable<string?>? Bar { get; set; }
+    }
+
+    public class FooNested
+    {
+        public int Id { get; set; }
+
+        public string? Bar { get; set; }
+    }
+
+    public class FooFilterInput : FilterInputType<Foo>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
-            // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("a");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("d");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
+            descriptor.Field(t => t.FooNested);
         }
+    }
 
-        [Fact]
-        public async Task Create_ArrayAllObjectStringEqual_Expression()
+    public class FooSimpleFilterInput : FilterInputType<FooSimple>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<FooSimple> descriptor)
         {
-            // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("a");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("d");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
-        }
-
-        [Fact]
-        public async Task Create_ArrayAnyObjectStringEqual_Expression()
-        {
-            // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("false");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("true");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
-        }
-
-        public class Foo
-        {
-            public int Id { get; set; }
-
-            public IEnumerable<FooNested?>? FooNested { get; set; }
-        }
-
-        public class FooSimple
-        {
-            public IEnumerable<string?>? Bar { get; set; }
-        }
-
-        public class FooNested
-        {
-            public int Id { get; set; }
-
-            public string? Bar { get; set; }
-        }
-
-        public class FooFilterInput
-            : FilterInputType<Foo>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Field(t => t.FooNested);
-            }
-        }
-
-        public class FooSimpleFilterInput
-            : FilterInputType<FooSimple>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<FooSimple> descriptor)
-            {
-                descriptor.Field(t => t.Bar);
-            }
+            descriptor.Field(t => t.Bar);
         }
     }
 }

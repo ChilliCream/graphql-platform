@@ -1,10 +1,9 @@
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+internal static class StringExtensions
 {
-    internal static class StringExtensions
+    public static string NormalizeLineBreaks(this string s)
     {
-        public static string NormalizeLineBreaks(this string s)
-        {
-            return s.Replace("\r\n", "\n").Replace("\r", "\n");
-        }
+        return s.Replace("\r\n", "\n").Replace("\r", "\n");
     }
 }

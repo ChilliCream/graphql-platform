@@ -1,0 +1,11 @@
+{
+  "query": "{ __typename }",
+  "operationName": "abc",
+  "variables": {
+    "abc": {
+      "abc": {
+        "def": "def"
+      }
+    }
+  }
+}

@@ -8,177 +8,173 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
-namespace StrawberryShake.Transport.InMemory
+namespace StrawberryShake.Transport.InMemory;
+
+public class InMemoryClientTests
 {
-    public class InMemoryClientTests
+    [Fact]
+    public void Constructor_AllArgs_NoException()
     {
-        [Fact]
-        public void Constructor_AllArgs_NoException()
-        {
-            // arrange
-            string name = "Foo";
+        // arrange
+        var name = "Foo";
 
-            // act
-            Exception? ex = Record.Exception(() => new InMemoryClient(name));
+        // act
+        var ex = Record.Exception(() => new InMemoryClient(name));
 
-            // assert
-            Assert.Null(ex);
-        }
+        // assert
+        Assert.Null(ex);
+    }
 
-        [Fact]
-        public void Constructor_NoName_ThrowException()
-        {
-            // arrange
-            string name = null!;
+    [Fact]
+    public void Constructor_NoName_ThrowException()
+    {
+        // arrange
+        string name = null!;
 
-            // act
-            Exception? ex = Record.Exception(() => new InMemoryClient(name));
+        // act
+        var ex = Record.Exception(() => new InMemoryClient(name));
 
-            // assert
-            Assert.IsType<ArgumentException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentException>(ex);
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_NoRequest_ThrowException()
-        {
-            // arrange
-            var client = new InMemoryClient("Foo");
+    [Fact]
+    public async Task ExecuteAsync_NoRequest_ThrowException()
+    {
+        // arrange
+        var client = new InMemoryClient("Foo");
 
-            // act
-            Exception? ex =
-                await Record.ExceptionAsync(async () => await client.ExecuteAsync(null!));
+        // act
+        var ex =
+            await Record.ExceptionAsync(async () => await client.ExecuteAsync(null!));
 
-            // assert
-            Assert.IsType<ArgumentNullException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentNullException>(ex);
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_NoExecutor_ThrowException()
-        {
-            // arrange
-            var client = new InMemoryClient("Foo");
-            var operationRequest =
-                new OperationRequest("foo", new StubDocument());
+    [Fact]
+    public async Task ExecuteAsync_NoExecutor_ThrowException()
+    {
+        // arrange
+        var client = new InMemoryClient("Foo");
+        var operationRequest =
+            new OperationRequest("foo", new StubDocument());
 
-            // act
-            Exception? ex =
-                await Record.ExceptionAsync(async () =>
-                    await client.ExecuteAsync(operationRequest));
+        // act
+        var ex =
+            await Record.ExceptionAsync(async () =>
+                await client.ExecuteAsync(operationRequest));
 
-            // assert
-            Assert.IsType<GraphQLClientException>(ex);
-        }
+        // assert
+        Assert.IsType<GraphQLClientException>(ex);
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Default_ExecuteQuery()
-        {
-            // arrange
-            var client = new InMemoryClient("Foo");
-            var variables = new Dictionary<string, object?>();
-            var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
-            var executor = new StubExecutor();
-            client.Executor = executor;
+    [Fact]
+    public async Task ExecuteAsync_Default_ExecuteQuery()
+    {
+        // arrange
+        var client = new InMemoryClient("Foo");
+        var variables = new Dictionary<string, object?>();
+        var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
+        var executor = new StubExecutor();
+        client.Executor = executor;
 
-            // act
-            await client.ExecuteAsync(operationRequest);
+        // act
+        await client.ExecuteAsync(operationRequest);
 
-            // assert
-            Assert.Equal(operationRequest.Name, executor.Request.OperationName);
-            Assert.Equal(variables, executor.Request.VariableValues);
-            Assert.Equal("{ foo }", Encoding.UTF8.GetString(executor.Request.Query!.AsSpan()));
-        }
+        // assert
+        Assert.Equal(operationRequest.Name, executor.Request!.OperationName);
+        Assert.Equal(variables, executor.Request!.VariableValues);
+        Assert.Equal("{ foo }", Encoding.UTF8.GetString(executor.Request.Query!.AsSpan()));
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Default_CallInterceptor()
-        {
-            // arrange
-            var interceptorMock = new Mock<IInMemoryRequestInterceptor>();
-            var client = new InMemoryClient("Foo");
-            var variables = new Dictionary<string, object?>();
-            var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
-            var executor = new StubExecutor();
-            client.Executor = executor;
-            client.RequestInterceptors.Add(interceptorMock.Object);
-            client.RequestInterceptors.Add(interceptorMock.Object);
-            interceptorMock
-                .Setup(x => x
+    [Fact]
+    public async Task ExecuteAsync_Default_CallInterceptor()
+    {
+        // arrange
+        var interceptorMock = new Mock<IInMemoryRequestInterceptor>();
+        var client = new InMemoryClient("Foo");
+        var variables = new Dictionary<string, object?>();
+        var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
+        var executor = new StubExecutor();
+        client.Executor = executor;
+        client.RequestInterceptors.Add(interceptorMock.Object);
+        client.RequestInterceptors.Add(interceptorMock.Object);
+        interceptorMock
+            .Setup(x => x
+                .OnCreateAsync(
+                    StubExecutor.ApplicationServiceProvider,
+                    operationRequest,
+                    It.IsAny<IQueryRequestBuilder>(),
+                    It.IsAny<CancellationToken>()));
+
+        // act
+        await client.ExecuteAsync(operationRequest);
+
+        // assert
+        interceptorMock
+            .Verify(x => x
                     .OnCreateAsync(
                         StubExecutor.ApplicationServiceProvider,
                         operationRequest,
                         It.IsAny<IQueryRequestBuilder>(),
-                        It.IsAny<CancellationToken>()));
+                        It.IsAny<CancellationToken>()),
+                Times.Exactly(2));
+    }
 
-            // act
-            await client.ExecuteAsync(operationRequest);
+    private sealed class StubExecutor : IRequestExecutor
+    {
+        public IQueryRequest? Request { get; private set; }
 
-            // assert
-            interceptorMock
-                .Verify(x => x
-                        .OnCreateAsync(
-                            StubExecutor.ApplicationServiceProvider,
-                            operationRequest,
-                            It.IsAny<IQueryRequestBuilder>(),
-                            It.IsAny<CancellationToken>()),
-                    Times.Exactly(2));
+        public ulong Version { get; }
+
+        public Task<IExecutionResult> ExecuteAsync(
+            IQueryRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            Request = request;
+            return Task.FromResult<IExecutionResult>(null!);
         }
 
-        private class StubExecutor : IRequestExecutor
-        {
-            public IQueryRequest Request { get; private set; }
+        public Task<IResponseStream> ExecuteBatchAsync(
+            IReadOnlyList<IQueryRequest> requestBatch,
+            CancellationToken cancellationToken = default)
+            => throw new NotImplementedException();
 
-            public ulong Version { get; }
+        public ISchema Schema => null!;
 
-            public Task<IExecutionResult> ExecuteAsync(
-                IQueryRequest request,
-                CancellationToken cancellationToken = default)
-            {
-                Request = request;
-                return Task.FromResult<IExecutionResult>(null!);
-            }
-
-            public Task<IBatchQueryResult> ExecuteBatchAsync(
-                IEnumerable<IQueryRequest> requestBatch,
-                bool allowParallelExecution = false,
-                CancellationToken cancellationToken = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ISchema Schema { get; } = null!;
-
-            public IServiceProvider Services { get; } = new ServiceCollection()
+        public IServiceProvider Services { get; } =
+            new ServiceCollection()
                 .AddSingleton(ApplicationServiceProvider)
                 .BuildServiceProvider();
 
-            public static IApplicationServiceProvider ApplicationServiceProvider { get; } =
-                new DefaultApplicationServiceProvider(
-                    new ServiceCollection().BuildServiceProvider());
-        }
+        public static IApplicationServiceProvider ApplicationServiceProvider { get; } =
+            new DefaultApplicationServiceProvider(
+                new ServiceCollection()
+                    .BuildServiceProvider());
+    }
 
-        private class DefaultApplicationServiceProvider
-            : IApplicationServiceProvider
+    private sealed class DefaultApplicationServiceProvider : IApplicationServiceProvider
+    {
+        private readonly IServiceProvider _applicationServices;
+
+        public DefaultApplicationServiceProvider(IServiceProvider applicationServices)
         {
-            private readonly IServiceProvider _applicationServices;
-
-            public DefaultApplicationServiceProvider(IServiceProvider applicationServices)
-            {
-                _applicationServices = applicationServices ??
-                    throw new ArgumentNullException(nameof(applicationServices));
-            }
-
-            public object? GetService(Type serviceType) =>
-                _applicationServices.GetService(serviceType);
+            _applicationServices = applicationServices ??
+                throw new ArgumentNullException(nameof(applicationServices));
         }
 
-        public class StubDocument : IDocument
-        {
-            public OperationKind Kind => OperationKind.Query;
+        public object? GetService(Type serviceType) =>
+            _applicationServices.GetService(serviceType);
+    }
 
-            public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ foo }");
+    public class StubDocument : IDocument
+    {
+        public OperationKind Kind => OperationKind.Query;
 
-            public DocumentHash Hash { get; } = new("MD5", "ABC");
-        }
+        public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ foo }");
+
+        public DocumentHash Hash { get; } = new("MD5", "ABC");
     }
 }

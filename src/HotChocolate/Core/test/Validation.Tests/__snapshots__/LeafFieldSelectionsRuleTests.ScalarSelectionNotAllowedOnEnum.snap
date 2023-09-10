@@ -3,9 +3,14 @@
     "Message": "`furColor` returns an enum value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "catOrDog"
+      "Name": "catOrDog",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -18,13 +23,14 @@
       "field": "furColor",
       "type": "FurColor",
       "responseName": "furColor",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "Field",
       "Alias": null,
       "Arguments": [],
+      "Required": null,
       "SelectionSet": {
         "Kind": "SelectionSet",
         "Location": {
@@ -38,6 +44,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 158,

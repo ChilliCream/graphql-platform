@@ -1,176 +1,95 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
+using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class InputField : FieldBase<InputFieldDefinition>, IInputField, IHasProperty
 {
-    public class InputField
-        : FieldBase<IInputType, InputFieldDefinition>
-        , IInputField
+    private Type _runtimeType = default!;
+
+    public InputField(InputFieldDefinition definition, int index)
+        : base(definition, index)
     {
-        public InputField(InputFieldDefinition definition, FieldCoordinate fieldCoordinate)
-            : base(definition, fieldCoordinate)
+        DefaultValue = definition.DefaultValue;
+        Property = definition.Property;
+
+        var formatters = definition.GetFormatters();
+        Formatter = formatters.Count switch
         {
-            SyntaxNode = definition.SyntaxNode;
-            DefaultValue = definition.DefaultValue;
-            Property = definition.Property;
+            0 => null,
+            1 => formatters[0],
+            _ => new AggregateInputValueFormatter(formatters)
+        };
 
-            IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
-            Formatter = formatters.Count switch
-            {
-                0 => null,
-                1 => formatters[0],
-                _ => new AggregateInputValueFormatter(formatters)
-            };
-
-            Type? propertyType = definition.Property?.PropertyType;
-
-            if (propertyType is { IsGenericType: true } &&
-                propertyType.GetGenericTypeDefinition() == typeof(Optional<>))
-            {
-                IsOptional = true;
-            }
-        }
-
-        /// <summary>
-        /// The associated syntax node from the GraphQL SDL.
-        /// </summary>
-        public InputValueDefinitionNode? SyntaxNode { get; }
-
-        /// <inheritdoc />
-        public IValueNode? DefaultValue { get; private set; }
-
-        /// <inheritdoc />
-        public IInputValueFormatter? Formatter { get; }
-
-        protected internal PropertyInfo? Property { get; }
-
-        protected internal bool IsOptional { get; }
-
-        public new InputObjectType DeclaringType =>
-            (InputObjectType)base.DeclaringType;
-
-        public override Type RuntimeType
-        {
-            get
-            {
-                return Property is null
-                    ? base.RuntimeType
-                    : Property.PropertyType;
-            }
-        }
-
-        public void SetValue(object obj, object? value)
-        {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            var success = Property is null
-                ? TrySetValueOnUnknownType(obj, value)
-                : TrySetValueOnKnownType(obj, value);
-
-            if (!success)
-            {
-                throw new InvalidOperationException(
-                    TypeResources.InputField_CannotSetValue);
-            }
-        }
-
-        private bool TrySetValueOnUnknownType(object obj, object? value)
-        {
-            if (obj is IDictionary<string, object?> dict)
-            {
-                dict[Name] = value;
-                return true;
-            }
-
-            ILookup<string, PropertyInfo> properties =
-                ReflectionUtils.CreatePropertyLookup(obj.GetType());
-
-            if (properties[Name].FirstOrDefault() is { } p)
-            {
-                p.SetValue(obj, value);
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool TrySetValueOnKnownType(object obj, object? value)
-        {
-            Property!.SetValue(obj, value);
-            return true;
-        }
-
-        public object? GetValue(object obj)
-        {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            bool success = Property is null
-                ? TryGetValueOnUnknownType(obj, out object? value)
-                : TryGetValueOnKnownType(obj, out value);
-
-            return success ? value : null;
-        }
-
-        public bool TryGetValue(object obj, out object? value)
-        {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            return Property is null
-                ? TryGetValueOnUnknownType(obj, out value)
-                : TryGetValueOnKnownType(obj, out value);
-        }
-
-        private bool TryGetValueOnUnknownType(object obj, out object? value)
-        {
-            if (obj is IDictionary<string, object> d)
-            {
-                return d.TryGetValue(Name, out value);
-            }
-
-            ILookup<string, PropertyInfo> properties =
-                ReflectionUtils.CreatePropertyLookup(obj.GetType());
-
-            if (properties[Name].FirstOrDefault() is { } p)
-            {
-                value = p.GetValue(obj);
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
-
-        private bool TryGetValueOnKnownType(object obj, out object? value)
-        {
-            value = Property!.GetValue(obj);
-            return true;
-        }
-
-        protected override void OnCompleteField(
-            ITypeCompletionContext context,
-            InputFieldDefinition definition)
-        {
-            base.OnCompleteField(context, definition);
-            DefaultValue = FieldInitHelper.CreateDefaultValue(
-                context, definition, Type, Coordinate);
-        }
+        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
+        DeprecationReason = definition.DeprecationReason;
     }
+
+    /// <summary>
+    /// The associated syntax node from the GraphQL SDL.
+    /// </summary>
+    public new InputValueDefinitionNode? SyntaxNode =>
+        (InputValueDefinitionNode?)base.SyntaxNode;
+
+    /// <inheritdoc />
+    public IInputType Type { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the type that declares this field.
+    /// </summary>
+    public new InputObjectType DeclaringType => (InputObjectType)base.DeclaringType;
+
+    /// <inheritdoc />
+    public override Type RuntimeType => _runtimeType;
+
+    /// <inheritdoc />
+    public IValueNode? DefaultValue { get; private set; }
+
+    /// <inheritdoc />
+    public IInputValueFormatter? Formatter { get; }
+
+    /// <summary>
+    /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
+    /// </summary>
+    internal bool IsOptional { get; private set; }
+
+    /// <inheritdoc />
+    public bool IsDeprecated { get; }
+
+    /// <inheritdoc />
+    public string? DeprecationReason { get; }
+
+    /// <summary>
+    /// If this field is bound to a property on a concrete model,
+    /// then this property exposes this property.
+    /// </summary>
+    public PropertyInfo? Property { get; }
+
+    protected override void OnCompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        InputFieldDefinition definition)
+    {
+        base.OnCompleteField(context, declaringMember, definition);
+
+        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
+        _runtimeType = definition.RuntimeType ?? definition.Property?.PropertyType!;
+        _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
+        DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
+        IsOptional = isOptional;
+    }
+
+    /// <summary>
+    /// Returns a string that represents the current field.
+    /// </summary>
+    /// <returns>
+    /// A string that represents the current field.
+    /// </returns>
+    public override string ToString() => $"{Name}:{Type.Print()}";
 }

@@ -1,22 +1,21 @@
 ﻿using ChilliCream.Testing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public class FieldSelectionMergingRuleTests
+    : DocumentValidatorVisitorTestBase
 {
-    public class FieldSelectionMergingRuleTests
-        : DocumentValidatorVisitorTestBase
+    public FieldSelectionMergingRuleTests()
+        : base(builder => builder.AddFieldRules())
     {
-        public FieldSelectionMergingRuleTests()
-            : base(builder => builder.AddFieldRules())
-        {
-        }
+    }
 
-        [Fact]
-        public void MergeIdenticalFields()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MergeIdenticalFields()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         ... mergeIdenticalFields
@@ -28,12 +27,12 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MergeIdenticalAliasesAndFields()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MergeIdenticalAliasesAndFields()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         ... mergeIdenticalAliasesAndFields
@@ -45,12 +44,12 @@ namespace HotChocolate.Validation
                     otherName: name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ConflictingBecauseAlias()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ConflictingBecauseAlias()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ... conflictingBecauseAlias
@@ -65,12 +64,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void MergeIdenticalFieldsWithIdenticalArgs()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MergeIdenticalFieldsWithIdenticalArgs()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         ... mergeIdenticalFieldsWithIdenticalArgs
@@ -82,12 +81,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand(dogCommand: SIT)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MergeIdenticalFieldsWithIdenticalValues()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MergeIdenticalFieldsWithIdenticalValues()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         ... mergeIdenticalFieldsWithIdenticalValues
@@ -99,12 +98,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand(dogCommand: $dogCommand)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ConflictingArgsOnValues()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ConflictingArgsOnValues()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ... conflictingArgsOnValues
@@ -119,12 +118,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void ConflictingArgsValueAndVar()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ConflictingArgsValueAndVar()
+    {
+        ExpectErrors(@"
                 query($dogCommand: DogCommand!) {
                     dog {
                         ... conflictingArgsValueAndVar
@@ -139,12 +138,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void ConflictingArgsWithVars()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ConflictingArgsWithVars()
+    {
+        ExpectErrors(@"
                 query($varOne: DogCommand! $varTwo: DogCommand!) {
                     dog {
                         ... conflictingArgsWithVars
@@ -159,12 +158,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void DifferingArgs()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DifferingArgs()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ... differingArgs
@@ -179,12 +178,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void SameResponseNameDifferentFieldName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void SameResponseNameDifferentFieldName()
+    {
+        ExpectErrors(@"
                 {
                     catOrDog {
                         ... dog
@@ -201,12 +200,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void SafeDifferingFields()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void SafeDifferingFields()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... safeDifferingFields
@@ -222,12 +221,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SafeDifferingArgs()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void SafeDifferingArgs()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         ... safeDifferingArgs
@@ -243,12 +242,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ConflictingDifferingResponses()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ConflictingDifferingResponses()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ... conflictingDifferingResponses
@@ -267,13 +266,13 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void ShortHandQueryWithNoDuplicateFields()
-        {
-            ExpectValid(
-                @"{
+    [Fact]
+    public void ShortHandQueryWithNoDuplicateFields()
+    {
+        ExpectValid(
+            @"{
                     __type (type: ""Foo"") {
                         name
                         fields {
@@ -284,12 +283,75 @@ namespace HotChocolate.Validation
                         }
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void ShortHandQueryWithDuplicateFieldInSecondLevelFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void Stream_Mergeable()
+    {
+        ExpectValid(
+            @"{
+                    __type (type: ""Foo"") {
+                        name
+                        fields @stream(initialCount: 1) {
+                            type {
+                                name
+                            }
+                        }
+                        fields @stream(initialCount: 1) {
+                            name
+                        }
+                    }
+                }");
+    }
+
+    [Fact]
+    public void Stream_Argument_Mismatch()
+    {
+        ExpectErrors(
+            @"{
+                    __type (type: ""Foo"") {
+                        name
+                        fields @stream(initialCount: 1) {
+                            type {
+                                name
+                            }
+                        }
+                        fields @stream(initialCount: 2) {
+                            name
+                        }
+                    }
+                }",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
+    }
+
+    [Fact]
+    public void Stream_On_Some_Fields()
+    {
+        ExpectErrors(
+            @"{
+                    __type (type: ""Foo"") {
+                        name
+                        fields @stream(initialCount: 1) {
+                            type {
+                                name
+                            }
+                        }
+                        fields {
+                            name
+                        }
+                    }
+                }",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
+    }
+
+    [Fact]
+    public void ShortHandQueryWithDuplicateFieldInSecondLevelFragment()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         doesKnowCommand(dogCommand: DOWN)
@@ -308,13 +370,13 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Encountered fields for the same object that cannot be merged.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void ShortHandQueryWithDupMergableFieldInSecondLevelFragment()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void ShortHandQueryWithDupMergableFieldInSecondLevelFragment()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     dog {
                         doesKnowCommand(dogCommand: DOWN)
@@ -330,13 +392,13 @@ namespace HotChocolate.Validation
                     doesKnowCommand(dogCommand: DOWN)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void TypeNameFieldOnInterfaceIsMergable()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void TypeNameFieldOnInterfaceIsMergable()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     dog {
                         ... interfaceFieldSelection
@@ -348,12 +410,12 @@ namespace HotChocolate.Validation
                     __typename
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void TypeNameFieldOnUnionIsMergable()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void TypeNameFieldOnUnionIsMergable()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... interfaceFieldSelection
@@ -365,12 +427,12 @@ namespace HotChocolate.Validation
                     __typename
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void TypeNameFieldOnObjectIsMergeable()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void TypeNameFieldOnObjectIsMergeable()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... interfaceFieldSelection
@@ -382,18 +444,18 @@ namespace HotChocolate.Validation
                     __typename
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void InvalidFieldsShouldNotRaiseValidationError()
-        {
-            ExpectValid(FileResource.Open("InvalidIntrospectionQuery.graphql"));
-        }
+    [Fact]
+    public void InvalidFieldsShouldNotRaiseValidationError()
+    {
+        ExpectValid(FileResource.Open("InvalidIntrospectionQuery.graphql"));
+    }
 
-        [Fact]
-        public void UniqueFields()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void UniqueFields()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... uniqueFields
@@ -405,12 +467,12 @@ namespace HotChocolate.Validation
                     nickname
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IdenticalFields()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void IdenticalFields()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... mergeIdenticalFields
@@ -422,12 +484,12 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IdenticalFieldsWithIdenticalArgs()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void IdenticalFieldsWithIdenticalArgs()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... mergeIdenticalFieldsWithIdenticalArgs
@@ -439,12 +501,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand(dogCommand: SIT)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DifferentArgsWithDifferentAliases()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void DifferentArgsWithDifferentAliases()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... differentArgsWithDifferentAliases
@@ -456,12 +518,12 @@ namespace HotChocolate.Validation
                     knowsDown: doesKnowCommand(dogCommand: DOWN)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DifferentDirectivesWithDifferentAliases()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void DifferentDirectivesWithDifferentAliases()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... differentDirectivesWithDifferentAliases
@@ -473,12 +535,12 @@ namespace HotChocolate.Validation
                     nameIfFalse: name @include(if: false)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DifferentSkipIncludeDirectivesAccepted()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void DifferentSkipIncludeDirectivesAccepted()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... differentDirectivesWithDifferentAliases
@@ -490,12 +552,12 @@ namespace HotChocolate.Validation
                     name @include(if: false)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SameAliasesWithDifferentFieldTargets()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void SameAliasesWithDifferentFieldTargets()
+    {
+        ExpectErrors(@"
                 {
                     catOrDog {
                         ... sameAliasesWithDifferentFieldTargets
@@ -507,12 +569,12 @@ namespace HotChocolate.Validation
                     fido: nickname
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SameAliasesAllowedOnNonOverlappingFields()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void SameAliasesAllowedOnNonOverlappingFields()
+    {
+        ExpectErrors(@"
                 {
                     catOrDog {
                         ... sameAliasesWithDifferentFieldTargets
@@ -528,12 +590,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void AliasMaskingDirectFieldAccess()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void AliasMaskingDirectFieldAccess()
+    {
+        ExpectErrors(@"
                 {
                     catOrDog {
                         ... aliasMaskingDirectFieldAccess
@@ -545,12 +607,12 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DifferentArgsSecondAddsAnArgument()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DifferentArgsSecondAddsAnArgument()
+    {
+        ExpectErrors(@"
                 {
                     catOrDog {
                         ... conflictingArgs
@@ -562,12 +624,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand(dogCommand: HEEL)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DifferentArgsSecondMissingAnArgument()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DifferentArgsSecondMissingAnArgument()
+    {
+        ExpectErrors(@"
                 {
                     catOrDog {
                         ... conflictingArgs
@@ -579,12 +641,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ConflictingArgValues()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ConflictingArgValues()
+    {
+        ExpectErrors(@"
                 {
                     catOrDog {
                         ... conflictingArgs
@@ -596,12 +658,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand(dogCommand: HEEL)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ConflictingArgNames()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ConflictingArgNames()
+    {
+        ExpectErrors(@"
                 {
                     catOrDog {
                         ... conflictingArgs
@@ -613,12 +675,12 @@ namespace HotChocolate.Validation
                     isAtLocation(y: 0)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void AllowsDifferentArgsWhereNoConflictIsPossible()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void AllowsDifferentArgsWhereNoConflictIsPossible()
+    {
+        ExpectValid(@"
                 {
                     catOrDog {
                         ... conflictingArgs
@@ -634,12 +696,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void EncountersConflictInFragments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void EncountersConflictInFragments()
+    {
+        ExpectErrors(@"
                 {
                     ...A
                     ...B
@@ -653,12 +715,12 @@ namespace HotChocolate.Validation
                     x: b
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ReportsEachConflictOnce()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ReportsEachConflictOnce()
+    {
+        ExpectErrors(@"
                 {
                     f1 {
                         ...A
@@ -683,12 +745,12 @@ namespace HotChocolate.Validation
                     x: b
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DeepConflict()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DeepConflict()
+    {
+        ExpectErrors(@"
                 {
                     f1 {
                         x: a
@@ -698,12 +760,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DeepConflictWithMultipleIssues()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DeepConflictWithMultipleIssues()
+    {
+        ExpectErrors(@"
                 {
                     f1 {
                         x: a
@@ -715,12 +777,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VeryDeepConflict()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void VeryDeepConflict()
+    {
+        ExpectErrors(@"
                 {
                     f1 {
                         f2 {
@@ -734,12 +796,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ReportsDeepConflictToNearestCommonAncestor()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ReportsDeepConflictToNearestCommonAncestor()
+    {
+        ExpectErrors(@"
                 {
                     f1 {
                         f2 {
@@ -756,12 +818,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ReportsDeepConflictToNearestCommonAncestorInFragments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ReportsDeepConflictToNearestCommonAncestorInFragments()
+    {
+        ExpectErrors(@"
                 {
                     f1 {
                         ...F
@@ -786,12 +848,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ReportsDeepConflictInNestedFragments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ReportsDeepConflictInNestedFragments()
+    {
+        ExpectErrors(@"
                 {
                     f1 {
                         ...F
@@ -819,13 +881,13 @@ namespace HotChocolate.Validation
                     x: b
                 }
             ");
-        }
+    }
 
 
-        [Fact]
-        public void ConflictingReturnTypesWhichPotentiallyOverlap()
-        {
-            ExpectErrors(TestSchema, @"
+    [Fact]
+    public void ConflictingReturnTypesWhichPotentiallyOverlap()
+    {
+        ExpectErrors(TestSchema, @"
                 {
                     someBox {
                         ...on IntBox {
@@ -837,12 +899,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void CompatibleReturnShapesOnDifferentReturnTypes()
-        {
-            ExpectValid(TestSchema, @"
+    [Fact]
+    public void CompatibleReturnShapesOnDifferentReturnTypes()
+    {
+        ExpectValid(TestSchema, @"
                 {
                     someBox {
                         ... on SomeBox {
@@ -858,12 +920,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DisallowsDifferingReturnTypesDespiteNoOverlap()
-        {
-            ExpectErrors(TestSchema, @"
+    [Fact]
+    public void DisallowsDifferingReturnTypesDespiteNoOverlap()
+    {
+        ExpectErrors(TestSchema, @"
             {
                 someBox {
                     ... on IntBox {
@@ -875,12 +937,12 @@ namespace HotChocolate.Validation
                 }
             }
             ");
-        }
+    }
 
-        [Fact]
-        public void DisallowsDifferingReturnTypeNullabilityDespiteNoOverlap()
-        {
-            ExpectErrors(TestSchema, @"
+    [Fact]
+    public void DisallowsDifferingReturnTypeNullabilityDespiteNoOverlap()
+    {
+        ExpectErrors(TestSchema, @"
                 {
                     someBox {
                         ... on NonNullStringBox1 {
@@ -892,12 +954,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DisallowsDifferingReturnTypeListDespiteNoOverlap()
-        {
-            ExpectErrors(TestSchema, @"
+    [Fact]
+    public void DisallowsDifferingReturnTypeListDespiteNoOverlap()
+    {
+        ExpectErrors(TestSchema, @"
                 {
                     someBox {
                         ... on IntBox {
@@ -912,12 +974,12 @@ namespace HotChocolate.Validation
                         }
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void DisallowsDifferingReturnTypeListDespiteNoOverlapReverse()
-        {
-            ExpectErrors(TestSchema, @"
+    [Fact]
+    public void DisallowsDifferingReturnTypeListDespiteNoOverlapReverse()
+    {
+        ExpectErrors(TestSchema, @"
                 {
                     someBox {
                         ... on IntBox {
@@ -932,13 +994,13 @@ namespace HotChocolate.Validation
                         }
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void DisallowsDifferingSubfields()
-        {
-            ExpectErrors(TestSchema,
-                @"{
+    [Fact]
+    public void DisallowsDifferingSubfields()
+    {
+        ExpectErrors(TestSchema,
+            @"{
                     someBox {
                         ... on IntBox {
                             box: stringBox {
@@ -953,13 +1015,13 @@ namespace HotChocolate.Validation
                         }
                     }
                 }");
-        }
+    }
 
-        // TODO : Fix this issue
-        [Fact(Skip = "This one needs fixing!")]
-        public void DisallowsDifferingDeepReturnTypesDespiteNoOverlap()
-        {
-            ExpectErrors(TestSchema, @"
+    // TODO : Fix this issue
+    [Fact(Skip = "This one needs fixing!")]
+    public void DisallowsDifferingDeepReturnTypesDespiteNoOverlap()
+    {
+        ExpectErrors(TestSchema, @"
                 {
                     someBox {
                         ... on IntBox {
@@ -974,12 +1036,12 @@ namespace HotChocolate.Validation
                         }
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void AllowsNonConflictingOverlappingTypes()
-        {
-            ExpectValid(TestSchema, @"
+    [Fact]
+    public void AllowsNonConflictingOverlappingTypes()
+    {
+        ExpectValid(TestSchema, @"
                 {
                     someBox {
                         ... on IntBox {
@@ -990,13 +1052,13 @@ namespace HotChocolate.Validation
                         }
                     }
                 }");
-        }
+    }
 
-        // TODO : we need to analyze this validation issue further.
-        [Fact(Skip = "This one needs to be analyzed further.")]
-        public void SameWrappedScalarReturnTypes()
-        {
-            ExpectErrors(TestSchema, @"
+    // TODO : we need to analyze this validation issue further.
+    [Fact(Skip = "This one needs to be analyzed further.")]
+    public void SameWrappedScalarReturnTypes()
+    {
+        ExpectErrors(TestSchema, @"
                 {
                     someBox {
                         ...on NonNullStringBox1 {
@@ -1007,24 +1069,24 @@ namespace HotChocolate.Validation
                         }
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void AllowsInlineFragmentsWithoutTypeCondition()
-        {
-            ExpectValid(TestSchema, @"
+    [Fact]
+    public void AllowsInlineFragmentsWithoutTypeCondition()
+    {
+        ExpectValid(TestSchema, @"
                 {
                     a
                     ... {
                         a
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void ComparesDeepTypesIncludingList()
-        {
-            ExpectErrors(TestSchema, @"
+    [Fact]
+    public void ComparesDeepTypesIncludingList()
+    {
+        ExpectErrors(TestSchema, @"
             {
                 connection {
                     ...edgeID
@@ -1043,12 +1105,12 @@ namespace HotChocolate.Validation
                     }
                 }
             }");
-        }
+    }
 
-        [Fact]
-        public void FindsInvalidCaseEvenWithImmediatelyRecursiveFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void FindsInvalidCaseEvenWithImmediatelyRecursiveFragment()
+    {
+        ExpectErrors(@"
                 {
                     dogOrHuman {
                         ... sameAliasesWithDifferentFieldTargets
@@ -1060,11 +1122,51 @@ namespace HotChocolate.Validation
                     fido: name
                     fido: nickname
                 }");
-        }
+    }
 
-        private static readonly ISchema TestSchema =
-            SchemaBuilder.New()
-                .AddDocumentFromString(@"
+    [Fact]
+    public void ConflictingDifferingResponse()
+    {
+        ExpectErrors(@"
+                {
+                    catOrDog {
+                        ... conflictingDifferingResponses
+                    }
+                }
+
+                fragment conflictingDifferingResponses on Pet {
+                    ... on Dog {
+                        someValue: nickname
+                    }
+                    ... on Cat {
+                        someValue: nickname!
+                    }
+                }");
+    }
+
+    [Fact]
+    public void MergeableNullabilityChange()
+    {
+        ExpectValid(@"
+                {
+                    catOrDog {
+                        ... conflictingDifferingResponses
+                    }
+                }
+
+                fragment conflictingDifferingResponses on Pet {
+                    ... on Dog {
+                        someValue: nickname!
+                    }
+                    ... on Cat {
+                        someValue: nickname!
+                    }
+                }");
+    }
+
+    private static readonly ISchema TestSchema =
+        SchemaBuilder.New()
+            .AddDocumentFromString(@"
                     interface SomeBox {
                         deepBox: SomeBox
                         unrelatedField: String
@@ -1147,5 +1249,4 @@ namespace HotChocolate.Validation
             .AddResolver("Query", "y", () => "")
             .AddType(new AnyType())
             .Create();
-    }
 }

@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Single-root-field"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Single-root-field"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -1,30 +1,39 @@
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+/// <summary>
+/// The HTTP request interceptor allows to manipulate the GraphQL
+/// request creation and the GraphQL request response creation.
+/// </summary>
+public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
 {
-    public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
+    /// <inheritdoc cref="IHttpRequestInterceptor.OnCreateAsync"/>
+    public virtual ValueTask OnCreateAsync(
+        HttpContext context,
+        IRequestExecutor requestExecutor,
+        IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
     {
-        public virtual ValueTask OnCreateAsync(
-            HttpContext context,
-            IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
-            CancellationToken cancellationToken)
+        var userState = new UserState(context.User);
+
+        requestBuilder.TrySetServices(context.RequestServices);
+        requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
+        requestBuilder.TryAddGlobalState(nameof(CancellationToken), context.RequestAborted);
+        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
+        requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
+
+        if (context.IsTracingEnabled())
         {
-            requestBuilder.TrySetServices(context.RequestServices);
-            requestBuilder.TryAddProperty(nameof(HttpContext), context);
-            requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-            requestBuilder.TryAddProperty(nameof(CancellationToken), context.RequestAborted);
-
-            if (context.IsTracingEnabled())
-            {
-                requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
-            }
-
-            return default;
+            requestBuilder.TryAddGlobalState(WellKnownContextData.EnableTracing, true);
         }
+
+        if (context.IncludeQueryPlan())
+        {
+            requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);
+        }
+
+        return default;
     }
 }

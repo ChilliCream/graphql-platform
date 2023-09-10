@@ -1,68 +1,111 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static System.Reflection.BindingFlags;
+using static HotChocolate.Execution.ExecutionStrategy;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+public class ObjectFieldDescriptor
+    : OutputFieldDescriptorBase<ObjectFieldDefinition>
+    , IObjectFieldDescriptor
 {
-    public class ObjectFieldDescriptor
-        : OutputFieldDescriptorBase<ObjectFieldDefinition>
-        , IObjectFieldDescriptor
+    private bool _argumentsInitialized;
+    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    protected ObjectFieldDescriptor(
+        IDescriptorContext context,
+        string fieldName)
+        : base(context)
     {
-        private bool _argumentsInitialized;
+        Definition.Name = fieldName;
+        Definition.ResultType = typeof(object);
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+    }
 
-        protected ObjectFieldDescriptor(
-            IDescriptorContext context,
-            NameString fieldName)
-            : base(context)
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    protected ObjectFieldDescriptor(
+        IDescriptorContext context,
+        MemberInfo member,
+        Type sourceType,
+        Type? resolverType = null)
+        : base(context)
+    {
+        var naming = context.Naming;
+        Definition.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Definition.Name = naming.GetMemberName(member, MemberKind.ObjectField);
+        Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
+        Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+        Definition.SourceType = sourceType;
+        Definition.ResolverType = resolverType == sourceType
+            ? null
+            : resolverType;
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+
+        if (naming.IsDeprecated(member, out var reason))
         {
-            Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
-            Definition.ResultType = typeof(object);
+            Deprecated(reason);
         }
 
-        protected ObjectFieldDescriptor(
-            IDescriptorContext context,
-            MemberInfo member,
-            Type sourceType)
-            : this(context, member, sourceType, null)
+        if (member is MethodInfo m)
         {
+            _parameterInfos = m.GetParameters();
+            Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+            Definition.ResultType = m.ReturnType;
         }
-
-        protected ObjectFieldDescriptor(
-            IDescriptorContext context,
-            MemberInfo member,
-            Type sourceType,
-            Type? resolverType)
-            : base(context)
+        else if (member is PropertyInfo p)
         {
-            Definition.Member = member ??
-                throw new ArgumentNullException(nameof(member));
-            Definition.Name = context.Naming.GetMemberName(
-                member,
-                MemberKind.ObjectField);
-            Definition.Description = context.Naming.GetMemberDescription(
-                member,
-                MemberKind.ObjectField);
+            Definition.ResultType = p.PropertyType;
+        }
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    protected ObjectFieldDescriptor(
+        IDescriptorContext context,
+        LambdaExpression expression,
+        Type sourceType,
+        Type? resolverType = null)
+        : base(context)
+    {
+        Definition.Expression = expression ?? throw new ArgumentNullException(nameof(expression));
+        Definition.SourceType = sourceType;
+        Definition.ResolverType = resolverType;
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
+
+        var member = expression.TryExtractCallMember();
+
+        if (member is not null)
+        {
+            var naming = context.Naming;
+            Definition.Name = naming.GetMemberName(member, MemberKind.ObjectField);
+            Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
             Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
-            Definition.SourceType = sourceType;
-            Definition.ResolverType = resolverType == sourceType ? null : resolverType;
 
-            if (context.Naming.IsDeprecated(member, out var reason))
+            if (naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
             }
 
             if (member is MethodInfo m)
             {
-                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
                 Definition.ResultType = m.ReturnType;
             }
             else if (member is PropertyInfo p)
@@ -70,350 +113,413 @@ namespace HotChocolate.Types.Descriptors
                 Definition.ResultType = p.PropertyType;
             }
         }
-
-        protected ObjectFieldDescriptor(
-            IDescriptorContext context,
-            LambdaExpression expression,
-            Type sourceType,
-            Type? resolverType)
-            : base(context)
+        else
         {
-            Definition.Expression = expression
-                ?? throw new ArgumentNullException(nameof(expression));
-            Definition.SourceType = sourceType;
-            Definition.ResolverType = resolverType;
+            Definition.Type = context.TypeInspector.GetOutputTypeRef(expression.ReturnType);
+            Definition.ResultType = expression.ReturnType;
+        }
+    }
 
-            MemberInfo member = ReflectionUtils.TryExtractCallMember(expression);
+    /// <summary>
+    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    protected ObjectFieldDescriptor(
+        IDescriptorContext context,
+        ObjectFieldDefinition definition)
+        : base(context)
+    {
+        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+    }
 
-            if (member is { })
+    protected internal override ObjectFieldDefinition Definition { get; protected set; } = new();
+
+    /// <inheritdoc />
+    protected override void OnCreateDefinition(ObjectFieldDefinition definition)
+    {
+        var member = definition.ResolverMember ?? definition.Member;
+
+        if (!Definition.AttributesAreApplied && member is not null)
+        {
+            Context.TypeInspector.ApplyAttributes(Context, this, member);
+            Definition.AttributesAreApplied = true;
+        }
+
+        base.OnCreateDefinition(definition);
+
+        CompleteArguments(definition);
+
+        if (!definition.HasStreamResult &&
+            definition.ResultType?.IsGenericType is true &&
+            definition.ResultType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+        {
+            definition.HasStreamResult = true;
+        }
+    }
+
+    private void CompleteArguments(ObjectFieldDefinition definition)
+    {
+        if (!_argumentsInitialized)
+        {
+            if (definition.SubscribeWith is not null)
             {
-                Definition.Name = context.Naming.GetMemberName(
-                    member,
-                    MemberKind.ObjectField);
-                Definition.Description = context.Naming.GetMemberDescription(
-                    member,
-                    MemberKind.ObjectField);
-                Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+                var ownerType = definition.ResolverType ?? definition.SourceType;
 
-                if (context.Naming.IsDeprecated(member, out string? reason))
+                if (ownerType is not null)
                 {
-                    Deprecated(reason);
-                }
+                    var subscribeMember = ownerType.GetMember(
+                        definition.SubscribeWith,
+                        Public | NonPublic | Instance | Static)[0];
 
-                if (member is MethodInfo m)
-                {
-                    Definition.ResultType = m.ReturnType;
-                }
-                else if (member is PropertyInfo p)
-                {
-                    Definition.ResultType = p.PropertyType;
-                }
-            }
-            else
-            {
-                Definition.Type = context.TypeInspector.GetOutputTypeRef(expression.ReturnType);
-                Definition.ResultType = expression.ReturnType;
-            }
-        }
-
-        protected ObjectFieldDescriptor(
-            IDescriptorContext context,
-            ObjectFieldDefinition definition)
-            : base(context)
-        {
-            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        }
-
-        protected internal override ObjectFieldDefinition Definition { get; protected set; } =
-            new ObjectFieldDefinition();
-
-        protected override void OnCreateDefinition(
-            ObjectFieldDefinition definition)
-        {
-            if (!Definition.AttributesAreApplied && Definition.Member is not null)
-            {
-                Context.TypeInspector.ApplyAttributes(
-                    Context,
-                    this,
-                    Definition.Member);
-                Definition.AttributesAreApplied = true;
-            }
-
-            base.OnCreateDefinition(definition);
-
-            CompleteArguments(definition);
-        }
-
-        private void CompleteArguments(ObjectFieldDefinition definition)
-        {
-            if (!_argumentsInitialized && Parameters.Any())
-            {
-                FieldDescriptorUtilities.DiscoverArguments(
-                    Context,
-                    definition.Arguments,
-                    definition.Member);
-                _argumentsInitialized = true;
-            }
-        }
-
-        public new IObjectFieldDescriptor SyntaxNode(
-            FieldDefinitionNode? fieldDefinition)
-        {
-            base.SyntaxNode(fieldDefinition);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Name(NameString value)
-        {
-            base.Name(value);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Description(
-            string? value)
-        {
-            base.Description(value);
-            return this;
-        }
-
-        [Obsolete("Use `Deprecated`.")]
-        public IObjectFieldDescriptor DeprecationReason(string? reason) =>
-            Deprecated(reason);
-
-        public new IObjectFieldDescriptor Deprecated(string? reason)
-        {
-            base.Deprecated(reason);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Deprecated()
-        {
-            base.Deprecated();
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Type<TOutputType>()
-            where TOutputType : class, IOutputType
-        {
-            base.Type<TOutputType>();
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Type<TOutputType>(
-            TOutputType outputType)
-            where TOutputType : class, IOutputType
-        {
-            base.Type(outputType);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Type(ITypeNode typeNode)
-        {
-            base.Type(typeNode);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Type(Type type)
-        {
-            base.Type(type);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Argument(
-            NameString argumentName,
-            Action<IArgumentDescriptor> argumentDescriptor)
-        {
-            base.Argument(argumentName, argumentDescriptor);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Ignore(bool ignore = true)
-        {
-            base.Ignore(ignore);
-            return this;
-        }
-
-        public IObjectFieldDescriptor Resolver(
-            FieldResolverDelegate fieldResolver) =>
-            Resolve(fieldResolver);
-
-        public IObjectFieldDescriptor Resolver(
-            FieldResolverDelegate fieldResolver,
-            Type resultType) =>
-            Resolve(fieldResolver, resultType);
-
-        public IObjectFieldDescriptor Resolve(
-            FieldResolverDelegate fieldResolver)
-        {
-            if (fieldResolver is null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
-            Definition.Resolver = fieldResolver;
-            return this;
-        }
-
-        public IObjectFieldDescriptor Resolve(
-            FieldResolverDelegate fieldResolver,
-            Type resultType)
-        {
-            if (fieldResolver is null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
-            Definition.Resolver = fieldResolver;
-
-            if (resultType != null)
-            {
-                Definition.SetMoreSpecificType(
-                    Context.TypeInspector.GetType(resultType),
-                    TypeContext.Output);
-
-                if (resultType.IsGenericType)
-                {
-                    Type resultTypeDef = resultType.GetGenericTypeDefinition();
-
-                    Type clrResultType = resultTypeDef == typeof(NativeType<>)
-                        ? resultType.GetGenericArguments()[0]
-                        : resultType;
-
-                    if (!clrResultType.IsSchemaType())
+                    if (subscribeMember is MethodInfo subscribeMethod)
                     {
-                        Definition.ResultType = clrResultType;
+                        var subscribeParameters = subscribeMethod.GetParameters();
+                        var parameterLength = _parameterInfos.Length + subscribeParameters.Length;
+                        var parameters = new ParameterInfo[parameterLength];
+
+                        _parameterInfos.CopyTo(parameters, 0);
+                        subscribeParameters.CopyTo(parameters, _parameterInfos.Length);
+                        _parameterInfos = parameters;
+
+                        var parameterLookup = Parameters.ToDictionary(
+                            t => t.Key,
+                            t => t.Value,
+                            StringComparer.Ordinal);
+                        Parameters = parameterLookup;
+
+                        foreach (var parameter in subscribeParameters)
+                        {
+                            if (!parameterLookup.ContainsKey(parameter.Name!))
+                            {
+                                parameterLookup.Add(parameter.Name!, parameter);
+                            }
+                        }
                     }
                 }
             }
 
-            return this;
-        }
-
-        public IObjectFieldDescriptor ResolveWith<TResolver>(
-            Expression<Func<TResolver, object?>> propertyOrMethod)
-        {
-            if (propertyOrMethod is null)
+            if (Parameters.Count > 0)
             {
-                throw new ArgumentNullException(nameof(propertyOrMethod));
+                Context.ResolverCompiler.ApplyConfiguration(
+                    _parameterInfos,
+                    this);
+
+                FieldDescriptorUtilities.DiscoverArguments(
+                    Context,
+                    definition.Arguments,
+                    definition.Member,
+                    _parameterInfos,
+                    definition.GetParameterExpressionBuilders());
             }
 
-            MemberInfo member = propertyOrMethod.ExtractMember();
-            if (member is PropertyInfo || member is MethodInfo)
-            {
-                Type resultType = member.GetReturnType();
-
-                Definition.SetMoreSpecificType(
-                    Context.TypeInspector.GetType(resultType),
-                    TypeContext.Output);
-
-                Definition.ResolverType = typeof(TResolver);
-                Definition.ResolverMember = member;
-                Definition.Resolver = null;
-                Definition.ResultType = resultType;
-                return this;
-            }
-
-            throw new ArgumentException(
-                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
-                nameof(propertyOrMethod));
+            _argumentsInitialized = true;
         }
-
-        public IObjectFieldDescriptor ResolveWith(
-            MemberInfo propertyOrMethod)
-        {
-            if (propertyOrMethod is null)
-            {
-                throw new ArgumentNullException(nameof(propertyOrMethod));
-            }
-
-            if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
-            {
-                Definition.ResolverType = propertyOrMethod.DeclaringType;
-                Definition.ResolverMember = propertyOrMethod;
-                Definition.Resolver = null;
-                Definition.ResultType = propertyOrMethod.GetReturnType();
-                return this;
-            }
-
-            throw new ArgumentException(
-                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
-                nameof(propertyOrMethod));
-        }
-
-        public IObjectFieldDescriptor Subscribe(SubscribeResolverDelegate subscribeResolver)
-        {
-            Definition.SubscribeResolver = subscribeResolver;
-            return this;
-        }
-
-        public IObjectFieldDescriptor Use(FieldMiddleware middleware)
-        {
-            if (middleware is null)
-            {
-                throw new ArgumentNullException(nameof(middleware));
-            }
-
-            Definition.MiddlewareComponents.Add(middleware);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Directive<T>(T directiveInstance)
-            where T : class
-        {
-            base.Directive(directiveInstance);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Directive<T>()
-            where T : class, new()
-        {
-            base.Directive<T>();
-            return this;
-        }
-
-        public new IObjectFieldDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            base.Directive(name, arguments);
-            return this;
-        }
-
-        public new IObjectFieldDescriptor ConfigureContextData(
-            Action<ExtensionData> configure)
-        {
-            base.ConfigureContextData(configure);
-            return this;
-        }
-
-        public static ObjectFieldDescriptor New(
-            IDescriptorContext context,
-            NameString fieldName) =>
-            new ObjectFieldDescriptor(context, fieldName);
-
-        public static ObjectFieldDescriptor New(
-            IDescriptorContext context,
-            MemberInfo member,
-            Type sourceType) =>
-            new ObjectFieldDescriptor(context, member, sourceType);
-
-        public static ObjectFieldDescriptor New(
-            IDescriptorContext context,
-            MemberInfo member,
-            Type sourceType,
-            Type resolverType) =>
-            new ObjectFieldDescriptor(context, member, sourceType, resolverType);
-
-        public static ObjectFieldDescriptor New(
-            IDescriptorContext context,
-            LambdaExpression expression,
-            Type sourceType,
-            Type resolverType) =>
-            new ObjectFieldDescriptor(context, expression, sourceType, resolverType);
-
-        public static ObjectFieldDescriptor From(
-            IDescriptorContext context,
-            ObjectFieldDefinition definition) =>
-            new ObjectFieldDescriptor(context, definition);
     }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode? fieldDefinition)
+    {
+        base.SyntaxNode(fieldDefinition);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Name(string value)
+    {
+        base.Name(value);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Description(string? value)
+    {
+        base.Description(value);
+        return this;
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use `Deprecated`.")]
+    public IObjectFieldDescriptor DeprecationReason(string? reason)
+        => Deprecated(reason);
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Deprecated(string? reason)
+    {
+        base.Deprecated(reason);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Deprecated()
+    {
+        base.Deprecated();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Type<TOutputType>()
+        where TOutputType : class, IOutputType
+    {
+        base.Type<TOutputType>();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Type<TOutputType>(TOutputType outputType)
+        where TOutputType : class, IOutputType
+    {
+        base.Type(outputType);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Type(ITypeNode typeNode)
+    {
+        base.Type(typeNode);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Type(Type type)
+    {
+        base.Type(type);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor StreamResult(bool hasStreamResult = true)
+    {
+        Definition.HasStreamResult = hasStreamResult;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Argument(
+        string argumentName,
+        Action<IArgumentDescriptor> argumentDescriptor)
+    {
+        base.Argument(argumentName, argumentDescriptor);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Ignore(bool ignore = true)
+    {
+        base.Ignore(ignore);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver)
+        => Resolve(fieldResolver);
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor Resolver(
+        FieldResolverDelegate fieldResolver,
+        Type? resultType) =>
+        Resolve(fieldResolver, resultType);
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)
+    {
+        if (fieldResolver is null)
+        {
+            throw new ArgumentNullException(nameof(fieldResolver));
+        }
+
+        Definition.Resolver = fieldResolver;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor Resolve(
+        FieldResolverDelegate fieldResolver,
+        Type? resultType)
+    {
+        if (fieldResolver is null)
+        {
+            throw new ArgumentNullException(nameof(fieldResolver));
+        }
+
+        Definition.Resolver = fieldResolver;
+
+        if (resultType is not null)
+        {
+            Definition.SetMoreSpecificType(
+                Context.TypeInspector.GetType(resultType),
+                TypeContext.Output);
+
+            if (resultType.IsGenericType)
+            {
+                var resultTypeDef = resultType.GetGenericTypeDefinition();
+
+                var clrResultType = resultTypeDef == typeof(NativeType<>)
+                    ? resultType.GetGenericArguments()[0]
+                    : resultType;
+
+                if (!clrResultType.IsSchemaType())
+                {
+                    Definition.ResultType = clrResultType;
+                }
+            }
+        }
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveWith<TResolver>(
+        Expression<Func<TResolver, object?>> propertyOrMethod)
+    {
+        if (propertyOrMethod is null)
+        {
+            throw new ArgumentNullException(nameof(propertyOrMethod));
+        }
+
+        return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod)
+    {
+        if (propertyOrMethod is null)
+        {
+            throw new ArgumentNullException(nameof(propertyOrMethod));
+        }
+
+        return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IObjectFieldDescriptor ResolveWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
+    {
+        if (resolverType?.IsAbstract is true)
+        {
+            throw new ArgumentException(
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
+        }
+
+        if (propertyOrMethod is PropertyInfo or MethodInfo)
+        {
+            Definition.SetMoreSpecificType(
+                Context.TypeInspector.GetReturnType(propertyOrMethod),
+                TypeContext.Output);
+
+            Definition.ResolverType = resolverType;
+            Definition.ResolverMember = propertyOrMethod;
+            Definition.Resolver = null;
+            Definition.ResultType = propertyOrMethod.GetReturnType();
+
+            if (propertyOrMethod is MethodInfo m)
+            {
+                _parameterInfos = m.GetParameters();
+                Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+            }
+
+            return this;
+        }
+
+        throw new ArgumentException(
+            ObjectTypeDescriptor_MustBePropertyOrMethod,
+            nameof(propertyOrMethod));
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor Subscribe(SubscribeResolverDelegate subscribeResolver)
+    {
+        Definition.SubscribeResolver = subscribeResolver;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor Use(FieldMiddleware middleware)
+    {
+        if (middleware is null)
+        {
+            throw new ArgumentNullException(nameof(middleware));
+        }
+
+        Definition.MiddlewareDefinitions.Add(new(middleware));
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Directive<T>(T directiveInstance)
+        where T : class
+    {
+        base.Directive(directiveInstance);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Directive<T>()
+        where T : class, new()
+    {
+        base.Directive<T>();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IObjectFieldDescriptor Directive(
+        string name,
+        params ArgumentNode[] arguments)
+    {
+        base.Directive(name, arguments);
+        return this;
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="fieldName">The name of the field</param>
+    /// <returns>An instance of <see cref="DirectiveArgumentDescriptor"/></returns>
+    public static ObjectFieldDescriptor New(
+        IDescriptorContext context,
+        string fieldName)
+        => new(context, fieldName);
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="member">The member this field represents</param>
+    /// <param name="sourceType">The type of the member</param>
+    /// <param name="resolverType">The resolved type</param>
+    /// <returns></returns>
+    public static ObjectFieldDescriptor New(
+        IDescriptorContext context,
+        MemberInfo member,
+        Type sourceType,
+        Type? resolverType = null)
+        => new(context, member, sourceType, resolverType);
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="expression">The expression this field is based on</param>
+    /// <param name="sourceType">The type of the member</param>
+    /// <param name="resolverType">The resolved type</param>
+    /// <returns></returns>
+    public static ObjectFieldDescriptor New(
+        IDescriptorContext context,
+        LambdaExpression expression,
+        Type sourceType,
+        Type? resolverType = null)
+        => new(context, expression, sourceType, resolverType);
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="definition">The definition of the field</param>
+    /// <returns></returns>
+    public static ObjectFieldDescriptor From(
+        IDescriptorContext context,
+        ObjectFieldDefinition definition)
+        => new(context, definition);
 }

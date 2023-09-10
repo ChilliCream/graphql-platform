@@ -4,27 +4,26 @@ using System.Linq.Expressions;
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Data.Sorting.Expressions
+namespace HotChocolate.Data.Sorting.Expressions;
+
+public class ExecutorBuilder
 {
-    public class ExecutorBuilder
+    private readonly ISortInputType _inputType;
+
+    public ExecutorBuilder(ISortInputType inputType)
     {
-        private readonly ISortInputType _inputType;
+        _inputType = inputType;
+    }
 
-        public ExecutorBuilder(ISortInputType inputType)
-        {
-            _inputType = inputType;
-        }
+    public Func<T[], T[]> Build<T>(IValueNode Sort)
+    {
+        var visitorContext = new QueryableSortContext(_inputType, true);
+        var visitor = new SortVisitor<QueryableSortContext, QueryableSortOperation>();
 
-        public Func<T[], T[]> Build<T>(IValueNode Sort)
-        {
-            var visitorContext = new QueryableSortContext(_inputType, true);
-            var visitor = new SortVisitor<QueryableSortContext, QueryableSortOperation>();
+        visitor.Visit(Sort, visitorContext);
 
-            visitor.Visit(Sort, visitorContext);
+        Assert.Empty(visitorContext.Errors);
 
-            Assert.Empty(visitorContext.Errors);
-
-            return elements => visitorContext.Sort(elements.AsQueryable()).ToArray();
-        }
+        return elements => visitorContext.Sort(elements.AsQueryable()).ToArray();
     }
 }

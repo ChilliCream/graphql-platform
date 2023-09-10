@@ -1,16 +1,15 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public interface IFluent
 {
-    public interface IFluent
-    {
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        bool Equals(object obj);
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    bool Equals(object obj);
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        int GetHashCode();
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    int GetHashCode();
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        string ToString();
-    }
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    string ToString();
 }

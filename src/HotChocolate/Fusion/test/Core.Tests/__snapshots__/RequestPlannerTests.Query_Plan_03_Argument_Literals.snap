@@ -1,0 +1,33 @@
+UserRequest
+---------------
+query GetUser {
+  userById(id: 1) {
+    id
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query GetUser { userById(id: 1) { id } }",
+  "operation": "GetUser",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Accounts",
+        "document": "query GetUser_1 { userById(id: 1) { id } }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------

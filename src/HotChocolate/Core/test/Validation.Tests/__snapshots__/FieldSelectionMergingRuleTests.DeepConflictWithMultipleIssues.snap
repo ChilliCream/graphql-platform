@@ -22,7 +22,7 @@
       "typeB": "String",
       "responseNameA": "x",
       "responseNameB": "x",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -38,6 +38,7 @@
         "Value": "x"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 174,
@@ -81,7 +82,7 @@
       "typeB": "String",
       "responseNameA": "y",
       "responseNameB": "y",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -97,6 +98,7 @@
         "Value": "y"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 203,

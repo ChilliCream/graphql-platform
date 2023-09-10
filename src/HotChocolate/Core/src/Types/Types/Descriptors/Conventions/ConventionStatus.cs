@@ -1,8 +1,7 @@
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+internal enum ConventionStatus
 {
-    internal enum ConventionStatus
-    {
-        Uninitialized,
-        Initialized
-    }
+    Uninitialized,
+    Initialized
 }

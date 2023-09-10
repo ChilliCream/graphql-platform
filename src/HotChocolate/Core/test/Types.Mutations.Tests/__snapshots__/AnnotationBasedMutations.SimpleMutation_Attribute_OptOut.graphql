@@ -1,0 +1,7 @@
+schema {
+  mutation: SimpleMutationAttributeOptOut
+}
+
+type SimpleMutationAttributeOptOut {
+  doSomething(something: String!): String!
+}

@@ -1,0 +1,29 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barBool": true,
+        "barString": "a",
+        "bars": [
+          {
+            "name": "b",
+            "number": 2,
+            "bazs": [
+              {
+                "name": "c"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Query:
+---------------
+MATCH (fooRel:FooRel) RETURN fooRel {.BarBool, .BarString, Bars: [(fooRel:FooRel)-[:RELATED_TO]->(bar:Bar) | bar {.Name, .Number, Bazs: [(bar:Bar)<-[:RELATED_FROM]-(baz:Baz) | baz {.Name}]}]} ORDER BY fooRel {.BarBool, .BarString, Bars: [(fooRel:FooRel)-[:RELATED_TO]->(bar:Bar) | bar {.Name, .Number, Bazs: [(bar:Bar)<-[:RELATED_FROM]-(baz:Baz) | baz {.Name}]}]} ASC
+---------------

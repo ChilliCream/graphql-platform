@@ -3,16 +3,12 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Projections.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
-    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
 </Project>

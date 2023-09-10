@@ -1,151 +1,164 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Xunit;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class QueryableProjectionVisitorIsProjectedTests
 {
-    public class QueryableProjectionVisitorIsProjectedTests
+    private static readonly Foo[] _fooEntities =
     {
-        private static readonly Foo[] _fooEntities =
-        {
-            new Foo { IsProjectedTrue = true, IsProjectedFalse = false },
-            new Foo { IsProjectedTrue = true, IsProjectedFalse = false }
-        };
+        new() { IsProjectedTrue = true, IsProjectedFalse = false },
+        new() { IsProjectedTrue = true, IsProjectedFalse = false }
+    };
 
-        private static readonly MultipleFoo[] _fooMultipleEntities =
-        {
-            new MultipleFoo{ IsProjectedTrue1 = true, IsProjectedFalse = false },
-            new MultipleFoo{ IsProjectedTrue1 = true, IsProjectedFalse = false }
-        };
+    private static readonly MultipleFoo[] _fooMultipleEntities =
+    {
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false },
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false }
+    };
 
-        private static readonly Bar[] _barEntities =
-        {
-            new Bar { IsProjectedFalse = false },
-            new Bar { IsProjectedFalse = false }
-        };
+    private static readonly Bar[] _barEntities =
+    {
+        new() { IsProjectedFalse = false }, new() { IsProjectedFalse = false }
+    };
 
-        private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
-        [Fact]
-        public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithOneProps()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+    [Fact]
+    public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithOneProps()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(_fooEntities);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { isProjectedFalse }}")
-                    .Create());
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root { isProjectedFalse }}")
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
+    }
 
-        [Fact]
-        public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithTwoProps()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+    [Fact]
+    public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithTwoProps()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(_fooEntities);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { isProjectedFalse isProjectedTrue  }}")
-                    .Create());
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root { isProjectedFalse isProjectedTrue  }}")
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
+    }
 
-        [Fact]
-        public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_True()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+    [Fact]
+    public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_True()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(_fooEntities);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { isProjectedFalse }}")
-                    .Create());
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root { isProjectedFalse }}")
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
+    }
 
-        [Fact]
-        public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_TrueAndMultiple()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_fooMultipleEntities);
+    [Fact]
+    public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_TrueAndMultiple()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(_fooMultipleEntities);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { isProjectedFalse }}")
-                    .Create());
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root { isProjectedFalse }}")
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
+    }
 
-        [Fact]
-        public async Task IsProjected_Should_NotFailWhenSelectionSetSkippedCompletely()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities);
+    [Fact]
+    public async Task IsProjected_Should_NotFailWhenSelectionSetSkippedCompletely()
+    {
+        // arrange
+        var tester = _cache.CreateSchema(_barEntities);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { isProjectedFalse }}")
-                    .Create());
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root { isProjectedFalse }}")
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
+    }
 
-        public class Foo
-        {
-            public int Id { get; set; }
+    public class Foo
+    {
+        public int Id { get; set; }
 
-            [IsProjected(true)]
-            public bool? IsProjectedTrue { get; set; }
+        [IsProjected(true)]
+        public bool? IsProjectedTrue { get; set; }
 
-            [IsProjected(false)]
-            public bool? IsProjectedFalse { get; set; }
+        [IsProjected(false)]
+        public bool? IsProjectedFalse { get; set; }
 
-            public bool? ShouldNeverBeProjected { get; set; }
-        }
+        public bool? ShouldNeverBeProjected { get; set; }
+    }
 
-        public class Bar
-        {
-            public int Id { get; set; }
+    public class Bar
+    {
+        public int Id { get; set; }
 
-            [IsProjected(false)]
-            public bool? IsProjectedFalse { get; set; }
+        [IsProjected(false)]
+        public bool? IsProjectedFalse { get; set; }
 
-            public bool? ShouldNeverBeProjected { get; set; }
-        }
+        public bool? ShouldNeverBeProjected { get; set; }
+    }
 
-        public class MultipleFoo
-        {
-            public int Id { get; set; }
+    public class MultipleFoo
+    {
+        public int Id { get; set; }
 
-            [IsProjected(true)]
-            public bool? IsProjectedTrue1 { get; set; }
+        [IsProjected(true)]
+        public bool? IsProjectedTrue1 { get; set; }
 
-            [IsProjected(true)]
-            public bool? IsProjectedTrue2 { get; set; }
+        [IsProjected(true)]
+        public bool? IsProjectedTrue2 { get; set; }
 
-            [IsProjected(true)]
-            public bool? IsProjectedTrue3 { get; set; }
+        [IsProjected(true)]
+        public bool? IsProjectedTrue3 { get; set; }
 
-            [IsProjected(false)]
-            public bool? IsProjectedFalse { get; set; }
+        [IsProjected(false)]
+        public bool? IsProjectedFalse { get; set; }
 
-            public bool? ShouldNeverBeProjected { get; set; }
-        }
+        public bool? ShouldNeverBeProjected { get; set; }
     }
 }

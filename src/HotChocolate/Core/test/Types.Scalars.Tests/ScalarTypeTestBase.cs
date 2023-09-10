@@ -1,229 +1,251 @@
 using System;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class ScalarTypeTestBase
 {
-    public class ScalarTypeTestBase
+    protected ISchema BuildSchema<TType>()
+        where TType : ScalarType
     {
-        protected ISchema BuildSchema<TType>()
-            where TType : ScalarType
+        return SchemaBuilder
+            .New()
+            .AddQueryType(x => x.Name("Query").Field("scalar").Type<TType>().Resolve(""))
+            .Create();
+    }
+
+    protected ScalarType CreateType<TType>()
+        where TType : ScalarType
+    {
+        return BuildSchema<TType>().GetType<ObjectType>("Query").Fields["scalar"].Type as
+            ScalarType ?? throw new InvalidOperationException();
+    }
+
+    protected IValueNode CreateValueNode(Type type, object value)
+    {
+        switch (type.Name)
         {
-            return SchemaBuilder
-                .New()
-                .AddQueryType(x =>
-                    x.Name("Query").Field("scalar").Type<TType>().Resolver(""))
-                .Create();
+            case nameof(BooleanValueNode) when value is bool b:
+                return new BooleanValueNode(b);
+            case nameof(EnumValueNode):
+                return new EnumValueNode(value);
+            case nameof(FloatValueNode) when value is double d:
+                return new FloatValueNode(d);
+            case nameof(FloatValueNode) when value is decimal d:
+                return new FloatValueNode(d);
+            case nameof(IntValueNode) when value is int i:
+                return new IntValueNode(i);
+            case nameof(IntValueNode) when value is uint i:
+                return new IntValueNode(i);
+            case nameof(IntValueNode) when value is ulong i:
+                return new IntValueNode(i);
+            case nameof(IntValueNode) when value is ushort i:
+                return new IntValueNode(i);
+            case nameof(IntValueNode) when value is sbyte i:
+                return new IntValueNode(i);
+            case nameof(NullValueNode):
+                return NullValueNode.Default;
+            case nameof(StringValueNode) when value is string s:
+                return new StringValueNode(s);
+            default:
+                throw new InvalidOperationException();
         }
+    }
 
-        protected ScalarType CreateType<TType>()
-            where TType : ScalarType
-        {
-            return BuildSchema<TType>().GetType<ObjectType>("Query").Fields["scalar"].Type as
-                ScalarType ?? throw new InvalidOperationException();
-        }
+    protected void ExpectIsInstanceOfTypeToMatch<TType>(
+        IValueNode valueSyntax,
+        bool expectedResult)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-        protected IValueNode CreateValueNode(Type type, object value)
-        {
-            switch (type.Name)
-            {
-                case nameof(BooleanValueNode) when value is bool b:
-                    return new BooleanValueNode(b);
-                case nameof(EnumValueNode):
-                    return new EnumValueNode(value);
-                case nameof(FloatValueNode) when value is double d:
-                    return new FloatValueNode(d);
-                case nameof(FloatValueNode) when value is decimal d:
-                    return new FloatValueNode(d);
-                case nameof(IntValueNode) when value is int i:
-                    return new IntValueNode(i);
-                case nameof(IntValueNode) when value is uint i:
-                    return new IntValueNode(i);
-                case nameof(IntValueNode) when value is ulong i:
-                    return new IntValueNode(i);
-                case nameof(NullValueNode):
-                    return NullValueNode.Default;
-                case nameof(StringValueNode) when value is string s:
-                    return new StringValueNode(s);
-                default:
-                    throw new InvalidOperationException();
-            }
-        }
+        // act
+        var result = scalar.IsInstanceOfType(valueSyntax);
 
-        protected void ExpectIsInstanceOfTypeToMatch<TType>(
-            IValueNode valueSyntax,
-            bool expectedResult)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.Equal(expectedResult, result);
+    }
 
-            // act
-            var result = scalar.IsInstanceOfType(valueSyntax);
+    protected void ExpectIsInstanceOfTypeToMatch<TType>(
+        object? runtimeValue,
+        bool expectedResult)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.Equal(expectedResult, result);
-        }
+        // act
+        var result = scalar.IsInstanceOfType(runtimeValue);
 
-        protected void ExpectIsInstanceOfTypeToMatch<TType>(
-            object? runtimeValue,
-            bool expectedResult)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.Equal(expectedResult, result);
+    }
 
-            // act
-            var result = scalar.IsInstanceOfType(runtimeValue);
+    protected void ExpectParseLiteralToMatch<TType>(
+        IValueNode valueSyntax,
+        object? expectedResult)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.Equal(expectedResult, result);
-        }
+        // act
+        var result = scalar.ParseLiteral(valueSyntax);
 
-        protected void ExpectParseLiteralToMatch<TType>(
-            IValueNode valueSyntax,
-            object? expectedResult)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.Equal(expectedResult, result);
+    }
 
-            // act
-            object? result = scalar.ParseLiteral(valueSyntax);
+    protected void ExpectParseLiteralToThrowSerializationException<TType>(
+        IValueNode valueSyntax)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.Equal(expectedResult, result);
-        }
+        // act
+        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
 
-        protected void ExpectParseLiteralToThrowSerializationException<TType>(
-            IValueNode valueSyntax)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.IsType<SerializationException>(result);
+    }
 
-            // act
-            Exception? result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+    protected void ExpectParseValueToMatchType<TType>(
+        object? valueSyntax,
+        Type type)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
+        // act
+        var result = scalar.ParseValue(valueSyntax);
 
-        protected void ExpectParseValueToMatchType<TType>(
-            object? valueSyntax,
-            Type type)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.Equal(type, result.GetType());
+    }
 
-            // act
-            IValueNode result = scalar.ParseValue(valueSyntax);
+    protected void ExpectParseValueToThrowSerializationException<TType>(object? runtimeValue)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.Equal(type, result.GetType());
-        }
+        // act
+        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
 
-        protected void ExpectParseValueToThrowSerializationException<TType>(object? runtimeValue)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.IsType<SerializationException>(result);
+    }
 
-            // act
-            Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+    protected void ExpectSerializeToMatch<TType>(
+        object? runtimeValue,
+        object? resultValue)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
+        // act
+        var result = scalar.Serialize(runtimeValue);
 
-        protected void ExpectSerializeToMatch<TType>(
-            object? runtimeValue,
-            object? resultValue)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.Equal(resultValue, result);
+    }
 
-            // act
-            object? result = scalar.Serialize(runtimeValue);
+    protected void ExpectDeserializeToMatch<TType>(
+        object? resultValue,
+        object? runtimeValue)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.Equal(resultValue, result);
-        }
+        // act
+        var result = scalar.Deserialize(resultValue);
 
-        protected void ExpectDeserializeToMatch<TType>(
-            object? resultValue,
-            object? runtimeValue)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.Equal(resultValue, runtimeValue);
+    }
 
-            // act
-            object? result = scalar.Deserialize(resultValue);
+    protected void ExpectSerializeToThrowSerializationException<TType>(object runtimeValue)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.Equal(resultValue, runtimeValue);
-        }
+        // act
+        var result = Record.Exception(() => scalar.Serialize(runtimeValue));
 
-        protected void ExpectSerializeToThrowSerializationException<TType>(object runtimeValue)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.IsType<SerializationException>(result);
+    }
 
-            // act
-            Exception? result = Record.Exception(() => scalar.Serialize(runtimeValue));
+    protected void ExpectDeserializeToThrowSerializationException<TType>(object runtimeValue)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
+        // act
+        var result = Record.Exception(() => scalar.Deserialize(runtimeValue));
 
-        protected void ExpectDeserializeToThrowSerializationException<TType>(object runtimeValue)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.IsType<SerializationException>(result);
+    }
 
-            // act
-            Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
+    protected void ExpectParseResultToMatchType<TType>(
+        object? valueSyntax,
+        Type type)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
+        // act
+        var result = scalar.ParseResult(valueSyntax);
 
-        protected void ExpectParseResultToMatchType<TType>(
-            object? valueSyntax,
-            Type type)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.Equal(type, result.GetType());
+    }
 
-            // act
-            IValueNode result = scalar.ParseResult(valueSyntax);
+    protected void ExpectParseResultToThrowSerializationException<TType>(object? runtimeValue)
+        where TType : ScalarType
+    {
+        // arrange
+        var scalar = CreateType<TType>();
 
-            // assert
-            Assert.Equal(type, result.GetType());
-        }
+        // act
+        var result = Record.Exception(() => scalar.ParseResult(runtimeValue));
 
-        protected void ExpectParseResultToThrowSerializationException<TType>(object? runtimeValue)
-            where TType : ScalarType
-        {
-            // arrange
-            ScalarType scalar = CreateType<TType>();
+        // assert
+        Assert.IsType<SerializationException>(result);
+    }
 
-            // act
-            Exception? result = Record.Exception(() => scalar.ParseResult(runtimeValue));
+    protected async Task ExpectScalarTypeToBoundImplicityWhenRegistered<TType, TDefaultClass>()
+        where TType : ScalarType
+        where TDefaultClass : class
+    {
+        // arrange
+        // act
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<TDefaultClass>()
+            .AddType<TType>()
+            .BuildRequestExecutorAsync();
 
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
+        // assert
+        executor.Schema.Print().MatchSnapshot();
+    }
 
-        public enum TestEnum
-        {
-            Foo
-        }
+    public enum TestEnum
+    {
+        Foo
     }
 }

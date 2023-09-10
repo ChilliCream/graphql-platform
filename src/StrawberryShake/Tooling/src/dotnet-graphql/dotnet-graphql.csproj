@@ -4,8 +4,10 @@
     <OutputType>Exe</OutputType>
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
+    <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <LangVersion>preview</LangVersion>
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -15,18 +17,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.5.1" />
+    <PackageReference Include="Glob" Version="1.1.9" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
     <PackageReference Include="IdentityModel" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
     <ProjectReference Include="..\Configuration\StrawberryShake.Tools.Configuration.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
 
 </Project>

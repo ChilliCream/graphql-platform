@@ -1,85 +1,84 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public class OutputFieldDefinitionBase
+    : FieldDefinitionBase<FieldDefinitionNode>
+    , ICanBeDeprecated
 {
-    public class OutputFieldDefinitionBase
-        : FieldDefinitionBase<FieldDefinitionNode>
-        , ICanBeDeprecated
+    private List<ArgumentDefinition>? _arguments;
+
+    public IList<ArgumentDefinition> Arguments
+        => _arguments ??= new List<ArgumentDefinition>();
+
+    /// <summary>
+    /// Specifies if this field has any arguments.
+    /// </summary>
+    public bool HasArguments => _arguments?.Count > 0;
+
+    public IReadOnlyList<ArgumentDefinition> GetArguments()
     {
-        private List<ArgumentDefinition>? _arguments;
-
-        public string? DeprecationReason { get; set; }
-
-        public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
-
-        public IList<ArgumentDefinition> Arguments =>
-            _arguments ??= new List<ArgumentDefinition>();
-
-        public IReadOnlyList<ArgumentDefinition> GetArguments()
+        if (_arguments is null)
         {
-            if (_arguments is null)
-            {
-                return Array.Empty<ArgumentDefinition>();
-            }
-
-            return _arguments;
+            return Array.Empty<ArgumentDefinition>();
         }
 
-        protected void CopyTo(OutputFieldDefinitionBase target)
+        return _arguments;
+    }
+
+    protected void CopyTo(OutputFieldDefinitionBase target)
+    {
+        base.CopyTo(target);
+
+        if (_arguments?.Count > 0)
         {
-            base.CopyTo(target);
+            target._arguments = new List<ArgumentDefinition>();
 
-            if (_arguments is { Count: > 0 })
+            foreach (var argument in _arguments)
             {
-                target._arguments = new List<ArgumentDefinition>();
+                var newArgument = new ArgumentDefinition();
+                argument.CopyTo(newArgument);
+                target._arguments.Add(newArgument);
+            }
+        }
 
-                foreach (ArgumentDefinition argument in _arguments)
+        target.DeprecationReason = DeprecationReason;
+    }
+
+    protected void MergeInto(OutputFieldDefinitionBase target)
+    {
+        base.MergeInto(target);
+
+        if (_arguments is { Count: > 0 })
+        {
+            target._arguments ??= new List<ArgumentDefinition>();
+
+            foreach (var argument in _arguments)
+            {
+                var targetArgument =
+                    target._arguments.Find(t => t.Name.EqualsOrdinal(argument.Name));
+
+                if (targetArgument is null)
                 {
-                    var newArgument = new ArgumentDefinition();
-                    argument.CopyTo(newArgument);
-                    target._arguments.Add(newArgument);
+                    targetArgument = new ArgumentDefinition();
+                    argument.CopyTo(targetArgument);
+                    target._arguments.Add(targetArgument);
+                }
+                else
+                {
+                    argument.MergeInto(targetArgument);
                 }
             }
+        }
 
+        if (DeprecationReason is not null)
+        {
             target.DeprecationReason = DeprecationReason;
-        }
-
-        protected void MergeInto(OutputFieldDefinitionBase target)
-        {
-            base.MergeInto(target);
-
-            if (_arguments is { Count: > 0 })
-            {
-                target._arguments ??= new List<ArgumentDefinition>();
-
-                foreach (ArgumentDefinition argument in _arguments)
-                {
-                    ArgumentDefinition? targetArgument =
-                        target._arguments.FirstOrDefault(t => t.Name.Equals(argument.Name));
-
-                    if (targetArgument is null)
-                    {
-                        targetArgument = new ArgumentDefinition();
-                        argument.CopyTo(targetArgument);
-                        target._arguments.Add(targetArgument);
-                    }
-                    else
-                    {
-                        argument.MergeInto(targetArgument);
-                    }
-
-                }
-            }
-
-            if (DeprecationReason is not null)
-            {
-                target.DeprecationReason = DeprecationReason;
-            }
         }
     }
 }

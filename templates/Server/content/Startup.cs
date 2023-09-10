@@ -18,8 +18,6 @@ namespace HotChocolate.Server.Template
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // If you need dependency injection with your query object add your query type as a services.
-            // services.AddSingleton<Query>();
             services
                 .AddGraphQLServer()
                 .AddQueryType<Query>();
@@ -37,9 +35,6 @@ namespace HotChocolate.Server.Template
 
             app.UseEndpoints(endpoints =>
             {
-                // By default the GraphQL server is mapped to /graphql
-                // This route also provides you with our GraphQL IDE. 
-                // In order to configure the GraphQL IDE use endpoints.MapGraphQL().WithToolOptions(...).
                 endpoints.MapGraphQL();
             });
         }

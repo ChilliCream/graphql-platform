@@ -1,7 +1,6 @@
-﻿namespace StrawberryShake.CodeGeneration.CSharp.Builders
+﻿namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public interface ICodeBuilder
 {
-    public interface ICodeBuilder
-    {
-        void Build(CodeWriter writer);
-    }
+    void Build(CodeWriter writer);
 }

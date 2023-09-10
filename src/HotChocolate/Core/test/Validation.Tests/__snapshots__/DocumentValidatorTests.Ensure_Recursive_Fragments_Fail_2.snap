@@ -1,0 +1,164 @@
+[
+  {
+    "Message": "The field `f` does not exist on the type `Query`.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "type": "Query",
+      "field": "f",
+      "responseName": "f",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 86,
+          "End": 243,
+          "Line": 4,
+          "Column": 23
+        },
+        "Selections": [
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 112,
+              "End": 142,
+              "Line": 5,
+              "Column": 25
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 115,
+                "End": 142,
+                "Line": 5,
+                "Column": 28
+              },
+              "Value": "f"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "Required": null,
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 143,
+                "End": 225,
+                "Line": 6,
+                "Column": 27
+              },
+              "Selections": [
+                {
+                  "Kind": "FragmentSpread",
+                  "Location": {
+                    "Start": 173,
+                    "End": 203,
+                    "Line": 7,
+                    "Column": 29
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 176,
+                      "End": 203,
+                      "Line": 7,
+                      "Column": 32
+                    },
+                    "Value": "f"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 141,
+              "End": 225,
+              "Line": 6,
+              "Column": 25
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 141,
+                "End": 144,
+                "Line": 6,
+                "Column": 25
+              },
+              "Value": "f"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 84,
+        "End": 243,
+        "Line": 4,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 84,
+          "End": 87,
+          "Line": 4,
+          "Column": 21
+        },
+        "Value": "f"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "fragment": "f",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 59,
+        "End": 85,
+        "Line": 3,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 62,
+          "End": 85,
+          "Line": 3,
+          "Column": 24
+        },
+        "Value": "f"
+      },
+      "Directives": []
+    }
+  }
+]

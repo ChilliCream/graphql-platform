@@ -12,7 +12,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
+    <InternalsVisibleTo Include="HotChocolate.Caching" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
@@ -29,6 +41,159 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler.ArgumentValues.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler.BacklogItem.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler.CompilerContext.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler.Optimizers.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.IExecutionTaskContext.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Pooling.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler.SelectionSetInfo.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.Arguments.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.Pooling.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.Pure.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.Selection.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.State.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Tasks\ResolverTask.Execute.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\WorkScheduler.Pooling.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\WorkScheduler.Execute.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\WorkScheduler.Pause.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Convention.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Document.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Middleware.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Paging.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Relay.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Resolvers.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.TypeInterceptor.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.TypeModules.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Types.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.DataLoader.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.ErrorFilter.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.IdSerializer.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Instrumentation.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Optimizer.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.ResolverCompiler.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TransactionScope.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TypeConversion.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.UseRequest.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Validation.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.Leaf.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.List.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.Object.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Result\ResultBuilder.NonNullHandling.cs">
+      <DependentUpon>ResultBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Result\ResultBuilder.ObjectResult.cs">
+      <DependentUpon>ResultBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Result\ResultBuilder.Pooling.cs">
+      <DependentUpon>ResultBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Tasks\ResolverTask.CompleteValue.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Tasks\ResolverTask.Pooling.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Execution.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Operation.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Services.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Utilities.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization\JsonResultFormatter.FieldNames.cs">
+      <DependentUpon>JsonResultFormatter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\SubscriptionExecutor.Subscription.cs">
+      <DependentUpon>SubscriptionExecutor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RequestExecutorResolver.Hooks.cs">
+      <DependentUpon>RequestExecutorResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletionContext.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

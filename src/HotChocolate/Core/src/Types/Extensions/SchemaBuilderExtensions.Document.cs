@@ -1,67 +1,69 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public static partial class SchemaBuilderExtensions
 {
-    public static partial class SchemaBuilderExtensions
+    public static ISchemaBuilder AddDocumentFromString(
+        this ISchemaBuilder builder,
+#if NET7_0_OR_GREATER
+        [StringSyntax("graphql")] string schema)
+#else
+        string schema)
+#endif
     {
-        public static ISchemaBuilder AddDocumentFromString(
-            this ISchemaBuilder builder,
-            string schema)
+        if (builder is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (string.IsNullOrEmpty(schema))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilderExtensions_SchemaIsEmpty,
-                    nameof(schema));
-            }
-
-            return builder.AddDocument(sp => Utf8GraphQLParser.Parse(schema));
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static ISchemaBuilder AddDocumentFromFile(
-            this ISchemaBuilder builder,
-            string filePath)
+        if (string.IsNullOrEmpty(schema))
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (string.IsNullOrEmpty(filePath))
-            {
-                throw new ArgumentException(
-                    "",
-                    nameof(filePath));
-            }
-
-            return builder.AddDocument(sp =>
-                Utf8GraphQLParser.Parse(
-                    File.ReadAllBytes(filePath)));
+            throw new ArgumentException(
+                TypeResources.SchemaBuilderExtensions_SchemaIsEmpty,
+                nameof(schema));
         }
 
-        public static ISchemaBuilder AddDocument(
-            this ISchemaBuilder builder,
-            DocumentNode document)
+        return builder.AddDocument(sp => Utf8GraphQLParser.Parse(schema));
+    }
+
+    public static ISchemaBuilder AddDocumentFromFile(
+        this ISchemaBuilder builder,
+        string filePath)
+    {
+        if (builder is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            return builder.AddDocument(sp => document);
+            throw new ArgumentNullException(nameof(builder));
         }
+
+        if (string.IsNullOrEmpty(filePath))
+        {
+            throw new ArgumentException(
+                "",
+                nameof(filePath));
+        }
+
+        return builder.AddDocument(_ => Utf8GraphQLParser.Parse(File.ReadAllBytes(filePath)));
+    }
+
+    public static ISchemaBuilder AddDocument(
+        this ISchemaBuilder builder,
+        DocumentNode document)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        return builder.AddDocument(_ => document);
     }
 }

@@ -2,48 +2,50 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
-namespace StrawberryShake.Serialization
+namespace StrawberryShake.Serialization;
+
+/// <summary>
+/// This serializer handles date scalars.
+/// </summary>
+public class DateSerializer : ScalarSerializer<string, DateTime>
 {
-    public class DateSerializer : ScalarSerializer<string, DateTime>
+    private const string _dateFormat = "yyyy-MM-dd";
+
+    public DateSerializer(string typeName = BuiltInScalarNames.Date)
+        : base(typeName)
     {
-        private const string _dateFormat = "yyyy-MM-dd";
+    }
 
-        public DateSerializer(string typeName = BuiltInScalarNames.Date)
-            : base(typeName)
+    public override DateTime Parse(string serializedValue)
+    {
+        if (TryDeserializeFromString(serializedValue, out var date))
         {
+            return date.Value;
         }
 
-        public override DateTime Parse(string serializedValue)
-        {
-            if (TryDeserializeFromString(serializedValue, out DateTime? date))
-            {
-                return date.Value;
-            }
+        throw ThrowHelper.DateTimeSerializer_InvalidFormat(serializedValue);
+    }
 
-            throw ThrowHelper.DateTimeSerializer_InvalidFormat(serializedValue);
+    protected override string Format(DateTime runtimeValue)
+    {
+        return runtimeValue.Date.ToString(_dateFormat, CultureInfo.InvariantCulture);
+    }
+
+    private static bool TryDeserializeFromString(
+        string? serialized,
+        [NotNullWhen(true)] out DateTime? value)
+    {
+        if (DateTime.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeLocal,
+            out var dateTime))
+        {
+            value = dateTime.Date;
+            return true;
         }
 
-        protected override string Format(DateTime runtimeValue)
-        {
-            return runtimeValue.Date.ToString(_dateFormat, CultureInfo.InvariantCulture);
-        }
-
-        private static bool TryDeserializeFromString(
-            string? serialized,
-            [NotNullWhen(true)]out DateTime? value)
-        {
-            if (DateTime.TryParse(
-                serialized,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeLocal,
-                out DateTime dateTime))
-            {
-                value = dateTime.Date;
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
+        value = null;
+        return false;
     }
 }

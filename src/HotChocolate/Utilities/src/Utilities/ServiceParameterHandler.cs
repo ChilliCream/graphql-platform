@@ -2,33 +2,32 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public sealed class ServiceParameterHandler : IParameterHandler
 {
-    public sealed class ServiceParameterHandler : IParameterHandler
+    private static readonly MethodInfo _getService =
+        typeof(IServiceProvider).GetMethod(nameof(IServiceProvider.GetService))!;
+    private readonly Expression _services;
+
+    public ServiceParameterHandler(Expression services)
     {
-        private static readonly MethodInfo _getService =
-            typeof(IServiceProvider).GetMethod(nameof(IServiceProvider.GetService))!;
-        private readonly Expression _services;
+        _services = services;
+    }
 
-        public ServiceParameterHandler(Expression services)
+    public bool CanHandle(ParameterInfo parameter) => true;
+
+    public Expression CreateExpression(ParameterInfo parameter)
+    {
+        if (parameter is null)
         {
-            _services = services;
+            throw new ArgumentNullException(nameof(parameter));
         }
 
-        public bool CanHandle(ParameterInfo parameter) => true;
-
-        public Expression CreateExpression(ParameterInfo parameter)
-        {
-            if (parameter is null)
-            {
-                throw new ArgumentNullException(nameof(parameter));
-            }
-
-            return Expression.Convert(Expression.Call(
-                _services,
-                _getService,
-                Expression.Constant(parameter.ParameterType)),
-                parameter.ParameterType);
-        }
+        return Expression.Convert(Expression.Call(
+            _services,
+            _getService,
+            Expression.Constant(parameter.ParameterType)),
+            parameter.ParameterType);
     }
 }

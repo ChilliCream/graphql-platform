@@ -1,8 +1,7 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface IOutputType
+    : IType
+    , IHasRuntimeType
 {
-    public interface IOutputType
-        : IType
-        , IHasRuntimeType
-    {
-    }
 }

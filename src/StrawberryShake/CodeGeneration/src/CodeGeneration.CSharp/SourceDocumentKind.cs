@@ -1,9 +1,8 @@
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+public enum SourceDocumentKind
 {
-    public enum SourceDocumentKind
-    {
-        CSharp,
-        Razor,
-        GraphQL
-    }
+    CSharp,
+    Razor,
+    GraphQL
 }

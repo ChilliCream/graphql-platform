@@ -13,321 +13,320 @@ using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Stitching.Pipeline
+namespace HotChocolate.Stitching.Pipeline;
+
+internal class HttpRequestClient
 {
-    internal class HttpRequestClient
+    private static readonly (string Key, string Value) _contentType =
+        ("Content-Type", "application/json; charset=utf-8");
+
+    private static readonly JsonWriterOptions _jsonWriterOptions =
+        new JsonWriterOptions
+        {
+            SkipValidation = true,
+            Indented = false
+        };
+
+    private readonly IHttpClientFactory _clientFactory;
+    private readonly IErrorHandler _errorHandler;
+    private readonly IHttpStitchingRequestInterceptor _requestInterceptor;
+
+    public HttpRequestClient(
+        IHttpClientFactory clientFactory,
+        IErrorHandler errorHandler,
+        IHttpStitchingRequestInterceptor requestInterceptor)
     {
-        private static readonly (string Key, string Value) _contentType =
-            ("Content-Type", "application/json; charset=utf-8");
+        _clientFactory = clientFactory;
+        _errorHandler = errorHandler;
+        _requestInterceptor = requestInterceptor;
+    }
 
-        private static readonly JsonWriterOptions _jsonWriterOptions =
-            new JsonWriterOptions
-            {
-                SkipValidation = true,
-                Indented = false
-            };
+    public async Task<IQueryResult> FetchAsync(
+        IQueryRequest request,
+        string targetSchema,
+        CancellationToken cancellationToken = default)
+    {
+        using var writer = new ArrayWriter();
 
-        private readonly IHttpClientFactory _clientFactory;
-        private readonly IErrorHandler _errorHandler;
-        private readonly IHttpStitchingRequestInterceptor _requestInterceptor;
+        using var requestMessage =
+            await CreateRequestAsync(writer, request, targetSchema, cancellationToken)
+                .ConfigureAwait(false);
 
-        public HttpRequestClient(
-            IHttpClientFactory clientFactory,
-            IErrorHandler errorHandler,
-            IHttpStitchingRequestInterceptor requestInterceptor)
-        {
-            _clientFactory = clientFactory;
-            _errorHandler = errorHandler;
-            _requestInterceptor = requestInterceptor;
-        }
-
-        public async Task<IQueryResult> FetchAsync(
-            IQueryRequest request,
-            NameString targetSchema,
-            CancellationToken cancellationToken = default)
-        {
-            using var writer = new ArrayWriter();
-
-            using HttpRequestMessage requestMessage =
-                await CreateRequestAsync(writer, request, targetSchema, cancellationToken)
-                    .ConfigureAwait(false);
-
-            return await FetchAsync(
+        return await FetchAsync(
                 request,
                 requestMessage,
                 targetSchema,
                 cancellationToken)
-                .ConfigureAwait(false);
-        }
+            .ConfigureAwait(false);
+    }
 
-        private async Task<IQueryResult> FetchAsync(
-            IQueryRequest request,
-            HttpRequestMessage requestMessage,
-            NameString targetSchema,
-            CancellationToken cancellationToken)
+    private async Task<IQueryResult> FetchAsync(
+        IQueryRequest request,
+        HttpRequestMessage requestMessage,
+        string targetSchema,
+        CancellationToken cancellationToken)
+    {
+        try
         {
-            try
-            {
-                using HttpClient httpClient = _clientFactory.CreateClient(targetSchema);
+            using var httpClient = _clientFactory.CreateClient(targetSchema);
 
-                using HttpResponseMessage responseMessage = await httpClient
-                    .SendAsync(requestMessage, cancellationToken)
-                    .ConfigureAwait(false);
+            using var responseMessage = await httpClient
+                .SendAsync(requestMessage, cancellationToken)
+                .ConfigureAwait(false);
 
-                IQueryResult result =
-                    responseMessage.IsSuccessStatusCode
-                        ? await ParseResponseMessageAsync(responseMessage, cancellationToken)
-                            .ConfigureAwait(false)
-                        : await ParseErrorResponseMessageAsync(responseMessage, cancellationToken)
-                            .ConfigureAwait(false);
+            var result =
+                responseMessage.IsSuccessStatusCode
+                    ? await ParseResponseMessageAsync(responseMessage, cancellationToken)
+                        .ConfigureAwait(false)
+                    : await ParseErrorResponseMessageAsync(responseMessage, cancellationToken)
+                        .ConfigureAwait(false);
 
-                return await _requestInterceptor.OnReceivedResultAsync(
+            return await _requestInterceptor.OnReceivedResultAsync(
                     targetSchema,
                     request,
                     result,
                     responseMessage,
                     cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .SetCode(ErrorCodes.Stitching.UnknownRequestException)
-                    .Build();
-
-                return QueryResultBuilder.CreateError(error);
-            }
+                .ConfigureAwait(false);
         }
-
-        internal static async ValueTask<HttpRequestMessage> CreateRequestMessageAsync(
-            ArrayWriter writer,
-            IQueryRequest request,
-            CancellationToken cancellationToken)
+        catch (Exception ex)
         {
-            await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+            var error = _errorHandler.CreateUnexpectedError(ex)
+                .SetCode(ErrorCodes.Stitching.UnknownRequestException)
+                .Build();
 
-            WriteJsonRequest(writer, jsonWriter, request);
-            await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-            var requestMessage = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length)
-                {
-                    Headers = { { _contentType.Key, _contentType.Value } }
-                }
-            };
-
-            return requestMessage;
+            return QueryResultBuilder.CreateError(error);
         }
+    }
 
-        private static async ValueTask<IQueryResult> ParseErrorResponseMessageAsync(
-            HttpResponseMessage responseMessage,
-            CancellationToken cancellationToken)
+    internal static async ValueTask<HttpRequestMessage> CreateRequestMessageAsync(
+        ArrayWriter writer,
+        IQueryRequest request,
+        CancellationToken cancellationToken)
+    {
+        await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+
+        WriteJsonRequest(writer, jsonWriter, request);
+        await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+        var requestMessage = new HttpRequestMessage
         {
+            Method = HttpMethod.Post,
+            Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length)
+            {
+                Headers = { { _contentType.Key, _contentType.Value } }
+            }
+        };
+
+        return requestMessage;
+    }
+
+    private static async ValueTask<IQueryResult> ParseErrorResponseMessageAsync(
+        HttpResponseMessage responseMessage,
+        CancellationToken cancellationToken)
+    {
 #if NET5_0 || NET6_0
-            await using Stream stream = await responseMessage.Content
+            await using var stream = await responseMessage.Content
                 .ReadAsStreamAsync(cancellationToken)
                 .ConfigureAwait(false);
 #else
-            using Stream stream = await responseMessage.Content
-                .ReadAsStreamAsync()
-                .ConfigureAwait(false);
+        using var stream = await responseMessage.Content
+            .ReadAsStreamAsync()
+            .ConfigureAwait(false);
 #endif
 
-            try
-            {
-                IReadOnlyDictionary<string, object?> response =
-                    await BufferHelper.ReadAsync(
+        try
+        {
+            var response =
+                await BufferHelper.ReadAsync(
                         stream,
                         ParseResponse,
                         cancellationToken)
-                        .ConfigureAwait(false);
-
-                return HttpResponseDeserializer.Deserialize(response);
-            }
-            catch
-            {
-                string? responseBody = null;
-
-                if (stream.Length > 0)
-                {
-                    var buffer = new byte[stream.Length];
-                    stream.Seek(0, SeekOrigin.Begin);
-                    await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
-                        .ConfigureAwait(false);
-                    responseBody = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-                }
-
-                return QueryResultBuilder.CreateError(
-                    ErrorHelper.HttpRequestClient_HttpError(
-                        responseMessage.StatusCode,
-                        responseBody));
-            }
-        }
-
-        internal static async ValueTask<IQueryResult> ParseResponseMessageAsync(
-            HttpResponseMessage responseMessage,
-            CancellationToken cancellationToken)
-        {
-#if NET5_0 || NET6_0
-            await using Stream stream = await responseMessage.Content
-                .ReadAsStreamAsync(cancellationToken)
-                .ConfigureAwait(false);
-#else
-            using Stream stream = await responseMessage.Content
-                .ReadAsStreamAsync()
-                .ConfigureAwait(false);
-#endif
-
-            IReadOnlyDictionary<string, object?> response =
-                await BufferHelper.ReadAsync(
-                    stream,
-                    ParseResponse,
-                    cancellationToken)
                     .ConfigureAwait(false);
 
             return HttpResponseDeserializer.Deserialize(response);
         }
-
-        private async ValueTask<HttpRequestMessage> CreateRequestAsync(
-            ArrayWriter writer,
-            IQueryRequest request,
-            NameString targetSchema,
-            CancellationToken cancellationToken = default)
+        catch
         {
-            HttpRequestMessage requestMessage =
-                await CreateRequestMessageAsync(writer, request, cancellationToken)
-                .ConfigureAwait(false);
+            string? responseBody = null;
 
-            await _requestInterceptor
-                .OnCreateRequestAsync(targetSchema, request, requestMessage, cancellationToken)
-                .ConfigureAwait(false);
-
-            return requestMessage;
-        }
-
-        private static IReadOnlyDictionary<string, object?> ParseResponse(
-            byte[] buffer, int bytesBuffered) =>
-            Utf8GraphQLRequestParser.ParseResponse(buffer.AsSpan(0, bytesBuffered))!;
-
-        private static void WriteJsonRequest(
-            ArrayWriter writer,
-            Utf8JsonWriter jsonWriter,
-            IQueryRequest request)
-        {
-            jsonWriter.WriteStartObject();
-            jsonWriter.WriteString("query", request.Query!.AsSpan());
-
-            if (request.OperationName is not null)
+            if (stream.Length > 0)
             {
-                jsonWriter.WriteString("operationName", request.OperationName);
+                var buffer = new byte[stream.Length];
+                stream.Seek(0, SeekOrigin.Begin);
+                await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+                    .ConfigureAwait(false);
+                responseBody = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
             }
 
-            WriteJsonRequestVariables(writer, jsonWriter, request.VariableValues);
+            return QueryResultBuilder.CreateError(
+                ErrorHelper.HttpRequestClient_HttpError(
+                    responseMessage.StatusCode,
+                    responseBody));
+        }
+    }
+
+    internal static async ValueTask<IQueryResult> ParseResponseMessageAsync(
+        HttpResponseMessage responseMessage,
+        CancellationToken cancellationToken)
+    {
+#if NET5_0 || NET6_0
+            await using var stream = await responseMessage.Content
+                .ReadAsStreamAsync(cancellationToken)
+                .ConfigureAwait(false);
+#else
+        using var stream = await responseMessage.Content
+            .ReadAsStreamAsync()
+            .ConfigureAwait(false);
+#endif
+
+        var response =
+            await BufferHelper.ReadAsync(
+                    stream,
+                    ParseResponse,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+        return HttpResponseDeserializer.Deserialize(response);
+    }
+
+    private async ValueTask<HttpRequestMessage> CreateRequestAsync(
+        ArrayWriter writer,
+        IQueryRequest request,
+        string targetSchema,
+        CancellationToken cancellationToken = default)
+    {
+        var requestMessage =
+            await CreateRequestMessageAsync(writer, request, cancellationToken)
+                .ConfigureAwait(false);
+
+        await _requestInterceptor
+            .OnCreateRequestAsync(targetSchema, request, requestMessage, cancellationToken)
+            .ConfigureAwait(false);
+
+        return requestMessage;
+    }
+
+    private static IReadOnlyDictionary<string, object?> ParseResponse(
+        byte[] buffer, int bytesBuffered) =>
+        Utf8GraphQLRequestParser.ParseResponse(buffer.AsSpan(0, bytesBuffered))!;
+
+    private static void WriteJsonRequest(
+        ArrayWriter writer,
+        Utf8JsonWriter jsonWriter,
+        IQueryRequest request)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString("query", request.Query!.AsSpan());
+
+        if (request.OperationName is not null)
+        {
+            jsonWriter.WriteString("operationName", request.OperationName);
+        }
+
+        WriteJsonRequestVariables(writer, jsonWriter, request.VariableValues);
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteJsonRequestVariables(
+        ArrayWriter writer,
+        Utf8JsonWriter jsonWriter,
+        IReadOnlyDictionary<string, object?>? variables)
+    {
+        if (variables is not null && variables.Count > 0)
+        {
+            jsonWriter.WritePropertyName("variables");
+
+            jsonWriter.WriteStartObject();
+
+            foreach (var variable in variables)
+            {
+                jsonWriter.WritePropertyName(variable.Key);
+                WriteValue(writer, jsonWriter, variable.Value);
+            }
+
             jsonWriter.WriteEndObject();
         }
+    }
 
-        private static void WriteJsonRequestVariables(
-            ArrayWriter writer,
-            Utf8JsonWriter jsonWriter,
-            IReadOnlyDictionary<string, object?>? variables)
+    private static void WriteValue(
+        ArrayWriter writer,
+        Utf8JsonWriter jsonWriter,
+        object? value)
+    {
+        if (value is null || value is NullValueNode)
         {
-            if (variables is not null && variables.Count > 0)
+            jsonWriter.WriteNullValue();
+        }
+        else
+        {
+            switch (value)
             {
-                jsonWriter.WritePropertyName("variables");
+                case ObjectValueNode obj:
+                    jsonWriter.WriteStartObject();
 
-                jsonWriter.WriteStartObject();
+                    foreach (var field in obj.Fields)
+                    {
+                        jsonWriter.WritePropertyName(field.Name.Value);
+                        WriteValue(writer, jsonWriter, field.Value);
+                    }
 
-                foreach (KeyValuePair<string, object?> variable in variables)
-                {
-                    jsonWriter.WritePropertyName(variable.Key);
-                    WriteValue(writer, jsonWriter, variable.Value);
-                }
+                    jsonWriter.WriteEndObject();
+                    break;
 
-                jsonWriter.WriteEndObject();
+                case ListValueNode list:
+                    jsonWriter.WriteStartArray();
+
+                    foreach (var item in list.Items)
+                    {
+                        WriteValue(writer, jsonWriter, item);
+                    }
+
+                    jsonWriter.WriteEndArray();
+                    break;
+
+                case StringValueNode s:
+                    jsonWriter.WriteStringValue(s.Value);
+                    break;
+
+                case EnumValueNode e:
+                    jsonWriter.WriteStringValue(e.Value);
+                    break;
+
+                case IntValueNode i:
+                    WriterNumber(i.AsSpan(), jsonWriter, writer);
+                    break;
+
+                case FloatValueNode f:
+                    WriterNumber(f.AsSpan(), jsonWriter, writer);
+                    break;
+
+                case BooleanValueNode b:
+                    jsonWriter.WriteBooleanValue(b.Value);
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        StitchingResources.HttpRequestClient_UnknownVariableValueKind);
             }
         }
+    }
 
-        private static void WriteValue(
-            ArrayWriter writer,
-            Utf8JsonWriter jsonWriter,
-            object? value)
+    private static void WriterNumber(
+        ReadOnlySpan<byte> number,
+        Utf8JsonWriter jsonWriter,
+        ArrayWriter arrayWriter)
+    {
+        jsonWriter.WriteNumberValue(0);
+        jsonWriter.Flush();
+        arrayWriter.GetInternalBuffer()[arrayWriter.Length - 1] = number[0];
+
+        if (number.Length > 1)
         {
-            if (value is null || value is NullValueNode)
-            {
-                jsonWriter.WriteNullValue();
-            }
-            else
-            {
-                switch (value)
-                {
-                    case ObjectValueNode obj:
-                        jsonWriter.WriteStartObject();
-
-                        foreach (ObjectFieldNode field in obj.Fields)
-                        {
-                            jsonWriter.WritePropertyName(field.Name.Value);
-                            WriteValue(writer, jsonWriter, field.Value);
-                        }
-
-                        jsonWriter.WriteEndObject();
-                        break;
-
-                    case ListValueNode list:
-                        jsonWriter.WriteStartArray();
-
-                        foreach (IValueNode item in list.Items)
-                        {
-                            WriteValue(writer, jsonWriter, item);
-                        }
-
-                        jsonWriter.WriteEndArray();
-                        break;
-
-                    case StringValueNode s:
-                        jsonWriter.WriteStringValue(s.Value);
-                        break;
-
-                    case EnumValueNode e:
-                        jsonWriter.WriteStringValue(e.Value);
-                        break;
-
-                    case IntValueNode i:
-                        WriterNumber(i.AsSpan(), jsonWriter, writer);
-                        break;
-
-                    case FloatValueNode f:
-                        WriterNumber(f.AsSpan(), jsonWriter, writer);
-                        break;
-
-                    case BooleanValueNode b:
-                        jsonWriter.WriteBooleanValue(b.Value);
-                        break;
-
-                    default:
-                        throw new NotSupportedException(
-                            StitchingResources.HttpRequestClient_UnknownVariableValueKind);
-                }
-            }
-        }
-
-        private static void WriterNumber(
-            ReadOnlySpan<byte> number,
-            Utf8JsonWriter jsonWriter,
-            ArrayWriter arrayWriter)
-        {
-            jsonWriter.WriteNumberValue(0);
-            jsonWriter.Flush();
-            arrayWriter.GetInternalBuffer()[arrayWriter.Length - 1] = number[0];
-
-            if (number.Length > 1)
-            {
-                number = number.Slice(1);
-                Span<byte> span = arrayWriter.GetSpan(number.Length);
-                number.CopyTo(span);
-                arrayWriter.Advance(number.Length);
-            }
+            number = number.Slice(1);
+            var span = arrayWriter.GetSpan(number.Length);
+            number.CopyTo(span);
+            arrayWriter.Advance(number.Length);
         }
     }
 }

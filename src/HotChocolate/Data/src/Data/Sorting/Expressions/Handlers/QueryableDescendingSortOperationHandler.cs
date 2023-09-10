@@ -1,52 +1,51 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace HotChocolate.Data.Sorting.Expressions
+namespace HotChocolate.Data.Sorting.Expressions;
+
+public class QueryableDescendingSortOperationHandler : QueryableOperationHandlerBase
 {
-    public class QueryableDescendingSortOperationHandler : QueryableOperationHandlerBase
+    public QueryableDescendingSortOperationHandler() : base(DefaultSortOperations.Descending)
     {
-        public QueryableDescendingSortOperationHandler() : base(DefaultSortOperations.Descending)
+    }
+
+    protected override QueryableSortOperation HandleOperation(
+        QueryableSortContext context,
+        QueryableFieldSelector fieldSelector,
+        ISortField field,
+        ISortEnumValue? sortEnumValue)
+    {
+        return DescendingSortOperation.From(fieldSelector);
+    }
+
+    private sealed class DescendingSortOperation : QueryableSortOperation
+    {
+        private DescendingSortOperation(QueryableFieldSelector fieldSelector)
+            : base(fieldSelector)
         {
         }
 
-        protected override QueryableSortOperation HandleOperation(
-            QueryableSortContext context,
-            QueryableFieldSelector fieldSelector,
-            ISortField field,
-            ISortEnumValue? sortEnumValue)
+        public override Expression CompileOrderBy(Expression expression)
         {
-            return DescendingSortOperation.From(fieldSelector);
+            return Expression.Call(
+                expression.GetEnumerableKind(),
+                nameof(Queryable.OrderByDescending),
+                new[] { ParameterExpression.Type, Selector.Type },
+                expression,
+                Expression.Lambda(Selector, ParameterExpression));
         }
 
-        private class DescendingSortOperation : QueryableSortOperation
+        public override Expression CompileThenBy(Expression expression)
         {
-            protected DescendingSortOperation(QueryableFieldSelector fieldSelector)
-                : base(fieldSelector)
-            {
-            }
-
-            public override Expression CompileOrderBy(Expression expression)
-            {
-                return Expression.Call(
-                    expression.GetEnumerableKind(),
-                    nameof(Queryable.OrderByDescending),
-                    new[] {ParameterExpression.Type, Selector.Type},
-                    expression,
-                    Expression.Lambda(Selector, ParameterExpression));
-            }
-
-            public override Expression CompileThenBy(Expression expression)
-            {
-                return Expression.Call(
-                    expression.GetEnumerableKind(),
-                    nameof(Queryable.ThenByDescending),
-                    new[] {ParameterExpression.Type, Selector.Type},
-                    expression,
-                    Expression.Lambda(Selector, ParameterExpression));
-            }
-
-            public static DescendingSortOperation From(QueryableFieldSelector selector) =>
-                new DescendingSortOperation(selector);
+            return Expression.Call(
+                expression.GetEnumerableKind(),
+                nameof(Queryable.ThenByDescending),
+                new[] { ParameterExpression.Type, Selector.Type },
+                expression,
+                Expression.Lambda(Selector, ParameterExpression));
         }
+
+        public static DescendingSortOperation From(QueryableFieldSelector selector) =>
+            new DescendingSortOperation(selector);
     }
 }

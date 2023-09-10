@@ -4,51 +4,43 @@ using HotChocolate.Properties;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public sealed class TypeDependency
 {
-    public sealed class TypeDependency
+    public TypeDependency(
+        TypeReference type,
+        TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
     {
-        public TypeDependency(
-            ITypeReference typeReference,
-            TypeDependencyKind kind = TypeDependencyKind.Default)
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        Fulfilled = fulfilled;
+    }
+
+    public TypeDependencyFulfilled Fulfilled { get; }
+
+    public TypeReference Type { get; }
+
+    public TypeDependency With(
+        TypeReference? typeReference = null,
+        TypeDependencyFulfilled? kind = null)
+        => new(typeReference ?? Type, kind ?? Fulfilled);
+
+    public static TypeDependency FromSchemaType(
+        IExtendedType type,
+        TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
+    {
+        if (type is null)
         {
-            TypeReference = typeReference ??
-                throw new ArgumentNullException(nameof(typeReference));
-            Kind = kind;
+            throw new ArgumentNullException(nameof(type));
         }
 
-        public TypeDependencyKind Kind { get; }
-
-        public ITypeReference TypeReference { get; }
-
-        public TypeDependency With(
-            ITypeReference? typeReference = null,
-            TypeDependencyKind? kind = null)
+        if (!type.IsSchemaType)
         {
-            return new(
-                typeReference ?? TypeReference,
-                kind ?? Kind);
+            throw new ArgumentException(
+                TypeResources.TypeDependency_MustBeSchemaType,
+                nameof(type));
         }
 
-        public static TypeDependency FromSchemaType(
-            IExtendedType type,
-            TypeDependencyKind kind = TypeDependencyKind.Default)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (!type.IsSchemaType)
-            {
-                throw new ArgumentException(
-                    TypeResources.TypeDependency_MustBeSchemaType,
-                    nameof(type));
-            }
-
-            return new TypeDependency(
-                Descriptors.TypeReference.Create(type),
-                kind);
-        }
+        return new TypeDependency(TypeReference.Create(type), fulfilled);
     }
 }

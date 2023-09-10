@@ -1,7 +1,6 @@
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types.Pagination;
+
+internal static class OffsetPagingFieldNames
 {
-    internal static class OffsetPagingFieldNames
-    {
-        public const string TotalCount = "totalCount";
-    }
+    public const string TotalCount = "totalCount";
 }

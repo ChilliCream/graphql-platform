@@ -1,10 +1,9 @@
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public enum SelectionVisitorActionKind
 {
-    public enum SelectionVisitorActionKind
-    {
-        Continue,
-        Skip,
-        Break,
-        SkipAndLeave
-    }
+    Continue,
+    Skip,
+    Break,
+    SkipAndLeave
 }

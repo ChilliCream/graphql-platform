@@ -1,4 +1,3 @@
-namespace HotChocolate.Language
-{
-    public interface ISyntaxNodeVisitor { }
-}
+namespace HotChocolate.Language;
+
+public interface ISyntaxNodeVisitor { }

@@ -4956,18 +4956,6 @@
               "deprecationReason": null
             },
             {
-              "name": "isRepeatable",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Boolean",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "locations",
               "description": null,
               "args": [],
@@ -4993,7 +4981,18 @@
             {
               "name": "args",
               "description": null,
-              "args": [],
+              "args": [
+                {
+                  "name": "includeDeprecated",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Boolean",
+                    "ofType": null
+                  },
+                  "defaultValue": "false"
+                }
+              ],
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -5008,6 +5007,22 @@
                       "name": "__InputValue"
                     }
                   }
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "isRepeatable",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
                 }
               },
               "isDeprecated": false,
@@ -5295,7 +5310,18 @@
             {
               "name": "args",
               "description": null,
-              "args": [],
+              "args": [
+                {
+                  "name": "includeDeprecated",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Boolean",
+                    "ofType": null
+                  },
+                  "defaultValue": "false"
+                }
+              ],
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -5417,6 +5443,34 @@
             {
               "name": "defaultValue",
               "description": "A GraphQL-formatted string representing the default value for this input value.",
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "isDeprecated",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "deprecationReason",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -5691,7 +5745,18 @@
             {
               "name": "inputFields",
               "description": null,
-              "args": [],
+              "args": [
+                {
+                  "name": "includeDeprecated",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Boolean",
+                    "ofType": null
+                  },
+                  "defaultValue": "false"
+                }
+              ],
               "type": {
                 "kind": "LIST",
                 "name": null,
@@ -6034,6 +6099,37 @@
               },
               "isDeprecated": false,
               "deprecationReason": null
+            },
+            {
+              "name": "complete",
+              "description": null,
+              "args": [
+                {
+                  "name": "episode",
+                  "description": null,
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "ENUM",
+                      "name": "Episode",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
             }
           ],
           "inputFields": null,
@@ -6142,7 +6238,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6152,7 +6248,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6162,7 +6258,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6172,7 +6268,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6183,7 +6279,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6307,7 +6403,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6317,7 +6413,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6327,7 +6423,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6337,7 +6433,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6348,7 +6444,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6451,16 +6547,6 @@
           "possibleTypes": null
         },
         {
-          "kind": "SCALAR",
-          "name": "Int",
-          "description": "The \u0060Int\u0060 scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
           "kind": "INTERFACE",
           "name": "Character",
           "description": null,
@@ -6503,7 +6589,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6513,7 +6599,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6523,7 +6609,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6533,7 +6619,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6544,7 +6630,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6638,6 +6724,18 @@
           "description": null,
           "fields": [
             {
+              "name": "commentary",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "stars",
               "description": null,
               "args": [],
@@ -6649,18 +6747,6 @@
                   "name": "Int",
                   "ofType": null
                 }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "commentary",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -6718,7 +6804,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "CharacterConnection",
+          "name": "FriendsConnection",
           "description": "A connection to a list of items.",
           "fields": [
             {
@@ -6749,7 +6835,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "CharacterEdge",
+                    "name": "FriendsEdge",
                     "ofType": null
                   }
                 }
@@ -6776,6 +6862,16 @@
           ],
           "inputFields": null,
           "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Int",
+          "description": "The \u0060Int\u0060 scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
           "enumValues": null,
           "possibleTypes": null
         },
@@ -6951,7 +7047,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "CharacterEdge",
+          "name": "FriendsEdge",
           "description": "An edge in a connection.",
           "fields": [
             {
@@ -7037,82 +7133,6 @@
           "onField": true
         },
         {
-          "name": "defer",
-          "description": "The \u0060@defer\u0060 directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with \u0060@defer\u0060 directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. \u0060@include\u0060 and \u0060@skip\u0060 take precedence over \u0060@defer\u0060.",
-          "args": [
-            {
-              "name": "label",
-              "description": "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to.",
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "defaultValue": null
-            },
-            {
-              "name": "if",
-              "description": "Deferred when true.",
-              "type": {
-                "kind": "SCALAR",
-                "name": "Boolean",
-                "ofType": null
-              },
-              "defaultValue": null
-            }
-          ],
-          "onOperation": false,
-          "onFragment": true,
-          "onField": false
-        },
-        {
-          "name": "stream",
-          "description": "The \u0060@stream\u0060 directive may be provided for a field of \u0060List\u0060 type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. \u0060@include\u0060 and \u0060@skip\u0060 take precedence over \u0060@stream\u0060.",
-          "args": [
-            {
-              "name": "label",
-              "description": "If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to.",
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "defaultValue": null
-            },
-            {
-              "name": "initialCount",
-              "description": "The initial elements that shall be send down to the consumer.",
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                }
-              },
-              "defaultValue": null
-            },
-            {
-              "name": "if",
-              "description": "Streamed when true.",
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Boolean",
-                  "ofType": null
-                }
-              },
-              "defaultValue": null
-            }
-          ],
-          "onOperation": false,
-          "onFragment": false,
-          "onField": true
-        },
-        {
           "name": "deprecated",
           "description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service\u2019s schema,such as deprecated fields on a type or deprecated enum values.",
           "args": [
@@ -7124,7 +7144,7 @@
                 "name": "String",
                 "ofType": null
               },
-              "defaultValue": "\u0022No longer supported\u0022"
+              "defaultValue": "\u0022No longer supported.\u0022"
             }
           ],
           "onOperation": false,

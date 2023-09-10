@@ -1,53 +1,73 @@
 using System;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal sealed partial class OperationContext : IExecutionTaskContext
 {
-    internal sealed partial class OperationContext : IExecutionTaskContext
+    void IExecutionTaskContext.ReportError(IExecutionTask task, IError error)
+        => ReportError(task, error);
+
+    void IExecutionTaskContext.ReportError(IExecutionTask task, Exception exception)
+        => ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
+
+    void IExecutionTaskContext.Register(IExecutionTask task)
+        => Scheduler.Register(task);
+
+    private void ReportError(IExecutionTask task, IError error)
     {
-        void IExecutionTaskContext.ReportError(IExecutionTask task, IError error)
+        if (task is null)
         {
-            ReportError(task, error);
+            throw new ArgumentNullException(nameof(task));
         }
 
-        void IExecutionTaskContext.ReportError(IExecutionTask task, Exception exception)
+        if (error is null)
         {
-            ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
+            throw new ArgumentNullException(nameof(error));
         }
 
-        private void ReportError(IExecutionTask task, IError error)
+        AssertInitialized();
+
+        if (error is AggregateError aggregateError)
         {
-            if (task is null)
+            foreach (var innerError in aggregateError.Errors)
             {
-                throw new ArgumentNullException(nameof(task));
+                ReportSingle(innerError);
             }
+        }
+        else
+        {
+            ReportSingle(error);
+        }
 
-            if (error is null)
+        void ReportSingle(IError singleError)
+        {
+            var handled = ErrorHandler.Handle(singleError);
+
+            if (handled is AggregateError ar)
             {
-                throw new ArgumentNullException(nameof(error));
+                foreach (var ie in ar.Errors)
+                {
+                    Result.AddError(ie);
+                    DiagnosticEvents.TaskError(task, ie);
+                }
             }
-
-            AssertInitialized();
-            error = ErrorHandler.Handle(error);
-            Result.AddError(error);
-            DiagnosticEvents.TaskError(task, error);
+            else
+            {
+                Result.AddError(handled);
+                DiagnosticEvents.TaskError(task, handled);
+            }
         }
+    }
 
-        void IExecutionTaskContext.Started()
-        {
-            AssertInitialized();
-            Execution.TaskStats.TaskStarted();
-        }
+    void IExecutionTaskContext.Completed(IExecutionTask task)
+    {
+        AssertInitialized();
+        Scheduler.Complete(task);
+    }
 
-        void IExecutionTaskContext.Completed()
-        {
-            AssertInitialized();
-            Execution.TaskStats.TaskCompleted();
-        }
-
-        IDisposable IExecutionTaskContext.Track(IExecutionTask task)
-        {
-            AssertInitialized();
-            return DiagnosticEvents.RunTask(task);
-        }
+    IDisposable IExecutionTaskContext.Track(IExecutionTask task)
+    {
+        AssertInitialized();
+        return DiagnosticEvents.RunTask(task);
     }
 }

@@ -1,0 +1,26 @@
+type Baz {
+  name(baz: BazInput): String
+}
+
+type Foo implements Bar {
+  id: ID!
+  name(baz: BazInput): String
+}
+
+interface Bar {
+  id: ID!
+  name(baz: BazInput): String
+}
+
+union FooOrBaz = Foo | Baz
+
+input BazInput {
+  name: String
+}
+
+enum Abc {
+    DEF
+    GHI
+}
+
+directive @qux(a: String) on FIELD_DEFINITION

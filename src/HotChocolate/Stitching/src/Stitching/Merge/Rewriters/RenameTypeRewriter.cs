@@ -1,41 +1,41 @@
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Merge.Rewriters
+namespace HotChocolate.Stitching.Merge.Rewriters;
+
+internal class RenameTypeRewriter
+    : ITypeRewriter
 {
-    internal class RenameTypeRewriter
-        : ITypeRewriter
+    public RenameTypeRewriter(
+        string originalTypeName,
+        string newTypeName,
+        string? schemaName = null)
     {
-        public RenameTypeRewriter(
-            NameString originalTypeName,
-            NameString newTypeName,
-            NameString? schemaName = null)
+        OriginalTypeName = originalTypeName.EnsureGraphQLName(nameof(originalTypeName));
+        NewTypeName = newTypeName.EnsureGraphQLName(nameof(newTypeName));
+        SchemaName = schemaName?.EnsureGraphQLName(nameof(schemaName));
+    }
+
+    public string OriginalTypeName { get; }
+
+    public string NewTypeName { get; }
+
+    public string? SchemaName { get; }
+
+    public ITypeDefinitionNode Rewrite(
+        ISchemaInfo schema,
+        ITypeDefinitionNode typeDefinition)
+    {
+        if (!string.IsNullOrEmpty(SchemaName) && !SchemaName.Equals(schema.Name))
         {
-            OriginalTypeName = originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
-            NewTypeName = newTypeName.EnsureNotEmpty(nameof(newTypeName));
-            SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
+            return typeDefinition;
         }
-        
-        public NameString OriginalTypeName { get; }
 
-        public NameString NewTypeName { get; }
-
-        public NameString? SchemaName { get; }
-
-        public ITypeDefinitionNode Rewrite(
-            ISchemaInfo schema,
-            ITypeDefinitionNode typeDefinition)
+        if (!OriginalTypeName.Equals(typeDefinition.Name.Value))
         {
-            if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
-            {
-                return typeDefinition;
-            }
-
-            if (!OriginalTypeName.Equals(typeDefinition.Name.Value))
-            {
-                return typeDefinition;
-            }
-
-            return typeDefinition.Rename(NewTypeName, schema.Name);
+            return typeDefinition;
         }
+
+        return typeDefinition.Rename(NewTypeName, schema.Name);
     }
 }

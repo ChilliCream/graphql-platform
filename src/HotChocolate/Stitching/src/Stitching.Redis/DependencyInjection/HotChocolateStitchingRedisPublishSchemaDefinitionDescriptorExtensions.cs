@@ -2,6 +2,7 @@ using System;
 using HotChocolate;
 using HotChocolate.Stitching.Redis;
 using HotChocolate.Stitching.SchemaDefinitions;
+using HotChocolate.Utilities;
 using StackExchange.Redis;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -10,7 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IPublishSchemaDefinitionDescriptor PublishToRedis(
             this IPublishSchemaDefinitionDescriptor descriptor,
-            NameString configurationName,
+            string configurationName,
             Func<IServiceProvider, IConnectionMultiplexer> connectionFactory)
         {
             if (connectionFactory is null)
@@ -18,11 +19,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
 
-            configurationName.EnsureNotEmpty(nameof(configurationName));
+            configurationName.EnsureGraphQLName(nameof(configurationName));
 
             return descriptor.SetSchemaDefinitionPublisher(sp =>
             {
-                IConnectionMultiplexer connection = connectionFactory(sp);
+                var connection = connectionFactory(sp);
                 return new RedisSchemaDefinitionPublisher(configurationName, connection);
             });
         }

@@ -1,15 +1,13 @@
-﻿using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Factories
+namespace HotChocolate.Types.Factories;
+
+internal interface ITypeFactory<in TNode, out TType>
+    where TNode : ISyntaxNode
+    where TType : IHasName
 {
-    internal interface ITypeFactory<in TNode, out TType>
-        where TNode : ISyntaxNode
-        where TType : IHasName
-    {
-        TType Create(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions,
-            TNode node);
-    }
+    TType Create(
+        IDescriptorContext context,
+        TNode node);
 }

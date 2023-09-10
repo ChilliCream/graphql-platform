@@ -1,102 +1,62 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Language;
-using HotChocolate.Types;
 
-namespace HotChocolate.Validation.Options
+namespace HotChocolate.Validation.Options;
+
+/// <summary>
+/// The validation options.
+/// </summary>
+public class ValidationOptions
+    : IMaxExecutionDepthOptionsAccessor
+    , IErrorOptionsAccessor
 {
-    public class ValidationOptions
-        : IMaxComplexityOptionsAccessor
-        , IMaxExecutionDepthOptionsAccessor
+    private int? _maxAllowedExecutionDepth;
+    private int _maxErrors = 5;
+
+    /// <summary>
+    /// Gets the document rules of the validation.
+    /// </summary>
+    public IList<IDocumentValidatorRule> Rules { get; } =
+        new List<IDocumentValidatorRule>();
+
+    /// <summary>
+    /// Gets the document rules that run async logic after the initial validators have run..
+    /// </summary>
+    public IList<IValidationResultAggregator> ResultAggregators { get; } =
+        new List<IValidationResultAggregator>();
+
+    /// <summary>
+    /// Gets the maximum allowed depth of a query. The default value is
+    /// <see langword="null"/>. The minimum allowed value is <c>1</c>.
+    /// </summary>
+    public int? MaxAllowedExecutionDepth
     {
-        public ValidationOptions()
+        get => _maxAllowedExecutionDepth;
+        set
         {
-            ComplexityCalculation = DefaultCalculation;
+            _maxAllowedExecutionDepth = value < 1 ? 1 : value;
         }
+    }
 
-        public IList<IDocumentValidatorRule> Rules { get; } =
-            new List<IDocumentValidatorRule>();
+    /// <summary>
+    /// Specifies that the max execution depth analysis
+    /// shall skip introspection fields.
+    /// </summary>
+    public bool SkipIntrospectionFields { get; set; }
 
-        public int DefaultComplexity { get; set; } = 1;
-
-        public int? MaxAllowedComplexity { get; set; }
-
-        public bool UseComplexityMultipliers { get; set; }
-
-        public ComplexityCalculation ComplexityCalculation { get; set; }
-
-        /// <summary>
-        /// Gets the maximum allowed depth of a query. The default value is
-        /// <see langword="null"/>. The minimum allowed value is <c>1</c>.
-        /// </summary>
-        public int? MaxAllowedExecutionDepth { get; set; }
-
-        public static int DefaultCalculation(
-            IOutputField field,
-            FieldNode selection,
-            CostDirective? cost,
-            int fieldDepth,
-            int nodeDepth,
-            Func<string, object?> getVariable,
-            IMaxComplexityOptionsAccessor options)
+    /// <summary>
+    /// Specifies how many errors are allowed before the validation is aborted.
+    /// </summary>
+    public int MaxAllowedErrors
+    {
+        get => _maxErrors;
+        set
         {
-            if (cost is null)
+            // if the value is lover than 1 we will set it to the default.
+            if (value < 1)
             {
-                return options.DefaultComplexity;
+                value = 5;
             }
-
-            if (options.UseComplexityMultipliers)
-            {
-                if (cost.Multipliers.Count == 0)
-                {
-                    return cost.Complexity;
-                }
-
-                var complexity = 0;
-
-                for (var i = 0; i < cost.Multipliers.Count; i++)
-                {
-                    MultiplierPathString multiplier = cost.Multipliers[i];
-                    ArgumentNode argument = selection.Arguments.FirstOrDefault(t =>
-                        t.Name.Value.Equals(multiplier.Value));
-
-                    if (argument is { } && argument.Value is { })
-                    {
-                        switch (argument.Value)
-                        {
-                            case VariableNode variable:
-                                complexity += getVariable(variable.Value) switch
-                                {
-                                    int m => m * cost.Complexity,
-                                    double m => (int)(m * cost.Complexity),
-                                    _ => cost.Complexity
-                                };
-                                break;
-
-                            case IntValueNode intValue:
-                                complexity += intValue.ToInt32() * cost.Complexity;
-                                break;
-
-                            case FloatValueNode floatValue:
-                                complexity += (int)(floatValue.ToDouble() * cost.Complexity);
-                                break;
-
-                            default:
-                                complexity += cost.Complexity;
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        complexity += cost.Complexity;
-                    }
-                }
-
-                return complexity;
-            }
-
-            return cost.Complexity;
+            _maxErrors = value;
         }
     }
 }

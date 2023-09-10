@@ -1,25 +1,46 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+internal static class ErrorBuilderExtensions
 {
-    internal static class ErrorBuilderExtensions
+    public static IErrorBuilder SpecifiedBy(
+        this IErrorBuilder errorBuilder,
+        string section,
+        bool isDraft = false,
+        int? rfc = null)
     {
-        public static IErrorBuilder SpecifiedBy(
-            this IErrorBuilder errorBuilder,
-            string section) =>
+        if (isDraft || rfc.HasValue)
+        {
             errorBuilder.SetExtension(
                 "specifiedBy",
-                "http://spec.graphql.org/June2018/#" + section);
+                "http://spec.graphql.org/draft/#" + section);
 
-        public static IErrorBuilder SetFragmentName(
-            this IErrorBuilder errorBuilder,
-            ISyntaxNode node)
-        {
-            if (node.Kind == SyntaxKind.FragmentDefinition)
+            if (rfc.HasValue)
             {
-                errorBuilder.SetExtension("fragment", ((FragmentDefinitionNode)node).Name.Value);
+                errorBuilder.SetExtension(
+                    "rfc",
+                    "https://github.com/graphql/graphql-spec/pull/" + rfc.Value);
             }
-            return errorBuilder;
         }
+        else
+        {
+            errorBuilder.SetExtension(
+                "specifiedBy",
+                "http://spec.graphql.org/October2021/#" + section);
+        }
+
+        return errorBuilder;
+    }
+
+    public static IErrorBuilder SetFragmentName(
+        this IErrorBuilder errorBuilder,
+        ISyntaxNode node)
+    {
+        if (node.Kind == SyntaxKind.FragmentDefinition)
+        {
+            errorBuilder.SetExtension("fragment", ((FragmentDefinitionNode)node).Name.Value);
+        }
+        return errorBuilder;
     }
 }

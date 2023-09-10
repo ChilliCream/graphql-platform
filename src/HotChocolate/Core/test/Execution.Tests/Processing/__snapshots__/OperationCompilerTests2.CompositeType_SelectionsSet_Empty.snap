@@ -1,0 +1,20 @@
+﻿query foo($v: Boolean) {
+  hero(episode: EMPIRE) {
+
+  }
+}
+
+---------------------------------------------------------
+
+query foo($v: Boolean) {
+  ... on Query {
+    hero(episode: EMPIRE) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+      ... on Human {
+
+      }
+      ... on Droid {
+
+      }
+    }
+  }
+}

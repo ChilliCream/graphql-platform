@@ -11,37 +11,37 @@ interface Node {
 type Consultant implements Node {
   id: ID!
   name: String!
-  customers(first: Int after: String last: Int before: String): CustomerConnection
+  customers("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CustomersConnection
 }
 
 type CreateCustomerPayload {
-  customer: Customer
+  customer: Customer!
 }
 
 type Customer implements Node {
   id: ID!
   name: String!
   street: String!
-  consultant(customer: CustomerInput): Consultant
+  consultant: Consultant
   say(input: SayInput!): String
   complexArg(arg: ComplexInputType): String
   someInt: Int!
-  someGuid: Uuid!
+  someGuid: UUID!
   kind: CustomerKind!
 }
 
 "A connection to a list of items."
-type CustomerConnection {
+type CustomersConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [CustomerEdge!]
+  edges: [CustomersEdge!]
   "A flattened list of the nodes."
   nodes: [Customer]
 }
 
 "An edge in a connection."
-type CustomerEdge {
+type CustomersEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
@@ -49,8 +49,8 @@ type CustomerEdge {
 }
 
 type Mutation {
-  createCustomer(input: CreateCustomerInput): CreateCustomerPayload
-  createCustomers(inputs: [CreateCustomerInput]): [CreateCustomerPayload]
+  createCustomer(input: CreateCustomerInput!): CreateCustomerPayload!
+  createCustomers(inputs: [CreateCustomerInput!]!): [CreateCustomerPayload!]!
 }
 
 "Information about pagination in a connection."
@@ -66,13 +66,16 @@ type PageInfo {
 }
 
 type Query {
-  node(id: ID!): Node
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
   customer(id: ID!): Customer
   customers(ids: [ID!]!): [Customer]
   consultant(id: ID!): Consultant
   customerOrConsultant(id: ID!): CustomerOrConsultant
   customerByKind(kind: CustomerKind!): Customer
-  allCustomers: [Customer]
+  allCustomers: [Customer!]!
 }
 
 union CustomerOrConsultant = Customer | Consultant
@@ -90,18 +93,8 @@ input CreateCustomerInput {
   consultantId: String
 }
 
-input CustomerInput {
-  id: String
-  name: String
-  street: String
-  consultantId: String
-  someInt: Int!
-  someGuid: Uuid!
-  kind: CustomerKind!
-}
-
 input SayInput {
-  words: [String]
+  words: [String!]
 }
 
 enum CustomerKind {
@@ -109,10 +102,7 @@ enum CustomerKind {
   PREMIUM
 }
 
-"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
-directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
-"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
-directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean!) on FIELD
-
-scalar Uuid
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")

@@ -3,202 +3,210 @@ using HotChocolate.Internal;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+/// <summary>
+/// Represent a type reference that points to a concrete GraphQL type instance.
+/// </summary>
+public sealed class SchemaTypeReference
+    : TypeReference
+    , IEquatable<SchemaTypeReference>
 {
-    public sealed class SchemaTypeReference
-        : TypeReference
-        , IEquatable<SchemaTypeReference>
+    internal SchemaTypeReference(
+        ITypeSystemMember type,
+        TypeContext? context = null,
+        string? scope = null)
+        : base(TypeReferenceKind.SchemaType, context ?? InferTypeContext(type), scope)
     {
-        public SchemaTypeReference(
-            ITypeSystemMember type,
-            TypeContext? context = null,
-            string? scope = null)
-            : base(context ?? InferTypeContext(type), scope)
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+    }
+
+    /// <summary>
+    /// The GraphQL type instance.
+    /// </summary>
+    public ITypeSystemMember Type { get; }
+
+    /// <inheritdoc />
+    public bool Equals(SchemaTypeReference? other)
+    {
+        if (other is null)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
-        }
-
-        public ITypeSystemMember Type { get; }
-
-        public bool Equals(SchemaTypeReference? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (!IsEqual(other))
-            {
-                return false;
-            }
-
-            return Type.Equals(other.Type);
-        }
-
-        public override bool Equals(ITypeReference? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other is SchemaTypeReference str)
-            {
-                return Equals(str);
-            }
-
             return false;
         }
 
-        public override bool Equals(object? obj)
+        if (ReferenceEquals(this, other))
         {
-            if (obj is null)
-            {
-                return false;
-            }
+            return true;
+        }
 
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj is SchemaTypeReference str)
-            {
-                return Equals(str);
-            }
-
+        if (!IsEqual(other))
+        {
             return false;
         }
 
-        public override int GetHashCode()
+        return Type.Equals(other.Type);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(TypeReference? other)
+    {
+        if (other is null)
         {
-            unchecked
-            {
-                return base.GetHashCode() ^ Type.GetHashCode() * 397;
-            }
+            return false;
         }
 
-        public override string ToString()
+        if (ReferenceEquals(this, other))
         {
-            return $"{Context}: {Type}";
+            return true;
         }
 
-        public SchemaTypeReference WithType(ITypeSystemMember type)
+        if (other is SchemaTypeReference str)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return new SchemaTypeReference(type, Context, Scope);
+            return Equals(str);
         }
 
-        public SchemaTypeReference WithContext(TypeContext context = TypeContext.None)
+        return false;
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
         {
-            return new SchemaTypeReference(Type, context, Scope);
+            return false;
         }
 
-        public SchemaTypeReference WithScope(string? scope = null)
+        if (ReferenceEquals(this, obj))
         {
-            return new SchemaTypeReference(Type, Context, scope);
+            return true;
         }
 
-        public SchemaTypeReference With(
-            Optional<ITypeSystemMember> type = default,
-            Optional<TypeContext> context = default,
-            Optional<string?> scope = default)
+        if (obj is SchemaTypeReference str)
         {
-            if (type.HasValue && type.Value is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return new SchemaTypeReference(
-                type.HasValue ? type.Value! : Type,
-                context.HasValue ? context.Value : Context,
-                scope.HasValue ? scope.Value : Scope);
+            return Equals(str);
         }
 
-        internal static TypeContext InferTypeContext(object? type)
+        return false;
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        unchecked
         {
-            if (type is IType t)
-            {
-                INamedType namedType = t.NamedType();
+            return base.GetHashCode() ^ Type.GetHashCode() * 397;
+        }
+    }
 
-                if (namedType.IsInputType() && namedType.IsOutputType())
-                {
-                    return TypeContext.None;
-                }
+    /// <inheritdoc />
+    public override string ToString()
+        => ToString(Type);
 
-                if (namedType.IsOutputType())
-                {
-                    return TypeContext.Output;
-                }
-
-                if (namedType.IsInputType())
-                {
-                    return TypeContext.Input;
-                }
-            }
-
-            if (type is Type ts)
-            {
-                return InferTypeContext(ts);
-            }
-
-            return TypeContext.None;
+    public SchemaTypeReference WithType(ITypeSystemMember type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
         }
 
-        internal static TypeContext InferTypeContext(IExtendedType type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+        return new SchemaTypeReference(type, Context, Scope);
+    }
 
-            return InferTypeContext(type.Type);
+    public SchemaTypeReference WithContext(TypeContext context = TypeContext.None)
+    {
+        return new SchemaTypeReference(Type, context, Scope);
+    }
+
+    public SchemaTypeReference WithScope(string? scope = null)
+    {
+        return new SchemaTypeReference(Type, Context, scope);
+    }
+
+    public SchemaTypeReference With(
+        Optional<ITypeSystemMember> type = default,
+        Optional<TypeContext> context = default,
+        Optional<string?> scope = default)
+    {
+        if (type.HasValue && type.Value is null)
+        {
+            throw new ArgumentNullException(nameof(type));
         }
 
-        internal static TypeContext InferTypeContext(Type type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+        return new SchemaTypeReference(
+            type.HasValue ? type.Value! : Type,
+            context.HasValue ? context.Value : Context,
+            scope.HasValue ? scope.Value : Scope);
+    }
 
-            Type? namedType = ExtendedType.Tools.GetNamedType(type);
-            return InferTypeContextInternal(namedType ?? type);
-        }
-
-        private static TypeContext InferTypeContextInternal(Type type)
+    internal static TypeContext InferTypeContext(object? type)
+    {
+        if (type is IType t)
         {
-            if (typeof(IInputType).IsAssignableFrom(type)
-                && typeof(IOutputType).IsAssignableFrom(type))
+            var namedType = t.NamedType();
+
+            if (namedType.IsInputType() && namedType.IsOutputType())
             {
                 return TypeContext.None;
             }
 
-            if (typeof(IOutputType).IsAssignableFrom(type))
+            if (namedType.IsOutputType())
             {
                 return TypeContext.Output;
             }
 
-            if (typeof(IInputType).IsAssignableFrom(type))
+            if (namedType.IsInputType())
             {
                 return TypeContext.Input;
             }
+        }
 
+        if (type is Type ts)
+        {
+            return InferTypeContext(ts);
+        }
+
+        return TypeContext.None;
+    }
+
+    internal static TypeContext InferTypeContext(IExtendedType type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        return InferTypeContext(type.Type);
+    }
+
+    internal static TypeContext InferTypeContext(Type type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        var namedType = ExtendedType.Tools.GetNamedType(type);
+        return InferTypeContextInternal(namedType ?? type);
+    }
+
+    private static TypeContext InferTypeContextInternal(Type type)
+    {
+        if (typeof(IInputType).IsAssignableFrom(type)
+            && typeof(IOutputType).IsAssignableFrom(type))
+        {
             return TypeContext.None;
         }
+
+        if (typeof(IOutputType).IsAssignableFrom(type))
+        {
+            return TypeContext.Output;
+        }
+
+        if (typeof(IInputType).IsAssignableFrom(type))
+        {
+            return TypeContext.Input;
+        }
+
+        return TypeContext.None;
     }
 }

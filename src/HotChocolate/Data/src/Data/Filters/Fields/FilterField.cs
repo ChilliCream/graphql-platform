@@ -4,39 +4,51 @@ using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public class FilterField
+    : InputField
+    , IFilterField
 {
-    public class FilterField
-        : InputField
-        , IFilterField
+    internal FilterField(FilterFieldDefinition definition)
+        : this(definition, default)
     {
-        internal FilterField(FilterFieldDefinition definition)
-            : base(definition, default)
+    }
+
+    internal FilterField(FilterFieldDefinition definition, int index)
+        : base(definition, index)
+    {
+        Member = definition.Member;
+        Handler = definition.Handler!;
+        Metadata = definition.Metadata;
+    }
+
+    public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
+
+    IFilterInputType IFilterField.DeclaringType => DeclaringType;
+
+    public MemberInfo? Member { get; }
+
+    public new IExtendedType? RuntimeType { get; private set; }
+
+    public IFilterFieldHandler Handler { get; }
+
+    public IFilterMetadata? Metadata { get; }
+
+    protected override void OnCompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        InputFieldDefinition definition)
+    {
+        base.OnCompleteField(context, declaringMember, definition);
+
+        if (Member?.DeclaringType is not null)
         {
-            Member = definition.Member;
-            Handler = definition.Handler;
+            RuntimeType = context.TypeInspector.GetReturnType(Member, ignoreAttributes: true);
         }
-
-        public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
-
-        IFilterInputType IFilterField.DeclaringType => DeclaringType;
-
-        public MemberInfo? Member { get; }
-
-        public new IExtendedType? RuntimeType { get; private set; }
-
-        public IFilterFieldHandler Handler { get; }
-
-        protected override void OnCompleteField(
-            ITypeCompletionContext context,
-            InputFieldDefinition definition)
+        else if (base.RuntimeType is { } runtimeType)
         {
-            base.OnCompleteField(context, definition);
-
-            if (Member?.DeclaringType is not null)
-            {
-                RuntimeType = context.TypeInspector.GetReturnType(Member, ignoreAttributes: true);
-            }
+            RuntimeType = context.TypeInspector.GetType(runtimeType);
         }
     }
 }

@@ -24,4 +24,25 @@
   <data name="PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid" xml:space="preserve">
     <value>The element schema type for pagination must be a valid GraphQL output type (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).</value>
   </data>
+  <data name="PagingArguments_First_Description" xml:space="preserve">
+    <value>Returns the first _n_ elements from the list.</value>
+  </data>
+  <data name="PagingArguments_After_Description" xml:space="preserve">
+    <value>Returns the elements in the list that come after the specified cursor.</value>
+  </data>
+  <data name="PagingArguments_Last_Description" xml:space="preserve">
+    <value>Returns the last _n_ elements from the list.</value>
+  </data>
+  <data name="PagingArguments_Before_Description" xml:space="preserve">
+    <value>Returns the elements in the list that come before the specified cursor.</value>
+  </data>
+  <data name="ThrowHelper_PagingHandler_MaxPageSize" xml:space="preserve">
+    <value>The maximum allowed items per page were exceeded.</value>
+  </data>
+  <data name="ThrowHelper_PagingHandler_NoBoundariesSet" xml:space="preserve">
+    <value>You must provide a `first` or `last` value to properly paginate the `{0}`.</value>
+  </data>
+  <data name="Edge_Cursor_CursorAndResolverNull" xml:space="preserve">
+    <value>The edge state is invalid and has no cursor.</value>
+  </data>
 </root>

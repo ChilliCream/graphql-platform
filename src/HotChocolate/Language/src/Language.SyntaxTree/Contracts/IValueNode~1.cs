@@ -1,8 +1,12 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+/// <summary>
+/// A GraphQL value literal.
+/// </summary>
+public interface IValueNode<out T> : IValueNode
 {
-    public interface IValueNode<out T>
-        : IValueNode
-    {
-        new T Value { get; }
-    }
+    /// <summary>
+    /// Gets the value.
+    /// </summary>
+    new T Value { get; }
 }

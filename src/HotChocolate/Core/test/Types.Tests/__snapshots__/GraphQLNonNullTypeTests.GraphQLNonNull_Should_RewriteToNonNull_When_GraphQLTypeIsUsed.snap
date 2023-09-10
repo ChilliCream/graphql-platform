@@ -1,0 +1,16 @@
+﻿schema {
+  query: QueryDeepWithType
+}
+
+type CustomType {
+  bar: Int!
+}
+
+type QueryDeepWithType {
+  scalar: ID!
+  scalarArray: [ID!]!
+  scalarNestedArray: [[ID!]!]!
+  object: CustomType!
+  objectArray: [CustomType!]!
+  objectNestedArray: [[CustomType!]!]!
+}

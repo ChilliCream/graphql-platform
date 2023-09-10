@@ -1,21 +1,28 @@
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Utilities;
+
+internal sealed class CopySchemaDefinitionTypeInterceptor : TypeInterceptor
 {
-    public class CopySchemaDefinitionTypeInterceptor : TypeInterceptor
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition)
     {
-        public override void OnAfterCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+        if (definition is SchemaTypeDefinition schemaTypeDef)
         {
-            if (definition is SchemaTypeDefinition)
-            {
-                contextData[typeof(RemoteSchemaDefinition).FullName!] =
-                    completionContext.ContextData[typeof(RemoteSchemaDefinition).FullName!];
-            }
+            schemaTypeDef.TouchContextData();
+        }
+    }
+
+    public override void OnAfterCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition)
+    {
+        if (definition is SchemaTypeDefinition schemaTypeDef)
+        {
+            schemaTypeDef.ContextData[typeof(RemoteSchemaDefinition).FullName!] =
+                completionContext.ContextData[typeof(RemoteSchemaDefinition).FullName!];
         }
     }
 }

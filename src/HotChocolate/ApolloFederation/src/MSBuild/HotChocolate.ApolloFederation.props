@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!--ApolloFederationImplicitUsings: default|disable|enable-->
+    <ApolloFederationImplicitUsings>default</ApolloFederationImplicitUsings>
+  </PropertyGroup>
+</Project>

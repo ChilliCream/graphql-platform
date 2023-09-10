@@ -1,59 +1,82 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
-using HotChocolate.Properties;
+using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
-namespace HotChocolate.Types.Introspection
+
+namespace HotChocolate.Types.Introspection;
+
+[Introspection]
+// ReSharper disable once InconsistentNaming
+internal sealed class __EnumValue : ObjectType<IEnumValue>
 {
-    [Introspection]
-    internal sealed class __EnumValue : ObjectType<IEnumValue>
+    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        protected override void Configure(
-            IObjectTypeDescriptor<IEnumValue> descriptor)
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+
+        var def = new ObjectTypeDefinition(
+            Names.__EnumValue,
+            EnumValue_Description,
+            typeof(IEnumValue))
         {
-            descriptor
-                .Name(Names.__EnumValue)
-                .Description(TypeResources.EnumValue_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFields(BindingBehavior.Explicit);
+            Fields =
+                {
+                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                    new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                    new(Names.IsDeprecated, type: nonNullBooleanType,
+                        pureResolver: Resolvers.IsDeprecated),
+                    new(Names.DeprecationReason, type: stringType,
+                        pureResolver: Resolvers.DeprecationReason),
+                }
+        };
 
-            descriptor
-                .Field(c => c.Name)
-                .Name(Names.Name)
-                .Type<NonNullType<StringType>>();
-
-            descriptor
-                .Field(c => c.Description)
-                .Name(Names.Description);
-
-            descriptor
-                .Field(c => c.IsDeprecated)
-                .Name(Names.IsDeprecated)
-                .Type<NonNullType<BooleanType>>();
-
-            descriptor
-                .Field(c => c.DeprecationReason)
-                .Name(Names.DeprecationReason);
-
-            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
-            {
-                descriptor
-                    .Field(t => t.Directives.Where(d => d.Type.IsPublic).Select(d => d.ToNode()))
-                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
-                    .Name(Names.AppliedDirectives);
-            }
+        if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
+        {
+            def.Fields.Add(new(
+                Names.AppliedDirectives,
+                type: appDirectiveListType,
+                pureResolver: Resolvers.AppliedDirectives));
         }
 
-        public static class Names
-        {
-            public const string __EnumValue = "__EnumValue";
-            public const string Name = "name";
-            public const string Description = "description";
-            public const string IsDeprecated = "isDeprecated";
-            public const string DeprecationReason = "deprecationReason";
-            public const string AppliedDirectives = "appliedDirectives";
-        }
+        return def;
+    }
+
+    private static class Resolvers
+    {
+        public static object Name(IPureResolverContext context)
+            => context.Parent<IEnumValue>().Name;
+
+        public static object? Description(IPureResolverContext context)
+            => context.Parent<IEnumValue>().Description;
+
+        public static object IsDeprecated(IPureResolverContext context)
+            => context.Parent<IEnumValue>().IsDeprecated;
+
+        public static string? DeprecationReason(IPureResolverContext context)
+            => context.Parent<IEnumValue>().DeprecationReason;
+
+        public static object AppliedDirectives(IPureResolverContext context)
+            => context.Parent<IEnumValue>().Directives
+                .Where(t => t.Type.IsPublic)
+                .Select(d => d.AsSyntaxNode());
+    }
+
+    public static class Names
+    {
+        // ReSharper disable once InconsistentNaming
+        public const string __EnumValue = "__EnumValue";
+        public const string Name = "name";
+        public const string Description = "description";
+        public const string IsDeprecated = "isDeprecated";
+        public const string DeprecationReason = "deprecationReason";
+        public const string AppliedDirectives = "appliedDirectives";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

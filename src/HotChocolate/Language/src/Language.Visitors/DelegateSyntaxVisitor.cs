@@ -1,30 +1,26 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+internal sealed class DelegateSyntaxVisitor<TContext>
+    : SyntaxVisitor<TContext>
+    where TContext : ISyntaxVisitorContext
 {
-    internal sealed class DelegateSyntaxVisitor
-        : SyntaxVisitor
+    private readonly VisitSyntaxNode<TContext> _enter;
+    private readonly VisitSyntaxNode<TContext> _leave;
+
+    public DelegateSyntaxVisitor(
+        VisitSyntaxNode<TContext>? enter = null,
+        VisitSyntaxNode<TContext>? leave = null,
+        ISyntaxVisitorAction? defaultResult = null,
+        SyntaxVisitorOptions options = default)
+        : base(defaultResult ?? Skip, options)
     {
-        private readonly VisitSyntaxNode _enter;
-        private readonly VisitSyntaxNode _leave;
-
-        public DelegateSyntaxVisitor(
-            VisitSyntaxNode? enter = null,
-            VisitSyntaxNode? leave = null,
-            ISyntaxVisitorAction? defaultResult = null,
-            SyntaxVisitorOptions options = default)
-            : base(defaultResult ?? Skip, options)
-        {
-            _enter = enter ?? new VisitSyntaxNode((n, c) => DefaultAction);
-            _leave = leave ?? new VisitSyntaxNode((n, c) => DefaultAction);
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            ISyntaxNode node,
-            ISyntaxVisitorContext context) =>
-            _enter(node, context);
-
-        protected override ISyntaxVisitorAction Leave(
-            ISyntaxNode node,
-            ISyntaxVisitorContext context) =>
-            _leave(node, context);
+        _enter = enter ?? new VisitSyntaxNode<TContext>((_, _) => DefaultAction);
+        _leave = leave ?? new VisitSyntaxNode<TContext>((_, _) => DefaultAction);
     }
+
+    protected override ISyntaxVisitorAction Enter(ISyntaxNode node, TContext context)
+        => _enter(node, context);
+
+    protected override ISyntaxVisitorAction Leave(ISyntaxNode node, TContext context)
+        => _leave(node, context);
 }

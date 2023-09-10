@@ -3,268 +3,304 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
-namespace StrawberryShake.Serialization
+namespace StrawberryShake.Serialization;
+
+public class SerializerResolverTests
 {
-    public class SerializerResolverTests
+    [Fact]
+    public void Constructor_AllArgs_NotThrow()
     {
-        [Fact]
-        public void Constructor_AllArgs_NotThrow()
+        // arrange
+        var serializers = Enumerable.Empty<ISerializer>();
+
+        // act
+        var exception = Record.Exception(() => new SerializerResolver(serializers));
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void Constructor_NoSerializer_ThrowException()
+    {
+        // arrange
+        IEnumerable<ISerializer> serializers = default!;
+
+        // act
+        var exception = Record.Exception(() => new SerializerResolver(serializers));
+
+        // assert
+        Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    [Fact]
+    public void ServiceProvider_SerializerRegistered_NotThrow()
+    {
+        // arrange
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<ISerializerResolver, SerializerResolver>()
+            .AddSingleton<ISerializer, StringSerializer>()
+            .BuildServiceProvider();
+
+        // act
+        var exception =
+            Record.Exception(() => serviceProvider.GetService<ISerializerResolver>());
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void Constructor_SerializerRegistered_RegisterSerializers()
+    {
+        // arrange
+        var serializerMock = new Mock<ISerializer>(MockBehavior.Strict);
+        var serializers =
+            Enumerable.Empty<ISerializer>()
+                .Append(serializerMock.Object);
+        serializerMock.Setup(x => x.TypeName).Returns("Foo");
+
+        // act
+        new SerializerResolver(serializers);
+
+        // assert
+        serializerMock.VerifyAll();
+    }
+
+    [Fact]
+    public void Constructor_InputObjectFormatterRegistered_Initialize()
+    {
+        // arrange
+        var serializerMock = new Mock<IInputObjectFormatter>(MockBehavior.Strict);
+        ISerializerResolver? callback = null;
+        var serializers =
+            Enumerable.Empty<ISerializer>()
+                .Append(serializerMock.Object);
+        serializerMock.Setup(x => x.TypeName).Returns("Foo");
+        serializerMock
+            .Setup(x => x.Initialize(It.IsAny<ISerializerResolver>()))
+            .Callback((ISerializerResolver resolver) => callback = resolver);
+
+        // act
+        var resolver = new SerializerResolver(serializers);
+
+        // assert
+        serializerMock.VerifyAll();
+        Assert.Equal(resolver, callback);
+    }
+
+    [Fact]
+    public void Constructor_CustomIntSerializerRegistered_PreferOverBuiltInt()
+    {
+        // arrange
+        ISerializer[] serializers =
         {
-            // arrange
-            IEnumerable<ISerializer> serializers = Enumerable.Empty<ISerializer>();
-
-            // act
-            Exception? exception = Record.Exception(() => new SerializerResolver(serializers));
-
-            // assert
-            Assert.Null(exception);
-        }
-
-        [Fact]
-        public void Constructor_NoSerializer_ThrowException()
-        {
-            // arrange
-            IEnumerable<ISerializer> serializers = default!;
-
-            // act
-            Exception? exception = Record.Exception(() => new SerializerResolver(serializers));
-
-            // assert
-            Assert.IsType<ArgumentNullException>(exception);
-        }
-
-        [Fact]
-        public void ServiceProvider_SerializerRegistered_NotThrow()
-        {
-            // arrange
-            ServiceProvider? serviceProvider = new ServiceCollection()
-                .AddSingleton<ISerializerResolver, SerializerResolver>()
-                .AddSingleton<ISerializer, StringSerializer>()
-                .BuildServiceProvider();
-
-            // act
-            Exception? exception =
-                Record.Exception(() => serviceProvider.GetService<ISerializerResolver>());
-
-            // assert
-            Assert.Null(exception);
-        }
-
-        [Fact]
-        public void Constructor_SerializerRegistered_RegisterSerializers()
-        {
-            // arrange
-            var serializerMock = new Mock<ISerializer>(MockBehavior.Strict);
-            IEnumerable<ISerializer> serializers =
-                Enumerable.Empty<ISerializer>()
-                    .Append(serializerMock.Object);
-            serializerMock.Setup(x => x.TypeName).Returns("Foo");
-
-            // act
-            new SerializerResolver(serializers);
-
-            // assert
-            serializerMock.VerifyAll();
-        }
-
-        [Fact]
-        public void Constructor_InputObjectFormatterRegistered_Initialize()
-        {
-            // arrange
-            var serializerMock = new Mock<IInputObjectFormatter>(MockBehavior.Strict);
-            ISerializerResolver? callback = null;
-            IEnumerable<ISerializer> serializers =
-                Enumerable.Empty<ISerializer>()
-                    .Append(serializerMock.Object);
-            serializerMock.Setup(x => x.TypeName).Returns("Foo");
-            serializerMock
-                .Setup(x => x.Initialize(It.IsAny<ISerializerResolver>()))
-                .Callback((ISerializerResolver resolver) => callback = resolver);
-
-            // act
-            var resolver =new SerializerResolver(serializers);
-
-            // assert
-            serializerMock.VerifyAll();
-            Assert.Equal(resolver, callback);
-        }
-
-        [Fact]
-        public void Constructor_CustomIntSerializerRegistered_PreferOverBuiltInt()
-        {
-            // arrange
-            ISerializer[] serializers =
-            {
                 new CustomIntSerializer(),
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            IInputValueFormatter resolvedFormatter = resolver.GetInputValueFormatter("Int");
+        // act
+        var resolvedFormatter = resolver.GetInputValueFormatter("Int");
 
-            // assert
-            Assert.IsType<CustomIntSerializer>(resolvedFormatter);
-        }
+        // assert
+        Assert.IsType<CustomIntSerializer>(resolvedFormatter);
+    }
 
-        [Fact]
-        public void GetLeaveValueParser_SerializerRegistered_ReturnSerializer()
+    [Fact]
+    public void GetLeaveValueParser_SerializerRegistered_ReturnSerializer()
+    {
+        // arrange
+        ISerializer[] serializers =
         {
-            // arrange
-            ISerializer[] serializers =
-            {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            ILeafValueParser<int, int>? resolvedParser = resolver.GetLeafValueParser<int, int>("Int");
+        // act
+        var resolvedParser =
+            resolver.GetLeafValueParser<int, int>("Int");
 
-            // assert
-            Assert.IsType<IntSerializer>(resolvedParser);
-        }
+        // assert
+        Assert.IsType<IntSerializer>(resolvedParser);
+    }
 
-        [Fact]
-        public void GetLeaveValueParser_SerializerRegisteredDifferentName_ThrowException()
+    [Fact]
+    public void GetLeaveValueParser_SerializerRegisteredDifferentName_ThrowException()
+    {
+        // arrange
+        ISerializer[] serializers =
         {
-            // arrange
-            ISerializer[] serializers =
-            {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            Exception? ex = Record.Exception(() => resolver.GetLeafValueParser<int, int>("Foo"));
+        // act
+        var ex = Record.Exception(() => resolver.GetLeafValueParser<int, int>("Foo"));
 
-            // assert
-            Assert.IsType<ArgumentException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentException>(ex);
+    }
 
-        [Fact]
-        public void GetLeaveValueParser_SerializerRegisteredDifferentType_ThrowException()
+    [Fact]
+    public void GetLeaveValueParser_SerializerRegisteredDifferentType_ThrowException()
+    {
+        // arrange
+        ISerializer[] serializers =
         {
-            // arrange
-            ISerializer[] serializers =
-            {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            Exception? ex = Record.Exception(() => resolver.GetLeafValueParser<int, double>("Int"));
+        // act
+        var ex = Record.Exception(() => resolver.GetLeafValueParser<int, double>("Int"));
 
-            // assert
-            Assert.IsType<ArgumentException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentException>(ex);
+    }
 
-        [Fact]
-        public void GetLeaveValueParser_TypeNull_ThrowException()
+    [Fact]
+    public void GetLeaveValueParser_TypeNull_ThrowException()
+    {
+        // arrange
+        ISerializer[] serializers =
         {
-            // arrange
-            ISerializer[] serializers =
-            {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            Exception? ex = Record.Exception(() => resolver.GetLeafValueParser<int, double>(null!));
+        // act
+        var ex = Record.Exception(() => resolver.GetLeafValueParser<int, double>(null!));
 
-            // assert
-            Assert.IsType<ArgumentNullException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentNullException>(ex);
+    }
 
 
-        [Fact]
-        public void GetInputValueFormatter_FormatterRegistered_ReturnFormatter()
+    [Fact]
+    public void GetInputValueFormatter_FormatterRegistered_ReturnFormatter()
+    {
+        // arrange
+        ISerializer[] serializers =
         {
-            // arrange
-            ISerializer[] serializers =
-            {
                 new CustomInputValueFormatter()
             };
 
-            var resolver = new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            IInputValueFormatter resolvedFormatter = resolver.GetInputValueFormatter("Foo");
+        // act
+        var resolvedFormatter = resolver.GetInputValueFormatter("Foo");
 
-            // assert
-            Assert.IsType<CustomInputValueFormatter>(resolvedFormatter);
-        }
+        // assert
+        Assert.IsType<CustomInputValueFormatter>(resolvedFormatter);
+    }
 
-        [Fact]
-        public void GetInputValueFormatter_FormatterRegisteredDifferentName_ThrowException()
+    [Fact]
+    public void GetInputValueFormatter_FormatterRegisteredDifferentName_ThrowException()
+    {
+        // arrange
+        ISerializer[] serializers =
         {
-            // arrange
-            ISerializer[] serializers =
-            {
                 new CustomInputValueFormatter()
             };
-            var resolver =new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            Exception? ex = Record.Exception(() => resolver.GetInputValueFormatter("Bar"));
+        // act
+        var ex = Record.Exception(() => resolver.GetInputValueFormatter("Bar"));
 
-            // assert
-            Assert.IsType<ArgumentException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentException>(ex);
+    }
 
-        [Fact]
-        public void GetInputValueFormatter_FormatterRegisteredDifferentType_ThrowException()
+    [Fact]
+    public void GetInputValueFormatter_FormatterRegisteredDifferentType_ThrowException()
+    {
+        // arrange
+        var serializerMock = new Mock<ISerializer>();
+        serializerMock.Setup(x => x.TypeName).Returns("Int");
+        ISerializer[] serializers =
         {
-            // arrange
-            var serializerMock = new Mock<ISerializer>();
-            serializerMock.Setup(x => x.TypeName).Returns("Int");
-            ISerializer[] serializers =
-            {
                 serializerMock.Object
             };
 
-            var resolver =new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            Exception? ex = Record.Exception(() => resolver.GetInputValueFormatter("Int"));
+        // act
+        var ex = Record.Exception(() => resolver.GetInputValueFormatter("Int"));
 
-            // assert
-            Assert.IsType<ArgumentException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentException>(ex);
+    }
 
-        [Fact]
-        public void GetInputValueFormatter_TypeNull_ThrowException()
+    [Fact]
+    public void GetInputValueFormatter_TypeNull_ThrowException()
+    {
+        // arrange
+        ISerializer[] serializers =
         {
-            // arrange
-            ISerializer[] serializers =
-            {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+        var resolver = new SerializerResolver(serializers);
 
-            // act
-            Exception? ex = Record.Exception(() => resolver.GetInputValueFormatter(null!));
+        // act
+        var ex = Record.Exception(() => resolver.GetInputValueFormatter(null!));
 
-            // assert
-            Assert.IsType<ArgumentNullException>(ex);
-        }
+        // assert
+        Assert.IsType<ArgumentNullException>(ex);
+    }
 
-        private class CustomIntSerializer : ScalarSerializer<int>
+    [Fact]
+    public void DependencyInjection_CustomIntSerializerRegistered_ReturnSerializer()
+    {
+        // arrange
+        IServiceCollection serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton<SerializerResolver>();
+        serviceCollection.AddSerializer<CustomIntSerializer>();
+
+        var resolver =
+            serviceCollection.BuildServiceProvider().GetRequiredService<SerializerResolver>();
+
+        // act
+        var resolvedFormatter = resolver.GetInputValueFormatter("Int");
+
+        // assert
+        Assert.IsType<CustomIntSerializer>(resolvedFormatter);
+    }
+
+    [Fact]
+    public void DependencyInjection_CustomIntSerializerRegistered_ReturnInstanceOfSerializer()
+    {
+        // arrange
+        CustomIntSerializer serializer = new();
+        IServiceCollection serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton<SerializerResolver>();
+        serviceCollection.AddSerializer(serializer);
+
+        var resolver =
+            serviceCollection.BuildServiceProvider().GetRequiredService<SerializerResolver>();
+
+        // act
+        var resolvedFormatter = resolver.GetInputValueFormatter("Int");
+
+        // assert
+        Assert.Same(serializer, resolvedFormatter);
+    }
+
+    private sealed class CustomIntSerializer : ScalarSerializer<int>
+    {
+        public CustomIntSerializer() : base("Int")
         {
-            public CustomIntSerializer() : base("Int")
-            {
-            }
         }
+    }
 
-        private class CustomInputValueFormatter : IInputValueFormatter
+    private sealed class CustomInputValueFormatter : IInputValueFormatter
+    {
+        public string TypeName => "Foo";
+
+        public object? Format(object? runtimeValue)
         {
-            public string TypeName => "Foo";
-
-            public object? Format(object? runtimeValue)
-            {
-                throw new NotImplementedException();
-            }
+            throw new NotImplementedException();
         }
     }
 }

@@ -3,30 +3,28 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Misc;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb;
+
+public sealed class MongoDbIncludeProjectionOperation : MongoDbProjectionDefinition
 {
-    internal sealed class MongoDbIncludeProjectionOperation : MongoDbProjectionDefinition
+    private readonly string _path;
+
+    public MongoDbIncludeProjectionOperation(
+        string field)
     {
-        private readonly string _path;
-        private readonly SortDirection _direction;
+        _path = Ensure.IsNotNull(field, nameof(field));
+    }
 
-        public MongoDbIncludeProjectionOperation (
-            string field)
-        {
-            _path = Ensure.IsNotNull(field, nameof(field));
-        }
+    public override BsonDocument Render(
+        IBsonSerializer documentSerializer,
+        IBsonSerializerRegistry serializerRegistry)
+    {
+        StringFieldDefinitionHelper.Resolve(
+            _path,
+            documentSerializer,
+            out var resolvedFieldName,
+            out var _);
 
-        public override BsonDocument Render(
-            IBsonSerializer documentSerializer,
-            IBsonSerializerRegistry serializerRegistry)
-        {
-            StringFieldDefinitionHelper.Resolve(
-                _path,
-                documentSerializer,
-                out string? resolvedFieldName,
-                out IBsonSerializer? _);
-
-            return new BsonDocument(resolvedFieldName ?? _path, 1);
-        }
+        return new BsonDocument(resolvedFieldName ?? _path, 1);
     }
 }

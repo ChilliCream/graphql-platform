@@ -1,84 +1,82 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
-using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using StrawberryShake.CodeGeneration.Extensions;
 
-namespace StrawberryShake.CodeGeneration.Mappers
+namespace StrawberryShake.CodeGeneration.Mappers;
+
+public static partial class TypeDescriptorMapper
 {
-    public static partial class TypeDescriptorMapper
+    private static void CollectInputTypes(
+        ClientModel model,
+        IMapperContext context,
+        Dictionary<string, InputTypeDescriptorModel> typeDescriptors)
     {
-        private static void CollectInputTypes(
-            ClientModel model,
-            IMapperContext context,
-            Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors)
+        foreach (var inputType in model.InputObjectTypes)
         {
-            foreach (var inputType in model.InputObjectTypes)
-            {
-                if (!typeDescriptors.TryGetValue(
+            if (!typeDescriptors.TryGetValue(
                     inputType.Name,
-                    out InputTypeDescriptorModel descriptorModel))
-                {
-                    descriptorModel = new InputTypeDescriptorModel(
-                        inputType,
-                        new InputObjectTypeDescriptor(
-                            inputType.Type.Name,
-                            new (inputType.Name, context.Namespace),
-                            inputType.Description));
-
-                    typeDescriptors.Add(inputType.Name, descriptorModel);
-                }
-            }
-        }
-
-        private static void AddInputTypeProperties(
-            Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors,
-            Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
-        {
-            foreach (InputTypeDescriptorModel typeDescriptorModel in typeDescriptors.Values)
+                    out var descriptorModel))
             {
-                var properties = new List<PropertyDescriptor>();
+                descriptorModel = new InputTypeDescriptorModel(
+                    inputType,
+                    new InputObjectTypeDescriptor(
+                        inputType.Type.Name,
+                        new(inputType.Type.Name, context.Namespace),
+                        inputType.HasUpload,
+                        inputType.Description));
 
-                foreach (var field in typeDescriptorModel.Model.Fields)
-                {
-                    INamedTypeDescriptor? fieldType;
-                    INamedType namedType = field.Type.NamedType();
-
-                    if (namedType.IsScalarType() || namedType.IsEnumType())
-                    {
-                        fieldType = leafTypeDescriptors[namedType.Name];
-                    }
-                    else
-                    {
-                        fieldType = GetInputTypeDescriptor(
-                            field.Type.NamedType(),
-                            typeDescriptors);
-                    }
-
-                    properties.Add(
-                        new PropertyDescriptor(
-                            field.Name,
-                            field.Field.Name,
-                            BuildFieldType(
-                                field.Type,
-                                fieldType),
-                            field.Description));
-                }
-
-                typeDescriptorModel.Descriptor.CompleteProperties(properties);
+                typeDescriptors.Add(inputType.Name, descriptorModel);
             }
         }
+    }
 
-        private static INamedTypeDescriptor GetInputTypeDescriptor(
-            INamedType fieldNamedType,
-            Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors)
+    private static void AddInputTypeProperties(
+        Dictionary<string, InputTypeDescriptorModel> typeDescriptors,
+        Dictionary<string, INamedTypeDescriptor> leafTypeDescriptors)
+    {
+        foreach (var typeDescriptorModel in typeDescriptors.Values)
         {
-            return typeDescriptors.Values
-                .First(t => t.Model.Name.Equals(fieldNamedType.Name))
-                .Descriptor;
+            var properties = new List<PropertyDescriptor>();
+
+            foreach (var field in typeDescriptorModel.Model.Fields)
+            {
+                INamedTypeDescriptor? fieldType;
+                var namedType = field.Type.NamedType();
+
+                if (namedType.IsScalarType() || namedType.IsEnumType())
+                {
+                    fieldType = leafTypeDescriptors[namedType.Name];
+                }
+                else
+                {
+                    fieldType = GetInputTypeDescriptor(
+                        field.Type.NamedType(),
+                        typeDescriptors);
+                }
+
+                properties.Add(
+                    new PropertyDescriptor(
+                        field.Name,
+                        field.Field.Name,
+                        BuildFieldType(
+                            field.Type,
+                            fieldType),
+                        field.Description));
+            }
+
+            typeDescriptorModel.Descriptor.CompleteProperties(properties);
         }
+    }
+
+    private static INamedTypeDescriptor GetInputTypeDescriptor(
+        INamedType fieldNamedType,
+        Dictionary<string, InputTypeDescriptorModel> typeDescriptors)
+    {
+        return typeDescriptors.Values
+            .First(t => t.Model.Type.Name.EqualsOrdinal(fieldNamedType.Name))
+            .Descriptor;
     }
 }

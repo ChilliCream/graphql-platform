@@ -7,61 +7,60 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public sealed class EnumValue : IEnumValue
 {
-    public sealed class EnumValue : IEnumValue
+    public EnumValue(
+        ITypeCompletionContext completionContext,
+        EnumValueDefinition enumValueDefinition)
     {
-        private readonly IDirectiveCollection _directives;
-
-        public EnumValue(
-            ITypeCompletionContext completionContext,
-            EnumValueDefinition enumValueDefinition)
+        if (completionContext == null)
         {
-            if (completionContext == null)
-            {
-                throw new ArgumentNullException(nameof(completionContext));
-            }
-
-            if (enumValueDefinition is null)
-            {
-                throw new ArgumentNullException(nameof(enumValueDefinition));
-            }
-
-            if (enumValueDefinition.Value is null)
-            {
-                throw new ArgumentException(
-                    TypeResources.EnumValue_ValueIsNull,
-                    nameof(enumValueDefinition));
-            }
-
-            SyntaxNode = enumValueDefinition.SyntaxNode;
-            Name = enumValueDefinition.Name.HasValue
-                ? enumValueDefinition.Name
-                : (NameString)enumValueDefinition.Value.ToString();
-            Description = enumValueDefinition.Description;
-            DeprecationReason = enumValueDefinition.DeprecationReason;
-            IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);
-            Value = enumValueDefinition.Value;
-            ContextData = enumValueDefinition.GetContextData();
-
-            _directives = DirectiveCollection
-                .CreateAndComplete(completionContext, this, enumValueDefinition!.GetDirectives());
+            throw new ArgumentNullException(nameof(completionContext));
         }
 
-        public EnumValueDefinitionNode? SyntaxNode { get; }
+        if (enumValueDefinition is null)
+        {
+            throw new ArgumentNullException(nameof(enumValueDefinition));
+        }
 
-        public NameString Name { get; }
+        if (enumValueDefinition.RuntimeValue is null)
+        {
+            throw new ArgumentException(
+                TypeResources.EnumValue_ValueIsNull,
+                nameof(enumValueDefinition));
+        }
 
-        public string? Description { get; }
+        SyntaxNode = enumValueDefinition.SyntaxNode;
+        Name = string.IsNullOrEmpty(enumValueDefinition.Name)
+            ? enumValueDefinition.RuntimeValue.ToString()!
+            : enumValueDefinition.Name;
+        Description = enumValueDefinition.Description;
+        DeprecationReason = enumValueDefinition.DeprecationReason;
+        IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);
+        Value = enumValueDefinition.RuntimeValue;
+        ContextData = enumValueDefinition.GetContextData();
 
-        public bool IsDeprecated { get; }
-
-        public string? DeprecationReason { get; }
-
-        public object Value { get; }
-
-        public IDirectiveCollection Directives => _directives;
-
-        public IReadOnlyDictionary<string, object?> ContextData { get; }
+        Directives = DirectiveCollection.CreateAndComplete(
+            completionContext,
+            this,
+            enumValueDefinition.GetDirectives());
     }
+
+    public EnumValueDefinitionNode? SyntaxNode { get; }
+
+    public string Name { get; }
+
+    public string? Description { get; }
+
+    public bool IsDeprecated { get; }
+
+    public string? DeprecationReason { get; }
+
+    public object Value { get; }
+
+    public IDirectiveCollection Directives { get; }
+
+    public IReadOnlyDictionary<string, object?> ContextData { get; }
 }

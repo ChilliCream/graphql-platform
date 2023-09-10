@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified fragment `nameFragment` is not used within the current document.",
     "Code": null,
@@ -11,7 +11,7 @@
     ],
     "Extensions": {
       "fragment": "nameFragment",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -49,6 +49,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 77,

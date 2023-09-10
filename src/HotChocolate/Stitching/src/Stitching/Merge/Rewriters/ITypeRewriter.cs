@@ -1,11 +1,8 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge.Rewriters
+namespace HotChocolate.Stitching.Merge.Rewriters;
+
+public interface ITypeRewriter
 {
-    public interface ITypeRewriter
-    {
-        ITypeDefinitionNode Rewrite(
-            ISchemaInfo schema,
-            ITypeDefinitionNode typeDefinition);
-    }
+    ITypeDefinitionNode Rewrite(ISchemaInfo schema, ITypeDefinitionNode typeDefinition);
 }

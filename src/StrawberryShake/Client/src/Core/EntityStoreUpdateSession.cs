@@ -2,70 +2,69 @@ using System;
 using System.Collections.Generic;
 using StrawberryShake.Properties;
 
-namespace StrawberryShake
+namespace StrawberryShake;
+
+internal sealed class EntityStoreUpdateSession : IEntityStoreUpdateSession
 {
-    internal sealed class EntityStoreUpdateSession : IEntityStoreUpdateSession
+    private readonly Dictionary<EntityId, object> _entities;
+
+    public EntityStoreUpdateSession(EntityStoreSnapshot originalSnapshot)
     {
-        private readonly Dictionary<EntityId, object> _entities;
-
-        public EntityStoreUpdateSession(EntityStoreSnapshot originalSnapshot)
+        if (originalSnapshot == null)
         {
-            if (originalSnapshot == null)
-            {
-                throw new ArgumentNullException(nameof(originalSnapshot));
-            }
-
-            var version = originalSnapshot.Version;
-
-            unchecked
-            {
-                version++;
-            }
-
-            _entities = originalSnapshot.Copy();
-            CurrentSnapshot = new EntityStoreSnapshot(_entities, version);
+            throw new ArgumentNullException(nameof(originalSnapshot));
         }
 
-        public EntityStoreSnapshot CurrentSnapshot { get; }
+        var version = originalSnapshot.Version;
 
-        public HashSet<EntityId> UpdatedEntityIds { get; } = new();
-
-        IEntityStoreSnapshot IEntityStoreUpdateSession.CurrentSnapshot => CurrentSnapshot;
-
-        public void SetEntity<TEntity>(EntityId id, TEntity entity) where TEntity : class
+        unchecked
         {
-            if (id == default)
-            {
-                throw new ArgumentException(Resources.EntityStore_InvalidEntityId, nameof(id));
-            }
-
-            _entities[id] = entity ?? throw new ArgumentNullException(nameof(entity));
-            UpdatedEntityIds.Add(id);
+            version++;
         }
 
-        public void RemoveEntity(EntityId id)
-        {
-            if (id == default)
-            {
-                throw new ArgumentException(Resources.EntityStore_InvalidEntityId, nameof(id));
-            }
+        _entities = originalSnapshot.Copy();
+        CurrentSnapshot = new EntityStoreSnapshot(_entities, version);
+    }
 
-            _entities.Remove(id);
-            UpdatedEntityIds.Add(id);
+    public EntityStoreSnapshot CurrentSnapshot { get; }
+
+    public HashSet<EntityId> UpdatedEntityIds { get; } = new();
+
+    IEntityStoreSnapshot IEntityStoreUpdateSession.CurrentSnapshot => CurrentSnapshot;
+
+    public void SetEntity<TEntity>(EntityId id, TEntity entity) where TEntity : class
+    {
+        if (id == default)
+        {
+            throw new ArgumentException(Resources.EntityStore_InvalidEntityId, nameof(id));
         }
 
-        public void RemoveEntityRange(IEnumerable<EntityId> entityIds)
-        {
-            if (entityIds == null)
-            {
-                throw new ArgumentNullException(nameof(entityIds));
-            }
+        _entities[id] = entity ?? throw new ArgumentNullException(nameof(entity));
+        UpdatedEntityIds.Add(id);
+    }
 
-            foreach (EntityId entityId in entityIds)
-            {
-                _entities.Remove(entityId);
-                UpdatedEntityIds.Add(entityId);
-            }
+    public void RemoveEntity(EntityId id)
+    {
+        if (id == default)
+        {
+            throw new ArgumentException(Resources.EntityStore_InvalidEntityId, nameof(id));
+        }
+
+        _entities.Remove(id);
+        UpdatedEntityIds.Add(id);
+    }
+
+    public void RemoveEntityRange(IEnumerable<EntityId> entityIds)
+    {
+        if (entityIds == null)
+        {
+            throw new ArgumentNullException(nameof(entityIds));
+        }
+
+        foreach (var entityId in entityIds)
+        {
+            _entities.Remove(entityId);
+            UpdatedEntityIds.Add(entityId);
         }
     }
 }

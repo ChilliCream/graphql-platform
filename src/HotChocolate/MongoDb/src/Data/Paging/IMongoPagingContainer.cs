@@ -3,20 +3,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Data.MongoDb.Paging
+namespace HotChocolate.Data.MongoDb.Paging;
+
+internal interface IMongoPagingContainer<TEntity>
 {
-    internal interface IMongoPagingContainer<TEntity>
-    {
-        Task<int> CountAsync(CancellationToken cancellationToken);
+    Task<int> CountAsync(CancellationToken cancellationToken);
 
-        ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ToIndexEdgesAsync(
-            int offset,
-            CancellationToken cancellationToken);
+    ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
+        int offset,
+        CancellationToken cancellationToken);
 
-        ValueTask<List<TEntity>> ToListAsync(CancellationToken cancellationToken);
+    ValueTask<List<TEntity>> ToListAsync(CancellationToken cancellationToken);
 
-        IMongoPagingContainer<TEntity> Skip(int skip);
+    IMongoPagingContainer<TEntity> Skip(int skip);
 
-        IMongoPagingContainer<TEntity> Take(int take);
-    }
+    IMongoPagingContainer<TEntity> Take(int take);
 }

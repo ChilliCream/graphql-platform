@@ -7,61 +7,60 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.Utilities
+namespace StrawberryShake.CodeGeneration.Utilities;
+
+public class QueryDocumentRewriterTests
 {
-    public class QueryDocumentRewriterTests
+    [Fact]
+    public async Task GetReturnTypeName()
     {
-        [Fact]
-        public async Task GetReturnTypeName()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
 
-            schema =
-                SchemaHelper.Load(
-                    new GraphQLFile[] 
-                    {
-                        new(schema.ToDocument()),
-                        new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
-                    });
+        schema =
+            SchemaHelper.Load(
+                new GraphQLFile[]
+                {
+                    new(schema.ToDocument()),
+                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                });
 
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
-                            ... Characters
-                        }
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) @returns(fragment: ""Hero"") {
+                        ... Characters
                     }
+                }
 
-                    fragment Characters on Character {
-                        ... Human
-                        ... Droid
-                    }
+                fragment Characters on Character {
+                    ... Human
+                    ... Droid
+                }
 
-                    fragment Hero on Character {
-                        name
-                    }
+                fragment Hero on Character {
+                    name
+                }
 
-                    fragment Human on Human {
-                        ... Hero
-                        homePlanet
-                    }
+                fragment Human on Human {
+                    ... Hero
+                    homePlanet
+                }
 
-                    fragment Droid on Droid {
-                        ... Hero
-                        primaryFunction
-                    }");
+                fragment Droid on Droid {
+                    ... Hero
+                    primaryFunction
+                }");
 
-            // act
-            document = QueryDocumentRewriter.Rewrite(document, schema);
+        // act
+        document = QueryDocumentRewriter.Rewrite(document, schema);
 
-            // assert
-            document.Print().MatchSnapshot();
-        }
+        // assert
+        document.Print().MatchSnapshot();
     }
 }

@@ -3,29 +3,30 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data;
+
+#pragma warning disable CA1812
+
+internal sealed class ToListMiddleware<TEntity>
 {
-    internal class ToListMiddleware<TEntity>
+    private readonly FieldDelegate _next;
+
+    public ToListMiddleware(FieldDelegate next)
     {
-        private readonly FieldDelegate _next;
+        _next = next;
+    }
 
-        public ToListMiddleware(FieldDelegate next)
+    public async ValueTask InvokeAsync(IMiddlewareContext context)
+    {
+        await _next(context).ConfigureAwait(false);
+
+        context.Result = context.Result switch
         {
-            _next = next;
-        }
-
-        public async ValueTask InvokeAsync(IMiddlewareContext context)
-        {
-            await _next(context).ConfigureAwait(false);
-
-            context.Result = context.Result switch
-            {
-                IQueryable<TEntity> queryable =>
-                    await queryable
-                        .ToListAsync(context.RequestAborted)
-                        .ConfigureAwait(false),
-                _ => context.Result
-            };
-        }
+            IQueryable<TEntity> queryable =>
+                await queryable
+                    .ToListAsync(context.RequestAborted)
+                    .ConfigureAwait(false),
+            _ => context.Result
+        };
     }
 }

@@ -1,3 +1,0 @@
----
-title: "HotChocolate Middleware"
----

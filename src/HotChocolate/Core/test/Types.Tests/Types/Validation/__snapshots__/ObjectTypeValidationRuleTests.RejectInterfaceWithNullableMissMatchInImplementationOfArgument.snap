@@ -1,0 +1,10 @@
+﻿{
+  "message": "The named argument `first` on field `first` must accept the same type `String!` (invariant) as that named argument on the interface `Test`.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "first",
+    "implementedArgument": "first",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+  }
+}
+

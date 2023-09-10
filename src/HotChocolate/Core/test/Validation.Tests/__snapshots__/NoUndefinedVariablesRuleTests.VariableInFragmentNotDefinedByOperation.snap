@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -58,8 +58,7 @@
                 "Column": 28
               },
               "Value": "a"
-            },
-            "Value": "a"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -108,8 +107,7 @@
                 "Column": 40
               },
               "Value": "b"
-            },
-            "Value": "b"
+            }
           },
           "Type": {
             "Kind": "NamedType",

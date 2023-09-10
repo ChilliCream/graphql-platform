@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
@@ -7,294 +6,426 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+/// <summary>
+/// Represents a field selection during execution.
+/// </summary>
+public class Selection : ISelection
 {
-    public class Selection : ISelection
+    private static readonly ArgumentMap _emptyArguments = ArgumentMap.Empty;
+    private long[] _includeConditions;
+    private long _streamIfCondition;
+    private Flags _flags;
+
+    public Selection(
+        int id,
+        IObjectType declaringType,
+        IObjectField field,
+        IType type,
+        FieldNode syntaxNode,
+        string responseName,
+        ArgumentMap? arguments = null,
+        long[]? includeConditions = null,
+        bool isInternal = false,
+        bool isParallelExecutable = true,
+        FieldDelegate? resolverPipeline = null,
+        PureFieldDelegate? pureResolver = null)
     {
-        private static readonly ArgumentMap _emptyArguments =
-            new(new Dictionary<NameString, ArgumentValue>());
+        Id = id;
+        DeclaringType = declaringType;
+        Field = field;
+        Type = type;
+        SyntaxNode = syntaxNode;
+        ResponseName = responseName;
+        Arguments = arguments ?? _emptyArguments;
+        ResolverPipeline = resolverPipeline;
+        PureResolver = pureResolver;
+        Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
 
-        private List<SelectionIncludeCondition>? _includeConditions;
-        private List<FieldNode>? _selections;
-        private IReadOnlyList<FieldNode>? _syntaxNodes;
-        private bool _isReadOnly;
+        _includeConditions = includeConditions ?? Array.Empty<long>();
 
-        public Selection(
-            IObjectType declaringType,
-            IObjectField field,
-            FieldNode selection,
-            FieldDelegate resolverPipeline,
-            NameString? responseName = null,
-            IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
-            SelectionIncludeCondition? includeCondition = null,
-            bool internalSelection = false)
+        _flags = isInternal
+            ? Flags.Internal
+            : Flags.None;
+
+        if (Type.IsType(TypeKind.List))
         {
-            DeclaringType = declaringType
-                ?? throw new ArgumentNullException(nameof(declaringType));
-            Field = field
-                ?? throw new ArgumentNullException(nameof(field));
-            SyntaxNode = selection
-                ?? throw new ArgumentNullException(nameof(selection));
-            ResponseName = responseName ??
-                selection.Alias?.Value ??
-                selection.Name.Value;
-            ResolverPipeline = resolverPipeline ??
-                throw new ArgumentNullException(nameof(resolverPipeline));
-            Arguments = arguments is null
-                ? _emptyArguments
-                : new ArgumentMap(arguments);
-            InclusionKind = internalSelection
-                ? SelectionInclusionKind.Internal
-                : SelectionInclusionKind.Always;
-
-            if (includeCondition is not null)
-            {
-                _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
-                ModifyCondition(true);
-            }
+            _flags |= Flags.List;
         }
 
-        public Selection(Selection selection)
+        if (Field.HasStreamResult)
         {
-            _includeConditions = selection._includeConditions;
-            _selections = selection._selections;
-            _isReadOnly = selection._isReadOnly;
-            DeclaringType = selection.DeclaringType;
-            Field = selection.Field;
-            SyntaxNode = selection.SyntaxNode;
-            _selections = selection._selections;
-            _syntaxNodes = selection._syntaxNodes;
-            ResponseName = selection.ResponseName;
-            ResolverPipeline = selection.ResolverPipeline;
-            Arguments = selection.Arguments;
-            InclusionKind = selection.InclusionKind;
+            _flags |= Flags.StreamResult;
+        }
+    }
+
+    protected Selection(Selection selection)
+    {
+        if (selection is null)
+        {
+            throw new ArgumentNullException(nameof(selection));
         }
 
-        /// <inheritdoc />
-        public IObjectType DeclaringType { get; }
+        Id = selection.Id;
+        Strategy = selection.Strategy;
+        DeclaringType = selection.DeclaringType;
+        Field = selection.Field;
+        Type = selection.Type;
+        SyntaxNode = selection.SyntaxNode;
+        ResponseName = selection.ResponseName;
+        ResolverPipeline = selection.ResolverPipeline;
+        PureResolver = selection.PureResolver;
+        Arguments = selection.Arguments;
+        _flags = selection._flags;
 
-        /// <inheritdoc />
-        public IObjectField Field { get; }
+        _includeConditions =
+            selection._includeConditions.Length == 0
+                ? Array.Empty<long>()
+                : selection._includeConditions.ToArray();
+    }
 
-        /// <inheritdoc />
-        public FieldNode SyntaxNode { get; private set; }
+    /// <inheritdoc />
+    public int Id { get; }
 
-        public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
+    internal CustomOptionsFlags CustomOptions { get; private set; }
 
-        /// <inheritdoc />
-        public IReadOnlyList<FieldNode> SyntaxNodes
+    /// <inheritdoc />
+    public SelectionExecutionStrategy Strategy { get; private set; }
+
+    /// <inheritdoc />
+    public IObjectType DeclaringType { get; }
+
+    /// <inheritdoc />
+    public ISelectionSet DeclaringSelectionSet { get; private set; } = default!;
+
+    /// <inheritdoc />
+    public IObjectField Field { get; }
+
+    /// <inheritdoc />
+    public IType Type { get; }
+
+    /// <inheritdoc />
+    public TypeKind TypeKind => Type.Kind;
+
+    /// <inheritdoc />
+    public bool IsList => (_flags & Flags.List) == Flags.List;
+
+    /// <inheritdoc />
+    public FieldNode SyntaxNode { get; private set; }
+
+    public int SelectionSetId { get; private set; }
+
+    /// <inheritdoc />
+    public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
+
+    /// <inheritdoc />
+    public string ResponseName { get; }
+
+    /// <inheritdoc />
+    public FieldDelegate? ResolverPipeline { get; private set; }
+
+    /// <inheritdoc />
+    public PureFieldDelegate? PureResolver { get; private set; }
+
+    /// <inheritdoc />
+    public ArgumentMap Arguments { get; }
+
+    /// <inheritdoc />
+    public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;
+
+    /// <inheritdoc />
+    public bool HasStreamDirective(long includeFlags)
+        => (_flags & Flags.Stream) == Flags.Stream &&
+            (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
+
+    /// <summary>
+    /// Specifies if the current selection is immutable.
+    /// </summary>
+    public bool IsReadOnly => (_flags & Flags.Sealed) == Flags.Sealed;
+
+    /// <inheritdoc />
+    public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
+
+    /// <inheritdoc />
+    public bool IsConditional
+        => _includeConditions.Length > 0 || (_flags & Flags.Internal) == Flags.Internal;
+
+    internal ReadOnlySpan<long> IncludeConditions => _includeConditions;
+
+    public bool IsIncluded(long includeFlags, bool allowInternals = false)
+    {
+        // in most case we do not have any include condition,
+        // so we can take the easy way out here if we do not have any flags.
+        if (_includeConditions.Length is 0)
         {
-            get
-            {
-                if (_syntaxNodes is null)
-                {
-                    _syntaxNodes = _selections ?? (IReadOnlyList<FieldNode>)new[] { SyntaxNode };
-                }
-                return _syntaxNodes;
-            }
+            return !IsInternal || allowInternals;
         }
 
-        IReadOnlyList<FieldNode> IFieldSelection.Nodes => SyntaxNodes;
+        // if there are flags in most cases we just have one so we can
+        // check the first and optimize for this.
+        var includeCondition = _includeConditions[0];
 
-        /// <inheritdoc />
-        public NameString ResponseName { get; }
-
-        /// <inheritdoc />
-        public FieldDelegate ResolverPipeline { get; }
-
-        /// <inheritdoc />
-        public IArgumentMap Arguments { get; }
-
-        /// <inheritdoc />
-        public SelectionInclusionKind InclusionKind { get; private set; }
-
-        public bool IsInternal =>
-            InclusionKind == SelectionInclusionKind.Internal ||
-            InclusionKind == SelectionInclusionKind.InternalConditional;
-
-        public bool IsConditional =>
-            InclusionKind == SelectionInclusionKind.Conditional ||
-            InclusionKind == SelectionInclusionKind.InternalConditional;
-
-        internal IReadOnlyList<SelectionIncludeCondition>? IncludeConditions => _includeConditions;
-
-        /// <inheritdoc />
-        public bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false)
+        if ((includeFlags & includeCondition) == includeCondition)
         {
-            return InclusionKind switch
-            {
-                SelectionInclusionKind.Always => true,
-                SelectionInclusionKind.Conditional => EvaluateConditions(variableValues),
-                SelectionInclusionKind.Internal => allowInternals,
-                SelectionInclusionKind.InternalConditional =>
-                    allowInternals && EvaluateConditions(variableValues),
-                _ => throw new NotSupportedException()
-            };
+            return !IsInternal || allowInternals;
         }
 
-        private bool EvaluateConditions(IVariableValueCollection variableValues)
+        // if we just have one flag and the flags are not fulfilled we can just exit.
+        if (_includeConditions.Length is 1)
         {
-            Debug.Assert(
-                _includeConditions != null,
-                "If a selection is conditional it must have visibility conditions.");
-
-            for (var i = 0; i < _includeConditions!.Count; i++)
-            {
-                if (_includeConditions[i].IsTrue(variableValues))
-                {
-                    return true;
-                }
-            }
-
             return false;
         }
 
-        public void AddSelection(FieldNode field, SelectionIncludeCondition? includeCondition)
+        // else, we will iterate over the rest of the conditions and validate them one by one.
+        for (var i = 1; i < _includeConditions.Length; i++)
         {
-            if (_isReadOnly)
+            includeCondition = _includeConditions[i];
+
+            if ((includeFlags & includeCondition) == includeCondition)
             {
-                throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+                return !IsInternal || allowInternals;
             }
-
-            _selections ??= new List<FieldNode> { SyntaxNode };
-            _selections.Add(field);
-
-            AddVariableVisibility(includeCondition);
         }
 
-        private void AddVariableVisibility(SelectionIncludeCondition? includeCondition)
+        return false;
+    }
+
+    public override string ToString()
+        => SyntaxNode.ToString();
+
+    internal void AddSelection(FieldNode selectionSyntax, long includeCondition = 0)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
-            if (_isReadOnly)
-            {
-                throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
-            }
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
 
-            if (_includeConditions is null)
+        if (includeCondition == 0)
+        {
+            if (_includeConditions.Length > 0)
             {
-                return;
+                _includeConditions = Array.Empty<long>();
             }
+        }
+        else if (_includeConditions.Length > 0 &&
+            Array.IndexOf(_includeConditions, includeCondition) == -1)
+        {
+            var next = _includeConditions.Length;
+            Array.Resize(ref _includeConditions, next + 1);
+            _includeConditions[next] = includeCondition;
+        }
 
-            if (includeCondition is null)
+        if (!SyntaxNode.Equals(selectionSyntax, SyntaxComparison.Syntax))
+        {
+            SyntaxNode = MergeField(SyntaxNode, selectionSyntax);
+        }
+    }
+
+    private static FieldNode MergeField(
+        FieldNode first,
+        FieldNode other)
+    {
+        var directives = first.Directives;
+
+        if (other.Directives.Count > 0)
+        {
+            if (directives.Count == 0)
             {
-                _includeConditions = null;
-                ModifyCondition(false);
-                return;
+                directives = other.Directives;
             }
-
-            for (var i = 0; i < _includeConditions.Count; i++)
+            else
             {
-                if (_includeConditions[i].Equals(includeCondition))
+                var temp = new DirectiveNode[directives.Count + other.Directives.Count];
+                var next = 0;
+
+                for (var i = 0; i < directives.Count; i++)
                 {
-                    return;
+                    temp[next++] = directives[i];
                 }
-            }
 
-            _includeConditions.Add(includeCondition);
-        }
-
-        internal void MakeReadOnly()
-        {
-            if (_isReadOnly)
-            {
-                return;
-            }
-
-            _isReadOnly = true;
-            SyntaxNode = MergeField(SyntaxNode, _selections);
-        }
-
-        private static FieldNode MergeField(
-            FieldNode first,
-            IReadOnlyList<FieldNode>? selections)
-        {
-            if (selections is null)
-            {
-                return first;
-            }
-
-            return new FieldNode(
-                first.Location,
-                first.Name,
-                first.Alias,
-                MergeDirectives(selections),
-                first.Arguments,
-                MergeSelections(first, selections));
-        }
-
-        private static SelectionSetNode? MergeSelections(
-            FieldNode first,
-            IReadOnlyList<FieldNode> selections)
-        {
-            if (first.SelectionSet is null)
-            {
-                return null;
-            }
-
-            var children = new List<ISelectionNode>();
-
-            for (var i = 0; i < selections.Count; i++)
-            {
-                if (selections[i].SelectionSet is { } selectionSet)
+                for (var i = 0; i < first.Directives.Count; i++)
                 {
-                    children.AddRange(selectionSet.Selections);
+                    temp[next++] = first.Directives[i];
                 }
-            }
 
-            return new SelectionSetNode(
-                selections[0].SelectionSet!.Location,
-                children
-            );
+                directives = temp;
+            }
         }
 
-        private static IReadOnlyList<DirectiveNode> MergeDirectives(
-            IReadOnlyList<FieldNode> selections)
+        var selectionSet = first.SelectionSet;
+
+        if (selectionSet is not null && other.SelectionSet is not null)
         {
-            var firstWithDirectives = -1;
-            List<DirectiveNode>? merged = null;
+            var selections = new ISelectionNode[
+                selectionSet.Selections.Count +
+                other.SelectionSet.Selections.Count];
+            var next = 0;
 
-            for (var i = 0; i < selections.Count; i++)
+            for (var i = 0; i < selectionSet.Selections.Count; i++)
             {
-                FieldNode selection = selections[i];
-                if (selection.Directives.Count > 0)
-                {
-                    if (firstWithDirectives == -1)
-                    {
-                        firstWithDirectives = i;
-                    }
-                    else if (merged is null)
-                    {
-                        merged = selections[firstWithDirectives].Directives.ToList();
-                        merged.AddRange(selection.Directives);
-                    }
-                    else
-                    {
-                        merged.AddRange(selection.Directives);
-                    }
-                }
+                selections[next++] = selectionSet.Selections[i];
             }
 
-            if (merged is { })
+            for (var i = 0; i < other.SelectionSet.Selections.Count; i++)
             {
-                return merged;
+                selections[next++] = other.SelectionSet.Selections[i];
             }
 
-            if (firstWithDirectives != -1)
-            {
-                return selections[firstWithDirectives].Directives;
-            }
-
-            return selections[0].Directives;
+            selectionSet = selectionSet.WithSelections(selections);
         }
 
-        private void ModifyCondition(bool hasConditions) =>
-            InclusionKind =
-                (InclusionKind == SelectionInclusionKind.Internal
-                    || InclusionKind == SelectionInclusionKind.InternalConditional)
-                    ? (hasConditions
-                        ? SelectionInclusionKind.InternalConditional
-                        : SelectionInclusionKind.Internal)
-                    : (hasConditions
-                        ? SelectionInclusionKind.Conditional
-                        : SelectionInclusionKind.Always);
+        return new FieldNode(
+            first.Location,
+            first.Name,
+            first.Alias,
+            first.Required,
+            directives,
+            first.Arguments,
+            selectionSet);
+    }
+
+    internal void SetResolvers(
+        FieldDelegate? resolverPipeline = null,
+        PureFieldDelegate? pureResolver = null)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        ResolverPipeline = resolverPipeline;
+        PureResolver = pureResolver;
+        Strategy = InferStrategy(hasPureResolver: pureResolver is not null);
+    }
+
+    internal void SetSelectionSetId(int selectionSetId)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        SelectionSetId = selectionSetId;
+    }
+
+    internal void MarkAsStream(long ifCondition)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        _streamIfCondition = ifCondition;
+        _flags |= Flags.Stream;
+    }
+
+    internal void SetOption(CustomOptionsFlags customOptions)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        CustomOptions |= customOptions;
+    }
+
+    /// <summary>
+    /// Completes the selection without sealing it.
+    /// </summary>
+    internal void Complete(ISelectionSet declaringSelectionSet)
+    {
+        Debug.Assert(declaringSelectionSet is not null);
+
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            DeclaringSelectionSet = declaringSelectionSet;
+        }
+
+        Debug.Assert(
+            ReferenceEquals(declaringSelectionSet, DeclaringSelectionSet),
+            "Selections can only belong to a single selectionSet.");
+    }
+
+    internal void Seal(ISelectionSet declaringSelectionSet)
+    {
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            DeclaringSelectionSet = declaringSelectionSet;
+            _flags |= Flags.Sealed;
+        }
+
+        Debug.Assert(
+            ReferenceEquals(declaringSelectionSet, DeclaringSelectionSet),
+            "Selections can only belong to a single selectionSet.");
+    }
+
+    private SelectionExecutionStrategy InferStrategy(
+        bool isSerial = false,
+        bool hasPureResolver = false)
+    {
+        // once a field is marked serial it even with a pure resolver cannot become pure.
+        if (Strategy is SelectionExecutionStrategy.Serial || isSerial)
+        {
+            return SelectionExecutionStrategy.Serial;
+        }
+
+        if (hasPureResolver)
+        {
+            return SelectionExecutionStrategy.Pure;
+        }
+
+        return SelectionExecutionStrategy.Default;
+    }
+
+    [Flags]
+    private enum Flags
+    {
+        None = 0,
+        Internal = 1,
+        Sealed = 2,
+        List = 4,
+        Stream = 8,
+        StreamResult = 16
+    }
+
+    [Flags]
+    internal enum CustomOptionsFlags : byte
+    {
+        None = 0,
+        Option1 = 1,
+        Option2 = 2,
+        Option3 = 4,
+        Option4 = 8,
+        Option5 = 16
+    }
+
+    internal sealed class Sealed : Selection
+    {
+        public Sealed(
+            int id,
+            IObjectType declaringType,
+            IObjectField field,
+            IType type,
+            FieldNode syntaxNode,
+            string responseName,
+            ArgumentMap? arguments = null,
+            long[]? includeConditions = null,
+            bool isInternal = false,
+            bool isParallelExecutable = true,
+            FieldDelegate? resolverPipeline = null,
+            PureFieldDelegate? pureResolver = null) : base(
+            id,
+            declaringType,
+            field,
+            type,
+            syntaxNode,
+            responseName,
+            arguments,
+            includeConditions,
+            isInternal,
+            isParallelExecutable,
+            resolverPipeline,
+            pureResolver) { }
     }
 }

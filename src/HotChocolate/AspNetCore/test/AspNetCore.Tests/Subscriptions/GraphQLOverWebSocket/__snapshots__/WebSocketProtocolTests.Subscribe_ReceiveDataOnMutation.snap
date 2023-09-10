@@ -1,0 +1,11 @@
+{
+  "id": "abc",
+  "type": "next",
+  "payload": {
+    "data": {
+      "onReview": {
+        "stars": 5
+      }
+    }
+  }
+}

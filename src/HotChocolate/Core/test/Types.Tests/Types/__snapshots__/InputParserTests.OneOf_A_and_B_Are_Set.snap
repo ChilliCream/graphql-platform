@@ -1,0 +1,22 @@
+﻿[
+  {
+    "Message": "More than one field of the Oneof Input Object `OneOfInput` is set. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+    "Code": "HC0055",
+    "Path": {
+      "Name": "root",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
+    },
+    "Locations": null,
+    "Extensions": {
+      "code": "HC0055"
+    },
+    "Exception": null,
+    "SyntaxNode": null
+  }
+]

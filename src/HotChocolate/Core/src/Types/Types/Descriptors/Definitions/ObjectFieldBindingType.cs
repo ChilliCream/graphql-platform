@@ -1,18 +1,17 @@
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+/// <summary>
+/// Describes what a field filter binds to.
+/// </summary>
+public enum ObjectFieldBindingType
 {
     /// <summary>
-    /// Describes what a field filter binds to.
+    /// Binds to a property
     /// </summary>
-    public enum ObjectFieldBindingType
-    {
-        /// <summary>
-        /// Binds to a property
-        /// </summary>
-        Property,
+    Property,
 
-        /// <summary>
-        /// Binds to a GraphQL field
-        /// </summary>
-        Field
-    }
+    /// <summary>
+    /// Binds to a GraphQL field
+    /// </summary>
+    Field
 }

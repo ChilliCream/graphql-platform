@@ -3,9 +3,14 @@
     "Message": "The specified fragment `undefinedFragment` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "dog"
+      "Name": "dog",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -15,7 +20,7 @@
     ],
     "Extensions": {
       "fragment": "undefinedFragment",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
     },
     "Exception": null,
     "SyntaxNode": {

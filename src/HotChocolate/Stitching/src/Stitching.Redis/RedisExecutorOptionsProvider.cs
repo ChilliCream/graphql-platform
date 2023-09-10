@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -13,33 +8,33 @@ namespace HotChocolate.Stitching.Redis
 {
     internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
     {
-        private readonly NameString _schemaName;
-        private readonly NameString _configurationName;
+        private readonly string _schemaName;
+        private readonly string _configurationName;
         private readonly IDatabase _database;
-        private readonly List<OnChangeListener> _listeners = new List<OnChangeListener>();
+        private readonly List<OnChangeListener> _listeners = new();
 
         public RedisExecutorOptionsProvider(
-            NameString schemaName,
-            NameString configurationName,
+            string schemaName,
+            string configurationName,
             IDatabase database,
             ISubscriber subscriber)
         {
             _schemaName = schemaName;
             _configurationName = configurationName;
             _database = database;
-            subscriber.Subscribe(configurationName.Value).OnMessage(OnChangeMessageAsync);
+            subscriber.Subscribe(configurationName).OnMessage(OnChangeMessageAsync);
         }
 
         public async ValueTask<IEnumerable<IConfigureRequestExecutorSetup>> GetOptionsAsync(
             CancellationToken cancellationToken)
         {
-            IEnumerable<RemoteSchemaDefinition> schemaDefinitions =
+            var schemaDefinitions =
                 await GetSchemaDefinitionsAsync(cancellationToken)
                     .ConfigureAwait(false);
 
             var factoryOptions = new List<IConfigureRequestExecutorSetup>();
 
-            foreach (RemoteSchemaDefinition schemaDefinition in schemaDefinitions)
+            foreach (var schemaDefinition in schemaDefinitions)
             {
                 await CreateFactoryOptionsAsync(
                     schemaDefinition,
@@ -58,7 +53,7 @@ namespace HotChocolate.Stitching.Redis
         {
             string schemaName = message.Message;
 
-            RemoteSchemaDefinition schemaDefinition =
+            var schemaDefinition =
                 await GetRemoteSchemaDefinitionAsync(schemaName)
                     .ConfigureAwait(false);
 
@@ -68,9 +63,9 @@ namespace HotChocolate.Stitching.Redis
 
             lock (_listeners)
             {
-                foreach (OnChangeListener listener in _listeners)
+                foreach (var listener in _listeners)
                 {
-                    foreach (IConfigureRequestExecutorSetup options in factoryOptions)
+                    foreach (var options in factoryOptions)
                     {
                         listener.OnChange(options);
                     }
@@ -81,7 +76,7 @@ namespace HotChocolate.Stitching.Redis
         private async ValueTask<IEnumerable<RemoteSchemaDefinition>> GetSchemaDefinitionsAsync(
             CancellationToken cancellationToken)
         {
-            RedisValue[] items = await _database.SetMembersAsync(_configurationName.Value)
+            var items = await _database.SetMembersAsync(_configurationName)
                 .ConfigureAwait(false);
 
             var schemaDefinitions = new List<RemoteSchemaDefinition>();
@@ -90,7 +85,7 @@ namespace HotChocolate.Stitching.Redis
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                RemoteSchemaDefinition schemaDefinition =
+                var schemaDefinition =
                     await GetRemoteSchemaDefinitionAsync(schemaName)
                         .ConfigureAwait(false);
 
@@ -105,19 +100,19 @@ namespace HotChocolate.Stitching.Redis
             IList<IConfigureRequestExecutorSetup> factoryOptions,
             CancellationToken cancellationToken)
         {
-            await using ServiceProvider services =
+            await using var services =
                 new ServiceCollection()
                     .AddGraphQL(_schemaName)
                     .AddRemoteSchema(
                         schemaDefinition.Name,
-                        (sp, ct) => new ValueTask<RemoteSchemaDefinition>(schemaDefinition))
+                        (_, _) => new ValueTask<RemoteSchemaDefinition>(schemaDefinition))
                     .Services
                     .BuildServiceProvider();
 
-            IRequestExecutorOptionsMonitor optionsMonitor =
+            var optionsMonitor =
                 services.GetRequiredService<IRequestExecutorOptionsMonitor>();
 
-            RequestExecutorSetup options =
+            var options =
                 await optionsMonitor.GetAsync(schemaDefinition.Name, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -132,13 +127,13 @@ namespace HotChocolate.Stitching.Redis
 
         private async Task<RemoteSchemaDefinition> GetRemoteSchemaDefinitionAsync(string schemaName)
         {
-            string key = $"{_configurationName}.{schemaName}";
+            var key = $"{_configurationName}.{schemaName}";
             var json = (byte[])await _database.StringGetAsync(key).ConfigureAwait(false);
-            SchemaDefinitionDto? dto = JsonSerializer.Deserialize<SchemaDefinitionDto>(json);
+            var dto = JsonSerializer.Deserialize<SchemaDefinitionDto>(json)!;
 
             return new RemoteSchemaDefinition(
-                dto.Name,
-                Utf8GraphQLParser.Parse(dto.Document),
+                dto.Name!,
+                Utf8GraphQLParser.Parse(dto.Document!),
                 dto.ExtensionDocuments.Select(Utf8GraphQLParser.Parse));
         }
 

@@ -3,9 +3,14 @@
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "invalidArg"
+      "Name": "invalidArg",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -17,7 +22,7 @@
       "argument": "arg",
       "argumentValue": "123",
       "locationType": "Invalid",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -1,22 +1,39 @@
 ``` ini
 
-BenchmarkDotNet=v0.12.1, OS=macOS 11.2.3 (20D91) [Darwin 20.3.0]
+BenchmarkDotNet=v0.12.1, OS=macOS 11.3 (20E232) [Darwin 20.4.0]
 Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
-.NET Core SDK=6.0.100-preview.2.21155.3
-  [Host]     : .NET Core 5.0.3 (CoreCLR 5.0.321.7212, CoreFX 5.0.321.7212), X64 RyuJIT
-  DefaultJob : .NET Core 5.0.3 (CoreCLR 5.0.321.7212, CoreFX 5.0.321.7212), X64 RyuJIT
+.NET Core SDK=6.0.100-preview.3.21202.5
+  [Host]     : .NET Core 5.0.4 (CoreCLR 5.0.421.11614, CoreFX 5.0.421.11614), X64 RyuJIT
+  DefaultJob : .NET Core 5.0.4 (CoreCLR 5.0.421.11614, CoreFX 5.0.421.11614), X64 RyuJIT
 
 
 ```
-|                                     Method |      Mean |     Error |    StdDev |    Median | Rank |     Gen 0 |    Gen 1 |    Gen 2 |   Allocated |
-|------------------------------------------- |----------:|----------:|----------:|----------:|-----:|----------:|---------:|---------:|------------:|
-|                        SchemaIntrospection |  1.002 ms | 0.0199 ms | 0.0310 ms |  1.010 ms |    1 |   25.3906 |        - |        - |   274.76 KB |
-|    SchemaIntrospectionFiveParallelRequests |  5.095 ms | 0.0847 ms | 0.0792 ms |  5.084 ms |    4 |  132.8125 |        - |        - |  1373.79 KB |
-|                                    GetHero |  2.308 ms | 0.0449 ms | 0.0481 ms |  2.291 ms |    2 |         - |        - |        - |     8.33 KB |
-|                GetHeroFiveParallelRequests |  2.412 ms | 0.0482 ms | 0.0660 ms |  2.396 ms |    3 |    3.9063 |        - |        - |    41.79 KB |
-|                         GetHeroWithFriends |  7.976 ms | 0.1332 ms | 0.1180 ms |  7.985 ms |    5 |         - |        - |        - |       88 KB |
-|     GetHeroWithFriendsFiveParallelRequests |  8.493 ms | 0.1669 ms | 0.3334 ms |  8.500 ms |    6 |   31.2500 |        - |        - |   412.34 KB |
-|                     GetTwoHerosWithFriends |  8.203 ms | 0.1614 ms | 0.3110 ms |  8.337 ms |    5 |   15.6250 |        - |        - |      175 KB |
-| GetTwoHerosWithFriendsFiveParallelRequests |  9.610 ms | 0.1888 ms | 0.2174 ms |  9.675 ms |    7 |   78.1250 |  31.2500 |        - |   929.42 KB |
-|                                 LargeQuery | 17.607 ms | 0.1932 ms | 0.1713 ms | 17.573 ms |    8 |  312.5000 | 156.2500 |  31.2500 |  3318.11 KB |
-|             LargeQueryFiveParallelRequests | 39.444 ms | 0.7677 ms | 0.7181 ms | 39.390 ms |    9 | 1538.4615 | 769.2308 | 153.8462 | 16142.79 KB |
+
+V11.3
+|                                     Method |        Mean |     Error |    StdDev |      Median | Rank |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
+|------------------------------------------- |------------:|----------:|----------:|------------:|-----:|----------:|---------:|------:|------------:|
+|                        SchemaIntrospection |    923.7 μs |   7.67 μs |   6.80 μs |    922.4 μs |    1 |   26.3672 |   0.9766 |     - |   275.49 KB |
+|    SchemaIntrospectionFiveParallelRequests |  4,809.9 μs |  62.27 μs |  55.20 μs |  4,839.8 μs |    4 |  132.8125 |   7.8125 |     - |  1377.43 KB |
+|                                    GetHero |  2,673.3 μs |  22.34 μs |  20.90 μs |  2,672.3 μs |    2 |         - |        - |     - |     9.47 KB |
+|                GetHeroFiveParallelRequests |  2,753.5 μs |  38.44 μs |  35.96 μs |  2,748.4 μs |    3 |    3.9063 |        - |     - |    47.68 KB |
+|                         GetHeroWithFriends |  9,190.1 μs | 173.89 μs | 178.57 μs |  9,222.3 μs |    5 |         - |        - |     - |    86.66 KB |
+|     GetHeroWithFriendsFiveParallelRequests |  9,471.5 μs | 187.96 μs | 443.04 μs |  9,423.1 μs |    5 |   31.2500 |  15.6250 |     - |   421.75 KB |
+|                     GetTwoHerosWithFriends |  9,543.8 μs | 187.03 μs | 355.84 μs |  9,682.4 μs |    5 |   15.6250 |        - |     - |   185.38 KB |
+| GetTwoHerosWithFriendsFiveParallelRequests | 11,363.6 μs | 173.90 μs | 154.16 μs | 11,400.1 μs |    6 |   78.1250 |  31.2500 |     - |   907.96 KB |
+|                                 LargeQuery | 19,371.8 μs | 321.77 μs | 300.98 μs | 19,322.2 μs |    7 |  312.5000 | 156.2500 |     - |  3244.58 KB |
+|             LargeQueryFiveParallelRequests | 38,117.5 μs | 753.50 μs | 925.37 μs | 38,035.6 μs |    8 | 1571.4286 | 785.7143 |     - | 16394.95 KB |
+
+V12
+|                                      Method |        Mean |     Error |    StdDev |      Median | Rank |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
+|-------------------------------------------- |------------:|----------:|----------:|------------:|-----:|----------:|---------:|------:|------------:|
+|                         SchemaIntrospection |    370.0 μs |   1.32 μs |   1.10 μs |    370.0 μs |    1 |   14.6484 |   0.4883 |     - |      151 KB |
+|     SchemaIntrospectionFiveParallelRequests |  1,301.1 μs |  25.85 μs |  40.25 μs |  1,312.3 μs |    2 |   83.9844 |  31.2500 |     - |   854.18 KB |
+|                                     GetHero |  2,428.6 μs |  28.17 μs |  26.35 μs |  2,432.4 μs |    3 |         - |        - |     - |      7.4 KB |
+|                 GetHeroFiveParallelRequests |  2,593.8 μs |  16.14 μs |  15.09 μs |  2,588.6 μs |    4 |         - |        - |     - |    37.14 KB |
+|                          GetHeroWithFriends |  8,947.1 μs | 176.88 μs | 230.00 μs |  8,988.2 μs |    5 |         - |        - |     - |    80.66 KB |
+|      GetHeroWithFriendsFiveParallelRequests |  9,805.3 μs | 191.62 μs | 212.99 μs |  9,890.8 μs |    7 |   31.2500 |  15.6250 |     - |   434.58 KB |
+|                      GetTwoHerosWithFriends |  9,275.2 μs | 181.39 μs | 169.68 μs |  9,336.7 μs |    6 |   15.6250 |        - |     - |   171.16 KB |
+| GetTwoHeroesWithFriendsFiveParallelRequests | 10,794.1 μs | 202.93 μs | 199.30 μs | 10,852.7 μs |    8 |   78.1250 |  31.2500 |     - |   891.41 KB |
+|                                  LargeQuery | 16,435.2 μs | 309.37 μs | 274.25 μs | 16,501.5 μs |    9 |  281.2500 | 125.0000 |     - |  2917.47 KB |
+|              LargeQueryFiveParallelRequests | 37,167.1 μs | 702.93 μs | 809.50 μs | 37,067.3 μs |   10 | 1461.5385 | 692.3077 |     - | 14809.84 KB |
+

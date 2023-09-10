@@ -5,14 +5,16 @@ import { useDispatch } from "react-redux";
 import { asyncScheduler } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 import styled, { css } from "styled-components";
-import { ArticleSectionsFragment } from "../../../graphql-types";
-import { useObservable } from "../../state";
-import { closeAside } from "../../state/common";
-import { MostProminentSection } from "../doc-page/doc-page-elements";
+
+import { MostProminentSection } from "@/components/doc-page/doc-page-styles";
+import { ArticleSectionsFragment } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
+import { useObservable } from "@/state";
+import { closeAside } from "@/state/common";
 
 const MAX_TOC_DEPTH = 2;
 
-interface ArticleSectionsProps {
+export interface ArticleSectionsProps {
   readonly data: ArticleSectionsFragment;
 }
 
@@ -89,9 +91,7 @@ export const ArticleSectionsGraphQLFragment = graphql`
   }
 `;
 
-const Container = styled.section`
-  margin-bottom: 20px;
-`;
+const Container = styled.section``;
 
 const Title = styled.h6`
   padding: 0 25px;
@@ -115,7 +115,7 @@ const TocItemContainer = styled.ul`
 
 const TocLink = styled((props) => <Link {...props} />)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   :hover {
     color: #000;
@@ -131,6 +131,9 @@ const TocListItem = styled.li<TocListItemProps>`
   margin: 5px 0;
   padding: 0;
   line-height: initial;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
 
   > ${TocItemContainer} {
     padding-right: 0;
@@ -140,7 +143,7 @@ const TocListItem = styled.li<TocListItemProps>`
     active &&
     css`
       > ${TocLink} {
-        font-weight: bold;
+        font-weight: 600;
       }
     `}
 `;

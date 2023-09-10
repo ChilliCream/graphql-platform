@@ -2,51 +2,51 @@ using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+public class StarWarsGeneratorTests
 {
-    public class StarWarsGeneratorTests
+    [Fact]
+    public void Interface_With_Default_Names()
     {
-        [Fact]
-        public void Interface_With_Default_Names()
-        {
-            AssertStarWarsResult(
-                @"query GetHero {
+        AssertStarWarsResult(
+            @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
                         appearsIn
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void Operation_With_Leaf_Argument()
-        {
-            AssertStarWarsResult(
-                @"query GetHero($episode: Episode) {
+    [Fact]
+    public void Operation_With_Leaf_Argument()
+    {
+        AssertStarWarsResult(
+            @"query GetHero($episode: Episode) {
                     hero(episode: $episode) {
                         name
                         appearsIn
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void Operation_With_Type_Argument()
-        {
-            AssertStarWarsResult(
-                @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
+    [Fact]
+    public void Operation_With_Type_Argument()
+    {
+        AssertStarWarsResult(
+            @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
                     createReview(episode: $episode, review: $review) {
                         stars
                         commentary
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void Interface_With_Fragment_Definition_Two_Models()
-        {
-            AssertStarWarsResult(
-                @"query GetHero {
+    [Fact]
+    public void Interface_With_Fragment_Definition_Two_Models()
+    {
+        AssertStarWarsResult(
+            @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         ... Hero
                     }
@@ -70,40 +70,56 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 fragment Droid on Droid {
                     primaryFunction
                 }");
-        }
+    }
 
-        [Fact]
-        public void Subscription_With_Default_Names()
-        {
-            AssertStarWarsResult(
-                @"subscription OnReviewSub {
+    [Fact]
+    public void Subscription_With_Default_Names()
+    {
+        AssertStarWarsResult(
+            @"subscription OnReviewSub {
                     onReview(episode: NEW_HOPE) {
                         stars
                         commentary
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void Generate_StarWarsIntegrationTest()
-        {
-            AssertStarWarsResult(
-                FileResource.Open("QueryWithSubscription.graphql"));
-        }
+    [Fact]
+    public void Generate_StarWarsIntegrationTest()
+    {
+        AssertStarWarsResult(
+            FileResource.Open("QueryWithSubscription.graphql"));
+    }
 
-        [Fact]
-        public void StarWarsTypeNameOnUnions() =>
-            AssertStarWarsResult(
-                @"query SearchHero {
+    [Fact]
+    public void Generate_Client_With_Internal_Access_Modifier()
+    {
+        AssertStarWarsResult(
+            new AssertSettings {
+                StrictValidation = true,
+                AccessModifier = AccessModifier.Internal
+            },
+            @"query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        name
+                        appearsIn
+                    }
+                }");
+    }
+
+    [Fact]
+    public void StarWarsTypeNameOnUnions() =>
+        AssertStarWarsResult(
+            @"query SearchHero {
                     search(text: ""l"") {
                         __typename
                     }
                 }");
 
-        [Fact]
-        public void StarWarsUnionList() =>
-            AssertStarWarsResult(
-                @"query SearchHero {
+    [Fact]
+    public void StarWarsUnionList() =>
+        AssertStarWarsResult(
+            @"query SearchHero {
                     search(text: ""l"") {
                         ... on Human {
                             name
@@ -113,5 +129,4 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         }
                     }
                 }");
-    }
 }

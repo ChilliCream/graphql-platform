@@ -1,9 +1,8 @@
-namespace HotChocolate.Internal
+namespace HotChocolate.Internal;
+
+public enum TypeComponentKind
 {
-    public enum TypeComponentKind
-    {
-        NonNull,
-        List,
-        Named
-    }
+    NonNull,
+    List,
+    Named
 }

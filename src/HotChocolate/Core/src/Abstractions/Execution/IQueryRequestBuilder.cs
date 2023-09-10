@@ -4,91 +4,170 @@ using HotChocolate.Language;
 
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IQueryRequestBuilder
 {
-    public interface IQueryRequestBuilder
-    {
-        IQueryRequestBuilder SetQuery(
-            string sourceText);
+    IQueryRequestBuilder SetQuery(
+        string sourceText);
 
-        IQueryRequestBuilder SetQuery(
-            DocumentNode document);
+    IQueryRequestBuilder SetQuery(
+        DocumentNode document);
 
-        IQueryRequestBuilder SetQueryId(
-            string? queryName);
+    IQueryRequestBuilder SetQueryId(
+        string? queryName);
 
-        IQueryRequestBuilder SetQueryHash(
-            string? queryHash);
+    IQueryRequestBuilder SetQueryHash(
+        string? queryHash);
 
-        IQueryRequestBuilder SetOperation(
-            string? operationName);
+    IQueryRequestBuilder SetOperation(
+        string? operationName);
 
-        IQueryRequestBuilder SetVariableValues(
-            Dictionary<string, object?>? variableValues);
+    IQueryRequestBuilder SetVariableValues(
+        Dictionary<string, object?>? variableValues);
 
-        IQueryRequestBuilder SetVariableValues(
-            IDictionary<string, object?>? variableValues);
+    IQueryRequestBuilder SetVariableValues(
+        IDictionary<string, object?>? variableValues);
 
-        IQueryRequestBuilder SetVariableValues(
-            IReadOnlyDictionary<string, object?>? variableValues);
+    IQueryRequestBuilder SetVariableValues(
+        IReadOnlyDictionary<string, object?>? variableValues);
 
-        IQueryRequestBuilder AddVariableValue(
-            string name, object? value);
+    IQueryRequestBuilder AddVariableValue(
+        string name, object? value);
 
-        IQueryRequestBuilder TryAddVariableValue(
-            string name, object? value);
+    IQueryRequestBuilder TryAddVariableValue(
+        string name, object? value);
 
-        IQueryRequestBuilder SetVariableValue(
-            string name, object? value);
+    IQueryRequestBuilder SetVariableValue(
+        string name, object? value);
 
-        IQueryRequestBuilder SetInitialValue(
-            object? initialValue);
+    [Obsolete("Use `InitializeGlobalState`")]
+    IQueryRequestBuilder SetProperties(
+        Dictionary<string, object?>? properties);
 
-        IQueryRequestBuilder SetProperties(
-            Dictionary<string, object?>? properties);
+    /// <summary>
+    /// Initializes the global state of the request to the given
+    /// <paramref name="initialState" />.
+    /// </summary>
+    /// <param name="initialState">The initial state.</param>
+    /// <returns>The query request builder.</returns>
+    IQueryRequestBuilder InitializeGlobalState(
+        Dictionary<string, object?>? initialState);
 
-        IQueryRequestBuilder SetProperties(
-            IDictionary<string, object?>? properties);
+    [Obsolete("Use `InitializeGlobalState`")]
+    IQueryRequestBuilder SetProperties(
+        IDictionary<string, object?>? properties);
 
-        IQueryRequestBuilder SetProperties(
-            IReadOnlyDictionary<string, object?>? properties);
+    /// <summary>
+    /// Initializes the global state of the request to the given
+    /// <paramref name="initialState" />.
+    /// </summary>
+    /// <param name="initialState">The initial state.</param>
+    /// <returns>The query request builder.</returns>
+    IQueryRequestBuilder InitializeGlobalState(
+        IDictionary<string, object?>? initialState);
 
-        IQueryRequestBuilder AddProperty(
-            string name, object? value);
+    [Obsolete("Use `InitializeGlobalState`")]
+    IQueryRequestBuilder SetProperties(
+        IReadOnlyDictionary<string, object?>? properties);
 
-        IQueryRequestBuilder TryAddProperty(
-            string name, object? value);
+    /// <summary>
+    /// Initializes the global state of the request to the given
+    /// <paramref name="initialState" />.
+    /// </summary>
+    /// <param name="initialState">The initial state.</param>
+    /// <returns>The query request builder.</returns>
+    IQueryRequestBuilder InitializeGlobalState(
+        IReadOnlyDictionary<string, object?>? initialState);
 
-        IQueryRequestBuilder SetProperty(
-            string name, object? value);
+    [Obsolete("Use `AddGlobalState`")]
+    IQueryRequestBuilder AddProperty(
+        string name, object? value);
 
-        IQueryRequestBuilder SetExtensions(
-            Dictionary<string, object?>? extensions);
+    /// <summary>
+    /// Sets the global state for <paramref name="name" />
+    /// to the specified <paramref name="value" />,
+    /// or throws an exception if it already exists.
+    /// </summary>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="value">The state value.</param>
+    /// <returns>The query request builder.</returns>
+    /// <exception cref="System.ArgumentException">
+    /// Thrown if a state value for <paramref name="name" /> already exists.
+    /// </exception>
+    IQueryRequestBuilder AddGlobalState(
+        string name, object? value);
 
-        IQueryRequestBuilder SetExtensions(
-            IDictionary<string, object?>? extensions);
+    [Obsolete("Use `TryAddGlobalState`")]
+    IQueryRequestBuilder TryAddProperty(
+        string name, object? value);
 
-        IQueryRequestBuilder SetExtensions(
-            IReadOnlyDictionary<string, object?>? extensions);
+    /// <summary>
+    /// Sets the global state for <paramref name="name" />
+    /// to the specified <paramref name="value" />,
+    /// if it does not yet exist.
+    /// </summary>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="value">The state value.</param>
+    /// <returns>The query request builder.</returns>
+    IQueryRequestBuilder TryAddGlobalState(
+        string name, object? value);
 
-        IQueryRequestBuilder AddExtension(
-            string name, object? value);
+    [Obsolete("Use `SetGlobalState`")]
+    IQueryRequestBuilder SetProperty(
+        string name, object? value);
 
-        IQueryRequestBuilder TryAddExtension(
-            string name, object? value);
+    /// <summary>
+    /// Sets the global state for <paramref name="name" />
+    /// to the specified <paramref name="value" />.
+    /// State set previously using the same <paramref name="name" />
+    /// will be overwritten.
+    /// </summary>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="value">The new state value.</param>
+    /// <returns>The query request builder.</returns>
+    IQueryRequestBuilder SetGlobalState(
+        string name, object? value);
 
-        IQueryRequestBuilder SetExtension(
-            string name, object? value);
+    [Obsolete("Use `RemoveGlobalState`")]
+    IQueryRequestBuilder TryRemoveProperty(
+        string name);
 
-        IQueryRequestBuilder SetServices(
-            IServiceProvider? services);
+    /// <summary>
+    /// Removes the global state value for the specified
+    /// <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">The name of the state.</param>
+    /// <returns>The query request builder.</returns>
+    IQueryRequestBuilder RemoveGlobalState(
+        string name);
 
-        IQueryRequestBuilder TrySetServices(
-            IServiceProvider? services);
+    IQueryRequestBuilder SetExtensions(
+        Dictionary<string, object?>? extensions);
 
-        IQueryRequestBuilder SetAllowedOperations(
-            OperationType[]? allowedOperations);
+    IQueryRequestBuilder SetExtensions(
+        IDictionary<string, object?>? extensions);
 
-        IReadOnlyQueryRequest Create();
-    }
+    IQueryRequestBuilder SetExtensions(
+        IReadOnlyDictionary<string, object?>? extensions);
+
+    IQueryRequestBuilder AddExtension(
+        string name, object? value);
+
+    IQueryRequestBuilder TryAddExtension(
+        string name, object? value);
+
+    IQueryRequestBuilder SetExtension(
+        string name, object? value);
+
+    IQueryRequestBuilder SetServices(
+        IServiceProvider? services);
+
+    IQueryRequestBuilder TrySetServices(
+        IServiceProvider? services);
+
+    IQueryRequestBuilder SetFlags(
+        GraphQLRequestFlags flags);
+
+    IQueryRequest Create();
 }

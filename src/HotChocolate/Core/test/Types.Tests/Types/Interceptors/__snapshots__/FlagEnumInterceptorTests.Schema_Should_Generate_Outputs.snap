@@ -1,0 +1,18 @@
+﻿schema {
+  query: OutputQuery
+}
+
+type FlagsEnumFlags {
+  isFoo: Boolean!
+  isBar: Boolean!
+  isBaz: Boolean!
+}
+
+type OutputQuery {
+  single: FlagsEnumFlags!
+  list: [FlagsEnumFlags!]!
+  nestedList: [[FlagsEnumFlags!]!]!
+  nullableSingle: FlagsEnumFlags
+  nullableList: [FlagsEnumFlags]
+  nullableNestedList: [[FlagsEnumFlags]]
+}

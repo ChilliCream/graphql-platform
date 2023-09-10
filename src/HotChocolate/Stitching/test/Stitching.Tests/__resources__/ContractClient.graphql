@@ -805,8 +805,8 @@ input XPlanPensionFundTransactionFilterInput {
 }
 
 type PensionFundSimulationParameters {
-  contractSharedId: Uuid!
-  personSharedId: Uuid!
+  contractSharedId: UUID!
+  personSharedId: UUID!
   processId: String!
 }
 
@@ -1894,7 +1894,7 @@ type DeathAfterRetirement {
   widowPension: Float
 }
 
-scalar Uuid
+scalar UUID
 
 "The built-in `Decimal` scalar type."
 scalar Decimal

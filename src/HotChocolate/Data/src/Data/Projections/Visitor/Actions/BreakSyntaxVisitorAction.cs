@@ -1,7 +1,6 @@
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class BreakSelectionVisitorAction : ISelectionVisitorAction
 {
-    public class BreakSelectionVisitorAction : ISelectionVisitorAction
-    {
-        public SelectionVisitorActionKind Kind => SelectionVisitorActionKind.Break;
-    }
+    public SelectionVisitorActionKind Kind => SelectionVisitorActionKind.Break;
 }

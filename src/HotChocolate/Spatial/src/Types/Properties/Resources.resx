@@ -125,6 +125,9 @@
   <data name="GeoJsonPositionScalar_Description" xml:space="preserve">
     <value>A position is an array of numbers. There MUST be two or more elements. The first two elements are longitude and latitude, or easting and northing, precisely in that order and using decimal numbers. Altitude or elevation MAY be included as an optional third element.</value>
   </data>
+  <data name="GeoJsonCoordinatesScalar_Description" xml:space="preserve">
+    <value>A coordinate is an array of positions.</value>
+  </data>
   <data name="InvalidInputObjectStructure_IsOfWrongGeometryType" xml:space="preserve">
     <value>`type` is of type {0} but should be {1} </value>
   </data>
@@ -230,5 +233,20 @@
   </data>
   <data name="Transformation_CoordinateMNotSupported" xml:space="preserve">
     <value>Coordinates with M values cannot be transformed</value>
+  </data>
+  <data name="GeoJsonGeometrySerializer_GetFieldData_NotSupported" xml:space="preserve">
+    <value>GetFieldData is only supported on concreted serializers.</value>
+  </data>
+  <data name="GeoJsonGeometrySerializer_CreateInstance_NotSupported" xml:space="preserve">
+    <value>CreateInstance is only supported on concreted serializers.</value>
+  </data>
+  <data name="CoordinatesScalar_InvalidCoordinatesObject" xml:space="preserve">
+    <value>A valid coordinates object must be a list of depth N of two or three int or float literals representing a position. e.g. [1,1] or [2,2,0]</value>
+  </data>
+  <data name="CoordinatesScalar_CoordinatesCannotBeNull" xml:space="preserve">
+    <value>The specified value has to be a list of depth N of coordinates</value>
+  </data>
+  <data name="Serializer_OperationIsNotSupported" xml:space="preserve">
+    <value>Serializer {0} does not support operation {1}!</value>
   </data>
 </root>

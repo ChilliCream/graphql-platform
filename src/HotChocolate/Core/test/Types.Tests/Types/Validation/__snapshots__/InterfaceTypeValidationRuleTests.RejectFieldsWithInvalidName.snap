@@ -1,0 +1,18 @@
+﻿{
+  "message": "The field `__badField` must be implement by object type `Bar`.",
+  "type": "Bar",
+  "extensions": {
+    "implementedField": "__badField",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "Field names starting with `__` are reserved for the GraphQL specification.",
+  "type": "Foo",
+  "extensions": {
+    "field": "__badField",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Interfaces.Type-Validation"
+  }
+}
+

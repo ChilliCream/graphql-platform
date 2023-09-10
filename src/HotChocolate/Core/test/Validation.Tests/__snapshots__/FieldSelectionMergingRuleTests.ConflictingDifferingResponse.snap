@@ -1,0 +1,71 @@
+﻿[
+  {
+    "Message": "Encountered fields for the same object that cannot be merged.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 10,
+        "Column": 25
+      },
+      {
+        "Line": 13,
+        "Column": 25
+      }
+    ],
+    "Extensions": {
+      "declaringTypeA": "Dog",
+      "declaringTypeB": "Cat",
+      "fieldA": "nickname",
+      "fieldB": "nickname",
+      "typeA": "String",
+      "typeB": "String",
+      "responseNameA": "someValue",
+      "responseNameB": "someValue",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 369,
+          "End": 379,
+          "Line": 13,
+          "Column": 25
+        },
+        "Value": "someValue"
+      },
+      "Arguments": [],
+      "Required": {
+        "Kind": "RequiredModifier",
+        "Location": {
+          "Start": 388,
+          "End": 411,
+          "Line": 13,
+          "Column": 44
+        },
+        "Element": null
+      },
+      "SelectionSet": null,
+      "Location": {
+        "Start": 369,
+        "End": 411,
+        "Line": 13,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 380,
+          "End": 389,
+          "Line": 13,
+          "Column": 36
+        },
+        "Value": "nickname"
+      },
+      "Directives": []
+    }
+  }
+]

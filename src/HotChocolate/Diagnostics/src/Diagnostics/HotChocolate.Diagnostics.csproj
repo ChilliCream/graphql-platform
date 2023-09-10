@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Diagnostics</PackageId>
+    <AssemblyName>HotChocolate.Diagnostics</AssemblyName>
+    <RootNamespace>HotChocolate.Diagnostics</RootNamespace>
+    <Description>Provides Hot Chocolate Diagnostics.</Description>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Diagnostics.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

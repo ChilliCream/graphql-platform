@@ -8,7 +8,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-**For versions greater than 2.0.0 check the [CHANGELOG](https://github.com/ChilliCream/hotchocolate/blob/master/CHANGELOG.md) file of Hot Chocolate.**
+**For versions greater than 2.0.0 check the [CHANGELOG](https://github.com/ChilliCream/graphql-platform/blob/master/CHANGELOG.md) file of Hot Chocolate.**
 
 ---
 

@@ -1,0 +1,10 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  scalar: UnsignedShort
+}
+
+"The UnsignedShort scalar type represents a unsigned 16-bit numeric non-fractional value greater than or equal to 0."
+scalar UnsignedShort

@@ -7,195 +7,178 @@ using HotChocolate.Types;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching.Delegation;
+
+public class ContextDataScopedVariableResolverTests
 {
-    public class ContextDataScopedVariableResolverTests
+    [Fact]
+    public void CreateVariableValue()
     {
-        [Fact]
-        public void CreateVariableValue()
-        {
-            // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+        // arrange
+        var inputFormatter = new InputFormatter();
 
-            var contextData = new Dictionary<string, object>();
-            contextData["a"] = "AbcDef";
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+            .Use(_ => _)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.SetupGet(t => t.ContextData).Returns(contextData);
+        var contextData = new Dictionary<string, object?> { ["a"] = "AbcDef" };
 
-            var scopedVariable = new ScopedVariableNode(
-                null,
-                new NameNode("contextData"),
-                new NameNode("a"));
+        var context = new Mock<IResolverContext>(MockBehavior.Strict);
+        context.SetupGet(t => t.ContextData).Returns(contextData);
+        context.Setup(t => t.Service<InputFormatter>()).Returns(inputFormatter);
 
-            // act
-            var resolver = new ContextDataScopedVariableResolver();
-            ScopedVariableValue value = resolver.Resolve(
-                context.Object,
-                scopedVariable,
-                schema.GetType<StringType>("String"));
+        var scopedVariable = new ScopedVariableNode(
+            null,
+            new NameNode("contextData"),
+            new NameNode("a"));
 
-            // assert
-            Assert.Null(value.DefaultValue);
-            Assert.Equal("__contextData_a", value.Name);
-            Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
-            Assert.Equal("AbcDef", value.Value.Value);
-        }
+        // act
+        var resolver = new ContextDataScopedVariableResolver();
+        var value = resolver.Resolve(
+            context.Object,
+            scopedVariable,
+            schema.GetType<StringType>("String"));
 
-        [Fact]
-        public void ContextDataEntryDoesNotExist()
-        {
-            // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+        // assert
+        Assert.Null(value.DefaultValue);
+        Assert.Equal("__contextData_a", value.Name);
+        Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
+        Assert.Equal("AbcDef", value.Value?.Value);
+    }
 
-            var contextData = new Dictionary<string, object>();
+    [Fact]
+    public void ContextDataEntryDoesNotExist()
+    {
+        // arrange
+        var inputFormatter = new InputFormatter();
 
-            var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.SetupGet(t => t.ContextData).Returns(contextData);
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+            .Use(_ => _)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            var scopedVariable = new ScopedVariableNode(
-                null,
-                new NameNode("contextData"),
-                new NameNode("a"));
+        var contextData = new Dictionary<string, object?>();
 
-            // act
-            var resolver = new ContextDataScopedVariableResolver();
-            ScopedVariableValue value = resolver.Resolve(
-                context.Object,
-                scopedVariable,
-                schema.GetType<StringType>("String"));
+        var context = new Mock<IResolverContext>(MockBehavior.Strict);
+        context.SetupGet(t => t.ContextData).Returns(contextData);
+        context.Setup(t => t.Service<InputFormatter>()).Returns(inputFormatter);
 
-            // assert
-            Assert.Null(value.DefaultValue);
-            Assert.Equal("__contextData_a", value.Name);
-            Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
-            Assert.Equal(NullValueNode.Default, value.Value);
-        }
+        var scopedVariable = new ScopedVariableNode(
+            null,
+            new NameNode("contextData"),
+            new NameNode("a"));
+
+        // act
+        var resolver = new ContextDataScopedVariableResolver();
+        var value = resolver.Resolve(
+            context.Object,
+            scopedVariable,
+            schema.GetType<StringType>("String"));
+
+        // assert
+        Assert.Null(value.DefaultValue);
+        Assert.Equal("__contextData_a", value.Name);
+        Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
+        Assert.Equal(NullValueNode.Default, value.Value);
+    }
 
 
-        [Fact]
-        public void ContextIsNull()
-        {
-            // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+    [Fact]
+    public void ContextIsNull()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+            .Use(_ => _)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            var scopedVariable = new ScopedVariableNode(
-                null,
-                new NameNode("contextData"),
-                new NameNode("b"));
+        var scopedVariable = new ScopedVariableNode(
+            null,
+            new NameNode("contextData"),
+            new NameNode("b"));
 
-            // act
-            var resolver = new ContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
-                null,
-                scopedVariable,
-                schema.GetType<StringType>("String"));
+        // act
+        var resolver = new ContextDataScopedVariableResolver();
+        Action a = () => resolver.Resolve(
+            null!,
+            scopedVariable,
+            schema.GetType<StringType>("String"));
 
-            // assert
-            Assert.Equal("context", Assert.Throws<ArgumentNullException>(a).ParamName);
-        }
+        // assert
+        Assert.Equal("context", Assert.Throws<ArgumentNullException>(a).ParamName);
+    }
 
-        [Fact]
-        public void ScopedVariableIsNull()
-        {
-            // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+    [Fact]
+    public void ScopedVariableIsNull()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+            .Use(_ => _)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            var context = new Mock<IMiddlewareContext>();
+        var context = new Mock<IMiddlewareContext>();
 
-            // act
-            var resolver = new ContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
-                context.Object,
-                null,
-                schema.GetType<StringType>("String"));
+        // act
+        var resolver = new ContextDataScopedVariableResolver();
+        Action a = () => resolver.Resolve(
+            context.Object,
+            null!,
+            schema.GetType<StringType>("String"));
 
-            // assert
-            Assert.Equal("variable", Assert.Throws<ArgumentNullException>(a).ParamName);
-        }
+        // assert
+        Assert.Equal("variable", Assert.Throws<ArgumentNullException>(a).ParamName);
+    }
 
-        [Fact]
-        public void TargetTypeIsNull()
-        {
-            // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+    [Fact]
+    public void TargetTypeIsNull()
+    {
+        // arrange
+        var context = new Mock<IMiddlewareContext>();
 
-            var context = new Mock<IMiddlewareContext>();
+        var scopedVariable = new ScopedVariableNode(
+            null,
+            new NameNode("contextData"),
+            new NameNode("b"));
 
-            var scopedVariable = new ScopedVariableNode(
-                null,
-                new NameNode("contextData"),
-                new NameNode("b"));
+        // act
+        var resolver = new ContextDataScopedVariableResolver();
+        void Action() => resolver.Resolve(context.Object, scopedVariable, null!);
 
-            // act
-            var resolver = new ContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
-                context.Object,
-                scopedVariable,
-                null);
+        // assert
+        Assert.Equal("targetType", Assert.Throws<ArgumentNullException>(Action).ParamName);
+    }
 
-            // assert
-            Assert.Equal("targetType", Assert.Throws<ArgumentNullException>(a).ParamName);
-        }
+    [Fact]
+    public void InvalidScope()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+            .Use(_ => _)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-        [Fact]
-        public void InvalidScope()
-        {
-            // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+        var context = new Mock<IMiddlewareContext>();
 
-            var context = new Mock<IMiddlewareContext>();
+        var scopedVariable = new ScopedVariableNode(
+            null,
+            new NameNode("foo"),
+            new NameNode("b"));
 
-            var scopedVariable = new ScopedVariableNode(
-                null,
-                new NameNode("foo"),
-                new NameNode("b"));
+        // act
+        var resolver = new ContextDataScopedVariableResolver();
+        Action a = () => resolver.Resolve(
+            context.Object,
+            scopedVariable,
+            schema.GetType<StringType>("String"));
 
-            // act
-            var resolver = new ContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
-                context.Object,
-                scopedVariable,
-                schema.GetType<StringType>("String"));
-
-            // assert
-            Assert.Equal("variable", Assert.Throws<ArgumentException>(a).ParamName);
-        }
+        // assert
+        Assert.Equal("variable", Assert.Throws<ArgumentException>(a).ParamName);
     }
 }

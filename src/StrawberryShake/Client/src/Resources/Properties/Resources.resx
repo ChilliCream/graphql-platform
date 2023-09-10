@@ -123,4 +123,16 @@
   <data name="StoreAccessor_GetOperationRequestFactory_InvalidResultType" xml:space="preserve">
     <value>The specified result type is invalid.</value>
   </data>
+  <data name="JsonResultPatcher_PatchResponse_NoValidInitialResponse" xml:space="preserve">
+    <value>There was not a valid initial result that can be patched.</value>
+  </data>
+  <data name="JsonResultPatcher_NoValidInitialResponse" xml:space="preserve">
+    <value>There was not a valid initial result that can be patched.</value>
+  </data>
+  <data name="JsonResultPatcher_PathSegmentMustBeStringOrInt" xml:space="preserve">
+    <value>A path segment must be a string or an integer.</value>
+  </data>
+  <data name="ResponseEnumerator_HttpNoSuccessStatusCode" xml:space="preserve">
+    <value>Response status code does not indicate success: {0} ({1}).</value>
+  </data>
 </root>

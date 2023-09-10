@@ -1,0 +1,15 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  a(a: Example2Input): String
+}
+
+input Example2Input @oneOf {
+  a: String
+  b: Int
+}
+
+"The `@oneOf` directive is used within the type system definition language\n to indicate:\n\n - an Input Object is a Oneof Input Object, or\n - an Object Type's Field is a Oneof Field."
+directive @oneOf on INPUT_OBJECT

@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!--HotChocolateImplicitUsings: default|disable|enable-->
+    <HotChocolateImplicitUsings>default</HotChocolateImplicitUsings>
+  </PropertyGroup>
+</Project>

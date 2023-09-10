@@ -2,220 +2,240 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable  enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class TypeRegistry
 {
-    internal sealed class TypeRegistry
+    private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = new();
+    private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
+        new(new ExtendedTypeRefEqualityComparer());
+    private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);
+    private readonly List<RegisteredType> _types = new();
+    private readonly TypeInterceptor _typeRegistryInterceptor;
+
+    public TypeRegistry(TypeInterceptor typeRegistryInterceptor)
     {
-        private readonly Dictionary<ITypeReference, RegisteredType> _typeRegister = new();
-        private readonly Dictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs =
-            new(new ExtendedTypeReferenceEqualityComparer());
-        private readonly Dictionary<NameString, ITypeReference> _nameRefs = new();
-        private readonly List<RegisteredType> _types = new();
-        private readonly ITypeRegistryInterceptor _typeRegistryInterceptor;
+        _typeRegistryInterceptor = typeRegistryInterceptor ??
+            throw new ArgumentNullException(nameof(typeRegistryInterceptor));
+    }
 
-        public TypeRegistry(ITypeRegistryInterceptor typeRegistryInterceptor)
+    public int Count => _typeRegister.Count;
+
+    public IReadOnlyList<RegisteredType> Types => _types;
+
+    public IReadOnlyDictionary<ExtendedTypeReference, TypeReference> RuntimeTypeRefs =>
+        _runtimeTypeRefs;
+
+    public IReadOnlyDictionary<string, TypeReference> NameRefs => _nameRefs;
+
+    public bool IsRegistered(TypeReference typeReference)
+    {
+        if (typeReference is null)
         {
-            _typeRegistryInterceptor = typeRegistryInterceptor ??
-                throw new ArgumentNullException(nameof(typeRegistryInterceptor));
+            throw new ArgumentNullException(nameof(typeReference));
         }
 
-        public int Count => _typeRegister.Count;
-
-        public IReadOnlyList<RegisteredType> Types => _types;
-
-        public IReadOnlyDictionary<ExtendedTypeReference, ITypeReference> RuntimeTypeRefs =>
-            _runtimeTypeRefs;
-
-        public IReadOnlyDictionary<NameString, ITypeReference> NameRefs => _nameRefs;
-
-        public bool IsRegistered(ITypeReference typeReference)
+        if (_typeRegister.ContainsKey(typeReference))
         {
-            if (typeReference is null)
-            {
-                throw new ArgumentNullException(nameof(typeReference));
-            }
-
-            if (_typeRegister.ContainsKey(typeReference))
-            {
-                return true;
-            }
-
-            if (typeReference is ExtendedTypeReference clrTypeReference)
-            {
-                return _runtimeTypeRefs.ContainsKey(clrTypeReference);
-            }
-
-            return false;
+            return true;
         }
 
-        public bool TryGetType(
-            ITypeReference typeRef,
-            [NotNullWhen(true)] out RegisteredType? registeredType)
+        if (typeReference is ExtendedTypeReference extendedTypeRef)
         {
-            if (typeRef is null)
-            {
-                throw new ArgumentNullException(nameof(typeRef));
-            }
-
-            if (typeRef is ExtendedTypeReference clrTypeRef &&
-                _runtimeTypeRefs.TryGetValue(clrTypeRef, out ITypeReference? internalRef))
-            {
-                typeRef = internalRef;
-            }
-
-            return _typeRegister.TryGetValue(typeRef, out registeredType);
+            return _runtimeTypeRefs.ContainsKey(extendedTypeRef);
         }
 
-        public bool TryGetTypeRef(
-            ExtendedTypeReference runtimeTypeRef,
-            [NotNullWhen(true)] out ITypeReference? typeRef)
-        {
-            if (runtimeTypeRef is null)
-            {
-                throw new ArgumentNullException(nameof(runtimeTypeRef));
-            }
+        return false;
+    }
 
-            return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
+    public bool TryGetType(
+        TypeReference typeRef,
+        [NotNullWhen(true)] out RegisteredType? registeredType)
+    {
+        if (typeRef is null)
+        {
+            throw new ArgumentNullException(nameof(typeRef));
         }
 
-        public bool TryGetTypeRef(
-            NameString typeName,
-            [NotNullWhen(true)] out ITypeReference? typeRef)
+        if (typeRef is ExtendedTypeReference clrTypeRef &&
+            _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
         {
-            typeName.EnsureNotEmpty(nameof(typeName));
-
-            if (!_nameRefs.TryGetValue(typeName, out typeRef))
-            {
-                typeRef = Types
-                    .FirstOrDefault(t => !t.IsExtension && t.Type.Name.Equals(typeName))
-                    ?.References[0];
-            }
-            return typeRef is not null;
+            typeRef = internalRef;
         }
 
-        public IEnumerable<ITypeReference> GetTypeRefs() => _runtimeTypeRefs.Values;
+        return _typeRegister.TryGetValue(typeRef, out registeredType);
+    }
 
-        public void TryRegister(ExtendedTypeReference runtimeTypeRef, ITypeReference typeRef)
+    public bool TryGetTypeRef(
+        ExtendedTypeReference runtimeTypeRef,
+        [NotNullWhen(true)] out TypeReference? typeRef)
+    {
+        if (runtimeTypeRef is null)
         {
-            if (runtimeTypeRef is null)
-            {
-                throw new ArgumentNullException(nameof(runtimeTypeRef));
-            }
-
-            if (typeRef is null)
-            {
-                throw new ArgumentNullException(nameof(typeRef));
-            }
-
-            if (!_runtimeTypeRefs.ContainsKey(runtimeTypeRef))
-            {
-                _runtimeTypeRefs.Add(runtimeTypeRef, typeRef);
-            }
+            throw new ArgumentNullException(nameof(runtimeTypeRef));
         }
 
-        public void Register(RegisteredType registeredType)
+        return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
+    }
+
+    public bool TryGetTypeRef(
+        string typeName,
+        [NotNullWhen(true)] out TypeReference? typeRef)
+    {
+        typeName.EnsureGraphQLName();
+
+        if (!_nameRefs.TryGetValue(typeName, out typeRef))
         {
-            if (registeredType is null)
-            {
-                throw new ArgumentNullException(nameof(registeredType));
-            }
+            typeRef = Types
+                .FirstOrDefault(t => !t.IsExtension && t.Type.Name.EqualsOrdinal(typeName))
+                ?.References[0];
+        }
+        return typeRef is not null;
+    }
 
-            var addToTypes = !_typeRegister.ContainsValue(registeredType);
+    public IEnumerable<TypeReference> GetTypeRefs() => _runtimeTypeRefs.Values;
 
-            foreach (ITypeReference typeReference in registeredType.References)
+    public void TryRegister(ExtendedTypeReference runtimeTypeRef, TypeReference typeRef)
+    {
+        if (runtimeTypeRef is null)
+        {
+            throw new ArgumentNullException(nameof(runtimeTypeRef));
+        }
+
+        if (typeRef is null)
+        {
+            throw new ArgumentNullException(nameof(typeRef));
+        }
+
+        if (!_runtimeTypeRefs.ContainsKey(runtimeTypeRef))
+        {
+            _runtimeTypeRefs.Add(runtimeTypeRef, typeRef);
+        }
+    }
+
+    public void Register(RegisteredType registeredType)
+    {
+        if (registeredType is null)
+        {
+            throw new ArgumentNullException(nameof(registeredType));
+        }
+
+        var addToTypes = !_typeRegister.ContainsValue(registeredType);
+
+        foreach (var typeReference in registeredType.References)
+        {
+            if (_typeRegister.TryGetValue(typeReference, out var current) &&
+                !ReferenceEquals(current, registeredType))
             {
-                if (_typeRegister.TryGetValue(typeReference, out RegisteredType? current) &&
-                    !ReferenceEquals(current, registeredType))
-                {
-                    if (current.IsInferred && !registeredType.IsInferred)
-                    {
-                        _typeRegister[typeReference] = registeredType;
-                        if (!_typeRegister.ContainsValue(current))
-                        {
-                            _types.Remove(current);
-                        }
-                    }
-                }
-                else
+                if (current.IsInferred && !registeredType.IsInferred)
                 {
                     _typeRegister[typeReference] = registeredType;
+                    if (!_typeRegister.ContainsValue(current))
+                    {
+                        _types.Remove(current);
+                    }
                 }
             }
-
-            if (addToTypes)
+            else
             {
-                _types.Add(registeredType);
-                _typeRegistryInterceptor.OnTypeRegistered(registeredType.DiscoveryContext);
+                _typeRegister[typeReference] = registeredType;
             }
         }
 
-        public void Register(NameString typeName, ExtendedTypeReference typeReference)
+        if (addToTypes)
         {
-            if (typeReference is null)
-            {
-                throw new ArgumentNullException(nameof(typeReference));
-            }
-
-            typeName.EnsureNotEmpty(nameof(typeName));
-            _nameRefs[typeName] = typeReference;
+            _types.Add(registeredType);
+            _typeRegistryInterceptor.OnTypeRegistered(registeredType);
         }
 
-        public void Register(NameString typeName, RegisteredType registeredType)
+        if (!registeredType.IsExtension)
         {
-            if (registeredType is null)
+            if (registeredType.IsNamedType &&
+                registeredType.Type is IHasTypeDefinition { Definition: { } typeDef } &&
+                !_nameRefs.ContainsKey(typeDef.Name))
             {
-                throw new ArgumentNullException(nameof(registeredType));
+                _nameRefs.Add(typeDef.Name, registeredType.References[0]);
             }
-
-            typeName.EnsureNotEmpty(nameof(typeName));
-
-            if (registeredType.IsExtension)
+            else if (registeredType.Kind == TypeKind.Scalar &&
+                registeredType.Type is ScalarType scalar)
             {
-                return;
+                _nameRefs.Add(scalar.Name, registeredType.References[0]);
             }
-
-            if (!registeredType.IsNamedType && !registeredType.IsDirectiveType)
+            else if (registeredType.Kind == TypeKind.Directive &&
+                registeredType.Type is DirectiveType directive &&
+                !_nameRefs.ContainsKey(directive.Definition!.Name))
             {
-                return;
+                _nameRefs.Add(directive.Definition.Name, registeredType.References[0]);
             }
+        }
+    }
 
-            if (TryGetTypeRef(typeName, out ITypeReference? typeRef) &&
-                TryGetType(typeRef, out RegisteredType? type) &&
-                !ReferenceEquals(type, registeredType))
-            {
-                throw TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
-            }
-
-            _nameRefs[typeName] = registeredType.References[0];
+    public void Register(string typeName, ExtendedTypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
         }
 
-        public void CompleteDiscovery()
+        typeName.EnsureGraphQLName();
+
+        _nameRefs[typeName] = typeReference;
+    }
+
+    public void Register(string typeName, RegisteredType registeredType)
+    {
+        if (registeredType is null)
         {
-            var refs = new List<ITypeReference>();
+            throw new ArgumentNullException(nameof(registeredType));
+        }
 
-            foreach (RegisteredType registeredType in _types)
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        if (registeredType.IsExtension)
+        {
+            return;
+        }
+
+        if (registeredType is { IsNamedType: false, IsDirectiveType: false })
+        {
+            return;
+        }
+
+        if (TryGetTypeRef(typeName, out var typeRef) &&
+            TryGetType(typeRef, out var type) &&
+            !ReferenceEquals(type, registeredType))
+        {
+            throw TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
+        }
+
+        _nameRefs[typeName] = registeredType.References[0];
+    }
+
+    public void CompleteDiscovery()
+    {
+        foreach (var registeredType in _types)
+        {
+            TypeReference reference = TypeReference.Create(registeredType.Type);
+            registeredType.References.TryAdd(reference);
+
+            _typeRegister[reference] = registeredType;
+
+            if (registeredType.Type.Scope is { } s)
             {
-                refs.Clear();
-
-                ITypeReference reference = TypeReference.Create(registeredType.Type);
-                refs.Add(reference);
+                reference = TypeReference.Create(registeredType.Type, s);
+                registeredType.References.TryAdd(reference);
 
                 _typeRegister[reference] = registeredType;
-
-                if (registeredType.Type.Scope is { } s)
-                {
-                    reference = TypeReference.Create(registeredType.Type, s);
-                    refs.Add(reference);
-
-                    _typeRegister[reference] = registeredType;
-                }
-
-                registeredType.AddReferences(refs);
             }
         }
     }

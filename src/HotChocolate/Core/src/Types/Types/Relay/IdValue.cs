@@ -1,20 +1,26 @@
-﻿using System;
+#nullable enable
 
-namespace HotChocolate.Types.Relay
+using System;
+
+namespace HotChocolate.Types.Relay;
+
+public readonly struct IdValue
 {
-    public readonly struct IdValue
+    public IdValue(string? schemaName, string typeName, object value)
     {
-        public IdValue(NameString schemaName, NameString typeName, object value)
+        if (string.IsNullOrEmpty(typeName))
         {
-            SchemaName = schemaName;
-            TypeName = typeName.EnsureNotEmpty(typeName); ;
-            Value = value ?? throw new ArgumentNullException(nameof(value));
+            throw new ArgumentNullException(nameof(typeName));
         }
 
-        public NameString SchemaName { get; }
-
-        public NameString TypeName { get; }
-
-        public object Value { get; }
+        SchemaName = schemaName;
+        TypeName = typeName;
+        Value = value ?? throw new ArgumentNullException(nameof(value));
     }
+
+    public string? SchemaName { get; }
+
+    public string TypeName { get; }
+
+    public object Value { get; }
 }

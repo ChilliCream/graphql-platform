@@ -1,0 +1,44 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(test: ExplicitFilterInput): String
+}
+
+input BarFilterInput {
+  and: [BarFilterInput!]
+  or: [BarFilterInput!]
+  foo: FooFilterInput
+  fooNullable: FooFilterInput
+}
+
+input ExplicitFilterInput {
+  and: [ExplicitFilterInput!]
+  or: [ExplicitFilterInput!]
+  comparable: BarFilterInput
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  barShort: ShortOperationFilterInput
+}
+
+input ShortOperationFilterInput {
+  eq: Short
+  neq: Short
+  in: [Short]
+  nin: [Short]
+  gt: Short
+  ngt: Short
+  gte: Short
+  ngte: Short
+  lt: Short
+  nlt: Short
+  lte: Short
+  nlte: Short
+}
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short

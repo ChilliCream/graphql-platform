@@ -1,7 +1,6 @@
-﻿namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers;
+
+public interface IDirectiveMiddleware
 {
-    public interface IDirectiveMiddleware
-    {
-        NameString DirectiveName { get; }
-    }
+    string DirectiveName { get; }
 }

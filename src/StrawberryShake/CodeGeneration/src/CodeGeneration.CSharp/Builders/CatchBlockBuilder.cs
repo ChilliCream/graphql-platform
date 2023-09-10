@@ -1,69 +1,67 @@
 using System.Collections.Generic;
-using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class CatchBlockBuilder : ICode
 {
-    public class CatchBlockBuilder : ICode
+    private string? _exception;
+    private string? _exceptionVariable;
+    private readonly List<ICode> _code = new();
+
+    public static CatchBlockBuilder New() => new();
+
+    public CatchBlockBuilder AddCode(ICode code)
     {
-        private string? _exception;
-        private string? _exceptionVariable;
-        private readonly List<ICode> _code = new();
+        _code.Add(code);
+        return this;
+    }
 
-        public static CatchBlockBuilder New() => new();
-
-        public CatchBlockBuilder AddCode(ICode code)
+    public CatchBlockBuilder SetExceptionVariable(string name)
+    {
+        if (_exception is null)
         {
-            _code.Add(code);
-            return this;
+            _exception = TypeNames.Exception;
         }
 
-        public CatchBlockBuilder SetExceptionVariable(NameString name)
+        _exceptionVariable = name;
+        return this;
+    }
+
+    public CatchBlockBuilder SetExceptionType(string typeName)
+    {
+        _exception = typeName;
+        return this;
+    }
+
+    public void Build(CodeWriter writer)
+    {
+        writer.WriteIndent();
+        writer.Write($"catch");
+        if (_exception is not null)
         {
-            if (_exception is null)
+            writer.Write("(");
+            writer.Write(_exception);
+
+            if (_exceptionVariable is not null)
             {
-                _exception = TypeNames.Exception;
+                writer.WriteSpace();
+                writer.Write(_exceptionVariable);
             }
 
-            _exceptionVariable = name;
-            return this;
+            writer.Write(")");
         }
+        writer.WriteLine();
 
-        public CatchBlockBuilder SetExceptionType(string typeName)
+        writer.WriteIndentedLine("{");
+
+        using (writer.IncreaseIndent())
         {
-            _exception = typeName;
-            return this;
+            foreach (var code in _code)
+            {
+                code.Build(writer);
+            }
         }
 
-        public void Build(CodeWriter writer)
-        {
-            writer.WriteIndent();
-            writer.Write($"catch");
-            if (_exception is not null)
-            {
-                writer.Write("(");
-                writer.Write(_exception);
-
-                if (_exceptionVariable is not null)
-                {
-                    writer.WriteSpace();
-                    writer.Write(_exceptionVariable);
-                }
-
-                writer.Write(")");
-            }
-            writer.WriteLine();
-
-            writer.WriteIndentedLine("{");
-
-            using (writer.IncreaseIndent())
-            {
-                foreach (var code in _code)
-                {
-                    code.Build(writer);
-                }
-            }
-
-            writer.WriteIndentedLine("}");
-        }
+        writer.WriteIndentedLine("}");
     }
 }

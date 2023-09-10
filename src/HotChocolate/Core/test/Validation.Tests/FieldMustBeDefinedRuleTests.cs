@@ -4,22 +4,24 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class FieldMustBeDefinedRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public FieldMustBeDefinedRuleTests()
-            : base(builder => builder.AddFieldRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void FieldIsNotDefinedOnTypeInFragment()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+public class FieldMustBeDefinedRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public FieldMustBeDefinedRuleTests()
+        : base(builder => builder.AddFieldRules())
+    {
+    }
+
+    [Fact]
+    public void FieldIsNotDefinedOnTypeInFragment()
+    {
+        // arrange
+        var context = ValidationUtils.CreateContext();
+        context.MaxAllowedErrors = int.MaxValue;
+
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... fieldNotDefined
@@ -35,28 +37,28 @@ namespace HotChocolate.Validation
                     barkVolume: kawVolume
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
-                    "The field `meowVolume` does not exist " +
-                    "on the type `Dog`.", t.Message),
-                t => Assert.Equal(
-                    "The field `kawVolume` does not exist " +
-                    "on the type `Dog`.", t.Message));
-            context.Errors.MatchSnapshot();
-        }
+        // assert
+        Assert.Collection(context.Errors,
+            t => Assert.Equal(
+                "The field `meowVolume` does not exist " +
+                "on the type `Dog`.", t.Message),
+            t => Assert.Equal(
+                "The field `kawVolume` does not exist " +
+                "on the type `Dog`.", t.Message));
+        context.Errors.MatchSnapshot();
+    }
 
-        [Fact]
-        public void InterfaceFieldSelectionOnPet()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void InterfaceFieldSelectionOnPet()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... interfaceFieldSelection
@@ -67,21 +69,23 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
+    }
 
-        [Fact]
-        public void DefinedOnImplementorsButNotInterfaceOnPet()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void DefinedOnImplementorsButNotInterfaceOnPet()
+    {
+        // arrange
+        var context = ValidationUtils.CreateContext();
+        context.MaxAllowedErrors = int.MaxValue;
+
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... definedOnImplementorsButNotInterface
@@ -92,25 +96,25 @@ namespace HotChocolate.Validation
                     nickname
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
-                    "The field `nickname` does not exist " +
-                    "on the type `Pet`.", t.Message));
-            context.Errors.First().MatchSnapshot();
-        }
+        // assert
+        Assert.Collection(context.Errors,
+            t => Assert.Equal(
+                "The field `nickname` does not exist " +
+                "on the type `Pet`.", t.Message));
+        context.Errors.First().MatchSnapshot();
+    }
 
-        [Fact]
-        public void InDirectFieldSelectionOnUnion()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void InDirectFieldSelectionOnUnion()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... inDirectFieldSelectionOnUnion
@@ -127,22 +131,24 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
+    }
 
 
-        [Fact]
-        public void DirectFieldSelectionOnUnion()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void DirectFieldSelectionOnUnion()
+    {
+        // arrange
+        var context = ValidationUtils.CreateContext();
+        context.MaxAllowedErrors = int.MaxValue;
+
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     catOrDog {
                         ... directFieldSelectionOnUnion
@@ -154,25 +160,25 @@ namespace HotChocolate.Validation
                     barkVolume
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
-                    "A union type cannot declare a field directly. " +
-                    "Use inline fragments or fragments instead.", t.Message));
-            context.Errors.First().MatchSnapshot();
-        }
+        // assert
+        Assert.Collection(context.Errors,
+            t => Assert.Equal(
+                "A union type cannot declare a field directly. " +
+                "Use inline fragments or fragments instead.", t.Message));
+        context.Errors.First().MatchSnapshot();
+    }
 
-        [Fact]
-        public void IntrospectionFieldsOnInterface()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void IntrospectionFieldsOnInterface()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... interfaceFieldSelection
@@ -183,21 +189,21 @@ namespace HotChocolate.Validation
                     __typename
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
+    }
 
-        [Fact]
-        public void IntrospectionFieldsOnUnion()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void IntrospectionFieldsOnUnion()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... unionFieldSelection
@@ -208,21 +214,21 @@ namespace HotChocolate.Validation
                     __typename
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
+    }
 
-        [Fact]
-        public void IntrospectionFieldsOnObject()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void IntrospectionFieldsOnObject()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     catOrDog {
                         ... unionFieldSelection
@@ -233,13 +239,12 @@ namespace HotChocolate.Validation
                     __typename
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
     }
 }

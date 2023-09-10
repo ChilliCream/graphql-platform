@@ -1,0 +1,13 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  bar: String
+}
+
+input DeprecatedInputFieldsInput {
+  obsoleteWithReason: Int @deprecated(reason: "reason")
+  obsolete: Int @deprecated
+  deprecated: Int @deprecated(reason: "reason")
+}

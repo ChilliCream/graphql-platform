@@ -51,7 +51,7 @@ fragment Starship on Starship {
   name
 }
 
-fragment Friend on CharacterConnection {
+fragment Friend on FriendsConnection {
   nodes {
     ...HasName
     friends {

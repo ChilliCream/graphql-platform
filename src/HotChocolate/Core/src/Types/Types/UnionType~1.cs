@@ -6,55 +6,31 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class UnionType<T> : UnionType
 {
-    public class UnionType<T>
-        : UnionType
+    private Action<IUnionTypeDescriptor>? _configure;
+
+    public UnionType()
     {
-        private Action<IUnionTypeDescriptor>? _configure;
+        _configure = Configure;
+    }
 
-        public UnionType()
-        {
-            _configure = Configure;
-        }
+    public UnionType(Action<IUnionTypeDescriptor> configure)
+    {
+        _configure = configure
+            ?? throw new ArgumentNullException(nameof(configure));
+    }
 
-        public UnionType(Action<IUnionTypeDescriptor> configure)
-        {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
-        }
+    protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    {
+        var descriptor =
+            UnionTypeDescriptor.New(context.DescriptorContext, typeof(T));
 
-        protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-        {
-            var descriptor =
-                UnionTypeDescriptor.New(context.DescriptorContext, typeof(T));
+        _configure!(descriptor);
+        _configure = null;
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
-        }
-
-        protected override void OnCompleteTypeSet(
-            ITypeCompletionContext context,
-            UnionTypeDefinition definition,
-            ISet<ObjectType> typeSet)
-        {
-            base.OnCompleteTypeSet(context, definition, typeSet);
-
-            Type markerType = definition.RuntimeType;
-
-            if (markerType != typeof(object))
-            {
-                foreach (ObjectType type in context.GetTypes<ObjectType>())
-                {
-                    if (type.RuntimeType != typeof(object)
-                        && markerType.IsAssignableFrom(type.RuntimeType))
-                    {
-                        typeSet.Add(type);
-                    }
-                }
-            }
-        }
+        return descriptor.CreateDefinition();
     }
 }

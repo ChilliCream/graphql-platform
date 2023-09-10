@@ -1,0 +1,7 @@
+﻿schema {
+  query: QueryWithDeprecatedArguments
+}
+
+type QueryWithDeprecatedArguments {
+  field(deprecated: String @deprecated(reason: "Not longer allowed")): String!
+}

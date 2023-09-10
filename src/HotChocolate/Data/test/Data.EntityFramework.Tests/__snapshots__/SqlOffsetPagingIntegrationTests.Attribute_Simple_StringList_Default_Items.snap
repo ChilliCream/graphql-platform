@@ -1,0 +1,24 @@
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "foo": "A"
+        },
+        {
+          "foo": "B"
+        },
+        {
+          "foo": "C"
+        },
+        {
+          "foo": "D"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false
+      }
+    }
+  }
+}

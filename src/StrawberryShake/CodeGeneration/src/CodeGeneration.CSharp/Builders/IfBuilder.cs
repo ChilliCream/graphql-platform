@@ -1,129 +1,128 @@
 using System;
 using System.Collections.Generic;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class IfBuilder : ICodeContainer<IfBuilder>
 {
-    public class IfBuilder : ICodeContainer<IfBuilder>
+    private readonly List<ICode> _lines = new();
+    private ConditionBuilder? _condition;
+
+    private readonly List<IfBuilder> _ifElses = new();
+    private ICode? _elseCode;
+    private bool _writeIndents = true;
+
+    public static IfBuilder New() => new();
+
+    public IfBuilder SetCondition(ConditionBuilder condition)
     {
-        private readonly List<ICode> _lines = new();
-        private ConditionBuilder? _condition;
+        _condition = condition;
+        return this;
+    }
 
-        private readonly List<IfBuilder> _ifElses = new();
-        private ICode? _elseCode;
-        private bool _writeIndents = true;
+    public IfBuilder SkipIndents()
+    {
+        _writeIndents = false;
+        return this;
+    }
 
-        public static IfBuilder New() => new();
+    public IfBuilder SetCondition(string condition)
+    {
+        _condition = ConditionBuilder.New().Set(condition);
+        return this;
+    }
 
-        public IfBuilder SetCondition(ConditionBuilder condition)
+    public IfBuilder SetCondition(ICode condition)
+    {
+        _condition = ConditionBuilder.New().Set(condition);
+        return this;
+    }
+
+    public IfBuilder AddCode(string code, bool addIf = true)
+    {
+        if (addIf)
         {
-            _condition = condition;
-            return this;
+            _lines.Add(CodeLineBuilder.New().SetLine(code));
         }
 
-        public IfBuilder SkipIndents()
+        return this;
+    }
+
+    public IfBuilder AddCode(ICode code, bool addIf = true)
+    {
+        if (addIf)
         {
-            _writeIndents = false;
-            return this;
+            _lines.Add(code);
         }
 
-        public IfBuilder SetCondition(string condition)
+        return this;
+    }
+
+    public IfBuilder AddEmptyLine()
+    {
+        _lines.Add(CodeLineBuilder.New());
+        return this;
+    }
+
+    public IfBuilder AddIfElse(IfBuilder singleIf)
+    {
+        _ifElses.Add(singleIf);
+        return this;
+    }
+
+    public IfBuilder AddElse(ICode code)
+    {
+        _elseCode = code;
+        return this;
+    }
+
+    public void Build(CodeWriter writer)
+    {
+        if (_condition is null)
         {
-            _condition = ConditionBuilder.New().Set(condition);
-            return this;
+            throw new ArgumentNullException(nameof(_condition));
         }
 
-        public IfBuilder SetCondition(ICode condition)
+        if (_writeIndents)
         {
-            _condition = ConditionBuilder.New().Set(condition);
-            return this;
+            writer.WriteIndent();
         }
 
-        public IfBuilder AddCode(string code, bool addIf = true)
+        writer.Write("if (");
+        _condition.Build(writer);
+        writer.Write(")");
+        writer.WriteLine();
+        writer.WriteIndentedLine("{");
+
+        using (writer.IncreaseIndent())
         {
-            if (addIf)
+            foreach (var code in _lines)
             {
-                _lines.Add(CodeLineBuilder.New().SetLine(code));
+                code.Build(writer);
             }
-
-            return this;
         }
 
-        public IfBuilder AddCode(ICode code, bool addIf = true)
-        {
-            if (addIf)
-            {
-                _lines.Add(code);
-            }
+        writer.WriteIndent();
+        writer.Write("}");
+        writer.WriteLine();
 
-            return this;
+        foreach (var ifBuilder in _ifElses)
+        {
+            writer.WriteIndent();
+            writer.Write("else ");
+            ifBuilder.Build(writer);
         }
 
-        public IfBuilder AddEmptyLine()
+        if (_elseCode is not null)
         {
-            _lines.Add(CodeLineBuilder.New());
-            return this;
-        }
-
-        public IfBuilder AddIfElse(IfBuilder singleIf)
-        {
-            _ifElses.Add(singleIf);
-            return this;
-        }
-
-        public IfBuilder AddElse(ICode code)
-        {
-            _elseCode = code;
-            return this;
-        }
-
-        public void Build(CodeWriter writer)
-        {
-            if (_condition is null)
-            {
-                throw new ArgumentNullException(nameof(_condition));
-            }
-
-            if (_writeIndents)
-            {
-                writer.WriteIndent();
-            }
-
-            writer.Write("if (");
-            _condition.Build(writer);
-            writer.Write(")");
-            writer.WriteLine();
+            writer.WriteIndentedLine("else");
             writer.WriteIndentedLine("{");
-
             using (writer.IncreaseIndent())
             {
-                foreach (ICode code in _lines)
-                {
-                    code.Build(writer);
-                }
+                _elseCode.Build(writer);
             }
 
-            writer.WriteIndent();
-            writer.Write("}");
-            writer.WriteLine();
-
-            foreach (IfBuilder ifBuilder in _ifElses)
-            {
-                writer.WriteIndent();
-                writer.Write("else ");
-                ifBuilder.Build(writer);
-            }
-
-            if (_elseCode is not null)
-            {
-                writer.WriteIndentedLine("else");
-                writer.WriteIndentedLine("{");
-                using (writer.IncreaseIndent())
-                {
-                    _elseCode.Build(writer);
-                }
-
-                writer.WriteIndentedLine("}");
-            }
+            writer.WriteIndentedLine("}");
         }
     }
 }

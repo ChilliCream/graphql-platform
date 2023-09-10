@@ -15,7 +15,7 @@
         "argument": "name",
         "argumentValue": "\u0022  \u0022",
         "locationType": "Name",
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
       }
     }
   ]

@@ -1,4 +1,4 @@
-﻿{
+{
   "result": {
     "Id": 1,
     "Name": "Foo",
@@ -7,9 +7,11 @@
         "Id": 1,
         "AuthorId": 0,
         "Title": "Foo1",
-        "Author": null
+        "Author": null,
+        "Publisher": null
       }
-    ]
+    ],
+    "Publishers": []
   },
   "executable": "HotChocolate.Data.Author[]"
 }

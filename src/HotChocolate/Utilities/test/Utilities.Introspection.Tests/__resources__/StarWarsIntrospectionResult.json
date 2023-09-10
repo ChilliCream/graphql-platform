@@ -102,7 +102,7 @@
         },
         {
           "kind": "SCALAR",
-          "name": "Uuid",
+          "name": "UUID",
           "description": null,
           "fields": null,
           "inputFields": null,

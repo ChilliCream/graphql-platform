@@ -1,86 +1,88 @@
-﻿using System;
-using System.Reflection;
-using HotChocolate.Configuration;
+using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Factories
+namespace HotChocolate.Types.Factories;
+
+internal sealed class InputObjectTypeFactory
+    : ITypeFactory<InputObjectTypeDefinitionNode, InputObjectType>
+    , ITypeFactory<InputObjectTypeExtensionNode, InputObjectTypeExtension>
 {
-    internal sealed class InputObjectTypeFactory
-        : ITypeFactory<InputObjectTypeDefinitionNode, InputObjectType>
+    public InputObjectType Create(
+        IDescriptorContext context,
+        InputObjectTypeDefinitionNode node)
     {
-        public InputObjectType Create(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions,
-            InputObjectTypeDefinitionNode node)
+        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        var path = context.GetOrCreateDefinitionStack();
+        path.Clear();
+
+        var typeDefinition = new InputObjectTypeDefinition(
+            node.Name.Value,
+            node.Description?.Value);
+        typeDefinition.BindTo = node.GetBindingValue();
+
+        if (preserveSyntaxNodes)
         {
-            if (bindingLookup is null)
-            {
-                throw new ArgumentNullException(nameof(bindingLookup));
-            }
-
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            ITypeBindingInfo bindingInfo =
-                bindingLookup.GetBindingInfo(node.Name.Value);
-
-            return new InputObjectType(d =>
-            {
-                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
-                    .Name(node.Name.Value)
-                    .Description(node.Description?.Value);
-
-                if (bindingInfo.SourceType != null)
-                {
-                    d.Extend().OnBeforeCreate(t => t.RuntimeType = bindingInfo.SourceType);
-                }
-
-                foreach (DirectiveNode directive in node.Directives)
-                {
-                    d.Directive(directive);
-                }
-
-                DeclareFields(bindingInfo, schemaOptions, d, node);
-            });
+            typeDefinition.SyntaxNode = node;
         }
 
-        private static void DeclareFields(
-            ITypeBindingInfo bindingInfo,
-            IReadOnlySchemaOptions schemaOptions,
-            IInputObjectTypeDescriptor typeDescriptor,
-            InputObjectTypeDefinitionNode node)
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
+
+        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
+
+        return InputObjectType.CreateUnsafe(typeDefinition);
+    }
+
+    public InputObjectTypeExtension Create(IDescriptorContext context, InputObjectTypeExtensionNode node)
+    {
+        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        var path = context.GetOrCreateDefinitionStack();
+        path.Clear();
+
+        var typeDefinition = new InputObjectTypeDefinition(node.Name.Value);
+        typeDefinition.BindTo = node.GetBindingValue();
+
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
+
+        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
+
+        return InputObjectTypeExtension.CreateUnsafe(typeDefinition);
+    }
+
+    private static void DeclareFields(
+        IDescriptorContext context,
+        InputObjectTypeDefinition parent,
+        IReadOnlyCollection<InputValueDefinitionNode> fields,
+        Stack<IDefinition> path,
+        bool preserveSyntaxNodes)
+    {
+        path.Push(parent);
+
+        foreach (var inputField in fields)
         {
-            foreach (InputValueDefinitionNode inputField in node.Fields)
+            var inputFieldDefinition = new InputFieldDefinition(
+                inputField.Name.Value,
+                inputField.Description?.Value,
+                TypeReference.Create(inputField.Type),
+                inputField.DefaultValue);
+            inputFieldDefinition.BindTo = inputField.GetBindingValue();
+
+            if (preserveSyntaxNodes)
             {
-                bindingInfo.TrackField(inputField.Name.Value);
-
-                IInputFieldDescriptor descriptor = typeDescriptor
-                    .Field(inputField.Name.Value)
-                    .Description(inputField.Description?.Value)
-                    .Type(inputField.Type)
-                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? inputField : null);
-
-                if (inputField.DefaultValue is { })
-                {
-                    descriptor.DefaultValue(inputField.DefaultValue);
-                }
-
-                if (bindingInfo.TryGetFieldProperty(
-                    inputField.Name.Value,
-                    MemberKind.InputObjectField,
-                    out PropertyInfo p))
-                {
-                    descriptor.Extend().OnBeforeCreate(
-                        t => t.Property = p);
-                }
-
-                foreach (DirectiveNode directive in inputField.Directives)
-                {
-                    descriptor.Directive(directive);
-                }
+                inputFieldDefinition.SyntaxNode = inputField;
             }
+
+            if (inputField.DeprecationReason() is { Length: > 0 } reason)
+            {
+                inputFieldDefinition.DeprecationReason = reason;
+            }
+
+            SdlToTypeSystemHelper.AddDirectives(context, inputFieldDefinition, inputField, path);
+
+            parent.Fields.Add(inputFieldDefinition);
         }
+
+        path.Pop();
     }
 }

@@ -3,26 +3,25 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public interface ISchemaErrorBuilder
 {
-    public interface ISchemaErrorBuilder
-    {
-        ISchemaErrorBuilder SetMessage(string message);
+    ISchemaErrorBuilder SetMessage(string message);
 
-        ISchemaErrorBuilder SetCode(string code);
+    ISchemaErrorBuilder SetCode(string code);
 
-        ISchemaErrorBuilder SetPath(IReadOnlyCollection<object> path);
+    ISchemaErrorBuilder SetPath(IReadOnlyCollection<object> path);
 
-        ISchemaErrorBuilder SetPath(Path path);
+    ISchemaErrorBuilder SetPath(Path path);
 
-        ISchemaErrorBuilder SetTypeSystemObject(ITypeSystemObject typeSystemObject);
+    ISchemaErrorBuilder SetTypeSystemObject(ITypeSystemObject typeSystemObject);
 
-        ISchemaErrorBuilder AddSyntaxNode(ISyntaxNode syntaxNode);
+    ISchemaErrorBuilder AddSyntaxNode(ISyntaxNode syntaxNode);
 
-        ISchemaErrorBuilder SetExtension(string key, object value);
+    ISchemaErrorBuilder SetExtension(string key, object value);
 
-        ISchemaErrorBuilder SetException(Exception exception);
+    ISchemaErrorBuilder SetException(Exception exception);
 
-        ISchemaError Build();
-    }
+    ISchemaError Build();
 }

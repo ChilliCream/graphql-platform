@@ -1,7 +1,6 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+public class SkipSyntaxVisitorAction : ISyntaxVisitorAction
 {
-    public class SkipSyntaxVisitorAction : ISyntaxVisitorAction
-    {
-        public SyntaxVisitorActionKind Kind => SyntaxVisitorActionKind.Skip;
-    }
+    public SyntaxVisitorActionKind Kind => SyntaxVisitorActionKind.Skip;
 }

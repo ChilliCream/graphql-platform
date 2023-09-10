@@ -1,89 +1,87 @@
 using System.Linq;
-using Xunit;
 
-namespace StrawberryShake.Serialization
+namespace StrawberryShake.Serialization;
+
+public class ByteSerializerTests
 {
-    public class ByteSerializerTests
+    private ByteSerializer Serializer { get; } = new();
+
+    private ByteSerializer CustomSerializer { get; } = new("Abc");
+
+    [Fact]
+    public void Parse()
     {
-        private ByteSerializer Serializer { get; } = new();
+        // arrange
+        byte value = 1;
 
-        private ByteSerializer CustomSerializer { get; } = new("Abc");
+        // act
+        var result = Serializer.Parse(value);
 
-        [Fact]
-        public void Parse()
-        {
-            // arrange
-            byte value = 1;
+        // assert
+        Assert.Equal(value, result);
+    }
 
-            // act
-            var result = Serializer.Parse(value);
+    [Fact]
+    public void Format_Null()
+    {
+        // arrange
 
-            // assert
-            Assert.Equal(value, result);
-        }
+        // act
+        var result = Serializer.Format(null);
 
-        [Fact]
-        public void Format_Null()
-        {
-            // arrange
+        // assert
+        Assert.Null(result);
+    }
 
-            // act
-            object? result = Serializer.Format(null);
+    [Fact]
+    public void Format_Value()
+    {
+        // arrange
+        byte value = 1;
 
-            // assert
-            Assert.Null(result);
-        }
+        // act
+        var result = Serializer.Format(value);
 
-        [Fact]
-        public void Format_Value()
-        {
-            // arrange
-            byte value = 1;
+        // assert
+        Assert.Equal(value, result);
+    }
 
-            // act
-            object? result = Serializer.Format(value);
+    [Fact]
+    public void Format_Exception()
+    {
+        // arrange
+        var value = "1";
 
-            // assert
-            Assert.Equal(value, result);
-        }
+        // act
+        void Action() => Serializer.Format(value);
 
-        [Fact]
-        public void Format_Exception()
-        {
-            // arrange
-            string value = "1";
+        // assert
+        Assert.Equal(
+            "SS0007",
+            Assert.Throws<GraphQLClientException>(Action).Errors.Single().Code);
+    }
 
-            // act
-            void Action() => Serializer.Format(value);
+    [Fact]
+    public void TypeName_Default()
+    {
+        // arrange
 
-            // assert
-            Assert.Equal(
-                "SS0007",
-                Assert.Throws<GraphQLClientException>(Action).Errors.Single().Code);
-        }
+        // act
+        var typeName = Serializer.TypeName;
 
-        [Fact]
-        public void TypeName_Default()
-        {
-            // arrange
+        // assert
+        Assert.Equal("Byte", typeName);
+    }
 
-            // act
-            string typeName = Serializer.TypeName;
+    [Fact]
+    public void TypeName_Custom()
+    {
+        // arrange
 
-            // assert
-            Assert.Equal("Byte", typeName);
-        }
+        // act
+        var typeName = CustomSerializer.TypeName;
 
-        [Fact]
-        public void TypeName_Custom()
-        {
-            // arrange
-
-            // act
-            string typeName = CustomSerializer.TypeName;
-
-            // assert
-            Assert.Equal("Abc", typeName);
-        }
+        // assert
+        Assert.Equal("Abc", typeName);
     }
 }

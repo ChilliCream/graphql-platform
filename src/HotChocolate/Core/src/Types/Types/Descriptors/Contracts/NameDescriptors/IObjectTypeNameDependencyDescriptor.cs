@@ -1,12 +1,12 @@
 using System;
 
-namespace HotChocolate.Types
-{
-    public interface IObjectTypeNameDependencyDescriptor
-    {
-        IObjectTypeDescriptor DependsOn<TDependency>()
-            where TDependency : IType;
+// ReSharper disable once CheckNamespace
+namespace HotChocolate.Types;
 
-        IObjectTypeDescriptor DependsOn(Type schemaType);
-    }
+public interface IObjectTypeNameDependencyDescriptor
+{
+    IObjectTypeDescriptor DependsOn<TDependency>()
+        where TDependency : IType;
+
+    IObjectTypeDescriptor DependsOn(Type schemaType);
 }

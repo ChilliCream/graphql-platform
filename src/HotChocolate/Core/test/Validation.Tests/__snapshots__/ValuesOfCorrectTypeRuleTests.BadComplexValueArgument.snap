@@ -3,9 +3,14 @@
     "Message": "The specified value type of field `name` does not match the field type.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "findDog"
+      "Name": "findDog",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -17,7 +22,7 @@
       "fieldName": "name",
       "fieldType": "String",
       "locationType": "String",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.Mutations</PackageId>
+    <AssemblyName>HotChocolate.Types.Mutations</AssemblyName>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <Description>This package provides helpers for creating GraphQL mutations.</Description>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="HotChocolate.Configuration" />
+    <Using Include="HotChocolate.Language" />
+    <Using Include="HotChocolate.Internal" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Descriptors" />
+    <Using Include="HotChocolate.Types.Descriptors.Definitions" />
+    <Using Include="HotChocolate.Resolvers" />
+    <Using Include="HotChocolate.Utilities" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\MutationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MutationResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\MutationResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MutationResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

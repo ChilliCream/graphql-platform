@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
+    <AssemblyName>HotChocolate.CodeGeneration.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.CodeGeneration</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CodeGeneration.Neo4J\HotChocolate.CodeGeneration.Neo4J.csproj" />
+    <ProjectReference Include="..\..\..\Neo4J\src\Data\HotChocolate.Data.Neo4J.csproj" />
+  </ItemGroup>
+
+</Project>

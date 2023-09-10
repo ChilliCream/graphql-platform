@@ -22,7 +22,7 @@
       "typeB": "String",
       "responseNameA": "fido",
       "responseNameB": "fido",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -38,6 +38,7 @@
         "Value": "fido"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 340,

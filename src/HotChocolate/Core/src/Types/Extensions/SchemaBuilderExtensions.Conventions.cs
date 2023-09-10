@@ -1,281 +1,305 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
-namespace HotChocolate
+// ReSharper disable once CheckNamespace
+namespace HotChocolate;
+
+public static partial class SchemaBuilderExtensions
 {
-    public static partial class SchemaBuilderExtensions
+    public static ISchemaBuilder AddConvention<T>(
+        this ISchemaBuilder builder,
+        Type type,
+        string? scope = null)
     {
-        public static ISchemaBuilder AddConvention<T>(
-            this ISchemaBuilder builder,
-            Type type,
-            string? scope = null)
+        if (builder is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            return builder.AddConvention(typeof(T), type, scope);
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static ISchemaBuilder AddConvention<T>(
-            this ISchemaBuilder builder,
-            CreateConvention conventionFactory,
-            string? scope = null)
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+        return builder.AddConvention(typeof(T), type, scope);
+    }
 
-            return builder.AddConvention(typeof(T), conventionFactory, scope);
+    public static ISchemaBuilder AddConvention<T>(
+        this ISchemaBuilder builder,
+        CreateConvention conventionFactory,
+        string? scope = null)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static ISchemaBuilder AddConvention(
-            this ISchemaBuilder builder,
-            Type convention,
-            CreateConvention conventionFactory,
-            string? scope = null)
+        return builder.AddConvention(typeof(T), conventionFactory, scope);
+    }
+
+    public static ISchemaBuilder AddConvention(
+        this ISchemaBuilder builder,
+        Type convention,
+        CreateConvention conventionFactory,
+        string? scope = null)
+    {
+        if (builder is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (convention is null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-
-            return builder.AddConvention(convention, conventionFactory, scope);
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static ISchemaBuilder AddConvention(
-            this ISchemaBuilder builder,
-            Type convention,
-            IConvention concreteConvention,
-            string? scope = null)
+        if (convention is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (convention is null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-
-            if (concreteConvention is null)
-            {
-                throw new ArgumentNullException(nameof(concreteConvention));
-            }
-
-            if (!typeof(IConvention).IsAssignableFrom(convention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
-
-            return builder.AddConvention(convention, (s) => concreteConvention, scope);
+            throw new ArgumentNullException(nameof(convention));
         }
 
-        public static ISchemaBuilder AddConvention(
-            this ISchemaBuilder builder,
-            Type convention,
-            Type concreteConvention,
-            string? scope = null)
+        return builder.AddConvention(convention, conventionFactory, scope);
+    }
+
+    public static ISchemaBuilder AddConvention(
+        this ISchemaBuilder builder,
+        Type convention,
+        IConvention concreteConvention,
+        string? scope = null)
+    {
+        if (builder is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            throw new ArgumentNullException(nameof(builder));
+        }
 
-            if (convention is null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
+        if (convention is null)
+        {
+            throw new ArgumentNullException(nameof(convention));
+        }
 
-            if (concreteConvention is null)
-            {
-                throw new ArgumentNullException(nameof(concreteConvention));
-            }
+        if (concreteConvention is null)
+        {
+            throw new ArgumentNullException(nameof(concreteConvention));
+        }
 
-            if (!typeof(IConvention).IsAssignableFrom(convention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
+        if (!typeof(IConvention).IsAssignableFrom(convention))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                nameof(convention));
+        }
 
-            if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
+        return builder.AddConvention(convention, _ => concreteConvention, scope);
+    }
 
-            return builder.AddConvention(
-                convention,
-                s =>
+    public static ISchemaBuilder AddConvention(
+        this ISchemaBuilder builder,
+        Type convention,
+        Type concreteConvention,
+        string? scope = null)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (convention is null)
+        {
+            throw new ArgumentNullException(nameof(convention));
+        }
+
+        if (concreteConvention is null)
+        {
+            throw new ArgumentNullException(nameof(concreteConvention));
+        }
+
+        if (!typeof(IConvention).IsAssignableFrom(convention))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                nameof(convention));
+        }
+
+        if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                nameof(convention));
+        }
+
+        return builder.AddConvention(
+            convention,
+            s =>
+            {
+                if (s.TryGetOrCreateService<IConvention>(
+                    concreteConvention,
+                    out var convention))
                 {
-                    if (s.TryGetOrCreateService<IConvention>(
-                        concreteConvention,
-                        out IConvention convention))
-                    {
-                        return convention;
-                    }
+                    return convention;
+                }
 
-                    throw Convention_UnableToCreateConvention(concreteConvention);
-                },
-                scope);
+                throw Convention_UnableToCreateConvention(concreteConvention);
+            },
+            scope);
+    }
+
+    public static ISchemaBuilder AddConvention<T>(
+        this ISchemaBuilder builder,
+        IConvention convention,
+        string? scope = null)
+        where T : IConvention =>
+        builder.AddConvention(typeof(T), convention, scope);
+
+    public static ISchemaBuilder AddConvention<TConvention, TConcreteConvention>(
+        this ISchemaBuilder builder,
+        string? scope = null)
+        where TConvention : IConvention
+        where TConcreteConvention : IConvention =>
+        builder.AddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
+
+    public static ISchemaBuilder TryAddConvention(
+        this ISchemaBuilder builder,
+        Type convention,
+        CreateConvention conventionFactory,
+        string? scope = null)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static ISchemaBuilder AddConvention<T>(
-            this ISchemaBuilder builder,
-            IConvention convention,
-            string? scope = null)
-            where T : IConvention =>
-            builder.AddConvention(typeof(T), convention, scope);
-
-        public static ISchemaBuilder AddConvention<TConvetion, TConcreteConvention>(
-            this ISchemaBuilder builder,
-            string? scope = null)
-            where TConvetion : IConvention
-            where TConcreteConvention : IConvention =>
-            builder.AddConvention(typeof(TConvetion), typeof(TConcreteConvention), scope);
-
-        public static ISchemaBuilder TryAddConvention(
-            this ISchemaBuilder builder,
-            Type convention,
-            CreateConvention conventionFactory,
-            string? scope = null)
+        if (convention is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (convention is null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-
-            return builder.TryAddConvention(convention, conventionFactory, scope);
+            throw new ArgumentNullException(nameof(convention));
         }
 
-        public static ISchemaBuilder TryAddConvention(
-            this ISchemaBuilder builder,
-            Type convention,
-            IConvention concreteConvention,
-            string? scope = null)
+        return builder.TryAddConvention(convention, conventionFactory, scope);
+    }
+
+    public static ISchemaBuilder TryAddConvention(
+        this ISchemaBuilder builder,
+        Type convention,
+        IConvention concreteConvention,
+        string? scope = null)
+    {
+        if (builder is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (convention is null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-
-            if (concreteConvention is null)
-            {
-                throw new ArgumentNullException(nameof(concreteConvention));
-            }
-
-            if (!typeof(IConvention).IsAssignableFrom(convention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
-
-            return builder.TryAddConvention(convention, s => concreteConvention, scope);
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static ISchemaBuilder TryAddConvention(
-            this ISchemaBuilder builder,
-            Type convention,
-            Type concreteConvention,
-            string? scope = null)
+        if (convention is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            throw new ArgumentNullException(nameof(convention));
+        }
 
-            if (convention is null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
+        if (concreteConvention is null)
+        {
+            throw new ArgumentNullException(nameof(concreteConvention));
+        }
 
-            if (concreteConvention is null)
-            {
-                throw new ArgumentNullException(nameof(concreteConvention));
-            }
+        if (!typeof(IConvention).IsAssignableFrom(convention))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                nameof(convention));
+        }
 
-            if (!typeof(IConvention).IsAssignableFrom(convention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
+        return builder.TryAddConvention(convention, s => concreteConvention, scope);
+    }
 
-            if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
+    public static ISchemaBuilder TryAddConvention(
+        this ISchemaBuilder builder,
+        Type convention,
+        Type concreteConvention,
+        string? scope = null)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
 
-            return builder.TryAddConvention(
-                convention,
-                s =>
+        if (convention is null)
+        {
+            throw new ArgumentNullException(nameof(convention));
+        }
+
+        if (concreteConvention is null)
+        {
+            throw new ArgumentNullException(nameof(concreteConvention));
+        }
+
+        if (!typeof(IConvention).IsAssignableFrom(convention))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                nameof(convention));
+        }
+
+        if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_Convention_NotSuppported,
+                nameof(convention));
+        }
+
+        return builder.TryAddConvention(
+            convention,
+            s =>
+            {
+                if (s.TryGetOrCreateService(concreteConvention, out IConvention? c))
                 {
-                    if (s.TryGetOrCreateService(concreteConvention, out IConvention? c))
-                    {
-                        return c;
-                    }
+                    return c;
+                }
 
-                    throw Convention_UnableToCreateConvention(concreteConvention);
-                },
-                scope);
+                throw Convention_UnableToCreateConvention(concreteConvention);
+            },
+            scope);
+    }
+
+    public static ISchemaBuilder TryAddConvention<T>(
+        this ISchemaBuilder builder,
+        CreateConvention conventionFactory,
+        string? scope = null)
+        where T : IConvention =>
+        builder.TryAddConvention(typeof(T), conventionFactory, scope);
+
+    public static ISchemaBuilder TryAddConvention<T>(
+        this ISchemaBuilder builder,
+        Type type,
+        string? scope = null)
+        where T : IConvention =>
+        builder.TryAddConvention(typeof(T), type, scope);
+
+    public static ISchemaBuilder TryAddConvention<T>(
+        this ISchemaBuilder builder,
+        IConvention convention,
+        string? scope = null)
+        where T : IConvention =>
+        builder.TryAddConvention(typeof(T), convention, scope);
+
+    public static ISchemaBuilder TryAddConvention<TConvention, TConcreteConvention>(
+        this ISchemaBuilder builder,
+        string? scope = null)
+        where TConvention : IConvention
+        where TConcreteConvention : class, TConvention =>
+        builder.TryAddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
+
+    public static ISchemaBuilder TryAddSchemaDirective(
+        this ISchemaBuilder builder,
+        ISchemaDirective directive)
+    {
+        if (!builder.ContextData.TryGetValue(SchemaDirectives, out var value) ||
+            value is not List<ISchemaDirective> directives)
+        {
+            directives = new();
+            builder.ContextData[SchemaDirectives] = directives;
         }
 
-        public static ISchemaBuilder TryAddConvention<T>(
-            this ISchemaBuilder builder,
-            CreateConvention conventionFactory,
-            string? scope = null)
-            where T : IConvention =>
-            builder.TryAddConvention(typeof(T), conventionFactory, scope);
+        if (directives.All(t => !t.Name.EqualsOrdinal(directive.Name)))
+        {
+            directives.Add(directive);
+        }
 
-        public static ISchemaBuilder TryAddConvention<T>(
-            this ISchemaBuilder builder,
-            Type type,
-            string? scope = null)
-            where T : IConvention =>
-            builder.TryAddConvention(typeof(T), type, scope);
-
-        public static ISchemaBuilder TryAddConvention<T>(
-            this ISchemaBuilder builder,
-            IConvention convention,
-            string? scope = null)
-            where T : IConvention =>
-            builder.TryAddConvention(typeof(T), convention, scope);
-
-        public static ISchemaBuilder TryAddConvention<TConvention, TConcreteConvention>(
-            this ISchemaBuilder builder,
-            string? scope = null)
-            where TConvention : IConvention
-            where TConcreteConvention : class, TConvention =>
-            builder.TryAddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
+        return builder;
     }
 }

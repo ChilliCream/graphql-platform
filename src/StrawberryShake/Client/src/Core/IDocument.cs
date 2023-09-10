@@ -1,25 +1,24 @@
 using System;
 
-namespace StrawberryShake
+namespace StrawberryShake;
+
+/// <summary>
+/// Represents a GraphQL query document.
+/// </summary>
+public interface IDocument
 {
     /// <summary>
-    /// Represents a GraphQL query document.
+    /// Defines operation kind.
     /// </summary>
-    public interface IDocument
-    {
-        /// <summary>
-        /// Defines operation kind.
-        /// </summary>
-        OperationKind Kind { get; }
+    OperationKind Kind { get; }
 
-        /// <summary>
-        /// Gets the GraphQL document body.
-        /// </summary>
-        ReadOnlySpan<byte> Body { get; }
+    /// <summary>
+    /// Gets the GraphQL document body.
+    /// </summary>
+    ReadOnlySpan<byte> Body { get; }
 
-        /// <summary>
-        /// Gets the document hash.
-        /// </summary>
-        DocumentHash Hash { get; }
-    }
+    /// <summary>
+    /// Gets the document hash.
+    /// </summary>
+    DocumentHash Hash { get; }
 }

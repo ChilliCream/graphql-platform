@@ -1,7 +1,12 @@
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+/// <summary>
+/// Provides the well known tool files.
+/// </summary>
+public static class WellKnownFiles
 {
-    public class WellKnownFiles
-    {
-        public const string Config = ".graphqlrc.json";
-    }
+    /// <summary>
+    /// The GraphQL configuration file.
+    /// </summary>
+    public const string Config = ".graphqlrc.json";
 }

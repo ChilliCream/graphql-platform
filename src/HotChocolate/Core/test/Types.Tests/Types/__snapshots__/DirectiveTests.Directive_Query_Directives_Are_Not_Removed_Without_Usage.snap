@@ -1,0 +1,13 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooChildInput {
+  bar: String
+}
+
+directive @Foo(bar: String child: FooChildInput) on QUERY

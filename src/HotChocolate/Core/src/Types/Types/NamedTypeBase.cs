@@ -1,99 +1,137 @@
-﻿using System.Linq;
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// A base class for named GraphQL types.
+/// </summary>
+/// <typeparam name="TDefinition">
+/// The type definition of the named GraphQL type.
+/// </typeparam>
+public abstract class NamedTypeBase<TDefinition>
+    : TypeSystemObjectBase<TDefinition>
+    , INamedType
+    , IHasDirectives
+    , IHasRuntimeType
+    , IHasTypeIdentity
+    , IHasTypeDefinition
+    where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode, ITypeDefinition
 {
-    public abstract class NamedTypeBase<TDefinition>
-        : TypeSystemObjectBase<TDefinition>
-        , INamedType
-        , IHasDirectives
-        , IHasRuntimeType
-        , IHasTypeIdentity
-        where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode
+    private IDirectiveCollection? _directives;
+    private Type? _runtimeType;
+    private ISyntaxNode? _syntaxNode;
+
+    ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
+
+    ITypeDefinition? IHasTypeDefinition.Definition => Definition;
+
+    /// <inheritdoc />
+    public abstract TypeKind Kind { get; }
+
+    /// <inheritdoc />
+    public IDirectiveCollection Directives
     {
-        private IDirectiveCollection? _directives;
-        private Type? _clrType;
-        private ISyntaxNode? _syntaxNode;
-
-        ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
-
-        public abstract TypeKind Kind { get; }
-
-        public IDirectiveCollection Directives
+        get
         {
-            get
+            if (_directives is null)
             {
-                if (_directives is null)
-                {
-                    throw new TypeInitializationException();
-                }
-                return _directives;
+                throw new TypeInitializationException();
             }
+
+            return _directives;
         }
 
-        public Type RuntimeType
+        // we allow internal type interceptors to set the directives before the type is completed.
+        // this gets rid of the need to initialize the directives twice.
+        internal set
         {
-            get
+            if (_directives is not null)
             {
-                if (_clrType is null)
-                {
-                    throw new TypeInitializationException();
-                }
-                return _clrType;
-            }
-        }
-
-        public Type? TypeIdentity { get; private set; }
-
-        public virtual bool IsAssignableFrom(INamedType type) =>
-            ReferenceEquals(type, this);
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            TDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-
-            _clrType = definition is IHasRuntimeType clr && clr.RuntimeType != GetType()
-                ? clr.RuntimeType
-                : typeof(object);
-
-            context.RegisterDependencyRange(
-                definition.GetDirectives().Select(t => t.Reference));
-        }
-
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            TDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
-
-            _syntaxNode = definition.SyntaxNode;
-
-            _directives =
-                DirectiveCollection.CreateAndComplete(context,this, definition.GetDirectives());
-        }
-
-        protected void SetTypeIdentity(Type typeDefinitionOrIdentity)
-        {
-            if (typeDefinitionOrIdentity is null)
-            {
-                throw new ArgumentNullException(nameof(typeDefinitionOrIdentity));
+                throw new TypeInitializationException();
             }
 
-            if (!typeDefinitionOrIdentity.IsGenericTypeDefinition)
-            {
-                TypeIdentity = typeDefinitionOrIdentity;
-            }
-            else if (RuntimeType != typeof(object))
-            {
-                TypeIdentity = typeDefinitionOrIdentity.MakeGenericType(RuntimeType);
-            }
+            _directives = value;
         }
     }
+
+    /// <inheritdoc />
+    public Type RuntimeType
+    {
+        get
+        {
+            if (_runtimeType is null)
+            {
+                throw new TypeInitializationException();
+            }
+            return _runtimeType;
+        }
+    }
+
+    /// <summary>
+    /// A type representing the identity of the specified type.
+    /// </summary>
+    public Type? TypeIdentity { get; private set; }
+
+    /// <inheritdoc />
+    public virtual bool IsAssignableFrom(INamedType type) =>
+        ReferenceEquals(type, this);
+
+    /// <inheritdoc />
+    protected override void OnRegisterDependencies(
+        ITypeDiscoveryContext context,
+        TDefinition definition)
+    {
+        base.OnRegisterDependencies(context, definition);
+
+        UpdateRuntimeType(definition);
+    }
+
+    /// <inheritdoc />
+    protected override void OnCompleteType(
+        ITypeCompletionContext context,
+        TDefinition definition)
+    {
+        base.OnCompleteType(context, definition);
+
+        UpdateRuntimeType(definition);
+
+        _syntaxNode = definition.SyntaxNode;
+
+        _directives ??= DirectiveCollection.CreateAndComplete(
+            context, this, definition.GetDirectives());
+    }
+
+    /// <summary>
+    /// This method allows the concrete type implementation to set its type identity.
+    /// </summary>
+    /// <param name="typeDefinitionOrIdentity">
+    /// The type definition or type identity.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="typeDefinitionOrIdentity"/> is <c>null</c>.
+    /// </exception>
+    protected void SetTypeIdentity(Type typeDefinitionOrIdentity)
+    {
+        if (typeDefinitionOrIdentity is null)
+        {
+            throw new ArgumentNullException(nameof(typeDefinitionOrIdentity));
+        }
+
+        if (!typeDefinitionOrIdentity.IsGenericTypeDefinition)
+        {
+            TypeIdentity = typeDefinitionOrIdentity;
+        }
+        else if (RuntimeType != typeof(object))
+        {
+            TypeIdentity = typeDefinitionOrIdentity.MakeGenericType(RuntimeType);
+        }
+    }
+
+    private void UpdateRuntimeType(ITypeDefinition definition)
+        => _runtimeType = definition.RuntimeType ?? typeof(object);
 }

@@ -1,26 +1,25 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace HotChocolate.Data.MongoDb.Sorting
+namespace HotChocolate.Data.MongoDb.Sorting;
+
+public static class MongoSortVisitorContextExtensions
 {
-    internal static class MongoSortVisitorContextExtensions
+    public static string GetPath(this MongoDbSortVisitorContext ctx) =>
+        string.Join(".", ctx.Path.Reverse());
+
+    public static bool TryCreateQuery(
+        this MongoDbSortVisitorContext context,
+        [NotNullWhen(true)] out MongoDbSortDefinition? query)
     {
-        public static string GetPath(this MongoDbSortVisitorContext ctx) =>
-            string.Join(".", ctx.Path.Reverse());
+        query = null;
 
-        public static bool TryCreateQuery(
-            this MongoDbSortVisitorContext context,
-            [NotNullWhen(true)] out MongoDbSortDefinition? query)
+        if (context.Operations.Count == 0)
         {
-            query = null;
-
-            if (context.Operations.Count == 0)
-            {
-                return false;
-            }
-
-            query = new MongoDbCombinedSortDefinition(context.Operations.ToArray());
-            return true;
+            return false;
         }
+
+        query = new MongoDbCombinedSortDefinition(context.Operations.ToArray());
+        return true;
     }
 }

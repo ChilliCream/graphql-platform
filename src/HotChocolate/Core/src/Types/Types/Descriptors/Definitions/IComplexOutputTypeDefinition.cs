@@ -3,16 +3,15 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public interface IComplexOutputTypeDefinition
 {
-    public interface IComplexOutputTypeDefinition
-    {
-        NameString Name { get; }
+    string Name { get; }
 
-        Type RuntimeType { get; }
+    Type RuntimeType { get; }
 
-        IList<Type> KnownRuntimeTypes { get; }
+    IList<Type> KnownRuntimeTypes { get; }
 
-        IList<ITypeReference> Interfaces { get; }
-    }
+    IList<TypeReference> Interfaces { get; }
 }

@@ -2,48 +2,80 @@ using System;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace GreenDonut
+namespace GreenDonut;
+
+public class DataLoaderOptionsTests
 {
-    public class DataLoaderOptionsTests
+    [Fact(DisplayName = "Constructor: Should set all properties 1")]
+    public void ConstructorAllProps1()
     {
-        [Fact(DisplayName = "Constructor: Should not throw any exception")]
-        public void ConstructorNoException()
+        // act
+        var options = new DataLoaderOptions
         {
-            // act
-            Action verify = () => new DataLoaderOptions<string>();
+            Cache = new TaskCache(1),
+            Caching = true,
+            MaxBatchSize = 1,
+            DiagnosticEvents = new DataLoaderDiagnosticEventListener()
+        };
 
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
+        // assert
+        Assert.NotNull(options.Cache);
+        Assert.True(options.Caching);
+        Assert.Equal(1, options.MaxBatchSize);
+        Assert.NotNull(options.DiagnosticEvents);
+    }
 
-        [Fact(DisplayName = "Constructor: Should set all properties")]
-        public void ConstructorAllProps()
+    [Fact(DisplayName = "Constructor: Should set all properties 2")]
+    public void ConstructorAllProps2()
+    {
+        // act
+        var options = new DataLoaderOptions
         {
-            // act
-            var options = new DataLoaderOptions<string>
-            {
-                Batch = false,
-                Cache = new TaskCache(1),
-                CacheKeyResolver = k => k,
-                CacheSize = 1,
-                Caching = false,
-                MaxBatchSize = 1
-            };
+            Cache = null,
+            Caching = false,
+            MaxBatchSize = 10,
+            DiagnosticEvents = null
+        };
 
-            // assert
-            options.MatchSnapshot(matchOptions => matchOptions
-                .Assert(fieldOption =>
-                    Assert.NotNull(fieldOption.Field<object>("CacheKeyResolver"))));
-        }
+        // assert
+        Assert.Null(options.Cache);
+        Assert.False(options.Caching);
+        Assert.Equal(10, options.MaxBatchSize);
+        Assert.Null(options.DiagnosticEvents);
+    }
 
-        [Fact(DisplayName = "Constructor: Should result in defaults")]
-        public void ConstructorEmpty()
+    [Fact(DisplayName = "Constructor: Should result in defaults")]
+    public void ConstructorEmpty()
+    {
+        // act
+        var options = new DataLoaderOptions();
+
+        // assert
+        Assert.Null(options.Cache);
+        Assert.True(options.Caching);
+        Assert.Equal(1024, options.MaxBatchSize);
+        Assert.Null(options.DiagnosticEvents);
+    }
+
+    [Fact(DisplayName = "Copy: Should copy all property values")]
+    public void Copy()
+    {
+        // arrange
+        var options = new DataLoaderOptions
         {
-            // act
-            var options = new DataLoaderOptions<string>();
+            Cache = new TaskCache(1),
+            Caching = true,
+            MaxBatchSize = 1,
+            DiagnosticEvents = new DataLoaderDiagnosticEventListener()
+        };
 
-            // assert
-            options.MatchSnapshot();
-        }
+        // act
+        var copy = options.Copy();
+
+        // assert
+        Assert.NotNull(copy.Cache);
+        Assert.True(copy.Caching);
+        Assert.Equal(1, copy.MaxBatchSize);
+        Assert.NotNull(copy.DiagnosticEvents);
     }
 }

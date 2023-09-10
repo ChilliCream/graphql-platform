@@ -1,0 +1,7 @@
+﻿extend type Product @key(fields: "upc") {
+  upc: String!
+}
+
+type QueryRootOfProduct {
+  entity(id: Int!): Product!
+}

@@ -5,183 +5,182 @@ using HotChocolate.Language;
 using System;
 using HotChocolate.Stitching.Properties;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+internal class SchemaInfo
+    : ISchemaInfo
 {
-    internal class SchemaInfo
-        : ISchemaInfo
+    private static readonly Dictionary<OperationType, string> _names =
+        new Dictionary<OperationType, string>
+        {
+            {
+                OperationType.Query,
+                OperationType.Query.ToString()
+            },
+            {
+                OperationType.Mutation,
+                OperationType.Mutation.ToString()
+            },
+            {
+                OperationType.Subscription,
+                OperationType.Subscription.ToString()
+            }
+        };
+    private ObjectTypeDefinitionNode _queryType;
+    private ObjectTypeDefinitionNode _mutationType;
+    private ObjectTypeDefinitionNode _subscriptionType;
+
+    public SchemaInfo(string name, DocumentNode document)
     {
-        private static readonly Dictionary<OperationType, string> _names =
-            new Dictionary<OperationType, string>
-            {
-                {
-                    OperationType.Query,
-                    OperationType.Query.ToString()
-                },
-                {
-                    OperationType.Mutation,
-                    OperationType.Mutation.ToString()
-                },
-                {
-                    OperationType.Subscription,
-                    OperationType.Subscription.ToString()
-                }
-            };
-        private ObjectTypeDefinitionNode _queryType;
-        private ObjectTypeDefinitionNode _mutationType;
-        private ObjectTypeDefinitionNode _subscriptionType;
-
-        public SchemaInfo(string name, DocumentNode document)
+        if (string.IsNullOrEmpty(name))
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    StitchingResources.SchemaName_EmptyOrNull,
-                    nameof(name));
-            }
+            throw new ArgumentException(
+                StitchingResources.SchemaName_EmptyOrNull,
+                nameof(name));
+        }
 
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
 
-            Name = name;
-            Document = document;
+        Name = name;
+        Document = document;
 
-            Dictionary<string, ITypeDefinitionNode> types =
-                document.Definitions
-                    .OfType<ITypeDefinitionNode>()
-                    .ToDictionary(t => t.Name.Value);
-            Types = types;
-
-            Directives = document.Definitions
-                .OfType<DirectiveDefinitionNode>()
+        var types =
+            document.Definitions
+                .OfType<ITypeDefinitionNode>()
                 .ToDictionary(t => t.Name.Value);
+        Types = types;
 
-            SchemaDefinitionNode schemaDefinition = document.Definitions
-                .OfType<SchemaDefinitionNode>().FirstOrDefault();
+        Directives = document.Definitions
+            .OfType<DirectiveDefinitionNode>()
+            .ToDictionary(t => t.Name.Value);
 
-            RootTypes = GetRootTypeMapppings(
-                GetRootTypeNameMapppings(schemaDefinition),
-                types);
-        }
+        var schemaDefinition = document.Definitions
+            .OfType<SchemaDefinitionNode>().FirstOrDefault();
 
-        protected Dictionary<OperationType, ObjectTypeDefinitionNode> RootTypes
-        { get; }
+        RootTypes = GetRootTypeMapppings(
+            GetRootTypeNameMapppings(schemaDefinition),
+            types);
+    }
 
-        public NameString Name { get; }
+    protected Dictionary<OperationType, ObjectTypeDefinitionNode> RootTypes
+    { get; }
 
-        public DocumentNode Document { get; }
+    public string Name { get; }
 
-        public IReadOnlyDictionary<string, ITypeDefinitionNode> Types
-        { get; }
+    public DocumentNode Document { get; }
 
-        public IReadOnlyDictionary<string, DirectiveDefinitionNode> Directives
-        { get; }
+    public IReadOnlyDictionary<string, ITypeDefinitionNode> Types
+    { get; }
 
-        public ObjectTypeDefinitionNode QueryType
+    public IReadOnlyDictionary<string, DirectiveDefinitionNode> Directives
+    { get; }
+
+    public ObjectTypeDefinitionNode QueryType
+    {
+        get
         {
-            get
+            if (_queryType == null
+                && RootTypes.TryGetValue(OperationType.Query,
+                    out var type))
             {
-                if (_queryType == null
-                    && RootTypes.TryGetValue(OperationType.Query,
-                        out ObjectTypeDefinitionNode type))
-                {
-                    _queryType = type;
-                }
-                return _queryType;
+                _queryType = type;
             }
+            return _queryType;
         }
+    }
 
-        public ObjectTypeDefinitionNode MutationType
+    public ObjectTypeDefinitionNode MutationType
+    {
+        get
         {
-            get
+            if (_mutationType == null
+                && RootTypes.TryGetValue(OperationType.Mutation,
+                    out var type))
             {
-                if (_mutationType == null
-                    && RootTypes.TryGetValue(OperationType.Mutation,
-                        out ObjectTypeDefinitionNode type))
-                {
-                    _mutationType = type;
-                }
-                return _mutationType;
+                _mutationType = type;
             }
+            return _mutationType;
         }
+    }
 
-        public ObjectTypeDefinitionNode SubscriptionType
+    public ObjectTypeDefinitionNode SubscriptionType
+    {
+        get
         {
-            get
+            if (_subscriptionType == null
+                && RootTypes.TryGetValue(OperationType.Subscription,
+                    out var type))
             {
-                if (_subscriptionType == null
-                    && RootTypes.TryGetValue(OperationType.Subscription,
-                        out ObjectTypeDefinitionNode type))
-                {
-                    _subscriptionType = type;
-                }
-                return _subscriptionType;
+                _subscriptionType = type;
             }
+            return _subscriptionType;
         }
+    }
 
-        public bool IsRootType(ITypeDefinitionNode typeDefinition)
+    public bool IsRootType(ITypeDefinitionNode typeDefinition)
+    {
+        if (typeDefinition == null)
         {
-            if (typeDefinition == null)
-            {
-                throw new ArgumentNullException(nameof(typeDefinition));
-            }
-
-            if (typeDefinition is ObjectTypeDefinitionNode ot)
-            {
-                return RootTypes.ContainsValue(ot);
-            }
-
-            return false;
+            throw new ArgumentNullException(nameof(typeDefinition));
         }
 
-        public bool TryGetOperationType(
-            ObjectTypeDefinitionNode rootType,
-            out OperationType operationType)
+        if (typeDefinition is ObjectTypeDefinitionNode ot)
         {
-            if (RootTypes.ContainsValue(rootType))
-            {
-                operationType = RootTypes.First(t => t.Value == rootType).Key;
-                return true;
-            }
-
-            operationType = default;
-            return false;
+            return RootTypes.ContainsValue(ot);
         }
 
-        private static Dictionary<OperationType, ObjectTypeDefinitionNode>
-            GetRootTypeMapppings(
-                IDictionary<OperationType, string> nameMappings,
-                IDictionary<string, ITypeDefinitionNode> types)
+        return false;
+    }
+
+    public bool TryGetOperationType(
+        ObjectTypeDefinitionNode rootType,
+        out OperationType operationType)
+    {
+        if (RootTypes.ContainsValue(rootType))
         {
-            var map = new Dictionary<OperationType, ObjectTypeDefinitionNode>();
-
-            foreach (KeyValuePair<OperationType, string> nameMapping in
-                nameMappings)
-            {
-                if (types.TryGetValue(nameMapping.Value, out
-                    ITypeDefinitionNode definition)
-                    && definition is ObjectTypeDefinitionNode objectType)
-                {
-                    types.Remove(nameMapping.Value);
-                    map.Add(nameMapping.Key, objectType);
-                }
-            }
-
-            return map;
+            operationType = RootTypes.First(t => t.Value == rootType).Key;
+            return true;
         }
 
-        private static IDictionary<OperationType, string>
-            GetRootTypeNameMapppings(SchemaDefinitionNodeBase schemaDefinition)
+        operationType = default;
+        return false;
+    }
+
+    private static Dictionary<OperationType, ObjectTypeDefinitionNode>
+        GetRootTypeMapppings(
+            IDictionary<OperationType, string> nameMappings,
+            IDictionary<string, ITypeDefinitionNode> types)
+    {
+        var map = new Dictionary<OperationType, ObjectTypeDefinitionNode>();
+
+        foreach (var nameMapping in
+            nameMappings)
         {
-            if (schemaDefinition == null)
+            if (types.TryGetValue(nameMapping.Value, out
+                    var definition)
+                && definition is ObjectTypeDefinitionNode objectType)
             {
-                return _names;
+                types.Remove(nameMapping.Value);
+                map.Add(nameMapping.Key, objectType);
             }
-
-            return schemaDefinition.OperationTypes.ToDictionary(
-                t => t.Operation,
-                t => t.Type.Name.Value);
         }
+
+        return map;
+    }
+
+    private static IDictionary<OperationType, string>
+        GetRootTypeNameMapppings(SchemaDefinitionNodeBase schemaDefinition)
+    {
+        if (schemaDefinition == null)
+        {
+            return _names;
+        }
+
+        return schemaDefinition.OperationTypes.ToDictionary(
+            t => t.Operation,
+            t => t.Type.Name.Value);
     }
 }

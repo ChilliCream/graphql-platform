@@ -1,0 +1,11 @@
+﻿schema {
+  query: QueryCodeFirst
+}
+
+type Person {
+  name: String!
+}
+
+type QueryCodeFirst {
+  person: Person!
+}

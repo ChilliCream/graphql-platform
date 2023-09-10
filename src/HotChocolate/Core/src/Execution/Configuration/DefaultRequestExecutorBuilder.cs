@@ -1,19 +1,18 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Execution.Configuration
+namespace HotChocolate.Execution.Configuration;
+
+internal class DefaultRequestExecutorBuilder : IRequestExecutorBuilder
 {
-    internal class DefaultRequestExecutorBuilder : IRequestExecutorBuilder
+    public DefaultRequestExecutorBuilder(
+        IServiceCollection services,
+        string name)
     {
-        public DefaultRequestExecutorBuilder(
-            IServiceCollection services,
-            NameString name)
-        {
-            Services = services;
-            Name = name;
-        }
-
-        public NameString Name { get; }
-
-        public IServiceCollection Services { get; }
+        Services = services;
+        Name = name;
     }
+
+    public string Name { get; }
+
+    public IServiceCollection Services { get; }
 }

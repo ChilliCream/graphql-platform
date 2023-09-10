@@ -1,83 +1,134 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
 
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types.Pagination;
+
+internal class CollectionSegmentType
+    : ObjectType
+    , IPageType
 {
-    public class CollectionSegmentType<T>
-        : ObjectType<CollectionSegment>
-        , IPageType
-        where T : class, IOutputType
+    internal CollectionSegmentType(
+        string? collectionSegmentName,
+        TypeReference nodeType,
+        bool withTotalCount)
     {
-        /// <summary>
-        /// Initializes <see cref="CollectionSegmentType{T}" />.
-        /// </summary>
-        public CollectionSegmentType()
+        if (nodeType is null)
         {
+            throw new ArgumentNullException(nameof(nodeType));
         }
 
-        /// <summary>
-        /// Initializes <see cref="CollectionSegmentType{T}" />.
-        /// </summary>
-        /// <param name="configure">
-        /// A delegate adding more configuration to the type.
-        /// </param>
-        public CollectionSegmentType(
-            Action<IObjectTypeDescriptor<CollectionSegment>> configure)
-            : base(descriptor =>
-            {
-                ApplyConfig(descriptor);
-                configure(descriptor);
-            })
+        Definition = CreateTypeDefinition(withTotalCount);
+
+        if (collectionSegmentName is not null)
         {
+            Definition.Name = collectionSegmentName + "CollectionSegment";
+        }
+        else
+        {
+            Definition.Configurations.Add(
+                new CompleteConfiguration(
+                    (c, d) =>
+                    {
+                        var type = c.GetType<IType>(nodeType);
+                        var definition = (ObjectTypeDefinition)d;
+                        definition.Name = type.NamedType().Name + "CollectionSegment";
+                    },
+                    Definition,
+                    ApplyConfigurationOn.BeforeNaming,
+                    nodeType,
+                    TypeDependencyFulfilled.Named));
         }
 
-        /// <summary>
-        /// Gets the item type of this collection segment.
-        /// </summary>
-        public IOutputType ItemType { get; private set; } = default!;
+        Definition.Configurations.Add(
+            new CompleteConfiguration(
+                (c, d) =>
+                {
+                    ItemType = c.GetType<IOutputType>(nodeType);
 
-        protected override void Configure(IObjectTypeDescriptor<CollectionSegment> descriptor) =>
-            ApplyConfig(descriptor);
+                    var definition = (ObjectTypeDefinition)d;
+                    var nodes = definition.Fields.First(IsItemsField);
+                    nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
+                },
+                Definition,
+                ApplyConfigurationOn.BeforeNaming,
+                nodeType,
+                TypeDependencyFulfilled.Named));
 
-        protected static void ApplyConfig(IObjectTypeDescriptor<CollectionSegment> descriptor)
+        Definition.Dependencies.Add(new(nodeType));
+    }
+
+    /// <summary>
+    /// Gets the item type of this collection segment.
+    /// </summary>
+    public IOutputType ItemType { get; private set; } = default!;
+
+    protected override void OnBeforeRegisterDependencies(
+        ITypeDiscoveryContext context,
+        DefinitionBase definition)
+    {
+        var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
+        context.Dependencies.Add(new(typeRef));
+        base.OnBeforeRegisterDependencies(context, definition);
+    }
+
+    private static ObjectTypeDefinition CreateTypeDefinition(bool withTotalCount)
+    {
+        var definition = new ObjectTypeDefinition
         {
-            descriptor
-                .Name(dependency => $"{dependency.Name}CollectionSegment")
-                .DependsOn<T>()
-                .BindFieldsExplicitly();
+            Description = CollectionSegmentType_Description,
+            RuntimeType = typeof(CollectionSegment)
+        };
 
-            descriptor
-                .Field(i => i.Items)
-                .Name("items")
-                .Type<ListType<T>>();
+        definition.Fields.Add(new(
+            Names.PageInfo,
+            CollectionSegmentType_PageInfo_Description,
+            TypeReference.Parse("CollectionSegmentInfo!"),
+            pureResolver: GetPagingInfo));
 
-            descriptor
-                .Field(t => t.Info)
-                .Name("pageInfo")
-                .Description("Information to aid in pagination.")
-                .Type<NonNullType<CollectionSegmentInfoType>>();
+        definition.Fields.Add(new(
+            Names.Items,
+            CollectionSegmentType_Items_Description,
+            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items}});
+
+        if (withTotalCount)
+        {
+            definition.Fields.Add(new(
+                Names.TotalCount,
+                type: TypeReference.Parse($"{ScalarNames.Int}!"),
+                resolver: GetTotalCountAsync));
         }
 
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
+        return definition;
+    }
 
-            context.RegisterDependency(
-                context.TypeInspector.GetTypeRef(typeof(T)),
-                TypeDependencyKind.Default);
-        }
+    private static IPageInfo GetPagingInfo(IPureResolverContext context)
+        => context.Parent<CollectionSegment>().Info;
 
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
+    private static IEnumerable<object?> GetItems(IPureResolverContext context)
+        => context.Parent<CollectionSegment>().Items;
 
-            ItemType = context.GetType<IOutputType>(
-                context.TypeInspector.GetTypeRef(typeof(T)));
-        }
+    private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)
+        => await context.Parent<CollectionSegment>().GetTotalCountAsync(context.RequestAborted);
+
+    private static bool IsItemsField(ObjectFieldDefinition field)
+        => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(ContextDataKeys.Items);
+
+    internal static class Names
+    {
+        public const string PageInfo = "pageInfo";
+        public const string Items = "items";
+        public const string TotalCount = "totalCount";
+    }
+
+    private static class ContextDataKeys
+    {
+        public const string Items = "HotChocolate.Types.CollectionSegment.Items";
     }
 }

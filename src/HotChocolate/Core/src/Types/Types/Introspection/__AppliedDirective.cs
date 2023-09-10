@@ -1,44 +1,56 @@
 #pragma warning disable IDE1006 // Naming Styles
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
-namespace HotChocolate.Types.Introspection
+namespace HotChocolate.Types.Introspection;
+
+/// <summary>
+/// An Applied Directive is an instances of a directive as applied to a schema element.
+/// This type is NOT specified by the graphql specification presently.
+/// </summary>
+[Introspection]
+// ReSharper disable once InconsistentNaming
+internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
 {
-    /// <summary>
-    /// An Applied Directive is an instances of a directive as applied to a schema element.
-    /// This type is NOT specified by the graphql specification presently.
-    /// </summary>
-    public class __AppliedDirective : ObjectType<DirectiveNode>
+    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        protected override void Configure(
-            IObjectTypeDescriptor<DirectiveNode> descriptor)
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
+
+        return new ObjectTypeDefinition(
+            Names.__AppliedDirective,
+            TypeResources.__AppliedDirective_Description,
+            typeof(DirectiveNode))
         {
-            descriptor
-                .Name(Names.__AppliedDirective)
-                .Description(TypeResources.___AppliedDirective_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFieldsExplicitly();
+            Fields =
+            {
+                new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                new(Names.Args, type: locationListType, pureResolver: Resolvers.Arguments)
+            }
+        };
+    }
 
-            descriptor
-                .Field(Names.Name)
-                .Type<NonNullType<StringType>>()
-                .Resolve(c => c.Parent<DirectiveNode>().Name.Value);
+    private static class Resolvers
+    {
+        public static string Name(IPureResolverContext context)
+            => context.Parent<DirectiveNode>().Name.Value;
 
-            descriptor
-                .Field(Names.Args)
-                .Type<NonNullType<ListType<NonNullType<__DirectiveArgument>>>>()
-                .Resolve(c => c.Parent<DirectiveNode>().Arguments);
-        }
+        public static object Arguments(IPureResolverContext context)
+            => context.Parent<DirectiveNode>().Arguments;
+    }
 
-        public static class Names
-        {
-            public const string __AppliedDirective = "__AppliedDirective";
-            public const string Args = "args";
-            public const string Name = "name";
-        }
+    public static class Names
+    {
+        // ReSharper disable once InconsistentNaming
+        public const string __AppliedDirective = "__AppliedDirective";
+        public const string Name = "name";
+        public const string Args = "args";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

@@ -1,7 +1,14 @@
 import styled from "styled-components";
-import CheckIconSvg from "../../images/check.svg";
-import EnvelopeIconSvg from "../../images/envelope.svg";
-import SlackIconSvg from "../../images/slack.svg";
+
+import { Brand } from "@/components/sprites";
+import { THEME_COLORS } from "@/shared-style";
+
+// Brands
+import SlackIconSvg from "@/images/brands/slack.svg";
+
+// Icons
+import CheckIconSvg from "@/images/check.svg";
+import EnvelopeIconSvg from "@/images/envelope.svg";
 
 export const SectionRow = styled.div`
   display: flex;
@@ -24,7 +31,7 @@ export const Section = styled.section`
   overflow: hidden;
 
   &:nth-child(odd) {
-    background-color: #efefef;
+    background-color: ${THEME_COLORS.backgroundAlt};
   }
 
   @media only screen and (min-width: 992px) {
@@ -62,7 +69,7 @@ export const ImageContainer = styled.div<{ large?: boolean }>`
   }
 `;
 
-export const ContentContainer = styled.div<{ noImage?: boolean }>`
+export const ContentContainer = styled.div<{ readonly noImage?: true }>`
   display: flex;
   flex-direction: column;
   padding: 0 40px;
@@ -76,15 +83,15 @@ export const ContentContainer = styled.div<{ noImage?: boolean }>`
     padding: 0;
 
     > p {
-      text-align: initial;
+      text-align: ${({ noImage }) => (noImage ? "center" : "initial")};
     }
   }
 `;
 
-export const SectionTitle = styled.h1<{ centerAlways?: boolean }>`
+export const SectionTitle = styled.h2<{ readonly centerAlways?: true }>`
   flex: 0 0 auto;
   font-size: 1.75em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
   text-align: center;
 
   @media only screen and (min-width: 768px) {
@@ -119,18 +126,18 @@ export const EnvelopeIcon = styled(EnvelopeIconSvg)`
   width: 24px;
   height: 24px;
   vertical-align: middle;
-  fill: var(--text-color);
+  fill: ${THEME_COLORS.text};
 
   &:hover {
     fill: #000;
   }
 `;
 
-export const SlackIcon = styled(SlackIconSvg)`
+export const SlackIcon = styled(Brand).attrs(SlackIconSvg)`
   width: 24px;
   height: 24px;
   vertical-align: middle;
-  fill: var(--text-color);
+  fill: ${THEME_COLORS.text};
 
   &:hover {
     fill: #000;

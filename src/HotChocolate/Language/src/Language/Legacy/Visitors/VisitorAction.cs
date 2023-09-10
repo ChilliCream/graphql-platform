@@ -1,10 +1,9 @@
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public enum VisitorAction
 {
-    public enum VisitorAction
-    {
-        Default,
-        Continue,
-        Break,
-        Skip,
-    }
+    Default,
+    Continue,
+    Break,
+    Skip,
 }

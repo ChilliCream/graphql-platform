@@ -13,22 +13,26 @@ type Query {
   droid(id: String): Droid
   time: Long!
   evict: Boolean!
+  wait(m: Int!): Boolean!
 }
 
 type Mutation {
   createReview(episode: Episode! review: ReviewInput!): Review!
+  complete(episode: Episode!): Boolean!
 }
 
 type Subscription {
   onReview(episode: Episode!): Review!
-  onNext: String
+  onNext: String!
+  onException: String!
+  delay(delay: Int! count: Int!): String!
 }
 
 type Human implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
@@ -38,7 +42,7 @@ type Droid implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   height(unit: Unit): Float
   primaryFunction: String
 }
@@ -52,7 +56,7 @@ enum Episode {
 interface Character {
   id: ID!
   name: String!
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   appearsIn: [Episode]
   height(unit: Unit): Float
 }
@@ -60,8 +64,8 @@ interface Character {
 union SearchResult = Starship | Human | Droid
 
 type Review {
-  stars: Int!
   commentary: String
+  stars: Int!
 }
 
 input ReviewInput {
@@ -70,11 +74,11 @@ input ReviewInput {
 }
 
 "A connection to a list of items."
-type CharacterConnection {
+type FriendsConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [CharacterEdge!]
+  edges: [FriendsEdge!]
   "A flattened list of the nodes."
   nodes: [Character]
 }
@@ -103,7 +107,7 @@ type PageInfo {
 }
 
 "An edge in a connection."
-type CharacterEdge {
+type FriendsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."

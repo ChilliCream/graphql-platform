@@ -203,19 +203,34 @@
   <data name="ErrorHelper_SubscriptionSingleRootField" xml:space="preserve">
     <value>Subscription operations must have exactly one root field.</value>
   </data>
+  <data name="ErrorHelper_SubscriptionNoTopLevelIntrospectionField" xml:space="preserve">
+    <value>Subscription must not select an introspection top level field.</value>
+  </data>
   <data name="ErrorHelper_MaxOperationComplexity" xml:space="preserve">
     <value>The GraphQL document has an operation complexity of {0} which exceeds the max allowed operation complexity of {1}.</value>
   </data>
   <data name="ErrorHelper_MaxExecutionDepth" xml:space="preserve">
     <value>The GraphQL document has an execution depth of {0} which exceeds the max allowed execution depth of {1}.</value>
   </data>
-  <data name="HotChocolateValidationBuilderExtensions_MinimumAllowedValue" xml:space="preserve">
-    <value>The minimum allowed value is 1.</value>
-  </data>
   <data name="ErrorHelper_DirectiveMustBeUniqueInLocation" xml:space="preserve">
     <value>Only one of each directive is allowed per location.</value>
   </data>
   <data name="ErrorHelper_IntrospectionNotAllowed" xml:space="preserve">
     <value>Introspection is not allowed for the current request.</value>
+  </data>
+  <data name="ErrorHelper_OneOfMustHaveExactlyOneField" xml:space="preserve">
+    <value>The Oneof Input Object `{0}` requires that exactly one field must be supplied and that field must not be `null`.</value>
+  </data>
+  <data name="ErrorHelper_OneOfVariablesMustBeNonNull" xml:space="preserve">
+    <value>The variable `${0}` assigned to the field `{1}` of the Oneof Input Object `{2}` must be non-null.</value>
+  </data>
+  <data name="ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot" xml:space="preserve">
+    <value>The defer and stream directives are not allowed to be used on root fields of the mutation or subscription type.</value>
+  </data>
+  <data name="ErrorHelper_DeferAndStreamDuplicateLabel" xml:space="preserve">
+    <value>If a label is passed, it must be unique within all other @defer and @stream directives in the document.</value>
+  </data>
+  <data name="ErrorHelper_DeferAndStreamLabelIsVariable" xml:space="preserve">
+    <value>If a label for @defer or @stream is passed, it must not be a variable.</value>
   </data>
 </root>

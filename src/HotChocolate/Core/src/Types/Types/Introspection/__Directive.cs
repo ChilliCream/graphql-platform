@@ -1,106 +1,133 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
-namespace HotChocolate.Types.Introspection
+namespace HotChocolate.Types.Introspection;
+
+[Introspection]
+// ReSharper disable once InconsistentNaming
+internal sealed class __Directive : ObjectType<DirectiveType>
 {
-    [Introspection]
-    internal sealed class __Directive : ObjectType
+    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        protected override void Configure(
-            IObjectTypeDescriptor descriptor)
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var booleanType = Parse($"{ScalarNames.Boolean}");
+        var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
+        var locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
+
+        return new ObjectTypeDefinition(
+            Names.__Directive,
+            TypeResources.Directive_Description,
+            typeof(DirectiveType))
         {
-            descriptor
-                .Name(Names.__Directive)
-                .Description(TypeResources.Directive_Description);
+            Fields =
+            {
+                new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                new(Names.Locations, type: locationListType, pureResolver: Resolvers.Locations),
+                new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments)
+                {
+                    Arguments =
+                    {
+                        new(Names.IncludeDeprecated, type: booleanType)
+                        {
+                            DefaultValue = BooleanValueNode.False,
+                            RuntimeDefaultValue = false
+                        }
+                    }
+                },
+                new(Names.IsRepeatable,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.IsRepeatable),
+                new(Names.OnOperation,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.OnOperation)
+                {
+                    DeprecationReason = TypeResources.Directive_UseLocation
+                },
+                new(Names.OnFragment,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.OnFragment)
+                {
+                    DeprecationReason = TypeResources.Directive_UseLocation
+                },
+                new(Names.OnField,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.OnField)
+                {
+                    DeprecationReason = TypeResources.Directive_UseLocation
+                }
+            }
+        };
+    }
 
-            descriptor
-                .Field(Names.Name)
-                .Type<NonNullType<StringType>>()
-                .Resolve(c => c.Parent<DirectiveType>().Name);
+    private static class Resolvers
+    {
+        public static string Name(IPureResolverContext context)
+            => context.Parent<DirectiveType>().Name;
 
-            descriptor
-                .Field(Names.Description)
-                .Type<StringType>()
-                .Resolve(c => c.Parent<DirectiveType>().Description);
+        public static object? Description(IPureResolverContext context)
+            => context.Parent<DirectiveType>().Description;
 
-            descriptor
-                .Field(Names.IsRepeatable)
-                .Type<BooleanType>()
-                .Resolve(c => c.Parent<DirectiveType>().IsRepeatable);
+        public static object IsRepeatable(IPureResolverContext context)
+            => context.Parent<DirectiveType>().IsRepeatable;
 
-            descriptor
-                .Field(Names.Locations)
-                .Type<NonNullType<ListType<NonNullType<__DirectiveLocation>>>>()
-                .Resolve(c => c.Parent<DirectiveType>().Locations);
-
-            descriptor
-                .Field(Names.Args)
-                .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
-                .Resolve(c => c.Parent<DirectiveType>().Arguments);
-
-            descriptor
-                .Field(Names.OnOperation)
-                .Type<NonNullType<BooleanType>>()
-                .Resolve(GetOnOperation)
-                .Deprecated(TypeResources.Directive_UseLocation);
-
-            descriptor
-                .Field(Names.OnFragment)
-                .Type<NonNullType<BooleanType>>()
-                .Resolve(GetOnFragment)
-                .Deprecated(TypeResources.Directive_UseLocation);
-
-            descriptor
-                .Field(Names.OnField)
-                .Type<NonNullType<BooleanType>>()
-                .Resolve(GetOnField)
-                .Deprecated(TypeResources.Directive_UseLocation);
+        public static object Locations(IPureResolverContext context)
+        {
+            var locations = context.Parent<DirectiveType>().Locations;
+            return locations.AsEnumerable();
         }
 
-        private static bool GetOnOperation(IResolverContext context)
+        public static object Arguments(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.Query)
-                || locations.Contains(DirectiveLocation.Mutation)
-                || locations.Contains(DirectiveLocation.Subscription);
+            var directive = context.Parent<DirectiveType>();
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? directive.Arguments
+                : directive.Arguments.Where(t => !t.IsDeprecated);
         }
 
-        private static bool GetOnFragment(IResolverContext context)
+        public static object OnOperation(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.InlineFragment)
-                || locations.Contains(DirectiveLocation.FragmentSpread)
-                || locations.Contains(DirectiveLocation.FragmentDefinition);
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Operation) != 0;
         }
 
-        private static bool GetOnField(IResolverContext context)
+        public static object OnFragment(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.Field);
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Fragment) != 0;
         }
 
-        public static class Names
+        public static object OnField(IPureResolverContext context)
         {
-            public const string __Directive = "__Directive";
-            public const string Name = "name";
-            public const string Description = "description";
-            public const string IsRepeatable = "isRepeatable";
-            public const string Locations = "locations";
-            public const string Args = "args";
-            public const string OnOperation = "onOperation";
-            public const string OnFragment = "onFragment";
-            public const string OnField = "onField";
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Field) != 0;
         }
+    }
+
+    public static class Names
+    {
+        // ReSharper disable once InconsistentNaming
+        public const string __Directive = "__Directive";
+        public const string Name = "name";
+        public const string Description = "description";
+        public const string IsRepeatable = "isRepeatable";
+        public const string IncludeDeprecated = "includeDeprecated";
+        public const string Locations = "locations";
+        public const string Args = "args";
+        public const string OnOperation = "onOperation";
+        public const string OnFragment = "onFragment";
+        public const string OnField = "onField";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

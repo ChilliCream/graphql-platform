@@ -70,4 +70,7 @@ A time zone maps UTC instants to local times - or, equivalently, to the offset f
     <value>A LocalDateTime in a specific time zone and with a particular offset to distinguish between otherwise-ambiguous instants.
 A ZonedDateTime is global, in that it maps to a single Instant.</value>
   </data>
+  <data name="NodaTime_NoPatternProvided" xml:space="preserve">
+    <value>The provided patterns are empty. You must provide at least one pattern for type {0}.</value>
+  </data>
 </root>

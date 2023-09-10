@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Types;
-using Microsoft.AspNetCore.Hosting;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.WebSockets;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
@@ -22,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         public async Task Execute_EntityIdOrData_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
+            var ct = new CancellationTokenSource(20_000).Token;
             var serviceCollection = new ServiceCollection();
             serviceCollection
                 .AddGraphQLServer()
@@ -34,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
                 .AddType<Quox2>();
             serviceCollection.AddEntityIdOrDataClient().ConfigureInMemoryClient();
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            EntityIdOrDataClient client = services.GetRequiredService<EntityIdOrDataClient>();
+            var client = services.GetRequiredService<EntityIdOrDataClient>();
 
             // act
             IOperationResult<IGetFooResult> result = await client.GetFoo.ExecuteAsync(ct);
@@ -61,22 +58,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 
         public class Baz : IBar
         {
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
         }
 
         public class Baz2 : IBar
         {
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
         }
 
         public class Quox : IBar
         {
-            public string Foo { get; set; }
+            public string Foo { get; set; } = default!;
         }
 
         public class Quox2 : IBar
         {
-            public string Foo { get; set; }
+            public string Foo { get; set; } = default!;
         }
     }
 }

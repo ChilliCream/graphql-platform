@@ -1,0 +1,22 @@
+﻿schema {
+  query: Query
+}
+
+interface IQuery {
+  someField(a: Int): TestType
+}
+
+type Query {
+  someField(a: Int): TestType
+}
+
+type TestType @key(fields: "id") {
+  id: Int!
+  name: String!
+}
+
+"Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
+directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+
+"Scalar representing a set of fields."
+scalar _FieldSet

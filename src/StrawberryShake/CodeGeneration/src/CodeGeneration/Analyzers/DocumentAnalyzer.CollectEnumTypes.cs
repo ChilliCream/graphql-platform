@@ -1,56 +1,55 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Analyzers;
+
+public partial class DocumentAnalyzer
 {
-    public partial class DocumentAnalyzer
+    private static void CollectEnumTypes(IDocumentAnalyzerContext context)
     {
-        private static void CollectEnumTypes(
-            IDocumentAnalyzerContext context)
+        var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
+        analyzer.Analyze(context.Document);
+
+        foreach (var enumType in analyzer.EnumTypes)
         {
-            var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
-            analyzer.Analyze(context.Document);
+            RenameDirective? rename;
+            var values = new List<EnumValueModel>();
 
-            foreach (EnumType enumType in analyzer.EnumTypes)
+            foreach (var enumValue in enumType.Values)
             {
-                RenameDirective? rename;
-                var values = new List<EnumValueModel>();
+                rename = enumValue.Directives.SingleOrDefault<RenameDirective>();
 
-                foreach (IEnumValue enumValue in enumType.Values)
-                {
-                    rename = enumValue.Directives.SingleOrDefault<RenameDirective>();
+                var value =
+                    enumValue.Directives.SingleOrDefault<EnumValueDirective>();
 
-                    EnumValueDirective? value =
-                        enumValue.Directives.SingleOrDefault<EnumValueDirective>();
-
-                    values.Add(new EnumValueModel(
-                        rename?.Name ?? GetEnumValue(enumValue.Name),
-                        enumValue.Description,
-                        enumValue,
-                        value?.Value));
-                }
-
-                rename = enumType.Directives.SingleOrDefault<RenameDirective>();
-
-                SerializationTypeDirective? serializationType =
-                    enumType.Directives.SingleOrDefault<SerializationTypeDirective>();
-
-                NameString typeName = context.ResolveTypeName(
-                    rename?.Name ?? GetClassName(enumType.Name));
-
-                context.RegisterModel(
-                    typeName,
-                    new EnumTypeModel(
-                        typeName,
-                        enumType.Description,
-                        enumType,
-                        serializationType?.Name,
-                        values));
+                values.Add(new EnumValueModel(
+                    rename?.Name ?? GetEnumValue(enumValue.Name),
+                    enumValue.Description,
+                    enumValue,
+                    value?.Value));
             }
+
+            rename = enumType.Directives.SingleOrDefault<RenameDirective>();
+
+            var serializationType =
+                enumType.Directives.SingleOrDefault<SerializationTypeDirective>();
+
+            var typeName = context.ResolveTypeName(
+                rename?.Name ?? GetClassName(enumType.Name));
+
+            context.RegisterModel(
+                typeName,
+                new EnumTypeModel(
+                    typeName,
+                    enumType.Description,
+                    enumType,
+                    serializationType?.Name,
+                    values));
         }
     }
 }

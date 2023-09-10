@@ -1,0 +1,3 @@
+﻿input Bar {
+  Foo: String
+}

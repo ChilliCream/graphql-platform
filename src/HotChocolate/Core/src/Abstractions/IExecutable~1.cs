@@ -1,6 +1,5 @@
-namespace HotChocolate
+namespace HotChocolate;
+
+public interface IExecutable<T> : IExecutable
 {
-    public interface IExecutable<T> : IExecutable
-    {
-    }
 }

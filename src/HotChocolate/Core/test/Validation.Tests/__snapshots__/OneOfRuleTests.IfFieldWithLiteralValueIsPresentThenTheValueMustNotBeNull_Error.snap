@@ -1,0 +1,68 @@
+﻿[
+  {
+    "Message": "The Oneof Input Object `PetInput` requires that exactly one field must be supplied and that field must not be `null`.",
+    "Code": null,
+    "Path": {
+      "Name": "addPet",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 33
+      }
+    ],
+    "Extensions": {
+      "type": "PetInput",
+      "specifiedBy": "http://spec.graphql.org/draft/#sec-Oneof–Input-Objects-Have-Exactly-One-Field",
+      "rfc": "https://github.com/graphql/graphql-spec/pull/825"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectValue",
+      "Location": {
+        "Start": 67,
+        "End": 81,
+        "Line": 3,
+        "Column": 33
+      },
+      "Fields": [
+        {
+          "Kind": "ObjectField",
+          "Location": {
+            "Start": 69,
+            "End": 80,
+            "Line": 3,
+            "Column": 35
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 69,
+              "End": 73,
+              "Line": 3,
+              "Column": 35
+            },
+            "Value": "cat"
+          },
+          "Value": {
+            "Kind": "NullValue",
+            "Location": {
+              "Start": 74,
+              "End": 80,
+              "Line": 3,
+              "Column": 40
+            },
+            "Value": null
+          }
+        }
+      ]
+    }
+  }
+]

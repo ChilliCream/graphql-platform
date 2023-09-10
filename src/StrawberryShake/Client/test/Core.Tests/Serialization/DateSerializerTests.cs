@@ -1,92 +1,90 @@
 using System;
 using System.Linq;
-using Xunit;
 
-namespace StrawberryShake.Serialization
+namespace StrawberryShake.Serialization;
+
+public class DateSerializerTests
 {
-    public class DateSerializerTests
+    private DateSerializer Serializer { get; } = new();
+
+    private DateSerializer CustomSerializer { get; } = new("Abc");
+
+    [Fact]
+    public void Parse()
     {
-        private DateSerializer Serializer { get; } = new();
+        // arrange
+        var value = "2012-11-29";
 
-        private DateSerializer CustomSerializer { get; } = new("Abc");
+        // act
+        var result = Serializer.Parse(value);
 
-        [Fact]
-        public void Parse()
-        {
-            // arrange
-            var value = "2012-11-29";
+        // assert
+        Assert.Equal(2012, result.Date.Year);
+        Assert.Equal(11, result.Date.Month);
+        Assert.Equal(29, result.Date.Day);
+    }
 
-            // act
-            DateTime result = Serializer.Parse(value);
+    [Fact]
+    public void Format_Null()
+    {
+        // arrange
 
-            // assert
-            Assert.Equal(2012, result.Date.Year);
-            Assert.Equal(11, result.Date.Month);
-            Assert.Equal(29, result.Date.Day);
-        }
+        // act
+        var result = Serializer.Format(null);
 
-        [Fact]
-        public void Format_Null()
-        {
-            // arrange
+        // assert
+        Assert.Null(result);
+    }
 
-            // act
-            object? result = Serializer.Format(null);
+    [Fact]
+    public void Format_Value()
+    {
+        // arrange
+        var value = new DateTime(2012, 11, 29);
 
-            // assert
-            Assert.Null(result);
-        }
+        // act
+        var result = Serializer.Format(value);
 
-        [Fact]
-        public void Format_Value()
-        {
-            // arrange
-            var value = new DateTime(2012, 11, 29);
+        // assert
+        Assert.Equal("2012-11-29", result);
+    }
 
-            // act
-            object? result = Serializer.Format(value);
+    [Fact]
+    public void Format_Exception()
+    {
+        // arrange
+        var value = "1";
 
-            // assert
-            Assert.Equal("2012-11-29", result);
-        }
+        // act
+        void Action() => Serializer.Format(value);
 
-        [Fact]
-        public void Format_Exception()
-        {
-            // arrange
-            string value = "1";
+        // assert
+        Assert.Equal(
+            "SS0007",
+            Assert.Throws<GraphQLClientException>(Action).Errors.Single().Code);
+    }
 
-            // act
-            void Action() => Serializer.Format(value);
+    [Fact]
+    public void TypeName_Default()
+    {
+        // arrange
 
-            // assert
-            Assert.Equal(
-                "SS0007",
-                Assert.Throws<GraphQLClientException>(Action).Errors.Single().Code);
-        }
+        // act
+        var typeName = Serializer.TypeName;
 
-        [Fact]
-        public void TypeName_Default()
-        {
-            // arrange
+        // assert
+        Assert.Equal("Date", typeName);
+    }
 
-            // act
-            string typeName = Serializer.TypeName;
+    [Fact]
+    public void TypeName_Custom()
+    {
+        // arrange
 
-            // assert
-            Assert.Equal("Date", typeName);
-        }
+        // act
+        var typeName = CustomSerializer.TypeName;
 
-        [Fact]
-        public void TypeName_Custom()
-        {
-            // arrange
-
-            // act
-            string typeName = CustomSerializer.TypeName;
-
-            // assert
-            Assert.Equal("Abc", typeName);
-        }
+        // assert
+        Assert.Equal("Abc", typeName);
     }
 }

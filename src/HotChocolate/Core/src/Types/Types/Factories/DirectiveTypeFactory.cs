@@ -4,175 +4,169 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Factories
+namespace HotChocolate.Types.Factories;
+
+internal sealed class DirectiveTypeFactory
+    : ITypeFactory<DirectiveDefinitionNode, DirectiveType>
 {
-    internal sealed class DirectiveTypeFactory
-        : ITypeFactory<DirectiveDefinitionNode, DirectiveType>
+    private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> _locs =
+        new()
+        {
+            {
+                Language.DirectiveLocation.Query,
+                DirectiveLocation.Query
+            },
+            {
+                Language.DirectiveLocation.Mutation,
+                DirectiveLocation.Mutation
+            },
+            {
+                Language.DirectiveLocation.Subscription,
+                DirectiveLocation.Subscription
+            },
+            {
+                Language.DirectiveLocation.Field,
+                DirectiveLocation.Field
+            },
+            {
+                Language.DirectiveLocation.FragmentDefinition,
+                DirectiveLocation.FragmentDefinition
+            },
+            {
+                Language.DirectiveLocation.FragmentSpread,
+                DirectiveLocation.FragmentSpread
+            },
+            {
+                Language.DirectiveLocation.InlineFragment,
+                DirectiveLocation.InlineFragment
+            },
+            {
+                Language.DirectiveLocation.Schema,
+                DirectiveLocation.Schema
+            },
+            {
+                Language.DirectiveLocation.Scalar,
+                DirectiveLocation.Scalar
+            },
+            {
+                Language.DirectiveLocation.Object,
+                DirectiveLocation.Object
+            },
+            {
+                Language.DirectiveLocation.FieldDefinition,
+                DirectiveLocation.FieldDefinition
+            },
+            {
+                Language.DirectiveLocation.ArgumentDefinition,
+                DirectiveLocation.ArgumentDefinition
+            },
+            {
+                Language.DirectiveLocation.Interface,
+                DirectiveLocation.Interface
+            },
+            {
+                Language.DirectiveLocation.Union,
+                DirectiveLocation.Union
+            },
+            {
+                Language.DirectiveLocation.Enum,
+                DirectiveLocation.Enum
+            },
+            {
+                Language.DirectiveLocation.EnumValue,
+                DirectiveLocation.EnumValue
+            },
+            {
+                Language.DirectiveLocation.InputObject,
+                DirectiveLocation.InputObject
+            },
+            {
+                Language.DirectiveLocation.InputFieldDefinition,
+                DirectiveLocation.InputFieldDefinition
+            },
+        };
+
+    public DirectiveType Create(IDescriptorContext context, DirectiveDefinitionNode node)
     {
-        private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> _locs =
-            new()
-            {
-                    {
-                        Language.DirectiveLocation.Query,
-                        DirectiveLocation.Query
-                    },
-                    {
-                        Language.DirectiveLocation.Mutation,
-                        DirectiveLocation.Mutation
-                    },
-                    {
-                        Language.DirectiveLocation.Subscription,
-                        DirectiveLocation.Subscription
-                    },
-                    {
-                        Language.DirectiveLocation.Field,
-                        DirectiveLocation.Field
-                    },
-                    {
-                        Language.DirectiveLocation.FragmentDefinition,
-                        DirectiveLocation.FragmentDefinition
-                    },
-                    {
-                        Language.DirectiveLocation.FragmentSpread,
-                        DirectiveLocation.FragmentSpread
-                    },
-                    {
-                        Language.DirectiveLocation.InlineFragment,
-                        DirectiveLocation.InlineFragment
-                    },
-                    {
-                        Language.DirectiveLocation.Schema,
-                        DirectiveLocation.Schema
-                    },
-                    {
-                        Language.DirectiveLocation.Scalar,
-                        DirectiveLocation.Scalar
-                    },
-                    {
-                        Language.DirectiveLocation.Object,
-                        DirectiveLocation.Object
-                    },
-                    {
-                        Language.DirectiveLocation.FieldDefinition,
-                        DirectiveLocation.FieldDefinition
-                    },
-                    {
-                        Language.DirectiveLocation.ArgumentDefinition,
-                        DirectiveLocation.ArgumentDefinition
-                    },
-                    {
-                        Language.DirectiveLocation.Interface,
-                        DirectiveLocation.Interface
-                    },
-                    {
-                        Language.DirectiveLocation.Union,
-                        DirectiveLocation.Union
-                    },
-                    {
-                        Language.DirectiveLocation.Enum,
-                        DirectiveLocation.Enum
-                    },
-                    {
-                        Language.DirectiveLocation.EnumValue,
-                        DirectiveLocation.EnumValue
-                    },
-                    {
-                        Language.DirectiveLocation.InputObject,
-                        DirectiveLocation.InputObject
-                    },
-                    {
-                        Language.DirectiveLocation.InputFieldDefinition,
-                        DirectiveLocation.InputFieldDefinition
-                    },
-            };
+        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
 
-        public DirectiveType Create(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions,
-            DirectiveDefinitionNode node)
+        var typeDefinition = new DirectiveTypeDefinition(
+            node.Name.Value,
+            node.Description?.Value,
+            isRepeatable: node.IsRepeatable);
+
+        if (context.Options.DefaultDirectiveVisibility is DirectiveVisibility.Public)
         {
-            if (bindingLookup is null)
-            {
-                throw new ArgumentNullException(nameof(bindingLookup));
-            }
-
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            ITypeBindingInfo bindingInfo =
-                bindingLookup.GetBindingInfo(node.Name.Value);
-
-            return new DirectiveType(c =>
-            {
-                c.Name(node.Name.Value);
-                c.Description(node.Description?.Value);
-                c.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null);
-
-                if (bindingInfo.SourceType != null)
-                {
-                    c.Extend().OnBeforeCreate(
-                        t => t.RuntimeType = bindingInfo.SourceType);
-                }
-
-                if (node.IsRepeatable)
-                {
-                    c.Repeatable();
-                }
-
-                DeclareArguments(schemaOptions, c, node);
-                DeclareLocations(c, node);
-            });
+            typeDefinition.IsPublic = true;
         }
 
-        private static void DeclareArguments(
-            IReadOnlySchemaOptions schemaOptions,
-            IDirectiveTypeDescriptor typeDescriptor,
-            DirectiveDefinitionNode node)
+        if (preserveSyntaxNodes)
         {
-            foreach (InputValueDefinitionNode inputField in node.Arguments)
-            {
-                IDirectiveArgumentDescriptor descriptor = typeDescriptor
-                    .Argument(inputField.Name.Value)
-                    .Description(inputField.Description?.Value)
-                    .Type(inputField.Type)
-                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? inputField : null);
-
-                if (inputField.DefaultValue is { })
-                {
-                    descriptor.DefaultValue(inputField.DefaultValue);
-                }
-            }
+            typeDefinition.SyntaxNode = node;
         }
 
-        private static void DeclareLocations(
-            IDirectiveTypeDescriptor typeDescriptor,
-            DirectiveDefinitionNode node)
+        DeclareArguments(typeDefinition, node.Arguments, preserveSyntaxNodes);
+        DeclareLocations(typeDefinition, node);
+
+        return DirectiveType.CreateUnsafe(typeDefinition);
+    }
+
+    private static void DeclareArguments(
+        DirectiveTypeDefinition parent,
+        IReadOnlyCollection<InputValueDefinitionNode> arguments,
+        bool preserveSyntaxNodes)
+    {
+        foreach (var argument in arguments)
         {
-            foreach (NameNode location in node.Locations)
+            var argumentDefinition = new DirectiveArgumentDefinition(
+                argument.Name.Value,
+                argument.Description?.Value,
+                TypeReference.Create(argument.Type),
+                argument.DefaultValue);
+
+            if (preserveSyntaxNodes)
             {
-                if (Language.DirectiveLocation.TryParse(
-                    location.Value,
-                    out Language.DirectiveLocation parsedLocation))
-                {
-                    typeDescriptor.Location(MapDirectiveLocation(parsedLocation));
-                }
+                argumentDefinition.SyntaxNode = argument;
             }
+
+            if (argument.DeprecationReason() is { Length: > 0 } reason)
+            {
+                argumentDefinition.DeprecationReason = reason;
+            }
+
+            parent.Arguments.Add(argumentDefinition);
+        }
+    }
+
+    private static void DeclareLocations(
+        DirectiveTypeDefinition parent,
+        DirectiveDefinitionNode node)
+    {
+        foreach (var location in node.Locations)
+        {
+            if (Language.DirectiveLocation.TryParse(
+                location.Value,
+                out var parsedLocation))
+            {
+                parent.Locations |= MapDirectiveLocation(parsedLocation);
+            }
+        }
+    }
+
+    private static DirectiveLocation MapDirectiveLocation(
+        Language.DirectiveLocation location)
+    {
+        if (!_locs.TryGetValue(location, out var loc))
+        {
+            throw new NotSupportedException(string.Format(
+                CultureInfo.InvariantCulture,
+                TypeResources.DirectiveTypeFactory_LocationNotSupported,
+                location));
         }
 
-        private static DirectiveLocation MapDirectiveLocation(
-            Language.DirectiveLocation location)
-        {
-            if (!_locs.TryGetValue(location, out DirectiveLocation l))
-            {
-                throw new NotSupportedException(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.DirectiveTypeFactory_LocationNotSupported,
-                    location));
-            }
-            return l;
-        }
+        return loc;
     }
 }

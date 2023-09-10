@@ -1,13 +1,12 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Represents a GraphQL type.
+/// </summary>
+public interface IType : ITypeSystemMember
 {
     /// <summary>
-    /// Represents a GraphQL type.
+    /// Gets the type kind.
     /// </summary>
-    public interface IType : ITypeSystemMember
-    {
-        /// <summary>
-        /// Gets the type kind.
-        /// </summary>
-        TypeKind Kind { get; }
-    }
+    TypeKind Kind { get; }
 }

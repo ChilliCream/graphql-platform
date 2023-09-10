@@ -5,6 +5,11 @@
     <AssemblyName>HotChocolate.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <Description>Contains common abstractions used between the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
+    <Nullable>enable</Nullable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +26,15 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Execution\IQueryRequestBuilder.cs">
+      <DependentUpon>IQueryResult.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IndexerPathSegment.cs">
+      <DependentUpon>Path.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NamePathSegment.cs">
+      <DependentUpon>Path.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

@@ -2,17 +2,18 @@ import { graphql } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { BlogArticlesFragment } from "../../../graphql-types";
-import { ArticleTitle } from "../articles/article-elements";
-import { BlogArticleMetadata } from "../blog-article/blog-article-metadata";
-import { BlogArticleTags } from "../blog-article/blog-article-tags";
-import { Link } from "../misc/link";
-import { Pagination } from "../misc/pagination";
 
-interface BlogArticlesProps {
-  currentPage?: number;
-  data: BlogArticlesFragment;
-  totalPages?: number;
+import { ArticleTitle } from "@/components/articles/article-elements";
+import { BlogArticleMetadata } from "@/components/blog-article/blog-article-metadata";
+import { BlogArticleTags } from "@/components/blog-article/blog-article-tags";
+import { Link } from "@/components/misc/link";
+import { Pagination } from "@/components/misc/pagination";
+import { BlogArticlesFragment } from "@/graphql-types";
+
+export interface BlogArticlesProps {
+  readonly currentPage?: number;
+  readonly data: BlogArticlesFragment;
+  readonly totalPages?: number;
 }
 
 export const BlogArticles: FC<BlogArticlesProps> = ({
@@ -68,10 +69,7 @@ export const BlogArticlesGraphQLFragment = graphql`
         frontmatter {
           featuredImage {
             childImageSharp {
-              gatsbyImageData(
-                layout: CONSTRAINED
-                width: 800
-              )
+              gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
             }
           }
           path
@@ -95,7 +93,7 @@ const Container = styled.ul`
 `;
 
 const Article = styled.li`
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 20px 0 0;
     border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);

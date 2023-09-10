@@ -29,7 +29,7 @@ scalar DateTime
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
 
-scalar Uuid
+scalar UUID
 
 scalar Url
 

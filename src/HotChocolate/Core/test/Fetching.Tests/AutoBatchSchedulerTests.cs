@@ -1,29 +1,33 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Fetching;
+using GreenDonut;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Fetching;
+
+public class AutoBatchSchedulerTests
 {
-    public class AutoBatchSchedulerTests
+    [Fact]
+    public void Schedule_OneAction_DispatchesImmediately()
     {
-        [Fact]
-        public void Schedule_OneAction_DispatchesImmediately()
+        // arrange
+        var hasBeenDispatched = false;
+        var scheduler = new AutoBatchScheduler();
+        var wait = new AutoResetEvent(false);
+
+        ValueTask Dispatch()
         {
-            // arrange
-            var hasBeenDispatched = false;
-            var scheduler = new AutoBatchScheduler();
-            Func<ValueTask> dispatch = () =>
-            {
-                hasBeenDispatched = true;
-                return default;
-            };
-
-            // act
-            scheduler.Schedule(dispatch);
-
-            // assert
-            Assert.True(hasBeenDispatched);
+            hasBeenDispatched = true;
+            wait.Set();
+            return default;
         }
+
+        // act
+        scheduler.Schedule(Dispatch);
+
+        // assert
+        wait.WaitOne(TimeSpan.FromSeconds(5));
+        Assert.True(hasBeenDispatched);
     }
 }

@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore.Properties {
     using System;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class AspNetCoreResources {
@@ -159,18 +159,6 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
-        internal static string ErrorHelper_ResponseTypeNotSupported {
-            get {
-                return ResourceManager.GetString("ErrorHelper_ResponseTypeNotSupported", resourceCulture);
-            }
-        }
-        
-        internal static string Subscription_SendResultsAsync {
-            get {
-                return ResourceManager.GetString("Subscription_SendResultsAsync", resourceCulture);
-            }
-        }
-        
         internal static string WebSocketSession_SessionEnded {
             get {
                 return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);
@@ -180,6 +168,120 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string DataStartMessageHandler_Not_A_SubscriptionResult {
             get {
                 return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);
+            }
+        }
+        
+        internal static string OperationMessage_TypeCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationMessage_TypeCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string TerminateConnectionMessageHandler_Message {
+            get {
+                return ResourceManager.GetString("TerminateConnectionMessageHandler_Message", resourceCulture);
+            }
+        }
+        
+        internal static string OperationManager_Register_SessionIdNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationManager_Register_SessionIdNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_MessageMustBeJson {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_MessageMustBeJson", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_TypePropMissing {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_TypePropMissing", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_ToManyInitializations {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_ToManyInitializations", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_InvalidSubscribeMessage {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_InvalidSubscribeMessage", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_SubscriptionIdNotUnique {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_SubscriptionIdNotUnique", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_InvalidMessageType {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_InvalidMessageType", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionStatus_Reject_Message_cannot_be_null_or_empty_ {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Reject_Message_cannot_be_null_or_empty_", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionStatus_Reject_MessageCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Reject_MessageCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NoSupportedAcceptMediaType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoSupportedAcceptMediaType", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Formatter_ResultKindNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Formatter_ResultKindNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Formatter_ResponseContentTypeNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Formatter_ResponseContentTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Formatter_InvalidAcceptMediaType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Formatter_InvalidAcceptMediaType", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_InvalidAcceptMediaType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidAcceptMediaType", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_TypeNotFound {
+            get {
+                return ResourceManager.GetString("ErrorHelper_TypeNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_InvalidTypeName {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidTypeName", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_TypeNameIsEmpty {
+            get {
+                return ResourceManager.GetString("ErrorHelper_TypeNameIsEmpty", resourceCulture);
             }
         }
     }

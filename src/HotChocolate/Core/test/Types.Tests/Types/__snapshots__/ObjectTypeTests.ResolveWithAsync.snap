@@ -1,0 +1,9 @@
+﻿{
+  "data": {
+    "foo": "Foo",
+    "baz": "Foo",
+    "qux": "Bar",
+    "quux": "Foo",
+    "quuz": true
+  }
+}

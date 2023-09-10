@@ -1,108 +1,64 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Scalar types represent primitive leaf values in a GraphQL type system.
+/// GraphQL responses take the form of a hierarchical tree;
+/// the leaves on these trees are GraphQL scalars.
+/// </summary>
+public abstract partial class ScalarType
 {
+    private ITypeConverter _converter = default!;
+
     /// <summary>
-    /// Scalar types represent primitive leaf values in a GraphQL type system.
-    /// GraphQL responses take the form of a hierarchical tree;
-    /// the leaves on these trees are GraphQL scalars.
+    /// Initializes a new instance of the
+    /// <see cref="T:HotChocolate.Types.ScalarType"/> class.
     /// </summary>
-    public abstract partial class ScalarType
+    /// <param name="name">
+    /// The unique type name.
+    /// </param>
+    /// <param name="bind">
+    /// Defines if this scalar binds implicitly to its runtime type or
+    /// if it has to be explicitly assigned to it.
+    /// </param>
+    protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
     {
-        private readonly ExtensionData _contextData = new ExtensionData();
-        private ITypeConverter _converter = default!;
+        Name = name.EnsureGraphQLName();
+        Bind = bind;
 
-        /// <summary>
-        /// Initializes a new instance of the
-        /// <see cref="T:HotChocolate.Types.ScalarType"/> class.
-        /// </summary>
-        /// <param name="name">
-        /// The unique type name.
-        /// </param>
-        /// <param name="bind">
-        /// Defines if this scalar binds implicitly to its runtime type or
-        /// if it has to be explicitly assigned to it.
-        /// </param>
-        protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
+        Directives = default!;
+    }
+
+    protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+        => new() { Name = Name, Description = Description };
+
+    protected override void OnRegisterDependencies(
+        ITypeDiscoveryContext context,
+        ScalarTypeDefinition definition)
+    {
+        base.OnRegisterDependencies(context, definition);
+
+        if (SpecifiedBy is not null)
         {
-            Name = name.EnsureNotEmpty(nameof(name));
-            Bind = bind;
-
-            Directives = default!;
+            var inspector = context.TypeInspector;
+            var specifiedByTypeRef = inspector.GetTypeRef(typeof(SpecifiedByDirectiveType));
+            context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
         }
+    }
 
-        internal sealed override void Initialize(ITypeDiscoveryContext context)
-        {
-            context.TypeInterceptor.OnBeforeRegisterDependencies(context, null, _contextData);
-
-            if (_specifiedBy is not null)
-            {
-                context.RegisterDependency(
-                    new TypeDependency(
-                        context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)),
-                        TypeDependencyKind.Completed));
-                context.RegisterDependency(
-                    new ClrTypeDirectiveReference(typeof(SpecifiedByDirective)));
-            }
-
-            OnRegisterDependencies(context, _contextData);
-            context.TypeInterceptor.OnAfterRegisterDependencies(context, null, _contextData);
-            base.Initialize(context);
-        }
-
-        protected virtual void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            IDictionary<string, object?> contextData)
-        {
-        }
-
-        internal sealed override void CompleteName(ITypeCompletionContext context)
-        {
-            context.TypeInterceptor.OnBeforeCompleteName(context, null, _contextData);
-            OnCompleteName(context, _contextData);
-            base.CompleteName(context);
-            context.TypeInterceptor.OnAfterCompleteName(context, null, _contextData);
-        }
-
-        protected virtual void OnCompleteName(
-            ITypeCompletionContext context,
-            IDictionary<string, object?> contextData)
-        {
-        }
-
-        internal sealed override void CompleteType(ITypeCompletionContext context)
-        {
-            context.TypeInterceptor.OnBeforeCompleteType(context, null, _contextData);
-            OnCompleteType(context, _contextData);
-            base.CompleteType(context);
-            context.TypeInterceptor.OnAfterCompleteType(context, null, _contextData);
-        }
-
-        protected virtual void OnCompleteType(
-            ITypeCompletionContext context,
-            IDictionary<string, object?> contextData)
-        {
-            _converter = context.Services.GetTypeConverter();
-
-            DirectiveDefinition[] directiveDefinitions =
-                _specifiedBy is null
-                    ? Array.Empty<DirectiveDefinition>()
-                    : new[]
-                    {
-                        new DirectiveDefinition(
-                            new SpecifiedByDirective(_specifiedBy.ToString()),
-                            context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)))
-                    };
-
-            Directives =
-                DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
-        }
+    protected override void OnCompleteType(
+        ITypeCompletionContext context,
+        ScalarTypeDefinition definition)
+    {
+        _converter = context.DescriptorContext.TypeConverter;
+        var directiveDefinitions = Array.Empty<DirectiveDefinition>();
+        Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
+        SyntaxNode = definition.SyntaxNode;
     }
 }

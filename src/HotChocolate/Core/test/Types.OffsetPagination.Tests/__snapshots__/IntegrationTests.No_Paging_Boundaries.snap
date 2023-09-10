@@ -1,0 +1,17 @@
+﻿{
+  "errors": [
+    {
+      "message": "You must provide take to properly paginate the \u0060LettersCollectionSegment\u0060.",
+      "path": [
+        "letters"
+      ],
+      "extensions": {
+        "code": "HC0052",
+        "field": "Query.letters"
+      }
+    }
+  ],
+  "data": {
+    "letters": null
+  }
+}

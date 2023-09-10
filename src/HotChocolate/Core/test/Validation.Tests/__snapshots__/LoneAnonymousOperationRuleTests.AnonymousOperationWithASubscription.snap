@@ -1,0 +1,100 @@
+﻿[
+  {
+    "Message": "GraphQL allows a short‐hand form for defining query operations when only that one operation exists in the document.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "operations": 2,
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 142,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 17,
+          "End": 142,
+          "Line": 2,
+          "Column": 17
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "Required": null,
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 43,
+                "End": 113,
+                "Line": 3,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "Required": null,
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 69,
+                    "End": 95,
+                    "Line": 4,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 69,
+                      "End": 95,
+                      "Line": 4,
+                      "Column": 25
+                    },
+                    "Value": "name"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 39,
+              "End": 113,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 39,
+                "End": 44,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  }
+]

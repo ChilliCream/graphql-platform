@@ -13,7 +13,7 @@
       "variable": "a",
       "variableType": "Int",
       "locationType": "Int",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -42,7 +42,7 @@
       "variable": "b",
       "variableType": "String",
       "locationType": "String",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -70,7 +70,7 @@
       "variable": "c",
       "variableType": "ComplexInput",
       "locationType": "ComplexInput",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -1,0 +1,44 @@
+﻿schema {
+  query: Query
+}
+
+type Product {
+  name: String!
+}
+
+type Query {
+  someField(id: Int!): Review!
+  _service: _Service!
+  _entities(representations: [_Any!]!): [_Entity]!
+}
+
+type Review @key(fields: "id") {
+  id: Int!
+  product: Product! @requires(fields: "id")
+}
+
+"This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+type _Service {
+  sdl: String!
+}
+
+"Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+union _Entity = Review
+
+"Directive to indicate that a field is owned by another service, for example via Apollo federation."
+directive @external on FIELD_DEFINITION
+
+"Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
+directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+
+"Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
+directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+
+"Used to annotate the required input fieldset from a base type for a resolver."
+directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
+
+"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+scalar _Any
+
+"Scalar representing a set of fields."
+scalar _FieldSet

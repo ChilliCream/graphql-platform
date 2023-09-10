@@ -1,0 +1,34 @@
+{
+  "data": {
+    "root": {
+      "edges": [
+        {
+          "node": {
+            "foo": "A"
+          },
+          "cursor": "MA=="
+        },
+        {
+          "node": {
+            "foo": "B"
+          },
+          "cursor": "MQ=="
+        }
+      ],
+      "nodes": [
+        {
+          "foo": "A"
+        },
+        {
+          "foo": "B"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "MQ=="
+      }
+    }
+  }
+}

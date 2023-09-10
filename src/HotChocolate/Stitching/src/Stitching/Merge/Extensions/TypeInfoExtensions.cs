@@ -1,40 +1,37 @@
-using System;
+namespace HotChocolate.Stitching.Merge;
 
-namespace HotChocolate.Stitching.Merge
+public static class TypeInfoExtensions
 {
-    public static class TypeInfoExtensions
+    public static bool IsQueryType(this ITypeInfo typeInfo)
     {
-        public static bool IsQueryType(this ITypeInfo typeInfo)
+        if (typeInfo == null)
         {
-            if (typeInfo == null)
-            {
-                throw new ArgumentNullException(nameof(typeInfo));
-            }
-
-            return typeInfo.IsRootType
-                && typeInfo.Definition == typeInfo.Schema.QueryType;
+            throw new ArgumentNullException(nameof(typeInfo));
         }
 
-        public static bool IsMutationType(this ITypeInfo typeInfo)
-        {
-            if (typeInfo == null)
-            {
-                throw new ArgumentNullException(nameof(typeInfo));
-            }
+        return typeInfo.IsRootType
+            && typeInfo.Definition == typeInfo.Schema.QueryType;
+    }
 
-            return typeInfo.IsRootType
-                && typeInfo.Definition == typeInfo.Schema.MutationType;
+    public static bool IsMutationType(this ITypeInfo typeInfo)
+    {
+        if (typeInfo == null)
+        {
+            throw new ArgumentNullException(nameof(typeInfo));
         }
 
-        public static bool IsSubscriptionType(this ITypeInfo typeInfo)
-        {
-            if (typeInfo == null)
-            {
-                throw new ArgumentNullException(nameof(typeInfo));
-            }
+        return typeInfo.IsRootType
+            && typeInfo.Definition == typeInfo.Schema.MutationType;
+    }
 
-            return typeInfo.IsRootType
-                && typeInfo.Definition == typeInfo.Schema.SubscriptionType;
+    public static bool IsSubscriptionType(this ITypeInfo typeInfo)
+    {
+        if (typeInfo == null)
+        {
+            throw new ArgumentNullException(nameof(typeInfo));
         }
+
+        return typeInfo.IsRootType
+            && typeInfo.Definition == typeInfo.Schema.SubscriptionType;
     }
 }

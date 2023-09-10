@@ -1,24 +1,23 @@
-namespace StrawberryShake
+namespace StrawberryShake;
+
+/// <summary>
+/// Specifies the GraphQL request strategy.
+/// </summary>
+public enum RequestStrategy
 {
     /// <summary>
-    /// Specifies the GraphQL request strategy.
+    /// The full GraphQL query is send.
     /// </summary>
-    public enum RequestStrategy
-    {
-        /// <summary>
-        /// The full GraphQL query is send.
-        /// </summary>
-        Default,
+    Default,
 
-        /// <summary>
-        /// An id is send representing the query that is stored on the server.
-        /// </summary>
-        PersistedQuery,
+    /// <summary>
+    /// An id is send representing the query that is stored on the server.
+    /// </summary>
+    PersistedQuery,
 
-        /// <summary>
-        /// The full GraphQL query is only send if the server has not yet stored the
-        /// persisted query.
-        /// </summary>
-        AutomaticPersistedQuery
-    }
+    /// <summary>
+    /// The full GraphQL query is only send if the server has not yet stored the
+    /// persisted query.
+    /// </summary>
+    AutomaticPersistedQuery
 }

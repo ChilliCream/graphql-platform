@@ -1,122 +1,115 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Types;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+internal class InputObjectToDictionaryConverter
 {
-    internal class InputObjectToDictionaryConverter
+    private readonly ITypeConverter _converter;
+
+    public InputObjectToDictionaryConverter(ITypeConverter converter)
     {
-        private readonly ITypeConverter _converter;
+        _converter = converter
+            ?? throw new ArgumentNullException(nameof(converter));
+    }
 
-        public InputObjectToDictionaryConverter(ITypeConverter converter)
+    public Dictionary<string, object> Convert(
+        InputObjectType type, object obj)
+    {
+        if (type is null)
         {
-            _converter = converter
-                ?? throw new ArgumentNullException(nameof(converter));
+            throw new ArgumentNullException(nameof(type));
         }
 
-        public Dictionary<string, object> Convert(
-            InputObjectType type, object obj)
+        if (obj is null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            Dictionary<string, object> dict = null;
-            Action<object> setValue =
-                value => dict = (Dictionary<string, object>)value;
-            VisitInputObject(type, obj, setValue, new HashSet<object>());
-            return dict;
+            throw new ArgumentNullException(nameof(obj));
         }
 
-        private void VisitValue(
-            IInputType type, object obj,
-            Action<object> setValue,
-            ISet<object> processed)
+        Dictionary<string, object> dict = null;
+        void SetValue(object value) => dict = (Dictionary<string, object>)value;
+        VisitInputObject(type, obj, SetValue, new HashSet<object>());
+        return dict;
+    }
+
+    private void VisitValue(
+        IInputType type, object obj,
+        Action<object> setValue,
+        ISet<object> processed)
+    {
+        if (obj is null)
         {
-            if (obj is null)
+            setValue(null);
+        }
+        else if (type.IsListType())
+        {
+            VisitList(type.ListType(), obj, setValue, processed);
+        }
+        else if (type.IsLeafType())
+        {
+            VisitLeaf((INamedInputType)type.NamedType(), obj, setValue);
+        }
+        else if (type.IsInputObjectType())
+        {
+            VisitInputObject((InputObjectType)type.NamedType(), obj, setValue, processed);
+        }
+        else
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    private void VisitInputObject(
+        InputObjectType type, object obj,
+        Action<object> setValue, ISet<object> processed)
+    {
+        if (processed.Add(obj))
+        {
+            var dict = new Dictionary<string, object>();
+            setValue(dict);
+
+            var fieldValues = new object[type.Fields.Count];
+            type.GetFieldValues(obj, fieldValues);
+
+            for (var i = 0; i < type.Fields.Count; i++)
             {
-                setValue(null);
-            }
-            else if (type.IsListType())
-            {
-                VisitList(
-                    (ListType)type.ListType(),
-                    obj, setValue, processed);
-            }
-            else if (type.IsLeafType())
-            {
-                VisitLeaf(
-                    (INamedInputType)type.NamedType(),
-                    obj, setValue, processed);
-            }
-            else if (type.IsInputObjectType())
-            {
-                VisitInputObject(
-                    (InputObjectType)type.NamedType(),
-                    obj, setValue, processed);
-            }
-            else
-            {
-                throw new NotSupportedException();
+                var field = type.Fields[i];
+                void SetField(object value) => dict[field.Name] = value;
+                VisitValue(field.Type, fieldValues[i], SetField, processed);
             }
         }
+    }
 
-        private void VisitInputObject(
-            InputObjectType type, object obj,
-            Action<object> setValue, ISet<object> processed)
+    private void VisitList(
+        ListType type, object obj,
+        Action<object> setValue, ISet<object> processed)
+    {
+        if (obj is IEnumerable sourceList)
         {
-            if (processed.Add(obj))
-            {
-                var dict = new Dictionary<string, object>();
-                setValue(dict);
+            var list = new List<object>();
+            setValue(list);
 
-                foreach (InputField field in type.Fields)
-                {
-                    object fieldValue = field.GetValue(obj);
-                    Action<object> setField = value => dict[field.Name] = value;
-                    VisitValue(field.Type, fieldValue, setField, processed);
-                }
+            var itemType = (IInputType)type.ElementType;
+            void AddItem(object item) => list.Add(item);
+
+            foreach (var item in sourceList)
+            {
+                VisitValue(itemType, item, AddItem, processed);
             }
         }
+    }
 
-        private void VisitList(
-            ListType type, object obj,
-            Action<object> setValue, ISet<object> processed)
+    private void VisitLeaf(INamedInputType type, object obj, Action<object> setValue)
+    {
+        if (type is IHasRuntimeType hasClrType)
         {
-            if (obj is IEnumerable sourceList)
-            {
-                var list = new List<object>();
-                setValue(list);
-
-                var itemType = (IInputType)type.ElementType;
-                Action<object> addItem = item => list.Add(item);
-
-                foreach (object item in sourceList)
-                {
-                    VisitValue(itemType, item, addItem, processed);
-                }
-            }
-        }
-
-        private void VisitLeaf(
-            INamedInputType type, object obj,
-            Action<object> setValue, ISet<object> processed)
-        {
-            if (type is IHasRuntimeType hasClrType)
-            {
-                Type currentType = obj.GetType();
-                object normalized = currentType == hasClrType.RuntimeType
-                    ? obj
-                    : _converter.Convert(currentType, hasClrType.RuntimeType, obj);
-                setValue(obj);
-            }
+            var currentType = obj.GetType();
+            var normalized = currentType == hasClrType.RuntimeType
+                ? obj
+                : _converter.Convert(currentType, hasClrType.RuntimeType, obj);
+            setValue(normalized);
         }
     }
 }

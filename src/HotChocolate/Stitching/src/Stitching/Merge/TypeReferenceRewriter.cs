@@ -1,346 +1,337 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+internal sealed class TypeReferenceRewriter : SyntaxRewriter<TypeReferenceRewriter.Context>
 {
-    internal sealed class TypeReferenceRewriter
-        : SchemaSyntaxRewriter<TypeReferenceRewriter.Context>
+    public DocumentNode? RewriteSchema(
+        DocumentNode document,
+        string schemaName)
     {
-        public DocumentNode RewriteSchema(
-            DocumentNode document,
-            NameString schemaName)
+        if (document == null)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            schemaName.EnsureNotEmpty(nameof(schemaName));
-
-            IReadOnlyDictionary<NameString, NameString> renamedTypes =
-                GetRenamedTypes(document, schemaName);
-
-            Dictionary<FieldDefinitionNode, NameString> fieldsToRename =
-                GetFieldsToRename(document, schemaName);
-
-            var context = new Context(
-                schemaName, renamedTypes, fieldsToRename);
-
-            return RewriteDocument(document, context);
+            throw new ArgumentNullException(nameof(document));
         }
 
-        private static Dictionary<NameString, NameString> GetRenamedTypes(
-            DocumentNode document,
-            NameString schemaName)
+        schemaName.EnsureGraphQLName(nameof(schemaName));
+
+        IReadOnlyDictionary<string, string> renamedTypes =
+            GetRenamedTypes(document, schemaName);
+
+        var fieldsToRename =
+            GetFieldsToRename(document, schemaName);
+
+        var context = new Context(
+            schemaName, renamedTypes, fieldsToRename);
+
+        return RewriteDocument(document, context);
+    }
+
+    private static Dictionary<string, string> GetRenamedTypes(
+        DocumentNode document,
+        string schemaName)
+    {
+        var names = new Dictionary<string, string>();
+
+        foreach (var type in document.Definitions
+            .OfType<NamedSyntaxNode>())
         {
-            var names = new Dictionary<NameString, NameString>();
-
-            foreach (NamedSyntaxNode type in document.Definitions
-                .OfType<NamedSyntaxNode>())
+            var originalName = type.GetOriginalName(schemaName);
+            if (!originalName.Equals(type.Name.Value))
             {
-                NameString originalName = type.GetOriginalName(schemaName);
-                if (!originalName.Equals(type.Name.Value))
-                {
-                    names[originalName] = type.Name.Value;
-                }
+                names[originalName] = type.Name.Value;
             }
-
-            return names;
         }
 
-        private static Dictionary<FieldDefinitionNode, NameString>
-            GetFieldsToRename(
-                DocumentNode document,
-                NameString schemaName)
+        return names;
+    }
+
+    private static Dictionary<FieldDefinitionNode, string> GetFieldsToRename(
+        DocumentNode document,
+        string schemaName)
+    {
+        var fieldsToRename =
+            new Dictionary<FieldDefinitionNode, string>();
+
+        var types = document.Definitions
+            .OfType<ComplexTypeDefinitionNodeBase>()
+            .Where(t => t.IsFromSchema(schemaName))
+            .ToDictionary(t => t.GetOriginalName(schemaName));
+
+        var queue = new Queue<string>(types.Keys);
+
+        var context = new RenameFieldsContext(
+            types, fieldsToRename, schemaName);
+
+        while (queue.Count > 0)
         {
-            var fieldsToRename =
-                new Dictionary<FieldDefinitionNode, NameString>();
+            var name = queue.Dequeue();
 
-            var types = document.Definitions
-                .OfType<ComplexTypeDefinitionNodeBase>()
-                .Where(t => t.IsFromSchema(schemaName))
-                .ToDictionary(t => t.GetOriginalName(schemaName));
-
-            var queue = new Queue<NameString>(types.Keys);
-
-            var context = new RenameFieldsContext(
-                types, fieldsToRename, schemaName);
-
-            while (queue.Count > 0)
+            switch (types[name])
             {
-                string name = queue.Dequeue();
-
-                switch (types[name])
-                {
-                    case ObjectTypeDefinitionNode objectType:
-                        RenameObjectField(objectType, context);
-                        break;
-                    case InterfaceTypeDefinitionNode interfaceType:
-                        RenameInterfaceField(interfaceType, context);
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
+                case ObjectTypeDefinitionNode objectType:
+                    RenameObjectField(objectType, context);
+                    break;
+                case InterfaceTypeDefinitionNode interfaceType:
+                    RenameInterfaceField(interfaceType, context);
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
-
-            return fieldsToRename;
         }
 
-        private static void RenameObjectField(
-            ObjectTypeDefinitionNode objectType,
-            RenameFieldsContext renameContext)
-        {
-            IReadOnlyCollection<InterfaceTypeDefinitionNode> interfaceTypes =
-                GetInterfaceTypes(objectType, renameContext.Types);
+        return fieldsToRename;
+    }
 
-            foreach (FieldDefinitionNode fieldDefinition in
-                objectType.Fields)
+    private static void RenameObjectField(
+        ObjectTypeDefinitionNode objectType,
+        RenameFieldsContext renameContext)
+    {
+        var interfaceTypes =
+            GetInterfaceTypes(objectType, renameContext.Types);
+
+        foreach (var fieldDefinition in
+            objectType.Fields)
+        {
+            var originalName =
+                fieldDefinition.GetOriginalName(renameContext.SchemaName);
+            if (!originalName.Equals(fieldDefinition.Name.Value))
             {
-                NameString originalName =
-                    fieldDefinition.GetOriginalName(renameContext.SchemaName);
-                if (!originalName.Equals(fieldDefinition.Name.Value))
+                foreach (var interfaceType in
+                    GetInterfacesThatProvideFieldDefinition(
+                        originalName, interfaceTypes))
                 {
-                    foreach (InterfaceTypeDefinitionNode interfaceType in
-                        GetInterfacesThatProvideFieldDefinition(
-                            originalName, interfaceTypes))
-                    {
-                        RenameInterfaceField(interfaceType,
-                            renameContext, originalName,
-                            fieldDefinition.Name.Value);
-                    }
+                    RenameInterfaceField(interfaceType,
+                        renameContext, originalName,
+                        fieldDefinition.Name.Value);
                 }
             }
         }
+    }
 
-        private static IReadOnlyCollection<InterfaceTypeDefinitionNode>
-            GetInterfaceTypes(
-                ObjectTypeDefinitionNode objectType,
-                IDictionary<NameString, ComplexTypeDefinitionNodeBase> types)
+    private static IReadOnlyCollection<InterfaceTypeDefinitionNode> GetInterfaceTypes(
+        ObjectTypeDefinitionNode objectType,
+        IDictionary<string, ComplexTypeDefinitionNodeBase> types)
+    {
+        var interfaceTypes = new List<InterfaceTypeDefinitionNode>();
+
+        foreach (var namedType in objectType.Interfaces)
         {
-            var interfaceTypes = new List<InterfaceTypeDefinitionNode>();
-
-            foreach (NamedTypeNode namedType in objectType.Interfaces)
+            if (types.TryGetValue(namedType.Name.Value,
+                    out var ct)
+                && ct is InterfaceTypeDefinitionNode it)
             {
-                if (types.TryGetValue(namedType.Name.Value,
-                    out ComplexTypeDefinitionNodeBase ct)
-                    && ct is InterfaceTypeDefinitionNode it)
-                {
-                    interfaceTypes.Add(it);
-                }
-            }
-
-            return interfaceTypes;
-        }
-
-        private static IReadOnlyCollection<InterfaceTypeDefinitionNode>
-            GetInterfacesThatProvideFieldDefinition(
-                NameString originalFieldName,
-                IEnumerable<InterfaceTypeDefinitionNode> interfaceTypes)
-        {
-            var items = new List<InterfaceTypeDefinitionNode>();
-
-            foreach (InterfaceTypeDefinitionNode interfaceType in
-                interfaceTypes)
-            {
-                if (interfaceType.Fields.Any(t =>
-                    originalFieldName.Equals(t.Name.Value)))
-                {
-                    items.Add(interfaceType);
-                }
-            }
-
-            return items;
-        }
-
-        private static void RenameInterfaceField(
-            InterfaceTypeDefinitionNode interfaceType,
-            RenameFieldsContext renameContext)
-        {
-            foreach (FieldDefinitionNode fieldDefinition in
-                interfaceType.Fields)
-            {
-                NameString originalName =
-                    fieldDefinition.GetOriginalName(renameContext.SchemaName);
-                if (!originalName.Equals(fieldDefinition.Name.Value))
-                {
-                    RenameInterfaceField(
-                        interfaceType, renameContext,
-                        originalName, fieldDefinition.Name.Value);
-                }
+                interfaceTypes.Add(it);
             }
         }
 
-        private static void RenameInterfaceField(
-            InterfaceTypeDefinitionNode interfaceType,
-            RenameFieldsContext renameContext,
-            NameString originalFieldName,
-            NameString newFieldName)
-        {
-            List<ObjectTypeDefinitionNode> objectTypes =
-                renameContext.Types.Values
-                    .OfType<ObjectTypeDefinitionNode>()
-                    .Where(t => t.Interfaces.Select(i => i.Name.Value)
-                        .Any(n => string.Equals(n,
-                            interfaceType.Name.Value,
-                            StringComparison.Ordinal)))
-                    .ToList();
+        return interfaceTypes;
+    }
 
-            AddNewFieldName(interfaceType, renameContext,
+    private static IReadOnlyCollection<InterfaceTypeDefinitionNode>
+        GetInterfacesThatProvideFieldDefinition(
+            string originalFieldName,
+            IEnumerable<InterfaceTypeDefinitionNode> interfaceTypes)
+    {
+        var items = new List<InterfaceTypeDefinitionNode>();
+
+        foreach (var interfaceType in
+            interfaceTypes)
+        {
+            if (interfaceType.Fields.Any(t =>
+                originalFieldName.Equals(t.Name.Value)))
+            {
+                items.Add(interfaceType);
+            }
+        }
+
+        return items;
+    }
+
+    private static void RenameInterfaceField(
+        InterfaceTypeDefinitionNode interfaceType,
+        RenameFieldsContext renameContext)
+    {
+        foreach (var fieldDefinition in
+            interfaceType.Fields)
+        {
+            var originalName = fieldDefinition.GetOriginalName(renameContext.SchemaName);
+            if (!originalName.Equals(fieldDefinition.Name.Value))
+            {
+                RenameInterfaceField(
+                    interfaceType, renameContext,
+                    originalName, fieldDefinition.Name.Value);
+            }
+        }
+    }
+
+    private static void RenameInterfaceField(
+        InterfaceTypeDefinitionNode interfaceType,
+        RenameFieldsContext renameContext,
+        string originalFieldName,
+        string newFieldName)
+    {
+        var objectTypes =
+            renameContext.Types.Values
+                .OfType<ObjectTypeDefinitionNode>()
+                .Where(t => t.Interfaces.Select(i => i.Name.Value)
+                    .Any(n => string.Equals(n,
+                        interfaceType.Name.Value,
+                        StringComparison.Ordinal)))
+                .ToList();
+
+        AddNewFieldName(interfaceType, renameContext,
+            originalFieldName, newFieldName);
+
+        foreach (var objectType in objectTypes)
+        {
+            AddNewFieldName(objectType, renameContext,
                 originalFieldName, newFieldName);
-
-            foreach (ObjectTypeDefinitionNode objectType in objectTypes)
-            {
-                AddNewFieldName(objectType, renameContext,
-                    originalFieldName, newFieldName);
-            }
         }
+    }
 
-        private static void AddNewFieldName(
-            ComplexTypeDefinitionNodeBase type,
-            RenameFieldsContext renameContext,
-            NameString originalFieldName,
-            NameString newFieldName)
+    private static void AddNewFieldName(
+        ComplexTypeDefinitionNodeBase type,
+        RenameFieldsContext renameContext,
+        string originalFieldName,
+        string newFieldName)
+    {
+        var fieldDefinition = type.Fields.FirstOrDefault(
+            t => originalFieldName.Equals(t.GetOriginalName(
+                renameContext.SchemaName)));
+        if (fieldDefinition != null)
         {
-            FieldDefinitionNode fieldDefinition = type.Fields.FirstOrDefault(
-                t => originalFieldName.Equals(t.GetOriginalName(
-                    renameContext.SchemaName)));
-            if (fieldDefinition != null)
-            {
-                renameContext.RenamedFields[fieldDefinition] = newFieldName;
-            }
+            renameContext.RenamedFields[fieldDefinition] = newFieldName;
+        }
+    }
+
+    protected override ObjectTypeDefinitionNode? RewriteObjectTypeDefinition(
+        ObjectTypeDefinitionNode node,
+        Context context)
+    {
+        if (IsRelevant(node, context))
+        {
+            return base.RewriteObjectTypeDefinition(node, context);
         }
 
-        protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
-            ObjectTypeDefinitionNode node,
+        return node;
+    }
+
+
+    protected override InterfaceTypeDefinitionNode?
+        RewriteInterfaceTypeDefinition(
+            InterfaceTypeDefinitionNode node,
             Context context)
+    {
+        if (IsRelevant(node, context))
         {
-            if (IsRelevant(node, context))
-            {
-                return base.RewriteObjectTypeDefinition(node, context);
-            }
-
-            return node;
+            return base.RewriteInterfaceTypeDefinition(node, context);
         }
 
+        return node;
+    }
 
-        protected override InterfaceTypeDefinitionNode
-            RewriteInterfaceTypeDefinition(
-                InterfaceTypeDefinitionNode node,
-                Context context)
+    protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
+        UnionTypeDefinitionNode node,
+        Context context)
+    {
+        if (IsRelevant(node, context))
         {
-            if (IsRelevant(node, context))
-            {
-                return base.RewriteInterfaceTypeDefinition(node, context);
-            }
-
-            return node;
+            return base.RewriteUnionTypeDefinition(node, context);
         }
 
-        protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
-            UnionTypeDefinitionNode node,
+        return node;
+    }
+
+    protected override InputObjectTypeDefinitionNode
+        RewriteInputObjectTypeDefinition(
+            InputObjectTypeDefinitionNode node,
             Context context)
+    {
+        if (IsRelevant(node, context))
         {
-            if (IsRelevant(node, context))
-            {
-                return base.RewriteUnionTypeDefinition(node, context);
-            }
-
-            return node;
+            return base.RewriteInputObjectTypeDefinition(node, context);
         }
 
-        protected override InputObjectTypeDefinitionNode
-            RewriteInputObjectTypeDefinition(
-                InputObjectTypeDefinitionNode node,
-                Context context)
-        {
-            if (IsRelevant(node, context))
-            {
-                return base.RewriteInputObjectTypeDefinition(node, context);
-            }
+        return node;
+    }
 
-            return node;
+    protected override NamedTypeNode RewriteNamedType(
+        NamedTypeNode node,
+        Context context)
+    {
+        if (context.Names.TryGetValue(node.Name.Value,
+            out var newName))
+        {
+            return node.WithName(node.Name.WithValue(newName));
+        }
+        return node;
+    }
+
+    protected override FieldDefinitionNode? RewriteFieldDefinition(
+        FieldDefinitionNode node,
+        Context context)
+    {
+        var current = node;
+
+        if (context.FieldNames.TryGetValue(current, out var newName))
+        {
+            current = current.Rename(newName, context.SourceSchema);
         }
 
-        protected override NamedTypeNode RewriteNamedType(
-            NamedTypeNode node,
-            Context context)
+        return base.RewriteFieldDefinition(current, context);
+    }
+
+    private static bool IsRelevant(
+        NamedSyntaxNode typeDefinition,
+        Context context)
+    {
+        return string.IsNullOrEmpty(context.SourceSchema)
+            || typeDefinition.IsFromSchema(context.SourceSchema);
+    }
+
+    public sealed class Context : ISyntaxVisitorContext
+    {
+        public Context(
+            string? sourceSchema,
+            IReadOnlyDictionary<string, string> names,
+            IReadOnlyDictionary<FieldDefinitionNode, string> fieldNames)
         {
-            if (context.Names.TryGetValue(node.Name.Value,
-                out NameString newName))
-            {
-                return node.WithName(node.Name.WithValue(newName));
-            }
-            return node;
+            SourceSchema = sourceSchema
+                ?? throw new ArgumentNullException(nameof(sourceSchema));
+            Names = names
+                ?? throw new ArgumentNullException(nameof(names));
+            FieldNames = fieldNames
+                ?? throw new ArgumentNullException(nameof(fieldNames));
         }
 
-        protected override FieldDefinitionNode RewriteFieldDefinition(
-            FieldDefinitionNode node,
-            Context context)
-        {
-            FieldDefinitionNode current = node;
+        public string? SourceSchema { get; }
 
-            if (context.FieldNames.TryGetValue(current, out NameString newName))
-            {
-                current = current.Rename(newName, context.SourceSchema.Value);
-            }
+        public IReadOnlyDictionary<string, string> Names { get; }
 
-            return base.RewriteFieldDefinition(current, context);
-        }
-
-        private static bool IsRelevant(
-            NamedSyntaxNode typeDefinition,
-            Context context)
-        {
-            return !context.SourceSchema.HasValue
-                || typeDefinition.IsFromSchema(context.SourceSchema.Value);
-        }
-
-        public sealed class Context
-        {
-            public Context(
-                NameString? sourceSchema,
-                IReadOnlyDictionary<NameString, NameString> names,
-                IReadOnlyDictionary<FieldDefinitionNode, NameString> fieldNames)
-            {
-                SourceSchema = sourceSchema
-                    ?? throw new ArgumentNullException(nameof(sourceSchema));
-                Names = names
-                    ?? throw new ArgumentNullException(nameof(names));
-                FieldNames = fieldNames
-                    ?? throw new ArgumentNullException(nameof(fieldNames));
-            }
-
-            public NameString? SourceSchema { get; }
-
-            public IReadOnlyDictionary<NameString, NameString> Names { get; }
-
-            public IReadOnlyDictionary<FieldDefinitionNode, NameString>
+        public IReadOnlyDictionary<FieldDefinitionNode, string>
             FieldNames
-            { get; }
-        }
+        { get; }
+    }
 
-        private class RenameFieldsContext
+    private class RenameFieldsContext
+    {
+        public RenameFieldsContext(
+            IDictionary<string, ComplexTypeDefinitionNodeBase> types,
+            IDictionary<FieldDefinitionNode, string> renamedFields,
+            string schemaName)
         {
-            public RenameFieldsContext(
-                IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,
-                IDictionary<FieldDefinitionNode, NameString> renamedFields,
-                NameString schemaName)
-            {
-                Types = types;
-                RenamedFields = renamedFields;
-                SchemaName = schemaName;
-            }
-
-            public IDictionary<NameString, ComplexTypeDefinitionNodeBase> Types
-            { get; }
-
-            public IDictionary<FieldDefinitionNode, NameString> RenamedFields
-            { get; }
-
-            public NameString SchemaName
-            { get; }
+            Types = types;
+            RenamedFields = renamedFields;
+            SchemaName = schemaName;
         }
+
+        public IDictionary<string, ComplexTypeDefinitionNodeBase> Types { get; }
+
+        public IDictionary<FieldDefinitionNode, string> RenamedFields { get; }
+
+        public string SchemaName { get; }
     }
 }

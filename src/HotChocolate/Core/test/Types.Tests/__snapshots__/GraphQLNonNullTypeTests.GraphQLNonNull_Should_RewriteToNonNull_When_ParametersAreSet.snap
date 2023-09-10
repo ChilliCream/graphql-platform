@@ -1,0 +1,16 @@
+﻿schema {
+  query: QueryDeep
+}
+
+type Foo {
+  bar: String!
+}
+
+type QueryDeep {
+  scalar: String!
+  scalarArray: [String!]!
+  scalarNestedArray: [[String!]!]!
+  object: Foo!
+  objectArray: [Foo!]!
+  objectNestedArray: [[Foo!]!]!
+}

@@ -6,187 +6,186 @@ using HotChocolate.Properties;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// This GraphQL Scalar represents an exact point in time.
+/// This point in time is specified by having an offset to UTC and does not use time zone.
+///
+/// https://www.graphql-scalars.com/date-time/
+/// </summary>
+public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
 {
+    private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
+    private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+    private const string _specifiedBy = "https://www.graphql-scalars.com/date-time";
+
     /// <summary>
-    /// This GraphQL Scalar represents an exact point in time.
-    /// This point in time is specified by having an offset to UTC and does not use time zone.
-    ///
-    /// https://www.graphql-scalars.com/date-time/
+    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
     /// </summary>
-    public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
+    public DateTimeType()
+        : this(
+            ScalarNames.DateTime,
+            TypeResources.DateTimeType_Description,
+            BindingBehavior.Implicit)
     {
-        private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
-        private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
-        private const string _specifiedBy = "https://www.graphql-scalars.com/date-time";
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DateTimeType"/> class.
-        /// </summary>
-        public DateTimeType()
-            : this(
-                ScalarNames.DateTime,
-                TypeResources.DateTimeType_Description,
-                BindingBehavior.Implicit)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// </summary>
+    public DateTimeType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, bind)
+    {
+        Description = description;
+        SpecifiedBy = new Uri(_specifiedBy);
+    }
+
+    protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
+    {
+        if (TryDeserializeFromString(valueSyntax.Value, out var value))
         {
+            return value.Value;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DateTimeType"/> class.
-        /// </summary>
-        public DateTimeType(
-            NameString name,
-            string? description = null,
-            BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, bind)
+        throw new SerializationException(
+            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+            this);
+    }
+
+    protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
+    {
+        return new(Serialize(runtimeValue));
+    }
+
+    public override IValueNode ParseResult(object? resultValue)
+    {
+        if (resultValue is null)
         {
-            Description = description;
-            SpecifiedBy = new Uri(_specifiedBy);
+            return NullValueNode.Default;
         }
 
-        protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
+        if (resultValue is string s)
         {
-            if (TryDeserializeFromString(valueSyntax.Value, out DateTimeOffset? value))
-            {
-                return value.Value;
-            }
-
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-                this);
+            return new StringValueNode(s);
         }
 
-        protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
+        if (resultValue is DateTimeOffset d)
         {
-            return new(Serialize(runtimeValue));
+            return ParseValue(d);
         }
 
-        public override IValueNode ParseResult(object? resultValue)
+        if (resultValue is DateTime dt)
         {
-            if (resultValue is null)
-            {
-                return NullValueNode.Default;
-            }
-
-            if (resultValue is string s)
-            {
-                return new StringValueNode(s);
-            }
-
-            if (resultValue is DateTimeOffset d)
-            {
-                return ParseValue(d);
-            }
-
-            if (resultValue is DateTime dt)
-            {
-                return ParseValue(new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero));
-            }
-
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-                this);
+            return ParseValue(new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero));
         }
 
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        throw new SerializationException(
+            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+            this);
+    }
+
+    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    {
+        if (runtimeValue is null)
         {
-            if (runtimeValue is null)
-            {
-                resultValue = null;
-                return true;
-            }
-
-            if (runtimeValue is DateTimeOffset dt)
-            {
-                resultValue = Serialize(dt);
-                return true;
-            }
-
-            if (runtimeValue is DateTime d)
-            {
-                resultValue = Serialize(new DateTimeOffset(d.ToUniversalTime(), TimeSpan.Zero));
-                return true;
-            }
-
             resultValue = null;
-            return false;
+            return true;
         }
 
-        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        if (runtimeValue is DateTimeOffset dt)
         {
-            if (resultValue is null)
-            {
-                runtimeValue = null;
-                return true;
-            }
+            resultValue = Serialize(dt);
+            return true;
+        }
 
-            if (resultValue is string s && TryDeserializeFromString(s, out DateTimeOffset? d))
-            {
-                runtimeValue = d;
-                return true;
-            }
+        if (runtimeValue is DateTime d)
+        {
+            resultValue = Serialize(new DateTimeOffset(d.ToUniversalTime(), TimeSpan.Zero));
+            return true;
+        }
 
-            if (resultValue is DateTimeOffset)
-            {
-                runtimeValue = resultValue;
-                return true;
-            }
+        resultValue = null;
+        return false;
+    }
 
-            if (resultValue is DateTime dt)
-            {
-                runtimeValue = new DateTimeOffset(
-                    dt.ToUniversalTime(),
-                    TimeSpan.Zero);
-                return true;
-            }
-
+    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    {
+        if (resultValue is null)
+        {
             runtimeValue = null;
-            return false;
+            return true;
         }
 
-        private static string Serialize(DateTimeOffset value)
+        if (resultValue is string s && TryDeserializeFromString(s, out var d))
         {
-            if (value.Offset == TimeSpan.Zero)
-            {
-                return value.ToString(
-                    _utcFormat,
-                    CultureInfo.InvariantCulture);
-            }
+            runtimeValue = d;
+            return true;
+        }
 
+        if (resultValue is DateTimeOffset)
+        {
+            runtimeValue = resultValue;
+            return true;
+        }
+
+        if (resultValue is DateTime dt)
+        {
+            runtimeValue = new DateTimeOffset(
+                dt.ToUniversalTime(),
+                TimeSpan.Zero);
+            return true;
+        }
+
+        runtimeValue = null;
+        return false;
+    }
+
+    private static string Serialize(DateTimeOffset value)
+    {
+        if (value.Offset == TimeSpan.Zero)
+        {
             return value.ToString(
-                _localFormat,
+                _utcFormat,
                 CultureInfo.InvariantCulture);
         }
 
-        private static bool TryDeserializeFromString(
-            string? serialized,
-            [NotNullWhen(true)] out DateTimeOffset? value)
+        return value.ToString(
+            _localFormat,
+            CultureInfo.InvariantCulture);
+    }
+
+    private static bool TryDeserializeFromString(
+        string? serialized,
+        [NotNullWhen(true)] out DateTimeOffset? value)
+    {
+        if (serialized is not null
+            && serialized.EndsWith("Z")
+            && DateTime.TryParse(
+                serialized,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal,
+                out var zuluTime))
         {
-            if (serialized is not null
-                && serialized.EndsWith("Z")
-                && DateTime.TryParse(
-                    serialized,
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal,
-                    out DateTime zuluTime))
-            {
-                value = new DateTimeOffset(
-                    zuluTime.ToUniversalTime(),
-                    TimeSpan.Zero);
-                return true;
-            }
-
-            if (serialized is not null
-                && DateTimeOffset.TryParse(
-                    serialized,
-                    out DateTimeOffset dt))
-            {
-                value = dt;
-                return true;
-            }
-
-            value = null;
-            return false;
+            value = new DateTimeOffset(
+                zuluTime.ToUniversalTime(),
+                TimeSpan.Zero);
+            return true;
         }
+
+        if (serialized is not null
+            && DateTimeOffset.TryParse(
+                serialized,
+                out var dt))
+        {
+            value = dt;
+            return true;
+        }
+
+        value = null;
+        return false;
     }
 }

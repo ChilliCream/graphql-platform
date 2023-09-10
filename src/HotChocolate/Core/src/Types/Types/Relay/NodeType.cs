@@ -1,26 +1,25 @@
-﻿using HotChocolate.Properties;
+using HotChocolate.Properties;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Relay;
+
+public sealed class NodeType : InterfaceType<INode>
 {
-    public class NodeType : InterfaceType<INode>
+    protected override void Configure(
+        IInterfaceTypeDescriptor<INode> descriptor)
     {
-        protected override void Configure(
-            IInterfaceTypeDescriptor<INode> descriptor)
-        {
-            descriptor
-                .Name(Names.Node)
-                .Description(TypeResources.NodeType_TypeDescription);
+        descriptor
+            .Name(Names.Node)
+            .Description(TypeResources.NodeType_TypeDescription);
 
-            descriptor
-                .Field(Names.Id)
-                .Type<NonNullType<IdType>>();
-        }
+        descriptor
+            .Field(Names.Id)
+            .Type<NonNullType<IdType>>();
+    }
 
-        public static class Names
-        {
-            public static NameString Node { get; } = "Node";
+    public static class Names
+    {
+        public static string Node => "Node";
 
-            public static NameString Id { get; } = "id";
-        }
+        public static string Id => "id";
     }
 }

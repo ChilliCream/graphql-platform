@@ -2,271 +2,246 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace GreenDonut
+namespace GreenDonut;
+
+public class TaskCacheTests
 {
-    public class TaskCacheTests
+    [Fact(DisplayName = "Constructor: Should not throw any exception")]
+    public void ConstructorNoException()
     {
-        [Fact(DisplayName = "Constructor: Should not throw any exception")]
-        public void ConstructorNoException()
+        // arrange
+        var cacheSize = 1;
+
+        // act
+        void Verify() => new TaskCache(cacheSize);
+
+        // assert
+        Assert.Null(Record.Exception(Verify));
+    }
+
+    [InlineData(0, 10)]
+    [InlineData(1, 10)]
+    [InlineData(10, 10)]
+    [InlineData(100, 100)]
+    [InlineData(1000, 1000)]
+    [Theory(DisplayName = "Size: Should return the expected cache size")]
+    public void Size(int cacheSize, int expectedCacheSize)
+    {
+        // arrange
+        var cache = new TaskCache(cacheSize);
+
+        // act
+        var result = cache.Size;
+
+        // assert
+        Assert.Equal(expectedCacheSize, result);
+    }
+
+    [InlineData(new[] { "Foo" }, 1)]
+    [InlineData(new[] { "Foo", "Bar" }, 2)]
+    [InlineData(new[] { "Foo", "Bar", "Baz" }, 3)]
+    [InlineData(new[] { "Foo", "Bar", "Baz", "Qux", "Quux", "Corge",
+        "Grault", "Graply", "Waldo", "Fred", "Plugh", "xyzzy" }, 10)]
+    [Theory(DisplayName = "Usage: Should return the expected cache usage")]
+    public void Usage(string[] values, int expectedUsage)
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+
+        foreach (var value in values)
         {
-            // arrange
-            var cacheSize = 1;
-
-            // act
-            Action verify = () => new TaskCache(cacheSize);
-
-            // assert
-            Assert.Null(Record.Exception(verify));
+            cache.TryAdd(new TaskCacheKey("a", $"Key:{value}"), Task.FromResult(value));
         }
 
-        [InlineData(0, 1)]
-        [InlineData(1, 1)]
-        [InlineData(10, 10)]
-        [InlineData(100, 100)]
-        [InlineData(1000, 1000)]
-        [Theory(DisplayName = "Size: Should return the expected cache size")]
-        public void Size(int cacheSize, int expectedCacheSize)
-        {
-            // arrange
-            var cache = new TaskCache(cacheSize);
+        // act
+        var result = cache.Usage;
 
-            // act
-            var result = cache.Size;
+        // assert
+        Assert.Equal(expectedUsage, result);
+    }
 
-            // assert
-            Assert.Equal(expectedCacheSize, result);
-        }
+    [Fact(DisplayName = "Clear: Should not throw any exception")]
+    public void ClearNoException()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
 
-        [InlineData(new string[] { "Foo" }, 1)]
-        [InlineData(new string[] { "Foo", "Bar" }, 2)]
-        [InlineData(new string[] { "Foo", "Bar", "Baz" }, 3)]
-        [InlineData(new string[] { "Foo", "Bar", "Baz", "Qux", "Quux", "Corge",
-            "Grault", "Graply", "Waldo", "Fred", "Plugh", "xyzzy" }, 10)]
-        [Theory(DisplayName = "Usage: Should return the expected cache usage")]
-        public void Usage(string[] values, int expectedUsage)
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
+        // act
+        void Verify() => cache.Clear();
 
-            foreach (var value in values)
-            {
-                cache.TryAdd($"Key:{value}", value);
-            }
+        // assert
+        Assert.Null(Record.Exception(Verify));
+    }
 
-            // act
-            var result = cache.Usage;
+    [Fact(DisplayName = "Clear: Should clear empty cache")]
+    public void ClearEmptyCache()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
 
-            // assert
-            Assert.Equal(expectedUsage, result);
-        }
+        // act
+        cache.Clear();
 
-        [Fact(DisplayName = "Clear: Should not throw any exception")]
-        public void ClearNoException()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
+        // assert
+        Assert.Equal(0, cache.Usage);
+    }
 
-            // act
-            Action verify = () => cache.Clear();
+    [Fact(DisplayName = "Clear: Should remove all entries from the cache")]
+    public void ClearAllEntries()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
 
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
+        cache.TryAdd(new TaskCacheKey("a", "Foo"), Task.FromResult("Bar"));
+        cache.TryAdd(new TaskCacheKey("a", "Bar"), Task.FromResult("Baz"));
 
-        [Fact(DisplayName = "Clear: Should clear empty cache")]
-        public void ClearEmptyCache()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
+        // act
+        cache.Clear();
 
-            // act
-            cache.Clear();
+        // assert
+        Assert.Equal(0, cache.Usage);
+    }
 
-            // assert
-            Assert.Equal(0, cache.Usage);
-        }
+    [Fact(DisplayName = "Remove: Should not throw any exception")]
+    public void RemoveNoException()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+        var key = "Foo";
 
-        [Fact(DisplayName = "Clear: Should remove all entries from the cache")]
-        public void ClearAllEntries()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
+        // act
+        bool Verify() => cache.TryRemove(new("a", key));
 
-            cache.TryAdd("Foo", Task.FromResult("Bar"));
-            cache.TryAdd("Bar", Task.FromResult("Baz"));
+        // assert
+        Assert.False(Verify());
+    }
 
-            // act
-            cache.Clear();
+    [Fact(DisplayName = "Remove: Should remove an existing entry")]
+    public void RemoveEntry()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+        var key = new TaskCacheKey("a", "Foo");
+        var value = Task.FromResult("Bar");
 
-            // assert
-            Assert.Equal(0, cache.Usage);
-        }
+        cache.TryAdd(key, value);
 
-        [Fact(DisplayName = "Remove: Should not throw any exception")]
-        public void RemoveNoException()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = "Foo";
+        // act
+        cache.TryRemove(key);
 
-            // act
-            Action verify = () => cache.Remove(key);
+        // assert
+        var retrieved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
+        Assert.NotSame(value, retrieved);
+    }
 
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
+    [Fact(DisplayName = "TryAdd: Should throw an argument null exception for value")]
+    public void TryAddValueNull()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+        var key = new TaskCacheKey("a", "Foo");
 
-        [Fact(DisplayName = "Remove: Should remove an existing entry")]
-        public void RemoveEntry()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = "Foo";
+        // act
+        void Verify() => cache.TryAdd(key, default(Task<string>)!);
 
-            cache.TryAdd(key, "Bar");
+        // assert
+        Assert.Throws<ArgumentNullException>("value", Verify);
+    }
 
-            // act
-            cache.Remove(key);
+    [Fact(DisplayName = "TryAdd: Should result in a new cache entry")]
+    public void TryAddNewCacheEntry()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+        var key = new TaskCacheKey("a", "Foo");
+        var expected = Task.FromResult("Bar");
 
-            // assert
-            var exists = cache.TryGetValue(key, out object actual);
+        // act
+        var added = cache.TryAdd(key, expected);
 
-            Assert.False(exists);
-            Assert.Null(actual);
-        }
+        // assert
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
 
-        [Fact(DisplayName = "TryAdd: Should throw an argument null exception for value")]
-        public void TryAddValueNull()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = "Foo";
-            string value = null;
+        Assert.True(added);
+        Assert.Same(expected, resolved);
+    }
 
-            // act
-            Action verify = () => cache.TryAdd(key, value);
+    [Fact(DisplayName = "TryAdd: Should result in a new cache entry and use the factory")]
+    public void TryAddNewCacheEntryWithFactory()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+        var key = new TaskCacheKey("a", "Foo");
+        var expected = Task.FromResult("Bar");
 
-            // assert
-            Assert.Throws<ArgumentNullException>("value", verify);
-        }
+        // act
+        var added = cache.TryAdd(key, () => expected);
 
-        [Fact(DisplayName = "TryAdd: Should not throw any exception")]
-        public void TryAddNoException()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = "Foo";
-            var value = "Bar";
+        // assert
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
 
-            // act
-            Action verify = () => cache.TryAdd(key, value);
+        Assert.True(added);
+        Assert.Same(expected, resolved);
+    }
 
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
+    [Fact(DisplayName = "TryAdd: Should result in 'Bar'")]
+    public void TryAddTwice()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+        var key = new TaskCacheKey("a", "Foo");
+        var expected = Task.FromResult("Bar");
+        var another = Task.FromResult("Baz");
 
-        [Fact(DisplayName = "TryAdd: Should result in a new cache entry")]
-        public void TryAddNewCacheEntry()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = "Foo";
-            var expected = "Bar";
+        // act
+        var addedFirst = cache.TryAdd(key, expected);
+        var addedSecond = cache.TryAdd(key, another);
 
-            // act
-            var added = cache.TryAdd(key, expected);
+        // assert
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
 
-            // assert
-            var exists = cache.TryGetValue(key, out object actual);
+        Assert.True(addedFirst);
+        Assert.False(addedSecond);
+        Assert.Same(expected, resolved);
+    }
 
-            Assert.True(added);
-            Assert.True(exists);
-            Assert.Equal(expected, (string)actual);
-        }
+    [Fact(DisplayName = "GetOrAddTask: Should return new item if nothing is cached")]
+    public void GetOrAddTaskWhenNothingIsCached()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+        var key = new TaskCacheKey("a", "Foo");
 
-        [Fact(DisplayName = "TryAdd: Should result in 'Bar'")]
-        public void TryAddTwice()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = "Foo";
-            var expected = "Bar";
-            var another = "Baz";
+        // act
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
 
-            // act
-            var addedFirst = cache.TryAdd(key, expected);
-            var addedSecond = cache.TryAdd(key, another);
+        // assert
+        Assert.Equal("Quox", resolved.Result);
+    }
 
-            // assert
-            var exists = cache.TryGetValue(key, out object actual);
+    [Fact(DisplayName = "TryGetValue (String): Should return one result")]
+    public void GetOrAddTaskWhenNothingIsCached_IntegerKey()
+    {
+        // arrange
+        var cacheSize = 10;
+        var cache = new TaskCache(cacheSize);
+        var key = new TaskCacheKey("a", 1);
 
-            Assert.True(addedFirst);
-            Assert.False(addedSecond);
-            Assert.True(exists);
-            Assert.Equal(expected, (string)actual);
-        }
+        // act
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
 
-        [Fact(DisplayName = "TryGetValue: Should return false")]
-        public void TryGetValueNullResult()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = "Foo";
-
-            // act
-            var result = cache.TryGetValue(key, out object value);
-
-            // assert
-            Assert.False(result);
-        }
-
-        [Fact(DisplayName = "TryGetValue (String): Should return one result")]
-        public void TryGetValueResultByString()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = "Foo";
-            var expected = "Bar";
-
-            cache.TryAdd(key, expected);
-
-            // act
-            var result = cache.TryGetValue(key, out object actual);
-
-            // assert
-            Assert.True(result);
-            Assert.Equal(expected, (string)actual);
-        }
-
-        [Fact(DisplayName = "TryGetValue (Integer): Should return one result")]
-        public void TryGetValueResultByInteger()
-        {
-            // arrange
-            var cacheSize = 10;
-            var cache = new TaskCache(cacheSize);
-            var key = 1;
-            var expected = "Bar";
-
-            cache.TryAdd(key, expected);
-
-            // act
-            var result = cache.TryGetValue(key, out object actual);
-
-            // assert
-            Assert.True(result);
-            Assert.Equal(expected, (string)actual);
-        }
+        // assert
+        Assert.Equal("Quox", resolved.Result);
     }
 }

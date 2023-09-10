@@ -1,26 +1,25 @@
 ﻿using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Integration.HelloWorldCodeFirst
+namespace HotChocolate.Execution.Integration.HelloWorldCodeFirst;
+
+public class QueryHelloWorld
+    : ObjectType
 {
-    public class QueryHelloWorld
-        : ObjectType
+    public QueryHelloWorld(DataStoreHelloWorld dataStore)
     {
-        public QueryHelloWorld(DataStoreHelloWorld dataStore)
-        {
-            DataStore = dataStore;
-        }
+        DataStore = dataStore;
+    }
 
-        public DataStoreHelloWorld DataStore { get; }
+    public DataStoreHelloWorld DataStore { get; }
 
-        protected override void Configure(IObjectTypeDescriptor descriptor)
-        {
-            descriptor.Name("QueryHelloWorld");
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name("QueryHelloWorld");
 
-            descriptor.Field("hello")
-                .Argument("to", a => a.Type<StringType>())
-                .Resolver(c => c.ArgumentValue<string>("to") ?? "world");
+        descriptor.Field("hello")
+            .Argument("to", a => a.Type<StringType>())
+            .Resolve(c => c.ArgumentValue<string>("to") ?? "world");
 
-            descriptor.Field("state").Resolver(() => DataStore.State);
-        }
+        descriptor.Field("state").Resolve(() => DataStore.State);
     }
 }

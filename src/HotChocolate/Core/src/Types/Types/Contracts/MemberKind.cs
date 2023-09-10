@@ -1,11 +1,11 @@
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public enum MemberKind
 {
-    public enum MemberKind
-    {
-        Field,
-        InterfaceField,
-        ObjectField,
-        InputObjectField,
-        DirectiveArgument
-    }
+    Field,
+    InterfaceField,
+    ObjectField,
+    InputObjectField,
+    Argument,
+    DirectiveArgument
 }

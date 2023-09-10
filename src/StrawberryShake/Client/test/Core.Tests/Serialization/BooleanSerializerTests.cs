@@ -1,85 +1,82 @@
-using Xunit;
+namespace StrawberryShake.Serialization;
 
-namespace StrawberryShake.Serialization
+public class BooleanSerializerTests
 {
-    public class BooleanSerializerTests
+    [Fact]
+    public void Parse()
     {
-        [Fact]
-        public void Parse()
-        {
-            // arrange
-            var serializer = new BooleanSerializer();
+        // arrange
+        var serializer = new BooleanSerializer();
 
-            // act
-            bool? result = serializer.Parse(true);
+        // act
+        bool? result = serializer.Parse(true);
 
-            // assert
-            Assert.True(Assert.IsType<bool>(result));
-        }
+        // assert
+        Assert.True(Assert.IsType<bool>(result));
+    }
 
-        [Fact]
-        public void Format_Null()
-        {
-            // arrange
-            var serializer = new BooleanSerializer();
+    [Fact]
+    public void Format_Null()
+    {
+        // arrange
+        var serializer = new BooleanSerializer();
 
-            // act
-            object? result = serializer.Format(null);
+        // act
+        var result = serializer.Format(null);
 
-            // assert
-            Assert.Null(result);
-        }
+        // assert
+        Assert.Null(result);
+    }
 
-        [Fact]
-        public void Format_True()
-        {
-            // arrange
-            var serializer = new BooleanSerializer();
+    [Fact]
+    public void Format_True()
+    {
+        // arrange
+        var serializer = new BooleanSerializer();
 
-            // act
-            object? result = serializer.Format(true);
+        // act
+        var result = serializer.Format(true);
 
-            // assert
-            Assert.True(Assert.IsType<bool>(result));
-        }
+        // assert
+        Assert.True(Assert.IsType<bool>(result));
+    }
 
-        [Fact]
-        public void Format_False()
-        {
-            // arrange
-            var serializer = new BooleanSerializer();
+    [Fact]
+    public void Format_False()
+    {
+        // arrange
+        var serializer = new BooleanSerializer();
 
-            // act
-            object? result = serializer.Format(false);
+        // act
+        var result = serializer.Format(false);
 
-            // assert
-            Assert.False(Assert.IsType<bool>(result));
-        }
+        // assert
+        Assert.False(Assert.IsType<bool>(result));
+    }
 
-        [Fact]
-        public void TypeName_Default()
-        {
-            // arrange
-            var serializer = new BooleanSerializer();
+    [Fact]
+    public void TypeName_Default()
+    {
+        // arrange
+        var serializer = new BooleanSerializer();
 
-            // act
-            string typeName = serializer.TypeName;
+        // act
+        var typeName = serializer.TypeName;
 
-            // assert
-            Assert.Equal("Boolean", typeName);
-        }
+        // assert
+        Assert.Equal("Boolean", typeName);
+    }
 
-        [Fact]
-        public void TypeName_Custom()
-        {
-            // arrange
-            var serializer = new BooleanSerializer("Abc");
+    [Fact]
+    public void TypeName_Custom()
+    {
+        // arrange
+        var serializer = new BooleanSerializer("Abc");
 
-            // act
-            string typeName = serializer.TypeName;
+        // act
+        var typeName = serializer.TypeName;
 
-            // assert
-            Assert.Equal("Abc", typeName);
-        }
+        // assert
+        Assert.Equal("Abc", typeName);
     }
 }

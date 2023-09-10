@@ -1,3 +1,4 @@
+using System.Net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,28 +7,41 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 
-class Helpers
+static class Helpers
 {
-    public static readonly string[] Directories =
+    static readonly string[] Directories =
     {
         "GreenDonut",
+        Path.Combine("HotChocolate", "Analyzers"),
+        Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
+        Path.Combine("HotChocolate", "AzureFunctions"),
         Path.Combine("HotChocolate", "Core"),
+        Path.Combine("HotChocolate", "Caching"),
+        Path.Combine("HotChocolate", "CodeGeneration"),
+        Path.Combine("HotChocolate", "Diagnostics"),
         Path.Combine("HotChocolate", "Language"),
         Path.Combine("HotChocolate", "PersistedQueries"),
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Filters"),
+        Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
+        Path.Combine("HotChocolate", "Neo4J"),
+        Path.Combine("HotChocolate", "Raven"),
+        Path.Combine("HotChocolate", "Skimmed"),
         Path.Combine("HotChocolate", "Stitching"),
+        Path.Combine("HotChocolate", "Fusion"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
-        Path.Combine("StrawberryShake", "Tooling")
+        Path.Combine("StrawberryShake", "MetaPackages"),
+        Path.Combine("StrawberryShake", "Tooling"),
+        "CookieCrumble"
     };
 
-    public static IEnumerable<string> GetAllProjects(
-        string sourceDirectory, 
+    static IEnumerable<string> GetAllProjects(
+        string sourceDirectory,
         IEnumerable<string> directories,
         Func<string, bool> include = null)
     {
@@ -37,9 +51,10 @@ class Helpers
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
             {
                 if (!(include?.Invoke(file) ?? true)
-                    || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase))
+                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("examples", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -60,7 +75,7 @@ class Helpers
 
         directories ??= Directories;
 
-        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories, include);
+        var projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories, include);
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
@@ -92,5 +107,13 @@ class Helpers
         list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
 
         return list;
+    }
+
+    public static void TryDelete(string fileName)
+    {
+        if(File.Exists(fileName))
+        {
+            File.Delete(fileName);
+        }
     }
 }

@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+public interface ITypeInfo<out T>
+    : ITypeInfo
+    where T : ITypeDefinitionNode
 {
-    public interface ITypeInfo<out T>
-        : ITypeInfo
-        where T : ITypeDefinitionNode
-    {
-        new T Definition { get; }
-    }
+    new T Definition { get; }
 }

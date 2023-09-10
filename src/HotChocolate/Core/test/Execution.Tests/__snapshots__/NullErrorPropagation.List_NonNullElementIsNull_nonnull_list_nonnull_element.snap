@@ -15,7 +15,7 @@
         "b"
       ],
       "extensions": {
-        "code": "EXEC_NON_NULL_VIOLATION"
+        "code": "HC0018"
       }
     }
   ],

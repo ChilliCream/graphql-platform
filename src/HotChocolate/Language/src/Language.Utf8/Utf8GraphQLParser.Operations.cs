@@ -1,332 +1,367 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+// Implements the parsing rules in the Operations section.
+public ref partial struct Utf8GraphQLParser
 {
-    // Implements the parsing rules in the Operations section.
-    public ref partial struct Utf8GraphQLParser
+    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = new();
+    private static readonly List<ArgumentNode> _emptyArguments = new();
+
+    /// <summary>
+    /// Parses an operation definition.
+    /// <see cref="OperationDefinitionNode" />:
+    /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
+    /// </summary>
+    private OperationDefinitionNode ParseOperationDefinition()
     {
-        private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions =
-            new List<VariableDefinitionNode>();
-        private static readonly List<ArgumentNode> _emptyArguments =
-            new List<ArgumentNode>();
+        var start = Start();
 
-        /// <summary>
-        /// Parses an operation definition.
-        /// <see cref="OperationDefinitionNode" />:
-        /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private OperationDefinitionNode ParseOperationDefinition()
+        var operation = ParseOperationType();
+        var name = _reader.Kind == TokenKind.Name ? ParseName() : null;
+        var variableDefinitions = ParseVariableDefinitions();
+        var directives = ParseDirectives(false);
+        var selectionSet = ParseSelectionSet();
+        var location = CreateLocation(in start);
+
+        return new OperationDefinitionNode
+        (
+            location,
+            name,
+            operation,
+            variableDefinitions,
+            directives,
+            selectionSet
+        );
+    }
+
+    /// <summary>
+    /// Parses a short-hand form operation definition.
+    /// <see cref="OperationDefinitionNode" />:
+    /// SelectionSet
+    /// </summary>
+    private OperationDefinitionNode ParseShortOperationDefinition()
+    {
+        var start = Start();
+        var selectionSet = ParseSelectionSet();
+        var location = CreateLocation(in start);
+
+        return new OperationDefinitionNode
+        (
+            location,
+            null,
+            OperationType.Query,
+            Array.Empty<VariableDefinitionNode>(),
+            Array.Empty<DirectiveNode>(),
+            selectionSet
+        );
+    }
+
+    /// <summary>
+    /// Parses the <see cref="OperationType" />.
+    /// </summary>
+    private OperationType ParseOperationType()
+    {
+        if (_reader.Kind == TokenKind.Name)
         {
-            TokenInfo start = Start();
-
-            OperationType operation = ParseOperationType();
-            NameNode? name = _reader.Kind == TokenKind.Name
-                ? ParseName()
-                : null;
-            List<VariableDefinitionNode> variableDefinitions =
-                ParseVariableDefinitions();
-            List<DirectiveNode> directives =
-                ParseDirectives(false);
-            SelectionSetNode selectionSet = ParseSelectionSet();
-            Location? location = CreateLocation(in start);
-
-            return new OperationDefinitionNode
-            (
-                location,
-                name,
-                operation,
-                variableDefinitions,
-                directives,
-                selectionSet
-            );
-        }
-
-        /// <summary>
-        /// Parses a short-hand form operation definition.
-        /// <see cref="OperationDefinitionNode" />:
-        /// SelectionSet
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private OperationDefinitionNode ParseShortOperationDefinition()
-        {
-            TokenInfo start = Start();
-            SelectionSetNode selectionSet = ParseSelectionSet();
-            Location? location = CreateLocation(in start);
-
-            return new OperationDefinitionNode
-            (
-                location,
-                null,
-                OperationType.Query,
-                Array.Empty<VariableDefinitionNode>(),
-                Array.Empty<DirectiveNode>(),
-                selectionSet
-            );
-        }
-
-        /// <summary>
-        /// Parses the <see cref="OperationType" />.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private OperationType ParseOperationType()
-        {
-            if (_reader.Kind == TokenKind.Name)
+            if (_reader.Value.SequenceEqual(GraphQLKeywords.Query))
             {
-                if (_reader.Value.SequenceEqual(GraphQLKeywords.Query))
-                {
-                    MoveNext();
-                    return OperationType.Query;
-                }
-
-                if (_reader.Value.SequenceEqual(GraphQLKeywords.Mutation))
-                {
-                    MoveNext();
-                    return OperationType.Mutation;
-                }
-
-                if (_reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
-                {
-                    MoveNext();
-                    return OperationType.Subscription;
-                }
-            }
-
-            throw Unexpected(TokenKind.Name);
-        }
-
-        /// <summary>
-        /// Parses variable definitions.
-        /// <see cref="IEnumerable{VariableDefinitionNode}" />:
-        /// ( VariableDefinition+ )
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private List<VariableDefinitionNode> ParseVariableDefinitions()
-        {
-            if (_reader.Kind == TokenKind.LeftParenthesis)
-            {
-                var list = new List<VariableDefinitionNode>();
-
-                // skip opening token
                 MoveNext();
-
-                while (_reader.Kind != TokenKind.RightParenthesis)
-                {
-                    list.Add(ParseVariableDefinition());
-                }
-
-                // skip closing token
-                ExpectRightParenthesis();
-
-                return list;
+                return OperationType.Query;
             }
 
-            return _emptyVariableDefinitions;
-        }
-
-        /// <summary>
-        /// Parses a variable definition.
-        /// <see cref="VariableDefinitionNode" />:
-        /// $variable : Type = DefaultValue?
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private VariableDefinitionNode ParseVariableDefinition()
-        {
-            TokenInfo start = Start();
-
-            VariableNode variable = ParseVariable();
-            ExpectColon();
-            ITypeNode type = ParseTypeReference();
-            IValueNode? defaultValue = SkipEqual()
-                ? ParseValueLiteral(true)
-                : null;
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
-
-            Location? location = CreateLocation(in start);
-
-            return new VariableDefinitionNode
-            (
-                location,
-                variable,
-                type,
-                defaultValue,
-                directives
-            );
-        }
-
-        /// <summary>
-        /// Parse a variable.
-        /// <see cref="VariableNode" />:
-        /// $Name
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private VariableNode ParseVariable()
-        {
-            TokenInfo start = Start();
-            ExpectDollar();
-            NameNode name = ParseName();
-            Location? location = CreateLocation(in start);
-
-            return new VariableNode
-            (
-                location,
-                name
-            );
-        }
-
-        /// <summary>
-        /// Parses a selection set.
-        /// <see cref="SelectionSetNode" />:
-        /// { Selection+ }
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private SelectionSetNode ParseSelectionSet()
-        {
-            TokenInfo start = Start();
-
-            if (_reader.Kind != TokenKind.LeftBrace)
+            if (_reader.Value.SequenceEqual(GraphQLKeywords.Mutation))
             {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
+                MoveNext();
+                return OperationType.Mutation;
             }
 
-            var selections = new List<ISelectionNode>();
+            if (_reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
+            {
+                MoveNext();
+                return OperationType.Subscription;
+            }
+        }
+
+        throw Unexpected(TokenKind.Name);
+    }
+
+    /// <summary>
+    /// Parses variable definitions.
+    /// <see cref="IEnumerable{VariableDefinitionNode}" />:
+    /// ( VariableDefinition+ )
+    /// </summary>
+    private List<VariableDefinitionNode> ParseVariableDefinitions()
+    {
+        if (_reader.Kind == TokenKind.LeftParenthesis)
+        {
+            var list = new List<VariableDefinitionNode>();
 
             // skip opening token
             MoveNext();
 
-            while (_reader.Kind != TokenKind.RightBrace)
+            while (_reader.Kind != TokenKind.RightParenthesis)
             {
-                selections.Add(ParseSelection());
+                list.Add(ParseVariableDefinition());
             }
 
             // skip closing token
-            ExpectRightBrace();
+            ExpectRightParenthesis();
 
-            Location? location = CreateLocation(in start);
-
-            return new SelectionSetNode
-            (
-                location,
-                selections
-            );
+            return list;
         }
 
-        /// <summary>
-        /// Parses a selection.
-        /// <see cref="ISelectionNode" />:
-        /// - Field
-        /// - FragmentSpread
-        /// - InlineFragment
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ISelectionNode ParseSelection()
+        return _emptyVariableDefinitions;
+    }
+
+    /// <summary>
+    /// Parses a variable definition.
+    /// <see cref="VariableDefinitionNode" />:
+    /// $variable : Type = DefaultValue?
+    /// </summary>
+    private VariableDefinitionNode ParseVariableDefinition()
+    {
+        var start = Start();
+
+        var variable = ParseVariable();
+        ExpectColon();
+        var type = ParseTypeReference();
+        var defaultValue = SkipEqual()
+            ? ParseValueLiteral(true)
+            : null;
+        var directives =
+            ParseDirectives(true);
+
+        var location = CreateLocation(in start);
+
+        return new VariableDefinitionNode
+        (
+            location,
+            variable,
+            type,
+            defaultValue,
+            directives
+        );
+    }
+
+    /// <summary>
+    /// Parse a variable.
+    /// <see cref="VariableNode" />:
+    /// $Name
+    /// </summary>
+    private VariableNode ParseVariable()
+    {
+        var start = Start();
+        ExpectDollar();
+        var name = ParseName();
+        var location = CreateLocation(in start);
+
+        return new VariableNode
+        (
+            location,
+            name
+        );
+    }
+
+    /// <summary>
+    /// Parses a selection set.
+    /// <see cref="SelectionSetNode" />:
+    /// { Selection+ }
+    /// </summary>
+    private SelectionSetNode ParseSelectionSet()
+    {
+        var start = Start();
+
+        if (_reader.Kind != TokenKind.LeftBrace)
         {
-            if (_reader.Kind == TokenKind.Spread)
+            throw new SyntaxException(_reader,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    ParseMany_InvalidOpenToken,
+                    TokenKind.LeftBrace,
+                    TokenPrinter.Print(in _reader)));
+        }
+
+        var selections = new List<ISelectionNode>();
+
+        // skip opening token
+        MoveNext();
+
+        while (_reader.Kind != TokenKind.RightBrace)
+        {
+            selections.Add(ParseSelection());
+        }
+
+        // skip closing token
+        ExpectRightBrace();
+
+        var location = CreateLocation(in start);
+
+        return new SelectionSetNode
+        (
+            location,
+            selections
+        );
+    }
+
+    /// <summary>
+    /// Parses a selection.
+    /// <see cref="ISelectionNode" />:
+    /// - Field
+    /// - FragmentSpread
+    /// - InlineFragment
+    /// </summary>
+    private ISelectionNode ParseSelection()
+    {
+        if (_reader.Kind == TokenKind.Spread)
+        {
+            return ParseFragment();
+        }
+        return ParseField();
+    }
+
+    /// <summary>
+    /// Parses a field.
+    /// <see cref="FieldNode"  />:
+    /// Alias? : Name Arguments? Directives? SelectionSet?
+    /// </summary>
+    private FieldNode ParseField()
+    {
+        if (++_parsedFields > _maxAllowedFields)
+        {
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    Utf8GraphQLParser_Start_MaxAllowedFieldsReached,
+                    _maxAllowedFields));
+        }
+
+        var start = Start();
+
+        var name = ParseName();
+        NameNode? alias = null;
+
+        if (SkipColon())
+        {
+            alias = name;
+            name = ParseName();
+        }
+
+        var arguments = ParseArguments(false);
+        var required = ParseRequiredStatus();
+        var directives = ParseDirectives(false);
+        var selectionSet = _reader.Kind == TokenKind.LeftBrace
+            ? ParseSelectionSet()
+            : null;
+
+        var location = CreateLocation(in start);
+
+        return new FieldNode
+        (
+            location,
+            name,
+            alias,
+            required,
+            directives,
+            arguments,
+            selectionSet
+        );
+    }
+
+    private INullabilityNode? ParseRequiredStatus()
+    {
+        var list = ParseListNullability();
+        var modifier = ParseModifier(list);
+        return modifier ?? list;
+    }
+
+    private ListNullabilityNode? ParseListNullability()
+    {
+        if (_reader.Kind == TokenKind.LeftBracket)
+        {
+            var start = Start();
+            _reader.Skip(TokenKind.LeftBracket);
+            var element = ParseRequiredStatus();
+            _reader.Expect(TokenKind.RightBracket);
+            var location = CreateLocation(in start);
+            return new ListNullabilityNode(location, element);
+        }
+
+        return null;
+    }
+
+    private INullabilityNode? ParseModifier(ListNullabilityNode? listNullabilityNode)
+    {
+        if (_reader.Kind == TokenKind.QuestionMark)
+        {
+            var start = Start();
+            _reader.Skip(TokenKind.QuestionMark);
+            var location = CreateLocation(in start);
+            return new OptionalModifierNode(location, listNullabilityNode);
+        }
+
+        if (_reader.Kind == TokenKind.Bang)
+        {
+            var start = Start();
+            _reader.Skip(TokenKind.Bang);
+            var location = CreateLocation(in start);
+            return new RequiredModifierNode(location, listNullabilityNode);
+        }
+
+        return listNullabilityNode;
+    }
+
+    /// <summary>
+    /// Parses an argument.
+    /// <see cref="ArgumentNode" />:
+    /// Name : Value[isConstant]
+    /// </summary>
+    private List<ArgumentNode> ParseArguments(bool isConstant)
+    {
+        if (_reader.Kind == TokenKind.LeftParenthesis)
+        {
+            var list = new List<ArgumentNode>();
+
+            // skip opening token
+            MoveNext();
+
+            while (_reader.Kind != TokenKind.RightParenthesis)
             {
-                return ParseFragment();
-            }
-            return ParseField();
-        }
-
-        /// <summary>
-        /// Parses a field.
-        /// <see cref="FieldNode"  />:
-        /// Alias? : Name Arguments? Directives? SelectionSet?
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FieldNode ParseField()
-        {
-            TokenInfo start = Start();
-
-            NameNode name = ParseName();
-            NameNode? alias = null;
-
-            if (SkipColon())
-            {
-                alias = name;
-                name = ParseName();
+                list.Add(ParseArgument(isConstant));
             }
 
-            List<ArgumentNode> arguments = ParseArguments(false);
-            List<DirectiveNode> directives = ParseDirectives(false);
-            SelectionSetNode? selectionSet = _reader.Kind == TokenKind.LeftBrace
-                ? ParseSelectionSet()
-                : null;
+            // skip closing token
+            ExpectRightParenthesis();
 
-            Location? location = CreateLocation(in start);
-
-            return new FieldNode
-            (
-                location,
-                name,
-                alias,
-                directives,
-                arguments,
-                selectionSet
-            );
+            return list;
         }
-
-        /// <summary>
-        /// Parses an argument.
-        /// <see cref="ArgumentNode" />:
-        /// Name : Value[isConstant]
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private List<ArgumentNode> ParseArguments(bool isConstant)
-        {
-            if (_reader.Kind == TokenKind.LeftParenthesis)
-            {
-                var list = new List<ArgumentNode>();
-
-                // skip opening token
-                MoveNext();
-
-                while (_reader.Kind != TokenKind.RightParenthesis)
-                {
-                    list.Add(ParseArgument(isConstant));
-                }
-
-                // skip closing token
-                ExpectRightParenthesis();
-
-                return list;
-            }
-            return _emptyArguments;
-        }
+        return _emptyArguments;
+    }
 
 
-        /// <summary>
-        /// Parses an argument.
-        /// <see cref="ArgumentNode" />:
-        /// Name : Value[isConstant]
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ArgumentNode ParseArgument(bool isConstant)
-        {
-            TokenInfo start = Start();
+    /// <summary>
+    /// Parses an argument.
+    /// <see cref="ArgumentNode" />:
+    /// Name : Value[isConstant]
+    /// </summary>
+    private ArgumentNode ParseArgument(bool isConstant)
+    {
+        var start = Start();
 
-            NameNode name = ParseName();
-            ExpectColon();
-            IValueNode value = ParseValueLiteral(isConstant);
+        var name = ParseName();
+        ExpectColon();
+        var value = ParseValueLiteral(isConstant);
 
-            Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
-            return new ArgumentNode
-            (
-                location,
-                name,
-                value
-            );
-        }
+        return new ArgumentNode
+        (
+            location,
+            name,
+            value
+        );
     }
 }

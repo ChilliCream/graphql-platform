@@ -1,216 +1,215 @@
 using System.Collections.Generic;
-using Xunit;
 using ChilliCream.Testing;
 using Snapshooter.Xunit;
+using Xunit;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public class SyntaxNodeVisitorTests
 {
-    public class SyntaxNodeVisitorTests
+    [Fact]
+    public void AutoSkip()
     {
-        [Fact]
-        public void AutoSkip()
-        {
-            var obj = new ObjectValueNode(
-                new ObjectFieldNode("foo",
-                    new StringValueNode("bar")));
+        var obj = new ObjectValueNode(
+            new ObjectFieldNode("foo",
+                new StringValueNode("bar")));
 
-            obj.Accept(new Foo());
-        }
+        obj.Accept(new Foo());
+    }
 
-        [Fact]
-        public void Visit_Kitchen_Sink_Query()
-        {
-            // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks());
-            var visitationMap = new BarVisitationMap();
+    [Fact]
+    public void Visit_Kitchen_Sink_Query()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("kitchen-sink.graphql")
+                .NormalizeLineBreaks());
+        var visitationMap = new BarVisitationMap();
 
-            // act
-            document.Accept(new Bar(), visitationMap);
+        // act
+        document.Accept(new Bar(), visitationMap);
 
-            // assert
-            visitationMap.VisitedNodes.MatchSnapshot();
-        }
+        // assert
+        visitationMap.VisitedNodes.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Visit_Kitchen_Sink_Schema()
-        {
-            // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("schema-kitchen-sink.graphql")
-                    .NormalizeLineBreaks());
-            var visitationMap = new BarVisitationMap();
+    [Fact]
+    public void Visit_Kitchen_Sink_Schema()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("schema-kitchen-sink.graphql")
+                .NormalizeLineBreaks());
+        var visitationMap = new BarVisitationMap();
 
-            // act
-            document.Accept(new Bar(), visitationMap);
+        // act
+        document.Accept(new Bar(), visitationMap);
 
-            // assert
-            visitationMap.VisitedNodes.MatchSnapshot();
-        }
+        // assert
+        visitationMap.VisitedNodes.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Visit_Kitchen_Sink_Schema_Names_With_Delegate()
-        {
-            // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("schema-kitchen-sink.graphql")
-                    .NormalizeLineBreaks());
-            var visitationMap = new BarVisitationMap();
-            var enterNames = new List<string>();
-            var leaveNames = new List<string>();
+    [Fact]
+    public void Visit_Kitchen_Sink_Schema_Names_With_Delegate()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("schema-kitchen-sink.graphql")
+                .NormalizeLineBreaks());
+        var visitationMap = new BarVisitationMap();
+        var enterNames = new List<string>();
+        var leaveNames = new List<string>();
 
-            // act
-            document.Accept<NameNode>(
-                (node, parent, path, ancestors) =>
-                {
-                    enterNames.Add(node.Value);
-                    return VisitorAction.Continue;
-                },
-                (node, parent, path, ancestors) =>
-                {
-                    leaveNames.Add(node.Value);
-                    return VisitorAction.Continue;
-                },
-                node => VisitorAction.Continue);
+        // act
+        document.Accept<NameNode>(
+            (node, parent, path, ancestors) =>
+            {
+                enterNames.Add(node.Value);
+                return VisitorAction.Continue;
+            },
+            (node, parent, path, ancestors) =>
+            {
+                leaveNames.Add(node.Value);
+                return VisitorAction.Continue;
+            },
+            node => VisitorAction.Continue);
 
-            // assert
-            Assert.Equal(enterNames, leaveNames);
-            new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
-        }
+        // assert
+        Assert.Equal(enterNames, leaveNames);
+        new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Visit_Kitchen_Sink_Query_Names_With_Delegate()
-        {
-            // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks());
-            var visitationMap = new BarVisitationMap();
-            var enterNames = new List<string>();
-            var leaveNames = new List<string>();
+    [Fact]
+    public void Visit_Kitchen_Sink_Query_Names_With_Delegate()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("kitchen-sink.graphql")
+                .NormalizeLineBreaks());
+        var visitationMap = new BarVisitationMap();
+        var enterNames = new List<string>();
+        var leaveNames = new List<string>();
 
-            // act
-            document.Accept<NameNode>(
-                (node, parent, path, ancestors) =>
-                {
-                    enterNames.Add(node.Value);
-                    return VisitorAction.Continue;
-                },
-                (node, parent, path, ancestors) =>
-                {
-                    leaveNames.Add(node.Value);
-                    return VisitorAction.Continue;
-                },
-                node => VisitorAction.Continue);
+        // act
+        document.Accept<NameNode>(
+            (node, parent, path, ancestors) =>
+            {
+                enterNames.Add(node.Value);
+                return VisitorAction.Continue;
+            },
+            (node, parent, path, ancestors) =>
+            {
+                leaveNames.Add(node.Value);
+                return VisitorAction.Continue;
+            },
+            node => VisitorAction.Continue);
 
-            // assert
-            Assert.Equal(enterNames, leaveNames);
-            new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
-        }
+        // assert
+        Assert.Equal(enterNames, leaveNames);
+        new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Visit_Kitchen_Sink_Query_Names_With_Delegate_OnlyEnter()
-        {
-            // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks());
-            var visitationMap = new BarVisitationMap();
-            var visitedNames = new List<string>();
+    [Fact]
+    public void Visit_Kitchen_Sink_Query_Names_With_Delegate_OnlyEnter()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("kitchen-sink.graphql")
+                .NormalizeLineBreaks());
+        var visitationMap = new BarVisitationMap();
+        var visitedNames = new List<string>();
 
-            // act
-            document.Accept<NameNode>(
-                (node, parent, path, ancestors) =>
-                {
-                    visitedNames.Add(node.Value);
-                    return VisitorAction.Continue;
-                },
-                null,
-                node => VisitorAction.Continue);
+        // act
+        document.Accept<NameNode>(
+            (node, parent, path, ancestors) =>
+            {
+                visitedNames.Add(node.Value);
+                return VisitorAction.Continue;
+            },
+            null,
+            node => VisitorAction.Continue);
 
-            // assert
-            visitedNames.MatchSnapshot();
-        }
+        // assert
+        visitedNames.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Visit_Kitchen_Sink_Query_Names_With_Delegate_OnlyLeave()
-        {
-            // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks());
-            var visitationMap = new BarVisitationMap();
-            var visitedNames = new List<string>();
+    [Fact]
+    public void Visit_Kitchen_Sink_Query_Names_With_Delegate_OnlyLeave()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("kitchen-sink.graphql")
+                .NormalizeLineBreaks());
+        var visitationMap = new BarVisitationMap();
+        var visitedNames = new List<string>();
 
-            // act
-            document.Accept<NameNode>(
-                null,
-                (node, parent, path, ancestors) =>
-                {
-                    visitedNames.Add(node.Value);
-                    return VisitorAction.Continue;
-                },
-                node => VisitorAction.Continue);
+        // act
+        document.Accept<NameNode>(
+            null,
+            (node, parent, path, ancestors) =>
+            {
+                visitedNames.Add(node.Value);
+                return VisitorAction.Continue;
+            },
+            node => VisitorAction.Continue);
 
-            // assert
-            visitedNames.MatchSnapshot();
-        }
+        // assert
+        visitedNames.MatchSnapshot();
+    }
 
-        private class Foo
-            : SyntaxNodeVisitor
-        {
-            public Foo()
-                : base(new Dictionary<SyntaxKind, VisitorAction>
-                {
+    private sealed class Foo
+        : SyntaxNodeVisitor
+    {
+        public Foo()
+            : base(new Dictionary<SyntaxKind, VisitorAction>
+            {
                     { SyntaxKind.ObjectValue, VisitorAction.Continue },
                     { SyntaxKind.ObjectField, VisitorAction.Continue }
-                })
-            {
-            }
-
-            public override VisitorAction Enter(
-                StringValueNode node,
-                ISyntaxNode parent,
-                IReadOnlyList<object> path,
-                IReadOnlyList<ISyntaxNode> ancestors)
-            {
-                return VisitorAction.Skip;
-            }
-
-            public override VisitorAction Leave(
-                ObjectValueNode node,
-                ISyntaxNode parent,
-                IReadOnlyList<object> path,
-                IReadOnlyList<ISyntaxNode> ancestors)
-            {
-                return VisitorAction.Skip;
-            }
+            })
+        {
         }
 
-        private class Bar
-           : SyntaxNodeVisitor
+        public override VisitorAction Enter(
+            StringValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
         {
-            public Bar()
-                : base(VisitorAction.Continue)
-            {
-
-            }
+            return VisitorAction.Skip;
         }
 
-        private class BarVisitationMap
-            : VisitationMap
+        public override VisitorAction Leave(
+            ObjectValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
         {
-            public List<ISyntaxNode> VisitedNodes { get; } =
-                new List<ISyntaxNode>();
+            return VisitorAction.Skip;
+        }
+    }
 
-            public override void ResolveChildren(
-                ISyntaxNode node,
-                IList<SyntaxNodeInfo> children)
-            {
-                VisitedNodes.Add(node);
-                base.ResolveChildren(node, children);
-            }
+    private sealed class Bar
+       : SyntaxNodeVisitor
+    {
+        public Bar()
+            : base(VisitorAction.Continue)
+        {
+
+        }
+    }
+
+    private sealed class BarVisitationMap
+        : VisitationMap
+    {
+        public List<ISyntaxNode> VisitedNodes { get; } =
+            new List<ISyntaxNode>();
+
+        public override void ResolveChildren(
+            ISyntaxNode node,
+            IList<SyntaxNodeInfo> children)
+        {
+            VisitedNodes.Add(node);
+            base.ResolveChildren(node, children);
         }
     }
 }

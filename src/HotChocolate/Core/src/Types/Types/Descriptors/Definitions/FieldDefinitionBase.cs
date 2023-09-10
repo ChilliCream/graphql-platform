@@ -3,77 +3,127 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+/// <summary>
+/// This definition represents a field or argument.
+/// </summary>
+public abstract class FieldDefinitionBase
+    : DefinitionBase
+    , IHasDirectiveDefinition
+    , IHasIgnore
 {
+    private List<DirectiveDefinition>? _directives;
+    private string? _deprecationReason;
+
     /// <summary>
-    /// This definition represents a field or argument.
+    /// Gets the internal field flags from this field.
     /// </summary>
-    public abstract class FieldDefinitionBase
-        : DefinitionBase
-        , IHasDirectiveDefinition
-        , IHasIgnore
+    internal FieldFlags Flags { get; set; } = FieldFlags.None;
+
+    /// <summary>
+    /// Describes why this syntax node is deprecated.
+    /// </summary>
+    public string? DeprecationReason
     {
-        private List<DirectiveDefinition>? _directives;
-
-        /// <summary>
-        /// Gets the field type.
-        /// </summary>
-        public ITypeReference? Type { get; set; }
-
-        /// <summary>
-        /// Defines if this field is ignored and will
-        /// not be included into the schema.
-        /// </summary>
-        public bool Ignore { get; set; }
-
-        /// <summary>
-        /// Gets the list of directives that are annotated to this field.
-        /// </summary>
-        public IList<DirectiveDefinition> Directives =>
-            _directives ??= new List<DirectiveDefinition>();
-
-        /// <summary>
-        /// Gets the list of directives that are annotated to this field.
-        /// </summary>
-        public IReadOnlyList<DirectiveDefinition> GetDirectives()
+        get => _deprecationReason;
+        set
         {
-            if (_directives is null)
+            if (string.IsNullOrEmpty(value))
             {
-                return Array.Empty<DirectiveDefinition>();
+                Flags &= ~FieldFlags.Deprecated;
+            }
+            else
+            {
+                Flags |= FieldFlags.Deprecated;
             }
 
-            return _directives;
+            _deprecationReason = value;
+        }
+    }
+
+    /// <summary>
+    /// If true, the field is deprecated
+    /// </summary>
+    public bool IsDeprecated => (Flags & FieldFlags.Deprecated) == FieldFlags.Deprecated;
+
+    /// <summary>
+    /// Gets the field type.
+    /// </summary>
+    public TypeReference? Type { get; set; }
+
+    /// <summary>
+    /// Defines if this field is ignored and will
+    /// not be included into the schema.
+    /// </summary>
+    public bool Ignore
+    {
+        get => (Flags & FieldFlags.Ignored) == FieldFlags.Ignored;
+        set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.Ignored;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.Ignored;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the list of directives that are annotated to this field.
+    /// </summary>
+    public IList<DirectiveDefinition> Directives
+        => _directives ??= new List<DirectiveDefinition>();
+
+    /// <summary>
+    /// Specifies if this field has any directives.
+    /// </summary>
+    public bool HasDirectives => _directives?.Count > 0;
+
+    /// <summary>
+    /// Gets the list of directives that are annotated to this field.
+    /// </summary>
+    public IReadOnlyList<DirectiveDefinition> GetDirectives()
+    {
+        if (_directives is null)
+        {
+            return Array.Empty<DirectiveDefinition>();
         }
 
-        protected void CopyTo(FieldDefinitionBase target)
+        return _directives;
+    }
+
+    protected void CopyTo(FieldDefinitionBase target)
+    {
+        base.CopyTo(target);
+
+        if (_directives is { Count: > 0 })
         {
-            base.CopyTo(target);
+            target._directives = new List<DirectiveDefinition>(_directives);
+        }
 
-            if (_directives is { Count: > 0})
-            {
-                target._directives = new List<DirectiveDefinition>(_directives);
-            }
+        target.Type = Type;
+        target.Ignore = Ignore;
+    }
 
+    protected void MergeInto(FieldDefinitionBase target)
+    {
+        base.MergeInto(target);
+
+        if (_directives is { Count: > 0 })
+        {
+            target._directives ??= new List<DirectiveDefinition>();
+            target._directives.AddRange(_directives);
+        }
+
+        if (Type is not null)
+        {
             target.Type = Type;
-            target.Ignore = Ignore;
         }
 
-        protected void MergeInto(FieldDefinitionBase target)
-        {
-            base.MergeInto(target);
-
-            if (_directives is { Count: > 0})
-            {
-                target._directives ??= new List<DirectiveDefinition>();
-                target._directives.AddRange(_directives);
-            }
-
-            if (Type is not null)
-            {
-                target.Type = Type;
-            }
-
-            target.Ignore = Ignore;
-        }
+        target.Ignore = Ignore;
     }
 }

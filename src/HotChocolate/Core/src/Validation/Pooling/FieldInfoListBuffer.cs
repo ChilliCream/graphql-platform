@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+internal sealed class FieldInfoListBuffer
 {
-    internal sealed class FieldInfoListBuffer
+    private readonly List<FieldInfo>[] _buffer =
     {
-        private readonly List<FieldInfo>[] _buffer =
-        {
             new List<FieldInfo>(),
             new List<FieldInfo>(),
             new List<FieldInfo>(),
@@ -25,40 +25,39 @@ namespace HotChocolate.Validation
             new List<FieldInfo>(),
             new List<FieldInfo>(),
         };
-        private readonly int _max = 16;
-        private int _index = 0;
+    private readonly int _max = 16;
+    private int _index = 0;
 
-        public IList<FieldInfo> Pop()
+    public IList<FieldInfo> Pop()
+    {
+        if (TryPop(out var list))
         {
-            if (TryPop(out IList<FieldInfo>? list))
-            {
-                return list;
-            }
-            throw new InvalidOperationException("Buffer is used up.");
+            return list;
+        }
+        throw new InvalidOperationException("Buffer is used up.");
+    }
+
+    public bool TryPop([NotNullWhen(true)] out IList<FieldInfo>? list)
+    {
+        if (_index < _max)
+        {
+            list = _buffer[_index++];
+            return true;
         }
 
-        public bool TryPop([NotNullWhen(true)] out IList<FieldInfo>? list)
-        {
-            if (_index < _max)
-            {
-                list = _buffer[_index++];
-                return true;
-            }
+        list = null;
+        return false;
+    }
 
-            list = null;
-            return false;
-        }
-
-        public void Clear()
+    public void Clear()
+    {
+        if (_index > 0)
         {
-            if (_index > 0)
+            for (var i = 0; i < _index; i++)
             {
-                for (var i = 0; i < _index; i++)
-                {
-                    _buffer[i].Clear();
-                }
+                _buffer[i].Clear();
             }
-            _index = 0;
         }
+        _index = 0;
     }
 }

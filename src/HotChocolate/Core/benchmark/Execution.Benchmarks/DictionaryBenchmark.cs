@@ -1,8 +1,7 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
+
+#nullable enable
 
 namespace HotChocolate.Execution.Benchmarks
 {
@@ -93,11 +92,7 @@ namespace HotChocolate.Execution.Benchmarks
 
     public class ExtensionData2
     {
-        private Dictionary<string, object?> _data;
-
-        public ExtensionData2()
-        {
-        }
+        private Dictionary<string, object?>? _data;
 
         public void Add(string key, object value)
         {
@@ -108,14 +103,10 @@ namespace HotChocolate.Execution.Benchmarks
 
     public class ExtensionData3
     {
-        private Dictionary<string, object?> _data;
-        private string _key;
-        private object _value;
-        private int _count = 0;
-
-        public ExtensionData3()
-        {
-        }
+        private Dictionary<string, object?>? _data;
+        private string? _key;
+        private object? _value;
+        private int _count;
 
         public void Add(string key, object value)
         {
@@ -131,27 +122,23 @@ namespace HotChocolate.Execution.Benchmarks
             if (_count == 2)
             {
                 _data ??= new Dictionary<string, object?>();
-                _data.Add(_key, _value);
+                _data.Add(_key!, _value);
                 _key = null;
                 _value = null;
             }
 
-            _data.Add(key, value);
+            _data!.Add(key, value);
         }
     }
 
     public class ExtensionData4
     {
-        private Dictionary<string, object?> _data;
-        private string _key1;
-        private object _value1;
-        private string _key2;
-        private object _value2;
+        private Dictionary<string, object?>? _data;
+        private string? _key1;
+        private object? _value1;
+        private string? _key2;
+        private object? _value2;
         private byte _state;
-
-        public ExtensionData4()
-        {
-        }
 
         public void Add(string key, object value)
         {
@@ -174,8 +161,8 @@ namespace HotChocolate.Execution.Benchmarks
             if (_state == 2)
             {
                 _data ??= new Dictionary<string, object?>();
-                _data.Add(_key1, _value1);
-                _data.Add(_key2, _value2);
+                _data.Add(_key1!, _value1);
+                _data.Add(_key2!, _value2);
                 _key1 = null;
                 _value1 = null;
                 _key2 = null;
@@ -183,18 +170,14 @@ namespace HotChocolate.Execution.Benchmarks
                 _state = 3;
             }
 
-            _data.Add(key, value);
+            _data!.Add(key, value);
         }
     }
 
     public class ExtensionData5
     {
-        private Dictionary<string, object?> _data;
+        private Dictionary<string, object?>? _data;
         private KeyValuePair<string, object?>? _first;
-
-        public ExtensionData5()
-        {
-        }
 
         public void Add(string key, object value)
         {
@@ -207,7 +190,7 @@ namespace HotChocolate.Execution.Benchmarks
                 _data = new Dictionary<string, object?>
                 {
                     { _first.Value.Key, _first.Value.Value },
-                    { key, value } 
+                    { key, value }
                 };
                 _first = null;
             }

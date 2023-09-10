@@ -2,36 +2,37 @@ using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Processing;
 
-namespace Microsoft.Extensions.DependencyInjection
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static partial class RequestExecutorBuilderExtensions
 {
-    public static partial class RequestExecutorBuilderExtensions
+    public static IRequestExecutorBuilder AddOperationCompilerOptimizer<T>(
+        this IRequestExecutorBuilder builder)
+        where T : class, IOperationCompilerOptimizer
     {
-        public static IRequestExecutorBuilder AddSelectionSetOptimizer<T>(
-            this IRequestExecutorBuilder builder)
-            where T : class, ISelectionOptimizer
+        if (builder is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder.ConfigureSchemaServices(s => s.AddSingleton<ISelectionOptimizer, T>());
-            return builder;
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static IRequestExecutorBuilder AddSelectionSetOptimizer<T>(
-            this IRequestExecutorBuilder builder,
-            Func<IServiceProvider, T> factory)
-            where T : class, ISelectionOptimizer
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+        builder.ConfigureSchemaServices(s => s.AddSingleton<IOperationCompilerOptimizer, T>());
+        return builder;
+    }
 
-            builder.ConfigureSchemaServices(
-                sc => sc.AddSingleton<ISelectionOptimizer>(factory));
-            return builder;
+    public static IRequestExecutorBuilder AddOperationCompilerOptimizer<T>(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, T> factory)
+        where T : class, IOperationCompilerOptimizer
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
         }
+
+        builder.ConfigureSchemaServices(
+            sc => sc.AddSingleton<IOperationCompilerOptimizer>(
+                sp => factory(sp.GetCombinedServices())));
+        return builder;
     }
 }

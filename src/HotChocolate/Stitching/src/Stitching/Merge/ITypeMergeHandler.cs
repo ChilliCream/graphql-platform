@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+public interface ITypeMergeHandler
 {
-    public interface ITypeMergeHandler
-    {
-        void Merge(
-            ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types);
-    }
+    void Merge(
+        ISchemaMergeContext context,
+        IReadOnlyList<ITypeInfo> types);
 }

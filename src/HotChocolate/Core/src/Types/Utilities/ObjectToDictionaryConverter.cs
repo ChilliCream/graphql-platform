@@ -1,141 +1,177 @@
-using System.Collections.Concurrent;
+using System.Linq;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+internal class ObjectToDictionaryConverter
 {
-    internal class ObjectToDictionaryConverter
+    private readonly ITypeConverter _converter;
+    private readonly ConcurrentDictionary<Type, PropertyInfo[]> _properties = new();
+
+    public ObjectToDictionaryConverter(ITypeConverter converter)
     {
-        private readonly ITypeConverter _converter;
-        private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _properties =
-            new ConcurrentDictionary<Type, List<PropertyInfo>>();
-
-        public ObjectToDictionaryConverter(ITypeConverter converter)
+        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+    }
+    
+    public object Convert(object obj)
+    {
+        if(obj is null)
         {
-            _converter = converter
-                ?? throw new ArgumentNullException(nameof(converter));
+            throw new ArgumentNullException(nameof(obj));
         }
 
-        public object Convert(object obj)
-        {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
+        object value = null;
+        void SetValue(object v) => value = v;
+        VisitValue(obj, SetValue, new HashSet<object>());
+        return value;
+    }
 
-            object value = null;
-            Action<object> setValue = v => value = v;
-            VisitValue(obj, setValue, new HashSet<object>());
-            return value;
+    private void VisitValue(
+        object obj,
+        Action<object> setValue,
+        HashSet<object> processed)
+    {
+        if (obj is null)
+        {
+            setValue(null);
+            return;
         }
 
-        private void VisitValue(
-            object obj,
-            Action<object> setValue,
-            ISet<object> processed)
+        switch (obj)
         {
-            if (obj is null)
-            {
-                setValue(null);
+            case string _:
+            case short _:
+            case ushort _:
+            case int _:
+            case uint _:
+            case long _:
+            case ulong _:
+            case float _:
+            case double _:
+            case decimal _:
+            case bool _:
+            case sbyte _:
+                setValue(obj);
                 return;
-            }
+        }
 
-            switch (obj)
-            {
-                case string _:
-                case short _:
-                case ushort _:
-                case int _:
-                case uint _:
-                case long _:
-                case ulong _:
-                case float _:
-                case double _:
-                case decimal _:
-                case bool _:
-                    setValue(obj);
-                    return;
-            }
+        var type = obj.GetType();
 
-            Type type = obj.GetType();
+        if (type.IsValueType &&
+            _converter.TryConvert(type, typeof(string), obj, out var converted) &&
+            converted is string s)
+        {
+            setValue(s);
+        }
+        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type) &&
+            obj is ICollection list)
+        {
+            VisitList(list, setValue, processed);
+        }
+        else
+        {
+            VisitObject(obj, setValue, processed);
+        }
+    }
 
-            if (type.IsValueType && _converter.TryConvert(
-                type, typeof(string), obj, out object converted)
-                && converted is string s)
+    private void VisitObject(
+        object obj,
+        Action<object> setValue,
+        HashSet<object> processed)
+    {
+        if (processed.Add(obj))
+        {
+            var current = new Dictionary<string, object>();
+            setValue(current);
+
+            if (obj is Dictionary<string, object> dict1)
             {
-                setValue(s);
-                return;
+                foreach (var item in dict1)
+                {
+                    void SetField(object v) => current[item.Key] = v;
+                    VisitValue(item.Value, SetField, processed);
+                }
             }
-            else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
-                && obj is ICollection list)
+            else if (obj is IDictionary<string, object> dict2)
             {
-                VisitList(list, setValue, processed);
+                foreach (var item in dict2)
+                {
+                    void SetField(object v) => current[item.Key] = v;
+                    VisitValue(item.Value, SetField, processed);
+                }
+            }
+            else if (obj is IReadOnlyDictionary<string, object> dict3)
+            {
+                foreach (var item in dict3)
+                {
+                    void SetField(object v) => current[item.Key] = v;
+                    VisitValue(item.Value, SetField, processed);
+                }
+            }
+            else if (obj is IDictionary dict4)
+            {
+                foreach (var item in dict4)
+                {
+                    if (item is DictionaryEntry entry)
+                    {
+                        void SetField(object v) => current[entry.Key.ToString()!] = v;
+                        VisitValue(entry.Value, SetField, processed);
+                    }
+                    else if (item is KeyValuePair<string, object> pair)
+                    {
+                        void SetField(object v) => current[pair.Key] = v;
+                        VisitValue(pair.Value, SetField, processed);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException(
+                            $"The dictionary entry type `{item.GetType().FullName}` is not supported.");
+                    }
+                }
             }
             else
             {
-                VisitObject(obj, setValue, processed);
-            }
-        }
-
-        private void VisitObject(
-            object obj,
-            Action<object> setValue,
-            ISet<object> processed)
-        {
-            if (processed.Add(obj))
-            {
-                var dict = new Dictionary<string, object>();
-                setValue(dict);
-
-                if (obj is IReadOnlyDictionary<string, object> d)
+                foreach (var property in GetProperties(obj))
                 {
-                    foreach (KeyValuePair<string, object> item in d)
-                    {
-                        Action<object> setField = v => dict[item.Key] = v;
-                        VisitValue(item.Value, setField, processed);
-                    }
-                }
-                else
-                {
-                    foreach (PropertyInfo property in GetProperties(obj))
-                    {
-                        string name = property.GetGraphQLName();
-                        object value = property.GetValue(obj);
-                        Action<object> setField = v => dict[name] = v;
-                        VisitValue(value, setField, processed);
-                    }
+                    var name = property.GetGraphQLName();
+                    var value = property.GetValue(obj);
+                    void SetField(object v) => current[name] = v;
+                    VisitValue(value, SetField, processed);
                 }
             }
         }
+    }
 
-        private void VisitList(
-            ICollection list,
-            Action<object> setValue,
-            ISet<object> processed)
+    private void VisitList(
+        ICollection list,
+        Action<object> setValue,
+        HashSet<object> processed)
+    {
+        var valueList = new List<object>();
+        setValue(valueList);
+
+        void AddItem(object item) => valueList.Add(item);
+
+        foreach (var element in list)
         {
-            var valueList = new List<object>();
-            setValue(valueList);
+            VisitValue(element, AddItem, processed);
+        }
+    }
 
-            Action<object> addItem = item => valueList.Add(item);
+    private ReadOnlySpan<PropertyInfo> GetProperties(object value)
+    {
+        var type = value.GetType();
 
-            foreach (object element in list)
-            {
-                VisitValue(element, addItem, processed);
-            }
+        if (!_properties.TryGetValue(type, out var properties))
+        {
+            properties = ReflectionUtils.GetProperties(type).Values.ToArray();
+            _properties.TryAdd(type, properties);
         }
 
-        private IReadOnlyList<PropertyInfo> GetProperties(object value)
-        {
-            Type type = value.GetType();
-            if (!_properties.TryGetValue(type, out List<PropertyInfo> properties))
-            {
-                properties = new List<PropertyInfo>(
-                    ReflectionUtils.GetProperties(type).Values);
-                _properties.TryAdd(type, properties);
-            }
-            return properties;
-        }
+        return properties;
     }
 }

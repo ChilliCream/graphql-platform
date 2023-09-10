@@ -6,122 +6,121 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.ThrowHelper;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class ProjectionConvention
+    : Convention<ProjectionConventionDefinition>
+    , IProjectionConvention
 {
-    public class ProjectionConvention
-        : Convention<ProjectionConventionDefinition>
-        , IProjectionConvention
+    private Action<IProjectionConventionDescriptor>? _configure;
+    private IProjectionProvider _provider = default!;
+
+    public const string IsProjectedKey = nameof(IsProjectedKey);
+    public const string AlwaysProjectedFieldsKey = nameof(AlwaysProjectedFieldsKey);
+
+    protected ProjectionConvention()
     {
-        private Action<IProjectionConventionDescriptor>? _configure;
-        private IProjectionProvider _provider;
+        _configure = Configure;
+    }
 
-        public const string IsProjectedKey = nameof(IsProjectedKey);
-        public const string AlwaysProjectedFieldsKey = nameof(AlwaysProjectedFieldsKey);
+    public ProjectionConvention(Action<IProjectionConventionDescriptor> configure)
+    {
+        _configure = configure ??
+            throw new ArgumentNullException(nameof(configure));
+    }
 
-        protected ProjectionConvention()
+    internal new ProjectionConventionDefinition? Definition => base.Definition;
+
+    protected override ProjectionConventionDefinition CreateDefinition(
+        IConventionContext context)
+    {
+        if (_configure is null)
         {
-            _configure = Configure;
+            throw new InvalidOperationException(
+                DataResources.ProjectionConvention_NoConfigurationSpecified);
         }
 
-        public ProjectionConvention(Action<IProjectionConventionDescriptor> configure)
+        var descriptor = ProjectionConventionDescriptor.New(
+            context.DescriptorContext,
+            context.Scope);
+
+        _configure(descriptor);
+        _configure = null;
+
+        return descriptor.CreateDefinition();
+    }
+
+    protected virtual void Configure(IProjectionConventionDescriptor descriptor)
+    {
+    }
+
+    protected internal override void Complete(IConventionContext context)
+    {
+        if (Definition?.Provider is null)
         {
-            _configure = configure ??
-                throw new ArgumentNullException(nameof(configure));
+            throw ProjectionConvention_NoProviderFound(GetType(), Definition?.Scope);
         }
 
-        internal new ProjectionConventionDefinition? Definition => base.Definition;
-
-        protected override ProjectionConventionDefinition CreateDefinition(
-            IConventionContext context)
+        if (Definition.ProviderInstance is null)
         {
-            if (_configure is null)
-            {
-                throw new InvalidOperationException(
-                    DataResources.ProjectionConvention_NoConfigurationSpecified);
-            }
-
-            var descriptor = ProjectionConventionDescriptor.New(
-                context.DescriptorContext,
-                context.Scope);
-
-            _configure(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
-        }
-
-        protected virtual void Configure(IProjectionConventionDescriptor descriptor)
-        {
-        }
-
-        protected override void Complete(IConventionContext context)
-        {
-            if (Definition.Provider is null)
-            {
+            _provider =
+                context.Services.GetOrCreateService<IProjectionProvider>(Definition.Provider) ??
                 throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
-            }
+        }
+        else
+        {
+            _provider = Definition.ProviderInstance;
+        }
 
-            if (Definition.ProviderInstance is null)
-            {
-                _provider =
-                    context.Services.GetOrCreateService<IProjectionProvider>(Definition.Provider) ??
-                    throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
-            }
-            else
-            {
-                _provider = Definition.ProviderInstance;
-            }
+        if (_provider is IProjectionProviderConvention init)
+        {
+            var extensions =
+                CollectExtensions(context.Services, Definition);
+            init.Initialize(context);
+            MergeExtensions(context, init, extensions);
+            init.Complete(context);
+        }
+    }
 
-            if (_provider is IProjectionProviderConvention init)
+    public FieldMiddleware CreateExecutor<TEntityType>() =>
+        _provider.CreateExecutor<TEntityType>();
+
+    public ISelectionSetOptimizer CreateOptimizer() =>
+        new ProjectionOptimizer(_provider);
+
+    private static IReadOnlyList<IProjectionProviderExtension> CollectExtensions(
+        IServiceProvider serviceProvider,
+        ProjectionConventionDefinition definition)
+    {
+        List<IProjectionProviderExtension> extensions = new();
+        extensions.AddRange(definition.ProviderExtensions);
+        foreach (var extensionType in definition.ProviderExtensionsTypes)
+        {
+            if (serviceProvider.TryGetOrCreateService<IProjectionProviderExtension>(
+                extensionType,
+                out var createdExtension))
             {
-                IReadOnlyList<IProjectionProviderExtension> extensions =
-                    CollectExtensions(context.Services, Definition);
-                init.Initialize(context);
-                MergeExtensions(context, init, extensions);
-                init.Complete(context);
+                extensions.Add(createdExtension);
             }
         }
 
-        public FieldMiddleware CreateExecutor<TEntityType>() =>
-            _provider.CreateExecutor<TEntityType>();
+        return extensions;
+    }
 
-        public ISelectionOptimizer CreateOptimizer() =>
-            new ProjectionOptimizer(_provider);
-
-        private static IReadOnlyList<IProjectionProviderExtension> CollectExtensions(
-            IServiceProvider serviceProvider,
-            ProjectionConventionDefinition definition)
+    private static void MergeExtensions(
+        IConventionContext context,
+        IProjectionProviderConvention provider,
+        IReadOnlyList<IProjectionProviderExtension> extensions)
+    {
+        if (provider is Convention providerConvention)
         {
-            List<IProjectionProviderExtension> extensions = new();
-            extensions.AddRange(definition.ProviderExtensions);
-            foreach (var extensionType in definition.ProviderExtensionsTypes)
+            for (var m = 0; m < extensions.Count; m++)
             {
-                if (serviceProvider.TryGetOrCreateService<IProjectionProviderExtension>(
-                    extensionType,
-                    out var createdExtension))
+                if (extensions[m] is IProjectionProviderConvention extensionConvention)
                 {
-                    extensions.Add(createdExtension);
-                }
-            }
-
-            return extensions;
-        }
-
-        private static void MergeExtensions(
-            IConventionContext context,
-            IProjectionProviderConvention provider,
-            IReadOnlyList<IProjectionProviderExtension> extensions)
-        {
-            if (provider is Convention providerConvention)
-            {
-                for (var m = 0; m < extensions.Count; m++)
-                {
-                    if (extensions[m] is IProjectionProviderConvention extensionConvention)
-                    {
-                        extensionConvention.Initialize(context);
-                        extensions[m].Merge(context, providerConvention);
-                        extensionConvention.Complete(context);
-                    }
+                    extensionConvention.Initialize(context);
+                    extensions[m].Merge(context, providerConvention);
+                    extensionConvention.Complete(context);
                 }
             }
         }

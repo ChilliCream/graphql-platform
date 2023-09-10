@@ -1,69 +1,102 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+/// <summary>
+/// Defines the properties of a GraphQL argument type.
+/// </summary>
+public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
 {
-    public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
+    /// </summary>
+    public ArgumentDefinition() { }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
+    /// </summary>
+    public ArgumentDefinition(
+        string name,
+        string? description = null,
+        TypeReference? type = null,
+        IValueNode? defaultValue = null,
+        object? runtimeDefaultValue = null)
     {
-        private List<IInputValueFormatter>? _formatters;
+        Name = name.EnsureGraphQLName();
+        Description = description;
+        Type = type;
+        DefaultValue = defaultValue;
+        RuntimeDefaultValue = runtimeDefaultValue;
+    }
 
-        public IValueNode? DefaultValue { get; set; }
+    private List<IInputValueFormatter>? _formatters;
 
-        public object? NativeDefaultValue { get; set; }
+    public IValueNode? DefaultValue { get; set; }
 
-        public ParameterInfo? Parameter { get; set; }
+    public object? RuntimeDefaultValue { get; set; }
 
-        public IList<IInputValueFormatter> Formatters =>
-            _formatters ??= new List<IInputValueFormatter>();
+    public ParameterInfo? Parameter { get; set; }
 
-        internal IReadOnlyList<IInputValueFormatter> GetFormatters()
+    public Type? RuntimeType { get; set; }
+
+    public IList<IInputValueFormatter> Formatters =>
+        _formatters ??= new List<IInputValueFormatter>();
+
+    public IReadOnlyList<IInputValueFormatter> GetFormatters()
+    {
+        if (_formatters is null)
         {
-            if (_formatters is null)
-            {
-                return Array.Empty<IInputValueFormatter>();
-            }
-
-            return _formatters;
+            return Array.Empty<IInputValueFormatter>();
         }
 
-        internal void CopyTo(ArgumentDefinition target)
-        {
-            base.CopyTo(target);
+        return _formatters;
+    }
 
-            target._formatters = _formatters;
+    internal void CopyTo(ArgumentDefinition target)
+    {
+        base.CopyTo(target);
+
+        target._formatters = _formatters;
+        target.DefaultValue = DefaultValue;
+        target.RuntimeDefaultValue = RuntimeDefaultValue;
+        target.Parameter = Parameter;
+        target.RuntimeType = RuntimeType;
+    }
+
+    internal void MergeInto(ArgumentDefinition target)
+    {
+        base.MergeInto(target);
+
+        if (_formatters is { Count: > 0 })
+        {
+            target._formatters ??= new List<IInputValueFormatter>();
+            target._formatters.AddRange(_formatters);
+        }
+
+        if (DefaultValue is not null)
+        {
             target.DefaultValue = DefaultValue;
-            target.NativeDefaultValue = NativeDefaultValue;
+        }
+
+        if (RuntimeDefaultValue is not null)
+        {
+            target.RuntimeDefaultValue = RuntimeDefaultValue;
+        }
+
+        if (Parameter is not null)
+        {
             target.Parameter = Parameter;
         }
 
-        internal void MergeInto(ArgumentDefinition target)
+        if (RuntimeType is not null)
         {
-            base.MergeInto(target);
-
-            if (_formatters is { Count: > 0 })
-            {
-                target._formatters ??= new List<IInputValueFormatter>();
-                target._formatters.AddRange(_formatters);
-            }
-
-            if (DefaultValue is not null)
-            {
-                target.DefaultValue = DefaultValue;
-            }
-
-            if (NativeDefaultValue is not null)
-            {
-                target.NativeDefaultValue = NativeDefaultValue;
-            }
-
-            if (Parameter is not null)
-            {
-                target.Parameter = Parameter;
-            }
+            target.RuntimeType = RuntimeType;
         }
     }
 }

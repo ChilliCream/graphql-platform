@@ -1,9 +1,8 @@
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Analyzers;
+
+internal static class WellKnownContextData
 {
-    internal static class WellKnownContextData
-    {
-        public const string SerializationType = "StrawberryShake.SerializationType";
-        public const string RuntimeType = "StrawberryShake.RuntimeType";
-        public const string Entity = "StrawberryShake.Entity";
-    }
+    public const string SerializationType = "StrawberryShake.SerializationType";
+    public const string RuntimeType = "StrawberryShake.RuntimeType";
+    public const string Entity = "StrawberryShake.Entity";
 }

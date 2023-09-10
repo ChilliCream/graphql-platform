@@ -1,0 +1,44 @@
+BarAndFoo
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "FOO"
+      }
+    ]
+  }
+}
+---------------
+
+FOO
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "FOO"
+      }
+    ]
+  }
+}
+---------------
+
+nullAndFoo
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "FOO"
+      },
+      {
+        "barEnum": null
+      }
+    ]
+  }
+}
+---------------

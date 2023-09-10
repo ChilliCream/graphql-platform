@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
-    <value>The {0}-directive is missing the if-argument.</value>
-  </data>
   <data name="ThrowHelper_FieldDoesNotExistOnType" xml:space="preserve">
     <value>Field `{0}` does not exist on type `{1}`.</value>
   </data>
@@ -160,13 +157,13 @@
     <value>There is no operation on the context which can be used to coerce variables.</value>
   </data>
   <data name="ErrorHelper_StateInvalidForOperationExecution_Message" xml:space="preserve">
-    <value>Either now compiled operation was found or the variables have not been coerced.</value>
+    <value>Either no compiled operation was found or the variables have not been coerced.</value>
   </data>
   <data name="ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message" xml:space="preserve">
     <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
   </data>
   <data name="ErrorHelper_StateInvalidForDocumentValidation_Message" xml:space="preserve">
-    <value>The query request contains no document.</value>
+    <value>The query request contains no document or no document id.</value>
   </data>
   <data name="ThrowHelper_VariableIsNotAnInputType_Message" xml:space="preserve">
     <value>Variable `{0}` is not an input type.</value>
@@ -211,7 +208,7 @@
     <value>There was no argument with the name `{0}` found on the field `{1}`.</value>
   </data>
   <data name="ThrowHelper_OperationResolverHelper_NoOperationFound_Message" xml:space="preserve">
-    <value>There are now operations in the GraphQL document.</value>
+    <value>There are no operations in the GraphQL document.</value>
   </data>
   <data name="ThrowHelper_OperationResolverHelper_MultipleOperation_Message" xml:space="preserve">
     <value>The operation name can only be omitted if there is just one operation in a GraphQL document.</value>
@@ -254,5 +251,86 @@
   </data>
   <data name="ResultHelper_BuildResult_InvalidResult" xml:space="preserve">
     <value>A GraphQL result must have data, errors or both.</value>
+  </data>
+  <data name="ErrorHelper_MaxComplexityReached" xml:space="preserve">
+    <value>The maximum allowed operation complexity was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForComplexityAnalyzer_Message" xml:space="preserve">
+    <value>The analyzer needs a documentId, operationId, document and coerced variables.</value>
+  </data>
+  <data name="BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed" xml:space="preserve">
+    <value>Serial execution tasks cannot be batched.</value>
+  </data>
+  <data name="QueryPlan_InvalidFragmentId" xml:space="preserve">
+    <value>Invalid fragment id.</value>
+  </data>
+  <data name="WorkBacklog_NotFullyInitialized" xml:space="preserve">
+    <value>The WorkBacklog is not fully initialized.</value>
+  </data>
+  <data name="ErrorHelper_OperationCanceled_Message" xml:space="preserve">
+    <value>The GraphQL request execution was canceled.</value>
+  </data>
+  <data name="ThrowHelper_ResolverContext_CannotCastParent" xml:space="preserve">
+    <value>The resolver parent type of field `{0}` is `{1}` but the resolver requested the type `{2}`. The resolver was unable to cast the parent type to the requested type.</value>
+  </data>
+  <data name="ExecutionResultExtensions_OnlyQueryResults" xml:space="preserve">
+    <value>Only query results are supported.</value>
+  </data>
+  <data name="SelectionVariants_ReadOnly" xml:space="preserve">
+    <value>This SelectionVariants instance is read-only.</value>
+  </data>
+  <data name="OperationCompiler_FragmentNotFound" xml:space="preserve">
+    <value>The document did not contain a fragment definition with the name `{0}`.</value>
+  </data>
+  <data name="SelectionSetOptimizerContext_InvalidFieldName" xml:space="preserve">
+    <value>The `{0}` is not a valid GraphQL field name.</value>
+  </data>
+  <data name="OperationCompiler_ToManyIncludeConditions" xml:space="preserve">
+    <value>The operation compiler only allows for 64 unique include conditions.</value>
+  </data>
+  <data name="SelectionVariants_TypeContextInvalid" xml:space="preserve">
+    <value>The specified type `{0}` is not a possible type to this selection set.</value>
+  </data>
+  <data name="ThrowHelper_SelectionSet_TypeAlreadyAdded" xml:space="preserve">
+    <value>The type {0} was already added.</value>
+  </data>
+  <data name="ThrowHelper_OneOfFieldMustBeNonNull" xml:space="preserve">
+    <value>Value for oneof field {0} must be non-null.</value>
+  </data>
+  <data name="OperationCompiler_OperationIdNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="ThrowHelper_Operation_NoSelectionSet" xml:space="preserve">
+    <value>The specified selection does not have a selection set.</value>
+  </data>
+  <data name="ThrowHelper_JsonFormatter_ResultNotSupported" xml:space="preserve">
+    <value>The {0} only supports formatting `IQueryResult`.</value>
+  </data>
+  <data name="ResultBuilder_DataAndItemsNotAllowed" xml:space="preserve">
+    <value>Its not allowed to set `items` and `data` at the same time.</value>
+  </data>
+  <data name="ErrorHelper_PersistedQueryNotFound" xml:space="preserve">
+    <value>The specified persisted query key is invalid.</value>
+  </data>
+  <data name="ErrorHelper_OnlyPersistedQueriesAreAllowed" xml:space="preserve">
+    <value>Only persisted queries are allowed.</value>
+  </data>
+  <data name="MiddlewareContext_ReplaceArgument_InvalidKey" xml:space="preserve">
+    <value>There is no argument with the name `{0}`.</value>
+  </data>
+  <data name="VariableValueOrLiteral_NullNotAllowed" xml:space="preserve">
+    <value>The runtime value can only be null if the literal is also null.</value>
+  </data>
+  <data name="Operation_GetPossibleTypes_NoSelectionSet" xml:space="preserve">
+    <value>The specified selection does not have a selection set.</value>
+  </data>
+  <data name="MiddlewareContext_ReplaceArguments_NullNotAllowed" xml:space="preserve">
+    <value>It is not allowed to replace the arguments with null.</value>
+  </data>
+  <data name="SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame" xml:space="preserve">
+    <value>The provided response name must be the same as on the selection.</value>
+  </data>
+  <data name="ComplexityAnalyzerCompiler_Enter_OnlyOperations" xml:space="preserve">
+    <value>We only compile operations.</value>
   </data>
 </root>

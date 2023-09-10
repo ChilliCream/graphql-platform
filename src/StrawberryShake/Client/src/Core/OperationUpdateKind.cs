@@ -1,8 +1,7 @@
-namespace StrawberryShake
+namespace StrawberryShake;
+
+public enum OperationUpdateKind
 {
-    public enum OperationUpdateKind
-    {
-        Updated,
-        Removed
-    }
+    Updated,
+    Removed
 }

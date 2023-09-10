@@ -3,94 +3,97 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Pipeline;
+
+internal sealed class DocumentParserMiddleware
 {
-    internal sealed class DocumentParserMiddleware
+    private readonly RequestDelegate _next;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly IDocumentHashProvider _documentHashProvider;
+    private readonly ParserOptions _parserOptions;
+
+    public DocumentParserMiddleware(
+        RequestDelegate next,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentHashProvider documentHashProvider,
+        ParserOptions parserOptions)
     {
-        private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly IDocumentCache _documentCache;
-        private readonly IDocumentHashProvider _documentHashProvider;
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+        _documentHashProvider = documentHashProvider ??
+            throw new ArgumentNullException(nameof(documentHashProvider));
+        _parserOptions = parserOptions ??
+            throw new ArgumentNullException(nameof(parserOptions));
+    }
 
-        public DocumentParserMiddleware(
-            RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
-            IDocumentCache documentCache,
-            IDocumentHashProvider documentHashProvider)
+    public async ValueTask InvokeAsync(IRequestContext context)
+    {
+        if (context.Document is null && context.Request.Query is not null)
         {
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            _documentCache = documentCache ??
-                throw new ArgumentNullException(nameof(documentCache));
-            _documentHashProvider = documentHashProvider ??
-                throw new ArgumentNullException(nameof(documentHashProvider));
-        }
+            var success = false;
+            var query = context.Request.Query;
 
-        public async ValueTask InvokeAsync(IRequestContext context)
-        {
-            if (context.Document is null && context.Request.Query is not null)
+            // a parsed document was passed into the request.
+            if (query is QueryDocument parsed)
             {
-                bool success = true;
-
-                try
+                context.DocumentId = ComputeDocumentHash(
+                    context.DocumentHash,
+                    context.Request.QueryHash,
+                    context.Request.Query);
+                context.Document = parsed.Document;
+                success = true;
+            }
+            else if (query is QuerySourceText source)
+            {
+                using (_diagnosticEvents.ParseDocument(context))
                 {
-                    using (_diagnosticEvents.ParseDocument(context))
+                    try
                     {
                         context.DocumentId = ComputeDocumentHash(
-                            context.DocumentHash, 
-                            context.Request.QueryHash, 
+                            context.DocumentHash,
+                            context.Request.QueryHash,
                             context.Request.Query);
-                        context.Document = ParseDocument(context.Request.Query);
+                        context.Document = Utf8GraphQLParser.Parse(source.AsSpan(), _parserOptions);
+                        success = true;
                     }
-                }
-                catch (SyntaxException ex)
-                {
-                    success = false;
+                    catch (SyntaxException ex)
+                    {
+                        // if we have syntax errors we will report them within the
+                        // parse document diagnostic span.
+                        var error = context.ErrorHandler.Handle(
+                            ErrorBuilder.New()
+                                .SetMessage(ex.Message)
+                                .SetCode(ErrorCodes.Execution.SyntaxError)
+                                .AddLocation(ex.Line, ex.Column)
+                                .Build());
 
-                    IError error = context.ErrorHandler.Handle(
-                        ErrorBuilder.New()
-                            .SetMessage(ex.Message)
-                            .SetCode(ErrorCodes.Execution.SyntaxError)
-                            .AddLocation(ex.Line, ex.Column)
-                            .Build());
+                        context.Exception = ex;
+                        context.Result = QueryResultBuilder.CreateError(error);
 
-                    context.Exception = ex;
-                    context.Result = QueryResultBuilder.CreateError(error);
-
-                    _diagnosticEvents.SyntaxError(context, error);
-                }
-
-                if (success)
-                {
-                    await _next(context).ConfigureAwait(false);
+                        _diagnosticEvents.SyntaxError(context, error);
+                    }
                 }
             }
             else
             {
+                throw ThrowHelper.QueryTypeNotSupported();
+            }
+
+            if (success)
+            {
                 await _next(context).ConfigureAwait(false);
             }
         }
-
-        private static DocumentNode ParseDocument(IQuery query)
+        else
         {
-            if (query is QueryDocument parsed)
-            {
-                return parsed.Document;
-            }
-
-            if (query is QuerySourceText source)
-            {
-                return Utf8GraphQLParser.Parse(source.AsSpan());
-            }
-
-            throw ThrowHelper.QueryTypeNotSupported();
+            await _next(context).ConfigureAwait(false);
         }
+    }
 
-        private string ComputeDocumentHash(string? documentHash, string? queryHash, IQuery query)
-        {
-            return documentHash ?? queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
-        }
+    private string ComputeDocumentHash(string? documentHash, string? queryHash, IQuery query)
+    {
+        return documentHash ?? queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
     }
 }

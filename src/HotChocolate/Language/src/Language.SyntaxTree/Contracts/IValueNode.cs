@@ -1,11 +1,12 @@
-﻿using System;
+namespace HotChocolate.Language;
 
-namespace HotChocolate.Language
+/// <summary>
+/// A GraphQL value literal.
+/// </summary>
+public interface IValueNode : ISyntaxNode
 {
-    public interface IValueNode
-        : ISyntaxNode
-        , IEquatable<IValueNode?>
-    {
-        object? Value { get; }
-    }
+    /// <summary>
+    /// Gets the value.
+    /// </summary>
+    object? Value { get; }
 }

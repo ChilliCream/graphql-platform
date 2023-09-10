@@ -1,7 +1,6 @@
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class ContinueSelectionVisitorAction : ISelectionVisitorAction
 {
-    public class ContinueSelectionVisitorAction : ISelectionVisitorAction
-    {
-        public SelectionVisitorActionKind Kind => SelectionVisitorActionKind.Continue;
-    }
+    public SelectionVisitorActionKind Kind => SelectionVisitorActionKind.Continue;
 }

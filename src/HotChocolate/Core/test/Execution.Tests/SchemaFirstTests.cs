@@ -1,40 +1,46 @@
+#nullable enable
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
+using CookieCrumble;
+using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Xunit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class SchemaFirstTests
 {
-    public class SchemaFirstTests
+    [Fact]
+    public async Task BindObjectTypeImplicit()
     {
-        [Fact]
-        public async Task BindObjectTypeImplicit()
-        {
-            // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
                     test: String
                     testProp: String
-                }",
-                c => c.BindType<Query>());
+                }")
+            .AddResolver<Query>()
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ test testProp }");
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ test testProp }");
 
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
-        }
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task BindInputTypeImplicit()
-        {
-            // arrange
-            var schema = Schema.Create(
-                @"
-                schema {
+    [Fact]
+    public async Task BindInputTypeImplicit()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"schema {
                     query: FooQuery
                 }
 
@@ -45,164 +51,259 @@ namespace HotChocolate.Execution
                 input Bar
                 {
                     baz: String
-                }",
-                c =>
-                {
-                    c.BindType<FooQuery>();
-                    c.BindType<Bar>();
-                });
+                }")
+            .AddResolver<FooQuery>()
+            .AddResolver<Bar>()
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ foo(bar: { baz: \"hello\"}) }");
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ foo(bar: { baz: \"hello\"}) }");
 
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
-        }
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task EnumAsOutputType()
-        {
-            // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
+    [Fact]
+    public async Task EnumAsOutputType()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
                     enumValue: FooEnum
                 }
 
                 enum FooEnum {
                     BAR
                     BAZ
-                }
-                ",
+                }")
+            .AddResolver<EnumQuery>("Query")
+            .Create();
 
-                c => c.BindType<EnumQuery>().To("Query"));
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ enumValue }");
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ enumValue }");
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
-        }
+    [Fact]
+    public async Task EnumAsInputType()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
+                        setEnumValue(value:FooEnum) : String
+                    }
 
-        [Fact]
-        public async Task EnumAsInputType()
-        {
-            // arrange
-            var schema = Schema.Create(
-                @"
+                    enum FooEnum {
+                        BAR
+                        BAZ_BAR
+                    }")
+            .AddResolver<EnumQuery>("Query")
+            .Create();
+
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ setEnumValue(value:BAZ_BAR) }");
+
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task InputObjectWithEnum()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                """
                 type Query {
-                    setEnumValue(value:FooEnum) : String
-                }
-
-                enum FooEnum {
-                    BAR
-                    BAZ
-                }
-                ",
-
-                c => c.BindType<EnumQuery>().To("Query"));
-
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ setEnumValue(value:BAZ) }");
-
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task InputObjectWithEnum()
-        {
-            // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    enumInInputObject(payload:Payload) : String
+                  enumInInputObject(payload: Payload) : String
                 }
 
                 input Payload {
-                    value: FooEnum
+                  value: FooEnum
                 }
 
                 enum FooEnum {
-                    BAR
-                    BAZ
+                  BAR
+                  BAZ
                 }
-                ",
-                c =>
-                {
-                    c.BindType<EnumQuery>().To("Query");
-                    c.BindType<Payload>();
-                });
+                """)
+            .AddResolver<EnumQuery>("Query")
+            .AddResolver<Payload>()
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ enumInInputObject(payload: { value:BAZ } ) }");
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ enumInInputObject(payload: { value:BAZ } ) }");
 
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
-        }
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-        public class Query
-        {
-            public string GetTest()
+    /// <summary>
+    /// https://github.com/ChilliCream/graphql-platform/issues/5730
+    /// </summary>
+    [Fact]
+    public async Task Issue_5730()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    schema {
+                      query: Query
+                      mutation: Mutation
+                    }
+
+                    type Query {
+                       dummy: String!
+                    }
+
+                    type Mutation {
+                        changeChannelParameters(
+                            input: ChangeChannelParameterInput!)
+                            : ChangeChannelParameterPayload!
+                    }
+
+                    input ChangeChannelParameterInput {
+                      parameterChangeInfo: [ParameterValuePair!]!
+                    }
+
+                    input ParameterValuePair {
+                      value: Any
+                    }
+
+                    type ChangeChannelParameterPayload {
+                      message: String!
+                    }
+
+                    scalar Any
+                    """)
+                .AddResolver<Query5730>("Query")
+                .AddResolver<Mutation5730>("Mutation")
+                .ExecuteRequestAsync(
+                    """
+                    mutation {
+                      changeChannelParameters(input: {
+                        parameterChangeInfo: [ { value: { a: "b" } } ]
+                      }) {
+                        message
+                      }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
             {
-                return "Hello World 1!";
+              "data": {
+                "changeChannelParameters": {
+                  "message": "b"
+                }
+              }
             }
+            """);
+    }
 
-            public string TestProp => "Hello World 2!";
-        }
-
-        public class FooQuery
+    public class Query
+    {
+        public string GetTest()
         {
-            public string GetFoo(Bar bar)
-            {
-                return bar.Baz;
-            }
+            return "Hello World 1!";
         }
 
-        public class Bar
+        public string TestProp => "Hello World 2!";
+    }
+
+    public class FooQuery
+    {
+        public string GetFoo(Bar bar)
         {
-            public string Baz { get; set; }
+            return bar.Baz;
         }
+    }
 
-        public class EnumQuery
+    public class Bar
+    {
+        public string Baz { get; set; } = default!;
+    }
+
+    public class EnumQuery
+    {
+        public FooEnum GetEnumValue()
         {
-            public FooEnum GetEnumValue()
-            {
-                return FooEnum.Bar;
-            }
-
-            public string SetEnumValue(FooEnum value)
-            {
-                return value.ToString();
-            }
-
-            public string EnumInInputObject(Payload payload)
-            {
-                return payload.Value.ToString();
-            }
+            return FooEnum.Bar;
         }
 
-        public class Payload
+        public string SetEnumValue(FooEnum value)
         {
-            public FooEnum Value { get; set; }
+            return value.ToString();
         }
 
-        public enum FooEnum
+        public string EnumInInputObject(Payload payload)
         {
-            Bar,
-            Baz
+            return payload.Value.ToString();
         }
+    }
+
+    public class Payload
+    {
+        public FooEnum Value { get; set; }
+    }
+
+    public enum FooEnum
+    {
+        Bar,
+        Baz,
+        BazBar
+    }
+
+    public class Query5730
+    {
+        public string Dummy => "Don't care";
+    }
+
+    public class Mutation5730
+    {
+        public Task<ChangeChannelParameterPayload> ChangeChannelParametersAsync(
+            ChangeChannelParameterInput input,
+            CancellationToken _)
+        {
+            var message = Assert.IsType<string>(
+                Assert.IsType<Dictionary<string, object>>(
+                    input.ParameterChangeInfo[0].Value)["a"]);
+
+            return Task.FromResult(new ChangeChannelParameterPayload { Message = message });
+        }
+    }
+
+    public record ChangeChannelParameterInput
+    {
+        public ParameterValuePair[] ParameterChangeInfo { get; set; } =
+            Array.Empty<ParameterValuePair>();
+    }
+
+    public record ParameterValuePair
+    {
+        public object? Value { get; set; }
+    }
+
+    public record ChangeChannelParameterPayload
+    {
+        public string Message { get; init; } = string.Empty;
     }
 }

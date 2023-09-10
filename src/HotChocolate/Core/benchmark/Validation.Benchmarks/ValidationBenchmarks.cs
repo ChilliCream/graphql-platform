@@ -1,20 +1,23 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Validation.Benchmarks
 {
     [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
-    public class ValidationBenchmarks
-            : IDisposable
+    public class ValidationBenchmarks : IDisposable
     {
         private readonly IServiceProvider _services;
         private readonly IDocumentValidator _validator;
         private readonly ISchema _schema;
         private readonly DocumentNode _introspectionQuery;
         private readonly DocumentNode _starWarsQuery;
+        private readonly Dictionary<string, object> _contextData = new();
 
         public ValidationBenchmarks()
         {
@@ -28,7 +31,9 @@ namespace HotChocolate.Validation.Benchmarks
             var factory = _services.GetRequiredService<IDocumentValidatorFactory>();
             _validator = factory.CreateValidator();
 
-            _schema = _services.GetRequiredService<ISchema>();
+            _schema = _services.GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync()
+                .Result.Schema;
             var resources = new ResourceHelper();
             _introspectionQuery = Utf8GraphQLParser.Parse(
                 resources.GetResourceString("IntrospectionQuery.graphql"));
@@ -37,21 +42,39 @@ namespace HotChocolate.Validation.Benchmarks
         }
 
         [GlobalSetup]
-        public void Setup()
+        public async Task Setup()
         {
-            _validator.Validate(_schema, _introspectionQuery);
+            await _validator.ValidateAsync(
+                    _schema,
+                    _introspectionQuery,
+                    "abc",
+                    _contextData,
+                    false)
+                .ConfigureAwait(false);
         }
 
         [Benchmark]
-        public void ValidateIntrospection()
+        public async Task ValidateIntrospection()
         {
-            _validator.Validate(_schema, _introspectionQuery);
+            await _validator.ValidateAsync(
+                    _schema,
+                    _introspectionQuery,
+                    "abc",
+                    _contextData,
+                    false)
+                .ConfigureAwait(false);
         }
 
         [Benchmark]
-        public void ValidateStarWars()
+        public async Task ValidateStarWars()
         {
-            _validator.Validate(_schema, _introspectionQuery);
+            await _validator.ValidateAsync(
+                    _schema,
+                    _starWarsQuery,
+                    "abc",
+                    _contextData,
+                    false)
+                .ConfigureAwait(false);
         }
 
         public void Dispose()

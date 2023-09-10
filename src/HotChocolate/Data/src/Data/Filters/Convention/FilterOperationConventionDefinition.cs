@@ -1,11 +1,18 @@
-namespace HotChocolate.Data.Filters
+using HotChocolate.Utilities;
+
+namespace HotChocolate.Data.Filters;
+
+public class FilterOperationConventionDefinition
 {
-    public class FilterOperationConventionDefinition
+    private string _name = string.Empty;
+
+    public int Id { get; set; }
+
+    public string Name
     {
-        public int Id { get; set; }
-
-        public NameString Name { get; set; }
-
-        public string? Description { get; set; }
+        get => _name;
+        set => _name = value.EnsureGraphQLName();
     }
+
+    public string? Description { get; set; }
 }

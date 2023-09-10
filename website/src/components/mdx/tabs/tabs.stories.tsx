@@ -1,5 +1,8 @@
+import { Meta, Story } from "@storybook/react";
 import React from "react";
-import { Story, Meta } from "@storybook/react";
+import { List } from "./list";
+import { Panel } from "./panel";
+import { Tab } from "./tab";
 import { Tabs, TabsProps } from "./tabs";
 
 export default {
@@ -12,15 +15,16 @@ const Template: Story<TabsProps> = ({ children, defaultValue }) => (
 );
 
 export const TwoTabs = Template.bind({});
+
 TwoTabs.args = {
   defaultValue: "tab1",
   children: (
     <>
-      <Tabs.List>
-        <Tabs.Tab value="tab1">Tab One</Tabs.Tab>
-        <Tabs.Tab value="tab2">Tab Two</Tabs.Tab>
-      </Tabs.List>
-      <Tabs.Panel value="tab1">
+      <List>
+        <Tab value="tab1">Tab One</Tab>
+        <Tab value="tab2">Tab Two</Tab>
+      </List>
+      <Panel value="tab1">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ligula
           dui, venenatis sagittis mi vel, dignissim vehicula nulla. Class aptent
@@ -29,10 +33,10 @@ TwoTabs.args = {
           ac lobortis. Donec molestie convallis finibus. Integer laoreet
           dignissim semper.{" "}
         </p>
-      </Tabs.Panel>
-      <Tabs.Panel value="tab2">
+      </Panel>
+      <Panel value="tab2">
         <p>Lorem ipsum</p>
-      </Tabs.Panel>
+      </Panel>
     </>
   ),
 };

@@ -1,43 +1,33 @@
 trigger:
-- develop
+  - develop
 
 pool:
   vmImage: "ubuntu-20.04"
 
 steps:
-- task: NodeTool@0
-  displayName: 'Install Node.js'
-  inputs:
-    versionSpec: '14.x'
-    checkLatest: true
+  - task: NodeTool@0
+    displayName: "Install Node.js"
+    inputs:
+      versionSpec: "14.x"
+      checkLatest: true
 
-- task: YarnInstaller@3
-  displayName: 'Install Yarn'
-  inputs:
-    versionSpec: '1.x'
-    checkLatest: true
+  - script: "yarn --immutable --network-timeout 100000"
+    displayName: "Install Packages"
+    workingDirectory: "website"
 
-- task: Yarn@3
-  displayName: 'Install Packages'
-  inputs:
-    projectDirectory: 'website'
-    arguments: '--frozen-lockfile'
+  - script: "yarn build --prefix-paths"
+    displayName: "Build Website"
+    workingDirectory: "website"
 
-- task: Yarn@3
-  displayName: 'Run yarn build'
-  inputs:
-    projectDirectory: 'website'
-    arguments: 'build --prefix-paths'
+  - task: CmdLine@2
+    displayName: "Run git config"
+    inputs:
+      script: |
+        git config user.email "$(UserEmail)"
+        git config user.name "$(UserName)"
 
-- task: CmdLine@2
-  displayName: 'Run git config'
-  inputs:
-    script: |
-      git config user.email "$(UserEmail)"
-      git config user.name "$(UserName)"
-
-- task: Yarn@3
-  displayName: 'Run yarn gh-pages'
-  inputs:
-    projectDirectory: 'website'
-    arguments: 'gh-pages -d public -r https://$(GitHubToken)@github.com/$(RepositoryName).git'
+  - task: Yarn@3
+    displayName: "Run yarn gh-pages"
+    inputs:
+      projectDirectory: "website"
+      arguments: "gh-pages -d public -r https://$(GitHubToken)@github.com/$(RepositoryName).git"

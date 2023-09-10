@@ -6,157 +6,162 @@ using StrawberryShake.CodeGeneration.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Generators
+namespace StrawberryShake.CodeGeneration.CSharp.Generators;
+
+public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescriptor>
 {
-    public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescriptor>
+    protected override CSharpSyntaxGeneratorResult Generate(
+        InputObjectTypeDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
     {
-        protected override CSharpSyntaxGeneratorResult Generate(
-            InputObjectTypeDescriptor descriptor,
-            CSharpSyntaxGeneratorSettings settings)
+        var stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
+        var infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
+        
+        var modifier = settings.AccessModifier == AccessModifier.Public
+            ? SyntaxKind.PublicKeyword
+            : SyntaxKind.InternalKeyword;
+
+        return new(
+            descriptor.Name,
+            null,
+            descriptor.RuntimeType.NamespaceWithoutGlobal,
+            settings.InputRecords
+                ? GenerateRecord(descriptor, modifier, infoInterfaceType)
+                : GenerateClass(descriptor, modifier, infoInterfaceType));
+    }
+
+    private BaseTypeDeclarationSyntax GenerateRecord(
+        InputObjectTypeDescriptor descriptor,
+        SyntaxKind accessModifier,
+        string infoInterfaceType)
+    {
+        var recordDeclaration =
+            RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.ToEscapedName())
+                .AddImplements(infoInterfaceType)
+                .AddModifiers(
+                    Token(accessModifier),
+                    Token(SyntaxKind.PartialKeyword))
+                .AddGeneratedAttribute()
+                .AddEquality(descriptor.Name.ToEscapedName(), descriptor.Properties, true)
+                .AddSummary(descriptor.Documentation)
+                .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
+
+        recordDeclaration = GenerateProperties(
+            recordDeclaration,
+            SyntaxKind.InitAccessorDeclaration,
+            infoInterfaceType,
+            descriptor);
+
+        recordDeclaration = recordDeclaration.WithCloseBraceToken(
+            Token(SyntaxKind.CloseBraceToken));
+
+        return recordDeclaration;
+    }
+
+    private BaseTypeDeclarationSyntax GenerateClass(
+        InputObjectTypeDescriptor descriptor,
+        SyntaxKind accessModifier,
+        string infoInterfaceType)
+    {
+        var classDeclaration =
+            ClassDeclaration(descriptor.Name.ToEscapedName())
+                .AddImplements(infoInterfaceType)
+                .AddModifiers(
+                    Token(accessModifier),
+                    Token(SyntaxKind.PartialKeyword))
+                .AddGeneratedAttribute()
+                .AddEquality(descriptor.Name.ToEscapedName(), descriptor.Properties)
+                .AddSummary(descriptor.Documentation);
+
+        classDeclaration = GenerateProperties(
+            classDeclaration,
+            SyntaxKind.SetAccessorDeclaration,
+            infoInterfaceType,
+            descriptor);
+
+        return classDeclaration;
+    }
+
+    private T GenerateProperties<T>(
+        T typeDeclarationSyntax,
+        SyntaxKind setAccessorKind,
+        string infoInterfaceType,
+        InputObjectTypeDescriptor descriptor)
+        where T : TypeDeclarationSyntax
+    {
+        TypeDeclarationSyntax current = typeDeclarationSyntax;
+
+        foreach (var prop in descriptor.Properties)
         {
-            string stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
-            string infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
+            var variable =
+                VariableDeclarator(
+                    Identifier(CreateInputValueField(prop.Name)));
 
-            return new(
-                descriptor.Name,
-                null,
-                descriptor.RuntimeType.NamespaceWithoutGlobal,
-                settings.InputRecords
-                    ? GenerateRecord(descriptor, infoInterfaceType)
-                    : GenerateClass(descriptor, infoInterfaceType));
-        }
-
-        private BaseTypeDeclarationSyntax GenerateRecord(
-            InputObjectTypeDescriptor descriptor,
-            string infoInterfaceType)
-        {
-            RecordDeclarationSyntax recordDeclaration =
-                RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.Value)
-                    .AddImplements(infoInterfaceType)
-                    .AddModifiers(
-                        Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.PartialKeyword))
-                    .AddGeneratedAttribute()
-                    .AddEquality(descriptor.Name, descriptor.Properties, true)
-                    .AddSummary(descriptor.Documentation)
-                    .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
-
-            recordDeclaration = GenerateProperties(
-                recordDeclaration,
-                SyntaxKind.InitAccessorDeclaration,
-                infoInterfaceType,
-                descriptor);
-
-            recordDeclaration = recordDeclaration.WithCloseBraceToken(
-                Token(SyntaxKind.CloseBraceToken));
-
-            return recordDeclaration;
-        }
-
-        private BaseTypeDeclarationSyntax GenerateClass(
-            InputObjectTypeDescriptor descriptor,
-            string infoInterfaceType)
-        {
-            ClassDeclarationSyntax classDeclaration =
-                ClassDeclaration(descriptor.Name.Value)
-                    .AddImplements(infoInterfaceType)
-                    .AddModifiers(
-                        Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.PartialKeyword))
-                    .AddGeneratedAttribute()
-                    .AddEquality(descriptor.Name, descriptor.Properties)
-                    .AddSummary(descriptor.Documentation);
-
-            classDeclaration = GenerateProperties(
-                classDeclaration,
-                SyntaxKind.SetAccessorDeclaration,
-                infoInterfaceType,
-                descriptor);
-
-            return classDeclaration;
-        }
-
-        private T GenerateProperties<T>(
-            T typeDeclarationSyntax,
-            SyntaxKind setAccessorKind,
-            string infoInterfaceType,
-            InputObjectTypeDescriptor descriptor)
-            where T : TypeDeclarationSyntax
-        {
-            TypeDeclarationSyntax current = typeDeclarationSyntax;
-
-            foreach (var prop in descriptor.Properties)
+            if (prop.Type.IsNonNull() && !prop.Type.GetRuntimeType().IsValueType)
             {
-                VariableDeclaratorSyntax variable =
-                    VariableDeclarator(
-                        Identifier(CreateInputValueField(prop.Name)));
-
-                if (prop.Type.IsNonNullable() && !prop.Type.GetRuntimeType().IsValueType)
-                {
-                    variable = variable.WithSuppressNullableWarningExpression();
-                }
-
-                current = current.AddMembers(
-                    FieldDeclaration(
-                            VariableDeclaration(
-                                prop.Type.ToTypeSyntax(),
-                                SingletonSeparatedList(variable)))
-                        .AddModifiers(Token(SyntaxKind.PrivateKeyword)));
-
-                current = current.AddMembers(
-                    FieldDeclaration(
-                            VariableDeclaration(
-                                ParseTypeName(TypeNames.Boolean),
-                                SingletonSeparatedList(
-                                    VariableDeclarator(
-                                        Identifier(CreateIsSetField(prop.Name))))))
-                        .AddModifiers(Token(SyntaxKind.PrivateKeyword)));
+                variable = variable.WithSuppressNullableWarningExpression();
             }
 
-            foreach (var prop in descriptor.Properties)
-            {
-                PropertyDeclarationSyntax property =
-                    PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
-                        .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                        .AddSummary(prop.Description)
-                        .AddAccessorListAccessors(
-                            AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                .WithExpressionBody(
-                                    ArrowExpressionClause(
-                                        IdentifierName(CreateInputValueField(prop.Name))))
-                                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
-                            AccessorDeclaration(setAccessorKind)
-                                .WithBody(
-                                    Block(
-                                        ExpressionStatement(
-                                            AssignmentExpression(
-                                                SyntaxKind.SimpleAssignmentExpression,
-                                                IdentifierName(CreateIsSetField(prop.Name)),
-                                                LiteralExpression(
-                                                    SyntaxKind.TrueLiteralExpression))),
-                                        ExpressionStatement(
-                                            AssignmentExpression(
-                                                SyntaxKind.SimpleAssignmentExpression,
-                                                IdentifierName(CreateInputValueField(prop.Name)),
-                                                IdentifierName("value"))))));
+            current = current.AddMembers(
+                FieldDeclaration(
+                        VariableDeclaration(
+                            prop.Type.ToTypeSyntax(),
+                            SingletonSeparatedList(variable)))
+                    .AddModifiers(Token(SyntaxKind.PrivateKeyword)));
 
-                current = current.AddMembers(property);
-
-                current = current.AddMembers(
-                    PropertyDeclaration(
+            current = current.AddMembers(
+                FieldDeclaration(
+                        VariableDeclaration(
                             ParseTypeName(TypeNames.Boolean),
-                            CreateIsSetProperty(prop.Name))
-                        .WithExplicitInterfaceSpecifier(
-                            ExplicitInterfaceSpecifier(
-                                IdentifierName(infoInterfaceType)))
-                        .WithExpressionBody(
-                            ArrowExpressionClause(
-                                IdentifierName(CreateIsSetField(prop.Name))))
-                        .WithSemicolonToken(
-                            Token(SyntaxKind.SemicolonToken)));
-            }
-
-            return (T)current;
+                            SingletonSeparatedList(
+                                VariableDeclarator(
+                                    Identifier(CreateIsSetField(prop.Name))))))
+                    .AddModifiers(Token(SyntaxKind.PrivateKeyword)));
         }
+
+        foreach (var prop in descriptor.Properties)
+        {
+            var property =
+                PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
+                    .AddModifiers(Token(SyntaxKind.PublicKeyword))
+                    .AddSummary(prop.Description)
+                    .AddAccessorListAccessors(
+                        AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                            .WithExpressionBody(
+                                ArrowExpressionClause(
+                                    IdentifierName(CreateInputValueField(prop.Name))))
+                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
+                        AccessorDeclaration(setAccessorKind)
+                            .WithBody(
+                                Block(
+                                    ExpressionStatement(
+                                        AssignmentExpression(
+                                            SyntaxKind.SimpleAssignmentExpression,
+                                            IdentifierName(CreateIsSetField(prop.Name)),
+                                            LiteralExpression(
+                                                SyntaxKind.TrueLiteralExpression))),
+                                    ExpressionStatement(
+                                        AssignmentExpression(
+                                            SyntaxKind.SimpleAssignmentExpression,
+                                            IdentifierName(CreateInputValueField(prop.Name)),
+                                            IdentifierName("value"))))));
+
+            current = current.AddMembers(property);
+
+            current = current.AddMembers(
+                PropertyDeclaration(
+                        ParseTypeName(TypeNames.Boolean),
+                        CreateIsSetProperty(prop.Name))
+                    .WithExplicitInterfaceSpecifier(
+                        ExplicitInterfaceSpecifier(
+                            IdentifierName(infoInterfaceType)))
+                    .WithExpressionBody(
+                        ArrowExpressionClause(
+                            IdentifierName(CreateIsSetField(prop.Name))))
+                    .WithSemicolonToken(
+                        Token(SyntaxKind.SemicolonToken)));
+        }
+
+        return (T)current;
     }
 }

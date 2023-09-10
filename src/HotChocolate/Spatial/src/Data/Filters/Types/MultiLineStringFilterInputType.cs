@@ -1,9 +1,8 @@
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data.Filters.Spatial;
+
+public class MultiLineStringFilterInputType
+    : GeometryFilterInputType<MultiLineString>
 {
-    public class MultiLineStringFilterInputType
-        : GeometryFilterInputType<MultiLineString>
-    {
-    }
 }

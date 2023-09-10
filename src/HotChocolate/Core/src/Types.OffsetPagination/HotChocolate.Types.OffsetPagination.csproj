@@ -14,13 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!--PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference-->
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
 
   <ItemGroup>

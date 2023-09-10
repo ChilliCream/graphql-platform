@@ -1,100 +1,101 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Stitching.WellKnownContextData;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Utilities;
+
+internal sealed class StitchingTypeInterceptor : TypeInterceptor
 {
-    internal class StitchingTypeInterceptor : TypeInterceptor
+    private readonly HashSet<(string, string)> _handledExternalFields = new();
+
+    public override void OnAfterInitialize(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase definition)
     {
-        private readonly HashSet<(NameString, NameString)> _handledExternalFields =
-            new HashSet<(NameString, NameString)>();
-
-        public override void OnAfterInitialize(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+        if (definition is ObjectTypeDefinition objectTypeDef)
         {
-            if (definition is ObjectTypeDefinition objectTypeDef)
+            foreach (var objectField in objectTypeDef.Fields)
             {
-                foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
+                if (objectField.GetDirectives().Any(IsDelegatedField))
                 {
-                    if (objectField.GetDirectives().Any(IsDelegatedField))
-                    {
-                        FieldMiddleware handleDictionary =
-                            FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
-                        FieldMiddleware delegateToSchema =
-                            FieldClassMiddlewareFactory.Create<DelegateToRemoteSchemaMiddleware>();
+                    var handleDictionary =
+                        Create<DictionaryResultMiddleware>();
+                    var delegateToSchema =
+                        Create<DelegateToRemoteSchemaMiddleware>();
 
-                        objectField.MiddlewareComponents.Insert(0, handleDictionary);
-                        objectField.MiddlewareComponents.Insert(0, delegateToSchema);
-                        _handledExternalFields.Add((objectTypeDef.Name, objectField.Name));
-                    }
+                    objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
+                    objectField.MiddlewareDefinitions.Insert(0, new(delegateToSchema));
+                    _handledExternalFields.Add((objectTypeDef.Name, objectField.Name));
                 }
-            }
-
-            if (definition is SchemaTypeDefinition)
-            {
-                if (discoveryContext.ContextData.TryGetValue(RemoteExecutors, out object? value))
-                {
-                    // we copy the remote executors that are stored only on the
-                    // schema builder context to the schema context so that
-                    // the stitching context can access these at runtime.
-                    contextData.Add(RemoteExecutors, value);
-                }
-
-                contextData.Add(NameLookup, discoveryContext.GetNameLookup());
             }
         }
 
-        public override void OnBeforeCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+        if (definition is SchemaTypeDefinition schemaTypeDef)
         {
-            if (completionContext.Type is ObjectType objectType &&
-                definition is ObjectTypeDefinition objectTypeDef)
+            if (discoveryContext.ContextData.TryGetValue(RemoteExecutors, out var value))
             {
-                IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup =
-                    completionContext.GetExternalFieldLookup();
-                if (externalFieldLookup.TryGetValue(
-                    objectType.Name,
-                    out ISet<NameString>? external))
+                // we copy the remote executors that are stored only on the
+                // schema builder context to the schema context so that
+                // the stitching context can access these at runtime.
+                schemaTypeDef.ContextData.Add(RemoteExecutors, value);
+            }
+
+            schemaTypeDef.ContextData.Add(NameLookup, discoveryContext.GetNameLookup());
+        }
+    }
+
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition)
+    {
+        if (completionContext.Type is ObjectType objectType &&
+            definition is ObjectTypeDefinition objectTypeDef)
+        {
+            var externalFieldLookup =
+                completionContext.GetExternalFieldLookup();
+            if (externalFieldLookup.TryGetValue(objectType.Name,
+                out var external))
+            {
+                foreach (var objectField in objectTypeDef.Fields)
                 {
-                    foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
+                    if (external.Contains(objectField.Name) &&
+                        _handledExternalFields.Add((objectTypeDef.Name, objectField.Name)))
                     {
-                        if (external.Contains(objectField.Name) &&
-                            _handledExternalFields.Add((objectTypeDef.Name, objectField.Name)))
+                        if (objectField.Resolvers.HasResolvers)
                         {
-                            FieldMiddleware handleDictionary =
-                                FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
-                            objectField.MiddlewareComponents.Insert(0, handleDictionary);
+                            var handleDictionary =
+                                Create<DictionaryResultMiddleware>();
+                            objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
+                        }
+                        else
+                        {
+                            objectField.Resolvers = new FieldResolverDelegates(
+                                pureResolver: RemoteFieldHelper.RemoteFieldResolver);
                         }
                     }
                 }
             }
         }
+    }
 
-        private static bool IsDelegatedField(DirectiveDefinition directiveDef)
+    private static bool IsDelegatedField(DirectiveDefinition directiveDef)
+    {
+        if (directiveDef.Type is NameDirectiveReference { Name: DirectiveNames.Delegate })
         {
-            if (directiveDef.Reference is NameDirectiveReference nameRef &&
-                nameRef.Name.Equals(DirectiveNames.Delegate))
-            {
-                return true;
-            }
-
-            if (directiveDef.Reference is ClrTypeDirectiveReference typeRef &&
-                typeRef.ClrType == typeof(DelegateDirective))
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
+
+        if (directiveDef.Type is ExtendedTypeDirectiveReference typeRef &&
+            typeRef.Type.Type == typeof(DelegateDirective))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

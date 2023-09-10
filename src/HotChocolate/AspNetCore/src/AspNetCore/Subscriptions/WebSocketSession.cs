@@ -1,110 +1,112 @@
-using System;
-using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Properties;
+using System.Buffers;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Transport.Sockets;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
+using static HotChocolate.AspNetCore.Subscriptions.ConnectionCloseReason;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+internal sealed class WebSocketSession : ISocketSession
 {
-    public class WebSocketSession : ISocketSession
+    private static readonly GraphQLSocketOptions _defaultOptions = new();
+    private bool _disposed;
+
+    private WebSocketSession(
+        ISocketConnection connection,
+        IProtocolHandler protocol,
+        ISocketSessionInterceptor interceptor,
+        IRequestExecutor requestExecutor)
     {
-        private readonly Pipe _pipe = new();
-        private readonly ISocketConnection _connection;
-        private readonly KeepConnectionAliveJob _keepAlive;
-        private readonly MessageProcessor _messageProcessor;
-        private readonly MessageReceiver _messageReceiver;
-        private readonly bool _disposeConnection;
-        private bool _disposed;
+        Connection = connection;
+        Protocol = protocol;
+        Operations = new OperationManager(this, interceptor, requestExecutor);
+    }
 
-        private WebSocketSession(
-            ISocketConnection connection,
-            IMessagePipeline messagePipeline,
-            bool disposeConnection)
+    public ISocketConnection Connection { get; }
+
+    public IProtocolHandler Protocol { get; }
+
+    public IOperationManager Operations { get; }
+
+    public void Dispose()
+    {
+        if (!_disposed)
         {
-            _connection = connection;
-            _disposeConnection = disposeConnection;
-
-            _keepAlive = new KeepConnectionAliveJob(connection);
-            _messageProcessor = new MessageProcessor(connection, messagePipeline, _pipe.Reader);
-            _messageReceiver = new MessageReceiver(connection, _pipe.Writer);
+            Operations.Dispose();
+            Connection.Dispose();
+            _disposed = true;
         }
+    }
 
-        public async Task HandleAsync(CancellationToken cancellationToken)
+    public static async Task AcceptAsync(
+        HttpContext context,
+        IRequestExecutor executor,
+        ISocketSessionInterceptor interceptor)
+    {
+        using var connection = new WebSocketConnection(context);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+            context.RequestAborted,
+            connection.ApplicationStopping);
+        var ct = cts.Token;
+        var protocol = await connection.TryAcceptConnection();
+
+        if (protocol is not null)
         {
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var session = new WebSocketSession(connection, protocol, interceptor, executor);
+            var options = context.GetGraphQLSocketOptions() ?? _defaultOptions;
 
-            if (await _connection.TryOpenAsync())
+            try
+            {
+                var pingPong = new PingPongJob(session, options);
+                var pipeline = new MessagePipeline(connection, new ProtocolMessageHandler(session));
+                pipeline.Completed += (_, _) => cts.Cancel();
+                await Task.WhenAll(pingPong.RunAsync(ct), pipeline.RunAsync(ct));
+            }
+            catch (OperationCanceledException)
+            {
+                // OperationCanceledException are caught and will not
+                // bubble further. We will just close the current subscription
+                // context.
+            }
+            finally
             {
                 try
                 {
-                    _keepAlive.Begin(cts.Token);
-                    _messageProcessor.Begin(cts.Token);
-                    await _messageReceiver.ReceiveAsync(cts.Token);
-                }
-                catch(OperationCanceledException) when (cts.Token.IsCancellationRequested)
-                {
-                    // OperationCanceledException are caught and will not
-                    // bubble further. We will just close the current subscription
-                    // context.
-                }
-                finally
-                {
-                    try
-                    {
-                        if (!cts.IsCancellationRequested)
-                        {
-                            cts.Cancel();
-                        }
+                    await interceptor.OnCloseAsync(session, connection.HttpContext.RequestAborted);
 
-                        await _connection.CloseAsync(
-                            AspNetCoreResources.WebSocketSession_SessionEnded,
-                            SocketCloseStatus.NormalClosure,
+                    if (!connection.IsClosed)
+                    {
+                        // ensure that the connection is closed at the end.
+                        await connection.CloseAsync(
+                            WebSocketSession_SessionEnded,
+                            NormalClosure,
                             CancellationToken.None);
                     }
-                    catch
-                    {
-                        // original exception must not be lost if new exception occurs
-                        // during closing session
-                    }
                 }
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing && _disposeConnection)
+                catch
                 {
-                    _connection.Dispose();
+                    // original exception must not be lost if new exception occurs
+                    // during closing session
                 }
-                _disposed = true;
             }
         }
+    }
 
-        public static WebSocketSession New(
-            HttpContext httpContext,
-            IMessagePipeline messagePipeline)
+    private sealed class ProtocolMessageHandler : IMessageHandler
+    {
+        private readonly ISocketSession _session;
+        private readonly IProtocolHandler _protocol;
+
+        public ProtocolMessageHandler(ISocketSession session)
         {
-            if (httpContext is null)
-            {
-                throw new ArgumentNullException(nameof(httpContext));
-            }
-
-            if (messagePipeline is null)
-            {
-                throw new ArgumentNullException(nameof(messagePipeline));
-            }
-
-            var connection = WebSocketConnection.New(httpContext);
-            return new WebSocketSession(connection, messagePipeline, true);
+            _session = session;
+            _protocol = session.Protocol;
         }
+
+        public ValueTask OnReceiveAsync(
+            ReadOnlySequence<byte> message,
+            CancellationToken cancellationToken = default)
+            => _protocol.OnReceiveAsync(_session, message, cancellationToken);
     }
 }

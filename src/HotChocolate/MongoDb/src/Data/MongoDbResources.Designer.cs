@@ -62,5 +62,17 @@ namespace HotChocolate.Data.MongoDb {
                 return ResourceManager.GetString("Paging_SourceIsNotSupported", resourceCulture);
             }
         }
+        
+        internal static string Filtering_MongoDbCombinator_QueueEmpty {
+            get {
+                return ResourceManager.GetString("Filtering_MongoDbCombinator_QueueEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_MongoDbCombinator_InvalidCombinator {
+            get {
+                return ResourceManager.GetString("Filtering_MongoDbCombinator_InvalidCombinator", resourceCulture);
+            }
+        }
     }
 }

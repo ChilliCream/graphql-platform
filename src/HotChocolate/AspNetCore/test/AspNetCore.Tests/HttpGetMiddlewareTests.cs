@@ -1,65 +1,87 @@
-using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.TestHost;
-using HotChocolate.AspNetCore.Utilities;
+using CookieCrumble;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public class HttpGetMiddlewareTests : ServerTestBase
 {
-    public class HttpGetMiddlewareTests : ServerTestBase
+    public HttpGetMiddlewareTests(TestServerFactory serverFactory)
+        : base(serverFactory) { }
+
+    [Fact]
+    public async Task Simple_IsAlive_Test()
     {
-        public HttpGetMiddlewareTests(TestServerFactory serverFactory)
-            : base(serverFactory)
-        {
-        }
+        // arrange
+        var server = CreateStarWarsServer();
 
-        [Fact]
-        public async Task Simple_IsAlive_Test()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+        // act
+        var result = await server.GetAsync(
+            new ClientQueryRequest { Query = "{ __typename }" });
 
-            // act
-            ClientQueryResult result = await server.GetAsync(
-                new ClientQueryRequest { Query = "{ __typename }" });
+        // assert
+        result.MatchSnapshot();
+    }
 
-            // assert
-            result.MatchSnapshot();
-        }
+    [Fact]
+    public async Task MapGraphQLHttp_Simple_IsAlive_Test()
+    {
+        // arrange
+        var server = CreateServer(endpoint => endpoint.MapGraphQLHttp());
 
-        [Fact]
-        public async Task Simple_IsAlive_Test_On_Non_GraphQL_Path()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer("/foo");
+        // act
+        var result = await server.GetAsync(
+            new ClientQueryRequest { Query = "{ __typename }" });
 
-            // act
-            ClientQueryResult result = await server.GetAsync(
-                new ClientQueryRequest { Query = "{ __typename }" },
-                "/foo");
+        // assert
+        result.MatchSnapshot();
+    }
 
-            // assert
-            result.MatchSnapshot();
-        }
+    [Fact]
+    public async Task MapGraphQLHttp_Simple_IsAlive_Test_Explicit_Path()
+    {
+        // arrange
+        var server = CreateServer(endpoint => endpoint.MapGraphQLHttp("/foo/bar"));
 
-        [Fact]
-        public async Task SingleRequest_GetHeroName()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+        // act
+        var result = await server.GetAsync(
+            new ClientQueryRequest { Query = "{ __typename }" },
+            "/foo/bar");
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Simple_IsAlive_Test_On_Non_GraphQL_Path()
+    {
+        // arrange
+        var server = CreateStarWarsServer("/foo");
+
+        // act
+        var result = await server.GetAsync(
+            new ClientQueryRequest { Query = "{ __typename }" },
+            "/foo");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SingleRequest_GetHeroName()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -69,19 +91,20 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_GetHeroName_Casing_Is_Preserved()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_GetHeroName_Casing_Is_Preserved()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -91,145 +114,151 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Double_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_Double_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", 1.539 } }
+                    Variables = new Dictionary<string, object?> { { "d", 1.539 } }
                 },
                 "/arguments");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Double_Max_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_Double_Max_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
+                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
                 },
                 "/arguments");
 
-            // assert
-            new
-            {
-                double.MaxValue,
-                result
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SingleRequest_Double_Min_Variable()
+        // assert
+        new
         {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+            double.MaxValue,
+            result
+        }.MatchSnapshot();
+    }
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+    [Fact]
+    public async Task SingleRequest_Double_Min_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", double.MinValue } }
+                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
                 },
                 "/arguments");
 
-            // assert
-            new
-            {
-                double.MinValue,
-                result
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SingleRequest_Decimal_Max_Variable()
+        // assert
+        new
         {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+            double.MinValue,
+            result
+        }.MatchSnapshot();
+    }
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+    [Fact]
+    public async Task SingleRequest_Decimal_Max_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
                 },
                 "/arguments");
 
-            // assert
-            new
-            {
-                decimal.MaxValue,
-                result
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SingleRequest_Decimal_Min_Variable()
+        // assert
+        new
         {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+            decimal.MaxValue,
+            result
+        }.MatchSnapshot();
+    }
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+    [Fact]
+    public async Task SingleRequest_Decimal_Min_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
                 },
                 "/arguments");
 
-            // assert
-            new
-            {
-                decimal.MinValue,
-                result
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SingleRequest_GetHeroName_With_EnumVariable()
+        // assert
+        new
         {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+            decimal.MinValue,
+            result
+        }.MatchSnapshot();
+    }
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+    [Fact]
+    public async Task SingleRequest_GetHeroName_With_EnumVariable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     query ($episode: Episode!) {
@@ -237,25 +266,26 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "episode", "NEW_HOPE" }
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_GetHumanName_With_StringVariable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_GetHumanName_With_StringVariable()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     query h($id: String!) {
@@ -263,30 +293,31 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "id", "1000" }
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions
-                    {
-                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
-                    }));
+    [Fact]
+    public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions
+                {
+                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                }));
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -297,12 +328,12 @@ namespace HotChocolate.AspNetCore
                             commentary
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "ep", "EMPIRE" },
                         {
                             "review",
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
@@ -311,24 +342,25 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions
-                    {
-                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
-                    }));
+    [Fact]
+    public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions
+                {
+                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                }));
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -339,11 +371,11 @@ namespace HotChocolate.AspNetCore
                             commentary
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         {
                             "review",
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
@@ -352,24 +384,25 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions
-                    {
-                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
-                    }));
+    [Fact]
+    public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions
+                {
+                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                }));
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -384,7 +417,7 @@ namespace HotChocolate.AspNetCore
                             commentary
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
@@ -392,19 +425,20 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_CreateReviewForEpisode_Variables_Unused()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_CreateReviewForEpisode_Variables_Unused()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -420,7 +454,7 @@ namespace HotChocolate.AspNetCore
                             commentary
                         }
                     }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
@@ -428,22 +462,22 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [InlineData("a")]
-        [InlineData("b")]
-        [Theory]
-        public async Task SingleRequest_Execute_Specific_Operation(
-            string operationName)
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [InlineData("a")]
+    [InlineData("b")]
+    [Theory]
+    public async Task SingleRequest_Execute_Specific_Operation(string operationName)
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     query a {
@@ -460,19 +494,20 @@ namespace HotChocolate.AspNetCore
                     OperationName = operationName
                 });
 
-            // assert
-            result.MatchSnapshot(new SnapshotNameExtension(operationName));
-        }
+        // assert
+        result.MatchSnapshot(operationName);
+    }
 
-        [Fact]
-        public async Task SingleRequest_ValidationError()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_ValidationError()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -480,22 +515,23 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object> {{"episode", "NEW_HOPE"}}
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_SyntaxError()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_SyntaxError()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -505,19 +541,20 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task SingleRequest_Mutation_ByDefault_NotAllowed_OnGet()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+    [Fact]
+    public async Task SingleRequest_Mutation_ByDefault_NotAllowed_OnGet()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                         mutation CreateReviewForEpisode(
@@ -528,12 +565,12 @@ namespace HotChocolate.AspNetCore
                                 commentary
                             }
                         }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "ep", "EMPIRE" },
                         {
                             "review",
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
@@ -542,24 +579,25 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-         [Fact]
-        public async Task SingleRequest_Mutation_Set_To_Be_Allowed_on_Get()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions
-                    {
-                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
-                    }));
+    [Fact]
+    public async Task SingleRequest_Mutation_Set_To_Be_Allowed_on_Get()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions
+                {
+                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                }));
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                         mutation CreateReviewForEpisode(
@@ -570,12 +608,12 @@ namespace HotChocolate.AspNetCore
                                 commentary
                             }
                         }",
-                    Variables = new Dictionary<string, object>
+                    Variables = new Dictionary<string, object?>
                     {
                         { "ep", "EMPIRE" },
                         {
                             "review",
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
@@ -584,24 +622,26 @@ namespace HotChocolate.AspNetCore
                     }
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Get_Middleware_Is_Disabled()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions
-                    {
-                        EnableGetRequests = false
-                    }));
+    [Fact]
+    public async Task Get_Middleware_Is_Disabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions
+                {
+                    EnableGetRequests = false,
+                    Tool = { Enable = false }
+                }));
 
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -611,106 +651,104 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Get_ActivePersistedQuery()
+    [Fact]
+    public async Task Get_ActivePersistedQuery()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Get_ActivePersistedQuery_NotFound()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.GetActivePersistedQueryAsync("md5Hash", "abc");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Get_ActivePersistedQuery_AddQuery()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        var document = Utf8GraphQLParser.Parse("{ __typename }");
+
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
+        var hash = hashProvider.ComputeHash(
+            Encoding.UTF8.GetBytes(document.ToString(false)));
+
+        // act
+        var resultA =
+            await server.GetStoreActivePersistedQueryAsync(
+                document.ToString(false),
+                "md5Hash",
+                hash);
+
+        var resultB =
+            await server.GetActivePersistedQueryAsync("md5Hash", hash);
+
+        // assert
+        new[]
         {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+            resultA,
+            resultB
+        }.MatchSnapshot();
+    }
 
-            // act
-            ClientQueryResult result =
-                await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
+    [Fact]
+    public async Task Get_ActivePersistedQuery_AddQuery_Unformatted()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
 
-            // assert
-            result.MatchSnapshot();
-        }
+        var query = "{__typename}";
 
-        [Fact]
-        public async Task Get_ActivePersistedQuery_NotFound()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
+        var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
 
-            // act
-            ClientQueryResult result =
-                await server.GetActivePersistedQueryAsync("md5Hash", "abc");
+        // act
+        var resultA =
+            await server.GetStoreActivePersistedQueryAsync(
+                query,
+                "md5Hash",
+                hash);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash);
 
-        [Fact]
-        public async Task Get_ActivePersistedQuery_AddQuery()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
+        // assert
+        new[] { resultA, resultB }.MatchSnapshot();
+    }
 
-            DocumentNode document = Utf8GraphQLParser.Parse("{ __typename }");
+    [Fact]
+    public async Task Throw_Custom_GraphQL_Error()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer()
+                .AddHttpRequestInterceptor<ErrorRequestInterceptor>());
 
-            var hashProvider = new MD5DocumentHashProvider();
-            var hash = hashProvider.ComputeHash(
-                Encoding.UTF8.GetBytes(document.ToString(false)));
-
-            // act
-            ClientQueryResult resultA =
-                await server.GetStoreActivePersistedQueryAsync(
-                    document.ToString(false),
-                    "md5Hash",
-                    hash);
-
-            ClientQueryResult resultB =
-                await server.GetActivePersistedQueryAsync("md5Hash", hash);
-
-            // assert
-            new[] {
-                resultA,
-                resultB
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Get_ActivePersistedQuery_AddQuery_Unformatted()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            var query = "{__typename}";
-
-            var hashProvider = new MD5DocumentHashProvider();
-            var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-
-            // act
-            ClientQueryResult resultA =
-                await server.GetStoreActivePersistedQueryAsync(
-                    query,
-                    "md5Hash",
-                    hash);
-
-            ClientQueryResult resultB =
-                await server.GetActivePersistedQueryAsync("md5Hash", hash);
-
-            // assert
-            new[] {
-                resultA,
-                resultB
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Throw_Custom_GraphQL_Error()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer(
-                configureServices: s => s.AddGraphQLServer()
-                    .AddHttpRequestInterceptor<ErrorRequestInterceptor>());
-
-            // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+        // act
+        var result =
+            await server.GetAsync(
+                new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -720,20 +758,19 @@ namespace HotChocolate.AspNetCore
                     }"
                 });
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
+    private class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            IQueryRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
         {
-            public override ValueTask OnCreateAsync(
-                HttpContext context,
-                IRequestExecutor requestExecutor,
-                IQueryRequestBuilder requestBuilder,
-                CancellationToken cancellationToken)
-            {
-                throw new GraphQLException("MyCustomError");
-            }
+            throw new GraphQLException("MyCustomError");
         }
     }
 }

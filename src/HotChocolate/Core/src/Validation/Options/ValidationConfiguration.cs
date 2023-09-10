@@ -3,38 +3,38 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 
-namespace HotChocolate.Validation.Options
+namespace HotChocolate.Validation.Options;
+
+public class ValidationConfiguration : IValidationConfiguration
 {
-    public class ValidationConfiguration
-        : IValidationConfiguration
+    private readonly ConcurrentDictionary<string, ValidationOptions> _optionsCache = new();
+    private readonly IOptionsMonitor<ValidationOptionsModifiers> _optionsMonitor;
+
+    public ValidationConfiguration(IOptionsMonitor<ValidationOptionsModifiers> optionsMonitor)
     {
-        private readonly ConcurrentDictionary<string, ValidationOptions> _optionsCache =
-            new ConcurrentDictionary<string, ValidationOptions>();
-        private readonly IOptionsMonitor<ValidationOptionsModifiers> _optionsMonitor;
+        _optionsMonitor = optionsMonitor
+            ?? throw new ArgumentNullException(nameof(optionsMonitor));
+    }
 
-        public ValidationConfiguration(IOptionsMonitor<ValidationOptionsModifiers> optionsMonitor)
+    public IEnumerable<IDocumentValidatorRule> GetRules(string schemaName)
+        => GetOptions(schemaName).Rules;
+
+    public IEnumerable<IValidationResultAggregator> GetResultAggregators(string schemaName)
+        => GetOptions(schemaName).ResultAggregators;
+
+    public ValidationOptions GetOptions(string schemaName)
+        => _optionsCache.GetOrAdd(schemaName, CreateOptions);
+
+    private ValidationOptions CreateOptions(string schemaName)
+    {
+        var modifiers = _optionsMonitor.Get(schemaName);
+        var options = new ValidationOptions();
+
+        for (var i = 0; i < modifiers.Modifiers.Count; i++)
         {
-            _optionsMonitor = optionsMonitor
-                ?? throw new ArgumentNullException(nameof(optionsMonitor));
+            modifiers.Modifiers[i](options);
         }
 
-        public IEnumerable<IDocumentValidatorRule> GetRules(string schemaName)
-        {
-            ValidationOptions options =_optionsCache.GetOrAdd(schemaName, CreateOptions);
-            return options.Rules;
-        }
-
-        private ValidationOptions CreateOptions(string schemaName)
-        {
-            ValidationOptionsModifiers modifiers = _optionsMonitor.Get(schemaName);
-            var options = new ValidationOptions();
-
-            for (int i = 0; i < modifiers.Modifiers.Count; i++)
-            {
-                modifiers.Modifiers[i](options);
-            }
-
-            return options;
-        }
+        return options;
     }
 }

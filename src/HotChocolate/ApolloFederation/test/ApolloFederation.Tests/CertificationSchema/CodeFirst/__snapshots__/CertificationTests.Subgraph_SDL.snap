@@ -1,0 +1,26 @@
+﻿type Product @key(fields: "id") @key(fields: "sku package") @key(fields: "sku variation { id }") {
+  id: ID!
+  createdBy: User! @provides(fields: "totalProductsCreated")
+  sku: String
+  package: String
+  variation: ProductVariation
+  dimensions: ProductDimension
+}
+
+type ProductDimension {
+  size: String
+  weight: Float
+}
+
+type ProductVariation {
+  id: ID!
+}
+
+extend type Query {
+  product(id: ID!): Product
+}
+
+extend type User @key(fields: "email") {
+  email: ID! @external
+  totalProductsCreated: Int @external
+}

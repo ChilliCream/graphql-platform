@@ -3,47 +3,46 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Filters.Expressions
+namespace HotChocolate.Types.Filters.Expressions;
+
+[Obsolete("Use HotChocolate.Data.")]
+public class BooleanEqualsOperationHandler
+    : IExpressionOperationHandler
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public class BooleanEqualsOperationHandler
-        : IExpressionOperationHandler
+    public bool TryHandle(
+        FilterOperation operation,
+        IInputType type,
+        IValueNode value,
+        IQueryableFilterVisitorContext context,
+        [NotNullWhen(true)] out Expression? expression)
     {
-        public bool TryHandle(
-            FilterOperation operation,
-            IInputType type,
-            IValueNode value,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)] out Expression? expression)
+        if (operation.Type == typeof(bool) && type.IsInstanceOfType(value))
         {
-            if (operation.Type == typeof(bool) && type.IsInstanceOfType(value))
+            var property = context.GetInstance();
+
+            if (!operation.IsSimpleArrayType())
             {
-                Expression property = context.GetInstance();
-
-                if (!operation.IsSimpleArrayType())
-                {
-                    property = Expression.Property(context.GetInstance(), operation.Property);
-                }
-
-                object parserValue = type.ParseLiteral(value);
-
-                if (operation.Kind == FilterOperationKind.Equals)
-                {
-                    expression = FilterExpressionBuilder.Equals(
-                        property, parserValue);
-                    return true;
-                }
-
-                if (operation.Kind == FilterOperationKind.NotEquals)
-                {
-                    expression = FilterExpressionBuilder.NotEquals(
-                        property, parserValue);
-                    return true;
-                }
+                property = Expression.Property(context.GetInstance(), operation.Property);
             }
 
-            expression = null;
-            return false;
+            var parserValue = context.InputParser.ParseLiteral(value, type);
+
+            if (operation.Kind == FilterOperationKind.Equals)
+            {
+                expression = FilterExpressionBuilder.Equals(
+                    property, parserValue);
+                return true;
+            }
+
+            if (operation.Kind == FilterOperationKind.NotEquals)
+            {
+                expression = FilterExpressionBuilder.NotEquals(
+                    property, parserValue);
+                return true;
+            }
         }
+
+        expression = null;
+        return false;
     }
 }

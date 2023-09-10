@@ -3,13 +3,19 @@
     "Message": "The parent type does not match the type condition on the fragment.",
     "Code": null,
     "Path": {
+      "Name": "pets",
       "Parent": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "human"
+        "Name": "human",
+        "Parent": {
+          "Parent": null,
+          "Length": 0,
+          "IsRoot": true
+        },
+        "Length": 1,
+        "IsRoot": false
       },
-      "Depth": 1,
-      "Name": "pets"
+      "Length": 2,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -21,7 +27,7 @@
       "typeCondition": "Human",
       "selectionSetType": "Pet",
       "fragment": "humanFragment",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -59,6 +65,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -72,6 +79,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 344,

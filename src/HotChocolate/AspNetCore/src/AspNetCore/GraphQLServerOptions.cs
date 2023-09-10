@@ -1,86 +1,53 @@
-using Microsoft.AspNetCore.Http;
+namespace HotChocolate.AspNetCore;
 
-namespace HotChocolate.AspNetCore
+/// <summary>
+/// Represents the GraphQL server options.
+/// </summary>
+public sealed class GraphQLServerOptions
 {
     /// <summary>
-    /// Represents the GraphQL server options.
+    /// Gets the GraphQL tool options for Banana Cake Pop.
     /// </summary>
-    public class GraphQLServerOptions
-    {
-        /// <summary>
-        /// Gets the GraphQL tool options for Banana Cake Pop.
-        /// </summary>
-        public GraphQLToolOptions Tool { get; } = new();
-
-        /// <summary>
-        /// Gets or sets which GraphQL options are allowed on GET requests.
-        /// </summary>
-        public AllowedGetOperations AllowedGetOperations { get; set; } =
-            AllowedGetOperations.Query;
-
-        /// <summary>
-        /// Defines if GraphQL HTTP GET requests are allowed.
-        /// </summary>
-        public bool EnableGetRequests { get; set; } = true;
-
-        /// <summary>
-        /// Defines if GraphQL HTTP Multipart requests are allowed.
-        /// </summary>
-        public bool EnableMultipartRequests { get; set; } = true;
-
-        /// <summary>
-        /// Defines if the GraphQL schema SDL can be downloaded.
-        /// </summary>
-        public bool EnableSchemaRequests { get; set; } = true;
-    }
+    public GraphQLToolOptions Tool { get; internal set; } = new();
 
     /// <summary>
-    /// Represents the GraphQL tool options for Banana Cake Pop.
+    /// Gets the GraphQL socket options.
     /// </summary>
-    public class GraphQLToolOptions
-    {
-        /// <summary>
-        /// Gets or sets the default document content.
-        /// </summary>
-        public string? Document { get; set; }
+    public GraphQLSocketOptions Sockets { get; internal set; } = new();
 
-        /// <summary>
-        /// Gets or sets the default method.
-        /// </summary>
-        public DefaultCredentials? Credentials { get; set; }
+    /// <summary>
+    /// Gets or sets which GraphQL options are allowed on GET requests.
+    /// </summary>
+    public AllowedGetOperations AllowedGetOperations { get; set; } =
+        AllowedGetOperations.Query;
 
-        /// <summary>
-        /// Gets or sets the default http headers for Banana Cake Pop.
-        /// </summary>
-        public IHeaderDictionary? HttpHeaders { get; set; }
+    /// <summary>
+    /// Defines if GraphQL HTTP GET requests are allowed.
+    /// </summary>
+    public bool EnableGetRequests { get; set; } = true;
 
-        /// <summary>
-        /// Gets or sets the default
-        /// </summary>
-        public DefaultHttpMethod? HttpMethod { get; set; }
+    /// <summary>
+    /// Defines if GraphQL HTTP GET requests are allowed.
+    /// </summary>
+    public bool EnforceGetRequestsPreflightHeader { get; set; } = false;
 
-        /// <summary>
-        /// Defines if Banana Cake Pop is enabled.
-        /// </summary>
-        public bool Enable { get; set; } = true;
-    }
+    /// <summary>
+    /// Defines if GraphQL HTTP Multipart requests are allowed.
+    /// </summary>
+    public bool EnableMultipartRequests { get; set; } = true;
 
-    public enum DefaultCredentials
-    {
-        Include,
-        Omit,
-        SameOrigin,
-    }
+    /// <summary>
+    /// Defines if preflight headers are enforced for multipart requests.
+    /// </summary>
+    public bool EnforceMultipartRequestsPreflightHeader { get; set; } = true;
 
-    public enum DefaultHttpMethod
-    {
-        Get,
-        Post
-    }
+    /// <summary>
+    /// Defines if the GraphQL schema SDL can be downloaded.
+    /// </summary>
+    public bool EnableSchemaRequests { get; set; } = true;
 
-    public enum AllowedGetOperations
-    {
-        Query,
-        QueryAndMutation
-    }
+    /// <summary>
+    /// Defines if request batching is enabled.
+    /// </summary>
+    public bool EnableBatching { get; set; }
 }

@@ -1,0 +1,6 @@
+﻿{
+  "type": "pong",
+  "payload": {
+    "touched": true
+  }
+}

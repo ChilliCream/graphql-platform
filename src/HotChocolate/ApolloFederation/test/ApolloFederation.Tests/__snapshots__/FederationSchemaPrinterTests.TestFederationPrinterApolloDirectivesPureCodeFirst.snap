@@ -1,0 +1,14 @@
+﻿type Address {
+  zipcode: String! @external
+}
+
+type QueryRootOfUser {
+  entity(id: Int!): User!
+}
+
+type User @key(fields: "id") {
+  id: Int!
+  idCode: String! @external
+  idCodeShort: String! @requires(fields: "idCode")
+  address: Address! @provides(fields: "zipcode")
+}

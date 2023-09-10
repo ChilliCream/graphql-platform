@@ -1,14 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
     <RootNamespace>StrawberryShake.Tools.Configuration</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--We keep 9.0.1 here for visual studio compatibility.-->
-    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,9 +23,5 @@
       <DependentUpon>ToolsConfigResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
 
 </Project>

@@ -1,0 +1,9 @@
+Result 1
+---------------
+{"data":{"hero":{"name":"R2-D2","friends":{"nodes":[{"name":"Luke Skywalker"},{"name":"Han Solo"},{"name":"Leia Organa"}]}}},"hasNext":true}
+---------------
+
+Result 2
+---------------
+{"label":"HeroAppearsIn","path":["hero"],"data":{"appearsIn":["NEW_HOPE","EMPIRE","JEDI"]},"hasNext":false}
+---------------

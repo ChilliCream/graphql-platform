@@ -1,11 +1,10 @@
 using System;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters;
+
+[Obsolete("Use HotChocolate.Data.")]
+public interface IFilterOperationField
+    : IInputField
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public interface IFilterOperationField
-        : IInputField
-    {
-        FilterOperation Operation { get; }
-    }
+    FilterOperation Operation { get; }
 }

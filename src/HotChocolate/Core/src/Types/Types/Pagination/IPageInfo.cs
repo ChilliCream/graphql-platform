@@ -1,14 +1,19 @@
-﻿#nullable enable
+#nullable enable
 
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types.Pagination;
+
+/// <summary>
+/// Provides basic information about a the page in the data set.
+/// </summary>
+public interface IPageInfo
 {
     /// <summary>
-    /// Provides basic information about a the page in the data set.
+    /// Specifies if the current page has a next page.
     /// </summary>
-    public interface IPageInfo
-    {
-        bool HasNextPage { get; }
+    bool HasNextPage { get; }
 
-        bool HasPreviousPage { get; }
-    }
+    /// <summary>
+    /// Specifies if the current page has a previous page.
+    /// </summary>
+    bool HasPreviousPage { get; }
 }

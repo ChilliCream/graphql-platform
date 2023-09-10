@@ -1,0 +1,19 @@
+﻿schema {
+  query: PetQuery
+}
+
+interface Canina implements Pet {
+  name: String
+}
+
+interface Pet {
+  name: String
+}
+
+type Dog implements Canina & Pet {
+  name: String
+}
+
+type PetQuery {
+  dog: Pet
+}

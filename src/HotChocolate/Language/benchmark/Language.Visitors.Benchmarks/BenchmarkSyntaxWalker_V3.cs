@@ -1,12 +1,9 @@
-using HotChocolate.Language.Visitors;
+namespace HotChocolate.Language.Visitors.Benchmarks;
 
-namespace HotChocolate.Language.Visitors.Benchmarks
+public class BenchmarkSyntaxWalkerV3 : SyntaxWalker
 {
-    public class BenchmarkSyntaxWalker_V3 : SyntaxWalker
+    public BenchmarkSyntaxWalkerV3()
+        : base(Continue)
     {
-        public BenchmarkSyntaxWalker_V3()
-            : base(Continue)
-        {
-        }
     }
 }

@@ -1,12 +1,11 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -19,7 +18,7 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task Simple_StringList_Schema()
         {
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -33,7 +32,7 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task Attribute_Simple_StringList_Schema()
         {
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -49,7 +48,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -72,11 +71,67 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
+        public async Task No_Paging_Boundaries()
+        {
+            Snapshot.FullName();
+
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    letters {
+                        items
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task MaxPageSizeReached()
+        {
+            Snapshot.FullName();
+
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync($@"
+                {{
+                    letters(take: {51}) {{
+                        items
+                        pageInfo {{
+                            hasNextPage
+                            hasPreviousPage
+                        }}
+                    }}
+                }}")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Attribute_Simple_StringList_Default_Items()
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -103,7 +158,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -130,7 +185,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -157,7 +212,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -184,7 +239,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -211,7 +266,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -239,7 +294,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -267,7 +322,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -295,7 +350,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -322,7 +377,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -349,7 +404,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -379,7 +434,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<ExecutableQueryType>()
@@ -409,7 +464,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -439,7 +494,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -469,7 +524,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -499,13 +554,17 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            ISchema schema =
+            var schema =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
                     .AddInterfaceType<ISome>(d => d
                         .Field(t => t.ExplicitType())
-                        .UseOffsetPaging())
+                        .UseOffsetPaging(
+                            options: new PagingOptions
+                            {
+                                InferCollectionSegmentNameFromField = false
+                            }))
                     .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
@@ -523,7 +582,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            ISchema schema =
+            var schema =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -538,6 +597,55 @@ namespace HotChocolate.Types.Pagination
                     .GetSchemaAsync();
 
             schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task FluentPagingTests()
+        {
+            Snapshot.FullName();
+
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<FluentPaging>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    items {
+                        items
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task TotalCountWithCustomCollectionSegment()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            var executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<CustomCollectionSegmentQuery>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            const string query = @"
+            {
+                foos {
+                    totalCount
+                }
+            }
+            ";
+
+            var result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.ToJson().MatchSnapshot();
         }
 
         public class QueryType : ObjectType<Query>
@@ -557,11 +665,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.Foos())
                     .Name("nestedObjectList")
                     .UseOffsetPaging(
-                        options: new PagingOptions
-                        {
-                            MaxPageSize = 2,
-                            IncludeTotalCount = true
-                        });
+                        options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
             }
         }
 
@@ -573,11 +677,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.FoosExecutable())
                     .Name("fooExecutable")
                     .UseOffsetPaging(
-                        options: new PagingOptions
-                        {
-                            MaxPageSize = 2,
-                            IncludeTotalCount = true
-                        });
+                        options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
             }
         }
 
@@ -585,21 +685,10 @@ namespace HotChocolate.Types.Pagination
         {
             public string[] Letters => new[]
             {
-                "a",
-                "b",
-                "c",
-                "d",
-                "e",
-                "f",
-                "g",
-                "h",
-                "i",
-                "j",
-                "k",
-                "l"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
             };
 
-            public List<List<Foo>> Foos() => new List<List<Foo>>
+            public List<List<Foo>> Foos() => new()
             {
                 new List<Foo> { new Foo { Bar = "a" } },
                 new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
@@ -611,15 +700,16 @@ namespace HotChocolate.Types.Pagination
 
         public class ExecutableQuery
         {
-            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(new List<Foo>
-            {
-                  new Foo { Bar = "a" },
-                  new Foo { Bar = "b" },
-                  new Foo { Bar = "c" } ,
-                  new Foo { Bar = "d" },
-                  new Foo { Bar = "e" },
-                  new Foo { Bar = "f" }
-            }.AsQueryable());
+            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
+                new List<Foo>
+                {
+                    new Foo { Bar = "a" },
+                    new Foo { Bar = "b" },
+                    new Foo { Bar = "c" },
+                    new Foo { Bar = "d" },
+                    new Foo { Bar = "e" },
+                    new Foo { Bar = "f" }
+                }.AsQueryable());
         }
 
         public class Foo
@@ -627,23 +717,24 @@ namespace HotChocolate.Types.Pagination
             public string Bar { get; set; } = default!;
         }
 
+        public class FluentPaging
+        {
+            [UseOffsetPaging(ProviderName = "Items")]
+            public async Task<CollectionSegment<string>> GetItems(
+                int? skip,
+                int? take,
+                CancellationToken cancellationToken)
+                => await new[] { "a", "b", "c", "d" }
+                    .AsQueryable()
+                    .ApplyOffsetPaginationAsync(skip, take, cancellationToken);
+        }
+
         public class QueryAttr
         {
             [UseOffsetPaging]
             public string[] Letters => new[]
             {
-                "a",
-                "b",
-                "c",
-                "d",
-                "e",
-                "f",
-                "g",
-                "h",
-                "i",
-                "j",
-                "k",
-                "l"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
             };
 
             [UseOffsetPaging(typeof(NonNullType<StringType>))]
@@ -684,7 +775,7 @@ namespace HotChocolate.Types.Pagination
             _source = source;
         }
 
-        public object Source =>_source;
+        public object Source => _source;
 
         public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
@@ -703,7 +794,14 @@ namespace HotChocolate.Types.Pagination
 
         public string Print()
         {
-            return _source.ToString();
+            return _source.ToString()!;
         }
+    }
+
+    public class CustomCollectionSegmentQuery
+    {
+        [UseOffsetPaging(IncludeTotalCount = true)]
+        public CollectionSegment<string> GetFoos(int? first, string? after)
+            => new(new[] { "asd", "asd2" }, new CollectionSegmentInfo(false, false), 2);
     }
 }

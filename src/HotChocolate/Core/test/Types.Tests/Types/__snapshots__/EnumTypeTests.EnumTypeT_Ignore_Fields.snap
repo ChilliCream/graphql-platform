@@ -1,0 +1,11 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+enum Foo {
+  BAR1
+}

@@ -1,0 +1,74 @@
+schema {
+  query: Query
+}
+
+type Actor {
+  name: String!
+  actedIn: [Movie!]!
+}
+
+type Movie {
+  title: String!
+  actors: [Actor!]!
+}
+
+type Query {
+  movies(where: MovieFilterInput order: [MovieSortInput!]): [Movie!]!
+  actors(where: ActorFilterInput order: [ActorSortInput!]): [Actor!]!
+}
+
+input ActorFilterInput {
+  and: [ActorFilterInput!]
+  or: [ActorFilterInput!]
+  name: StringOperationFilterInput
+  actedIn: ListFilterInputTypeOfMovieFilterInput
+}
+
+input ActorSortInput {
+  name: SortEnumType
+}
+
+input ListFilterInputTypeOfActorFilterInput {
+  all: ActorFilterInput
+  none: ActorFilterInput
+  some: ActorFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfMovieFilterInput {
+  all: MovieFilterInput
+  none: MovieFilterInput
+  some: MovieFilterInput
+  any: Boolean
+}
+
+input MovieFilterInput {
+  and: [MovieFilterInput!]
+  or: [MovieFilterInput!]
+  title: StringOperationFilterInput
+  actors: ListFilterInputTypeOfActorFilterInput
+}
+
+input MovieSortInput {
+  title: SortEnumType
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}

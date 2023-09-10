@@ -1,9 +1,6 @@
-using HotChocolate;
+namespace StrawberryShake.CodeGeneration.Descriptors;
 
-namespace StrawberryShake.CodeGeneration.Descriptors
+public interface ICodeDescriptor
 {
-    public interface ICodeDescriptor
-    {
-        NameString Name { get; }
-    }
+    string Name { get; }
 }

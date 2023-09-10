@@ -1,103 +1,105 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.MongoDb.Sorting
+namespace HotChocolate.Data.MongoDb.Sorting;
+
+public class MongoDbSortVisitorBooleanTests
+    : SchemaCache,
+      IClassFixture<MongoResource>
 {
-    public class MongoDbSortVisitorBooleanTests
-        : SchemaCache,
-          IClassFixture<MongoResource>
+    private static readonly Foo[] _fooEntities =
     {
-        private static readonly Foo[] _fooEntities =
-        {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
-        private static readonly FooNullable[] _fooNullableEntities =
-        {
-            new FooNullable { Bar = true },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = false }
-        };
+    private static readonly FooNullable[] _fooNullableEntities =
+    {
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
+    };
 
-        public MongoDbSortVisitorBooleanTests(MongoResource resource)
-        {
-            Init(resource);
-        }
+    public MongoDbSortVisitorBooleanTests(MongoResource resource)
+    {
+        Init(resource);
+    }
 
-        [Fact]
-        public async Task Create_Boolean_OrderBy()
-        {
-            // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooSortType>(_fooEntities);
+    [Fact]
+    public async Task Create_Boolean_OrderBy()
+    {
+        // arrange
+        var tester = CreateSchema<Foo, FooSortType>(_fooEntities);
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                    .Create());
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
+                .Create());
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                    .Create());
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
+                .Create());
 
-            // assert
-            res1.MatchDocumentSnapshot("ASC");
-            res2.MatchDocumentSnapshot("DESC");
-        }
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
+    }
 
-        [Fact]
-        public async Task Create_Boolean_OrderBy_Nullable()
-        {
-            // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableSortType>(
-                _fooNullableEntities);
+    [Fact]
+    public async Task Create_Boolean_OrderBy_Nullable()
+    {
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableSortType>(
+            _fooNullableEntities);
 
-            // act
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                    .Create());
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(order: { bar: ASC}){ bar}}")
+                .Create());
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: DESC}){ bar}}")
-                    .Create());
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(order: { bar: DESC}){ bar}}")
+                .Create());
 
-            // assert
-            res1.MatchDocumentSnapshot("ASC");
-            res2.MatchDocumentSnapshot("DESC");
-        }
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
+    }
 
-        public class Foo
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class Foo
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public bool Bar { get; set; }
-        }
+        public bool Bar { get; set; }
+    }
 
-        public class FooNullable
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class FooNullable
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public bool? Bar { get; set; }
-        }
+        public bool? Bar { get; set; }
+    }
 
-        public class FooSortType
-            : SortInputType<Foo>
-        {
-        }
+    public class FooSortType : SortInputType<Foo>
+    {
+    }
 
-        public class FooNullableSortType
-            : SortInputType<FooNullable>
-        {
-        }
+    public class FooNullableSortType : SortInputType<FooNullable>
+    {
     }
 }

@@ -1,6 +1,10 @@
 import styled from "styled-components";
 
-export const IconContainer = styled.span<{ size?: 16 | 24 | 32 }>`
+export interface IconContainerProps {
+  readonly size?: 10 | 12 | 14 | 16 | 20 | 24 | 28 | 32;
+}
+
+export const IconContainer = styled.span<IconContainerProps>`
   display: inline-flex;
   align-items: center;
   justify-content: center;

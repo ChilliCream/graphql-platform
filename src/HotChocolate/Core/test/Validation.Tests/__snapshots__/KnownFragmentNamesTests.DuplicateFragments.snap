@@ -3,9 +3,14 @@
     "Message": "The specified fragment `UnknownFragment1` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "human"
+      "Name": "human",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -15,7 +20,7 @@
     ],
     "Extensions": {
       "fragment": "UnknownFragment1",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -43,9 +48,14 @@
     "Message": "The specified fragment `UnknownFragment2` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "human"
+      "Name": "human",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -55,7 +65,7 @@
     ],
     "Extensions": {
       "fragment": "UnknownFragment2",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -91,7 +101,7 @@
     ],
     "Extensions": {
       "fragment": "HumanFields",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -129,6 +139,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 319,

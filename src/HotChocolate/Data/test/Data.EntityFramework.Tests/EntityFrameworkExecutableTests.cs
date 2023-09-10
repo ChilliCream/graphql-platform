@@ -1,93 +1,84 @@
-using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters;
-using HotChocolate.Data.Projections;
-using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Types.Pagination;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data;
+
+public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
 {
-    public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
+    private readonly BookContext _context;
+
+    public EntityFrameworkExecutableTests(AuthorFixture authorFixture)
     {
-        private readonly BookContext _context;
+        _context = authorFixture.Context;
+    }
 
-        public EntityFrameworkExecutableTests(AuthorFixture authorFixture)
-        {
-            _context = authorFixture.Context;
-        }
+    [Fact]
+    public void Extensions_Should_ReturnEntityFrameworkExecutable_When_DBSet()
+    {
+        // arrange
+        // act
+        var executable = _context.Authors.AsExecutable();
 
-        [Fact]
-        public void Extensions_Should_ReturnEntityFrameworkExecutable_When_DBSet()
-        {
-            // arrange
-            // act
-            IExecutable<Author> executable = _context.Authors.AsExecutable();
+        // assert
+        Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
+        executable.MatchSnapshot();
+    }
 
-            // assert
-            Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
-            executable.Print().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Extensions_Should_ReturnEntityFrameworkExecutable_When_Queryable()
-        {
-            // arrange
-            // act
-            IExecutable<Author> executable = _context
-                .Authors
-                .AsQueryable()
-                .AsEntityFrameworkExecutable();
+    [Fact]
+    public void Extensions_Should_ReturnEntityFrameworkExecutable_When_Queryable()
+    {
+        // arrange
+        // act
+        var executable = _context
+            .Authors
+            .AsQueryable()
+            .AsEntityFrameworkExecutable();
 
 
-            // assert
-            Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
-            executable.Print().MatchSnapshot();
-        }
+        // assert
+        Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
+        executable.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
-        {
-            // arrange
-            IExecutable<Author> executable = _context
-                .Authors
-                .AsExecutable();
+    [Fact]
+    public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
+    {
+        // arrange
+        var executable = _context
+            .Authors
+            .AsExecutable();
 
-            // act
-            object? result = await executable.ToListAsync(default);
+        // act
+        object result = await executable.ToListAsync(default);
 
-            // assert
-            new { result, executable = executable.Print() }.MatchSnapshot();
-        }
+        // assert
+        new { result, executable = executable.Print() }.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
-        {
-            // arrange
-            IExecutable executable = _context.Authors.Take(1).AsEntityFrameworkExecutable();
+    [Fact]
+    public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
+    {
+        // arrange
+        IExecutable executable = _context.Authors.Take(1).AsEntityFrameworkExecutable();
 
-            // act
-            object? result = await executable.SingleOrDefaultAsync(default);
+        // act
+        var result = await executable.SingleOrDefaultAsync(default);
 
-            // assert
-            new { result, executable = executable.Print() }.MatchSnapshot();
-        }
+        // assert
+        new { result, executable = executable.Print() }.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
-        {
-            // arrange
-            IExecutable executable = _context.Authors.AsExecutable();
+    [Fact]
+    public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
+    {
+        // arrange
+        IExecutable executable = _context.Authors.AsExecutable();
 
-            // act
-            object? result = await executable.FirstOrDefaultAsync(default);
+        // act
+        var result = await executable.FirstOrDefaultAsync(default);
 
-            // assert
-            new { result, executable = executable.Print() }.MatchSnapshot();
-        }
-
+        // assert
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 }

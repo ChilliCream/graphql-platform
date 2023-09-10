@@ -1,0 +1,18 @@
+﻿{
+  "Kind": "DirectiveDefinition",
+  "Location": null,
+  "Name": {
+    "Kind": "Name",
+    "Location": null,
+    "Value": "foo"
+  },
+  "Description": {
+    "Kind": "StringValue",
+    "Location": null,
+    "Value": "bar",
+    "Block": false
+  },
+  "IsRepeatable": true,
+  "Arguments": [],
+  "Locations": []
+}

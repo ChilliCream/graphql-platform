@@ -1,585 +1,925 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using CookieCrumble;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class DirectiveTypeTests : TypeTestBase
 {
-    public class DirectiveTypeTests
-        : TypeTestBase
+    [Fact]
+    public void ConfigureTypedDirectiveWithResolver()
     {
-        [Fact]
-        public void ConfigureTypedDirectiveWithResolver()
-        {
-            // arrange
-            // act
-            DirectiveType directiveType =
-                CreateDirective(new CustomDirectiveType());
+        // arrange
+        // act
+        DirectiveType directiveType =
+            CreateDirective(new CustomDirectiveType());
 
-            // assert
-            Assert.True(directiveType.HasMiddleware);
-            Assert.NotEmpty(directiveType.MiddlewareComponents);
-            Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
-            Assert.Collection(directiveType.Arguments,
-                t => Assert.Equal("argument", t.Name.Value));
-        }
+        // assert
+        Assert.NotNull(directiveType.Middleware);
+        Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
+        Assert.Collection(
+            directiveType.Arguments,
+            t => Assert.Equal("argument", t.Name));
+    }
 
-        [Fact]
-        public void ConfigureTypedDirective_DefaultBinding_Explicit()
-        {
-            // arrange
-            // act
-            DirectiveType directiveType =
-                CreateDirective(new CustomDirectiveType(),
-                    b => b.ModifyOptions(o =>
+    [Fact]
+    public void ConfigureTypedDirective_DefaultBinding_Explicit()
+    {
+        // arrange
+        // act
+        DirectiveType directiveType =
+            CreateDirective(
+                new CustomDirectiveType(),
+                b => b.ModifyOptions(
+                    o =>
                         o.DefaultBindingBehavior = BindingBehavior.Explicit));
 
-            // assert
-            Assert.True(directiveType.HasMiddleware);
-            Assert.NotEmpty(directiveType.MiddlewareComponents);
-            Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
-            Assert.Empty(directiveType.Arguments);
-        }
+        // assert
+        Assert.NotNull(directiveType.Middleware);
+        Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
+        Assert.Empty(directiveType.Arguments);
+    }
 
-        [Fact]
-        public void ConfigureTypedDirectiveNoArguments()
-        {
-            // arrange
-            // act
-            DirectiveType directiveType =
-                CreateDirective(new Custom2DirectiveType());
+    [Fact]
+    public void ConfigureTypedDirectiveNoArguments()
+    {
+        // arrange
+        // act
+        DirectiveType directiveType =
+            CreateDirective(new Custom2DirectiveType());
 
-            // assert
-            Assert.True(directiveType.HasMiddleware);
-            Assert.NotEmpty(directiveType.MiddlewareComponents);
-            Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
-            Assert.Empty(directiveType.Arguments);
-        }
+        // assert
+        Assert.NotNull(directiveType.Middleware);
+        Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
+        Assert.Empty(directiveType.Arguments);
+    }
 
-        [Fact]
-        public void ConfigureDirectiveWithResolver()
-        {
-            // arrange
-            var directiveType = new DirectiveType(t => t
+    [Fact]
+    public void ConfigureDirectiveWithResolver()
+    {
+        // arrange
+        var directiveType = new DirectiveType(
+            t => t
                 .Name("Foo")
                 .Location(DirectiveLocation.Field)
-                .Use(next => context => default(ValueTask)));
+                .Use((_, _) => _ => default));
 
-            // act
-            directiveType = CreateDirective(directiveType);
+        // act
+        directiveType = CreateDirective(directiveType);
 
-            // assert
-            Assert.True(directiveType.HasMiddleware);
-            Assert.NotEmpty(directiveType.MiddlewareComponents);
-            Assert.Equal(typeof(object), directiveType.RuntimeType);
-        }
+        // assert
+        Assert.NotNull(directiveType.Middleware);
+        Assert.Equal(typeof(object), directiveType.RuntimeType);
+    }
 
-        [Fact]
-        public void ConfigureIsNull()
-        {
-            // act
-            Action a = () => new DirectiveType(null);
+    [Fact]
+    public void ConfigureIsNull()
+    {
+        // act
+        void Action() => new DirectiveType(null!);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
 
-        [Fact]
-        public void NoName()
-        {
-            // act
-            Action a = () =>
-                CreateDirective(new DirectiveType(d => { }));
+    [Fact]
+    public void NoName()
+    {
+        // act
+        void Action() => CreateDirective(new DirectiveType(_ => { }));
 
-            // assert
-            Assert.Throws<SchemaException>(a);
-        }
+        // assert
+        Assert.Throws<SchemaException>(Action);
+    }
 
-        [Fact]
-        public void RepeatableDirective()
-        {
-            // arrange
-            var directiveType = new DirectiveType(
-                t => t.Name("foo")
-                    .Repeatable()
-                    .Location(DirectiveLocation.Object)
-                    .Argument("a").Type<StringType>());
+    [Fact]
+    public void RepeatableDirective()
+    {
+        // arrange
+        var directiveType = new DirectiveType(
+            t => t.Name("foo")
+                .Repeatable()
+                .Location(DirectiveLocation.Object)
+                .Argument("a").Type<StringType>());
 
-            var objectType = new ObjectType(t =>
+        var objectType = new ObjectType(
+            t =>
             {
                 t.Name("Bar");
                 t.Directive("foo", new ArgumentNode("a", "1"));
                 t.Directive("foo", new ArgumentNode("a", "2"));
-                t.Field("foo").Resolver(() => "baz");
+                t.Field("foo").Resolve(() => "baz");
             });
 
-            // act
-            var schema = Schema.Create(t =>
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(objectType)
+            .AddDirectiveType(directiveType)
+            .Create();
+
+        // assert
+        Assert.Collection(
+            schema.GetType<ObjectType>("Bar").Directives,
+            t =>
             {
-                t.RegisterDirective(directiveType);
-                t.RegisterQueryType(objectType);
-            });
-
-            // assert
-            IDirectiveCollection collection =
-                schema.GetType<ObjectType>("Bar").Directives;
-            Assert.Collection(collection,
-                t =>
-                {
-                    Assert.Equal("foo", t.Name);
-                    Assert.Equal("1", t.GetArgument<string>("a"));
-                },
-                t =>
-                {
-                    Assert.Equal("foo", t.Name);
-                    Assert.Equal("2", t.GetArgument<string>("a"));
-                });
-        }
-
-        [Fact]
-        public void ExecutableRepeatableDirectives()
-        {
-            // arrange
-            var directiveType = new DirectiveType(
-                t => t.Name("foo")
-                    .Repeatable()
-                    .Location(DirectiveLocation.Object)
-                    .Location(DirectiveLocation.FieldDefinition)
-                    .Use(next => context => default(ValueTask))
-                    .Argument("a").Type<StringType>());
-
-
-            var objectType = new ObjectType(t =>
+                Assert.Equal("foo", t.Type.Name);
+                Assert.Equal("1", t.GetArgumentValue<string>("a"));
+            },
+            t =>
             {
-                t.Name("Bar");
-                t.Directive("foo", new ArgumentNode("a", "1"));
-                t.Field("foo").Resolver(() => "baz")
-                    .Directive("foo", new ArgumentNode("a", "2"));
+                Assert.Equal("foo", t.Type.Name);
+                Assert.Equal("2", t.GetArgumentValue<string>("a"));
             });
+    }
 
-            // act
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterDirective(directiveType);
-                t.RegisterQueryType(objectType);
-            });
+    [Fact]
+    public void UniqueDirective()
+    {
+        // arrange
+        var directiveType = new DirectiveType(
+            t => t.Name("foo")
+                .Location(DirectiveLocation.Object)
+                .Argument("a").Type<StringType>());
 
-            // assert
-            IReadOnlyCollection<IDirective> collection =
-                schema.GetType<ObjectType>("Bar")
-                    .Fields["foo"].ExecutableDirectives;
-
-            Assert.Collection(collection,
-                t =>
-                {
-                    Assert.Equal("foo", t.Name);
-                    Assert.Equal("1", t.GetArgument<string>("a"));
-                },
-                t =>
-                {
-                    Assert.Equal("foo", t.Name);
-                    Assert.Equal("2", t.GetArgument<string>("a"));
-                });
-        }
-
-        [Fact]
-        public void UniqueDirective()
-        {
-            // arrange
-            var directiveType = new DirectiveType(
-                t => t.Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Argument("a").Type<StringType>());
-
-            var objectType = new ObjectType(t =>
+        var objectType = new ObjectType(
+            t =>
             {
                 t.Name("Bar");
                 t.Directive("foo", new ArgumentNode("a", "1"));
                 t.Directive("foo", new ArgumentNode("a", "2"));
-                t.Field("foo").Resolver(() => "baz");
+                t.Field("foo").Resolve(() => "baz");
             });
 
-            // act
-            Action a = () => Schema.Create(t =>
-             {
-                 t.RegisterDirective(directiveType);
-                 t.RegisterQueryType(objectType);
-             });
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddQueryType(objectType)
+                .AddDirectiveType(directiveType)
+                .Create();
 
-            // assert
-            SchemaException exception = Assert.Throws<SchemaException>(a);
-            Assert.Collection(exception.Errors,
-                t =>
-                {
-                    Assert.Equal(
-                        "The specified directive `@foo` " +
-                        "is unique and cannot be added twice.",
-                        t.Message);
-                });
-        }
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        Assert.Collection(
+            exception.Errors,
+            t =>
+            {
+                Assert.Equal(
+                    "The specified directive `@foo` " +
+                    "is unique and cannot be added twice.",
+                    t.Message);
+            });
+    }
 
-        [Fact]
-        public void ExecutableUniqueDirectives()
-        {
-            // arrange
-            var directiveType = new DirectiveType(
-                t => t.Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Location(DirectiveLocation.FieldDefinition)
-                    .Use(next => context => default(ValueTask))
-                    .Argument("a").Type<StringType>());
+    [Fact]
+    public void ExecutableUniqueDirectives()
+    {
+        // arrange
+        var directiveType = new DirectiveType(
+            t => t.Name("foo")
+                .Location(DirectiveLocation.Object)
+                .Location(DirectiveLocation.FieldDefinition)
+                .Use((_, _) => _ => default)
+                .Argument("a").Type<StringType>());
 
 
-            var objectType = new ObjectType(t =>
+        var objectType = new ObjectType(
+            t =>
             {
                 t.Name("Bar");
                 t.Directive("foo", new ArgumentNode("a", "1"));
-                t.Field("foo").Resolver(() => "baz")
+                t.Field("foo").Resolve(() => "baz")
                     .Directive("foo", new ArgumentNode("a", "2"));
             });
 
-            // act
-            var schema = Schema.Create(t =>
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(objectType)
+            .AddDirectiveType(directiveType)
+            .Create();
+
+        // assert
+        IReadOnlyCollection<Directive> collection =
+            schema.GetType<ObjectType>("Bar")
+                .Fields["foo"].Directives
+                .Where(t => t.Type.Middleware is not null)
+                .ToList();
+
+        Assert.Collection(
+            collection,
+            t =>
             {
-                t.RegisterDirective(directiveType);
-                t.RegisterQueryType(objectType);
+                Assert.Equal("foo", t.Type.Name);
+                Assert.Equal("2", t.GetArgumentValue<string>("a"));
             });
+    }
 
-            // assert
-            IReadOnlyCollection<IDirective> collection =
-                schema.GetType<ObjectType>("Bar")
-                    .Fields["foo"].ExecutableDirectives;
+    [Fact]
+    public void Ignore_DescriptorIsNull_ArgumentNullException()
+    {
+        // arrange
+        // act
+        Action action = () =>
+            DirectiveTypeDescriptorExtensions
+                .Ignore<CustomDirective2>(null, t => t.Argument2);
 
-            Assert.Collection(collection,
-                t =>
-                {
-                    Assert.Equal("foo", t.Name);
-                    Assert.Equal("2", t.GetArgument<string>("a"));
-                });
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-        [Fact]
-        public void Ignore_DescriptorIsNull_ArgumentNullException()
-        {
-            // arrange
-            // act
-            Action action = () =>
-               DirectiveTypeDescriptorExtensions
-                   .Ignore<CustomDirective2>(null, t => t.Argument2);
+    [Fact]
+    public void Ignore_ExpressionIsNull_ArgumentNullException()
+    {
+        // arrange
+        var descriptor =
+            DirectiveTypeDescriptor.New<CustomDirective2>(
+                DescriptorContext.Create());
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // act
+        void Action() => descriptor.Ignore(null);
 
-        [Fact]
-        public void Ignore_ExpressionIsNull_ArgumentNullException()
-        {
-            // arrange
-            DirectiveTypeDescriptor<CustomDirective2> descriptor =
-                DirectiveTypeDescriptor.New<CustomDirective2>(
-                    DescriptorContext.Create());
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
 
-            // act
-            Action action = () =>
-                DirectiveTypeDescriptorExtensions
-                    .Ignore(descriptor, null);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void Ignore_Argument2_Property()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Ignore_Argument2_Property()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Ignore(t => t.Argument2)))
-                .Create();
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Ignore(t => t.Argument2)))
+            .Create();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
 
-        [Fact]
-        public void Use_DelegateMiddleware()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Use_DelegateMiddleware()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use(next => context => default(ValueTask))))
-                .Create();
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use((_, _) => _ => default)))
+            .Create();
 
-            // assert
-            DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
-        }
+        // assert
+        var directive = schema.GetDirectiveType("foo");
+        Assert.NotNull(directive.Middleware);
+    }
 
-        [Fact]
-        public void Use_ClassMiddleware()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Use_ClassMiddleware()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use<DirectiveMiddleware>()))
-                .Create();
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use<DirectiveMiddleware>()))
+            .Create();
 
-            // assert
-            DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
-        }
+        // assert
+        var directive = schema.GetDirectiveType("foo");
+        Assert.NotNull(directive.Middleware);
+    }
 
-        [Fact]
-        public void Use_ClassMiddleware_WithFactory()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Use_ClassMiddleware_WithFactory()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use((sp, next) => new DirectiveMiddleware(next))))
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use((_, next) => new DirectiveMiddleware(next))))
+            .Create();
+
+        // assert
+        var directive = schema.GetDirectiveType("foo");
+        Assert.NotNull(directive.Middleware);
+    }
+
+    [Fact]
+    public void Use_ClassMiddleware_WithFactoryNull_ArgumentNullException()
+    {
+        // arrange
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddQueryType(
+                    c => c.Name("Query")
+                        .Directive("foo")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar"))
+                .AddDirectiveType(
+                    new DirectiveType<CustomDirective2>(
+                        d => d.Name("foo")
+                            .Location(DirectiveLocation.Object)
+                            .Use(null)))
                 .Create();
 
-            // assert
-            DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
-        }
+        // assert
+        Assert.Throws<SchemaException>(Action);
+    }
 
-        [Fact]
-        public void Use_ClassMiddleware_WithFactoryNull_ArgumentNullException()
-        {
-            // arrange
-            // act
-            Action action = () => SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Use2_DelegateMiddleware()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use(null)))
-                .Create();
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use((_, _) => _ => default)))
+            .Create();
 
-            // assert
-            Assert.Throws<SchemaException>(action);
-        }
+        // assert
+        var directive = schema.GetDirectiveType("foo");
+        Assert.NotNull(directive.Middleware);
+    }
 
-        [Fact]
-        public void Use2_DelegateMiddleware()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Use2_ClassMiddleware()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use(next => context => default(ValueTask))))
-                .Create();
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use<DirectiveMiddleware>()))
+            .Create();
 
-            // assert
-            DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
-        }
+        // assert
+        var directive = schema.GetDirectiveType("foo");
+        Assert.NotNull(directive.Middleware);
+    }
 
-        [Fact]
-        public void Use2_ClassMiddleware()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Use2_ClassMiddleware_WithFactory()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use<DirectiveMiddleware>()))
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use((_, next) => new DirectiveMiddleware(next))))
+            .Create();
+
+        // assert
+        var directive = schema.GetDirectiveType("foo");
+        Assert.NotNull(directive.Middleware);
+    }
+
+    [Fact]
+    public void Use2_ClassMiddleware_WithFactoryNull_ArgumentNullException()
+    {
+        // arrange
+        // act
+        static void Action()
+            => SchemaBuilder.New()
+                .AddQueryType(
+                    c => c.Name("Query")
+                        .Directive("foo")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar"))
+                .AddDirectiveType(
+                    new DirectiveType(
+                        d => d.Name("foo")
+                            .Location(DirectiveLocation.Object)
+                            .Use(null)))
                 .Create();
 
-            // assert
-            DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
-        }
+        // assert
+        Assert.Throws<SchemaException>(Action);
+    }
 
-        [Fact]
-        public void Use2_ClassMiddleware_WithFactory()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Infer_Directive_Argument_Defaults_From_Properties()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
                     .Name("Query")
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use((sp, next) => new DirectiveMiddleware(next))))
-                .Create();
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<DirectiveWithDefaults>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use<DirectiveMiddleware>()))
+            .Create();
 
-            // assert
-            DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
-        }
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
 
-        [Fact]
-        public void Use2_ClassMiddleware_WithFactoryNull_ArgumentNullException()
-        {
-            // arrange
-            // act
-            Action action = () => SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public void Specify_Argument_Type_With_SDL_Syntax()
+    {
+        SchemaBuilder.New()
+            .AddDirectiveType<DirectiveWithSyntaxTypeArg>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AnnotationBased_Deprecated_NullableArguments_Valid()
+    {
+        // arrange
+        // act
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
                     .Name("Query")
-                    .Directive("foo")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use(null)))
-                .Create();
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive<Deprecated2Directive>())
+            .AddDirectiveType(
+                new DirectiveType<Deprecated2Directive>(
+                    x => x.Location(DirectiveLocation.FieldDefinition)))
+            .BuildRequestExecutorAsync();
 
-            // assert
-            Assert.Throws<SchemaException>(action);
-        }
+        // assert
+        executor.Schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Infer_Directive_Argument_Defaults_From_Properties()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
+    [Fact]
+    public async Task AnnotationBased_DeprecatedInputTypes_NonNullableField_Invalid()
+    {
+        // arrange
+        // act
+        static async Task call() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("bar")
+                        .Resolve("asd")
+                        .Directive<DeprecatedNonNull>())
+                .AddDirectiveType(
+                    new DirectiveType<DeprecatedNonNull>(
+                        x => x.Location(DirectiveLocation.FieldDefinition)))
+                .BuildRequestExecutorAsync();
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(call);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task CodeFirst_Deprecated_NullableArguments_Valid()
+    {
+        // arrange
+        // act
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
                     .Name("Query")
-                    .Directive("foo")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType<DirectiveWithDefaults>(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use<DirectiveMiddleware>()))
-                .Create();
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+            .AddDirectiveType(
+                new DirectiveType(
+                    x => x
+                        .Name("Qux")
+                        .Location(DirectiveLocation.FieldDefinition)
+                        .Argument("bar")
+                        .Type<IntType>()
+                        .Deprecated("a")))
+            .BuildRequestExecutorAsync();
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        executor.Schema.MatchSnapshot();
+    }
 
-        public class CustomDirectiveType
-            : DirectiveType<CustomDirective>
-        {
-            protected override void Configure(
-                IDirectiveTypeDescriptor<CustomDirective> descriptor)
-            {
-                descriptor.Name("Custom");
-                descriptor.Location(DirectiveLocation.Enum);
-                descriptor.Location(DirectiveLocation.Field);
-                descriptor.Use(next => context => default(ValueTask));
+    [Fact]
+    public async Task CodeFirst_DeprecatedInputTypes_NonNullableField_Invalid()
+    {
+        // arrange
+        // act
+        static async Task call()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("bar")
+                        .Resolve("asd")
+                        .Directive("Qux", new ArgumentNode("bar", 1)))
+                .AddDirectiveType(
+                    new DirectiveType(
+                        x => x
+                            .Name("Qux")
+                            .Location(DirectiveLocation.FieldDefinition)
+                            .Argument("bar")
+                            .Type<NonNullType<IntType>>()
+                            .Deprecated("a")))
+                .BuildRequestExecutorAsync();
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(call);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SchemaFirst_DeprecatedDirective_NullableFields_Valid()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+            .AddDocumentFromString(
+                @"directive @Qux(bar: String @deprecated(reason: ""reason""))
+                    on FIELD_DEFINITION")
+            .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SchemaFirst_DeprecatedDirective_NonNullableField_Invalid()
+    {
+        // arrange
+        // act
+        static async Task call()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("bar")
+                        .Resolve("asd")
+                        .Directive("Qux", new ArgumentNode("bar", "abc")))
+                .AddDocumentFromString(
+                    @"directive @Qux(bar: String! @deprecated(reason: ""reason""))
+                        on FIELD_DEFINITION")
+                .BuildSchemaAsync();
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(call);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void Directive_ValidateArgs_InvalidArg()
+    {
+        // arrange
+        var sourceText = @"
+            type Query {
+                foo: String @a(d:1 e:true)
             }
-        }
 
-        public class Custom2DirectiveType
-            : DirectiveType<CustomDirective>
-        {
-            protected override void Configure(
-                IDirectiveTypeDescriptor<CustomDirective> descriptor)
-            {
-                descriptor.Name("Custom");
-                descriptor.Location(DirectiveLocation.Enum);
-                descriptor.Location(DirectiveLocation.Field);
-                descriptor.Use(next => context => default(ValueTask));
-                descriptor.BindArgumentsImplicitly().BindArgumentsExplicitly();
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+        // assert
+        var errors = Assert.Throws<SchemaException>(Action).Errors;
+        Assert.Equal(1, errors.Count);
+        Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
+        errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Directive_ValidateArgs_ArgMissing()
+    {
+        // arrange
+        var sourceText = @"
+            type Query {
+                foo: String @a
             }
-        }
 
-        public class DirectiveMiddleware
-        {
-            private FieldDelegate _next;
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
 
-            public DirectiveMiddleware(FieldDelegate next)
-            {
-                _next = next;
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+        // assert
+        var errors = Assert.Throws<SchemaException>(Action).Errors;
+        Assert.Equal(1, errors.Count);
+        Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
+        errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Directive_ValidateArgs_NonNullArgIsNull()
+    {
+        // arrange
+        var sourceText = @"
+            type Query {
+                foo: String @a(d: null)
             }
 
-            public Task InvokeAsync(IDirectiveContext context) =>
-                Task.CompletedTask;
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+        // assert
+        var errors = Assert.Throws<SchemaException>(Action).Errors;
+        Assert.Equal(1, errors.Count);
+        Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
+        errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Directive_ValidateArgs_Overflow()
+    {
+        // arrange
+        var sourceText = $@"
+            type Query {{
+                foo: String @a(d: {long.MaxValue})
+            }}
+
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+        // assert
+        var errors = Assert.Throws<SchemaException>(Action).Errors;
+        Assert.Equal(1, errors.Count);
+        Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
+        errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AnnotationBased_Directive()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("anno"))
+            .AddType<AnnotationDirective>()
+            .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AnnotationBased_Directive_InferName()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("foo"))
+            .AddType<FooDirective>()
+            .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AnnotationBased_Directive_InferDirectiveType()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive(new FooDirective("abc")))
+            .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    public class DirectiveWithSyntaxTypeArg : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("bar");
+            descriptor.Location(DirectiveLocation.Field);
+            descriptor.Argument("a").Type("Int");
+        }
+    }
+
+    public class CustomDirectiveType : DirectiveType<CustomDirective>
+    {
+        protected override void Configure(
+            IDirectiveTypeDescriptor<CustomDirective> descriptor)
+        {
+            descriptor.Name("Custom");
+            descriptor.Location(DirectiveLocation.Enum);
+            descriptor.Location(DirectiveLocation.Field);
+            descriptor.Use((_, _) => _ => default);
+        }
+    }
+
+    public class Custom2DirectiveType : DirectiveType<CustomDirective>
+    {
+        protected override void Configure(
+            IDirectiveTypeDescriptor<CustomDirective> descriptor)
+        {
+            descriptor.Name("Custom");
+            descriptor.Location(DirectiveLocation.Enum);
+            descriptor.Location(DirectiveLocation.Field);
+            descriptor.Use((_, _) => _ => default);
+            descriptor.BindArgumentsImplicitly().BindArgumentsExplicitly();
+        }
+    }
+
+    public class DirectiveMiddleware
+    {
+        private readonly FieldDelegate _next;
+
+        public DirectiveMiddleware(FieldDelegate next)
+        {
+            _next = next;
         }
 
-        public class CustomDirective
+        public Task InvokeAsync(IMiddlewareContext context) =>
+            Task.CompletedTask;
+    }
+
+    public class Deprecated2Directive
+    {
+        [Obsolete("reason")] public int? ObsoleteWithReason { get; set; }
+
+        [Obsolete] public int? Obsolete { get; set; }
+
+        [GraphQLDeprecated("reason")] public int? Deprecated { get; set; }
+    }
+
+    public class DeprecatedNonNull
+    {
+        [Obsolete("reason")] public int ObsoleteWithReason { get; set; }
+    }
+
+    public class CustomDirective
+    {
+        public string Argument { get; set; }
+    }
+
+    public class CustomDirective2
+    {
+        public string Argument1 { get; set; }
+
+        public string Argument2 { get; set; }
+    }
+
+    public class DirectiveWithDefaults
+    {
+        [DefaultValue("abc")] public string Argument1 { get; set; }
+
+        public string Argument2 { get; set; }
+    }
+
+    [DirectiveType("anno", DirectiveLocation.FieldDefinition)]
+    public sealed class AnnotationDirective
+    {
+        public AnnotationDirective(string foo)
         {
-            public string Argument { get; set; }
+            Foo = foo;
         }
 
-        public class CustomDirective2
+        public string Foo { get; }
+    }
+
+    [DirectiveType(DirectiveLocation.FieldDefinition)]
+    public sealed class FooDirective
+    {
+        public FooDirective(string foo)
         {
-            public string Argument1 { get; set; }
-            public string Argument2 { get; set; }
+            Foo = foo;
         }
 
-        public class DirectiveWithDefaults
-        {
-            [DefaultValue("abc")]
-            public string Argument1 { get; set; }
-            public string Argument2 { get; set; }
-        }
+        public string Foo { get; }
     }
 }

@@ -1,0 +1,34 @@
+{
+  "data": {
+    "root": {
+      "edges": [
+        {
+          "node": {
+            "foo": "C"
+          },
+          "cursor": "Mg=="
+        },
+        {
+          "node": {
+            "foo": "D"
+          },
+          "cursor": "Mw=="
+        }
+      ],
+      "nodes": [
+        {
+          "foo": "C"
+        },
+        {
+          "foo": "D"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": true,
+        "startCursor": "Mg==",
+        "endCursor": "Mw=="
+      }
+    }
+  }
+}

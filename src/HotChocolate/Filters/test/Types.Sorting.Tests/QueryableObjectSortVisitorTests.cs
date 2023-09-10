@@ -2,266 +2,266 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using Xunit;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Sorting;
+
+[Obsolete]
+public class QueryableObjectSortVisitorTests
+    : TypeTestBase
 {
-    [Obsolete]
-    public class QueryableObjectSortVisitorTests
-        : TypeTestBase
+    [Fact]
+    public void Ctor_InitialTypeNull_ShouldThrowArgumentNullException()
     {
-        [Fact]
-        public void Ctor_InitialTypeNull_ShouldThrowArgumentNullException()
+        // arrange
+
+        // act
+        var createVisitor
+            = () => new QueryableSortVisitorContext(
+                new(new DefaultTypeConverter()), null!, typeof(Foo), false);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(createVisitor);
+    }
+
+    [Fact]
+    public void Ctor_SourceTypeNull_ShouldThrowArgumentNullException()
+    {
+        // arrange
+        var sortType = CreateType(new FooSortType());
+
+        // act
+        var createVisitor
+            = () => new QueryableSortVisitorContext(
+                new(new DefaultTypeConverter()), sortType, null!, false);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(createVisitor);
+    }
+
+    [Fact]
+    public void Sort_ComparableAsc_ShouldSortByStringNullableAsc()
+    {
+        // arrange
+        var value = new ObjectValueNode(
+            new ObjectFieldNode("bar",
+                new ObjectValueNode(
+                    new ObjectFieldNode("baz",
+                        new EnumValueNode(SortOperationKind.Asc)))));
+
+        var sortType = CreateType(new FooSortType());
+
+        var a = new[]
         {
-            // arrange
+            new Foo {Bar =new Bar{Baz= "b" } },
+            new Foo {Bar =new Bar{Baz= null}},
+            new Foo {Bar =new Bar{Baz= "c"}}
+        }.AsQueryable();
 
-            // act
-            Func<QueryableSortVisitorContext> createVisitor
-                = () => new QueryableSortVisitorContext(
-                    null, typeof(Foo), false);
+        // act
+        var context = new QueryableSortVisitorContext(
+            new(new DefaultTypeConverter()), sortType, typeof(Foo), false);
+        QueryableSortVisitor.Default.Visit(value, context);
+        ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
-            // assert
-            Assert.Throws<ArgumentNullException>(createVisitor);
-        }
+        // assert
+        Assert.Collection(aFiltered,
+            foo => Assert.Null(foo.Bar.Baz),
+            foo => Assert.Equal("b", foo.Bar.Baz),
+            foo => Assert.Equal("c", foo.Bar.Baz)
+        );
+    }
 
-        [Fact]
-        public void Ctor_SourceTypeNull_ShouldThrowArgumentNullException()
-        {
-            // arrange
-            FooSortType sortType = CreateType(new FooSortType());
-
-            // act
-            Func<QueryableSortVisitorContext> createVisitor
-                = () => new QueryableSortVisitorContext(
-                    sortType, null, false);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(createVisitor);
-        }
-
-        [Fact]
-        public void Sort_ComparableAsc_ShouldSortByStringNullableAsc()
-        {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Asc)
+    [Fact]
+    public void Sort_ComparableAsc_ShouldSortByStringNullableObjectAsc()
+    {
+        // arrange
+        var value = new ObjectValueNode(
+            new ObjectFieldNode("bar",
+                new ObjectValueNode(
+                    new ObjectFieldNode("baz",
+                        new EnumValueNode(SortOperationKind.Asc)
                     )
                 )
             ));
 
-            FooSortType sortType = CreateType(new FooSortType());
+        var sortType = CreateType(new FooSortType());
 
-            IQueryable<Foo> a = new[]
-            {
-                new Foo {Bar =new Bar{Baz= "b" } },
-                new Foo {Bar =new Bar{Baz= null}},
-                new Foo {Bar =new Bar{Baz= "c"}}
-            }.AsQueryable();
-
-            // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
-
-            // assert
-            Assert.Collection(aFiltered,
-                foo => Assert.Null(foo.Bar.Baz),
-                foo => Assert.Equal("b", foo.Bar.Baz),
-                foo => Assert.Equal("c", foo.Bar.Baz)
-            );
-        }
-
-        [Fact]
-        public void Sort_ComparableAsc_ShouldSortByStringNullableObjectAsc()
+        var a = new[]
         {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Asc)
+            new Foo {Bar =new Bar{Baz= "b" } },
+            new Foo {},
+            new Foo {Bar =new Bar{Baz= "c"}}
+        }.AsQueryable();
+
+        // act
+        var context = new QueryableSortVisitorContext(
+            new(new DefaultTypeConverter()), sortType, typeof(Foo), true);
+        QueryableSortVisitor.Default.Visit(value, context);
+        ICollection<Foo> aFiltered = context.Sort(a).ToList();
+
+        // assert
+        Assert.Collection(aFiltered,
+            foo => Assert.Null(foo.Bar),
+            foo => Assert.Equal("b", foo.Bar.Baz),
+            foo => Assert.Equal("c", foo.Bar.Baz)
+        );
+    }
+
+    [Fact]
+    public void Sort_ComparableAsc_ShouldSortByStringWithNullableObjectInRootAsc()
+    {
+        // arrange
+        var value = new ObjectValueNode(
+            new ObjectFieldNode("bar",
+                new ObjectValueNode(
+                    new ObjectFieldNode("baz",
+                        new EnumValueNode(SortOperationKind.Asc)))));
+
+        var sortType = CreateType(new FooSortType());
+
+        var a = new[]
+        {
+            new Foo {Bar =new Bar{Baz= "c"}},
+            new Foo {Bar =new Bar{Baz= "b" }},
+            null
+        }.AsQueryable();
+
+        // act
+        var context = new QueryableSortVisitorContext(
+            new(new DefaultTypeConverter()), sortType, typeof(Foo), true);
+        QueryableSortVisitor.Default.Visit(value, context);
+        ICollection<Foo> aFiltered = context.Sort(a).ToList();
+
+        // assert
+        Assert.Collection(aFiltered,
+            foo => Assert.Null(foo),
+            foo => Assert.Equal("b", foo.Bar.Baz),
+            foo => Assert.Equal("c", foo.Bar.Baz)
+        );
+    }
+
+    [Fact]
+    public void Sort_ComparableAsc_ShouldSortByStringAsc()
+    {
+        // arrange
+        var value = new ObjectValueNode(
+            new ObjectFieldNode("bar",
+                new ObjectValueNode(
+                    new ObjectFieldNode("baz",
+                        new EnumValueNode(SortOperationKind.Asc)
                     )
                 )
             ));
 
-            FooSortType sortType = CreateType(new FooSortType());
+        var sortType = CreateType(new FooSortType());
 
-            IQueryable<Foo> a = new[]
-            {
-                new Foo {Bar =new Bar{Baz= "b" } },
-                new Foo {},
-                new Foo {Bar =new Bar{Baz= "c"}}
-            }.AsQueryable();
-
-            // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), true);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
-
-            // assert
-            Assert.Collection(aFiltered,
-                foo => Assert.Null(foo.Bar),
-                foo => Assert.Equal("b", foo.Bar.Baz),
-                foo => Assert.Equal("c", foo.Bar.Baz)
-            );
-        }
-
-        [Fact]
-        public void Sort_ComparableAsc_ShouldSortByStringWithNullableObjectInRootAsc()
+        var a = new[]
         {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Asc)
+            new Foo {Bar =new Bar{Baz= "b" } },
+            new Foo {Bar =new Bar{Baz= "a"}},
+            new Foo {Bar =new Bar{Baz= "c"}}
+        }.AsQueryable();
+
+        // act
+        var context = new QueryableSortVisitorContext(
+            new(new DefaultTypeConverter()), sortType, typeof(Foo), false);
+        QueryableSortVisitor.Default.Visit(value, context);
+        ICollection<Foo> aFiltered = context.Sort(a).ToList();
+
+        // assert
+        Assert.Collection(aFiltered,
+            foo => Assert.Equal("a", foo.Bar.Baz),
+            foo => Assert.Equal("b", foo.Bar.Baz),
+            foo => Assert.Equal("c", foo.Bar.Baz)
+        );
+    }
+
+    [Fact]
+    public void Sort_ComparableDesc_ShouldSortByStringAsc()
+    {
+        // arrange
+        var value = new ObjectValueNode(
+            new ObjectFieldNode("bar",
+                new ObjectValueNode(
+                    new ObjectFieldNode("baz",
+                        new EnumValueNode(SortOperationKind.Desc)
                     )
                 )
             ));
 
-            FooSortType sortType = CreateType(new FooSortType());
+        var sortType = CreateType(new FooSortType());
 
-            IQueryable<Foo> a = new[]
-            {
-                new Foo {Bar =new Bar{Baz= "c"}},
-                new Foo {Bar =new Bar{Baz= "b" }},
-                null
-            }.AsQueryable();
-
-            // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), true);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
-
-            // assert
-            Assert.Collection(aFiltered,
-                foo => Assert.Null(foo),
-                foo => Assert.Equal("b", foo.Bar.Baz),
-                foo => Assert.Equal("c", foo.Bar.Baz)
-            );
-        }
-
-        [Fact]
-        public void Sort_ComparableAsc_ShouldSortByStringAsc()
+        var a = new[]
         {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Asc)
-                    )
-                )
-            ));
+            new Foo {Bar =new Bar{Baz= "b"}},
+            new Foo {Bar =new Bar{Baz= "a"}},
+            new Foo {Bar =new Bar{Baz= "c"}}
+        }.AsQueryable();
 
-            FooSortType sortType = CreateType(new FooSortType());
+        // act
+        var context = new QueryableSortVisitorContext(
+            new(new DefaultTypeConverter()), sortType, typeof(Foo), false);
+        QueryableSortVisitor.Default.Visit(value, context);
+        ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
-            IQueryable<Foo> a = new[]
-            {
-                new Foo {Bar =new Bar{Baz= "b" } },
-                new Foo {Bar =new Bar{Baz= "a"}},
-                new Foo {Bar =new Bar{Baz= "c"}}
-            }.AsQueryable();
+        // assert
+        Assert.Collection(aFiltered,
+            foo => Assert.Equal("c", foo.Bar.Baz),
+            foo => Assert.Equal("b", foo.Bar.Baz),
+            foo => Assert.Equal("a", foo.Bar.Baz)
+        );
+    }
 
-            // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
+    [Fact]
+    public void Sort_NoSortSpecified_ShouldReturnUnalteredSource()
+    {
+        // arrange
+        var value = new ObjectValueNode();
 
-            // assert
-            Assert.Collection(aFiltered,
-                foo => Assert.Equal("a", foo.Bar.Baz),
-                foo => Assert.Equal("b", foo.Bar.Baz),
-                foo => Assert.Equal("c", foo.Bar.Baz)
-            );
-        }
+        var sortType = CreateType(new FooSortType());
 
-        [Fact]
-        public void Sort_ComparableDesc_ShouldSortByStringAsc()
+        var a = new[]
         {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Desc)
-                    )
-                )
-            ));
+            new Foo {Bar =new Bar{Baz= "b"}},
+            new Foo {Bar =new Bar{Baz= "a"}},
+            new Foo {Bar =new Bar{Baz= "c"}}
+        }.AsQueryable();
 
-            FooSortType sortType = CreateType(new FooSortType());
+        // act
+        var context = new QueryableSortVisitorContext(
+            new(new DefaultTypeConverter()), sortType, typeof(Foo), false);
+        QueryableSortVisitor.Default.Visit(value, context);
+        var aFiltered = context.Sort(a);
 
-            IQueryable<Foo> a = new[]
-            {
-                new Foo {Bar =new Bar{Baz= "b"}},
-                new Foo {Bar =new Bar{Baz= "a"}},
-                new Foo {Bar =new Bar{Baz= "c"}}
-            }.AsQueryable();
+        // assert
+        Assert.Same(a, aFiltered);
+        Assert.Collection(aFiltered,
+            foo => Assert.Equal("b", foo.Bar.Baz),
+            foo => Assert.Equal("a", foo.Bar.Baz),
+            foo => Assert.Equal("c", foo.Bar.Baz)
+        );
+    }
 
-            // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
-
-            // assert
-            Assert.Collection(aFiltered,
-                foo => Assert.Equal("c", foo.Bar.Baz),
-                foo => Assert.Equal("b", foo.Bar.Baz),
-                foo => Assert.Equal("a", foo.Bar.Baz)
-            );
-        }
-
-        [Fact]
-        public void Sort_NoSortSpecified_ShouldReturnUnalteredSource()
+    public class FooSortType
+        : SortInputType<Foo>
+    {
+        protected override void Configure(
+            ISortInputTypeDescriptor<Foo> descriptor)
         {
-            // arrange
-            var value = new ObjectValueNode();
-
-            FooSortType sortType = CreateType(new FooSortType());
-
-            IQueryable<Foo> a = new[]
-            {
-                new Foo {Bar =new Bar{Baz= "b"}},
-                new Foo {Bar =new Bar{Baz= "a"}},
-                new Foo {Bar =new Bar{Baz= "c"}}
-            }.AsQueryable();
-
-            // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            IQueryable<Foo> aFiltered = context.Sort(a);
-
-            // assert
-            Assert.Same(a, aFiltered);
-            Assert.Collection(aFiltered,
-                foo => Assert.Equal("b", foo.Bar.Baz),
-                foo => Assert.Equal("a", foo.Bar.Baz),
-                foo => Assert.Equal("c", foo.Bar.Baz)
-            );
+            descriptor.SortableObject(t => t.Bar);
         }
+    }
 
-        public class FooSortType
-            : SortInputType<Foo>
-        {
-            protected override void Configure(
-                ISortInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.SortableObject(t => t.Bar);
-            }
-        }
-
-        public class Foo
-        {
-            public Bar Bar { get; set; }
-        }
+    public class Foo
+    {
+        public Bar Bar { get; set; }
+    }
 
 #nullable enable
-        public class Bar
-        {
-            public string? Baz { get; set; }
-        }
+    public class Bar
+    {
+        public string? Baz { get; set; }
     }
 }

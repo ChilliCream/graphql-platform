@@ -1,14 +1,13 @@
 using HotChocolate.Internal;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+/// <summary>
+/// Specifies a filter input type.
+/// </summary>
+public interface IFilterInputType
+    : IInputObjectType
 {
-    /// <summary>
-    /// Specifies a filter input type.
-    /// </summary>
-    public interface IFilterInputType
-        : IInputObjectType
-    {
-        IExtendedType EntityType { get; }
-    }
+    IExtendedType EntityType { get; }
 }

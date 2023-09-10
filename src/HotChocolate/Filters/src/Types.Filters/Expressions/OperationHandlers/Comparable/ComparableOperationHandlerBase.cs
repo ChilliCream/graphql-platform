@@ -3,60 +3,58 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Filters.Expressions
+namespace HotChocolate.Types.Filters.Expressions;
+
+[Obsolete("Use HotChocolate.Data.")]
+public abstract class ComparableOperationHandlerBase
+    : IExpressionOperationHandler
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public abstract class ComparableOperationHandlerBase
-       : IExpressionOperationHandler
+    public bool TryHandle(
+        FilterOperation operation,
+        IInputType type,
+        IValueNode value,
+        IQueryableFilterVisitorContext context,
+        [NotNullWhen(true)] out Expression? expression)
     {
-        public bool TryHandle(
-            FilterOperation operation,
-            IInputType type,
-            IValueNode value,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)] out Expression? expression)
+        if (operation.Type == typeof(IComparable)
+            && type.IsInstanceOfType(value))
         {
-            if (operation.Type == typeof(IComparable)
-                && type.IsInstanceOfType(value))
+            var property = context.GetInstance();
+
+            if (!operation.IsSimpleArrayType())
             {
-                Expression property = context.GetInstance();
-
-                if (!operation.IsSimpleArrayType())
-                {
-                    property = Expression.Property(context.GetInstance(), operation.Property);
-                }
-
-                return TryCreateExpression(
-                    operation,
-                    property,
-                    ParseValue,
-                    out expression);
+                property = Expression.Property(context.GetInstance(), operation.Property);
             }
 
-            expression = null;
-            return false;
-
-            object ParseValue()
-            {
-
-                object? parsedValue = type.ParseLiteral(value);
-
-                if (!operation.Property.PropertyType.IsInstanceOfType(parsedValue))
-                {
-                    parsedValue = context.TypeConverter.Convert(
-                        typeof(object),
-                        operation.Property.PropertyType,
-                        parsedValue);
-                }
-
-                return parsedValue;
-            }
+            return TryCreateExpression(
+                operation,
+                property,
+                ParseValue,
+                out expression);
         }
 
-        protected abstract bool TryCreateExpression(
-            FilterOperation operation,
-            Expression property,
-            Func<object> parseValue,
-            [NotNullWhen(true)] out Expression? expression);
+        expression = null;
+        return false;
+
+        object? ParseValue()
+        {
+            var parsedValue = context.InputParser.ParseLiteral(value, type);
+
+            if (!operation.Property.PropertyType.IsInstanceOfType(parsedValue))
+            {
+                parsedValue = context.TypeConverter.Convert(
+                    typeof(object),
+                    operation.Property.PropertyType,
+                    parsedValue);
+            }
+
+            return parsedValue;
+        }
     }
+
+    protected abstract bool TryCreateExpression(
+        FilterOperation operation,
+        Expression property,
+        Func<object?> parseValue,
+        [NotNullWhen(true)] out Expression? expression);
 }

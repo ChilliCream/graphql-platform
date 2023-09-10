@@ -2,31 +2,42 @@ using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 
-namespace HotChocolate.Types.Spatial
+namespace HotChocolate.Types.Spatial;
+
+internal class GeoJsonResolvers
 {
-    internal class GeoJsonResolvers
+    public Coordinate[][] GetGeometryCollectionCoordinates(
+        [Parent] GeometryCollection collection)
     {
-        public GeoJsonGeometryType GetType([Parent] Geometry geometry) =>
-            geometry.OgcGeometryType switch
-            {
-                OgcGeometryType.Point => GeoJsonGeometryType.Point,
-                OgcGeometryType.LineString => GeoJsonGeometryType.LineString,
-                OgcGeometryType.Polygon => GeoJsonGeometryType.Polygon,
-                OgcGeometryType.MultiPoint => GeoJsonGeometryType.MultiPoint,
-                OgcGeometryType.MultiLineString => GeoJsonGeometryType.MultiLineString,
-                OgcGeometryType.MultiPolygon => GeoJsonGeometryType.MultiPolygon,
-                _ => throw Resolver_Type_InvalidGeometryType()
-            };
-
-        public IReadOnlyCollection<double> GetBbox([Parent] Geometry geometry)
+        var coordinates = new Coordinate[collection.Count][];
+        for (var i = 0; i < collection.Count; i++)
         {
-            Envelope envelope = geometry.EnvelopeInternal;
-
-            // TODO: support Z
-            return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
+            coordinates[i] = collection[i].Coordinates;
         }
 
-        public int GetCrs([Parent] Geometry geometry) =>
-            geometry.SRID == 0 ? 4326 : geometry.SRID;
+        return coordinates;
     }
+
+    public GeoJsonGeometryType GetType([Parent] Geometry geometry) =>
+        geometry.OgcGeometryType switch
+        {
+            OgcGeometryType.Point => GeoJsonGeometryType.Point,
+            OgcGeometryType.LineString => GeoJsonGeometryType.LineString,
+            OgcGeometryType.Polygon => GeoJsonGeometryType.Polygon,
+            OgcGeometryType.MultiPoint => GeoJsonGeometryType.MultiPoint,
+            OgcGeometryType.MultiLineString => GeoJsonGeometryType.MultiLineString,
+            OgcGeometryType.MultiPolygon => GeoJsonGeometryType.MultiPolygon,
+            _ => throw Resolver_Type_InvalidGeometryType()
+        };
+
+    public IReadOnlyCollection<double> GetBbox([Parent] Geometry geometry)
+    {
+        var envelope = geometry.EnvelopeInternal;
+
+        // TODO: support Z
+        return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
+    }
+
+    public int GetCrs([Parent] Geometry geometry) =>
+        geometry.SRID is 0 or -1 ? 4326 : geometry.SRID;
 }

@@ -1,271 +1,134 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Configuration;
-using HotChocolate.Internal;
-using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// <c>.ID()</c> marks a field or parameter as a Global Unique Id.
+/// The type of the target is rewritten to <c>ID</c> and a middleware is registered that,
+/// automatically combines the value of fields annotated as ID with another value to form a
+/// global identifier.
+/// </summary>
+/// <remarks>
+/// Per default, this additional value is the name of the type the Id belongs to.
+/// Since type names are unique within a schema, this ensures that we are returning a unique
+/// Id within the schema. If our GraphQL server serves multiple schemas, the schema name
+/// is also included in this combined Id. The resulting Id is then Base64 encoded to make
+/// it opaque.
+/// </remarks>
+/// <example>
+/// <para>
+/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// </para>
+/// <code>
+/// public class User
+/// {
+///     public int Id {get; set;}
+/// }
+/// public class UserType : ObjectType&gt;User>
+/// {
+///     protected override void Configure(IObjectTypeDescriptor&gt;User> descriptor)
+///     {
+///         descriptor.Field(x => x.User).ID();
+///     }
+/// }
+/// </code>
+/// <para>
+/// In the resulting schema, the field `<c>User.id</c>` will be rewritten from `<c>Int</c>`
+/// to `<c>ID</c>`
+/// </para>
+/// <code>
+/// type User
+/// {
+///     id: ID!
+/// }
+/// </code>
+/// <para>
+/// If `<c>User.id</c>` is requested in a query, the value is transformed to a base64 string
+/// combined with the typename
+/// Assuming `<c>User.id</c>` has the value 1. The following string is base64 encoded
+/// <code>
+/// User
+/// i1
+/// </code>
+/// results in
+/// <code>
+/// VXNlcgppMQ==
+/// </code>
+/// </para>
+/// </example>
+public static class RelayIdFieldExtensions
 {
-    public static class RelayIdFieldExtensions
+    /// <inheritdoc cref="RelayIdFieldExtensions"/>
+    /// <param name="descriptor">the the descriptor</param>
+    /// <param name="typeName">
+    /// Sets the <see cref="IDAttribute.TypeName">type name</see> of the relay id
+    /// </param>
+    public static IInputFieldDescriptor ID(
+        this IInputFieldDescriptor descriptor,
+        string? typeName = default)
     {
-        private static IdSerializer? _idSerializer;
-
-        public static IInputFieldDescriptor ID(
-            this IInputFieldDescriptor descriptor,
-            NameString typeName = default)
+        if (descriptor is null)
         {
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            descriptor.Extend().OnBeforeCreate(RewriteInputFieldType);
-            descriptor.Extend().OnBeforeCompletion(
-                (c, d) => AddSerializerToInputField(c, d, typeName));
-
-            return descriptor;
+            throw new ArgumentNullException(nameof(descriptor));
         }
 
-        public static IArgumentDescriptor ID(
-            this IArgumentDescriptor descriptor,
-            NameString typeName = default)
+        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
+
+        return descriptor;
+    }
+
+    /// <inheritdoc cref="RelayIdFieldExtensions"/>
+    /// <param name="descriptor">the the descriptor</param>
+    /// <param name="typeName">
+    /// Sets the <see cref="IDAttribute.TypeName">type name</see> of the relay id
+    /// </param>
+    public static IArgumentDescriptor ID(
+        this IArgumentDescriptor descriptor,
+        string? typeName = default)
+    {
+        if (descriptor is null)
         {
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            descriptor.Extend().OnBeforeCreate(RewriteInputFieldType);
-            descriptor.Extend().OnBeforeCompletion(
-                (c, d) => AddSerializerToInputField(c, d, typeName));
-
-            return descriptor;
+            throw new ArgumentNullException(nameof(descriptor));
         }
 
-        public static IObjectFieldDescriptor ID(
-            this IObjectFieldDescriptor descriptor,
-            NameString typeName = default)
+        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
+
+        return descriptor;
+    }
+
+    /// <inheritdoc cref="RelayIdFieldExtensions"/>
+    /// <param name="descriptor">the the descriptor</param>
+    /// <param name="typeName">
+    /// Sets the <see cref="IDAttribute.TypeName">type name</see> of the relay id
+    /// </param>
+    public static IObjectFieldDescriptor ID(
+        this IObjectFieldDescriptor descriptor,
+        string? typeName = default)
+    {
+        if (descriptor is null)
         {
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            FieldMiddleware placeholder = n => c => default;
-            descriptor.Use(placeholder);
-            descriptor.Extend().OnBeforeCreate(RewriteObjectFieldType);
-            descriptor.Extend().OnBeforeCompletion(
-                (c, d) => AddSerializerToObjectField(c, d, placeholder, typeName));
-
-            return descriptor;
+            throw new ArgumentNullException(nameof(descriptor));
         }
 
-        public static IInterfaceFieldDescriptor ID(
-            this IInterfaceFieldDescriptor descriptor)
+        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
+
+        return descriptor;
+    }
+
+    /// <inheritdoc cref="RelayIdFieldExtensions"/>
+    /// <param name="descriptor">the the descriptor</param>
+    public static IInterfaceFieldDescriptor ID(this IInterfaceFieldDescriptor descriptor)
+    {
+        if (descriptor is null)
         {
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            descriptor.Extend().OnBeforeCreate(RewriteInterfaceFieldType);
-
-            return descriptor;
+            throw new ArgumentNullException(nameof(descriptor));
         }
 
-        private static void RewriteInputFieldType(
-            IDescriptorContext context,
-            ArgumentDefinition definition)
-        {
-            if(definition.Type is ExtendedTypeReference typeReference)
-            {
-                ITypeInfo typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
-                IExtendedType type = RewriteType(context.TypeInspector, typeInfo);
-                definition.Type = typeReference.WithType(type);
-            }
-            else
-            {
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                    .Build());
-            }
-        }
+        RelayIdFieldHelpers.ApplyIdToField(descriptor);
 
-        private static void RewriteObjectFieldType(
-            IDescriptorContext context,
-            ObjectFieldDefinition definition)
-        {
-            if(definition.Type is ExtendedTypeReference typeReference)
-            {
-                ITypeInfo typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
-                IExtendedType type = RewriteType(context.TypeInspector, typeInfo);
-                definition.Type = typeReference.WithType(type);
-            }
-            else
-            {
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                    .Build());
-            }
-        }
-
-        private static void RewriteInterfaceFieldType(
-            IDescriptorContext context,
-            InterfaceFieldDefinition definition)
-        {
-            if(definition.Type is ExtendedTypeReference typeReference)
-            {
-                ITypeInfo typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
-                IExtendedType type = RewriteType(context.TypeInspector, typeInfo);
-                definition.Type = typeReference.WithType(type);
-            }
-            else
-            {
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                    .Build());
-            }
-        }
-
-        private static IExtendedType RewriteType(ITypeInspector typeInspector, ITypeInfo typeInfo)
-        {
-            Type current = typeof(IdType);
-
-            if (typeInfo.Components.Count > 1)
-            {
-                foreach (TypeComponent component in typeInfo.Components.Reverse().Skip(1))
-                {
-                    if (component.Kind == TypeComponentKind.NonNull)
-                    {
-                        current = typeof(NonNullType<>).MakeGenericType(current);
-                    }
-                    else if (component.Kind == TypeComponentKind.List)
-                    {
-                        current = typeof(ListType<>).MakeGenericType(current);
-                    }
-                }
-            }
-
-            return typeInspector.GetType(current);
-        }
-
-        private static void AddSerializerToInputField(
-            ITypeCompletionContext completionContext,
-            ArgumentDefinition definition,
-            NameString typeName)
-        {
-            ITypeInspector typeInspector = completionContext.TypeInspector;
-            IExtendedType? resultType;
-
-            if (definition is InputFieldDefinition inputField)
-            {
-                resultType = typeInspector.GetReturnType(inputField.Property, true);
-            }
-            else if (definition.Parameter is not null)
-            {
-                resultType = typeInspector.GetArgumentType(definition.Parameter, true);
-            }
-            else if (definition.Type is ExtendedTypeReference typeReference)
-            {
-                resultType = typeReference.Type;
-            }
-            else
-            {
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                    .SetTypeSystemObject(completionContext.Type)
-                    .Build());
-            }
-
-            definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
-        }
-
-        private static void AddSerializerToObjectField(
-            ITypeCompletionContext completionContext,
-            ObjectFieldDefinition definition,
-            FieldMiddleware placeholder,
-            NameString typeName)
-        {
-            ITypeInspector typeInspector = completionContext.TypeInspector;
-            IExtendedType? resultType;
-
-            if (definition.ResultType is not null)
-            {
-                resultType = typeInspector.GetType(definition.ResultType);
-            }
-            else if (definition.Type is ExtendedTypeReference typeReference)
-            {
-                resultType = typeReference.Type;
-            }
-            else
-            {
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                    .SetTypeSystemObject(completionContext.Type)
-                    .Build());
-            }
-
-            NameString schemaName = default;
-            completionContext.DescriptorContext.SchemaCompleted += (sender, args) =>
-                schemaName = args.Schema.Name;
-
-            IIdSerializer serializer =
-                completionContext.Services.GetService<IIdSerializer>() ??
-                new IdSerializer();
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-
-            if (typeName.IsEmpty)
-            {
-                typeName = completionContext.Type.Name;
-            }
-
-            definition.MiddlewareComponents[index] = next => async context =>
-            {
-                await next(context).ConfigureAwait(false);
-
-                if (context.Result is not null)
-                {
-                    if (resultType.IsArrayOrList)
-                    {
-                        var list = new List<object?>();
-                        foreach (var element in (IEnumerable)context.Result)
-                        {
-                            list.Add(element is null
-                                ? element
-                                : serializer.Serialize(schemaName, typeName, element));
-                        }
-                        context.Result = list;
-                    }
-                    else
-                    {
-                        context.Result = serializer.Serialize(schemaName, typeName, context.Result);
-                    }
-                }
-            };
-        }
-
-        private static IInputValueFormatter CreateSerializer(
-            ITypeCompletionContext completionContext,
-            IExtendedType resultType,
-            NameString typeName)
-        {
-            IIdSerializer serializer =
-                completionContext.Services.GetService<IIdSerializer>() ??
-                (_idSerializer ??= new IdSerializer());
-
-            return new GlobalIdInputValueFormatter(
-                typeName.HasValue ? typeName : completionContext.Type.Name,
-                serializer,
-                resultType,
-                typeName.HasValue);
-        }
+        return descriptor;
     }
 }

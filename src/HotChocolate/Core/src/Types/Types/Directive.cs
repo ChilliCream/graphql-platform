@@ -1,329 +1,152 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using HotChocolate.Language;
-using HotChocolate.Properties;
-using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
-
 #nullable enable
 
-namespace HotChocolate.Types
+using System;
+using HotChocolate.Language;
+using HotChocolate.Utilities;
+using static HotChocolate.Language.SyntaxComparison;
+
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Represents a directive instance.
+/// </summary>
+public sealed class Directive
 {
-    public sealed class Directive : IDirective
+    private readonly DirectiveNode _syntaxNode;
+    private readonly object _runtimeValue;
+
+    internal Directive(DirectiveType type, DirectiveNode syntaxNode, object runtimeValue)
     {
-        private object? _customDirective;
-        private DirectiveNode _parsedDirective;
-        private Dictionary<string, ArgumentNode>? _arguments;
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        _syntaxNode = syntaxNode ?? throw new ArgumentNullException(nameof(syntaxNode));
+        _runtimeValue = runtimeValue ?? throw new ArgumentNullException(nameof(runtimeValue));
+    }
 
-        private Directive(
-            DirectiveType directiveType,
-            DirectiveNode parsedDirective,
-            object? customDirective,
-            object source)
+    /// <summary>
+    /// Gets the directive type.
+    /// </summary>
+    public DirectiveType Type { get; }
+
+    /// <summary>
+    /// Gets an argument value of the directive by its  <paramref name="name"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <typeparam name="T">
+    /// The expected type of the argument.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the argument value.
+    /// </returns>
+    public T GetArgumentValue<T>(string name)
+    {
+        if (name is null)
         {
-            Type = directiveType
-                ?? throw new ArgumentNullException(nameof(directiveType));
-            _parsedDirective = parsedDirective
-                ?? throw new ArgumentNullException(nameof(parsedDirective));
-            _customDirective = customDirective;
-            Source = source
-                ?? throw new ArgumentNullException(nameof(source));
-            Name = directiveType.Name;
+            throw new ArgumentNullException(name);
         }
 
-        public NameString Name { get; }
+        return Type.ParseArgument<T>(name, GetArgumentValueOrNull(name));
+    }
 
-        public DirectiveType Type { get; }
+    private IValueNode? GetArgumentValueOrNull(string argumentValue)
+    {
+        var arguments = _syntaxNode.Arguments;
 
-        public object Source { get; }
-
-        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents =>
-            Type.MiddlewareComponents;
-
-        public T ToObject<T>()
+        for (var i = 0; i < arguments.Count; i++)
         {
-            if (_customDirective is T d)
-            {
-                return d;
-            }
+            var argument = arguments[i];
 
-            if (_customDirective is null)
+            if (argument.Name.Value.EqualsOrdinal(argumentValue))
             {
-                d = CreateCustomDirective<T>();
-                _customDirective = d;
-                return d;
+                return argument.Value;
             }
-
-            return CreateCustomDirective<T>();
         }
 
-        public DirectiveNode ToNode() => ToNode(false);
+        return null;
+    }
 
-        public DirectiveNode ToNode(bool removeNullArguments)
+    /// <summary>
+    /// Gets the runtime representation of the directive.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The runtime type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the runtime representation of the directive.
+    /// </returns>
+    public T AsValue<T>() => (T)_runtimeValue;
+
+    /// <summary>
+    /// Gets the syntax node representation of the directive.
+    /// </summary>
+    /// <param name="removeDefaults"></param>
+    /// <returns></returns>
+    public DirectiveNode AsSyntaxNode(bool removeDefaults = false)
+    {
+        if (!removeDefaults || _syntaxNode.Arguments.Count == 0)
         {
-            if (_parsedDirective is null)
-            {
-                _parsedDirective = ParseValue(Type, _customDirective);
-            }
+            return _syntaxNode;
+        }
 
-            if (removeNullArguments
-                && _parsedDirective.Arguments.Count != 0
-                && _parsedDirective.Arguments.Any(t => t.Value.IsNull()))
-            {
-                var arguments = new List<ArgumentNode>();
+        var arguments = _syntaxNode.Arguments;
+        ArgumentNode[]? rewrittenArguments = null;
+        var index = 0;
 
-                foreach (ArgumentNode argument in _parsedDirective.Arguments)
+        for (var i = 0; i < arguments.Count; i++)
+        {
+            var argumentValue = arguments[i];
+            var argumentDefinition = Type.Arguments[argumentValue.Name.Value];
+
+            if ((argumentDefinition.DefaultValue is not null &&
+                    argumentDefinition.DefaultValue.Equals(argumentValue.Value, Syntax)) ||
+                (argumentDefinition.DefaultValue is null &&
+                    argumentValue.Value.Kind is SyntaxKind.NullValue))
+            {
+                if (rewrittenArguments is null)
                 {
-                    if (!argument.Value.IsNull())
+                    rewrittenArguments ??= new ArgumentNode[_syntaxNode.Arguments.Count];
+
+                    for (var j = 0; j <= i - 1; j++)
                     {
-                        arguments.Add(argument);
+                        rewrittenArguments[index++] = arguments[j];
                     }
                 }
-
-                return _parsedDirective.WithArguments(arguments);
             }
-
-            return _parsedDirective;
+            else if (rewrittenArguments is not null)
+            {
+                rewrittenArguments[index++] = arguments[i];
+            }
         }
 
-        public T GetArgument<T>(string argumentName)
+        if (rewrittenArguments is not null)
         {
-            if (string.IsNullOrEmpty(argumentName))
-            {
-                throw new ArgumentNullException(nameof(argumentName));
-            }
-
-            Dictionary<string, ArgumentNode> arguments = GetArguments();
-            if (arguments.TryGetValue(argumentName, out ArgumentNode? argValue)
-                && Type.Arguments.TryGetField(argumentName, out Argument? arg))
-            {
-                if (typeof(T).IsAssignableFrom(arg.Type.RuntimeType))
-                {
-                    return (T)arg.Type.ParseLiteral(argValue.Value)!;
-                }
-
-                return Type.DeserializeArgument<T>(arg, argValue.Value);
-            }
-
-            throw new ArgumentException(
-                TypeResources.Directive_GetArgument_ArgumentNameIsInvalid,
-                nameof(argumentName));
+            Array.Resize(ref rewrittenArguments, index);
+            return _syntaxNode.WithArguments(rewrittenArguments);
         }
 
+        return _syntaxNode;
+    }
 
-        private T CreateCustomDirective<T>()
+    /// <summary>
+    /// Implicitly casts <see cref="Directive"/> to <see cref="DirectiveNode"/>.
+    /// </summary>
+    /// <param name="directive">
+    /// The directive that shall be casted.
+    /// </param>
+    /// <returns>
+    /// Returns the directive syntax node.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="directive"/> is <c>null</c>.
+    /// </exception>
+    public static implicit operator DirectiveNode(Directive directive)
+    {
+        if (directive is null)
         {
-            if (TryDeserialize(_parsedDirective, out T directive))
-            {
-                return directive;
-            }
-
-            directive = (T)Activator.CreateInstance(typeof(T))!;
-
-            ILookup<string, PropertyInfo> properties =
-                typeof(T).GetProperties()
-                    .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
-
-            foreach (Argument argument in Type.Arguments)
-            {
-                PropertyInfo? property = properties[argument.Name].FirstOrDefault();
-
-                if (property != null)
-                {
-                    SetProperty(argument, directive, property);
-                }
-            }
-
-            return directive;
+            throw new ArgumentNullException(nameof(directive));
         }
 
-        private void SetProperty(
-            Argument argument,
-            object obj,
-            PropertyInfo property)
-        {
-            Dictionary<string, ArgumentNode> arguments = GetArguments();
-            if (arguments.TryGetValue(argument.Name, out ArgumentNode? argumentValue))
-            {
-                object? parsedValue = Type.DeserializeArgument(
-                    argument, argumentValue.Value, property.PropertyType);
-
-                property.SetValue(obj, parsedValue);
-            }
-        }
-
-        private Dictionary<string, ArgumentNode> GetArguments()
-        {
-            if (_arguments is null)
-            {
-                _arguments = ToNode().Arguments.ToDictionary(t => t.Name.Value);
-            }
-            return _arguments;
-        }
-
-        private bool TryDeserialize<T>(
-            DirectiveNode directiveNode,
-            out T directive)
-        {
-            ConstructorInfo? constructor = typeof(T).GetTypeInfo()
-                .DeclaredConstructors.FirstOrDefault(t =>
-                {
-                    ParameterInfo[] parameters = t.GetParameters();
-                    return parameters.Length == 2
-                        && parameters[0].ParameterType ==
-                            typeof(SerializationInfo)
-                        && parameters[1].ParameterType ==
-                            typeof(StreamingContext);
-                });
-
-            if (constructor is null)
-            {
-                directive = default;
-                return false;
-            }
-
-            var info = new SerializationInfo(
-                typeof(T), new FormatterConverter());
-            info.AddValue(nameof(DirectiveNode), directiveNode);
-
-            var context = new StreamingContext(
-                StreamingContextStates.Other,
-                this);
-
-            directive = (T)constructor.Invoke(new object[] { info, context });
-            return true;
-        }
-
-        public static Directive FromDescription(
-            DirectiveType directiveType,
-            DirectiveDefinition definition,
-            object source)
-        {
-            if (directiveType is null)
-            {
-                throw new ArgumentNullException(nameof(directiveType));
-            }
-
-            if (definition is null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (definition.CustomDirective is null)
-            {
-                return new Directive(
-                    directiveType,
-                    CompleteArguments(directiveType, definition.ParsedDirective!),
-                    null,
-                    source);
-            }
-
-            DirectiveNode directiveNode = ParseValue(
-                directiveType, definition.CustomDirective);
-
-            return new Directive(
-                directiveType,
-                CompleteArguments(directiveType, directiveNode),
-                definition.CustomDirective,
-                source);
-        }
-
-        public static Directive FromAstNode(
-            ISchema schema,
-            ISyntaxNode source,
-            DirectiveNode directiveNode)
-        {
-            if (schema is null)
-            {
-                throw new ArgumentNullException(nameof(schema));
-            }
-
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (directiveNode is null)
-            {
-                throw new ArgumentNullException(nameof(directiveNode));
-            }
-
-            if (schema.TryGetDirectiveType(
-                directiveNode.Name.Value,
-                out DirectiveType? type))
-            {
-                return new Directive(
-                    type,
-                    CompleteArguments(type, directiveNode),
-                    null,
-                    source);
-            }
-
-            throw new InvalidOperationException(
-                "The specified directive is not registered " +
-                "with the given schema.");
-        }
-
-        private static DirectiveNode CompleteArguments(
-            DirectiveType directiveType,
-            DirectiveNode directive)
-        {
-            if (directiveType.Arguments.Count > 0
-                && directiveType.Arguments.Any(t => t.DefaultValue is { }))
-            {
-                List<ArgumentNode>? arguments = null;
-
-                var argumentNames = new HashSet<string>(
-                    directive.Arguments.Select(t => t.Name.Value));
-
-                foreach (Argument argument in directiveType.Arguments)
-                {
-                    if (argument.DefaultValue is { }
-                        && !argumentNames.Contains(argument.Name))
-                    {
-                        arguments ??= new List<ArgumentNode>();
-                        arguments.Add(new ArgumentNode(argument.Name, argument.DefaultValue));
-                    }
-                }
-
-                if (arguments is { })
-                {
-                    arguments.AddRange(directive.Arguments);
-                    return directive.WithArguments(arguments);
-                }
-            }
-
-            return directive;
-        }
-
-        private static DirectiveNode ParseValue(
-            DirectiveType directiveType,
-            object directive)
-        {
-            var arguments = new List<ArgumentNode>();
-
-            Type type = directive.GetType();
-            ILookup<string, PropertyInfo> properties =
-                type.GetProperties().ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
-
-            foreach (Argument argument in directiveType.Arguments)
-            {
-                PropertyInfo? property = properties[argument.Name].FirstOrDefault();
-                object? propertyValue = property?.GetValue(directive);
-
-                IValueNode valueNode = argument.Type.ParseValue(propertyValue);
-                arguments.Add(new ArgumentNode(argument.Name, valueNode));
-            }
-
-            return new DirectiveNode(directiveType.Name, arguments);
-        }
+        return directive.AsSyntaxNode();
     }
 }

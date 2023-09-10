@@ -3,92 +3,92 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Threading.Tasks.TaskCreationOptions;
 
-namespace HotChocolate.Utilities.Subscriptions
+namespace HotChocolate.Utilities.Subscriptions;
+
+internal sealed class ObservableSourceStreamAdapter<T>
+    : IObserver<T>
+    , IAsyncEnumerable<object>
 {
-    internal sealed class ObservableSourceStreamAdapter<T>
-        : IObserver<T>
-        , IAsyncEnumerable<object>
+    private readonly ConcurrentQueue<T> _queue = new();
+    private readonly IDisposable _subscription;
+    private TaskCompletionSource<object> _wait;
+    private Exception _exception;
+    private bool _isCompleted;
+
+    public ObservableSourceStreamAdapter(IObservable<T> observable)
     {
-        private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
-        private readonly IDisposable _subscription;
-        private TaskCompletionSource<object> _wait;
-        private Exception _exception;
-        private bool _isCompleted;
+        _subscription = observable.Subscribe(this);
+    }
 
-        public ObservableSourceStreamAdapter(IObservable<T> observable)
+    public async IAsyncEnumerator<object> GetAsyncEnumerator(
+        CancellationToken cancellationToken = default)
+    {
+        try
         {
-            _subscription = observable.Subscribe(this);
-        }
+            _wait = new TaskCompletionSource<object>(RunContinuationsAsynchronously);
+            cancellationToken.Register(() => _wait.TrySetCanceled());
 
-        public async IAsyncEnumerator<object> GetAsyncEnumerator(
-            CancellationToken cancellationToken = default)
-        {
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                _wait = new TaskCompletionSource<object>();
-                cancellationToken.Register(() => _wait.TrySetCanceled());
-
-                while (!cancellationToken.IsCancellationRequested)
+                if (_queue.TryDequeue(out var item))
                 {
-                    if (_queue.TryDequeue(out T item))
-                    {
-                        yield return item;
-                    }
-                    else if (_isCompleted)
-                    {
-                        break;
-                    }
-                    else if (_wait.Task.IsCompleted)
-                    {
-                        _wait = new TaskCompletionSource<object>();
-                    }
-                    else if (_queue.Count == 0)
-                    {
-                        await _wait.Task.ConfigureAwait(false);
-                    }
+                    yield return item;
+                }
+                else if (_isCompleted)
+                {
+                    break;
+                }
+                else if (_wait.Task.IsCompleted)
+                {
+                    _wait = new TaskCompletionSource<object>();
+                }
+                else if (_queue.Count == 0)
+                {
+                    await _wait.Task.ConfigureAwait(false);
+                }
 
-                    if (_exception is { })
-                    {
-                        _isCompleted = true;
-                        throw _exception;
-                    }
+                if (_exception is { })
+                {
+                    _isCompleted = true;
+                    throw _exception;
                 }
             }
-            finally
-            {
-                _subscription.Dispose();
-            }
         }
-
-        public void OnCompleted()
+        finally
         {
-            _isCompleted = true;
-
-            if (_wait != null && !_wait.Task.IsCompleted)
-            {
-                _wait.SetResult(null);
-            }
+            _subscription.Dispose();
         }
+    }
 
-        public void OnError(Exception error)
+    public void OnCompleted()
+    {
+        _isCompleted = true;
+
+        if (_wait != null && !_wait.Task.IsCompleted)
         {
-            _exception = error;
-
-            if (_wait != null && !_wait.Task.IsCompleted)
-            {
-                _wait.SetResult(null);
-            }
+            _wait.SetResult(null);
         }
+    }
 
-        public void OnNext(T value)
+    public void OnError(Exception error)
+    {
+        _exception = error;
+
+        if (_wait != null && !_wait.Task.IsCompleted)
         {
-            _queue.Enqueue(value);
+            _wait.SetResult(null);
+        }
+    }
 
-            if (_wait != null && !_wait.Task.IsCompleted)
-            {
-                _wait.SetResult(null);
-            }
+    public void OnNext(T value)
+    {
+        _queue.Enqueue(value);
+
+        if (_wait != null && !_wait.Task.IsCompleted)
+        {
+            _wait.SetResult(null);
         }
     }
 }

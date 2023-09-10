@@ -2,23 +2,22 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge.Rewriters;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+public interface ISchemaMerger
 {
-    public interface ISchemaMerger
-    {
-        ISchemaMerger AddSchema(NameString name, DocumentNode schema);
+    ISchemaMerger AddSchema(string name, DocumentNode schema);
 
-        [Obsolete("Use AddTypeMergeRule")]
-        ISchemaMerger AddMergeRule(MergeTypeRuleFactory factory);
+    [Obsolete("Use AddTypeMergeRule")]
+    ISchemaMerger AddMergeRule(MergeTypeRuleFactory factory);
 
-        ISchemaMerger AddTypeMergeRule(MergeTypeRuleFactory factory);
+    ISchemaMerger AddTypeMergeRule(MergeTypeRuleFactory factory);
 
-        ISchemaMerger AddDirectiveMergeRule(MergeDirectiveRuleFactory factory);
+    ISchemaMerger AddDirectiveMergeRule(MergeDirectiveRuleFactory factory);
 
-        ISchemaMerger AddTypeRewriter(ITypeRewriter rewriter);
+    ISchemaMerger AddTypeRewriter(ITypeRewriter rewriter);
 
-        ISchemaMerger AddDocumentRewriter(IDocumentRewriter rewriter);
+    ISchemaMerger AddDocumentRewriter(IDocumentRewriter rewriter);
 
-        DocumentNode Merge();
-    }
+    DocumentNode Merge();
 }

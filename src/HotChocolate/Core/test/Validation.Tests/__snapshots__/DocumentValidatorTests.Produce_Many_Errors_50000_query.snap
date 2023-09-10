@@ -1,0 +1,257 @@
+[
+  {
+    "Message": "The field `e` does not exist on the type `Query`.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 18
+      }
+    ],
+    "Extensions": {
+      "type": "Query",
+      "field": "e",
+      "responseName": "a",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 17,
+          "End": 19,
+          "Line": 1,
+          "Column": 18
+        },
+        "Value": "a"
+      },
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 17,
+        "End": 22,
+        "Line": 1,
+        "Column": 18
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 19,
+          "End": 22,
+          "Line": 1,
+          "Column": 20
+        },
+        "Value": "e"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "The field `f` does not exist on the type `Query`.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 22
+      }
+    ],
+    "Extensions": {
+      "type": "Query",
+      "field": "f",
+      "responseName": "a",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 21,
+          "End": 23,
+          "Line": 1,
+          "Column": 22
+        },
+        "Value": "a"
+      },
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 21,
+        "End": 26,
+        "Line": 1,
+        "Column": 22
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 23,
+          "End": 26,
+          "Line": 1,
+          "Column": 24
+        },
+        "Value": "f"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "The field `g` does not exist on the type `Query`.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 26
+      }
+    ],
+    "Extensions": {
+      "type": "Query",
+      "field": "g",
+      "responseName": "a",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 25,
+          "End": 27,
+          "Line": 1,
+          "Column": 26
+        },
+        "Value": "a"
+      },
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 25,
+        "End": 30,
+        "Line": 1,
+        "Column": 26
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 27,
+          "End": 30,
+          "Line": 1,
+          "Column": 28
+        },
+        "Value": "g"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "The field `h` does not exist on the type `Query`.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 30
+      }
+    ],
+    "Extensions": {
+      "type": "Query",
+      "field": "h",
+      "responseName": "a",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 29,
+          "End": 31,
+          "Line": 1,
+          "Column": 30
+        },
+        "Value": "a"
+      },
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 29,
+        "End": 34,
+        "Line": 1,
+        "Column": 30
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 31,
+          "End": 34,
+          "Line": 1,
+          "Column": 32
+        },
+        "Value": "h"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "The field `i` does not exist on the type `Query`.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 34
+      }
+    ],
+    "Extensions": {
+      "type": "Query",
+      "field": "i",
+      "responseName": "a",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 33,
+          "End": 35,
+          "Line": 1,
+          "Column": 34
+        },
+        "Value": "a"
+      },
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 33,
+        "End": 38,
+        "Line": 1,
+        "Column": 34
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 35,
+          "End": 38,
+          "Line": 1,
+          "Column": 36
+        },
+        "Value": "i"
+      },
+      "Directives": []
+    }
+  }
+]

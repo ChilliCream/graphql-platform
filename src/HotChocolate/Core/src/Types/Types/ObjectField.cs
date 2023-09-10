@@ -6,217 +6,276 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
+using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Represents a field of an <see cref="ObjectType"/>.
+/// </summary>
+public sealed class ObjectField
+    : OutputFieldBase<ObjectFieldDefinition>
+    , IObjectField
 {
-    /// <summary>
-    /// Represents a field of an <see cref="ObjectType"/>.
-    /// </summary>
-    public class ObjectField
-        : OutputFieldBase<ObjectFieldDefinition>
-        , IObjectField
+    private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
+
+    internal ObjectField(ObjectFieldDefinition definition, int index)
+        : base(definition, index)
     {
-        private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
-        private IDirective[] _executableDirectives = Array.Empty<IDirective>();
+        Member = definition.Member;
+        ResolverMember = definition.ResolverMember ?? definition.Member;
+        Middleware = _empty;
+        Resolver = definition.Resolver!;
+        ResolverExpression = definition.Expression;
+        SubscribeResolver = definition.SubscribeResolver;
+    }
 
-        internal ObjectField(
-            ObjectFieldDefinition definition,
-            FieldCoordinate fieldCoordinate,
-            bool sortArgumentsByName = false)
-            : base(definition, fieldCoordinate, sortArgumentsByName)
+    /// <summary>
+    /// Gets the type that declares this field.
+    /// </summary>
+    public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
+
+    IObjectType IObjectField.DeclaringType => DeclaringType;
+
+    /// <summary>
+    /// Defines if this field can be executed in parallel with other fields.
+    /// </summary>
+    public bool IsParallelExecutable
+    {
+        get
         {
-            Member = definition.Member;
-            ResolverMember = definition.ResolverMember ?? definition.Member;
-            Middleware = _empty;
-            Resolver = definition.Resolver!;
-            ResolverExpression = definition.Expression;
-            SubscribeResolver = definition.SubscribeResolver;
-            IsIntrospectionField = definition.IsIntrospectionField;
+            return (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
         }
-
-        /// <summary>
-        /// Gets the type that declares this field.
-        /// </summary>
-        public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
-
-        IObjectType IObjectField.DeclaringType => DeclaringType;
-
-        /// <summary>
-        /// Gets the field resolver middleware.
-        /// </summary>
-        public FieldDelegate Middleware { get; private set; }
-
-        /// <summary>
-        /// Gets the field resolver.
-        /// </summary>
-        public FieldResolverDelegate Resolver { get; private set; }
-
-        /// <summary>
-        /// Gets the subscription resolver.
-        /// </summary>
-        public SubscribeResolverDelegate? SubscribeResolver { get; }
-
-        /// <summary>
-        /// Gets all executable directives that are associated with this field.
-        /// </summary>
-        public IReadOnlyList<IDirective> ExecutableDirectives => _executableDirectives;
-
-        /// <summary>
-        /// Gets the associated member of the runtime type for this field.
-        /// This property can be <c>null</c> if this field is not associated to
-        /// a concrete member on the runtime type.
-        /// </summary>
-        public MemberInfo? Member { get; }
-
-        /// <summary>
-        /// Gets the resolver member of this filed.
-        /// If this field has no explicit resolver member
-        /// this property will return <see cref="Member"/>.
-        /// </summary>
-        public MemberInfo? ResolverMember { get; }
-
-        /// <summary>
-        /// Gets the associated resolver expression.
-        /// This expression can be <c>null</c>.
-        /// </summary>
-        [Obsolete("Use resolver expression.")]
-        public Expression? Expression => ResolverExpression;
-
-        /// <summary>
-        /// Gets the associated resolver expression.
-        /// This expression can be <c>null</c>.
-        /// </summary>
-        public Expression? ResolverExpression { get; }
-
-        /// <summary>
-        /// Defines if this field as a introspection field.
-        /// </summary>
-        public override bool IsIntrospectionField { get; }
-
-        protected override void OnCompleteField(
-            ITypeCompletionContext context,
-            ObjectFieldDefinition definition)
+        private set
         {
-            base.OnCompleteField(context, definition);
-
-            CompleteExecutableDirectives(context);
-            CompleteResolver(context, definition);
-        }
-
-        private void CompleteExecutableDirectives(
-            ITypeCompletionContext context)
-        {
-            var processed = new HashSet<string>();
-
-            if (context.Type is ObjectType ot)
+            if (value)
             {
-                AddExecutableDirectives(processed, ot.Directives);
-                AddExecutableDirectives(processed, Directives);
+                Flags |= FieldFlags.ParallelExecutable;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.ParallelExecutable;
             }
         }
+    }
 
-        private void AddExecutableDirectives(
-            ISet<string> processed,
-            IEnumerable<IDirective> directives)
+    /// <summary>
+    /// Defines that the resolver pipeline returns an
+    /// <see cref="IAsyncEnumerable{T}"/> as its result.
+    /// </summary>
+    public bool HasStreamResult
+        => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
+
+    /// <summary>
+    /// Gets the field resolver middleware.
+    /// </summary>
+    public FieldDelegate Middleware { get; private set; }
+
+    /// <summary>
+    /// Gets the field resolver.
+    /// </summary>
+    public FieldResolverDelegate? Resolver { get; private set; }
+
+    /// <summary>
+    /// Gets the pure field resolver. The pure field resolver is only available if this field
+    /// can be resolved without side-effects. The execution engine will prefer this resolver
+    /// variant if it is available and there are no executable directives that add a middleware
+    /// to this field.
+    /// </summary>
+    public PureFieldDelegate? PureResolver { get; private set; }
+
+    /// <summary>
+    /// Gets the subscription resolver.
+    /// </summary>
+    public SubscribeResolverDelegate? SubscribeResolver { get; }
+
+    /// <summary>
+    /// Gets the associated member of the runtime type for this field.
+    /// This property can be <c>null</c> if this field is not associated to
+    /// a concrete member on the runtime type.
+    /// </summary>
+    public MemberInfo? Member { get; }
+
+    /// <summary>
+    /// Gets the resolver member of this filed.
+    /// If this field has no explicit resolver member
+    /// this property will return <see cref="Member"/>.
+    /// </summary>
+    public MemberInfo? ResolverMember { get; }
+
+    /// <summary>
+    /// Gets the associated resolver expression.
+    /// This expression can be <c>null</c>.
+    /// </summary>
+    [Obsolete("Use resolver expression.")]
+    public Expression? Expression => ResolverExpression;
+
+    /// <summary>
+    /// Gets the associated resolver expression.
+    /// This expression can be <c>null</c>.
+    /// </summary>
+    public Expression? ResolverExpression { get; }
+
+    protected override void OnCompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        ObjectFieldDefinition definition)
+    {
+        base.OnCompleteField(context, declaringMember, definition);
+
+        CompleteResolver(context, definition);
+    }
+
+    private void CompleteResolver(
+        ITypeCompletionContext context,
+        ObjectFieldDefinition definition)
+    {
+        var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
+        var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
+        var options = context.DescriptorContext.Options;
+
+        if (Directives.Count > 0)
         {
-            List<IDirective>? executableDirectives = null;
-            foreach (IDirective directive in directives.Where(t => t.Type.HasMiddleware))
+            List<FieldMiddlewareDefinition>? middlewareDefinitions = null;
+
+            for (var i = Directives.Count - 1; i >= 0; i--)
             {
-                executableDirectives ??= new List<IDirective>(_executableDirectives);
-                if (!processed.Add(directive.Name) && !directive.Type.IsRepeatable)
+                var directive = Directives[i];
+
+                if (directive.Type.Middleware is { } m)
                 {
-                    IDirective remove = executableDirectives
-                        .First(t => t.Name.Equals(directive.Name));
-                    executableDirectives.Remove(remove);
+                    (middlewareDefinitions ??= fieldMiddlewareDefinitions.ToList()).Insert(
+                        0,
+                        new FieldMiddlewareDefinition(next => m(next, directive)));
                 }
-                executableDirectives.Add(directive);
             }
 
-            if (executableDirectives is not null)
+            if (middlewareDefinitions is not null)
             {
-                _executableDirectives = executableDirectives.ToArray();
+                fieldMiddlewareDefinitions = middlewareDefinitions;
             }
         }
 
-        private void CompleteResolver(
-            ITypeCompletionContext context,
-            ObjectFieldDefinition definition)
+        var skipMiddleware =
+            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields &&
+            isIntrospectionField;
+
+        var resolvers = CompileResolver(context, definition);
+
+        Resolver = resolvers.Resolver;
+
+        if (resolvers.PureResolver is not null && IsPureContext())
         {
-            var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
-
-            Resolver = definition.Resolver!;
-
-            if (!isIntrospectionField || Resolver is null!)
-            {
-                // gets resolvers that were provided via type extensions,
-                // explicit resolver results or are provided through the
-                // resolver compiler.
-                FieldResolver resolver = context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver)!;
-            }
-
-            IReadOnlySchemaOptions options = context.DescriptorContext.Options;
-
-            var skipMiddleware =
-                options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
-                isIntrospectionField;
-
-            Middleware = FieldMiddlewareCompiler.Compile(
-                context.GlobalComponents,
-                definition.GetMiddlewareComponents(),
-                Resolver,
+            PureResolver = FieldMiddlewareCompiler.Compile(
+                definition.GetResultConverters(),
+                resolvers.PureResolver,
                 skipMiddleware);
-
-            if (Resolver is null! && Middleware is null)
-            {
-                if (_executableDirectives.Length > 0)
-                {
-                    Middleware = _ => default;
-                }
-                else
-                {
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"The field `{context.Type.Name}.{Name}` " +
-                            "has no resolver.")
-                        .SetCode(ErrorCodes.Schema.NoResolver)
-                        .SetTypeSystemObject(context.Type)
-                        .AddSyntaxNode(definition.SyntaxNode)
-                        .Build());
-                }
-            }
         }
 
-        /// <summary>
-        /// Gets the most relevant overwrite of a resolver.
-        /// </summary>
-        private static FieldResolverDelegate? GetMostSpecificResolver(
-            NameString typeName,
-            FieldResolverDelegate? currentResolver,
-            FieldResolver? externalCompiledResolver)
+        // by definition fields with pure resolvers are parallel executable.
+        if (!IsParallelExecutable && PureResolver is not null)
         {
-            // if there is no external compiled resolver then we will pick
-            // the internal resolver delegate.
-            if (externalCompiledResolver is null)
-            {
-                return currentResolver;
-            }
-
-            // if the internal resolver is null or if the external compiled
-            // resolver represents an explicit overwrite of the type resolver
-            // then we will pick the external compiled resolver.
-            if (currentResolver is null
-                || externalCompiledResolver.TypeName.Equals(typeName))
-            {
-                return externalCompiledResolver.Resolver;
-            }
-
-            // in all other cases we will pick the internal resolver delegate.
-            return currentResolver;
+            IsParallelExecutable = true;
         }
 
-        public override string ToString() => $"{Name}:{Type.Visualize()}";
+        var middleware = FieldMiddlewareCompiler.Compile(
+            context.GlobalComponents,
+            fieldMiddlewareDefinitions,
+            definition.GetResultConverters(),
+            Resolver,
+            skipMiddleware);
+
+        if (middleware is null)
+        {
+            context.ReportError(
+                ObjectField_HasNoResolver(
+                    context.Type.Name,
+                    Name,
+                    context.Type,
+                    SyntaxNode));
+        }
+        else
+        {
+            Middleware = middleware;
+        }
+
+        bool IsPureContext()
+        {
+            return skipMiddleware ||
+                (context.GlobalComponents.Count == 0 &&
+                    fieldMiddlewareDefinitions.Count == 0);
+        }
+    }
+
+    private static FieldResolverDelegates CompileResolver(
+        ITypeCompletionContext context,
+        ObjectFieldDefinition definition)
+    {
+        var resolvers = definition.Resolvers;
+
+        if (!resolvers.HasResolvers)
+        {
+            if (definition.Expression is LambdaExpression lambdaExpression)
+            {
+                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                    lambdaExpression,
+                    definition.SourceType ??
+                    definition.Member?.ReflectedType ??
+                    definition.Member?.DeclaringType ??
+                    typeof(object),
+                    definition.ResolverType);
+            }
+            else if (definition.ResolverMember is not null)
+            {
+                var map = TypeMemHelper.RentArgumentNameMap();
+                BuildArgumentLookup(definition, map);
+
+                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                    definition.ResolverMember,
+                    definition.SourceType ??
+                    definition.Member?.ReflectedType ??
+                    definition.Member?.DeclaringType ??
+                    typeof(object),
+                    definition.ResolverType,
+                    map,
+                    definition.GetParameterExpressionBuilders());
+
+                TypeMemHelper.Return(map);
+            }
+            else if (definition.Member is not null)
+            {
+                var map = TypeMemHelper.RentArgumentNameMap();
+                BuildArgumentLookup(definition, map);
+
+                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                    definition.Member,
+                    definition.SourceType ??
+                    definition.Member.ReflectedType ??
+                    definition.Member.DeclaringType,
+                    definition.ResolverType,
+                    map,
+                    definition.GetParameterExpressionBuilders());
+
+                TypeMemHelper.Return(map);
+            }
+        }
+
+        return resolvers;
+
+        static void BuildArgumentLookup(
+            ObjectFieldDefinition definition,
+            Dictionary<ParameterInfo, string> argumentNames)
+        {
+            foreach (var argument in definition.Arguments)
+            {
+                if (argument.Parameter is not null)
+                {
+                    argumentNames[argument.Parameter] = argument.Name;
+                }
+            }
+        }
     }
 }
