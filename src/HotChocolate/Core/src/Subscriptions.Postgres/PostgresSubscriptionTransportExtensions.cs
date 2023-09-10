@@ -49,7 +49,6 @@ public static class PostgresSubscriptionTransportExtensions
 
         return builder;
     }
-
     /// <summary>
     /// Registers the Postgres subscription provider for use in publisher scenarios where the graphql server is
     /// not running, but you still want to publish events via Postgres for another process to receive.
