@@ -6,9 +6,15 @@ export const Link: FC<
     prefetch?: false;
   }
 > = ({ to, prefetch = true, ...rest }) => {
-  return prefetch ? (
-    <GatsbyLink to={to} {...rest} />
+  const internal = /^\/(?!\/)/.test(to);
+
+  return internal ? (
+    prefetch ? (
+      <GatsbyLink to={to} {...rest} />
+    ) : (
+      <a href={to} {...rest} />
+    )
   ) : (
-    <a href={to} {...rest} />
+    <a href={to} target="_blank" rel="noopener noreferrer" {...rest} />
   );
 };
