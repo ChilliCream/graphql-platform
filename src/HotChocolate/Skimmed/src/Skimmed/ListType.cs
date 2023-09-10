@@ -21,5 +21,13 @@ public sealed class ListType : IType
         => Equals(other, TypeComparison.Reference);
     
     public bool Equals(IType? other, TypeComparison comparison)
-        => other is ListType otherList && ElementType.Equals(otherList.ElementType, comparison);
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is ListType otherList && 
+            ElementType.Equals(otherList.ElementType, comparison);
+    }
 }

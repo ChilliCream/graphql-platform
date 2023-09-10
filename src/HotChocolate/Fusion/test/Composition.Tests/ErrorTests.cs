@@ -5,16 +5,10 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class ErrorTests
+public class ErrorTests(ITestOutputHelper output)
 {
-    private readonly ITestOutputHelper _output;
-    private readonly Func<ICompositionLog> _logFactory;
-
-    public ErrorTests(ITestOutputHelper output)
-    {
-        _output = output;
-        _logFactory = () => new TestCompositionLog(output);
-    }
+    private readonly ITestOutputHelper _output = output;
+    private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
     public async Task Typo_In_Schema()

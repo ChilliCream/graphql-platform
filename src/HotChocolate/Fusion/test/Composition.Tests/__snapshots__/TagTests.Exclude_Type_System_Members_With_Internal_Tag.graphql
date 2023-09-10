@@ -120,6 +120,7 @@ type Viewer {
     @source(subgraph: "Accounts")
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
@@ -134,8 +135,5 @@ input AddReviewInput {
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
-
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime
 
 directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
