@@ -1,0 +1,64 @@
+name: CI Workflow
+
+# When to trigger the workflow
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - .devops/deploy-website-cluster.yml
+      - .docker/website/**
+      - website/**
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Install Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18.x'
+        cache: 'yarn'
+        cache-dependency-path: 'website/yarn.lock'
+
+    - name: Cache Yarn Packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          website/.yarn/cache
+          website/.cache/yarn
+        key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+
+    - name: Install Packages
+      run: yarn --immutable --network-timeout 100000
+      working-directory: website
+
+    - name: Build Website
+      run: yarn build --prefix-paths
+      working-directory: website
+
+    - name: Build WebSite Container
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: .docker/website/dockerfile
+        push: true
+        tags: ccc-website-${{ github.ref_name }}:${{ github.run_id }}
+        repository: ${{ secrets.CONTAINER_REGISTRY }}/ccc-website-${{ github.ref_name }}
+        registry: ${{ secrets.CONTAINER_REGISTRY_DOMAIN }}
+
+    - name: Deploy to Azure WebApp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ccc-p-us1-website
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+        images: ${{ secrets.CONTAINER_REGISTRY_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
+
