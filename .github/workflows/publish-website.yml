@@ -51,17 +51,13 @@ jobs:
       run: yarn build --prefix-paths
       working-directory: website
 
-
-
     - name: Build WebSite Container
       uses: docker/build-push-action@v2
       with:
         context: .
         file: .docker/website/dockerfile
         push: true
-        tags: ${{ secrets.CONTAINER_REG_URL }}/ccc-website-test-${{ github.ref_name }}:${{ github.run_id }}
-        repository: ccc-website-${{ github.ref_name }}
-        registry: ${{ secrets.CONTAINER_REG_URL }}
+        tags: ${{ secrets.CONTAINER_REG_URL }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 
     - name: Deploy to Azure WebApp
       uses: azure/webapps-deploy@v2
