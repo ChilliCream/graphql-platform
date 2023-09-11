@@ -157,24 +157,6 @@ module.exports = {
       },
     },
     {
-      resolve: "gatsby-plugin-google-tagmanager",
-      options: {
-        id: "G-RSKJWN1W8V",
-        includeInDevelopment: false,
-        defaultDataLayer: {
-          platform: "gatsby",
-        },
-        enableWebVitalsTracking: true,
-      },
-    },
-    {
-      resolve: `gatsby-plugin-google-analytics`,
-      options: {
-        trackingId: "UA-72800164-1",
-        anonymize: true,
-      },
-    },
-    {
       resolve: `gatsby-plugin-sitemap`,
       options: {
         resolvePagePath({ path }) {
