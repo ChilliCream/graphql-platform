@@ -67,5 +67,5 @@ jobs:
         app-name: ccc-p-us1-website
         slot-name: 'production'
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-        images: ${{ secrets.CONTAINER_REGISTRY_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
+        images: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 
