@@ -5,9 +5,8 @@ on:
   push:
     branches:
       - main
-      - develop
     paths:
-      - .devops/deploy-website-cluster.yml
+      - .github/workflows/publish-website.yml
       - .docker/website/**
       - website/**
 
