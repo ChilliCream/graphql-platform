@@ -19,6 +19,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
+    - name: Docker Login
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ secrets.CONTAINER_REG_URL }}
+        username: ${{ secrets.CONTAINER_REG_USERNAME }}
+        password: ${{ secrets.CONTAINER_REG_PASSWORD }}
+
     - name: Install Node.js
       uses: actions/setup-node@v2
       with:
@@ -44,6 +51,8 @@ jobs:
       run: yarn build --prefix-paths
       working-directory: website
 
+
+
     - name: Build WebSite Container
       uses: docker/build-push-action@v2
       with:
@@ -51,7 +60,7 @@ jobs:
         file: .docker/website/dockerfile
         push: true
         tags: ccc-website-${{ github.ref_name }}:${{ github.run_id }}
-        repository: ${{ secrets.CONTAINER_REGISTRY }}/ccc-website-${{ github.ref_name }}
+        repository: ${{ secrets.CONTAINER_REG }}/ccc-website-${{ github.ref_name }}
         registry: ${{ secrets.CONTAINER_REGISTRY_DOMAIN }}
 
     - name: Deploy to Azure WebApp
