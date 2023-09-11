@@ -59,7 +59,7 @@ jobs:
         context: .
         file: .docker/website/dockerfile
         push: true
-        tags: ${{ secrets.CONTAINER_REG_URL }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
+        tags: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 
     - name: Deploy to Azure WebApp
       uses: azure/webapps-deploy@v2
