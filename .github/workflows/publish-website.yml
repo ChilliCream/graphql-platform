@@ -26,6 +26,8 @@ jobs:
         username: ${{ secrets.CONTAINER_REG_USERNAME }}
         password: ${{ secrets.CONTAINER_REG_PASSWORD }}
 
+    - run: echo ${{ secrets.CONTAINER_REG_URL }}
+
     - name: Install Node.js
       uses: actions/setup-node@v2
       with:
