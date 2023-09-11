@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - mst/website-deploy
     paths:
       - .github/workflows/publish-website.yml
       - .docker/website/**
