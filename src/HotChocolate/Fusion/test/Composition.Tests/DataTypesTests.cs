@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class DataTypes(ITestOutputHelper output)
+public class DataTypesTests(ITestOutputHelper output)
 {
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 

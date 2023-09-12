@@ -14,7 +14,14 @@ public sealed class ObjectType : ComplexType, INamedTypeSystemMember<ObjectType>
         => RewriteObjectType(this).ToString(true);
     
     public override bool Equals(IType? other, TypeComparison comparison)
-        => other is ObjectType otherObject && otherObject.Name.Equals(Name, StringComparison.Ordinal);
-    
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is ObjectType otherObject && otherObject.Name.Equals(Name, StringComparison.Ordinal);
+    }
+
     public static ObjectType Create(string name) => new(name);
 }

@@ -105,9 +105,9 @@
     "net8.0": {
       "Microsoft.NET.ILLink.Tasks": {
         "type": "Direct",
-        "requested": "[8.0.0-preview.7.23375.6, )",
-        "resolved": "8.0.0-preview.7.23375.6",
-        "contentHash": "1R2t+58YDaruNGDqtgKct4PPPaTyYGQP3wsXo/TrfG5AoD9CP35468eSxFWt7iXyh1NDtrUwXFBFbyvuY5AzqQ=="
+        "requested": "[8.0.0-rc.1.23419.4, )",
+        "resolved": "8.0.0-rc.1.23419.4",
+        "contentHash": "Te369WOsPH7E7PRtGi9/0+IRVD9BhmMQgVp4OmXVfDrna29E35bE08WKED0/15VwJ28vVd5+JbtKYZrwO3PXQg=="
       },
       "Microsoft.SourceLink.GitHub": {
         "type": "Direct",
@@ -121,9 +121,9 @@
       },
       "System.IO.Packaging": {
         "type": "Direct",
-        "requested": "[8.0.0-preview.6.23329.7, )",
-        "resolved": "8.0.0-preview.6.23329.7",
-        "contentHash": "cb5x241av9yhw8jUDrorIBBFfUZCmxxxq2sb7iq4U6Cksygv4vCyqwPl28th3RJagIRw6ETC5QeVEngaeuPspQ=="
+        "requested": "[8.0.0-rc.1.23419.4, )",
+        "resolved": "8.0.0-rc.1.23419.4",
+        "contentHash": "JK7ZXouNniiURdatp/Y1q/G1SyCsFNTelRGKRioe8A46hYyqO71WuAnXCOu1PEz6WKNJDz9O5MkrSwZYu7kQ2g=="
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",

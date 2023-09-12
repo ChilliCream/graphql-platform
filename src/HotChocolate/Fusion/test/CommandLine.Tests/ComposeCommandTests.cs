@@ -70,7 +70,7 @@ public class ComposeCommandTests : CommandTestBase
                 account.TransportConfigFile,
                 account.ExtensionFiles));
 
-        var reviewConfig = demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl);
+        var reviewConfig = demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl);
         var review = CreateFiles(reviewConfig);
         var reviewSubgraphPackageFile = CreateTempFile();
 
