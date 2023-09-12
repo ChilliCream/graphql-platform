@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +10,7 @@ using Snapshooter.Xunit;
 using Xunit.Abstractions;
 using Snapshot = Snapshooter.Xunit.Snapshot;
 using static HotChocolate.Tests.TestHelper;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Integration.StarWarsCodeFirst;
 
@@ -332,6 +333,44 @@ public class StarWarsCodeFirstTests
                             new ObjectFieldNode(
                                 "commentary",
                                 new StringValueNode("This is a great movie!")))))
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task GraphQLOrgMutationIgnoreAdditionalInputFieldsExample()
+    {
+        Snapshot.FullName();
+        await ExpectValid(
+                @"
+                mutation CreateReviewForEpisode(
+                    $ep: Episode!, $review: ReviewInput!) {
+                    createReview(episode: $ep, review: $review) {
+                        stars
+                        commentary
+                    }
+                }",
+                configure: c =>
+                {
+                    c.Services.AddSingleton(new InputParser(new InputParserOptions
+                    {
+                        IgnoreAdditionalInputFields = true
+                    }));
+                    TestHelper.AddDefaultConfiguration(c);
+                },
+                request: r => r
+                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
+                    .SetVariableValue(
+                        "review",
+                        new ObjectValueNode(
+                            // Invalid fields
+                            new ObjectFieldNode("foo", new IntValueNode(1)),
+                            new ObjectFieldNode("ignoreMe", new StringValueNode("ignored")),
+                            // Valid fields
+                            new ObjectFieldNode("stars", new IntValueNode(5)),
+                            new ObjectFieldNode(
+                                "commentary",
+                                new StringValueNode("This is a great movie!"))))
+            )
             .MatchSnapshotAsync();
     }
 

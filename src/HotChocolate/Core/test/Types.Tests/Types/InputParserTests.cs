@@ -3,12 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Tests;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 #nullable enable
 

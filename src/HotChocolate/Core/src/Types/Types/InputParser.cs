@@ -10,38 +10,24 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public interface IInputParserOptions
-{
-    /// <summary>
-    /// Specifies if additional input object fields should be ignored during parsing.
-    /// 
-    /// The default is <c>false</c>.
-    /// </summary>
-    public bool IgnoreAdditionalInputFields { get; }
-}
-
-public class InputParserOptions : IInputParserOptions
-{
-    /// <inheritdoc cref="IInputParserOptions.IgnoreAdditionalInputFields"/>
-    public bool IgnoreAdditionalInputFields { get; set; } = false;
-}
-
 public class InputParser
 {
     private static readonly Path _root = Path.Root.Append("root");
     private readonly ITypeConverter _converter;
     private readonly DictionaryToObjectConverter _dictToObjConverter;
-    private readonly IInputParserOptions _options;
+    private readonly InputParserOptions _options;
 
     public InputParser() : this(new DefaultTypeConverter(), new InputParserOptions()) { }
 
     public InputParser(ITypeConverter converter) : this(converter, new InputParserOptions()) { }
 
-    public InputParser(ITypeConverter converter, IInputParserOptions options)
+    public InputParser(InputParserOptions options) : this(new DefaultTypeConverter(), options) { }
+
+    public InputParser(ITypeConverter converter, InputParserOptions options)
     {
         _converter = converter ?? throw new ArgumentNullException(nameof(converter));
         _dictToObjConverter = new(converter);
-        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _options = options;
     }
 
     public object? ParseLiteral(IValueNode value, IInputFieldInfo field, Type? targetType = null)
