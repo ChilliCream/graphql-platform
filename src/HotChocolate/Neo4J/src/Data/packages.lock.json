@@ -576,9 +576,9 @@
     "net8.0": {
       "Microsoft.Extensions.ObjectPool": {
         "type": "Direct",
-        "requested": "[8.0.0-preview.6.23329.11, )",
-        "resolved": "8.0.0-preview.6.23329.11",
-        "contentHash": "TMcGLhso8PRplbsnm91Aw9DVGDC2u+c3/uhiPjp3Q3b8g1DgVJwAL0+/0FztPn0UXsvi6SdhaNywNemh9gMCig=="
+        "requested": "[8.0.0-rc.1.23421.29, )",
+        "resolved": "8.0.0-rc.1.23421.29",
+        "contentHash": "R589RNp1N8VqoEvIa5+/seM37Xuf64k9YU7DLMufcYZqfXJaNxHEav4q2MURh9tmfJsVCH+NkN+7gBOOHepyuQ=="
       },
       "Microsoft.SourceLink.GitHub": {
         "type": "Direct",
