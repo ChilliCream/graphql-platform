@@ -1,5 +1,4 @@
 import { SrOnly } from "@/components/misc/sr-only";
-import { OutboundLink } from "gatsby-plugin-google-analytics";
 import React, {
   FC,
   MouseEventHandler,
@@ -555,7 +554,7 @@ const DownloadButtonContainer = styled.div`
   overflow: visible;
 `;
 
-const DownloadLink = styled(OutboundLink).attrs({
+const DownloadLink = styled.a.attrs({
   rel: "noopener noreferrer",
 })`
   display: flex;
