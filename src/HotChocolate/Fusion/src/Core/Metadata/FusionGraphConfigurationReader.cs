@@ -318,6 +318,8 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
+        
+        _subgraphNames.Add(subgraph);
 
         if(!_subgraphInfos.TryGetValue(subgraph, out var subgraphInfo))
         {
@@ -402,6 +404,8 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
+        
+        _subgraphNames.Add(schemaName);
 
         return new ArgumentVariableDefinition(name, schemaName, type, argumentName);
     }
@@ -435,6 +439,8 @@ internal sealed class FusionGraphConfigurationReader
             }
         }
 
+        _subgraphNames.Add(schemaName);
+        
         return new FieldVariableDefinition(name, schemaName, select);
     }
 
@@ -497,6 +503,8 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
+        
+        _subgraphNames.Add(subgraph);
 
         FragmentSpreadNode? placeholder = null;
         _assert.Clear();
@@ -538,7 +546,7 @@ internal sealed class FusionGraphConfigurationReader
         }
     }
 
-    private Dictionary<string, ITypeNode>? ReadResolverArgumentDefinitions(
+    private static Dictionary<string, ITypeNode>? ReadResolverArgumentDefinitions(
         IValueNode argumentDefinitions)
     {
         if (argumentDefinitions is NullValueNode)

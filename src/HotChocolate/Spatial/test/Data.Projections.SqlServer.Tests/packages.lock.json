@@ -3472,6 +3472,16 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
+      "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": {
+        "type": "Direct",
+        "requested": "[8.0.0-preview.7, )",
+        "resolved": "8.0.0-preview.7",
+        "contentHash": "sKFxUIzjZgRQIQEzBR99hBLRgclqgDd6VbgrAFdTLiscBwyDLJggQjC/K1XZhy9E1/ustPSWPapCfcVeFzXdjw==",
+        "dependencies": {
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.0-preview.7",
+          "Npgsql.NetTopologySuite": "8.0.0-preview.4"
+        }
+      },
       "Squadron.PostgreSql": {
         "type": "Direct",
         "requested": "[0.15.0, )",
@@ -3834,10 +3844,18 @@
       },
       "NetTopologySuite": {
         "type": "Transitive",
-        "resolved": "2.0.0",
-        "contentHash": "3ajBClEI9wx2/DjjGmV52sHW1m52vLg8sdz1pJbTf5ySj1X90qehQs3v1DRwGo0F8UKj/Z2SjNhRN/6LroAkqg==",
+        "resolved": "2.5.0",
+        "contentHash": "5/+2O2ADomEdUn09mlSigACdqvAf0m/pVPGtIPEPQWnyrVykYY0NlfXLIdkMgi41kvH9kNrPqYaFBTZtHYH7Xw==",
         "dependencies": {
-          "System.Memory": "4.5.3"
+          "System.Memory": "4.5.4"
+        }
+      },
+      "NetTopologySuite.IO.PostGis": {
+        "type": "Transitive",
+        "resolved": "2.1.0",
+        "contentHash": "3W8XTFz8iP6GQ5jDXK1/LANHiU+988k1kmmuPWNKcJLpmSg6CvFpbTpz+s4+LBzkAp64wHGOldSlkSuzYfrIKA==",
+        "dependencies": {
+          "NetTopologySuite": "[2.0.0, 3.0.0-A)"
         }
       },
       "Newtonsoft.Json": {
@@ -3847,10 +3865,20 @@
       },
       "Npgsql": {
         "type": "Transitive",
-        "resolved": "4.1.1",
-        "contentHash": "VvYSduwCVCy1erIntV3jVbBduAL8+hqobg8xf5xPmkqzGJ5j9Wx4y/eXz2+BLmFkozJEjTzxz8/X5cOyJ4P9Ig==",
+        "resolved": "8.0.0-preview.4",
+        "contentHash": "wvbiipddbRgaiYOij4fQYqnfDlxKz1XlpCNY7mWErF+CPmg+ujfs9u1ovx40TsV0Q7GKlgdyr6dugV15HvZ2Pw==",
         "dependencies": {
-          "System.Runtime.CompilerServices.Unsafe": "4.6.0"
+          "Microsoft.Extensions.Logging.Abstractions": "6.0.0"
+        }
+      },
+      "Npgsql.NetTopologySuite": {
+        "type": "Transitive",
+        "resolved": "8.0.0-preview.4",
+        "contentHash": "rgVwnoFNA0bOT7EudZEZ4zRXQvETmomFermJJhYSPtY63LbjY84YNkvA7aC75a4oxF+997hbcNwNHKpp3TzoUw==",
+        "dependencies": {
+          "NetTopologySuite": "2.5.0",
+          "NetTopologySuite.IO.PostGIS": "2.1.0",
+          "Npgsql": "8.0.0-preview.4"
         }
       },
       "NuGet.Frameworks": {
