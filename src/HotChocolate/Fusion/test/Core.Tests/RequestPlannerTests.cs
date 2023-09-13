@@ -542,7 +542,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
@@ -576,7 +576,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
@@ -613,7 +613,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
@@ -691,7 +691,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));

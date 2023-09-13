@@ -1,0 +1,21 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  someData1(a: Abc!): String!
+    @variable(subgraph: "A", name: "a", argument: "a")
+    @resolver(subgraph: "A", select: "{ someData1(a: $a) }", arguments: [ { name: "a", type: "Abc" } ])
+    @variable(subgraph: "B", name: "a", argument: "a")
+    @resolver(subgraph: "B", select: "{ someData1(a: $a) }", arguments: [ { name: "a", type: "Abc!" } ])
+}
+
+input Abc {
+  a: Int!
+  b: [Int!]
+  c: [Int]!
+  d: [Int!]!
+}

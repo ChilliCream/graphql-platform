@@ -17,10 +17,13 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         {
             var schema = SchemaParser.Parse(config.Schema);
             schema.Name = config.Name;
+            
+            var alignTypes = new AlignTypesVisitor(schema);
 
             foreach (var sourceText in config.Extensions)
             {
                 var extension = SchemaParser.Parse(sourceText);
+                alignTypes.VisitSchema(extension, default!);
                 CreateMissingTypes(context, schema, extension);
                 MergeTypes(context, schema, extension);
                 MergeDirectives(extension, schema, schema);
@@ -105,6 +108,11 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
                     });
             }
         }
+    }
+
+    private void AlignTypes(Schema schema)
+    {
+        
     }
 
     private static void TryCreateMissingType<T>(
@@ -231,7 +239,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
             {
                 if (target.Fields.TryGetField(sourceField.Name, out var targetField))
                 {
-                    context.MergeField(sourceField, targetField);
+                    context.MergeField(source, sourceField, targetField);
                 }
                 else
                 {

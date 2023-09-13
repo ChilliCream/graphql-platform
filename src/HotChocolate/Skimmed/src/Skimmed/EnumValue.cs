@@ -8,6 +8,8 @@ public sealed class EnumValue
     , IHasDirectives
     , IHasContextData
     , INamedTypeSystemMember<EnumValue>
+    , IHasDescription
+    , ICanBeDeprecated
 {
     private string _name;
     private bool _isDeprecated;
