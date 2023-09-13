@@ -337,7 +337,9 @@ public class DirectiveTypeTests : TypeTestBase
         var directive = schema.GetDirectiveType("foo");
         Assert.NotNull(directive.Middleware);
 
+        await schema.MakeExecutable().ExecuteAsync("{ foo }");
         await schema.MakeExecutable().ExecuteAsync("{ foo1 }");
+        await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
         var result = await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
         
         result.MatchSnapshot();
