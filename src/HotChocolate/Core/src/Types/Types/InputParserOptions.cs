@@ -1,9 +1,8 @@
-﻿#nullable enable
-
+#nullable enable
 
 namespace HotChocolate.Types;
 
-public struct InputParserOptions
+public class InputParserOptions
 {
     /// <summary>
     /// Specifies if additional input object fields should be ignored during parsing.

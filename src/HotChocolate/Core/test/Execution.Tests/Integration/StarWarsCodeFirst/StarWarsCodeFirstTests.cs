@@ -351,11 +351,11 @@ public class StarWarsCodeFirstTests
                 }",
                 configure: c =>
                 {
-                    c.Services.AddSingleton(new InputParser(new InputParserOptions
+                    c.AddInputParser(options =>
                     {
-                        IgnoreAdditionalInputFields = true
-                    }));
-                    TestHelper.AddDefaultConfiguration(c);
+                        options.IgnoreAdditionalInputFields = true;
+                    });
+                    AddDefaultConfiguration(c);
                 },
                 request: r => r
                     .SetVariableValue("ep", new EnumValueNode("JEDI"))
