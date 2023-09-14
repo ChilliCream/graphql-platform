@@ -4,11 +4,17 @@ using CookieCrumble.Formatters;
 using HotChocolate.Language;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CookieCrumble;
+namespace CookieCrumble.MSTests;
 
 [TestClass]
-public class SnapshotTests
+public class SnapshotMSTests
 {
+    [TestInitialize()]
+    public void Initialize()
+    {
+        CookieCrumble.Snapshot.RegisterTestFramework(new CookieCrumble.MSTest.MSTestFramework());
+    }
+
     [TestMethod]
     public void MatchSnapshot()
     {

@@ -3,10 +3,15 @@ using System.Text;
 using CookieCrumble.Formatters;
 using HotChocolate.Language;
 
-namespace CookieCrumble;
+namespace CookieCrumble.XunitTests;
 
 public class SnapshotTests
 {
+    public SnapshotTests()
+    {
+        CookieCrumble.Snapshot.RegisterTestFramework(new CookieCrumble.Xunit.XunitFramework());
+    }
+
     [Fact]
     public void MatchSnapshot()
     {
