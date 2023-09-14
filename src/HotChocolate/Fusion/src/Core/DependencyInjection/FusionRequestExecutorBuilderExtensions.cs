@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -35,10 +36,7 @@ public static class FusionRequestExecutorBuilderExtensions
         this IServiceCollection services,
         string? graphName = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<IWebSocketConnectionFactory>(
             _ => new DefaultWebSocketConnectionFactory());
@@ -74,10 +72,31 @@ public static class FusionRequestExecutorBuilderExtensions
                                 sp => CreateGraphQLClientFactory(sp, fusionGraphConfig));
                             sc.TryAddSingleton(fusionGraphConfig);
                             sc.TryAddSingleton<QueryPlanner>();
+                            sc.TryAddSingleton<IdParser, DefaultIdParser>();
                         });
                 });
 
         return new FusionGatewayBuilder(builder);
+    }
+    
+    /// <summary>
+    /// Adds a custom ID parser to the gateway.
+    /// </summary>
+    public static FusionGatewayBuilder AddIdParser<T>(
+        this FusionGatewayBuilder builder)
+        where T : IdParser
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.CoreBuilder.Configure(
+            c => c.OnConfigureSchemaServicesHooks.Add(
+                (_, sc) =>
+                {
+                    sc.RemoveAll<IdParser>();
+                    sc.AddSingleton<IdParser, DefaultIdParser>();
+                }));
+        
+        return builder;
     }
 
     /// <summary>

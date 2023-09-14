@@ -206,5 +206,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("ThrowHelper_RequestFormatter_ArgumentVariableExpected_Message", resourceCulture);
             }
         }
+        
+        internal static string DefaultIdParser_ParseTypeName_InvalidFormat {
+            get {
+                return ResourceManager.GetString("DefaultIdParser_ParseTypeName_InvalidFormat", resourceCulture);
+            }
+        }
     }
 }
