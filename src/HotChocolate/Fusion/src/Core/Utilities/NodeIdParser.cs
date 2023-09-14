@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Utilities;
 /// <summary>
 /// The ID parser is responsible for parsing node IDs and determining the type name of the node.
 /// </summary>
-public abstract class IdParser
+public abstract class NodeIdParser
 {
     /// <summary>
     /// Parses the type name from the node ID.

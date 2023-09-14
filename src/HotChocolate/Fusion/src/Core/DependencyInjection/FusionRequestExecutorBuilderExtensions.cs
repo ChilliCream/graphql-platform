@@ -72,7 +72,7 @@ public static class FusionRequestExecutorBuilderExtensions
                                 sp => CreateGraphQLClientFactory(sp, fusionGraphConfig));
                             sc.TryAddSingleton(fusionGraphConfig);
                             sc.TryAddSingleton<QueryPlanner>();
-                            sc.TryAddSingleton<IdParser, DefaultIdParser>();
+                            sc.TryAddSingleton<NodeIdParser, DefaultNodeIdParser>();
                         });
                 });
 
@@ -82,9 +82,9 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <summary>
     /// Adds a custom ID parser to the gateway.
     /// </summary>
-    public static FusionGatewayBuilder AddIdParser<T>(
+    public static FusionGatewayBuilder AddNodeIdParser<T>(
         this FusionGatewayBuilder builder)
-        where T : IdParser
+        where T : NodeIdParser
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -92,8 +92,8 @@ public static class FusionRequestExecutorBuilderExtensions
             c => c.OnConfigureSchemaServicesHooks.Add(
                 (_, sc) =>
                 {
-                    sc.RemoveAll<IdParser>();
-                    sc.AddSingleton<IdParser, DefaultIdParser>();
+                    sc.RemoveAll<NodeIdParser>();
+                    sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
                 }));
         
         return builder;

@@ -5,7 +5,7 @@ using static HotChocolate.Fusion.FusionResources;
 
 namespace HotChocolate.Fusion.Utilities;
 
-internal sealed class DefaultIdParser : IdParser
+internal sealed class DefaultNodeIdParser : NodeIdParser
 {
     private readonly byte[] _separators = ":\n"u8.ToArray();
     private readonly Encoding _utf8 = Encoding.UTF8;

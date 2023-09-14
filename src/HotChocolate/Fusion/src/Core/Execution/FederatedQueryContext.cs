@@ -18,14 +18,15 @@ internal sealed class FusionExecutionContext : IDisposable
     private readonly GraphQLClientFactory _clientFactory;
     private readonly IIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
-    private readonly IdParser _idParser = new DefaultIdParser();
+    private readonly NodeIdParser _nodeIdParser;
 
     public FusionExecutionContext(
         FusionGraphConfiguration configuration,
         QueryPlan queryPlan,
         OperationContextOwner operationContextOwner,
         GraphQLClientFactory clientFactory,
-        IIdSerializer idSerializer)
+        IIdSerializer idSerializer,
+        NodeIdParser nodeIdParser)
     {
         Configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));
@@ -37,6 +38,8 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(clientFactory));
         _idSerializer = idSerializer ??
             throw new ArgumentNullException(nameof(idSerializer));
+        _nodeIdParser = nodeIdParser ?? 
+            throw new ArgumentNullException(nameof(nodeIdParser));
         _schemaName = Schema.Name;
     }
 
@@ -100,7 +103,7 @@ internal sealed class FusionExecutionContext : IDisposable
     }
     
     public string ParseTypeNameFromId(string id)
-        => _idParser.ParseTypeName(id);
+        => _nodeIdParser.ParseTypeName(id);
 
     public async Task<GraphQLResponse> ExecuteAsync(
         string subgraphName,
@@ -157,5 +160,6 @@ internal sealed class FusionExecutionContext : IDisposable
             context.QueryPlan,
             operationContextOwner,
             context._clientFactory,
-            context._idSerializer);
+            context._idSerializer,
+            context._nodeIdParser);
 }
