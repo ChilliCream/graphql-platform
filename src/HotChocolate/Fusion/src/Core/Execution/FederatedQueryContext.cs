@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Execution;
@@ -17,6 +18,7 @@ internal sealed class FusionExecutionContext : IDisposable
     private readonly GraphQLClientFactory _clientFactory;
     private readonly IIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
+    private readonly IdParser _idParser = new DefaultIdParser();
 
     public FusionExecutionContext(
         FusionGraphConfiguration configuration,
@@ -96,9 +98,9 @@ internal sealed class FusionExecutionContext : IDisposable
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
         return _idSerializer.Serialize(_schemaName, typeName, id.Value);
     }
-
-    public IdValue ParseId(string formattedId)
-        => _idSerializer.Deserialize(formattedId);
+    
+    public string ParseTypeNameFromId(string id)
+        => _idParser.ParseTypeName(id);
 
     public async Task<GraphQLResponse> ExecuteAsync(
         string subgraphName,
