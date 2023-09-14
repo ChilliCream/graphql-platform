@@ -9,6 +9,9 @@ internal static class SchemaExtensions
 {
     private static readonly FieldVariableNameVisitor _fieldVariableNameVisitor = new();
 
+    /// <summary>
+    /// A helper to create a variable name from an @is directive.
+    /// </summary>
     public static string CreateVariableName(
         this ObjectType type,
         IsDirective directive)
@@ -21,8 +24,8 @@ internal static class SchemaExtensions
         SchemaCoordinate coordinate)
         => $"{type.Name}_{coordinate.MemberName}";
 
-    private static string CreateVariableName(
-        ObjectType type,
+    public static string CreateVariableName(
+        this ObjectType type,
         FieldNode field)
     {
         var context = new FieldVariableNameContext();
@@ -30,7 +33,7 @@ internal static class SchemaExtensions
         context.Name.Insert(0, type.Name);
         return context.Name.ToString();
     }
-
+    
     public static VariableDefinition CreateVariableField(
         this InputField argument,
         IsDirective directive,
@@ -65,6 +68,15 @@ internal static class SchemaExtensions
         {
             context.Name.Append('_');
             context.Name.Append(node.Name.Value);
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            FieldVariableNameContext context)
+        {
+            context.Name.Append('_');
+            context.Name.Append(node.TypeCondition!.Name.Value);
             return Continue;
         }
     }

@@ -1,4 +1,3 @@
-using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -21,8 +20,7 @@ public sealed class FusionTypeNames
         string isDirective,
         string nodeDirective,
         string reEncodeIdDirective,
-        string httpDirective,
-        string webSocketDirective,
+        string transportDirective,
         string fusionDirective,
         string selectionScalar,
         string selectionSetScalar,
@@ -39,8 +37,7 @@ public sealed class FusionTypeNames
         IsDirective = isDirective;
         NodeDirective = nodeDirective;
         ReEncodeIdDirective = reEncodeIdDirective;
-        HttpDirective = httpDirective;
-        WebSocketDirective = webSocketDirective;
+        TransportDirective = transportDirective;
         FusionDirective = fusionDirective;
         SelectionScalar = selectionScalar;
         SelectionSetScalar = selectionSetScalar;
@@ -56,8 +53,7 @@ public sealed class FusionTypeNames
         _fusionDirectives.Add(isDirective);
         _fusionDirectives.Add(nodeDirective);
         _fusionDirectives.Add(reEncodeIdDirective);
-        _fusionDirectives.Add(httpDirective);
-        _fusionDirectives.Add(webSocketDirective);
+        _fusionDirectives.Add(transportDirective);
         _fusionDirectives.Add(fusionDirective);
 
         _fusionTypes.Add(selectionScalar);
@@ -106,14 +102,9 @@ public sealed class FusionTypeNames
 
 
     /// <summary>
-    /// Gets the name of the http directive.
+    /// Gets the name of the transport directive.
     /// </summary>
-    public string HttpDirective { get; }
-
-    /// <summary>
-    /// Gets the name of the http directive.
-    /// </summary>
-    public string WebSocketDirective { get; }
+    public string TransportDirective { get; }
 
     /// <summary>
     /// Gets the name of the fusion directive.
@@ -205,8 +196,7 @@ public sealed class FusionTypeNames
                 $"{prefix}_{FusionTypeBaseNames.IsDirective}",
                 $"{prefix}_{FusionTypeBaseNames.NodeDirective}",
                 $"{prefix}_{FusionTypeBaseNames.ReEncodeIdDirective}",
-                $"{prefix}_{FusionTypeBaseNames.HttpDirective}",
-                $"{prefix}_{FusionTypeBaseNames.WebSocketDirective}",
+                $"{prefix}_{FusionTypeBaseNames.TransportDirective}",
                 prefixSelf
                     ? $"{prefix}_{FusionTypeBaseNames.FusionDirective}"
                     : FusionTypeBaseNames.FusionDirective,
@@ -227,8 +217,7 @@ public sealed class FusionTypeNames
             FusionTypeBaseNames.IsDirective,
             FusionTypeBaseNames.NodeDirective,
             FusionTypeBaseNames.ReEncodeIdDirective,
-            FusionTypeBaseNames.HttpDirective,
-            FusionTypeBaseNames.WebSocketDirective,
+            FusionTypeBaseNames.TransportDirective,
             FusionTypeBaseNames.FusionDirective,
             $"_{FusionTypeBaseNames.Selection}",
             $"_{FusionTypeBaseNames.SelectionSet}",

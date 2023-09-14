@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation.ScopedVariables;
@@ -75,7 +74,7 @@ public class FieldScopedVariableResolverTests
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null));
-        context.Setup(t => t.Path).Returns(PathFactory.Instance.New("foo"));
+        context.Setup(t => t.Path).Returns(Path.Root.Append("foo"));
 
         var scopedVariable = new ScopedVariableNode(
             null,

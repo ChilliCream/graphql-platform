@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
@@ -7,11 +8,21 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal abstract class RequestDocumentFormatter
 {
+    protected static readonly FieldNode TypeNameField = new(
+        null,
+        new NameNode("__typename"),
+        null,
+        null,
+        Array.Empty<DirectiveNode>(),
+        Array.Empty<ArgumentNode>(),
+        null);
+
     private readonly FusionGraphConfiguration _config;
 
     protected RequestDocumentFormatter(FusionGraphConfiguration configuration)
@@ -48,6 +59,15 @@ internal abstract class RequestDocumentFormatter
             path = p;
         }
 
+        if (executionStep.Resolver is null &&
+            executionStep.SelectionResolvers.Count == 0 &&
+            executionStep.ParentSelectionPath is not null)
+        {
+            rootSelectionSetNode = CreateRootLevelQuery(
+                executionStep.ParentSelectionPath,
+                rootSelectionSetNode);
+        }
+
         var operationDefinitionNode = new OperationDefinitionNode(
             null,
             context.CreateRemoteOperationName(),
@@ -55,7 +75,7 @@ internal abstract class RequestDocumentFormatter
             context.Exports.CreateVariableDefinitions(
                 context.ForwardedVariables,
                 executionStep.Variables.Values,
-                executionStep.Resolver?.Arguments),
+                executionStep.ArgumentTypes),
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
@@ -64,13 +84,33 @@ internal abstract class RequestDocumentFormatter
             path);
     }
 
+    private SelectionSetNode CreateRootLevelQuery(
+        SelectionPath path, 
+        SelectionSetNode selectionSet)
+    {
+        var current = path;
+
+        while (current is not null)
+        {
+            selectionSet = new SelectionSetNode(
+                new[]
+                {
+                    current.Selection.SyntaxNode.WithSelectionSet(selectionSet)
+                });
+            
+            current = current.Parent;
+        }
+
+        return selectionSet;
+    }
+
     protected virtual SelectionSetNode CreateRootSelectionSetNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
         var selectionNodes = new List<ISelectionNode>();
-        var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
-        var selectionSetType = executionStep.SelectionSetTypeInfo;
+        var selectionSet = context.Operation.GetSelectionSet(executionStep);
+        var selectionSetType = executionStep.SelectionSetTypeMetadata;
         Debug.Assert(selectionSet is not null);
 
         // create
@@ -87,6 +127,22 @@ internal abstract class RequestDocumentFormatter
                         executionStep,
                         rootSelection.Selection,
                         field);
+
+                if (!rootSelection.Selection.Arguments.IsFullyCoercedNoErrors)
+                {
+                    foreach (var argument in rootSelection.Selection.Arguments)
+                    {
+                        if (!argument.IsFullyCoerced)
+                        {
+                            TryForwardVariable(
+                                context,
+                                executionStep.SubgraphName,
+                                null,
+                                argument,
+                                argument.Name);
+                        }
+                    }
+                }
             }
             else
             {
@@ -176,20 +232,26 @@ internal abstract class RequestDocumentFormatter
         var selectionNodes = new List<ISelectionNode>();
         var typeSelectionNodes = selectionNodes;
         var possibleTypes = context.Operation.GetPossibleTypes(parentSelection);
+        var parentType = parentSelection.Type.NamedType();
 
         using var typeEnumerator = possibleTypes.GetEnumerator();
         var next = typeEnumerator.MoveNext();
+        var needsTypeNameField = true;
+        var isAbstractType = parentType.Kind is TypeKind.Interface or TypeKind.Union;
 
         while (next)
         {
             var possibleType = typeEnumerator.Current;
+            var selectionSet = Unsafe.As<SelectionSet>(
+                context.Operation.GetSelectionSet(parentSelection, possibleType));
 
-            CreateSelectionNodes(
-                context,
-                executionStep,
-                parentSelection,
-                possibleType,
-                typeSelectionNodes);
+            var onlyIntrospection =
+                CreateSelectionNodes(
+                    context,
+                    executionStep,
+                    possibleType,
+                    selectionSet,
+                    typeSelectionNodes);
 
             next = typeEnumerator.MoveNext();
 
@@ -200,9 +262,22 @@ internal abstract class RequestDocumentFormatter
                 selectionNodes = new List<ISelectionNode>();
                 single = false;
             }
+            else if (single && isAbstractType && !ReferenceEquals(parentType, possibleType))
+            {
+                if (!onlyIntrospection)
+                {
+                    selectionNodes = new List<ISelectionNode>();
+                    single = false;
+                }
+            }
 
             if (!single)
             {
+                if (needsTypeNameField)
+                {
+                    selectionNodes.Add(TypeNameField);
+                    needsTypeNameField = false;
+                }
                 AddInlineFragment(possibleType);
             }
         }
@@ -226,43 +301,57 @@ internal abstract class RequestDocumentFormatter
         }
     }
 
-    protected virtual void CreateSelectionNodes(
+    protected virtual bool CreateSelectionNodes(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
-        ISelection parentSelection,
         IObjectType possibleType,
+        SelectionSet selectionSet,
         List<ISelectionNode> selectionNodes)
     {
-        var typeContext = _config.GetType<ObjectTypeInfo>(possibleType.Name);
-        var selectionSet = context.Operation.GetSelectionSet(parentSelection, possibleType);
+        var onlyIntrospection = true;
+        var typeContext = _config.GetType<ObjectTypeMetadata>(possibleType.Name);
 
-        foreach (var selection in selectionSet.Selections)
+        ref var selection = ref selectionSet.GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
+
+        while(Unsafe.IsAddressLessThan(ref selection, ref end))
         {
-            if (executionStep.AllSelections.Contains(selection) ||
-                selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
+            if (!executionStep.AllSelections.Contains(selection) &&
+                !selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
             {
-                selectionNodes.Add(
-                    CreateSelectionNode(
-                        context,
-                        executionStep,
-                        selection,
-                        typeContext.Fields[selection.Field.Name]));
+                goto NEXT;
+            }
 
-                if (!selection.Arguments.IsFullyCoercedNoErrors)
+            if (onlyIntrospection && !selection.Field.IsIntrospectionField)
+            {
+                onlyIntrospection = false;
+            }
+
+            selectionNodes.Add(
+                CreateSelectionNode(
+                    context,
+                    executionStep,
+                    selection,
+                    typeContext.Fields[selection.Field.Name]));
+
+            if (!selection.Arguments.IsFullyCoercedNoErrors)
+            {
+                foreach (var argument in selection.Arguments)
                 {
-                    foreach (var argument in selection.Arguments)
+                    if (!argument.IsFullyCoerced)
                     {
-                        if (!argument.IsFullyCoerced)
-                        {
-                            TryForwardVariable(
-                                context,
-                                null,
-                                argument,
-                                argument.Name);
-                        }
+                        TryForwardVariable(
+                            context,
+                            executionStep.SubgraphName,
+                            null,
+                            argument,
+                            argument.Name);
                     }
                 }
             }
+
+            NEXT:
+            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         // append exports that were required by other execution steps.
@@ -275,6 +364,8 @@ internal abstract class RequestDocumentFormatter
         {
             throw ThrowHelper.RequestFormatter_SelectionSetEmpty();
         }
+
+        return onlyIntrospection;
     }
 
     protected void ResolveRequirements(
@@ -285,7 +376,7 @@ internal abstract class RequestDocumentFormatter
     {
         context.VariableValues.Clear();
 
-        var parentDeclaringType = _config.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
+        var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
         foreach (var variable in parentField.Variables)
@@ -317,14 +408,14 @@ internal abstract class RequestDocumentFormatter
     protected void ResolveRequirements(
         QueryPlanContext context,
         ISelection selection,
-        ObjectTypeInfo declaringTypeInfo,
+        ObjectTypeMetadata declaringTypeMetadata,
         ISelection? parent,
         ResolverDefinition resolver,
         Dictionary<string, string> variableStateLookup)
     {
         context.VariableValues.Clear();
 
-        var field = declaringTypeInfo.Fields[selection.Field.Name];
+        var field = declaringTypeMetadata.Fields[selection.Field.Name];
 
         foreach (var variable in field.Variables)
         {
@@ -338,13 +429,18 @@ internal abstract class RequestDocumentFormatter
 
                 var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
-                TryForwardVariable(context, resolver, argumentValue, argumentVariable.ArgumentName);
+                TryForwardVariable(
+                    context,
+                    resolver.SubgraphName,
+                    resolver,
+                    argumentValue,
+                    argumentVariable.ArgumentName);
             }
         }
 
         if (parent is not null)
         {
-            var parentDeclaringType = _config.GetType<ObjectTypeInfo>(parent.DeclaringType.Name);
+            var parentDeclaringType = _config.GetType<ObjectTypeMetadata>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
             foreach (var variable in parentField.Variables)
@@ -362,7 +458,12 @@ internal abstract class RequestDocumentFormatter
 
                 var argumentValue = parent.Arguments[argumentVariable.ArgumentName];
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
-                TryForwardVariable(context, resolver, argumentValue, argumentVariable.ArgumentName);
+                TryForwardVariable(
+                    context,
+                    resolver.SubgraphName,
+                    resolver,
+                    argumentValue,
+                    argumentVariable.ArgumentName);
             }
         }
 
@@ -376,8 +477,9 @@ internal abstract class RequestDocumentFormatter
         }
     }
 
-    protected static void TryForwardVariable(
+    protected void TryForwardVariable(
         QueryPlanContext context,
+        string subgraphName,
         ResolverDefinition? resolver,
         ArgumentValue argumentValue,
         string argumentName)
@@ -387,8 +489,7 @@ internal abstract class RequestDocumentFormatter
             var originalVarDef = context.Operation.Definition.VariableDefinitions
                 .First(t => t.Variable.Equals(variableValue, SyntaxComparison.Syntax));
 
-            if (resolver is null ||
-                !resolver.Arguments.TryGetValue(argumentName, out var type))
+            if (resolver is null || !resolver.ArgumentTypes.TryGetValue(argumentName, out var type))
             {
                 type = originalVarDef.Type;
             }
@@ -408,23 +509,24 @@ internal abstract class RequestDocumentFormatter
                 var originalVarDef = context.Operation.Definition.VariableDefinitions
                     .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
 
-                if (resolver is null ||
-                    !resolver.Arguments.TryGetValue(argumentName, out var type))
+                var typeNode = originalVarDef.Type;
+                var originalTypeName = typeNode.Name();
+                var subgraphTypeName = _config.GetSubgraphTypeName(subgraphName, originalTypeName);
+
+                if (!subgraphTypeName.EqualsOrdinal(originalTypeName))
                 {
-                    type = originalVarDef.Type;
+                    typeNode = typeNode.RenameName(subgraphTypeName);
                 }
 
                 context.ForwardedVariables.Add(
                     new VariableDefinitionNode(
                         null,
                         variable,
-                        type,
+                        typeNode,
                         originalVarDef.DefaultValue,
                         Array.Empty<DirectiveNode>()));
             }
         }
-
-
     }
 
     private sealed class VariableVisitor : SyntaxWalker<VariableVisitorContext>

@@ -12,9 +12,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TestTargetFrameworks>net7.0; net6.0</TestTargetFrameworks>
-    <LibraryTargetFrameworks>net7.0; net6.0; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
-    <ToolingTargetFrameworks>net7.0; net6.0</ToolingTargetFrameworks>
+    <LibraryTargetFrameworks>net8.0; net7.0; net6.0; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
+    <ToolingTargetFrameworks>net8.0; net7.0; net6.0</ToolingTargetFrameworks>
   </PropertyGroup>
 
 </Project>

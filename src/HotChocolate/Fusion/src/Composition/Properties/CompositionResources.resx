@@ -42,10 +42,34 @@
   <data name="LogEntryHelper_OutputFieldArgumentMismatch" xml:space="preserve">
     <value>The number of arguments in an output field does not match the number of arguments in the same field in of a subgraph schema.</value>
   </data>
-  <data name="LogEntryHelper_OutputFieldArgumentSetMismatch" xml:space="preserve">
-    <value>An output field (`{0}`) that is being merged into another has a different set of arguments.</value>
-  </data>
   <data name="DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate" xml:space="preserve">
-    <value>The is argument must have a value for coordinate or field.</value>
+    <value>The is directive must have a value for coordinate or field.</value>
+  </data>
+  <data name="LogEntryHelper_OutputFieldArgumentSetMismatch" xml:space="preserve">
+    <value>An output field (`{0}`) that is being merged into another has a different set of arguments.
+
+Target Arguments: {1}
+Source Arguments: {2}</value>
+  </data>
+  <data name="LogEntryHelper_CoordinateNotAllowedForRequirements" xml:space="preserve">
+    <value>A coordinate is not allowed when declaring field requirements.</value>
+  </data>
+  <data name="LogEntryHelper_FieldDependencyCannotBeResolved" xml:space="preserve">
+    <value>The field dependency `{0}` cannot be resolved.</value>
+  </data>
+  <data name="CannotFindCorrelatingSubgraphField" xml:space="preserve">
+    <value>Cannot find correlating subgraph field.</value>
+  </data>
+  <data name="DirectivesHelper_GetRequireDirective_NoFieldArg" xml:space="preserve">
+    <value>The require directive must have a value for the argument field.</value>
+  </data>
+  <data name="LogEntryHelper_TypeNotDeclared" xml:space="preserve">
+    <value>The type `{0}` is not declared on subgraph {1}. Check the subgraph schema for consistency.</value>
+  </data>
+  <data name="LogEntryHelper_OutputFieldTypeMismatch" xml:space="preserve">
+    <value>Unable to merge the field `{0}` because the type `{1}` does not match the type `{2}`.</value>
+  </data>
+  <data name="LogEntryHelper_RootTypeNameMismatch" xml:space="preserve">
+    <value>The {0} type name `{1}` does not match to the {0} type name `{2}` on subgraph `{3}`. Make sure that the root type names on the various subgraph match.</value>
   </data>
 </root>

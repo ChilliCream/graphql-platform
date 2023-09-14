@@ -13,5 +13,5 @@ public interface ITopic : IDisposable
     /// <summary>
     /// Allows to complete a topic.
     /// </summary>
-    void TryComplete();
+    void Complete();
 }

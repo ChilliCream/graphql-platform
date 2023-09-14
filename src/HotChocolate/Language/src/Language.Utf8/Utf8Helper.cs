@@ -6,10 +6,6 @@ namespace HotChocolate.Language;
 
 internal static class Utf8Helper
 {
-    private const int _utf8TwoByteMask = 0b1100_0000_1000_0000;
-    private const int _utf8ThreeByteMask = 0b1110_0000_1000_0000_1000_0000;
-    private const int _shiftBytesMask = 0b1111_1111_1100_0000;
-
     public static void Unescape(
         in ReadOnlySpan<byte> escapedString,
         ref Span<byte> unescapedString,
@@ -18,6 +14,7 @@ internal static class Utf8Helper
         var readPosition = -1;
         var writePosition = 0;
         var eofPosition = escapedString.Length - 1;
+        int? highSurrogate = null;
 
         if (escapedString.Length > 0)
         {
@@ -48,13 +45,42 @@ internal static class Utf8Helper
                     {
                         if (code == GraphQLConstants.U)
                         {
-                            UnescapeUtf8Hex(
+                            var unicodeDecimal = UnescapeUtf8Hex(
                                 escapedString[++readPosition],
                                 escapedString[++readPosition],
                                 escapedString[++readPosition],
-                                escapedString[++readPosition],
-                                ref writePosition,
-                                unescapedString);
+                                escapedString[++readPosition]);
+
+                            if (unicodeDecimal >= 0xD800 && unicodeDecimal <= 0xDBFF)
+                            {
+                                // High surrogate
+                                if (highSurrogate != null)
+                                {
+                                    throw new Utf8EncodingException("Unexpected high surrogate.");
+                                }
+                                highSurrogate = unicodeDecimal;
+                            }
+                            else if (unicodeDecimal >= 0xDC00 && unicodeDecimal <= 0xDFFF)
+                            {
+                                // Low surrogate
+                                if (highSurrogate == null)
+                                {
+                                    throw new Utf8EncodingException("Unexpected low surrogate.");
+                                }
+                                var fullUnicode = ((highSurrogate.Value - 0xD800) << 10) +
+                                    (unicodeDecimal - 0xDC00) +
+                                    0x10000;
+                                UnescapeUtf8Hex(fullUnicode, ref writePosition, unescapedString);
+                                highSurrogate = null;
+                            }
+                            else
+                            {
+                                if (highSurrogate != null)
+                                {
+                                    throw new Utf8EncodingException("High surrogate not followed by low surrogate.");
+                                }
+                                UnescapeUtf8Hex(unicodeDecimal, ref writePosition, unescapedString);
+                            }
                         }
                         else
                         {
@@ -66,7 +92,7 @@ internal static class Utf8Helper
                         throw new Utf8EncodingException(
                             string.Format(
                                 Utf8Helper_InvalidEscapeChar,
-                                (char)code));
+                                (char) code));
                     }
                 }
                 else
@@ -82,54 +108,38 @@ internal static class Utf8Helper
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int UnescapeUtf8Hex(byte a, byte b, byte c, byte d)
+        => (HexToDecimal(a) << 12) | (HexToDecimal(b) << 8) | (HexToDecimal(c) << 4) | HexToDecimal(d);
+
     public static void UnescapeUtf8Hex(
-        byte a, byte b, byte c, byte d,
+        int unicodeDecimal,
         ref int writePosition,
         Span<byte> unescapedString)
     {
-        var unicodeDecimal = (HexToDecimal(a) << 12)
-                             | (HexToDecimal(b) << 8)
-                             | (HexToDecimal(c) << 4)
-                             | HexToDecimal(d);
-
-        if (unicodeDecimal is >= 0 and <= 127)
+        if (unicodeDecimal < 0x80)
         {
-            unescapedString[writePosition++] = (byte)unicodeDecimal;
+            unescapedString[writePosition++] = (byte) unicodeDecimal;
         }
-        else if (unicodeDecimal is >= 128 and <= 2047)
+        else if (unicodeDecimal < 0x800)
         {
-            var bytesToShift = unicodeDecimal & _shiftBytesMask;
-            unicodeDecimal -= bytesToShift;
-            bytesToShift <<= 2;
-            unicodeDecimal += _utf8TwoByteMask + bytesToShift;
-
-            unescapedString[writePosition++] = (byte)(unicodeDecimal >> 8);
-            unescapedString[writePosition++] = (byte)unicodeDecimal;
+            unescapedString[writePosition++] = (byte) (0xC0 | (unicodeDecimal >> 6));
+            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
         }
-        else if (unicodeDecimal is >= 2048 and <= 65535)
+        else if (unicodeDecimal < 0x10000)
         {
-            var bytesToShift = unicodeDecimal & _shiftBytesMask;
-            unicodeDecimal -= bytesToShift;
-
-            var third = (bytesToShift >> 12) << 12;
-            var second = bytesToShift - third;
-
-            second <<= 2;
-            third <<= 4;
-
-            unicodeDecimal += _utf8ThreeByteMask + second + third;
-
-            unescapedString[writePosition++] = (byte)(unicodeDecimal >> 16);
-            unescapedString[writePosition++] = (byte)(unicodeDecimal >> 8);
-            unescapedString[writePosition++] = (byte)unicodeDecimal;
+            unescapedString[writePosition++] = (byte) (0xE0 | (unicodeDecimal >> 12));
+            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 6) & 0x3F));
+            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
         }
         else
         {
-            throw new NotSupportedException(
-                "UTF-8 characters with four bytes are not supported.");
+            unescapedString[writePosition++] = (byte) (0xF0 | (unicodeDecimal >> 18));
+            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 12) & 0x3F));
+            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 6) & 0x3F));
+            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
         }
     }
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int HexToDecimal(int a)

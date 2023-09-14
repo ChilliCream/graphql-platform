@@ -79,7 +79,7 @@ public class User
 }
 ```
 
-> Warning: We need to use the `HotChocolate.AspNetCore.Authorization.AuthorizeAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
+> Warning: We need to use the `HotChocolate.Authorization.AuthorizeAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
 
 </Annotation>
 <Code>

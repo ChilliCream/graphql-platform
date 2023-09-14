@@ -1,0 +1,15 @@
+{
+  "data": {
+    "createRecord": {
+      "foo": [
+        {
+          "bar": "A"
+        },
+        {
+          "bar": "B"
+        }
+      ],
+      "errors": null
+    }
+  }
+}

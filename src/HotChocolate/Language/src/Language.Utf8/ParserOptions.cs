@@ -34,12 +34,14 @@ public sealed class ParserOptions
         bool noLocations = false,
         bool allowFragmentVariables = false,
         int maxAllowedNodes = int.MaxValue,
-        int maxAllowedTokens = int.MaxValue)
+        int maxAllowedTokens = int.MaxValue,
+        int maxAllowedFields = 2048)
     {
         NoLocations = noLocations;
         Experimental = new(allowFragmentVariables);
         MaxAllowedTokens = maxAllowedTokens;
         MaxAllowedNodes = maxAllowedNodes;
+        MaxAllowedFields = maxAllowedFields;
     }
 
     /// <summary>
@@ -69,6 +71,17 @@ public sealed class ParserOptions
     /// To prevent this you can set a maximum number of nodes allowed within a document.
     /// </summary>
     public int MaxAllowedNodes { get; }
+
+    /// <summary>
+    /// Parser CPU and memory usage is linear to the number of nodes in a document
+    /// however in extreme cases it becomes quadratic due to memory exhaustion.
+    /// Parsing happens before validation so even invalid queries can burn lots of
+    /// CPU time and memory.
+    ///
+    /// To prevent this you can set a maximum number of fields allowed within a document
+    /// as fields is an easier way to estimate query size for GraphQL requests.
+    /// </summary>
+    public int MaxAllowedFields { get; }
 
     /// <summary>
     /// Gets the experimental parser options

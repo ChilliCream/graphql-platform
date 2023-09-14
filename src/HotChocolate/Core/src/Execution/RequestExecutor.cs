@@ -17,6 +17,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     private readonly RequestDelegate _requestDelegate;
     private readonly BatchExecutor _batchExecutor;
     private readonly ObjectPool<RequestContext> _contextPool;
+    private readonly DefaultRequestContextAccessor _contextAccessor;
     private readonly IRequestContextEnricher[] _enricher;
 
     public RequestExecutor(
@@ -26,6 +27,7 @@ internal sealed class RequestExecutor : IRequestExecutor
         RequestDelegate requestDelegate,
         BatchExecutor batchExecutor,
         ObjectPool<RequestContext> contextPool,
+        DefaultRequestContextAccessor contextAccessor,
         ulong version)
     {
         Schema = schema ??
@@ -40,6 +42,8 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(batchExecutor));
         _contextPool = contextPool ??
             throw new ArgumentNullException(nameof(contextPool));
+        _contextAccessor = contextAccessor ?? 
+            throw new ArgumentNullException(nameof(contextAccessor));
         Version = version;
 
         var list = new List<IRequestContextEnricher>();
@@ -88,6 +92,8 @@ internal sealed class RequestExecutor : IRequestExecutor
             context.RequestAborted = cancellationToken;
             context.Initialize(request, services);
             EnrichContext(context);
+            
+            _contextAccessor.RequestContext = context;
 
             await _requestDelegate(context).ConfigureAwait(false);
 

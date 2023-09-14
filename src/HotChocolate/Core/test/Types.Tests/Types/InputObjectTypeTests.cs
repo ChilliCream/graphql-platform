@@ -960,7 +960,7 @@ public class InputObjectTypeTests : TypeTestBase
         public FooEnum Enum { get; set; }
 
         [DefaultValueSyntax("[[{ foo: 1 } ]]")]
-        public List<List<ComplexInput>> ComplexInput { get; set; }
+        public List<List<ComplexInput>> ComplexInput { get; set; } = null!;
 
         public string? WithoutDefault { get; set; }
     }

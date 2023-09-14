@@ -1,1 +1,0 @@
-[assembly: Module("Types")]

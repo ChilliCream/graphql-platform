@@ -1,147 +1,68 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
+/// <summary>
+/// Represents the query plan state for a single selection set.
+/// This working state can be shared between nodes of a query plan.
+/// </summary>
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 internal sealed class ExecutionState
 {
-    private readonly Dictionary<ISelectionSet, List<WorkItem>> _map = new();
-    private readonly HashSet<ISelectionSet> _immutable = new();
-
-    public bool ContainsState(ISelectionSet selectionSet)
+    public ExecutionState(
+        SelectionSet selectionSet,
+        ObjectResult selectionSetResult,
+        IReadOnlyList<string> requires)
     {
-        var taken = false;
-        Monitor.Enter(_map, ref taken);
-
-        try
-        {
-            return _map.ContainsKey(selectionSet);
-        }
-        finally
-        {
-            if (taken)
-            {
-                Monitor.Exit(_map);
-            }
-        }
+        SelectionSet = selectionSet;
+        SelectionSetResult = selectionSetResult;
+        SelectionSetData = new SelectionData[selectionSet.Selections.Count];
+        Requires = requires;
     }
 
-    public bool ContainsState(ISelectionSet[] selectionSets)
+    /// <summary>
+    /// Gets a collection of exported variable values that
+    /// are passed on to the next query plan node.
+    /// </summary>
+    public Dictionary<string, IValueNode> VariableValues { get; } = new();
+
+    /// <summary>
+    /// Gets a list of keys representing the state that is being
+    /// required to fetch data for the associated <see cref="SelectionSet"/>.
+    /// </summary>
+    public IReadOnlyList<string> Requires { get; }
+
+    /// <summary>
+    /// Gets the selection set that is being executed.
+    /// </summary>
+    public SelectionSet SelectionSet { get; }
+
+    /// <summary>
+    /// Gets the selection set data that was collected during execution.
+    /// </summary>
+    public SelectionData[] SelectionSetData { get; }
+
+    /// <summary>
+    /// Gets the completed selection set result.
+    /// </summary>
+    public ObjectResult SelectionSetResult { get; }
+
+    /// <summary>
+    /// Gets a flag that indicates if the work item has been initialized.
+    /// </summary>
+    public bool IsInitialized { get; set; }
+
+    private string GetDebuggerDisplay()
     {
-        var taken = false;
-        Monitor.Enter(_map, ref taken);
+        var displayName = $"State {SelectionSet.Id}";
 
-        try
+        if (Requires.Count > 0)
         {
-            ref var start = ref MemoryMarshal.GetArrayDataReference(selectionSets);
-            ref var end = ref Unsafe.Add(ref start, selectionSets.Length);
-
-            while (Unsafe.IsAddressLessThan(ref start, ref end))
-            {
-                if (_map.ContainsKey(start))
-                {
-                    return true;
-                }
-
-                start = ref Unsafe.Add(ref start, 1);
-            }
-        }
-        finally
-        {
-            if (taken)
-            {
-                Monitor.Exit(_map);
-            }
+            displayName = $"{displayName} requires: {string.Join(", ", Requires)}";
         }
 
-        return false;
-    }
-
-    public bool TryGetState(
-        ISelectionSet selectionSet,
-        [NotNullWhen(true)] out IReadOnlyList<WorkItem>? values)
-    {
-        var taken = false;
-        Monitor.Enter(_map, ref taken);
-
-        try
-        {
-            // We mark a value immutable on first read.
-            //
-            // After we accessed the first time the state of a selection set its no longer allowed
-            // to mutate it.
-            //
-            // The query plan should actually be ordered in a way that there are no mutations after
-            // the state is being read from nodes.
-            _immutable.Add(selectionSet);
-
-            if (_map.TryGetValue(selectionSet, out var local))
-            {
-                values = local;
-                return true;
-            }
-            else
-            {
-                values = null;
-                return false;
-            }
-        }
-        finally
-        {
-            if (taken)
-            {
-                Monitor.Exit(_map);
-            }
-        }
-    }
-
-    public void RegisterState(WorkItem value)
-    {
-        var taken = false;
-        List<WorkItem>? values;
-        Monitor.Enter(_map, ref taken);
-
-        try
-        {
-            if (_immutable.Contains(value.SelectionSet))
-            {
-                throw new InvalidOperationException(
-                    $"The state for the selection set `{value.SelectionSet.Id}` is immutable.");
-            }
-
-            if (!_map.TryGetValue(value.SelectionSet, out values))
-            {
-                var temp = new List<WorkItem> { value };
-                _map.Add(value.SelectionSet, temp);
-            }
-        }
-        finally
-        {
-            if (taken)
-            {
-                Monitor.Exit(_map);
-            }
-        }
-
-        if (values is not null)
-        {
-            taken = false;
-            Monitor.Enter(values, ref taken);
-
-            try
-            {
-                values.Add(value);
-            }
-            finally
-            {
-                if (taken)
-                {
-                    Monitor.Exit(values);
-                }
-            }
-        }
+        return displayName;
     }
 }
-

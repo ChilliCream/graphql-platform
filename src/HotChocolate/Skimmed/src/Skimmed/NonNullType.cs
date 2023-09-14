@@ -1,3 +1,6 @@
+using static HotChocolate.Skimmed.Properties.SkimmedResources;
+using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
+
 namespace HotChocolate.Skimmed;
 
 public sealed class NonNullType : IType
@@ -11,15 +14,30 @@ public sealed class NonNullType : IType
 
         if (nullableType.Kind is TypeKind.NonNull)
         {
-            throw new ArgumentException(
-                "The inner type cannot be a non-null type.",
-                nameof(nullableType));
+            throw new ArgumentException(NonNullType_InnerTypeCannotBeNonNull, nameof(nullableType));
         }
 
         NullableType = nullableType;
     }
 
     public TypeKind Kind => TypeKind.NonNull;
-
+    
     public IType NullableType { get; }
+    
+    public override string ToString()
+        => RewriteTypeRef(this).ToString(true);
+
+    public bool Equals(IType? other)
+        => Equals(other, TypeComparison.Reference);
+    
+    public bool Equals(IType? other, TypeComparison comparison)
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is NonNullType otherNonNull && 
+            NullableType.Equals(otherNonNull.NullableType, comparison);
+    }
 }

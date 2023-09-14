@@ -7,7 +7,7 @@
     <Description>Contains internal helper classes and utilities used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' != 'NETSTANDARD2.0'">
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   </PropertyGroup>
 
@@ -16,6 +16,8 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Transport.Http" />
+    <InternalsVisibleTo Include="HotChocolate.Transport.Sockets.Client" />
   </ItemGroup>
 
   <ItemGroup>

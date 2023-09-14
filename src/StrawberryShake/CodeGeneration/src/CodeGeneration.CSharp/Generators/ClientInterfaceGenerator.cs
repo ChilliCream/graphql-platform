@@ -20,6 +20,7 @@ public class ClientInterfaceGenerator : ClassBaseGenerator<ClientDescriptor>
 
         var interfaceBuilder = InterfaceBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName)
             .SetComment(descriptor.Documentation);
 

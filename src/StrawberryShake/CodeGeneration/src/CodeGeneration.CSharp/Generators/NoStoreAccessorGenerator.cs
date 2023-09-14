@@ -32,7 +32,7 @@ public class NoStoreAccessorGenerator : CodeGenerator<StoreAccessorDescriptor>
 
         var factory = ClassBuilder
             .New(fileName)
-            .SetAccessModifier(AccessModifier.Public)
+            .SetAccessModifier(settings.AccessModifier)
             .AddImplements(TypeNames.IStoreAccessor);
 
         AddThrowNotValidWithoutStore(factory, "OperationStore", TypeNames.IOperationStore);

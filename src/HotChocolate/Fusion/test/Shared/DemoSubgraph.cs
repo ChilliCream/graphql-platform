@@ -1,11 +1,19 @@
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Microsoft.AspNetCore.TestHost;
 
 namespace HotChocolate.Fusion.Shared;
 
 public sealed class DemoSubgraph
 {
+    private static readonly SyntaxSerializerOptions _serializerOptions =
+        new()
+        {
+            Indented = true,
+            MaxDirectivesPerLine = 0
+        };
+    
     public DemoSubgraph(
         string name,
         Uri httpEndpointUri,
@@ -31,25 +39,45 @@ public sealed class DemoSubgraph
     public TestServer Server { get; }
 
     public SubgraphConfiguration ToConfiguration(
-        string extensions)
-        => new SubgraphConfiguration(
-            Name,
-            Schema.ToString(),
-            extensions,
-            new IClientConfiguration[]
-            {
-                new HttpClientConfiguration(HttpEndpointUri),
-                new WebSocketClientConfiguration(WebSocketEndpointUri)
-            });
+        string extensions, 
+        bool onlyHttp = false)
+        => onlyHttp
+            ? new SubgraphConfiguration(
+                Name,
+                Schema.ToString(_serializerOptions),
+                Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri)
+                })
+            : new SubgraphConfiguration(
+                Name,
+                Schema.ToString(_serializerOptions),
+                Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri),
+                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                });
 
-     public SubgraphConfiguration ToConfiguration()
-        => new SubgraphConfiguration(
-            Name,
-            Schema.ToString(),
-            Array.Empty<string>(),
-            new IClientConfiguration[]
-            {
-                new HttpClientConfiguration(HttpEndpointUri),
-                new WebSocketClientConfiguration(WebSocketEndpointUri)
-            });
+     public SubgraphConfiguration ToConfiguration(
+         bool onlyHttp = false)
+        => onlyHttp 
+            ? new SubgraphConfiguration(
+                Name,
+                Schema.ToString(_serializerOptions),
+                Array.Empty<string>(),
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri)
+                })
+            : new SubgraphConfiguration(
+                Name,
+                Schema.ToString(_serializerOptions),
+                Array.Empty<string>(),
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri),
+                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                });
 }

@@ -5,7 +5,7 @@
     "**/*.code-search": true,
     "**/PublicAPI*.txt": true
   },
-  "editor.rulers": [100],
+  "editor.rulers": [120],
   "files.trimTrailingWhitespace": true,
   "files.associations": {
     "*.*proj": "xml",

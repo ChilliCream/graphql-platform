@@ -1,5 +1,7 @@
+using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -10,7 +12,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
         var skipOnQuery = new HashSet<string>(StringComparer.Ordinal);
         var skipOnMutation = new HashSet<string>(StringComparer.Ordinal);
 
-        if ((context.Features & FusionFeatureFlags.NodeField) != FusionFeatureFlags.NodeField)
+        if (!context.Features.IsNodeFieldSupported())
         {
             skipOnQuery.Add("node");
             skipOnQuery.Add("nodes");
@@ -20,15 +22,22 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
         {
             if (schema.QueryType is not null)
             {
-                var targetTa = context.FusionGraph.QueryType!;
+                var targetType = context.FusionGraph.QueryType!;
 
                 if (context.FusionGraph.QueryType is null)
                 {
-                    targetTa = context.FusionGraph.QueryType = new ObjectType("Query");
-                    context.FusionGraph.Types.Add(targetTa);
+                    targetType = context.FusionGraph.QueryType = new ObjectType(schema.QueryType.Name);
+                    targetType.MergeDescriptionWith(schema.QueryType);
+                    context.FusionGraph.Types.Add(targetType);
                 }
 
-                MergeRootFields(context, schema, schema.QueryType, targetTa, skipOnQuery);
+                MergeRootFields(
+                    context, 
+                    schema, 
+                    schema.QueryType, 
+                    targetType, 
+                    OperationType.Query, 
+                    skipOnQuery);
             }
 
             if (schema.MutationType is not null)
@@ -37,11 +46,18 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 
                 if (context.FusionGraph.MutationType is null)
                 {
-                    targetType = context.FusionGraph.MutationType = new ObjectType("Mutation");
+                    targetType = context.FusionGraph.MutationType = new ObjectType(schema.MutationType.Name);
+                    targetType.MergeDescriptionWith(schema.MutationType);
                     context.FusionGraph.Types.Add(targetType);
                 }
 
-                MergeRootFields(context, schema, schema.MutationType, targetType, skipOnMutation);
+                MergeRootFields(
+                    context,
+                    schema,
+                    schema.MutationType,
+                    targetType,
+                    OperationType.Mutation,
+                    skipOnMutation);
             }
         }
 
@@ -56,8 +72,20 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
         Schema sourceSchema,
         ObjectType sourceRootType,
         ObjectType targetRootType,
+        OperationType operationType,
         HashSet<string> skip)
     {
+        if (!targetRootType.Name.EqualsOrdinal(sourceRootType.Name))
+        {
+            context.Log.Write(
+                LogEntryHelper.RootTypeNameMismatch(
+                    operationType,
+                    targetRootType.Name,
+                    sourceRootType.Name,
+                    sourceSchema.Name));
+            return;
+        }
+
         foreach (var field in sourceRootType.Fields)
         {
             if (skip.Contains(field.Name))
@@ -99,7 +127,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
     }
 }
 
-static file class MergeQueryTypeMiddlewareExtensions
+file static class MergeQueryTypeMiddlewareExtensions
 {
     public static void ApplyResolvers(
         this CompositionContext context,

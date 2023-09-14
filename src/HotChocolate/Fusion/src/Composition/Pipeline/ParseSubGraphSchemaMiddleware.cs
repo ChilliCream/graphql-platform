@@ -1,5 +1,8 @@
+using HotChocolate.Fusion.Composition.Features;
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
+using static HotChocolate.Fusion.Composition.LogEntryHelper;
 using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -8,22 +11,55 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
+        var excludedTags = context.Features.GetExcludedTags();
+
         foreach (var config in context.Configurations)
         {
             var schema = SchemaParser.Parse(config.Schema);
             schema.Name = config.Name;
-            context.Subgraphs.Add(schema);
+            
+            var alignTypes = new AlignTypesVisitor(schema);
 
             foreach (var sourceText in config.Extensions)
             {
                 var extension = SchemaParser.Parse(sourceText);
+                alignTypes.VisitSchema(extension, default!);
                 CreateMissingTypes(context, schema, extension);
                 MergeTypes(context, schema, extension);
                 MergeDirectives(extension, schema, schema);
             }
+
+            if (IsIncluded(schema, excludedTags))
+            {
+                context.Subgraphs.Add(schema);
+            }
+
+            foreach (var missingType in schema.Types.OfType<MissingType>())
+            {
+                context.Log.Write(TypeNotDeclared(missingType, schema));
+            }
         }
 
         await next(context).ConfigureAwait(false);
+    }
+
+    private static bool IsIncluded(Schema schema, IReadOnlySet<string> excludedTags)
+    {
+        if(schema.Directives.Count == 0)
+        {
+            return true;
+        }
+        
+        foreach (var directive in schema.Directives[WellKnownDirectives.Tag])
+        {
+            if (directive.Arguments[0] is { Name: WellKnownDirectives.Name, Value: StringValueNode name } &&
+                excludedTags.Contains(name.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static void CreateMissingTypes(
@@ -74,6 +110,11 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         }
     }
 
+    private void AlignTypes(Schema schema)
+    {
+        
+    }
+
     private static void TryCreateMissingType<T>(
         CompositionContext context,
         T sourceType,
@@ -85,7 +126,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
             if (targetType.Kind != sourceType.Kind)
             {
                 context.Log.Write(
-                    LogEntryHelper.MergeTypeKindDoesNotMatch(
+                    MergeTypeKindDoesNotMatch(
                         sourceType,
                         sourceType.Kind,
                         targetType.Kind));
@@ -198,7 +239,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
             {
                 if (target.Fields.TryGetField(sourceField.Name, out var targetField))
                 {
-                    context.MergeField(sourceField, targetField);
+                    context.MergeField(source, sourceField, targetField);
                 }
                 else
                 {

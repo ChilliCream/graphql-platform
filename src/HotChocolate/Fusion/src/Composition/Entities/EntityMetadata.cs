@@ -10,7 +10,12 @@ internal sealed class EntityMetadata
     /// <summary>
     /// Gets the list of entity resolvers associated with this entity.
     /// </summary>
-    public List<EntityResolver> EntityResolvers { get; } = new();
+    public EntityResolversCollection EntityResolvers { get; } = new();
+
+    /// <summary>
+    /// Gets fields that have dependencies on other fields.
+    /// </summary>
+    public Dictionary<string, List<FieldDependency>> DependantFields { get; } = new();
 
     /// <summary>
     /// Returns a string that represents the current object.

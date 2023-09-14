@@ -45,8 +45,8 @@ export const CookieConsent: FC = () => {
         <Container>
           <Message id="cookieconsent:desc">
             This website uses cookies to ensure you get the best experience on
-            our website.{" "}
-            <LearnMoreLink to="https://cookiesandyou.com">
+            our website.
+            <LearnMoreLink prefetch={false} to="/legal/cookie-policy.html">
               Learn more
             </LearnMoreLink>
           </Message>
