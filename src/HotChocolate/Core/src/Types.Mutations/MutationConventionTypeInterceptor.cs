@@ -418,6 +418,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 return parent;
             });
+        objectDef.ContextData.Add(MutationConventionDataField, dataFieldDef.Name);
         objectDef.Fields.Add(dataFieldDef);
 
         // if the mutation has domain errors we will add the errors

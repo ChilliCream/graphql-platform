@@ -273,7 +273,7 @@ public sealed class DelegateToRemoteSchemaMiddleware
         Path fieldPath,
         IImmutableStack<SelectionPathComponent> fetchPath)
     {
-        var depth = errorPath.Length + 1;
+        var depth = errorPath.Length;
         var buffer = ArrayPool<Path>.Shared.Rent(depth);
         var paths = buffer.AsSpan().Slice(0, depth);
 
@@ -314,11 +314,11 @@ public sealed class DelegateToRemoteSchemaMiddleware
             {
                 if (paths[i] is IndexerPathSegment index)
                 {
-                    current = PathFactory.Instance.Append(current, index.Index);
+                    current = current.Append(index.Index);
                 }
                 else if (paths[i] is NamePathSegment name)
                 {
-                    current = PathFactory.Instance.Append(current, name.Name);
+                    current = current.Append(name.Name);
                 }
             }
 

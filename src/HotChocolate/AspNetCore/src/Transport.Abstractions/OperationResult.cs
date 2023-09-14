@@ -74,7 +74,7 @@ public sealed class OperationResult : IDisposable
         {
             throw new ArgumentNullException(nameof(document));
         }
-        
+
         var root = document.RootElement;
 
         return new OperationResult(
@@ -83,16 +83,16 @@ public sealed class OperationResult : IDisposable
             root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
             root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default);
     }
-    
+
     public static OperationResult Parse(ReadOnlySpan<byte> span)
     {
         if (span.Length == 0)
         {
             throw new ArgumentException(
-                OperationResult_Parse_JsonDataIsEmpty, 
+                OperationResult_Parse_JsonDataIsEmpty,
                 nameof(span));
         }
-        
+
         var reader = new Utf8JsonReader(span, true, default);
         var root = JsonElement.ParseValue(ref reader);
 

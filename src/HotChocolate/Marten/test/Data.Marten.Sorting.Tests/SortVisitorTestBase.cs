@@ -1,3 +1,4 @@
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -7,17 +8,60 @@ using Marten.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
-namespace HotChocolate.Data.Sorting;
+namespace HotChocolate.Data;
+
+public sealed class ResourceContainer : IAsyncDisposable
+{
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private int _testClassInstances = 0;
+    
+    public PostgreSqlResource Resource { get; } = new(); 
+    
+    public async ValueTask InitializeAsync()
+    {
+        await _semaphore.WaitAsync();
+
+        try
+        {
+            if (_testClassInstances == 0)
+            {
+                await Resource.InitializeAsync();
+            }
+            _testClassInstances++;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    } 
+    
+    public async ValueTask DisposeAsync()
+    {
+        await _semaphore.WaitAsync();
+
+        try
+        {
+            if (--_testClassInstances == 0)
+            {
+                await Resource.DisposeAsync();
+            }
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+}
 
 public class SortVisitorTestBase : IAsyncLifetime
 {
-    protected PostgreSqlResource Resource { get; } = new();
+    protected static ResourceContainer Container { get; } = new();
 
-    public Task InitializeAsync() => Resource.InitializeAsync();
+    public async Task InitializeAsync() => await Container.InitializeAsync();
 
-    public Task DisposeAsync() => Resource.DisposeAsync();
+    public async Task DisposeAsync() => await Container.DisposeAsync();
 
-    private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+    private static Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
         IDocumentStore store,
         params TResult[] results)
         where TResult : class
@@ -43,8 +87,8 @@ public class SortVisitorTestBase : IAsyncLifetime
         where T : SortInputType<TEntity>
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
-        Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
-        var store = DocumentStore.For(Resource.GetConnectionString(dbName));
+        Container.Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
+        var store = DocumentStore.For(Container.Resource.GetConnectionString(dbName));
 
         var resolver = BuildResolver(store, entities);
 
@@ -105,23 +149,21 @@ public class SortVisitorTestBase : IAsyncLifetime
     {
         field.Use(next => async context =>
         {
-            await using (var session = store.LightweightSession())
+            await using var session = store.LightweightSession();
+            context.LocalContextData = context.LocalContextData.SetItem("session", session);
+            await next(context);
+        });
+        
+        field.Use(next => async context =>
+        {
+            await next(context);
+
+            if (context.Result is IMartenQueryable<TEntity> queryable)
             {
-                context.LocalContextData = context.LocalContextData.SetItem("session", session);
-                await next(context);
+                context.ContextData["sql"] = queryable.ToCommand().CommandText;
+                context.Result = await queryable.ToListAsync(context.RequestAborted);
             }
         });
-        field.Use(
-            next => async context =>
-            {
-                await next(context);
-
-                if (context.Result is IMartenQueryable<TEntity> queryable)
-                {
-                    context.ContextData["sql"] = queryable.ToCommand().CommandText;
-                    context.Result = await queryable.ToListAsync(context.RequestAborted);
-                }
-            });
 
         if (withPaging)
         {

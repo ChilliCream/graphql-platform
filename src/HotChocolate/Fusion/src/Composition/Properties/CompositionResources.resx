@@ -63,4 +63,13 @@ Source Arguments: {2}</value>
   <data name="DirectivesHelper_GetRequireDirective_NoFieldArg" xml:space="preserve">
     <value>The require directive must have a value for the argument field.</value>
   </data>
+  <data name="LogEntryHelper_TypeNotDeclared" xml:space="preserve">
+    <value>The type `{0}` is not declared on subgraph {1}. Check the subgraph schema for consistency.</value>
+  </data>
+  <data name="LogEntryHelper_OutputFieldTypeMismatch" xml:space="preserve">
+    <value>Unable to merge the field `{0}` because the type `{1}` does not match the type `{2}`.</value>
+  </data>
+  <data name="LogEntryHelper_RootTypeNameMismatch" xml:space="preserve">
+    <value>The {0} type name `{1}` does not match to the {0} type name `{2}` on subgraph `{3}`. Make sure that the root type names on the various subgraph match.</value>
+  </data>
 </root>

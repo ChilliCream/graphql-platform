@@ -1,39 +1,42 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
+using static HotChocolate.Execution.Processing.PathHelper;
 
 namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
     private static object? CompleteListValue(
-        OperationContext operationContext,
-        MiddlewareContext resolverContext,
-        List<ResolverTask> tasks,
+        ValueCompletionContext context,
         ISelection selection,
-        Path path,
-        IType fieldType,
-        string responseName,
-        int responseIndex,
+        IType type,
+        ResultData parent,
+        int index,
         object? result)
     {
-        var elementType = fieldType.InnerType();
+        if (result is null)
+        {
+            return null;
+        }
+        
+        var elementType = type.InnerType();
         var isLeafType = elementType.IsLeafType();
+        var operationContext = context.OperationContext;
+        var resolverContext = context.ResolverContext;
 
         if (result is Array array)
         {
             var resultList = operationContext.Result.RentList(array.Length);
             resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+            resultList.SetParent(parent, index);
 
             for (var i = 0; i < array.Length; i++)
             {
                 var elementResult = array.GetValue(i);
-                var elementPath = operationContext.PathFactory.Append(path, i);
 
-                if (!TryCompleteElement(resultList, elementPath, elementResult))
+                if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i, elementResult))
                 {
                     operationContext.Result.AddRemovedResult(resultList);
                     return null;
@@ -47,11 +50,11 @@ internal static partial class ValueCompletion
         {
             var resultList = operationContext.Result.RentList(list.Count);
             resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+            resultList.SetParent(parent, index);
 
             for (var i = 0; i < list.Count; i++)
             {
-                var elementPath = operationContext.PathFactory.Append(path, i);
-                if (!TryCompleteElement(resultList, elementPath, list[i]))
+                if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i, list[i]))
                 {
                     operationContext.Result.AddRemovedResult(resultList);
                     return null;
@@ -65,8 +68,10 @@ internal static partial class ValueCompletion
         {
             var resultList = operationContext.Result.RentList(4);
             resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+            resultList.SetParent(parent, index);
 
-            var index = 0;
+            var i = 0;
+
             foreach (var element in enumerable)
             {
                 if (resultList.Count == resultList.Capacity)
@@ -74,8 +79,7 @@ internal static partial class ValueCompletion
                     resultList.Grow();
                 }
 
-                var elementPath = operationContext.PathFactory.Append(path, index++);
-                if (!TryCompleteElement(resultList, elementPath, element))
+                if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i++, element))
                 {
                     operationContext.Result.AddRemovedResult(resultList);
                     return null;
@@ -85,43 +89,89 @@ internal static partial class ValueCompletion
             return resultList;
         }
 
-        var error = ListValueIsNotSupported(result?.GetType() ?? typeof(ListResult), selection.SyntaxNode, path);
+        var errorPath = CreatePathFromContext(selection, parent, index);
+        var error = ListValueIsNotSupported(result.GetType(), selection.SyntaxNode, errorPath);
         operationContext.ReportError(error, resolverContext, selection);
 
         return null;
+    }
 
-        bool TryCompleteElement(ListResult resultList, Path elementPath, object? elementResult)
+    private static bool TryCompleteElement(
+        ValueCompletionContext context,
+        ISelection selection,
+        IType elementType,
+        bool isLeafType,
+        ListResult list,
+        int parentIndex,
+        object? elementResult)
+    {
+        // We first add a null entry so that the null-propagation has an element to traverse.
+        var index = list.AddUnsafe(null);
+        var completedElement = Complete(context, selection, elementType, list, parentIndex, elementResult);
+
+        if (completedElement is not null)
         {
-            var completedElement = Complete(
-                operationContext,
-                resolverContext,
-                tasks,
-                selection,
-                elementPath,
-                elementType,
-                responseName,
-                responseIndex,
-                elementResult);
-
-            if (completedElement is not null)
+            if (isLeafType)
             {
-                resultList.AddUnsafe(completedElement);
+                list.SetUnsafe(index, completedElement);
+            }
+            else
+            {
+                var resultData = (ResultData)completedElement;
 
-                if (!isLeafType)
+                if (resultData.IsInvalidated)
                 {
-                    ((ResultData)completedElement).Parent = resultList;
+                    return list.IsNullable;
                 }
-
-                return true;
+                
+                list.SetUnsafe(index, resultData);
             }
+            return true;
+        }
+        
+        return list.IsNullable;
+    }
 
-            if (resultList.IsNullable)
+    internal static void PropagateNullValues(ResultData result)
+    {
+        if(result.IsInvalidated)
+        {
+            return;
+        }
+        
+        result.IsInvalidated = true;
+        
+        while (result.Parent is not null)
+        {
+            var index = result.ParentIndex;
+            var parent = result.Parent;
+            
+            if(parent.IsInvalidated)
             {
-                resultList.AddUnsafe(null);
-                return true;
+                return;
             }
 
-            return false;
+            switch (parent)
+            {
+                case ObjectResult objectResult:
+                    var field = objectResult[index];
+                    if(field.TrySetNull())
+                    {
+                        return;
+                    }
+                    objectResult.IsInvalidated = true;
+                    break;
+                
+                case ListResult listResult:
+                    if (listResult.TrySetNull(index))
+                    {
+                        return;
+                    }
+                    listResult.IsInvalidated = true;
+                    break;
+            }
+            
+            result = parent;
         }
     }
 }

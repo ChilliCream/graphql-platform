@@ -57,7 +57,12 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         RequestState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var executionState))
+        if (!state.TryGetState(SelectionSet, out var executionState))
+        {
+            return;
+        }
+
+        try
         {
             InitializeRequests(context, executionState);
 
@@ -75,7 +80,17 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             // for cleanup so that the memory can be released at the end of the execution.
             context.Result.RegisterForCleanup(response, ReturnResult);
 
-            ProcessResult(context, response, batchExecutionState);
+            // we need to lock the state before mutating it since there could be multiple
+            // query plan nodes be interested in it.
+            lock (executionState)
+            {
+                ProcessResult(context, response, batchExecutionState);
+            }
+        }
+        catch(Exception ex)
+        {
+            var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
+            context.Result.AddError(error.Build());
         }
     }
 

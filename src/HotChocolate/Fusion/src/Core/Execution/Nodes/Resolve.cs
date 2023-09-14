@@ -40,9 +40,14 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         RequestState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var executionState))
+        if (!state.TryGetState(SelectionSet, out var executionState))
         {
-            var requests =  new SubgraphGraphQLRequest[executionState.Count];
+            return;
+        }
+
+        try
+        {
+            var requests = new SubgraphGraphQLRequest[executionState.Count];
 
             // first we will create request for all of our selection sets.
             InitializeRequests(context, executionState, requests);
@@ -57,7 +62,17 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             // but need to wait until the transport layer is finished and disposes the result.
             context.Result.RegisterForCleanup(responses, ReturnResults);
 
-            ProcessResponses(context, executionState, requests, responses, SubgraphName);
+            // we need to lock the state before mutating it since there could be multiple
+            // query plan nodes be interested in it.
+            lock (executionState)
+            {
+                ProcessResponses(context, executionState, requests, responses, SubgraphName);
+            }
+        }
+        catch(Exception ex)
+        {
+            var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
+            context.Result.AddError(error.Build());
         }
     }
 

@@ -7,7 +7,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionResources;
-using static HotChocolate.Fusion.Metadata.ResolverKind;
 
 namespace HotChocolate.Fusion.Planning.Pipeline;
 
@@ -42,14 +41,14 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
                 continue;
             }
 
-            if (selectionStep.Resolver?.Kind == BatchByKey)
+            if (selectionStep.Resolver?.Kind == ResolverKind.Batch)
             {
                 var resolve = CreateResolveByKeyBatchNode(context, selectionStep);
                 context.RegisterNode(resolve, selectionStep);
             }
             else if (selectionStep.Resolver is null &&
                 selectionStep.RootSelections.Count == 1 &&
-                selectionStep.RootSelections[0].Resolver?.Kind is Subscription)
+                selectionStep.RootSelections[0].Resolver?.Kind is ResolverKind.Subscribe)
             {
                 var resolve = CreateSubscribeNode(context, selectionStep);
                 context.RegisterNode(resolve, selectionStep);
@@ -296,10 +295,19 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
     private ISelectionSet ResolveSelectionSet(
         QueryPlanContext context,
-        ExecutionStep executionStep)
-        => executionStep.ParentSelection is null
+        SelectionExecutionStep executionStep)
+    {
+        if (executionStep.Resolver is null &&
+            executionStep.SelectionResolvers.Count == 0 &&
+            executionStep.ParentSelectionPath is not null)
+        {
+            return context.Operation.RootSelectionSet;
+        }
+
+        return executionStep.ParentSelection is null
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
                 _schema.GetType<ObjectType>(executionStep.SelectionSetTypeMetadata.Name));
+    }
 }

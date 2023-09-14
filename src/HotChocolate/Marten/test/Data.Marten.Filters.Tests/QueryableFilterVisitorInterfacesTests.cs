@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data;
 
-public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableFilterVisitorInterfacesTests
 {
     private static readonly BarInterface[] _barEntities =
     {
@@ -51,15 +53,12 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "a"),
-                    res2,
-                    "ba"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "a").AddResult(
+                res2,
+                "ba").AddResult(
                 res3,
                 "null")
             .MatchAsync();

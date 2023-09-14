@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Projections.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <TargetFrameworks>net6.0</TargetFrameworks>
     <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>

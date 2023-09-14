@@ -1,5 +1,6 @@
 namespace HotChocolate.Fusion.Shared.Reviews2;
 
+[GraphQLName("Mutation")]
 public sealed class ReviewsMutation
 {
     public Review AddReview(

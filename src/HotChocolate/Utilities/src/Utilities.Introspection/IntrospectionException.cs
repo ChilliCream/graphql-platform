@@ -14,7 +14,7 @@ public class IntrospectionException
 
     public IntrospectionException(string message, Exception inner)
         : base(message, inner) { }
-
+    
     protected IntrospectionException(
         SerializationInfo info,
         StreamingContext context)

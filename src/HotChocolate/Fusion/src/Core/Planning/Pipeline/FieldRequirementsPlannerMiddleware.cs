@@ -196,6 +196,7 @@ internal sealed class FieldRequirementsPlannerMiddleware(
             context.NextStepId(),
             subgraph,
             parentSelection,
+            null,
             selection.DeclaringType,
             typeMetadata);
 
@@ -250,8 +251,7 @@ internal sealed class FieldRequirementsPlannerMiddleware(
             if (requirements > resolver.Requires.Count || selectedResolver is null ||
                 (selectedResolver.Requires.Count == resolver.Requires.Count &&
                     selectedResolver.Kind == ResolverKind.Query &&
-                    (resolver.Kind == ResolverKind.Batch ||
-                        resolver.Kind == ResolverKind.BatchByKey)))
+                    resolver.Kind == ResolverKind.Batch))
             {
                 requirements = resolver.Requires.Count;
                 selectedResolver = resolver;

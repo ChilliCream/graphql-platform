@@ -159,8 +159,7 @@ internal sealed class BufferedRequest
     {
         var variableDefinition =
             operation.VariableDefinitions.FirstOrDefault(
-                t =>
-                    string.Equals(t.Variable.Name.Value, name, StringComparison.Ordinal));
+                t => string.Equals(t.Variable.Name.Value, name, StringComparison.Ordinal));
 
         if (variableDefinition is not null &&
             schema.TryGetType<INamedInputType>(
@@ -183,7 +182,7 @@ internal sealed class BufferedRequest
             return inputFormatter.FormatValue(
                 value,
                 variableType,
-                PathFactory.Instance.New(variableDefinition.Variable.Name.Value));
+                Path.Root.Append(variableDefinition.Variable.Name.Value));
         }
 
         throw BufferedRequest_VariableDoesNotExist(name);

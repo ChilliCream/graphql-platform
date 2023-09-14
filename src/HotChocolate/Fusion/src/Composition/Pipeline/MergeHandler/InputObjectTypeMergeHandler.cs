@@ -45,10 +45,7 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
 
         // If the target input object type doesn't have a description, use the source input
         // object type's description
-        if (string.IsNullOrEmpty(target.Description))
-        {
-            target.Description = source.Description;
-        }
+        target.MergeDescriptionWith(source);
 
         // Merge each field of the input object type
         foreach (var sourceField in source.Fields)
@@ -57,7 +54,7 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
             {
                 // If the target input object type has a field with the same name as the source
                 // field, merge the source field into the target field
-                context.MergeField(sourceField, targetField);
+                context.MergeField(source, sourceField, targetField);
             }
             else
             {

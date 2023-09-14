@@ -133,6 +133,26 @@ export const Footer: FC = () => {
             <NavLink to="/services/support">Support</NavLink>
           </Navigation>
         </Links>
+        <Links>
+          <Title>About</Title>
+          <Navigation>
+            <NavLink prefetch={false} to="mailto:contact@chillicream.com">
+              Contact
+            </NavLink>
+            <NavLink prefetch={false} to="/legal/acceptable-use-policy.html">
+              Acceptable Use
+            </NavLink>
+            <NavLink prefetch={false} to="/legal/cookie-policy.html">
+              Cookie Policy
+            </NavLink>
+            <NavLink prefetch={false} to="/legal/privacy-policy.html">
+              Privacy Policy
+            </NavLink>
+            <NavLink prefetch={false} to="/legal/terms-of-service.html">
+              Terms of Service
+            </NavLink>
+          </Navigation>
+        </Links>
       </Section>
       <Section>
         <Copyright>

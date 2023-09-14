@@ -7,15 +7,10 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class TagTests
+public class TagTests(ITestOutputHelper output)
 {
-    private readonly Func<ICompositionLog> _logFactory;
+    private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
-    public TagTests(ITestOutputHelper output)
-    {
-        _logFactory = () => new TestCompositionLog(output);
-    }
-    
     [Fact]
     public async Task Do_Not_Expose_Tags_On_Public_Schema()
     {

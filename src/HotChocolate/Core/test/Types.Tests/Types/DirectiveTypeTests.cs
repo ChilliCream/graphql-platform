@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -297,6 +299,50 @@ public class DirectiveTypeTests : TypeTestBase
         // assert
         var directive = schema.GetDirectiveType("foo");
         Assert.NotNull(directive.Middleware);
+    }
+    
+    [Fact]
+    public async Task Use_EnsureClassMiddlewareDoesNotTrap_Next()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                descriptor =>
+                {
+                    descriptor
+                        .Name("Query");
+                    
+                    descriptor
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar")
+                        .Directive("foo");
+                    
+                    descriptor
+                        .Field("foo1")
+                        .Type<IntType>()
+                        .Resolve(1)
+                        .Directive("foo");
+                })
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.FieldDefinition)
+                        .Use<DirectiveMiddleware1>()))
+            .Create();
+
+        // assert
+        var directive = schema.GetDirectiveType("foo");
+        Assert.NotNull(directive.Middleware);
+
+        await schema.MakeExecutable().ExecuteAsync("{ foo }");
+        await schema.MakeExecutable().ExecuteAsync("{ foo1 }");
+        await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
+        var result = await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
+        
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -866,6 +912,25 @@ public class DirectiveTypeTests : TypeTestBase
 
         public Task InvokeAsync(IMiddlewareContext context) =>
             Task.CompletedTask;
+    }
+    
+    public class DirectiveMiddleware1
+    {
+        private readonly FieldDelegate _next;
+        private static int _instances;
+        private readonly int _count;
+
+        public DirectiveMiddleware1(FieldDelegate next)
+        {
+            _next = next;
+            _count = Interlocked.Increment(ref _instances);
+        }
+
+        public async Task InvokeAsync(IMiddlewareContext context)
+        {
+            await _next(context);
+            context.OperationResult.SetExtension("_" + _count, _count);
+        }
     }
 
     public class Deprecated2Directive
