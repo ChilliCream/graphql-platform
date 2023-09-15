@@ -8,13 +8,14 @@ internal sealed class OpenApiWrapperPipelineBuilder
     {
     }
 
-    public static OpenApiWrapperPipelineBuilder New() => new();
-
-    private OpenApiWrapperPipelineBuilder Use(OpenApiWrapperMiddleware middleware)
+    public OpenApiWrapperDelegate Build()
     {
-        _pipeline.Add(middleware);
-        return this;
+        OpenApiWrapperDelegate next = _ => { };
+        for (var i = _pipeline.Count - 1; i >= 0; i--) next = _pipeline[i].Invoke(next);
+        return next;
     }
+
+    public static OpenApiWrapperPipelineBuilder New() => new();
 
     public OpenApiWrapperPipelineBuilder Use<TMiddleware>()
         where TMiddleware : IOpenApiWrapperMiddleware, new()
@@ -27,13 +28,5 @@ internal sealed class OpenApiWrapperPipelineBuilder
         return this;
     }
 
-    public OpenApiWrapperDelegate Build()
-    {
-        OpenApiWrapperDelegate next = _ => { };
-        for (var i = _pipeline.Count - 1; i >= 0; i--)
-        {
-            next = _pipeline[i].Invoke(next);
-        }
-        return next;
-    }
+    private void Use(OpenApiWrapperMiddleware middleware) => _pipeline.Add(middleware);
 }

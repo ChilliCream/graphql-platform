@@ -29,9 +29,7 @@ internal sealed class CreatePayloadTypesMiddleware : IOpenApiWrapperMiddleware
         var typeName = OpenApiNamingHelper.GetPayloadTypeName(operation.OperationId);
 
         var schema = operation.Response?.Content.FirstOrDefault().Value?.Schema;
-
-        var noObjectAsResult = schema is null;
-        if (noObjectAsResult)
+        if (schema is null)
         {
             var payloadType = new ObjectType(typeName);
             var field = new OutputField(OpenApiResources.PayloadSuccessField)

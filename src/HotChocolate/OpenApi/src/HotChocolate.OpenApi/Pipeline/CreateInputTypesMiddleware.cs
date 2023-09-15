@@ -94,7 +94,7 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
         var graphQLName = OpenApiNamingHelper.GetFieldName(fieldName);
         var typeInfo = context.GetSchemaTypeInfo(schema);
 
-        var type = typeInfo.IsScalar
+        IType type = typeInfo.IsScalar
             ? new ScalarType(typeInfo.GraphQLTypeName)
             : CreateInputType(context, schema);
         type = required ? new NonNullType(type) : type;
@@ -104,7 +104,7 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
 
 
 
-    private static IType CreateInputType(OpenApiWrapperContext context, OpenApiSchema schema)
+    private static InputObjectType CreateInputType(OpenApiWrapperContext context, OpenApiSchema schema)
     {
         var inputType = new InputObjectType(OpenApiNamingHelper.GetInputTypeName(schema.Reference.Id));
         AddFieldsToInputType(context, schema, inputType);
