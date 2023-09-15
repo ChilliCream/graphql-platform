@@ -2,12 +2,12 @@
   "data": {
     "products": [
       {
-        "productid": "ProductA",
-        "displayname": "Product A"
+        "productId": "ProductA",
+        "displayName": "Product A"
       },
       {
-        "productid": "ProductB",
-        "displayname": "Product B"
+        "productId": "ProductB",
+        "displayName": "Product B"
       }
     ]
   }

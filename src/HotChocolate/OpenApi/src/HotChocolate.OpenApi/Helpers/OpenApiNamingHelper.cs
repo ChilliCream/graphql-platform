@@ -4,12 +4,44 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.OpenApi.Helpers;
 
-internal static class OpenApiNamingHelper
+internal static partial class OpenApiNamingHelper
 {
-    public static string GetFieldName(string value) => value
-                                                           .RemoveCharacterAndEnsureName(' ')
-                                                           .EnsureStartWithLowerChar() ??
-                                                       throw new OpenApiFieldNameNullException();
+    public static string GetFieldName(string value)
+    {
+        var sb = new StringBuilder(value.Length);
+        var toUpper = false;
+        var alreadyCamelCase = true;
+
+        foreach (var c in value)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                if (toUpper)
+                {
+                    sb.Append(char.ToUpperInvariant(c));
+                    toUpper = false;
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+
+            }
+            else if (c is '_' or '-' or ' ')
+            {
+                toUpper = true;
+                alreadyCamelCase = false;
+            }
+        }
+
+        if (sb.Length > 0 && char.IsUpper(sb[0]))
+        {
+            sb[0] = char.ToLowerInvariant(sb[0]);
+            alreadyCamelCase = false;
+        }
+
+        return alreadyCamelCase ? value : sb.ToString();
+    }
 
     public static string GetInputTypeName(string value) => $"{GetTypeName(value)}Input";
     public static string GetPayloadTypeName(string value) => $"{GetTypeName(value)}Payload";

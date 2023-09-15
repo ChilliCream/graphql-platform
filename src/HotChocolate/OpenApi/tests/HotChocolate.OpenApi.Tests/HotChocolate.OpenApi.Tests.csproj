@@ -43,5 +43,13 @@
   </ItemGroup>
   <ItemGroup>
     <_ContentIncludedByDefault Remove="__snapshots__\__MISMATCH__\IntegrationTests.QueryPets_Returns_Results_findSinglePet.json" />
+    <_ContentIncludedByDefault Remove="__snapshots__\__MISMATCH__\IntegrationTests.QueryPets_Returns_Results_addPet.json" />
+    <_ContentIncludedByDefault Remove="__snapshots__\__MISMATCH__\IntegrationTests.QueryPets_Returns_Results_deletePet.json" />
+    <_ContentIncludedByDefault Remove="__snapshots__\__MISMATCH__\IntegrationTests.QueryPets_Returns_Results_findAnyPets.json" />
+    <_ContentIncludedByDefault Remove="__snapshots__\__MISMATCH__\IntegrationTests.QueryUber_Returns_Results_getProducts.json" />
+    <_ContentIncludedByDefault Remove="__snapshots__\__MISMATCH__\IntegrationTests.QueryUber_Returns_Results_me.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="__snapshots__\" />
   </ItemGroup>
 </Project>

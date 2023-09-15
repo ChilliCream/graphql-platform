@@ -27,19 +27,19 @@ type Activity {
 
 type PriceEstimate {
   "[ISO 4217](http:\/\/en.wikipedia.org\/wiki\/ISO_4217) currency code."
-  currencycode: String
+  currencyCode: String
   "Display name of product."
-  displayname: String
+  displayName: String
   "Formatted string of estimate in local currency of the start location. Estimate could be a range, a single number (flat rate) or \"Metered\" for TAXI."
   estimate: String
   "Upper bound of the estimated price."
-  highestimate: Float
+  highEstimate: Float
   "Lower bound of the estimated price."
-  lowestimate: Float
+  lowEstimate: Float
   "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles"
-  productid: String
+  productId: String
   "Expected surge multiplier. Surge is active if surge_multiplier is greater than 1. Price estimate already factors in the surge multiplier."
-  surgemultiplier: Float
+  surgeMultiplier: Float
 }
 
 type Product {
@@ -48,22 +48,22 @@ type Product {
   "Description of product."
   description: String
   "Display name of product."
-  displayname: String
+  displayName: String
   "Image URL representing the product."
   image: String
   "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles."
-  productid: String
+  productId: String
 }
 
 type Profile {
   "Email address of the Uber user"
   email: String
   "First name of the Uber user."
-  firstname: String
+  firstName: String
   "Last name of the Uber user."
-  lastname: String
+  lastName: String
   "Image URL of the Uber user."
   picture: String
   "Promo code of the Uber user."
-  promocode: String
+  promoCode: String
 }

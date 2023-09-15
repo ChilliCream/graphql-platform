@@ -1,11 +1,22 @@
 {
-  "data": {
-    "me": {
-      "firstname": "Max",
-      "lastname": "Mustermann",
-      "email": "max.mustermann@email.abc",
-      "picture": "http://img.png",
-      "promocode": "1234"
+  "errors": [
+    {
+      "message": "The field \u0060promocode\u0060 does not exist on the type \u0060Profile\u0060.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 47
+        }
+      ],
+      "path": [
+        "me"
+      ],
+      "extensions": {
+        "type": "Profile",
+        "field": "promocode",
+        "responseName": "promocode",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      }
     }
-  }
+  ]
 }

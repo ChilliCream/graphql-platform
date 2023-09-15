@@ -56,8 +56,8 @@ public class IntegrationTests
 
 
     [Theory]
-    [InlineData("me", "query { me { firstname lastname email picture promocode } }")]
-    [InlineData("getProducts", "query { products(longitude: 1, latitude: 1) { productid displayname } }")]
+    [InlineData("me", "query { me { firstName lastName email picture promocode } }")]
+    [InlineData("getProducts", "query { products(longitude: 1, latitude: 1) { productId displayName } }")]
     public async Task QueryUber_Returns_Results(string caseName, string query)
     {
         // Arrange
