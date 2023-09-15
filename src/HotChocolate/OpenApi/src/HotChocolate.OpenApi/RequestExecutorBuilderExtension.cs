@@ -99,14 +99,17 @@ public static class RequestExecutorBuilderExtension
                             .Type(new NamedTypeNode(fieldArgument.Type.NamedType().Name)));
                 }
 
-                if (field.ContextData.TryGetValue("resolver", out var res) &&
+                if (field.ContextData.TryGetValue(OpenApiResources.ContextResolverParameter, out var res) &&
                     res is Func<IResolverContext, Task<JsonElement>> resolver)
                 {
                     fieldDescriptor.Resolve(ctx => resolver.Invoke(ctx));
                 }
                 else
                 {
-                    fieldDescriptor.FromJson();
+                    var propertyName = field.ContextData.TryGetValue(OpenApiResources.OpenApiPropertyName, out var name)
+                        ? name?.ToString()
+                        : null;
+                    fieldDescriptor.FromJson(propertyName);
                 }
             }
         };

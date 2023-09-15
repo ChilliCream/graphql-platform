@@ -1,3 +1,4 @@
+using HotChocolate.OpenApi.Properties;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
 using Microsoft.OpenApi.Models;
@@ -66,7 +67,11 @@ internal static class ObjectTypeFactory
         var field = new OutputField(OpenApiNamingHelper.GetFieldName(property.Key))
         {
             Type = fieldType,
-            Description = property.Value.Description
+            Description = property.Value.Description,
+            ContextData =
+            {
+                [OpenApiResources.OpenApiPropertyName] = property.Key
+            }
         };
 
         ParseType(context, fieldType.NamedType().Name, typeInfo.RootSchema);

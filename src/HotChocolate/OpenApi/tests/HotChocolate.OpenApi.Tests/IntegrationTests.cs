@@ -44,16 +44,6 @@ public class IntegrationTests
             .AddSingleton(httpClientFactoryMock.Object)
             .AddGraphQL()
             .AddOpenApi(stream, client => client.BaseAddress = new Uri("http://localhost:5000"))
-            .UseField(
-                next => async context =>
-                {
-                    await next(context);
-
-                    if (context is { Result: JsonElement element, Selection.IsList: true })
-                    {
-                        context.Result = element.EnumerateArray();
-                    }
-                })
             .BuildRequestExecutorAsync();
 
         // Act
@@ -66,8 +56,8 @@ public class IntegrationTests
 
 
     [Theory]
-    [InlineData("me", "query { me { firstName lastName email picture promocode } }")]
-    //[InlineData("getProducts", "query { products(longitude: 1, latitude: 1) { productId displayName } }")]
+    [InlineData("me", "query { me { firstname lastname email picture promocode } }")]
+    [InlineData("getProducts", "query { products(longitude: 1, latitude: 1) { productid displayname } }")]
     public async Task QueryUber_Returns_Results(string caseName, string query)
     {
         // Arrange
@@ -95,16 +85,6 @@ public class IntegrationTests
             .AddSingleton(httpClientFactoryMock.Object)
             .AddGraphQL()
             .AddOpenApi(stream, client => client.BaseAddress = new Uri("http://localhost:5000"))
-            .UseField(
-                next => async context =>
-                {
-                    await next(context);
-
-                    if (context is { Result: JsonElement element, Selection.IsList: true })
-                    {
-                        context.Result = element.EnumerateArray();
-                    }
-                })
             .BuildRequestExecutorAsync();
 
         // Act

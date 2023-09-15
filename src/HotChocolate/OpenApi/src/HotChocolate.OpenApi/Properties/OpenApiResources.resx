@@ -42,4 +42,7 @@
   <data name="BoolSuccessResult" xml:space="preserve">
     <value>{ "success": true }</value>
   </data>
+  <data name="OpenApiPropertyName" xml:space="preserve">
+    <value>OpenApiPropertyName</value>
+  </data>
 </root>

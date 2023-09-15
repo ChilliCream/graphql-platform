@@ -7,6 +7,7 @@ using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Helpers;
 
@@ -38,15 +39,15 @@ internal static class OperationResolverHelper
 
     private static HttpRequestMessage CreateRequest(IResolverContext resolverContext, Operation operation)
     {
-        var path = operation.Path;
         HttpContent? content = null;
 
-        foreach (var parameter in operation.Parameters)
+        var path = GetPath(resolverContext, operation);
+
+        var queryString = CreateQueryString(resolverContext, operation);
+
+        if (!string.IsNullOrEmpty(queryString))
         {
-            var pathValue = operation.Method == HttpMethod.Get
-                ? resolverContext.ArgumentValue<string>(parameter.Name)
-                : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>(OpenApiResources.InputField), parameter.Name);
-            path = path.Replace($"{{{parameter.Name}}}", pathValue );
+            path = $"{path}?{queryString}";
         }
 
         if (operation.RequestBody is not null)
@@ -64,6 +65,35 @@ internal static class OperationResolverHelper
         }
 
         return request;
+    }
+
+    private static string GetPath(IResolverContext resolverContext, Operation operation)
+    {
+        var path = operation.Path;
+        foreach (var parameter in operation.Parameters)
+        {
+            var pathValue = operation.Method == HttpMethod.Get
+                ? resolverContext.ArgumentValue<string>(parameter.Name)
+                : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>(OpenApiResources.InputField), parameter.Name);
+            path = path.Replace($"{{{parameter.Name}}}", pathValue );
+        }
+
+        return path;
+    }
+
+    private static string CreateQueryString(IResolverContext resolverContext, Operation operation)
+    {
+        return string.Join('&', operation.Parameters
+            .Where(p => p.In == ParameterLocation.Query)
+            .Select(p =>
+            {
+                var pathValue = operation.Method == HttpMethod.Get
+                    ? resolverContext.ArgumentValue<string>(p.Name)
+                    : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>(OpenApiResources.InputField),
+                        p.Name);
+
+                return $"{p.Name}={pathValue}";
+            }));
     }
 
     private static string GetJsonValueOfInputNode(IValueNode valueNode)

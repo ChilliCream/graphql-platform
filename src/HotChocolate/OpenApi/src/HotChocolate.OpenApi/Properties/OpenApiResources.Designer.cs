@@ -9,21 +9,21 @@
 
 namespace HotChocolate.OpenApi.Properties {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class OpenApiResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal OpenApiResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.OpenApi.Properties {
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,52 +44,58 @@ namespace HotChocolate.OpenApi.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string RootTypeQuery {
             get {
                 return ResourceManager.GetString("RootTypeQuery", resourceCulture);
             }
         }
-        
+
         internal static string RootTypeMutation {
             get {
                 return ResourceManager.GetString("RootTypeMutation", resourceCulture);
             }
         }
-        
+
         internal static string ContextResolverParameter {
             get {
                 return ResourceManager.GetString("ContextResolverParameter", resourceCulture);
             }
         }
-        
+
         internal static string PayloadSuccessField {
             get {
                 return ResourceManager.GetString("PayloadSuccessField", resourceCulture);
             }
         }
-        
+
         internal static string InputField {
             get {
                 return ResourceManager.GetString("InputField", resourceCulture);
             }
         }
-        
+
         internal static string HttpClientName {
             get {
                 return ResourceManager.GetString("HttpClientName", resourceCulture);
             }
         }
-        
+
         internal static string JsonMediaType {
             get {
                 return ResourceManager.GetString("JsonMediaType", resourceCulture);
             }
         }
-        
+
         internal static string BoolSuccessResult {
             get {
                 return ResourceManager.GetString("BoolSuccessResult", resourceCulture);
+            }
+        }
+
+        internal static string OpenApiPropertyName {
+            get {
+                return ResourceManager.GetString("OpenApiPropertyName", resourceCulture);
             }
         }
     }
