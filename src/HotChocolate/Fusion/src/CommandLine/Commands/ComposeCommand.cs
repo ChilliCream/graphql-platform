@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Packaging;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.Fusion.CommandLine.Helpers;
