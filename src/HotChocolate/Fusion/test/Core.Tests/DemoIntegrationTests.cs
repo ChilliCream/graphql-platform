@@ -775,6 +775,54 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
+    
+    [Fact]
+    public async Task Fetch_User_With_Invalid_Node_Field()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query FetchNode($id: ID!) {
+                node(id: $id) {
+                    ... on User {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("id", 1)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+    }
 
     [Fact]
     public async Task Fetch_User_With_Node_Field_Pass_In_Review_Id()
