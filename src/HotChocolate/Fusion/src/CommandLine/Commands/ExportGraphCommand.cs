@@ -1,6 +1,8 @@
 using System.CommandLine;
 using System.Text;
 using HotChocolate.Fusion.CommandLine.Helpers;
+using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Utilities;
 using static System.IO.Path;
 using static HotChocolate.Fusion.CommandLine.Extensions;
@@ -59,7 +61,10 @@ internal sealed class ExportGraphCommand : Command
         graphFile ??= new FileInfo(Combine(packageFile.DirectoryName!, "fusion.graphql"));
         
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
+
         var graph = await package.GetFusionGraphAsync(cancellationToken);
-        await File.WriteAllTextAsync(graphFile.FullName, graph.ToString(true), Encoding.UTF8, cancellationToken);
+        var options = new SyntaxSerializerOptions { Indented = true, MaxDirectivesPerLine = 0 };
+        
+        await File.WriteAllTextAsync(graphFile.FullName, graph.ToString(options), Encoding.UTF8, cancellationToken);
     }
 }
