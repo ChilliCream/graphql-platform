@@ -63,8 +63,8 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
             // value's deprecation reason
             targetValue.MergeDeprecationWith(sourceValue);
             
-            // Try to apply the source value to the target value
-            context.TryApplySource(sourceValue, sourceSchema, targetValue);
+            // Apply the source value to the target value
+            context.ApplySource(sourceValue, sourceSchema, targetValue);
         }
     }
 }
