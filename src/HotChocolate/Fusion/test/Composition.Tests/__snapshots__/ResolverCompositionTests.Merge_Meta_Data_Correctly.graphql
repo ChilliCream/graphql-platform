@@ -33,10 +33,8 @@ type PageInfo {
 type User implements Node
   @variable(subgraph: "A", name: "User_name", select: "name")
   @variable(subgraph: "A", name: "User_id", select: "id")
-  @variable(subgraph: "A", name: "User_username", select: "username")
   @resolver(subgraph: "A", select: "{ userByUsername(username: $User_name) }", arguments: [ { name: "User_name", type: "String!" } ])
   @resolver(subgraph: "A", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "A", select: "{ userByUsername(username: $User_username) }", arguments: [ { name: "User_username", type: "String!" } ])
   @resolver(subgraph: "A", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: String!
     @source(subgraph: "A")
