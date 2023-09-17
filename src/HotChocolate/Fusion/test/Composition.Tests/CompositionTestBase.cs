@@ -9,13 +9,13 @@ public abstract class CompositionTestBase(ITestOutputHelper output)
 {
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
-     protected async Task Succeed(string schemaA)
+     protected async Task Succeed(string schema, string[]? extensions = null)
     {
         // arrange
         var configA = new SubgraphConfiguration(
             "A",
-            schemaA,
-            Array.Empty<string>(),
+            schema,
+            extensions ?? Array.Empty<string>(),
             new[] { new HttpClientConfiguration(new Uri("https://localhost:5001/graphql")) });
 
         // act
@@ -27,12 +27,12 @@ public abstract class CompositionTestBase(ITestOutputHelper output)
             .MatchSnapshot(extension: ".graphql");
     }
 
-    protected async Task Succeed(string schemaA, string schemaB)
+    protected async Task Succeed(string schema, string schemaB)
     {
         // arrange
         var configA = new SubgraphConfiguration(
             "A",
-            schemaA,
+            schema,
             Array.Empty<string>(),
             new[] { new HttpClientConfiguration(new Uri("https://localhost:5001/graphql")) });
 
