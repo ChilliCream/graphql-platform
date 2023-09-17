@@ -34,6 +34,9 @@ internal sealed class EntityResolver
         SubgraphName = subgraphName ?? throw new ArgumentNullException(nameof(subgraphName));
     }
 
+    /// <summary>
+    /// Gets the type of this resolver.
+    /// </summary>
     public EntityResolverKind Kind { get; }
 
     /// <summary>
