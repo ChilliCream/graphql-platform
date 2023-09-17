@@ -27,7 +27,7 @@ namespace HotChocolate.Diagnostics;
 public class ActivityEnricher
 {
     private readonly InstrumentationOptions _options;
-    private readonly ConditionalWeakTable<ISyntaxNode, string> _bodyCache = new();
+    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = new();
 
     /// <summary>
     /// Initializes a new instance of <see cref="ActivityEnricher"/>.
@@ -110,10 +110,10 @@ public class ActivityEnricher
         if (request.Query is not null &&
             (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
         {
-            if (!_bodyCache.TryGetValue(request.Query, out var query))
+            if (!_queryCache.TryGetValue(request.Query, out var query))
             {
                 query = request.Query.Print();
-                _bodyCache.Add(request.Query, query);
+                _queryCache.Add(request.Query, query);
             }
 
             activity.SetTag("graphql.http.request.query.body", query);
