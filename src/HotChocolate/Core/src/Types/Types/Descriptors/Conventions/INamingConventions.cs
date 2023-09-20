@@ -7,7 +7,6 @@ namespace HotChocolate.Types.Descriptors;
 
 public interface INamingConventions
     : IConvention
-    , IGenericTypeArgumentNamingConvention
 {
     string GetTypeName(Type type);
 

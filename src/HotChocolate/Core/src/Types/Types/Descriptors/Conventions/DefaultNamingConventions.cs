@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Descriptors;
 public class DefaultNamingConventions
     : Convention
     , INamingConventions
+    , IGenericTypeArgumentNamingConvention
 {
     private const string _inputPostfix = "Input";
     private const string _inputTypePostfix = "InputType";
