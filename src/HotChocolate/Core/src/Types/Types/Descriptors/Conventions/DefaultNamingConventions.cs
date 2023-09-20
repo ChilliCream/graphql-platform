@@ -43,7 +43,7 @@ public class DefaultNamingConventions
     /// <inheritdoc />
     public virtual string GetGenericTypeArgumentName(Type type)
     {
-        return type.Name;
+        return type.GetGraphQLName(namingConventionForGenericTypeArguments: this);
     }
 
     /// <inheritdoc />
