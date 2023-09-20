@@ -5,8 +5,12 @@ using System.Reflection;
 
 namespace HotChocolate.Types.Descriptors;
 
-public interface INamingConventions : IConvention, ITypeNamingConvention
+public interface INamingConventions
+    : IConvention
+    , IGenericTypeArgumentNamingConvention
 {
+    string GetTypeName(Type type);
+
     string GetTypeName(Type type, TypeKind kind);
 
     string? GetTypeDescription(Type type, TypeKind kind);

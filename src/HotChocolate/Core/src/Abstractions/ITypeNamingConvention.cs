@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate;
 
-public interface ITypeNamingConvention
+public interface IGenericTypeArgumentNamingConvention
 {
-    string GetTypeName(Type type);
+    string GetGenericTypeArgumentName(Type type);
 }

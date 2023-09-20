@@ -21,7 +21,7 @@ internal static class NameFormattingHelpers
 
     public static string GetGraphQLName(
         this Type type,
-        ITypeNamingConvention? namingConventionForGenericArguments = null)
+        IGenericTypeArgumentNamingConvention? namingConventionForGenericTypeArguments = null)
     {
         if (type is null)
         {
@@ -31,7 +31,7 @@ internal static class NameFormattingHelpers
         var typeInfo = type.GetTypeInfo();
         var name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
             ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : GetFromType(typeInfo, namingConventionForGenericArguments);
+            : GetFromType(typeInfo, namingConventionForGenericTypeArguments);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -186,7 +186,7 @@ internal static class NameFormattingHelpers
 
     private static string GetFromType(
         Type type,
-        ITypeNamingConvention? namingConventionForGenericArguments)
+        IGenericTypeArgumentNamingConvention? namingConventionForGenericTypeArguments)
     {
         if (type.GetTypeInfo().IsGenericType)
         {
@@ -200,11 +200,11 @@ internal static class NameFormattingHelpers
                 .GetTypeInfo().GenericTypeArguments
                 .Select(type1 =>
                 {
-                    if (namingConventionForGenericArguments is not null)
+                    if (namingConventionForGenericTypeArguments is not null)
                     {
-                        return namingConventionForGenericArguments.GetTypeName(type1);
+                        return namingConventionForGenericTypeArguments.GetGenericTypeArgumentName(type1);
                     }
-                    return GetFromType(type1, namingConventionForGenericArguments: null);
+                    return GetFromType(type1, namingConventionForGenericTypeArguments: null);
                 });
 
             return $"{name}Of{string.Join("And", arguments)}";

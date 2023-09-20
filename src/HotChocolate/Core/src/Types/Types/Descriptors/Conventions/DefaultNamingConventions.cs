@@ -40,6 +40,12 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
+    public virtual string GetGenericTypeArgumentName(Type type)
+    {
+        return type.Name;
+    }
+
+    /// <inheritdoc />
     public virtual string GetTypeName(Type type)
     {
         if (type is null)
@@ -52,7 +58,7 @@ public class DefaultNamingConventions
             return Schema.DefaultName;
         }
 
-        return type.GetGraphQLName(namingConventionForGenericArguments: this);
+        return type.GetGraphQLName(namingConventionForGenericTypeArguments: this);
     }
 
     /// <inheritdoc />
@@ -63,7 +69,7 @@ public class DefaultNamingConventions
             throw new ArgumentNullException(nameof(type));
         }
 
-        var name = type.GetGraphQLName(namingConventionForGenericArguments: this);
+        var name = type.GetGraphQLName(namingConventionForGenericTypeArguments: this);
 
         if (_formatInterfaceName &&
             kind == TypeKind.Interface &&
