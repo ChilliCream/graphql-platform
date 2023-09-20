@@ -184,7 +184,7 @@ internal static class NameFormattingHelpers
         return false;
     }
 
-    private static string GetFromType(
+    public static string GetFromType(
         Type type,
         IGenericTypeArgumentNamingConvention? namingConventionForGenericTypeArguments)
     {
