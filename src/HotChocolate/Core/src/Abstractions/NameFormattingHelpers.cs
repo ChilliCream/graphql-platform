@@ -19,7 +19,9 @@ internal static class NameFormattingHelpers
     private const string _async = "Async";
     private const string _typePostfix = "`1";
 
-    public static string GetGraphQLName(this Type type)
+    public static string GetGraphQLName(
+        this Type type,
+        ITypeNamingConvention? namingConventionForGenericArguments = null)
     {
         if (type is null)
         {
@@ -29,7 +31,7 @@ internal static class NameFormattingHelpers
         var typeInfo = type.GetTypeInfo();
         var name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
             ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : GetFromType(typeInfo);
+            : GetFromType(typeInfo, namingConventionForGenericArguments);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -182,7 +184,9 @@ internal static class NameFormattingHelpers
         return false;
     }
 
-    private static string GetFromType(Type type)
+    private static string GetFromType(
+        Type type,
+        ITypeNamingConvention? namingConventionForGenericArguments)
     {
         if (type.GetTypeInfo().IsGenericType)
         {
@@ -194,7 +198,14 @@ internal static class NameFormattingHelpers
 
             var arguments = type
                 .GetTypeInfo().GenericTypeArguments
-                .Select(GetFromType);
+                .Select(type1 =>
+                {
+                    if (namingConventionForGenericArguments is not null)
+                    {
+                        return namingConventionForGenericArguments.GetTypeName(type1);
+                    }
+                    return GetFromType(type1, namingConventionForGenericArguments: null);
+                });
 
             return $"{name}Of{string.Join("And", arguments)}";
         }

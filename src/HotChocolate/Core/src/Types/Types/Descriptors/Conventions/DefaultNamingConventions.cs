@@ -52,7 +52,7 @@ public class DefaultNamingConventions
             return Schema.DefaultName;
         }
 
-        return type.GetGraphQLName();
+        return type.GetGraphQLName(namingConventionForGenericArguments: this);
     }
 
     /// <inheritdoc />
@@ -63,7 +63,7 @@ public class DefaultNamingConventions
             throw new ArgumentNullException(nameof(type));
         }
 
-        var name = type.GetGraphQLName();
+        var name = type.GetGraphQLName(namingConventionForGenericArguments: this);
 
         if (_formatInterfaceName &&
             kind == TypeKind.Interface &&

@@ -11,6 +11,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters.Spatial;
 
+
 public abstract class QueryableSpatialBooleanMethodHandler
     : FilterFieldHandler<QueryableFilterContext, Expression>
 {
