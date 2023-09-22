@@ -13,6 +13,7 @@ namespace CommandLine.Tests;
 public abstract class CommandTestBase : IDisposable
 {
     private readonly ConcurrentBag<string> _files = new();
+    private readonly ConcurrentBag<string> _dirs = new();
 
     protected Files CreateFiles(SubgraphConfiguration configuration)
     {
@@ -39,6 +40,13 @@ public abstract class CommandTestBase : IDisposable
         return file;
     }
 
+    protected string CreateTempDir()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        _dirs.Add(dir);
+        return dir;
+    }
+
     public void Dispose()
     {
         while (_files.TryTake(out var file))
@@ -48,6 +56,21 @@ public abstract class CommandTestBase : IDisposable
                 try
                 {
                     File.Delete(file);
+                }
+                catch
+                {
+                    // we ignore errors here
+                }
+            }
+        }
+
+         while (_dirs.TryTake(out var file))
+        {
+            if (Directory.Exists(file))
+            {
+                try
+                {
+                    Directory.Delete(file);
                 }
                 catch
                 {

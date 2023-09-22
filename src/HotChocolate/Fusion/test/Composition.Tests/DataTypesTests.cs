@@ -1,4 +1,5 @@
 using CookieCrumble;
+using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
@@ -19,7 +20,7 @@ public class DataTypesTests(ITestOutputHelper output)
             schema {
               query: Query
             }
-            
+
             type Query {
               someData: SomeData
             }
@@ -41,7 +42,7 @@ public class DataTypesTests(ITestOutputHelper output)
             schema {
               query: Query
             }
-            
+
             type Query {
               someData: SomeData
             }

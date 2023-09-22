@@ -57,7 +57,12 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         RequestState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var executionState))
+        if (!state.TryGetState(SelectionSet, out var executionState))
+        {
+            return;
+        }
+
+        try
         {
             InitializeRequests(context, executionState);
 
@@ -81,6 +86,11 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             {
                 ProcessResult(context, response, batchExecutionState);
             }
+        }
+        catch(Exception ex)
+        {
+            var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
+            context.Result.AddError(error.Build());
         }
     }
 
