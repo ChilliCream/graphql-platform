@@ -1,0 +1,16 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  bar: String
+    @resolver(subgraph: "A", select: "{ bar }")
+    @resolver(subgraph: "B", select: "{ bar }")
+  foo: String
+    @resolver(subgraph: "B", select: "{ foo }")
+}
+
+directive @private on FIELD_DEFINITION

@@ -61,6 +61,7 @@ public sealed class FusionTypes
         Uri = RegisterScalarType(names.UriScalar);
         ArgumentDefinition = RegisterArgumentDefType(names.ArgumentDefinition, TypeName, Type);
         ResolverKind = RegisterResolverKindType(names.ResolverKind);
+        Private = RegisterPrivateDirectiveType(names.PrivateDirective);
         Resolver = RegisterResolverDirectiveType(
             names.ResolverDirective,
             SelectionSet,
@@ -106,6 +107,8 @@ public sealed class FusionTypes
     public InputObjectType ArgumentDefinition { get; }
 
     public EnumType ResolverKind { get; }
+    
+    public DirectiveType Private { get; }
 
     public DirectiveType Resolver { get; }
 
@@ -194,6 +197,18 @@ public sealed class FusionTypes
         => new Directive(ReEncodeId);
 
     private DirectiveType RegisterReEncodeIdDirectiveType(string name)
+    {
+        var directiveType = new DirectiveType(name);
+        directiveType.Locations |= DirectiveLocation.FieldDefinition;
+        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        _fusionGraph.DirectiveTypes.Add(directiveType);
+        return directiveType;
+    }
+
+    public Directive CreatePrivateDirective()
+        => new Directive(Private);
+
+    private DirectiveType RegisterPrivateDirectiveType(string name)
     {
         var directiveType = new DirectiveType(name);
         directiveType.Locations |= DirectiveLocation.FieldDefinition;

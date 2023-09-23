@@ -1,0 +1,17 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  data: Data
+    @resolver(subgraph: "A", select: "{ data }")
+}
+
+type Data {
+  bar: String
+    @source(subgraph: "A")
+}
+
+directive @private on FIELD_DEFINITION

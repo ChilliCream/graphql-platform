@@ -74,6 +74,7 @@ public sealed class FusionGraphComposer
                 .Use<NodeMiddleware>()
                 .Use<ApplyTagDirectiveMiddleware>()
                 .Use<ApplyExcludeTagMiddleware>()
+                .Use<ApplyPrivateDirectiveMiddleware>()
                 .Use<RemoveFusionTypesMiddleware>()
                 .Build();
         _logFactory = logFactory;

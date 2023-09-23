@@ -26,6 +26,11 @@ internal static class FusionTypeBaseNames
     public const string IsDirective = "is";
     
     /// <summary>
+    /// The base name of the private directive which is used during composition.
+    /// </summary>
+    public const string PrivateDirective = "private";
+    
+    /// <summary>
     /// The base name for the resolve directive which is used during composition.
     /// </summary>
     public const string ResolveDirective = "resolve";
