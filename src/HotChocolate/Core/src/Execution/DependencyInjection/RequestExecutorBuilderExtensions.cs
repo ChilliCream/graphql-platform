@@ -5,8 +5,6 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
-using HotChocolate.Types;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
@@ -488,44 +486,6 @@ public static partial class RequestExecutorBuilderExtensions
             (s, o) => o.OnRequestExecutorCreatedHooks.Add(
                 new OnRequestExecutorCreatedAction(
                     (_, e, ct) => asyncAction(s, e, ct))));
-    }
-
-    public static IRequestExecutorBuilder AddInputParser(
-        this IRequestExecutorBuilder builder,
-        Action<InputParserOptions> modify)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
-
-        builder.Services.AddInputParser(modify);
-        return builder;
-    }
-
-    public static IServiceCollection AddInputParser(
-        this IServiceCollection services,
-        Action<InputParserOptions> modify)
-    {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (modify is null)
-        {
-            throw new ArgumentNullException(nameof(modify));
-        }
-
-        var options = new InputParserOptions();
-        modify(options);
-        services.AddSingleton(sp => new InputParser(sp.GetRequiredService<ITypeConverter>(), options));
-        return services;
     }
 
     internal static IRequestExecutorBuilder Configure(
