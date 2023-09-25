@@ -128,6 +128,7 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
         yield return FragmentDefinition;
         yield return FragmentSpread;
         yield return InlineFragment;
+        yield return VariableDefinition;
         yield return Schema;
         yield return Scalar;
         yield return Object;

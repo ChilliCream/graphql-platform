@@ -1,0 +1,1 @@
+﻿directive @foo(a: String) on VARIABLE_DEFINITION
