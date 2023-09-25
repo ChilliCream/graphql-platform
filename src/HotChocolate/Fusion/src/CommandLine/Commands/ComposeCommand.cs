@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Packaging;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.Fusion.CommandLine.Helpers;
@@ -17,7 +18,8 @@ namespace HotChocolate.Fusion.CommandLine.Commands;
 
 internal sealed class ComposeCommand : Command
 {
-    [RequiresUnreferencedCode("Calls HotChocolate.Fusion.CommandLine.Commands.ComposeCommand.ExecuteAsync(IConsole, FileInfo, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
+    [RequiresUnreferencedCode(
+        "Calls HotChocolate.Fusion.CommandLine.Commands.ComposeCommand.ExecuteAsync(IConsole, FileInfo, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
     public ComposeCommand() : base("compose")
     {
         var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true };
@@ -33,7 +35,7 @@ internal sealed class ComposeCommand : Command
         fusionPackageSettingsFile.AddAlias("--settings");
 
         var workingDirectory = new WorkingDirectoryOption();
-        
+
         var enableNodes = new Option<bool?>("--enable-nodes");
         enableNodes.Arity = ArgumentArity.Zero;
 
@@ -53,7 +55,8 @@ internal sealed class ComposeCommand : Command
             Bind.FromServiceProvider<CancellationToken>());
     }
 
-    [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.SerializeToDocument<TValue>(TValue, JsonSerializerOptions)")]
+    [RequiresUnreferencedCode(
+        "Calls System.Text.Json.JsonSerializer.SerializeToDocument<TValue>(TValue, JsonSerializerOptions)")]
     private static async Task ExecuteAsync(
         IConsole console,
         FileInfo packageFile,
@@ -87,8 +90,8 @@ internal sealed class ComposeCommand : Command
 
             settingsFile = new FileInfo(settingsFileName);
         }
-        
-        
+
+
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
         var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
@@ -104,8 +107,8 @@ internal sealed class ComposeCommand : Command
             console.WriteLine("Fusion graph settings are invalid.");
             return;
         }
-        
-        if(enableNodes.HasValue && enableNodes.Value)
+
+        if (enableNodes.HasValue && enableNodes.Value)
         {
             settings.NodeField.Enabled = true;
         }
@@ -148,10 +151,11 @@ internal sealed class ComposeCommand : Command
     {
         var features = new List<IFusionFeature>();
 
-        features.Add(new TransportFeature
-        {
-            DefaultClientName = settings.Transport.DefaultClientName
-        });
+        features.Add(
+            new TransportFeature
+            {
+                DefaultClientName = settings.Transport.DefaultClientName
+            });
 
         if (settings.NodeField.Enabled)
         {
@@ -175,13 +179,13 @@ internal sealed class ComposeCommand : Command
     }
 
     private static async Task ResolveSubgraphPackagesAsync(
-        DirectoryInfo workingDirectory, 
+        DirectoryInfo workingDirectory,
         IReadOnlyList<string>? subgraphPackageFiles,
         IDictionary<string, SubgraphConfiguration> configs,
         CancellationToken cancellationToken)
     {
         var temp = new List<SubgraphConfiguration>();
-        
+
         // if no subgraph packages were specified we will try to find some by their extension in the
         // working directory.
         if (subgraphPackageFiles is null || subgraphPackageFiles.Count == 0)
@@ -213,11 +217,17 @@ internal sealed class ComposeCommand : Command
                         var schemaFile = IOPath.Combine(file, Defaults.SchemaFile);
                         var extensionFile = IOPath.Combine(file, Defaults.ExtensionFile);
 
-                        if (File.Exists(configFile) && File.Exists(schemaFile) && File.Exists(extensionFile))
+                        if (File.Exists(configFile) && File.Exists(schemaFile))
                         {
                             var conf = await LoadSubgraphConfigAsync(configFile, cancellationToken);
                             var schema = await File.ReadAllTextAsync(schemaFile, cancellationToken);
-                            var extensions = await File.ReadAllTextAsync(extensionFile, cancellationToken);
+                            var extensions = Array.Empty<string>();
+
+                            if (File.Exists(extensionFile))
+                            {
+                                extensions = new[] { await File.ReadAllTextAsync(extensionFile, cancellationToken) };
+                            }
+
                             temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients));
                         }
                     }
@@ -243,7 +253,7 @@ internal sealed class ComposeCommand : Command
             configs[config.Name] = config;
         }
     }
-    
+
     private sealed class ConsoleLog : ICompositionLog
     {
         private readonly IConsole _console;

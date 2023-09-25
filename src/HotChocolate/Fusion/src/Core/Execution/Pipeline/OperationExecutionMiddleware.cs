@@ -5,8 +5,10 @@ using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Relay;
+using ErrorHelper = HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
@@ -15,7 +17,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
     IFactory<OperationContextOwner> contextFactory,
     IIdSerializer idSerializer,
     [SchemaService] FusionGraphConfiguration serviceConfig,
-    [SchemaService] GraphQLClientFactory clientFactory)
+    [SchemaService] GraphQLClientFactory clientFactory,
+    [SchemaService] NodeIdParser nodeIdParser)
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
@@ -31,6 +34,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(idSerializer));
     private readonly GraphQLClientFactory _clientFactory = clientFactory
         ?? throw new ArgumentNullException(nameof(clientFactory));
+    private readonly NodeIdParser _nodeIdParser = nodeIdParser
+        ?? throw new ArgumentNullException(nameof(nodeIdParser));
 
     public async ValueTask InvokeAsync(
         IRequestContext context,
@@ -59,7 +64,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     queryPlan,
                     operationContextOwner,
                     _clientFactory,
-                    _idSerializer);
+                    _idSerializer,
+                    _nodeIdParser);
 
             context.Result =
                 await FederatedQueryExecutor.ExecuteAsync(

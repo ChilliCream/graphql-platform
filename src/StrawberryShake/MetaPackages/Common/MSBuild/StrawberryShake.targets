@@ -18,8 +18,7 @@
   <Target
     Name="GenerateGraphQLCode"
     BeforeTargets="BeforeBuild"
-    DependsOnTargets="_GraphQLCodeGenerationRoot; _GenerateGraphQLCode"
-    Condition="'@(GraphQLCodeGenerationRoot)' != ''">
+    DependsOnTargets="_GraphQLCodeGenerationRoot; _GenerateGraphQLCode">
     <ItemGroup>
       <Compile Include="$(GraphQLCodeGenerationRoot)\**\*.cs" />
     </ItemGroup>
