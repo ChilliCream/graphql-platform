@@ -2,7 +2,10 @@
 
 namespace HotChocolate.Types;
 
-public class InputParserOptions
+/// <summary>
+/// Represents the input parser options.
+/// </summary>
+public sealed class InputParserOptions
 {
     /// <summary>
     /// Specifies if additional input object fields should be ignored during parsing.
