@@ -279,11 +279,15 @@ public class InputParserTests
             new ObjectFieldNode("field3", 123),
             new ObjectFieldNode("field4", 123));
 
-        // act
-        var parser = new InputParser(new DefaultTypeConverter(), new InputParserOptions
+        var converter = new DefaultTypeConverter();
+
+        var options = new InputParserOptions
         {
             IgnoreAdditionalInputFields = true
-        });
+        };
+
+        // act
+        var parser = new InputParser(converter, options);
         var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
