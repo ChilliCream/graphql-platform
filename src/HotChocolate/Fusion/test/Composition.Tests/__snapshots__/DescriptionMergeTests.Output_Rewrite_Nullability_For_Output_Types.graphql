@@ -54,4 +54,6 @@ input FooInput {
 enum Foo {
   "Bar enum value"
   BAR
+    @source(subgraph: "A")
+    @source(subgraph: "B")
 }
