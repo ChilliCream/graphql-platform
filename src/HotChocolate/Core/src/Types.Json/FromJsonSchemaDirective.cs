@@ -27,9 +27,10 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
                         var type = ctx.GetType<IType>(def.Type!);
                         var namedType = type.NamedType();
 
-                        if (type.IsListType())
+                        if (type.IsListType() || namedType is not ScalarType)
                         {
-                            throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
+                            JsonObjectTypeExtensions.InferResolver(type, def, propertyName);
+                            return;
                         }
 
                         if (namedType is ScalarType scalarType)

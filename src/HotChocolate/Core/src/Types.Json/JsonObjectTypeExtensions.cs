@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -42,9 +44,10 @@ public static class JsonObjectTypeExtensions
                     var type = ctx.GetType<IType>(def.Type!);
                     var namedType = type.NamedType();
 
-                    if (type.IsListType())
+                    if (type.IsListType() || namedType is not ScalarType)
                     {
-                        throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
+                        InferResolver(type, def, propertyName);
+                        return;
                     }
 
                     if (namedType is ScalarType scalarType)
@@ -254,6 +257,42 @@ public static class JsonObjectTypeExtensions
 
             default:
                 throw ThrowHelper.CannotInferTypeFromJsonObj(type.Name);
+        }
+    }
+    
+    internal static void InferResolver(
+        IType type,
+        ObjectFieldDefinition def,
+        string propertyName)
+    {
+        if (type.IsListType())
+            def.PureResolver = ctx => ctx.GetListProperty(propertyName);
+        else
+        {
+            def.PureResolver = ctx => ctx.GetUserDefinedProperty(propertyName);
+        }
+    }
+
+    private static List<JsonElement>? GetListProperty(this IPureResolverContext context, string propertyName)
+    {
+        var parent = context.Parent<JsonElement>();
+        return parent.ValueKind == JsonValueKind.Null || !parent.TryGetProperty(propertyName, out var property)
+            ? null
+            : property.EnumerateArray().ToList();
+    }
+
+    private static JsonElement? GetUserDefinedProperty(this IPureResolverContext context, string propertyName)
+    {
+        var parent = context.Parent<JsonElement>();
+        if(parent.ValueKind == JsonValueKind.Null || !parent.TryGetProperty(propertyName, out var property))
+        {
+            return null;
+        }
+        else
+        {
+            return property.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined
+                ? null
+                : property;
         }
     }
 
