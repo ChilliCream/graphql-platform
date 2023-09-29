@@ -40,7 +40,12 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         RequestState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(SelectionSet, out var executionState))
+        if (!state.TryGetState(SelectionSet, out var executionState))
+        {
+            return;
+        }
+
+        try
         {
             var requests = new SubgraphGraphQLRequest[executionState.Count];
 
@@ -63,6 +68,11 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             {
                 ProcessResponses(context, executionState, requests, responses, SubgraphName);
             }
+        }
+        catch(Exception ex)
+        {
+            var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
+            context.Result.AddError(error.Build());
         }
     }
 

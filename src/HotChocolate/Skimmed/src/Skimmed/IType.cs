@@ -22,9 +22,3 @@ public interface IType : IEquatable<IType>
     /// </returns>
     bool Equals(IType? other, TypeComparison comparison);
 }
-
-public enum TypeComparison
-{
-    Reference = 0,
-    Structural = 1
-}

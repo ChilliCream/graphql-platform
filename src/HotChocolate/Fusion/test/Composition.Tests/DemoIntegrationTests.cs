@@ -106,7 +106,7 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));

@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -51,7 +52,7 @@ internal sealed class ExportCommand : Command
 
         if (output is { })
         {
-            await File.WriteAllTextAsync(output.FullName, sdl, cancellationToken);
+            await File.WriteAllTextAsync(output.FullName, sdl, Encoding.UTF8, cancellationToken);
         }
         else
         {

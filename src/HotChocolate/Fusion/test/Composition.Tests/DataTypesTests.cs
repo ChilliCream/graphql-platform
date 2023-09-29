@@ -1,11 +1,12 @@
 using CookieCrumble;
+using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class DataTypes(ITestOutputHelper output)
+public class DataTypesTests(ITestOutputHelper output)
 {
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
@@ -19,7 +20,7 @@ public class DataTypes(ITestOutputHelper output)
             schema {
               query: Query
             }
-            
+
             type Query {
               someData: SomeData
             }
@@ -41,7 +42,7 @@ public class DataTypes(ITestOutputHelper output)
             schema {
               query: Query
             }
-            
+
             type Query {
               someData: SomeData
             }

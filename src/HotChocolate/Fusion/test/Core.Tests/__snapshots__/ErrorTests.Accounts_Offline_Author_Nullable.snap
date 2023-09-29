@@ -38,10 +38,10 @@ QueryPlan
       {
         "type": "ResolveByKeyBatch",
         "subgraph": "Accounts",
-        "document": "query ReformatIds_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { birthdate __fusion_exports__1: id } } }",
+        "document": "query ReformatIds_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { birthdate __fusion_exports__1: id } }",
         "selectionSetId": 2,
         "path": [
-          "nodes"
+          "usersById"
         ],
         "requires": [
           {
@@ -65,7 +65,7 @@ QueryPlan
 
 QueryPlan Hash
 ---------------
-96C56C169D9DA81CE096109D2677D68AA009B715
+44090BD107B85A967BEBFFCA8844F840215A117F
 ---------------
 
 Result
@@ -177,7 +177,6 @@ type AddUserPayload {
 
 type Product
   @variable(subgraph: "Reviews", name: "Product_id", select: "id")
-  @resolver(subgraph: "Reviews", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Reviews", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) {
   id: ID!
     @source(subgraph: "Reviews")
@@ -188,7 +187,6 @@ type Product
 type Review implements Node
   @variable(subgraph: "Reviews", name: "Review_id", select: "id")
   @resolver(subgraph: "Reviews", select: "{ reviewById(id: $Review_id) }", arguments: [ { name: "Review_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ node(id: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "ID!" } ])
   @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH") {
   author: User!
     @source(subgraph: "Reviews")
@@ -212,11 +210,7 @@ type User implements Node
   @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
-  @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
-  @resolver(subgraph: "Accounts", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
+  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
     @source(subgraph: "Accounts")
   id: ID!
@@ -239,6 +233,7 @@ type Viewer {
     @source(subgraph: "Accounts")
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
@@ -252,14 +247,11 @@ input AddReviewInput {
 }
 
 input AddUserInput {
-  birthdate: DateTime!
+  birthdate: Date!
   name: String!
   username: String!
 }
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
-
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime
 ---------------

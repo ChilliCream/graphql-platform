@@ -12,7 +12,14 @@ public sealed class NotSetType : IType
         => Equals(other, TypeComparison.Reference);
     
     public bool Equals(IType? other, TypeComparison comparison)
-        => other is NotSetType;
-    
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is NotSetType;
+    }
+
     public static readonly NotSetType Default = new();
 }

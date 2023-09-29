@@ -34,7 +34,6 @@ internal static class DirectiveClassMiddlewareFactory
         var sync = new object();
         MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate>? activate = null;
         ClassQueryDelegate<TMiddleware, IMiddlewareContext>? invoke = null;
-        TMiddleware? instance = null;
 
         return (next, directive) =>
         {
@@ -66,6 +65,8 @@ internal static class DirectiveClassMiddlewareFactory
                     }
                 }
             }
+            
+            TMiddleware? instance = null;
 
             return context =>
             {
@@ -86,7 +87,6 @@ internal static class DirectiveClassMiddlewareFactory
     {
         var sync = new object();
         ClassQueryDelegate<TMiddleware, IMiddlewareContext>? invoke = null;
-        TMiddleware? instance = null;
 
         return (next, directive) =>
         {
@@ -110,6 +110,8 @@ internal static class DirectiveClassMiddlewareFactory
                     }
                 }
             }
+            
+            TMiddleware? instance = null;
 
             return context =>
             {

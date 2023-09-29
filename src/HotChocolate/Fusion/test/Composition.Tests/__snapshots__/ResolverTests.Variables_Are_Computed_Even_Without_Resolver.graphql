@@ -28,7 +28,6 @@ type Query {
 type Appointment implements Node
   @variable(subgraph: "Appointment", name: "Appointment_id", select: "id")
   @resolver(subgraph: "Appointment", select: "{ appointmentById(appointmentId: $Appointment_id) }", arguments: [ { name: "Appointment_id", type: "ID!" } ])
-  @resolver(subgraph: "Appointment", select: "{ node(id: $Appointment_id) { ... on Appointment { ... Appointment } } }", arguments: [ { name: "Appointment_id", type: "ID!" } ])
   @resolver(subgraph: "Appointment", select: "{ nodes(ids: $Appointment_id) { ... on Appointment { ... Appointment } } }", arguments: [ { name: "Appointment_id", type: "[ID!]!" } ], kind: "BATCH") {
   id: ID!
     @source(subgraph: "Appointment")
@@ -104,6 +103,7 @@ interface IPatient {
   id: ID!
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }

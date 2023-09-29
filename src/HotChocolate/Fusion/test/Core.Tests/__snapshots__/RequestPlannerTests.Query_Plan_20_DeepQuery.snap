@@ -80,10 +80,10 @@ QueryPlan
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
-            "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { nodes(ids: $__fusion_exports__2) { ... on User { birthdate __fusion_exports__2: id } } }",
+            "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { usersById(ids: $__fusion_exports__2) { birthdate __fusion_exports__2: id } }",
             "selectionSetId": 5,
             "path": [
-              "nodes"
+              "usersById"
             ],
             "requires": [
               {
@@ -94,10 +94,10 @@ QueryPlan
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
-            "document": "query GetUser_4($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { birthdate __fusion_exports__3: id } } }",
+            "document": "query GetUser_4($__fusion_exports__3: [ID!]!) { usersById(ids: $__fusion_exports__3) { birthdate __fusion_exports__3: id } }",
             "selectionSetId": 3,
             "path": [
-              "nodes"
+              "usersById"
             ],
             "requires": [
               {

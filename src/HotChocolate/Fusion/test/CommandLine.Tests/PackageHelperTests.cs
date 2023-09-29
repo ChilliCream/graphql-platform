@@ -30,8 +30,28 @@ public class PackageHelperTests : CommandTestBase
 
         // assert
         Assert.True(File.Exists(packageFile));
+        
         var accountConfigRead = await ReadSubgraphPackageAsync(packageFile);
-        accountConfig.MatchSnapshot();
-        accountConfigRead.MatchSnapshot();
+        Match(accountConfig);
+        Match(accountConfigRead);
+    }
+
+    private void Match(SubgraphConfiguration config)
+    {
+        var snapshot = new Snapshot();
+        snapshot.Add(config.Name, nameof(config.Name));
+        snapshot.Add(config.Schema, nameof(config.Schema));
+
+        foreach (var extension in config.Extensions)
+        {
+            snapshot.Add(extension, nameof(config.Extensions));
+        }
+        
+        foreach (var client in config.Clients)
+        {
+            snapshot.Add(client, nameof(config.Clients));
+        }
+
+        snapshot.Match();
     }
 }
