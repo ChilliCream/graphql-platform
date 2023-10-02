@@ -15,12 +15,7 @@ namespace HotChocolate.Configuration;
 internal sealed class AggregateTypeInterceptor : TypeInterceptor
 {
     private readonly List<TypeReference> _typeReferences = new();
-    private TypeInterceptor[] _typeInterceptors;
-
-    public AggregateTypeInterceptor()
-    {
-        _typeInterceptors = Array.Empty<TypeInterceptor>();
-    }
+    private TypeInterceptor[] _typeInterceptors = Array.Empty<TypeInterceptor>();
 
     public void SetInterceptors(IReadOnlyCollection<TypeInterceptor> typeInterceptors)
     {
@@ -37,12 +32,47 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {
-        ref var first = ref GetReference();
-        var length = _typeInterceptors.Length;
+        ref var start = ref GetReference();
+        ref var current = ref Unsafe.Add(ref start, 0);
+        ref var end = ref Unsafe.Add(ref current, _typeInterceptors.Length);
 
-        for (var i = 0; i < length; i++)
+        // we first initialize all schema context ...
+        while (Unsafe.IsAddressLessThan(ref current, ref end))
         {
-            Unsafe.Add(ref first, i).OnBeforeCreateSchema(context, schemaBuilder);
+            current.OnBeforeCreateSchema(context, schemaBuilder);
+            current = ref Unsafe.Add(ref current, 1);
+        }
+        
+        current = ref Unsafe.Add(ref start, 0);
+        var i = 0;
+        TypeInterceptor[]? temp = null; 
+        
+        // next we determine the type interceptors that are enabled ...
+        while (Unsafe.IsAddressLessThan(ref current, ref end))
+        {
+            if (temp is null && !current.IsEnabled(context))
+            {
+                temp ??= new TypeInterceptor[_typeInterceptors.Length];
+                ref var next = ref Unsafe.Add(ref start, 0);
+                while (Unsafe.IsAddressLessThan(ref next, ref current))
+                {
+                    temp[i++] = next;   
+                    next = ref Unsafe.Add(ref next, 1);
+                }
+            }
+
+            if (temp is not null && current.IsEnabled(context))
+            {   
+                temp[i++] = current;   
+            }
+            
+            current = ref Unsafe.Add(ref current, 1);
+        }
+
+        if (temp is not null)
+        {
+            Array.Resize(ref temp, i);
+            _typeInterceptors = temp;
         }
     }
 

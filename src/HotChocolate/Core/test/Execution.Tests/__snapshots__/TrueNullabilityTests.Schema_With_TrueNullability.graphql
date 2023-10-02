@@ -1,0 +1,18 @@
+schema {
+  query: Query
+}
+
+type Author {
+  name: String!
+}
+
+type Book {
+  name: String!
+  author: Author!
+}
+
+type Query {
+  book: Book
+}
+
+directive @nullBubbling(enable: Boolean! = true) on QUERY | MUTATION | SUBSCRIPTION
