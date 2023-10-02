@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.Execution.ErrorHelper;
 using static HotChocolate.WellKnownDirectives;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
 using static HotChocolate.WellKnownContextData;
@@ -55,7 +56,7 @@ internal sealed class OperationResolverMiddleware
 
                 if (operationType is null)
                 {
-                    context.Result = ErrorHelper.RootTypeNotFound(operationDef.Operation);
+                    context.Result = RootTypeNotFound(operationDef.Operation);
                     return;
                 }
 
@@ -71,7 +72,7 @@ internal sealed class OperationResolverMiddleware
         }
         else
         {
-            context.Result = ErrorHelper.StateInvalidForOperationResolver();
+            context.Result = StateInvalidForOperationResolver();
         }
     }
 
@@ -142,20 +143,7 @@ internal sealed class OperationResolverMiddleware
                         break;
                     }
 
-                    // TOOD : Move to ErrorHelper 
-                    var errorBuilder = ErrorBuilder.New();
-
-                    if (argument.Value.Location is not null)
-                    {
-                        errorBuilder.AddLocation(
-                            argument.Value.Location.Line,
-                            argument.Value.Location.Column);
-                    }
-
-                    errorBuilder.SetSyntaxNode(argument.Value);
-                    errorBuilder.SetMessage("Only boolean values are allowed here.");
-
-                    throw new GraphQLException(errorBuilder.Build());
+                    throw new GraphQLException(NoNullBubbling_ArgumentValue_NotAllowed(argument));
                 }
             }
 
