@@ -180,9 +180,10 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             batchState = ref Unsafe.Add(ref batchState, 1)!;
         }
 
-        foreach (var key in first.VariableValues.Keys)
+        foreach (var argumentType in argumentTypes)
         {
-            var expectedType = argumentTypes[key];
+            var key = argumentType.Key;
+            var expectedType = argumentType.Value;
 
             if (expectedType.IsListType())
             {
