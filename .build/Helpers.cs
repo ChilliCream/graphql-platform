@@ -22,7 +22,6 @@ static class Helpers
         Path.Combine("HotChocolate", "PersistedQueries"),
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
-        Path.Combine("HotChocolate", "Filters"),
         Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
         Path.Combine("HotChocolate", "Raven"),
@@ -40,6 +39,7 @@ static class Helpers
     {
         Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "CodeGeneration"),
+        Path.Combine("HotChocolate", "Filters"),
         Path.Combine("HotChocolate", "Neo4J"),
         Path.Combine("HotChocolate", "Stitching"),
     };
