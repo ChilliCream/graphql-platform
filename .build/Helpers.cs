@@ -12,13 +12,11 @@ static class Helpers
     static readonly string[] Directories =
     {
         "GreenDonut",
-        Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "AzureFunctions"),
         Path.Combine("HotChocolate", "Core"),
         Path.Combine("HotChocolate", "Caching"),
-        Path.Combine("HotChocolate", "CodeGeneration"),
         Path.Combine("HotChocolate", "Diagnostics"),
         Path.Combine("HotChocolate", "Language"),
         Path.Combine("HotChocolate", "PersistedQueries"),
@@ -27,10 +25,8 @@ static class Helpers
         Path.Combine("HotChocolate", "Filters"),
         Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
-        Path.Combine("HotChocolate", "Neo4J"),
         Path.Combine("HotChocolate", "Raven"),
         Path.Combine("HotChocolate", "Skimmed"),
-        Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Fusion"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
@@ -38,6 +34,14 @@ static class Helpers
         Path.Combine("StrawberryShake", "MetaPackages"),
         Path.Combine("StrawberryShake", "Tooling"),
         "CookieCrumble"
+    };
+
+    static readonly string[] LegacyDirectories =
+    {
+        Path.Combine("HotChocolate", "Analyzers"),
+        Path.Combine("HotChocolate", "CodeGeneration"),
+        Path.Combine("HotChocolate", "Neo4J"),
+        Path.Combine("HotChocolate", "Stitching"),
     };
 
     static IEnumerable<string> GetAllProjects(
