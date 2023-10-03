@@ -87,4 +87,7 @@ public interface IReadOnlySchemaOptions
 
     /// <inheritdoc cref="SchemaOptions.StripLeadingIFromInterface"/>
     bool StripLeadingIFromInterface { get; }
+    
+    /// <inheritdoc cref="SchemaOptions.EnableTrueNullability"/>
+    bool EnableTrueNullability { get; }
 }

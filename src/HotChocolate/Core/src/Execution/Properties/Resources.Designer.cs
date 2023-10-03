@@ -476,5 +476,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ComplexityAnalyzerCompiler_Enter_OnlyOperations", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed", resourceCulture);
+            }
+        }
     }
 }
