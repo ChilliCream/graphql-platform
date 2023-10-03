@@ -8,6 +8,7 @@ using HotChocolate.Fusion.Shared.Reviews;
 using HotChocolate.Fusion.Shared.Shipping;
 using HotChocolate.Fusion.Shared.Books;
 using HotChocolate.Fusion.Shared.Authors;
+using HotChocolate.Fusion.Shared.ProductDetails;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities.Introspection;
@@ -28,6 +29,7 @@ public sealed class DemoProject : IDisposable
         DemoSubgraph reviews,
         DemoSubgraph reviews2,
         DemoSubgraph products,
+        DemoSubgraph productDetails,
         DemoSubgraph shipping,
         DemoSubgraph appointment,
         DemoSubgraph patient1,
@@ -41,6 +43,7 @@ public sealed class DemoProject : IDisposable
         Reviews = reviews;
         Reviews2 = reviews2;
         Products = products;
+        ProductDetails = productDetails;
         Shipping = shipping;
         Appointment = appointment;
         Patient1 = patient1;
@@ -59,6 +62,7 @@ public sealed class DemoProject : IDisposable
     public DemoSubgraph Reviews2 { get; }
 
     public DemoSubgraph Products { get; }
+    public DemoSubgraph ProductDetails { get; }
 
     public DemoSubgraph Accounts { get; }
 
@@ -169,12 +173,32 @@ public sealed class DemoProject : IDisposable
             .DownloadSchemaAsync(productsClient, ct)
             .ConfigureAwait(false);
 
+
+
+        var productDetails = testServerFactory.Create(
+            s => s
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType<ProductDetailsQuery>()
+                .AddGlobalObjectIdentification()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
+            c => c
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        disposables.Add(productDetails);
+
+        var productDetailsClient = productDetails.CreateClient();
+        productDetailsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+        var productDetailsSchema = await introspection
+            .DownloadSchemaAsync(productDetailsClient, ct)
+            .ConfigureAwait(false);
+
         var shipping = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddGraphQLServer()
                 .AddQueryType<ShippingQuery>()
-                .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1))
+                .AddGlobalObjectIdentification()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
                 .UseRouting()
@@ -303,6 +327,16 @@ public sealed class DemoProject : IDisposable
                 }
             },
             {
+                "ProductDetails", () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = productDetails.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
+                    return httpClient;
+                }
+            },
+            {
                 "Shipping", () =>
                 {
                     // ReSharper disable once AccessToDisposedClosure
@@ -369,6 +403,9 @@ public sealed class DemoProject : IDisposable
                 "Products", () => new MockWebSocketConnection(products.CreateWebSocketClient())
             },
             {
+                "ProductDetails", () => new MockWebSocketConnection(productDetails.CreateWebSocketClient())
+            },
+            {
                 "Shipping", () => new MockWebSocketConnection(shipping.CreateWebSocketClient())
             },
             {
@@ -412,6 +449,12 @@ public sealed class DemoProject : IDisposable
                 productsSchema,
                 products),
             new DemoSubgraph(
+                "ProductDetails",
+                productDetailsClient.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                productDetailsSchema,
+                productDetails),
+            new DemoSubgraph(
                 "Shipping",
                 shippingClient.BaseAddress,
                 new Uri("ws://localhost:5000/graphql"),
@@ -440,7 +483,7 @@ public sealed class DemoProject : IDisposable
                 authorsClient.BaseAddress,
                 new Uri("ws://localhost:5000/graphql"),
                 authorsSchema,
-                authors),    
+                authors),
             new MockHttpClientFactory(httpClients),
             new MockWebSocketConnectionFactory(webSocketClients));
     }

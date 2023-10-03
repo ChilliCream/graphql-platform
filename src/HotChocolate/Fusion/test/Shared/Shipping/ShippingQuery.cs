@@ -5,8 +5,8 @@ namespace HotChocolate.Fusion.Shared.Shipping;
 [GraphQLName("Query")]
 public sealed class ShippingQuery
 {
-    public Product GetProductById([ID<Product>] int id)
-        => new(id);
+    [NodeResolver]
+    public Product? GetProductById(int id) => new(id);
 }
 
 public sealed record Product([property: ID<Product>] int Id)

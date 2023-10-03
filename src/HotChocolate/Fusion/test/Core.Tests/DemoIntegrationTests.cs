@@ -775,7 +775,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
-    
+
     [Fact]
     public async Task Fetch_User_With_Invalid_Node_Field()
     {
@@ -1649,6 +1649,59 @@ public class DemoIntegrationTests(ITestOutputHelper output)
               }
             }
             """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("first", 1)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task Query_ResoveByKeyBatch_Multiple_Fields_With_Different_Arguments()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var request = Parse(
+            """
+            query ResolveByKeyBatch {
+            topProducts(first: 4) {
+                    deliveryEstimate(zip: "1234") {
+                        min
+                        max
+                    }
+                    formattedDetails
+                }
+            }
+            """);
+
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.ProductDetails.ToConfiguration(ProductDetailsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
 
         // act
         await using var result = await executor.ExecuteAsync(
