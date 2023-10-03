@@ -16,7 +16,7 @@ public sealed class DeprecatedDirectiveType : DirectiveType<DeprecatedDirective>
         IDirectiveTypeDescriptor<DeprecatedDirective> descriptor)
     {
         descriptor
-            .Name(Names.Deprecated)
+            .Name(WellKnownDirectives.Deprecated)
             .Description(TypeResources.DeprecatedDirectiveType_TypeDescription)
             .Location(DirectiveLocation.FieldDefinition)
             .Location(DirectiveLocation.ArgumentDefinition)
@@ -25,15 +25,9 @@ public sealed class DeprecatedDirectiveType : DirectiveType<DeprecatedDirective>
 
         descriptor
             .Argument(t => t.Reason)
-            .Name(Names.Reason)
+            .Name(WellKnownDirectives.DeprecationReasonArgument)
             .Description(TypeResources.DeprecatedDirectiveType_ReasonDescription)
             .Type<StringType>()
             .DefaultValue(WellKnownDirectives.DeprecationDefaultReason);
-    }
-
-    public static class Names
-    {
-        public const string Deprecated = "deprecated";
-        public const string Reason = "reason";
     }
 }
