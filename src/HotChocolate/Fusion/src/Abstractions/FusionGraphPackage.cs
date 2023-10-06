@@ -27,7 +27,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     private static readonly SyntaxSerializerOptions _syntaxSerializerOptions =
         new()
         {
-            Indented = true, 
+            Indented = true,
             MaxDirectivesPerLine = 0
         };
 
@@ -202,7 +202,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             return Task.FromResult(
                 JsonDocument.Parse(
                     """
-                    { 
+                    {
                       "fusionTypePrefix" : null,
                       "fusionTypeSelf": false
                     }
@@ -523,7 +523,8 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             config.Name,
             schema.ToString(true),
             extensions.Select(t => t.ToString(_syntaxSerializerOptions)).ToArray(),
-            config.Clients);
+            config.Clients,
+            config.Extensions);
     }
 
     private async Task<SubgraphConfigJson> ReadSubgraphConfigurationJsonPartAsync(

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Fusion.Composition;
 
 namespace HotChocolate.Fusion;
@@ -18,7 +19,8 @@ internal sealed record SubgraphConfigJson
     /// </param>
     public SubgraphConfigJson(
         string name,
-        IReadOnlyList<IClientConfiguration>? clients = null)
+        IReadOnlyList<IClientConfiguration>? clients = null,
+        JsonDocument? extensions = null)
     {
         Name = name;
         Clients = clients ?? Array.Empty<IClientConfiguration>();
@@ -35,6 +37,11 @@ internal sealed record SubgraphConfigJson
     public IReadOnlyList<IClientConfiguration> Clients { get; init; }
 
     /// <summary>
+    /// Gets the "extensions" property of the subgraph-config.json.
+    /// </summary>
+    public JsonDocument? Extensions { get; init; }
+
+    /// <summary>
     /// Deconstructs the <see cref="SubgraphConfigJson"/> into its components.
     /// </summary>
     /// <param name="name">
@@ -45,9 +52,11 @@ internal sealed record SubgraphConfigJson
     /// </param>
     public void Deconstruct(
         out string name,
-        out IReadOnlyList<IClientConfiguration> clients)
+        out IReadOnlyList<IClientConfiguration> clients,
+        out JsonDocument? extensions)
     {
         name = Name;
         clients = Clients;
+        extensions = Extensions;
     }
 }
