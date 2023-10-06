@@ -52,10 +52,10 @@ QueryPlan
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
-            "document": "query Requires_2($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { birthdate __fusion_exports__3: id } } }",
+            "document": "query Requires_2($__fusion_exports__3: [ID!]!) { usersById(ids: $__fusion_exports__3) { birthdate __fusion_exports__3: id } }",
             "selectionSetId": 4,
             "path": [
-              "nodes"
+              "usersById"
             ],
             "requires": [
               {

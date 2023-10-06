@@ -72,7 +72,6 @@ type AddUserPayload {
 type Author implements Node
   @variable(subgraph: "Reviews", name: "Author_id", select: "id")
   @resolver(subgraph: "Reviews", select: "{ authorById(id: $Author_id) }", arguments: [ { name: "Author_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ node(id: $Author_id) { ... on Author { ... Author } } }", arguments: [ { name: "Author_id", type: "ID!" } ])
   @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Author_id) { ... on Author { ... Author } } }", arguments: [ { name: "Author_id", type: "[ID!]!" } ], kind: "BATCH") {
   id: ID!
     @source(subgraph: "Reviews")
@@ -87,7 +86,6 @@ type Product implements Node
   @variable(subgraph: "Products", name: "Product_id", select: "id")
   @resolver(subgraph: "Reviews", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
-  @resolver(subgraph: "Products", select: "{ node(id: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH") {
   dimension: ProductDimension!
     @source(subgraph: "Products")
@@ -127,7 +125,6 @@ type ProductNotFoundError implements Error {
 type Review implements Node
   @variable(subgraph: "Reviews", name: "Review_id", select: "id")
   @resolver(subgraph: "Reviews", select: "{ reviewById(id: $Review_id) }", arguments: [ { name: "Review_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ node(id: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "ID!" } ])
   @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH") {
   author: Author!
     @source(subgraph: "Reviews")
@@ -158,7 +155,6 @@ type UploadProductPicturePayload {
 type User implements Node
   @variable(subgraph: "Accounts", name: "User_id", select: "id")
   @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
     @source(subgraph: "Accounts")

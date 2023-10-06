@@ -40,6 +40,11 @@ public static class Directives
         {
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
         }
+        
+        if (descriptorContext.Options.EnableTrueNullability)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(NullBubblingDirective)));
+        }
 
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(SkipDirectiveType)));
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(IncludeDirectiveType)));

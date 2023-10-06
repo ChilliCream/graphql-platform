@@ -763,4 +763,9 @@ public static class TypeExtensions
                 throw RewriteNullability_InvalidNullabilityStructure();
         }
     }
+    
+    public static IType RewriteToNullableType(this IType type)
+        => type.Kind is TypeKind.NonNull
+            ? type.InnerType()
+            : type;
 }

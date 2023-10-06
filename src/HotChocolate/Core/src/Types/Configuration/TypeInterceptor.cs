@@ -23,6 +23,8 @@ public abstract class TypeInterceptor
     /// A weight to order interceptors.
     /// </summary>
     internal virtual uint Position => _position;
+    
+    public virtual bool IsEnabled(IDescriptorContext context) => true;
 
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
