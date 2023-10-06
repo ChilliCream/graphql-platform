@@ -72,7 +72,7 @@ internal sealed class ComposeCommand : Command
             packageFile.Directory.Create();
         }
 
-        // Append file extension if not exists. 
+        // Append file extension if not exists.
         if (!packageFile.Extension.EqualsOrdinal(Extensions.FusionPackage) &&
             !packageFile.Extension.EqualsOrdinal(Extensions.ZipPackage))
         {
@@ -228,7 +228,7 @@ internal sealed class ComposeCommand : Command
                                 extensions = new[] { await File.ReadAllTextAsync(extensionFile, cancellationToken) };
                             }
 
-                            temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients));
+                            temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients, conf.Extensions));
                         }
                     }
                     else
