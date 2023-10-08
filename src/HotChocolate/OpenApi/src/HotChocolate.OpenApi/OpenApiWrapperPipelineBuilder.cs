@@ -20,13 +20,12 @@ internal sealed class OpenApiWrapperPipelineBuilder
     public OpenApiWrapperPipelineBuilder Use<TMiddleware>()
         where TMiddleware : IOpenApiWrapperMiddleware, new()
     {
-        Use(next =>
+        _pipeline.Add(next =>
         {
             var middleware = new TMiddleware();
             return context => middleware.Invoke(context, next);
         });
+        
         return this;
     }
-
-    private void Use(OpenApiWrapperMiddleware middleware) => _pipeline.Add(middleware);
 }

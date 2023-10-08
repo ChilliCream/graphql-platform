@@ -19,9 +19,9 @@ internal static class ObjectTypeFactory
     /// <returns></returns>
     public static INamedType ParseType(OpenApiWrapperContext context, string typeName, OpenApiSchema schema)
     {
-        if (context.SkimmedSchema.Types.ContainsName(typeName))
+        if (context.MutableSchema.Types.ContainsName(typeName))
         {
-            return context.SkimmedSchema.Types[typeName];
+            return context.MutableSchema.Types[typeName];
         }
 
         if (Scalars.IsBuiltIn(typeName))
@@ -51,9 +51,9 @@ internal static class ObjectTypeFactory
             }
         }
 
-        if (!context.SkimmedSchema.Types.ContainsName(typeName))
+        if (!context.MutableSchema.Types.ContainsName(typeName))
         {
-            context.SkimmedSchema.Types.Add(type);
+            context.MutableSchema.Types.Add(type);
         }
 
         return type;

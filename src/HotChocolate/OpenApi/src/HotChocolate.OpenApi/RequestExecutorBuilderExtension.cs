@@ -1,13 +1,13 @@
 using System.Text.Json;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
+using static HotChocolate.OpenApi.Properties.OpenApiResources;
 using IField = HotChocolate.Skimmed.IField;
 using InputObjectType = HotChocolate.Skimmed.InputObjectType;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
@@ -43,7 +43,7 @@ public static class RequestExecutorBuilderExtension
         this IRequestExecutorBuilder requestExecutorBuilder,
         Action<HttpClient>? configureClient)
     {
-        requestExecutorBuilder.Services.AddHttpClient(OpenApiResources.HttpClientName, configureClient ?? (_ => { }));
+        requestExecutorBuilder.Services.AddHttpClient(HttpClientName, configureClient ?? (_ => { }));
         return requestExecutorBuilder;
     }
 
@@ -95,18 +95,17 @@ public static class RequestExecutorBuilderExtension
                 {
                     fieldDescriptor.Argument(
                         fieldArgument.Name,
-                        descriptor => descriptor
-                            .Type(new NamedTypeNode(fieldArgument.Type.NamedType().Name)));
+                        descriptor => descriptor.Type(new NamedTypeNode(fieldArgument.Type.NamedType().Name)));
                 }
 
-                if (field.ContextData.TryGetValue(OpenApiResources.ContextResolverParameter, out var res) &&
+                if (field.ContextData.TryGetValue(ContextResolverParameter, out var res) &&
                     res is Func<IResolverContext, Task<JsonElement>> resolver)
                 {
                     fieldDescriptor.Resolve(ctx => resolver.Invoke(ctx));
                 }
                 else
                 {
-                    var propertyName = field.ContextData.TryGetValue(OpenApiResources.OpenApiPropertyName, out var name)
+                    var propertyName = field.ContextData.TryGetValue(OpenApiPropertyName, out var name)
                         ? name?.ToString()
                         : null;
                     fieldDescriptor.FromJson(propertyName);

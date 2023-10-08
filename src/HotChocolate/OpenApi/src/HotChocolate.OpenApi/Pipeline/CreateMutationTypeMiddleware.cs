@@ -3,6 +3,7 @@ using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
+using static HotChocolate.OpenApi.Helpers.OpenApiNamingHelper;
 
 namespace HotChocolate.OpenApi.Pipeline;
 
@@ -28,25 +29,28 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
 
         foreach (var operation in operations)
         {
-            var outputField = new OutputField(OpenApiNamingHelper.GetFieldName(operation.Value.OperationId))
+            var outputField = new OutputField(GetFieldName(operation.Value.OperationId))
             {
                 Type = context.OperationPayloadTypeLookup[operation.Value.OperationId]
             };
 
             if (operation.Value.Parameters.Count > 0 || operation.Value.RequestBody is not null)
             {
-                var inputField = new InputField(OpenApiResources.InputField, context.OperationInputTypeLookup[operation.Value.OperationId]);
+                var inputField = new InputField(
+                    OpenApiResources.InputField, 
+                    context.OperationInputTypeLookup[operation.Value.OperationId]);
                 outputField.Arguments.Add(inputField);
             }
             mutationType.Fields.Add(outputField);
 
-            outputField.ContextData[OpenApiResources.ContextResolverParameter] = new Func<IResolverContext, Task<JsonElement>>(async ctx =>
-            {
-                var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
-                return await resolver.Invoke(ctx);
-            });
+            outputField.ContextData[OpenApiResources.ContextResolverParameter] = 
+                new Func<IResolverContext, Task<JsonElement>>(async ctx =>
+                {
+                    var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
+                    return await resolver.Invoke(ctx);
+                });
         }
 
-        context.SkimmedSchema.MutationType = mutationType;
+        context.MutableSchema.MutationType = mutationType;
     }
 }

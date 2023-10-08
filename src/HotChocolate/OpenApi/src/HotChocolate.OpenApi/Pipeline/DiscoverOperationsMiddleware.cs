@@ -18,13 +18,14 @@ internal partial class DiscoverOperationsMiddleware : IOpenApiWrapperMiddleware
         foreach (var openApiPath in context.OpenApiDocument.Paths)
         {
             var path = openApiPath.Value;
-            foreach (var operationKeyValue in path.Operations.Select(o => o))
+            foreach (var operationKeyValue in path.Operations)
             {
                 var response = operationKeyValue.Value.Responses
                     .FirstOrDefault(r => _successfulStatusCode.IsMatch(r.Key));
 
                 var resultOperation = new Operation(
-                    operationKeyValue.Value.OperationId ??  OpenApiNamingHelper.GetPathAsName(openApiPath.Key),
+                    operationKeyValue.Value.OperationId ?? 
+                        OpenApiNamingHelper.GetPathAsName(openApiPath.Key),
                     openApiPath.Key,
                     new HttpMethod(operationKeyValue.Key.ToString()),
                     operationKeyValue.Value)

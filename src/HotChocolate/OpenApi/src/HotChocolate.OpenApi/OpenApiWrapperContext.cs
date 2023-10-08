@@ -4,21 +4,15 @@ using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi;
 
-internal sealed class OpenApiWrapperContext
+internal sealed class OpenApiWrapperContext(OpenApiDocument openApiDocument)
 {
     private readonly Dictionary<OpenApiSchema, SchemaTypeInfo> _schemaTypeInfos = new();
 
-    public OpenApiDocument OpenApiDocument { get; }
+    public OpenApiDocument OpenApiDocument { get; } = openApiDocument;
     public Dictionary<string, Operation> Operations { get; } = new();
     public Dictionary<string, InputObjectType> OperationInputTypeLookup { get; } = new();
     public Dictionary<string, INamedType> OperationPayloadTypeLookup { get; } = new();
-
-    public Skimmed.Schema SkimmedSchema { get; } = new();
-
-    public OpenApiWrapperContext(OpenApiDocument openApiDocument)
-    {
-        OpenApiDocument = openApiDocument;
-    }
+    public Skimmed.Schema MutableSchema { get; } = new();
 
     public SchemaTypeInfo GetSchemaTypeInfo(OpenApiSchema schema)
     {

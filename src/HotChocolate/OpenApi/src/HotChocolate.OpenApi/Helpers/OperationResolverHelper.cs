@@ -154,6 +154,7 @@ internal static class OperationResolverHelper
     private static string GetValueOfValueNode(IValueNode input, string fieldName)
     {
         var json = GetJsonValueOfInputNode(input);
-        return JsonDocument.Parse(json).RootElement.GetProperty(fieldName).GetRawText();
+        using var document = JsonDocument.Parse(json);
+        return document.RootElement.GetProperty(fieldName).GetRawText();
     }
 }

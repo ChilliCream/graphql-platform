@@ -46,19 +46,23 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
 
             AddArguments(context, operation, outputField);
 
-            outputField.ContextData[OpenApiResources.ContextResolverParameter] = new Func<IResolverContext, Task<JsonElement>>(async ctx =>
-            {
-                var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
-                return await resolver.Invoke(ctx);
-            });
+            outputField.ContextData[OpenApiResources.ContextResolverParameter] = 
+                new Func<IResolverContext, Task<JsonElement>>(async ctx =>
+                {
+                    var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
+                    return await resolver.Invoke(ctx);
+                });
         }
 
-        context.SkimmedSchema.QueryType = queryType;
+        context.MutableSchema.QueryType = queryType;
     }
 
 
 
-    private static void AddArguments(OpenApiWrapperContext context, KeyValuePair<string, Operation> operation, OutputField outputField)
+    private static void AddArguments(
+        OpenApiWrapperContext context, 
+        KeyValuePair<string, Operation> operation, 
+        OutputField outputField)
     {
         foreach (var parameter in operation.Value.Parameters)
         {

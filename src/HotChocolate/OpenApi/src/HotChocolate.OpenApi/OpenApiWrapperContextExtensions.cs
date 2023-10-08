@@ -11,11 +11,9 @@ internal static class OpenApiWrapperContextExtensions
         return schema;
     }
 
-    public static List<KeyValuePair<string, Operation>> GetQueryOperations(this OpenApiWrapperContext ctx) =>
-        ctx.Operations.Where(o => o.Value.Method == HttpMethod.Get)
-            .ToList();
+    public static List<KeyValuePair<string, Operation>> GetQueryOperations(this OpenApiWrapperContext ctx) 
+        => ctx.Operations.Where(o => o.Value.Method == HttpMethod.Get).ToList();
 
-    public static List<KeyValuePair<string, Operation>> GetMutationOperations(this OpenApiWrapperContext ctx) =>
-        ctx.Operations.Where(o => o.Value.Method != HttpMethod.Get)
-            .ToList();
+    public static List<KeyValuePair<string, Operation>> GetMutationOperations(this OpenApiWrapperContext ctx) 
+        => ctx.Operations.Where(o => o.Value.Method != HttpMethod.Get).ToList();
 }

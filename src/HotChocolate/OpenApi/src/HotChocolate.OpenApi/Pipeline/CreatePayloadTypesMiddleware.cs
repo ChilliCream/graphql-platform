@@ -37,7 +37,7 @@ internal sealed class CreatePayloadTypesMiddleware : IOpenApiWrapperMiddleware
                 Type = new ObjectType(nameof(Boolean))
             };
             payloadType.Fields.Add(field);
-            context.SkimmedSchema.Types.Add(payloadType);
+            context.MutableSchema.Types.Add(payloadType);
             context.OperationPayloadTypeLookup[operation.OperationId] = payloadType;
         }
         else

@@ -80,8 +80,8 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
 
     private static void AddIfNecessary(OpenApiWrapperContext context, InputObjectType inputObjectType)
     {
-        if (context.SkimmedSchema.Types.ContainsName(inputObjectType.Name)) return;
-        context.SkimmedSchema.Types.Add(inputObjectType);
+        if (context.MutableSchema.Types.ContainsName(inputObjectType.Name)) return;
+        context.MutableSchema.Types.Add(inputObjectType);
     }
 
     private static void AddInputField(
@@ -113,7 +113,10 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
         return inputType;
     }
 
-    private static void AddFieldsToInputType(OpenApiWrapperContext context, OpenApiSchema schema, InputObjectType inputType)
+    private static void AddFieldsToInputType(
+        OpenApiWrapperContext context, 
+        OpenApiSchema schema, 
+        InputObjectType inputType)
     {
         foreach (var schemaProperty in schema.Properties)
         {
