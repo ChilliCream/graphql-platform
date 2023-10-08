@@ -17,6 +17,9 @@ internal sealed record SubgraphConfigJson
     /// <param name="clients">
     /// The list of clients that can be used to fetch data from this subgraph.
     /// </param>
+    /// <param name="extensions">
+    /// The "extensions" property of the subgraph-config.json.
+    /// </param>
     public SubgraphConfigJson(
         string name,
         IReadOnlyList<IClientConfiguration>? clients = null,
@@ -24,6 +27,7 @@ internal sealed record SubgraphConfigJson
     {
         Name = name;
         Clients = clients ?? Array.Empty<IClientConfiguration>();
+        Extensions = extensions;
     }
 
     /// <summary>

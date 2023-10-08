@@ -579,7 +579,8 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     {
         var config = new SubgraphConfigJson(
             configuration.Name,
-            configuration.Clients);
+            configuration.Clients,
+            configuration.ConfigurationExtensions);
 
         var path = $"{configuration.Name}/{SubgraphConfigFileName}";
         var uri = PackUriHelper.CreatePartUri(new Uri(path, UriKind.Relative));
