@@ -45,4 +45,7 @@
   <data name="OpenApiPropertyName" xml:space="preserve">
     <value>OpenApiPropertyName</value>
   </data>
+  <data name="OpenApiFieldNameNullException_DefaultMessage" xml:space="preserve">
+    <value>Field name cannot be null</value>
+  </data>
 </root>

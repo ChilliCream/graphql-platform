@@ -6,7 +6,6 @@ namespace HotChocolate.OpenApi.Helpers;
 
 internal static class Utf8JsonWriterHelper
 {
-
     public static void WriteValueNode(Utf8JsonWriter writer, IValueNode node)
     {
         WriteFieldValue(writer,node);
@@ -92,7 +91,6 @@ internal static class Utf8JsonWriterHelper
             case uint i:
                 writer.WriteNumberValue(i);
                 break;
-
 
             case double d:
                 writer.WriteNumberValue(d);

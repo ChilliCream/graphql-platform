@@ -1,5 +1,4 @@
 using System.Text;
-using HotChocolate.OpenApi.Exceptions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.OpenApi.Helpers;

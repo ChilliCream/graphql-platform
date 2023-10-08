@@ -98,5 +98,11 @@ namespace HotChocolate.OpenApi.Properties {
                 return ResourceManager.GetString("OpenApiPropertyName", resourceCulture);
             }
         }
+        
+        internal static string OpenApiFieldNameNullException_DefaultMessage {
+            get {
+                return ResourceManager.GetString("OpenApiFieldNameNullException_DefaultMessage", resourceCulture);
+            }
+        }
     }
 }
