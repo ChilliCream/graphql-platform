@@ -5,14 +5,14 @@ namespace HotChocolate.OpenApi.Models;
 /// Container class which represents all necessary data
 /// of a rest operation
 /// </summary>
-internal sealed class Operation
+internal sealed class Operation(string operationId, string path, HttpMethod method, OpenApiOperation openApiOperation)
 {
     private readonly List<OpenApiParameter> _parameters = new();
 
     /// <summary>
     /// Id of the operation
     /// </summary>
-    public string OperationId { get; set; }
+    public string OperationId { get; set; } = operationId;
 
     /// <summary>
     /// An optional description of the operation
@@ -22,17 +22,17 @@ internal sealed class Operation
     /// <summary>
     /// Relative url path e.g. /pets
     /// </summary>
-    public string Path { get; set; }
+    public string Path { get; set; } = path;
 
     /// <summary>
     /// Http method e.g. POST
     /// </summary>
-    public HttpMethod Method { get; set; }
+    public HttpMethod Method { get; set; } = method;
 
     /// <summary>
     /// Direct reference to the deserialized <see cref="OpenApiOperation"/>
     /// </summary>
-    public OpenApiOperation OpenApiOperation { get; set; }
+    public OpenApiOperation OpenApiOperation { get; set; } = openApiOperation;
 
     /// <summary>
     /// A list of all parameter which can be part of url query, header, cookie
@@ -48,14 +48,6 @@ internal sealed class Operation
     /// Direct reference to the deserialized <see cref="OpenApiResponse"/>
     /// </summary>
     public OpenApiResponse? Response { get; set; }
-
-    public Operation(string operationId, string path, HttpMethod method, OpenApiOperation openApiOperation)
-    {
-        OperationId = operationId;
-        Path = path;
-        Method = method;
-        OpenApiOperation = openApiOperation;
-    }
 
     /// <summary>
     /// Adds a parameter to the parameter list

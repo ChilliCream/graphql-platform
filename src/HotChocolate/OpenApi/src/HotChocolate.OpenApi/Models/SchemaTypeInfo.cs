@@ -14,6 +14,20 @@ namespace HotChocolate.OpenApi.Models;
 /// </summary>
 public class SchemaTypeInfo
 {
+    public SchemaTypeInfo(OpenApiSchema schema)
+    {
+        Schema = schema;
+
+        IsListType = schema.Items is not null;
+
+        TypeName = IsListType ? schema.Items!.Type : schema.Type;
+        TypeName ??= IsListType ? schema.Items!.Reference.Id : schema.Reference.Id;
+
+        Format = IsListType ? schema.Items!.Format : schema.Format;
+        GraphQLTypeName = GetGraphQLTypeName(TypeName, Format);
+        IsScalar = Scalars.IsBuiltIn(GraphQLTypeName);
+    }
+    
     /// <summary>
     /// The schema the information is based on
     /// </summary>
@@ -49,20 +63,6 @@ public class SchemaTypeInfo
     /// int64
     /// </summary>
     public string? Format { get; }
-
-    public SchemaTypeInfo(OpenApiSchema schema)
-    {
-        Schema = schema;
-
-        IsListType = schema.Items is not null;
-
-        TypeName = IsListType ? schema.Items!.Type : schema.Type;
-        TypeName ??= IsListType ? schema.Items!.Reference.Id : schema.Reference.Id;
-
-        Format = IsListType ? schema.Items!.Format : schema.Format;
-        GraphQLTypeName = GetGraphQLTypeName(TypeName, Format);
-        IsScalar = Scalars.IsBuiltIn(GraphQLTypeName);
-    }
 
     /// <summary>
     /// Creates a type node of this schema

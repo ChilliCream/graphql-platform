@@ -42,17 +42,18 @@ internal static partial class OpenApiNamingHelper
         return alreadyCamelCase ? value : sb.ToString();
     }
 
-    public static string GetInputTypeName(string value) => $"{GetTypeName(value)}Input";
-    public static string GetPayloadTypeName(string value) => $"{GetTypeName(value)}Payload";
+    public static string GetInputTypeName(string value) 
+        => $"{GetTypeName(value)}Input";
+    
+    public static string GetPayloadTypeName(string value) 
+        => $"{GetTypeName(value)}Payload";
 
-    public static string GetTypeName(string value) => value
-                                                          .RemoveCharacterAndEnsureName(' ')
-                                                          .EnsureStartWithUpperChar() ??
-                                                      throw new OpenApiFieldNameNullException();
+    public static string GetTypeName(string value) 
+        => value.RemoveCharacterAndEnsureName(' ').EnsureStartWithUpperChar() ??
+            throw new OpenApiFieldNameNullException();
 
-    public static string GetPathAsName(string path) => path
-        .RemoveCharacterAndEnsureName('/')
-        .EnsureStartWithUpperChar();
+    public static string GetPathAsName(string path)
+        => path.RemoveCharacterAndEnsureName('/').EnsureStartWithUpperChar();
 
     private static string EnsureStartWithLowerChar(this string text)
     {
