@@ -1,63 +1,84 @@
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.OpenApi.Models;
-using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.OpenApi.Models;
+using static HotChocolate.OpenApi.Properties.OpenApiResources;
 
 namespace HotChocolate.OpenApi.Helpers;
 
 internal static class OperationResolverHelper
 {
+    private static readonly JsonDocument _successResult = JsonDocument.Parse(BoolSuccessResult);
+    
     public static Func<IResolverContext, Task<JsonElement>> CreateResolverFunc(Operation operation)
-    {
-        return context => ResolveAsync(context, operation);
-    }
+        => context => ResolveAsync(context, operation);
 
     private static async Task<JsonElement> ResolveAsync(IResolverContext resolverContext, Operation operation)
     {
-        var httpClient = resolverContext.Services
-            .GetRequiredService<IHttpClientFactory>()
-            .CreateClient(OpenApiResources.HttpClientName);
-
-        var request = CreateRequest(resolverContext, operation);
+        var services = resolverContext.Services;
+        var stringBuilderPool = services.GetRequiredService<ObjectPool<StringBuilder>>();
+        var httpClient = services.GetRequiredService<IHttpClientFactory>().CreateClient(HttpClientName);
+        
+        using var arrayWriter = new ArrayWriter();
+        var sb = stringBuilderPool.Get();
+        sb.Clear();
+        
+        var request = CreateRequest(resolverContext, operation, arrayWriter, sb);
+        stringBuilderPool.Return(sb);
+        
         var response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
+        {
             throw new InvalidOperationException(await response.Content.ReadAsStringAsync());
-        var contentBytes = await response.Content.ReadAsByteArrayAsync();
-        var isValidNullResult = contentBytes.Length == 0 &&
-                                operation.Response?.Reference is null;
-        return isValidNullResult
-            ? JsonDocument.Parse(OpenApiResources.BoolSuccessResult).RootElement
-            : JsonDocument.Parse(contentBytes).RootElement;
+        }
+        
+        var responseBuffer = await response.Content.ReadAsByteArrayAsync();
+        return ParseResponse(operation, responseBuffer);
+    }
+    
+    private static JsonElement ParseResponse(Operation operation, ReadOnlySpan<byte> response)
+    {
+        if (response.Length == 0 && operation.Response?.Reference is null)
+        {
+            return _successResult.RootElement;
+        }
+        
+        var reader = new Utf8JsonReader(response, true, default);
+        return JsonElement.ParseValue(ref reader);
     }
 
-    private static HttpRequestMessage CreateRequest(IResolverContext resolverContext, Operation operation)
+    private static HttpRequestMessage CreateRequest(
+        IResolverContext resolverContext, 
+        Operation operation,
+        ArrayWriter arrayWriter,
+        StringBuilder sb)
     {
         HttpContent? content = null;
 
-        var path = GetPath(resolverContext, operation);
-
-        var queryString = CreateQueryString(resolverContext, operation);
-
-        if (!string.IsNullOrEmpty(queryString))
-        {
-            path = $"{path}?{queryString}";
-        }
+        BuildPath(resolverContext, operation, sb);
+        BuildQueryString(resolverContext, operation, sb);
 
         if (operation.RequestBody is not null)
         {
-            var valueNode = resolverContext.ArgumentLiteral<IValueNode>(OpenApiResources.InputField);
-            var json = GetJsonValueOfInputNode(valueNode);
-            content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue(OpenApiResources.JsonMediaType));
+            var valueNode = resolverContext.ArgumentLiteral<IValueNode>(InputField);
+            
+            using var writer = new Utf8JsonWriter(arrayWriter);
+            Utf8JsonWriterHelper.WriteValueNode(writer, valueNode);
+            writer.Flush();
+            
+            content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
+            content.Headers.ContentType = new MediaTypeHeaderValue(JsonMediaType);
         }
 
-        var request = new HttpRequestMessage(operation.Method, path);
+        var request = new HttpRequestMessage(operation.Method, sb.ToString());
 
         if (content is not null)
         {
@@ -67,33 +88,58 @@ internal static class OperationResolverHelper
         return request;
     }
 
-    private static string GetPath(IResolverContext resolverContext, Operation operation)
+    private static void BuildPath(IResolverContext resolverContext, Operation operation, StringBuilder sb)
     {
-        var path = operation.Path;
-        foreach (var parameter in operation.Parameters)
+        sb.Append(operation.Path);
+        
+        ref var parameter = ref operation.GetParameterRef();
+        ref var end = ref Unsafe.Add(ref parameter, operation.Parameters.Count);
+
+        while (Unsafe.IsAddressLessThan(ref parameter, ref end))
         {
             var pathValue = operation.Method == HttpMethod.Get
                 ? resolverContext.ArgumentValue<string>(parameter.Name)
-                : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>(OpenApiResources.InputField), parameter.Name);
-            path = path.Replace($"{{{parameter.Name}}}", pathValue );
+                : GetValueOfValueNode(
+                    resolverContext.ArgumentLiteral<IValueNode>(InputField), 
+                    parameter.Name);
+            sb.Replace($"{{{parameter.Name}}}", pathValue);
+            parameter = ref Unsafe.Add(ref parameter, 1);
         }
-
-        return path;
     }
 
-    private static string CreateQueryString(IResolverContext resolverContext, Operation operation)
+    private static void BuildQueryString(IResolverContext resolverContext, Operation operation, StringBuilder sb)
     {
-        return string.Join('&', operation.Parameters
-            .Where(p => p.In == ParameterLocation.Query)
-            .Select(p =>
+        ref var parameter = ref operation.GetParameterRef();
+        ref var end = ref Unsafe.Add(ref parameter, operation.Parameters.Count);
+        var next = false;
+
+        while (Unsafe.IsAddressLessThan(ref parameter, ref end))
+        {
+            if (parameter.In == ParameterLocation.Query)
             {
                 var pathValue = operation.Method == HttpMethod.Get
-                    ? resolverContext.ArgumentValue<string>(p.Name)
-                    : GetValueOfValueNode(resolverContext.ArgumentLiteral<IValueNode>(OpenApiResources.InputField),
-                        p.Name);
+                    ? resolverContext.ArgumentValue<string>(parameter.Name)
+                    : GetValueOfValueNode(
+                        resolverContext.ArgumentLiteral<IValueNode>(InputField),
+                        parameter.Name);
 
-                return $"{p.Name}={pathValue}";
-            }));
+                if (next)
+                {
+                    sb.Append('&');
+                }
+                else
+                {
+                    sb.Append('?');    
+                    next = true;
+                }
+                
+                sb.Append(parameter.Name);
+                sb.Append('=');
+                sb.Append(pathValue);
+            }
+
+            parameter = ref Unsafe.Add(ref parameter, 1);
+        }
     }
 
     private static string GetJsonValueOfInputNode(IValueNode valueNode)

@@ -3,7 +3,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.OpenApi.Helpers;
 
-internal static partial class OpenApiNamingHelper
+internal static class OpenApiNamingHelper
 {
     public static string GetFieldName(string value)
     {
@@ -11,7 +11,7 @@ internal static partial class OpenApiNamingHelper
         var toUpper = false;
         var alreadyCamelCase = true;
 
-        foreach (var c in value)
+        foreach (var c in value.AsSpan())
         {
             if (char.IsLetterOrDigit(c))
             {
@@ -57,14 +57,20 @@ internal static partial class OpenApiNamingHelper
 
     private static string EnsureStartWithLowerChar(this string text)
     {
-        if (string.IsNullOrEmpty(text)) return text;
+        if (string.IsNullOrEmpty(text))
+        {
+            return text;
+        }
 
         return char.ToLowerInvariant(text[0]) + text[1..];
     }
 
     private static string EnsureStartWithUpperChar(this string text)
     {
-        if (string.IsNullOrEmpty(text)) return text;
+        if (string.IsNullOrEmpty(text))
+        {
+            return text;
+        }
 
         return char.ToUpperInvariant(text[0]) + text[1..];
     }
@@ -72,16 +78,22 @@ internal static partial class OpenApiNamingHelper
     private static string RemoveCharacterAndEnsureName(this string input, char c)
     {
         if (string.IsNullOrEmpty(input))
+        {
             return string.Empty;
+        }
 
         var sb = new StringBuilder();
         var capitalizeNext = false;
 
         // Go through all the characters
-        foreach (var currentChar in input)
+        foreach (var currentChar in input.AsSpan())
         {
             // Only process alphabetic characters and spaces
-            if (!char.IsLetter(currentChar) && currentChar != c) continue;
+            if (!char.IsLetter(currentChar) && currentChar != c)
+            {
+                continue;
+            }
+            
             if (currentChar == c)
             {
                 capitalizeNext = true; // We want to capitalize the next character

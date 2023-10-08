@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Models;
@@ -54,4 +56,7 @@ internal sealed class Operation(string operationId, string path, HttpMethod meth
     /// </summary>
     /// <param name="parameter"></param>
     public void AddParameter(OpenApiParameter parameter) => _parameters.Add(parameter);
+
+    internal ref OpenApiParameter GetParameterRef()
+        => ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(_parameters));
 }
