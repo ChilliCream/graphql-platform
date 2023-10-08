@@ -97,6 +97,7 @@ accounts Subgraph Configuration
       "ClientName": null,
       "BaseAddress": "https://localhost:3000/graphql"
     }
-  ]
+  ],
+  "ConfigurationExtensions": null
 }
 ---------------

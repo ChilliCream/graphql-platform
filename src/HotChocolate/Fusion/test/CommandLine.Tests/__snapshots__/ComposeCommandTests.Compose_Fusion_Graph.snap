@@ -121,6 +121,7 @@ Accounts Subgraph Configuration
       "ClientName": null,
       "BaseAddress": "ws://localhost:5000/graphql"
     }
-  ]
+  ],
+  "ConfigurationExtensions": null
 }
 ---------------
