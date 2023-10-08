@@ -6,7 +6,7 @@ using ListType = HotChocolate.Skimmed.ListType;
 using NonNullType = HotChocolate.Skimmed.NonNullType;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
 
-namespace HotChocolate.OpenApi.Models;
+namespace HotChocolate.OpenApi;
 
 /// <summary>
 /// Container class which exposes metadata and GraphQL related data

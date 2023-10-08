@@ -1,8 +1,7 @@
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.OpenApi.Models;
 
-namespace HotChocolate.OpenApi.Models;
+namespace HotChocolate.OpenApi;
 /// <summary>
 /// Container class which represents all necessary data
 /// of a rest operation

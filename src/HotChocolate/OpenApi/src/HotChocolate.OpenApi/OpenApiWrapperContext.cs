@@ -1,4 +1,3 @@
-using HotChocolate.OpenApi.Models;
 using HotChocolate.Skimmed;
 using Microsoft.OpenApi.Models;
 

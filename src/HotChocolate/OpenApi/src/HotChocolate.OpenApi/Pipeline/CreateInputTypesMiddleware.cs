@@ -1,5 +1,4 @@
 using HotChocolate.OpenApi.Helpers;
-using HotChocolate.OpenApi.Models;
 using HotChocolate.Skimmed;
 using Microsoft.OpenApi.Models;
 using InputField = HotChocolate.Skimmed.InputField;

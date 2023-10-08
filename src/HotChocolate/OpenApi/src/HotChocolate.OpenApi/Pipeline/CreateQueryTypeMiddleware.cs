@@ -1,6 +1,5 @@
 using System.Text.Json;
 using HotChocolate.OpenApi.Helpers;
-using HotChocolate.OpenApi.Models;
 using HotChocolate.OpenApi.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
