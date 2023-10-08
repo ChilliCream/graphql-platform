@@ -203,6 +203,7 @@ internal static class SubgraphConfigJsonSerializer
                 case "extensions":
                     jsonDocument = ReadExtensions(property.Value);
                     break;
+                    
                 default:
                     throw new NotSupportedException(
                         $"Configuration property `{property.Value}` is not supported.");
