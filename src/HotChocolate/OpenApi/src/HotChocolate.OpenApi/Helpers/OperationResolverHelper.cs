@@ -16,14 +16,17 @@ internal static class OperationResolverHelper
 {
     private static readonly JsonDocument _successResult = JsonDocument.Parse(BoolSuccessResult);
     
-    public static Func<IResolverContext, Task<JsonElement>> CreateResolverFunc(Operation operation)
-        => context => ResolveAsync(context, operation);
+    public static Func<IResolverContext, Task<JsonElement>> CreateResolverFunc(string clientName, Operation operation)
+        => context => ResolveAsync(context, clientName, operation);
 
-    private static async Task<JsonElement> ResolveAsync(IResolverContext resolverContext, Operation operation)
+    private static async Task<JsonElement> ResolveAsync(
+        IResolverContext resolverContext, 
+        string clientName, 
+        Operation operation)
     {
         var services = resolverContext.Services;
         var stringBuilderPool = services.GetRequiredService<ObjectPool<StringBuilder>>();
-        var httpClient = services.GetRequiredService<IHttpClientFactory>().CreateClient(HttpClientName);
+        var httpClient = services.GetRequiredService<IHttpClientFactory>().CreateClient(clientName);
         
         using var arrayWriter = new ArrayWriter();
         var sb = stringBuilderPool.Get();

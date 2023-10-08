@@ -18,41 +18,20 @@ namespace HotChocolate.OpenApi;
 public static class RequestExecutorBuilderExtension
 {
     public static IRequestExecutorBuilder AddOpenApi(
-        this IRequestExecutorBuilder requestExecutorBuilder,
-        string openApi,
-        Action<HttpClient>? configureClient = null)
+        this IRequestExecutorBuilder builder,
+        string clientName,
+        string openApi)
     {
-        var document = new OpenApiStringReader().Read(openApi, out _);
-        requestExecutorBuilder.ParseAndAddTypes(document);
-        requestExecutorBuilder.AddHttpClient(configureClient);
-        return requestExecutorBuilder;
-    }
-
-    public static IRequestExecutorBuilder AddOpenApi(
-        this IRequestExecutorBuilder requestExecutorBuilder,
-        Stream openApiStream,
-        Action<HttpClient>? configureClient = null)
-    {
-        var document = new OpenApiStreamReader().Read(openApiStream, out _);
-        requestExecutorBuilder.ParseAndAddTypes(document);
-        requestExecutorBuilder.AddHttpClient(configureClient);
-        return requestExecutorBuilder;
-    }
-
-    private static IRequestExecutorBuilder AddHttpClient(
-        this IRequestExecutorBuilder requestExecutorBuilder,
-        Action<HttpClient>? configureClient)
-    {
-        requestExecutorBuilder.Services.AddHttpClient(HttpClientName, configureClient ?? (_ => { }));
-        return requestExecutorBuilder;
-    }
-
-    private static void ParseAndAddTypes(
-        this IRequestExecutorBuilder requestExecutorBuilder,
-        OpenApiDocument apiDocument)
-    {
-        requestExecutorBuilder.AddJsonSupport();
-        requestExecutorBuilder.InitializeSchema(new OpenApiWrapper().Wrap(apiDocument));
+        var documentReader = new OpenApiStringReader();
+        var wrapper = new OpenApiWrapper();
+        
+        var document = documentReader.Read(openApi, out _);
+        var schema = wrapper.Wrap(clientName, document);
+        
+        builder.AddJsonSupport();
+        builder.InitializeSchema(schema);
+        
+        return builder;
     }
 
     private static void InitializeSchema(
@@ -88,7 +67,6 @@ public static class RequestExecutorBuilderExtension
 
             foreach (var field in skimmedType.Fields)
             {
-
                 var fieldDescriptor = CreateFieldDescriptor(field, desc);
 
                 foreach (var fieldArgument in field.Arguments)
@@ -118,11 +96,11 @@ public static class RequestExecutorBuilderExtension
         ITypeNode baseType = field.Type.Kind == TypeKind.NonNull
             ? new NonNullTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
             : new NamedTypeNode(field.Type.NamedType().Name);
+        
         var fieldDescriptor = desc.Field(field.Name)
             .Description(field.Description)
-            .Type(field.Type.Kind == TypeKind.List
-                ? new ListTypeNode(baseType)
-                : baseType);
+            .Type(field.Type.Kind == TypeKind.List ? new ListTypeNode(baseType) : baseType);
+        
         return fieldDescriptor;
     }
 

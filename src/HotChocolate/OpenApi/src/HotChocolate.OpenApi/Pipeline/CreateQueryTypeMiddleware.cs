@@ -29,7 +29,11 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
         foreach (var operation in queryOperations)
         {
             var schema = operation.Value.Response?.Content.First().Value.Schema;
-            if(schema is null) continue;
+
+            if (schema is null)
+            {
+                continue;
+            }
 
             var typeInfo = context.GetSchemaTypeInfo(schema);
             var type = typeInfo.GetGraphQLTypeNode(false);
@@ -46,11 +50,7 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
             AddArguments(context, operation, outputField);
 
             outputField.ContextData[OpenApiResources.ContextResolverParameter] = 
-                new Func<IResolverContext, Task<JsonElement>>(async ctx =>
-                {
-                    var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
-                    return await resolver.Invoke(ctx);
-                });
+                OperationResolverHelper.CreateResolverFunc(context.ClientName, operation.Value);
         }
 
         context.MutableSchema.QueryType = queryType;

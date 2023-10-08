@@ -100,9 +100,7 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
 
         inputType.Fields.Add(new InputField(graphQLName, type));
     }
-
-
-
+    
     private static InputObjectType CreateInputType(OpenApiWrapperContext context, OpenApiSchema schema)
     {
         var inputType = new InputObjectType(OpenApiNamingHelper.GetInputTypeName(schema.Reference.Id));

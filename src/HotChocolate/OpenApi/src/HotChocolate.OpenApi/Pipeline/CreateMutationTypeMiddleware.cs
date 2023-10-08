@@ -44,11 +44,7 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
             mutationType.Fields.Add(outputField);
 
             outputField.ContextData[OpenApiResources.ContextResolverParameter] = 
-                new Func<IResolverContext, Task<JsonElement>>(async ctx =>
-                {
-                    var resolver = OperationResolverHelper.CreateResolverFunc(operation.Value);
-                    return await resolver.Invoke(ctx);
-                });
+                OperationResolverHelper.CreateResolverFunc(context.ClientName, operation.Value);
         }
 
         context.MutableSchema.MutationType = mutationType;

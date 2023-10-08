@@ -5,6 +5,8 @@ using HotChocolate.Execution.Processing;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
 using Xunit;
+using static System.IO.Path;
+
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace HotChocolate.OpenApi.Tests;
@@ -34,16 +36,22 @@ public class IntegrationTests
         });
         var openApiServer = new TestServer(builder);
 
-        httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>()))
-            .Returns(() => openApiServer.CreateClient());
+        httpClientFactoryMock
+            .Setup(f => f.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var client = openApiServer.CreateClient();
+                client.BaseAddress = new Uri("http://localhost:5000");
+                return client;
+            });
 
         await openApiServer.Host.StartAsync();
-        await using var stream = File.Open(System.IO.Path.Combine("__resources__", "PetStore.yaml"), FileMode.Open);
+        var apiDocument  = await File.ReadAllTextAsync(Combine("__resources__", "PetStore.yaml"));
 
         var schema = await new ServiceCollection()
             .AddSingleton(httpClientFactoryMock.Object)
             .AddGraphQL()
-            .AddOpenApi(stream, client => client.BaseAddress = new Uri("http://localhost:5000"))
+            .AddOpenApi("PetStore", apiDocument)
             .BuildRequestExecutorAsync();
 
         // Act
@@ -79,12 +87,12 @@ public class IntegrationTests
             .Returns(() => openApiServer.CreateClient());
 
         await openApiServer.Host.StartAsync();
-        await using var stream = File.Open(System.IO.Path.Combine("__resources__", "Uber.json"), FileMode.Open);
+        var apiDocument  = await File.ReadAllTextAsync(Combine("__resources__", "Uber.json"));
 
         var schema = await new ServiceCollection()
             .AddSingleton(httpClientFactoryMock.Object)
             .AddGraphQL()
-            .AddOpenApi(stream, client => client.BaseAddress = new Uri("http://localhost:5000"))
+            .AddOpenApi("Uber", apiDocument)
             .BuildRequestExecutorAsync();
 
         // Act

@@ -33,9 +33,6 @@
   <data name="InputField" xml:space="preserve">
     <value>input</value>
   </data>
-  <data name="HttpClientName" xml:space="preserve">
-    <value>OpenApi</value>
-  </data>
   <data name="JsonMediaType" xml:space="preserve">
     <value>application/json</value>
   </data>

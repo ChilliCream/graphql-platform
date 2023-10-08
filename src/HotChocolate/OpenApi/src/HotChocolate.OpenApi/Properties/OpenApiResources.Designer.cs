@@ -75,12 +75,6 @@ namespace HotChocolate.OpenApi.Properties {
             }
         }
 
-        internal static string HttpClientName {
-            get {
-                return ResourceManager.GetString("HttpClientName", resourceCulture);
-            }
-        }
-
         internal static string JsonMediaType {
             get {
                 return ResourceManager.GetString("JsonMediaType", resourceCulture);

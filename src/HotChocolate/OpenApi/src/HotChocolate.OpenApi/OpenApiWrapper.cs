@@ -14,9 +14,9 @@ internal class OpenApiWrapper
             .Use<CreateMutationTypeMiddleware>()
             .Build();
 
-    public Skimmed.Schema Wrap(OpenApiDocument openApi)
+    public Skimmed.Schema Wrap(string clientName, OpenApiDocument openApi)
     {
-        var context = new OpenApiWrapperContext(openApi);
+        var context = new OpenApiWrapperContext(clientName, openApi);
         _pipeline.Invoke(context);
         return context.MutableSchema;
     }

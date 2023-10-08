@@ -3,11 +3,12 @@ using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi;
 
-internal sealed class OpenApiWrapperContext(OpenApiDocument openApiDocument)
+internal sealed class OpenApiWrapperContext( string clientName, OpenApiDocument openApiDocument)
 {
     private readonly Dictionary<OpenApiSchema, SchemaTypeInfo> _schemaTypeInfos = new();
 
     public OpenApiDocument OpenApiDocument { get; } = openApiDocument;
+    public string ClientName { get; } = clientName;
     public Dictionary<string, Operation> Operations { get; } = new();
     public Dictionary<string, InputObjectType> OperationInputTypeLookup { get; } = new();
     public Dictionary<string, INamedType> OperationPayloadTypeLookup { get; } = new();

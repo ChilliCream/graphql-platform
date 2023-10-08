@@ -4,6 +4,7 @@ using HotChocolate.Skimmed.Serialization;
 using Microsoft.OpenApi.Readers;
 using Xunit;
 using Xunit.Abstractions;
+using static System.IO.Path;
 
 namespace HotChocolate.OpenApi.Tests;
 
@@ -20,12 +21,12 @@ public class SchemaGenerationTests
     public async Task Simple_PetStore_V3_Generates_Correct_SkimmedSchema()
     {
         // Arrange
-        await using var stream = File.Open(System.IO.Path.Combine("__resources__", "PetStore.yaml"), FileMode.Open);
+        await using var stream = File.Open(Combine("__resources__", "PetStore.yaml"), FileMode.Open);
         var wrapper = new OpenApiWrapper();
         var document = new OpenApiStreamReader().Read(stream, out var diag);
 
         // Act
-        var schema = wrapper.Wrap(document);
+        var schema = wrapper.Wrap("PetStore", document);
 
         // Assert
         var sdl = SchemaFormatter.FormatAsString(schema);
@@ -37,12 +38,12 @@ public class SchemaGenerationTests
     public async Task Simple_PetStore_V3_Generates_Correct_Schema()
     {
         // Arrange
-        await using var stream = File.Open(System.IO.Path.Combine("__resources__", "PetStore.yaml"), FileMode.Open);
+        var apiDocument  = await File.ReadAllTextAsync(Combine("__resources__", "PetStore.yaml"));
 
         // Act
         var schema = await new ServiceCollection()
             .AddGraphQL()
-            .AddOpenApi(stream)
+            .AddOpenApi("PetStore", apiDocument)
             .BuildSchemaAsync();
 
         // Assert
@@ -54,12 +55,12 @@ public class SchemaGenerationTests
     public async Task Uber_Generates_Correct_SkimmedSchema()
     {
         // Arrange
-        await using var stream = File.Open(System.IO.Path.Combine("__resources__", "Uber.json"), FileMode.Open);
+        await using var stream = File.Open(Combine("__resources__", "Uber.json"), FileMode.Open);
         var wrapper = new OpenApiWrapper();
         var document = new OpenApiStreamReader().Read(stream, out var diag);
 
         // Act
-        var schema = wrapper.Wrap(document);
+        var schema = wrapper.Wrap("PetStore", document);
 
         // Assert
         var sdl = SchemaFormatter.FormatAsString(schema);
