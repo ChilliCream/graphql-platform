@@ -22,6 +22,10 @@ public static class RequestExecutorBuilderExtension
         string clientName,
         string openApi)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(clientName);
+        ArgumentException.ThrowIfNullOrEmpty(openApi);
+        
         var documentReader = new OpenApiStringReader();
         var wrapper = new OpenApiWrapper();
         
