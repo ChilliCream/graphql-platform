@@ -39,6 +39,7 @@ public class InterfaceTypeDescriptor<T>
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
+                TypeContext.Output,
                 p => InterfaceFieldDescriptor.New(Context, p).CreateDefinition(),
                 fields,
                 handledMembers);

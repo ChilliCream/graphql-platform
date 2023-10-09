@@ -106,7 +106,7 @@ public class InputObjectTypeDescriptor
             var inspector = Context.TypeInspector;
             var naming = Context.Naming;
             var type = Definition.RuntimeType;
-            var members = inspector.GetMembers(type);
+            var members = inspector.GetMembers(type, TypeContext.Input);
 
             foreach (var member in members)
             {

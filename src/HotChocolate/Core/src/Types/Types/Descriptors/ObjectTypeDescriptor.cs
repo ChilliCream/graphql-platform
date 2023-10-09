@@ -143,7 +143,7 @@ public class ObjectTypeDescriptor
             var type = Definition.FieldBindingType;
             var isExtension = Definition.IsExtension;
             var includeStatic = (Definition.FieldBindingFlags & Static) == Static;
-            var members = inspector.GetMembers(type, isExtension, includeStatic);
+            var members = inspector.GetMembers(type, TypeContext.Output, isExtension, includeStatic);
 
             foreach (var member in members)
             {

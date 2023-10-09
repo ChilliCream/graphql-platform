@@ -41,6 +41,7 @@ public class DirectiveTypeDescriptor<T>
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
+                TypeContext.None,
                 p => DirectiveArgumentDescriptor
                     .New(Context, p)
                     .CreateDefinition(),

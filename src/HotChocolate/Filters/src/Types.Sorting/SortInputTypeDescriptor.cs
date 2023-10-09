@@ -178,7 +178,7 @@ public class SortInputTypeDescriptor<T>
             return;
         }
 
-        foreach (var member in Context.TypeInspector.GetMembers(Definition.EntityType!))
+        foreach (var member in Context.TypeInspector.GetMembers(Definition.EntityType!, TypeContext.Output))
         {
             if (member is PropertyInfo property)
             {
