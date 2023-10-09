@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Utilities", "HotChocolate.Utilities.csproj", "{BFB738DD-2FCC-40C3-B561-9CBFC12AAEFE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BFB738DD-2FCC-40C3-B561-9CBFC12AAEFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFB738DD-2FCC-40C3-B561-9CBFC12AAEFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFB738DD-2FCC-40C3-B561-9CBFC12AAEFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFB738DD-2FCC-40C3-B561-9CBFC12AAEFE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6321A662-AC9F-40D8-8CE9-3F274FAD4696}
+	EndGlobalSection
+EndGlobal

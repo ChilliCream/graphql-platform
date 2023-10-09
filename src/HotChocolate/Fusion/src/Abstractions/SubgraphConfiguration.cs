@@ -30,7 +30,7 @@ public sealed class SubgraphConfiguration
         string schema,
         IReadOnlyList<string> extensions,
         IReadOnlyList<IClientConfiguration> clients,
-        JsonDocument? configurationExtensions)
+        JsonElement? configurationExtensions)
     {
         Name = name;
         Schema = schema;
@@ -62,7 +62,7 @@ public sealed class SubgraphConfiguration
         string schema,
         string extensions,
         IReadOnlyList<IClientConfiguration> clients,
-        JsonDocument? configurationExtensions)
+        JsonElement? configurationExtensions)
         : this(name, schema, new[] { extensions }, clients, configurationExtensions) { }
 
     /// <summary>
@@ -88,7 +88,7 @@ public sealed class SubgraphConfiguration
         string schema,
         string extensions,
         IClientConfiguration client,
-        JsonDocument? configurationExtensions)
+        JsonElement? configurationExtensions)
         : this(name, schema, new[] { extensions }, new[] { client }, configurationExtensions) { }
 
     /// <summary>
@@ -114,5 +114,5 @@ public sealed class SubgraphConfiguration
     /// <summary>
     /// Gets the configuration extension.
     /// </summary>
-    public JsonDocument? ConfigurationExtensions { get; }
+    public JsonElement? ConfigurationExtensions { get; }
 }

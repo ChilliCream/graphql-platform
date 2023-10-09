@@ -43,7 +43,7 @@ public class PackageHelperTests : CommandTestBase
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
-        var extensions = JsonDocument.Parse("{ \"foo\": \"bar\" }");
+        var extensions = JsonDocument.Parse("{ \"foo\": \"bar\" }").RootElement;
         var accountConfig = demoProject.Accounts.ToConfiguration(AccountsExtensionSdl, extensions);
         var account = CreateFiles(accountConfig);
         var packageFile = CreateTempFile();
@@ -85,7 +85,7 @@ public class PackageHelperTests : CommandTestBase
             using var stream = new MemoryStream();
             using var writer =
                 new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
-            config.ConfigurationExtensions.WriteTo(writer);
+            config.ConfigurationExtensions.Value.WriteTo(writer);
             writer.Flush();
 
             var json = Encoding.UTF8.GetString(stream.ToArray());

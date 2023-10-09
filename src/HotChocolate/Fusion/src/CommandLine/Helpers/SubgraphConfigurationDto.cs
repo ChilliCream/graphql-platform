@@ -8,7 +8,7 @@ internal sealed record SubgraphConfigurationDto
     public SubgraphConfigurationDto(
         string name,
         IReadOnlyList<IClientConfiguration>? clients = null,
-        JsonDocument? extensions = null)
+        JsonElement? extensions = null)
     {
         Name = name;
         Clients = clients ?? Array.Empty<IClientConfiguration>();
@@ -19,12 +19,12 @@ internal sealed record SubgraphConfigurationDto
 
     public IReadOnlyList<IClientConfiguration> Clients { get; init; }
 
-    public JsonDocument? Extensions { get; init; }
+    public JsonElement? Extensions { get; init; }
 
     public void Deconstruct(
         out string name,
         out IReadOnlyList<IClientConfiguration> clients,
-        out JsonDocument? extensions)
+        out JsonElement? extensions)
     {
         name = Name;
         clients = Clients;

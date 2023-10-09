@@ -23,7 +23,7 @@ internal sealed record SubgraphConfigJson
     public SubgraphConfigJson(
         string name,
         IReadOnlyList<IClientConfiguration>? clients = null,
-        JsonDocument? extensions = null)
+        JsonElement? extensions = null)
     {
         Name = name;
         Clients = clients ?? Array.Empty<IClientConfiguration>();
@@ -43,7 +43,7 @@ internal sealed record SubgraphConfigJson
     /// <summary>
     /// Gets the "extensions" property of the subgraph-config.json.
     /// </summary>
-    public JsonDocument? Extensions { get; init; }
+    public JsonElement? Extensions { get; init; }
 
     /// <summary>
     /// Deconstructs the <see cref="SubgraphConfigJson"/> into its components.
@@ -54,10 +54,13 @@ internal sealed record SubgraphConfigJson
     /// <param name="clients">
     /// The list of clients that can be used to fetch data from this subgraph.
     /// </param>
+    /// <param name="extensions">
+    /// The "extensions" property of the subgraph-config.json.
+    /// </param>
     public void Deconstruct(
         out string name,
         out IReadOnlyList<IClientConfiguration> clients,
-        out JsonDocument? extensions)
+        out JsonElement? extensions)
     {
         name = Name;
         clients = Clients;

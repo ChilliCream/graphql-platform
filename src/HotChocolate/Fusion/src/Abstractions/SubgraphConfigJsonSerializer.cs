@@ -149,7 +149,7 @@ internal static class SubgraphConfigJsonSerializer
         if (config.Extensions is not null)
         {
             writer.WritePropertyName("extensions");
-            config.Extensions.WriteTo(writer);
+            config.Extensions.Value.WriteTo(writer);
         }
 
         writer.WriteEndObject();
@@ -182,7 +182,7 @@ internal static class SubgraphConfigJsonSerializer
             stream, cancellationToken: cancellationToken);
         var configs = new List<IClientConfiguration>();
         var subgraph = default(string?);
-        var jsonDocument = default(JsonDocument?);
+        var extensions = default(JsonElement?);
 
         foreach (var property in document.RootElement.EnumerateObject())
         {
@@ -201,7 +201,7 @@ internal static class SubgraphConfigJsonSerializer
                     break;
 
                 case "extensions":
-                    jsonDocument = ReadExtensions(property.Value);
+                    extensions = property.Value.SafeClone();
                     break;
                     
                 default:
@@ -215,7 +215,7 @@ internal static class SubgraphConfigJsonSerializer
             throw new InvalidOperationException("No subgraph name was specified.");
         }
 
-        return new SubgraphConfigJson(subgraph, configs, jsonDocument);
+        return new SubgraphConfigJson(subgraph, configs, extensions);
     }
 
     private static HttpClientConfiguration ReadHttpClientConfiguration(
@@ -244,11 +244,5 @@ internal static class SubgraphConfigJsonSerializer
         }
 
         return new WebSocketClientConfiguration(baseAddress, clientName);
-    }
-
-    private static JsonDocument ReadExtensions(JsonElement element)
-    {
-        var extensionText = element.GetRawText();
-        return JsonDocument.Parse(extensionText);
     }
 }
