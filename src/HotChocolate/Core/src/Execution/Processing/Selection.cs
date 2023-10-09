@@ -88,7 +88,7 @@ public class Selection : ISelection
     /// <inheritdoc />
     public int Id { get; }
 
-    internal CustomOptionsFlags CustomOptions { get; private set; }
+    public CustomOptionsFlags CustomOptions { get; private set; }
 
     /// <inheritdoc />
     public SelectionExecutionStrategy Strategy { get; private set; }
@@ -320,7 +320,7 @@ public class Selection : ISelection
         _flags |= Flags.Stream;
     }
 
-    internal void SetOption(CustomOptionsFlags customOptions)
+    public void SetOption(CustomOptionsFlags customOptions)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -390,14 +390,16 @@ public class Selection : ISelection
     }
 
     [Flags]
-    internal enum CustomOptionsFlags : byte
+    public enum CustomOptionsFlags : byte
     {
         None = 0,
         Option1 = 1,
         Option2 = 2,
         Option3 = 4,
         Option4 = 8,
-        Option5 = 16
+        Option5 = 16,
+        Option6 = 32,
+        Option7 = 64
     }
 
     internal sealed class Sealed : Selection
