@@ -203,7 +203,7 @@ internal static class SubgraphConfigJsonSerializer
                 case "extensions":
                     extensions = property.Value.SafeClone();
                     break;
-                    
+
                 default:
                     throw new NotSupportedException(
                         $"Configuration property `{property.Value}` is not supported.");
