@@ -197,7 +197,8 @@ Accounts Subgraph Configuration
       "ClientName": null,
       "BaseAddress": "ws://localhost:5000/graphql"
     }
-  ]
+  ],
+  "ConfigurationExtensions": null
 }
 ---------------
 
@@ -218,6 +219,7 @@ Reviews2 Subgraph Configuration
       "ClientName": null,
       "BaseAddress": "ws://localhost:5000/graphql"
     }
-  ]
+  ],
+  "ConfigurationExtensions": null
 }
 ---------------
