@@ -397,7 +397,9 @@ public class Selection : ISelection
         Option2 = 2,
         Option3 = 4,
         Option4 = 8,
-        Option5 = 16
+        Option5 = 16,
+        Option6 = 32,
+        Option7 = 64
     }
 
     internal sealed class Sealed : Selection
