@@ -62,7 +62,7 @@ public sealed class DemoSubgraph
 
     public SubgraphConfiguration ToConfiguration(
         string extensions,
-        JsonDocument configurationExtensions,
+        JsonElement configurationExtensions,
         bool onlyHttp = false)
         => onlyHttp
             ? new SubgraphConfiguration(

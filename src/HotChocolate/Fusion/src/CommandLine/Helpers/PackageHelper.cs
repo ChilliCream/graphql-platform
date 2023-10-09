@@ -197,12 +197,6 @@ internal static class PackageHelper
         return new WebSocketClientConfiguration(baseAddress, clientName);
     }
 
-    private static JsonDocument ReadExtensions(JsonElement element)
-    {
-        var extensionText = element.GetRawText();
-        return JsonDocument.Parse(extensionText);
-    }
-
     private static async Task<SubgraphConfigurationDto> ParseSubgraphConfigAsync(
         Stream stream,
         CancellationToken ct)
@@ -210,7 +204,7 @@ internal static class PackageHelper
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
         var configs = new List<IClientConfiguration>();
         var subgraph = default(string?);
-        var jsonDocument = default(JsonDocument?);
+        var extensions = default(JsonElement?);
 
         foreach (var property in document.RootElement.EnumerateObject())
         {
@@ -229,7 +223,7 @@ internal static class PackageHelper
                     break;
 
                 case "extensions":
-                    jsonDocument = ReadExtensions(property.Value);
+                    extensions = property.Value.SafeClone();
                     break;
 
                 default:
@@ -243,7 +237,7 @@ internal static class PackageHelper
             throw new InvalidOperationException("No subgraph name was specified.");
         }
 
-        return new SubgraphConfigurationDto(subgraph, configs, jsonDocument);
+        return new SubgraphConfigurationDto(subgraph, configs, extensions);
     }
 
     public static string FormatSubgraphConfig(
@@ -291,7 +285,7 @@ internal static class PackageHelper
         if (subgraphConfig.Extensions is not null)
         {
             writer.WritePropertyName("extensions");
-            subgraphConfig.Extensions.WriteTo(writer);
+            subgraphConfig.Extensions.Value.WriteTo(writer);
         }
 
         writer.WriteEndObject();
