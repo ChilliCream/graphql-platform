@@ -41,15 +41,15 @@ public sealed class AuthArguments
         IConsoleOutput output,
         CancellationToken cancellationToken)
     {
+        string? scheme = null;
+
+        if (!NoScheme.HasValue())
+        {
+            scheme = Scheme.HasValue() ? Scheme.Value()!.Trim() : _defaultScheme;
+        }
+
         if (Token.HasValue())
         {
-            string? scheme = null;
-
-            if (!NoScheme.HasValue())
-            {
-                scheme = Scheme.HasValue() ? Scheme.Value()!.Trim() : _defaultScheme;
-            }
-
             return new AccessToken(
                 Token.Value()!.Trim(),
                 scheme);
@@ -69,7 +69,7 @@ public sealed class AuthArguments
                     scopes,
                     cancellationToken)
                 .ConfigureAwait(false);
-            return new AccessToken(token, _defaultScheme);
+            return new AccessToken(token, scheme);
         }
 
         return null;
