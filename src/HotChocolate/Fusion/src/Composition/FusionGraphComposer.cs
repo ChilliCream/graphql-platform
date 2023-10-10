@@ -72,6 +72,7 @@ public sealed class FusionGraphComposer
                 .Use<MergeQueryAndMutationTypeMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()
                 .Use<NodeMiddleware>()
+                .Use<ResolveMiddleware>()
                 .Use<ApplyTagDirectiveMiddleware>()
                 .Use<ApplyExcludeTagMiddleware>()
                 .Use<ApplyPrivateDirectiveMiddleware>()

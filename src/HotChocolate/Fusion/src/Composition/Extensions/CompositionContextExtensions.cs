@@ -36,9 +36,7 @@ internal static class CompositionContextExtensions
         this CompositionContext context,
         ComplexType complexType,
         FieldNode fieldRef)
-    {
-        return CanResolve(context, complexType, fieldRef, context.SupportedBy);
-    }
+        => CanResolve(context, complexType, fieldRef, context.SupportedBy);
 
     private static bool CanResolve(
         CompositionContext context,

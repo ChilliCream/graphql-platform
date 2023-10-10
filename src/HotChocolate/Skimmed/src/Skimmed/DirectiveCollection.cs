@@ -42,6 +42,11 @@ public sealed class DirectiveCollection : ICollection<Directive>
     {
         var directives = _directives;
 
+        if (directives.Count == 0)
+        {
+            return null;
+        }
+
         for (var i = 0; i < directives.Count; i++)
         {
             var directive = directives[i];

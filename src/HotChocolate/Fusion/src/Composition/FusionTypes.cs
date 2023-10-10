@@ -111,6 +111,12 @@ public sealed class FusionTypes
     public DirectiveType Private { get; }
 
     public DirectiveType Resolver { get; }
+    
+    public DirectiveType Resolve { get; }
+    
+    public DirectiveType Declare { get; }
+    
+    public DirectiveType Require { get; }
 
     public DirectiveType Variable { get; }
 
@@ -123,6 +129,8 @@ public sealed class FusionTypes
     public DirectiveType Transport { get; }
 
     public DirectiveType Fusion { get; }
+    
+    public DirectiveType Is { get; }
 
     private ScalarType RegisterScalarType(string name)
     {
