@@ -20,7 +20,7 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "sha256Hash";
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {

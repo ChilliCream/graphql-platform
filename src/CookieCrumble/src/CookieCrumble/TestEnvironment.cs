@@ -5,17 +5,7 @@ namespace CookieCrumble;
 /// </summary>
 public static class TestEnvironment
 {
-#if NETCOREAPP3_1
-    /// <summary>
-    /// The target framework identifier.
-    /// </summary>
-    public const string TargetFramework = "NETCOREAPP3_1";
-#elif NET5_0
-    /// <summary>
-    /// The target framework identifier.
-    /// </summary>
-    public const string TargetFramework = "NET5_0";
-#elif NET6_0
+#if NET6_0
     /// <summary>
     /// The target framework identifier.
     /// </summary>

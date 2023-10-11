@@ -25,7 +25,7 @@ public static class NameUtils
     /// </returns>
     public static string EnsureGraphQLName(
         this string? name,
-        #if NETCOREAPP3_1_OR_GREATER
+        #if NET6_0_OR_GREATER
         [CallerArgumentExpression("name")]
         #endif
         string argumentName = "name")
