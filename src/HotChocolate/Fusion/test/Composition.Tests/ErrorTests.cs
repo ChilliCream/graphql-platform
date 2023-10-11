@@ -84,7 +84,8 @@ public class ErrorTests(ITestOutputHelper output)
                     new IClientConfiguration[]
                     {
                         new HttpClientConfiguration(new Uri("http://localhost"))
-                    })
+                    },
+                    null)
             });
 
         Assert.Null(fusionConfig);
@@ -95,7 +96,7 @@ public class ErrorTests(ITestOutputHelper output)
             {
                 Assert.Equal(
                     "The type `int` is not declared on subgraph Test123. " +
-                    "Check the subgraph schema for consistency.", 
+                    "Check the subgraph schema for consistency.",
                     a.Message);
                 Assert.Equal("HF0009", a.Code);
             });

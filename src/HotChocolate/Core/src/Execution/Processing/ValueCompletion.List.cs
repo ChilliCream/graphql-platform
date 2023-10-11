@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
 using static HotChocolate.Execution.Processing.PathHelper;
@@ -79,6 +80,30 @@ internal static partial class ValueCompletion
                     resultList.Grow();
                 }
 
+                if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i++, element))
+                {
+                    operationContext.Result.AddRemovedResult(resultList);
+                    return null;
+                }
+            }
+
+            return resultList;
+        }
+
+        if (result is JsonElement { ValueKind: JsonValueKind.Array } node)
+        {
+            var resultList = operationContext.Result.RentList(4);
+            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+            resultList.SetParent(parent, index);
+
+            var i = 0;
+            foreach (var element in node.EnumerateArray())
+            {
+                if (resultList.Count == resultList.Capacity)
+                {
+                    resultList.Grow();
+                }
+                
                 if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i++, element))
                 {
                     operationContext.Result.AddRemovedResult(resultList);

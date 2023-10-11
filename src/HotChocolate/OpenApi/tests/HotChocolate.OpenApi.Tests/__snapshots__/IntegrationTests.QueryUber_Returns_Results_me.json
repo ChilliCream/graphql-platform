@@ -1,0 +1,11 @@
+{
+  "data": {
+    "me": {
+      "firstName": "Max",
+      "lastName": "Mustermann",
+      "email": "max.mustermann@email.abc",
+      "picture": "http://img.png",
+      "promoCode": "1234"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "data": {
+    "findPets": [
+      {
+        "name": "Rex"
+      },
+      {
+        "name": "Goofy"
+      }
+    ]
+  }
+}

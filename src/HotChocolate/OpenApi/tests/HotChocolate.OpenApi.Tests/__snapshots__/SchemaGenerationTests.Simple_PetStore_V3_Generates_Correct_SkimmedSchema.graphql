@@ -1,0 +1,39 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  findPetById(id: Long): Pet
+  findPets(limit: Int tags: [String]): [Pet]
+}
+
+type Mutation {
+  addPet(input: AddPetInput): AddPetPayload
+  deletePet(input: DeletePetInput): DeletePetPayload
+}
+
+type AddPetPayload {
+  id: Long
+  name: String
+  tag: String
+}
+
+type DeletePetPayload {
+  success: Boolean
+}
+
+type Pet {
+  id: Long
+  name: String
+  tag: String
+}
+
+input AddPetInput {
+  name: String!
+  tag: String
+}
+
+input DeletePetInput {
+  id: Long!
+}
