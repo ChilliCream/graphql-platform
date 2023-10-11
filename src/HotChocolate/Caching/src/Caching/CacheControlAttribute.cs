@@ -9,15 +9,17 @@ namespace HotChocolate.Caching;
 /// Specifies caching rules for the annotated resource.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property
-    | AttributeTargets.Method
-    | AttributeTargets.Class
-    | AttributeTargets.Interface
-    )]
+                | AttributeTargets.Method
+                | AttributeTargets.Class
+                | AttributeTargets.Interface
+)]
 public sealed class CacheControlAttribute : DescriptorAttribute
 {
     private int? _maxAge;
+    private int? _sharedMaxAge;
     private CacheControlScope? _scope;
     private bool? _inheritMaxAge;
+    private string[]? _vary;
 
     public CacheControlAttribute()
     {
@@ -39,24 +41,30 @@ public sealed class CacheControlAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IObjectFieldDescriptor objectField:
-                objectField.CacheControl(_maxAge, _scope, _inheritMaxAge);
+                objectField.CacheControl(_maxAge, _scope, _inheritMaxAge, _sharedMaxAge, _vary);
                 break;
             case IObjectTypeDescriptor objectType:
-                objectType.CacheControl(_maxAge, _scope);
+                objectType.CacheControl(_maxAge, _scope, _sharedMaxAge, _vary);
                 break;
             case IInterfaceTypeDescriptor interfaceType:
-                interfaceType.CacheControl(_maxAge, _scope);
+                interfaceType.CacheControl(_maxAge, _scope, _sharedMaxAge, _vary);
                 break;
             case IUnionTypeDescriptor unionType:
-                unionType.CacheControl(_maxAge, _scope);
+                unionType.CacheControl(_maxAge, _scope, _sharedMaxAge, _vary);
                 break;
         }
     }
 
     /// <summary>
-    /// The maximum time, in Milliseconds, this resource can be cached.
+    /// The maximum time, in seconds, this resource can be cached.
     /// </summary>
     public int MaxAge { get => _maxAge ?? 0; set => _maxAge = value; }
+
+    /// <summary>
+    /// The maximum time, in seconds, this resource can be cached on CDNs and other shared caches.
+    /// If not set, the value of <c>MaxAge</c> is used for shared caches too.
+    /// </summary>
+    public int SharedMaxAge { get => _sharedMaxAge ?? 0; set => _sharedMaxAge = value; }
 
     /// <summary>
     /// The scope of this resource.
@@ -68,12 +76,22 @@ public sealed class CacheControlAttribute : DescriptorAttribute
     }
 
     /// <summary>
-    /// Whether this resource should inherit the <c>MaxAge</c>
+    /// Whether this resource should inherit the <c>MaxAge</c> and <c>SharedMaxAge</c>
     /// of its parent.
     /// </summary>
     public bool InheritMaxAge
     {
         get => _inheritMaxAge ?? false;
         set => _inheritMaxAge = value;
+    }
+
+    /// <summary>
+    /// List of headers that might affect the value of this resource. Typically, these headers becomes part
+    /// of the cache key.
+    /// </summary>
+    public string[]? Vary
+    {
+        get => _vary ?? Array.Empty<string>();
+        set => _vary = value;
     }
 }

@@ -34,13 +34,33 @@ public sealed class CacheControlDirectiveType : DirectiveType<CacheControlDirect
             .Name(Names.InheritMaxAgeArgName)
             .Description(CacheControlDirectiveType_InheritMaxAge)
             .Type<BooleanType>();
+
+        descriptor
+            .Argument(a => a.SharedMaxAge)
+            .Name(Names.SharedMaxAgeArgName)
+            .Description(CacheControlDirectiveType_SharedMaxAge)
+            .Type<IntType>();
+
+        descriptor
+            .Argument(a => a.Vary)
+            .Name(Names.VaryArgName)
+            .Description(CacheControlDirectiveType_Vary)
+            .Type<ListType<StringType>>();
+
+        descriptor
+            .Argument(a => a.InheritMaxAge)
+            .Name(Names.InheritMaxAgeArgName)
+            .Description(CacheControlDirectiveType_InheritMaxAge)
+            .Type<BooleanType>();
     }
 
     public static class Names
     {
         public const string DirectiveName = "cacheControl";
         public const string MaxAgeArgName = "maxAge";
+        public const string SharedMaxAgeArgName = "sharedMaxAge";
         public const string ScopeArgName = "scope";
         public const string InheritMaxAgeArgName = "inheritMaxAge";
+        public const string VaryArgName = "vary";
     }
 }

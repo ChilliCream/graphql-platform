@@ -317,8 +317,17 @@ public class CacheControlTypeInterceptorTests
         [CacheControl(200)]
         public IExecutable<string> ExecutableFieldWithCacheControl() => default!;
 
-        [CacheControl(200)]
+        [CacheControl(MaxAge = 200)]
         public IQueryable<string> QueryableFieldWithCacheControl() => default!;
+
+        [CacheControl(SharedMaxAge=200)]
+        public IQueryable<string> QueryableFieldWithCacheControlSharedMaxAge() => default!;
+
+        [CacheControl(500, SharedMaxAge = 200)]
+        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAge() => default!;
+
+        [CacheControl(500, SharedMaxAge = 200, Vary = new [] {"accept-language", "x-timezoneoffset"})]
+        public IQueryable<string> QueryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary() => default!;
 
         [CacheControl(200)]
         [UsePaging]

@@ -28,9 +28,21 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        if (context.Operation?.ContextData is null ||
-            !context.Operation.ContextData.TryGetValue(CacheControlHeaderValue, out var value) ||
-            value is not string cacheControlHeaderValue)
+        string? cacheControlHeaderValue = null, varyHeaderValue = null;
+        if (context.Operation?.ContextData is not null)
+        {
+            if (context.Operation.ContextData.TryGetValue(CacheControlHeaderValue, out var cacheControlValue))
+            {
+                cacheControlHeaderValue = cacheControlValue as string;
+            }
+
+            if (context.Operation.ContextData.TryGetValue(VaryHeaderValue, out var varyValue))
+            {
+                varyHeaderValue = varyValue as string;
+            }
+        }
+
+        if (cacheControlHeaderValue == null && varyHeaderValue == null)
         {
             return;
         }
@@ -44,7 +56,15 @@ internal sealed class QueryCacheMiddleware
                     ? new ExtensionData(queryResult.ContextData)
                     : new ExtensionData();
 
-            contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
+            if (!string.IsNullOrEmpty(cacheControlHeaderValue))
+            {
+                contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
+            }
+
+            if (!string.IsNullOrEmpty(varyHeaderValue))
+            {
+                contextData.Add(VaryHeaderValue, varyHeaderValue);
+            }
 
             context.Result = new QueryResult(
                 queryResult.Data,
