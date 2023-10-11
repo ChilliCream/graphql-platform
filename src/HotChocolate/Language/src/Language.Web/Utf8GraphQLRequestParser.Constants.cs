@@ -14,81 +14,17 @@ public ref partial struct Utf8GraphQLRequestParser
     private const byte _p = (byte)'p';
 
     // This uses C# compiler's ability to refer to static data directly. For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
-    private static ReadOnlySpan<byte> OperationName => new[]
-    {
-        (byte)'o',
-        (byte)'p',
-        (byte)'e',
-        (byte)'r',
-        (byte)'a',
-        (byte)'t',
-        (byte)'i',
-        (byte)'o',
-        (byte)'n',
-        (byte)'N',
-        (byte)'a',
-        (byte)'m',
-        (byte)'e'
-    };
+    private static ReadOnlySpan<byte> OperationName => "operationName"u8;
 
-    private static ReadOnlySpan<byte> Query => new[]
-    {
-        (byte)'q',
-        (byte)'u',
-        (byte)'e',
-        (byte)'r',
-        (byte)'y'
-    };
+    private static ReadOnlySpan<byte> Query => "query"u8;
 
-    private static ReadOnlySpan<byte> Variables => new[]
-    {
-            (byte)'v',
-            (byte)'a',
-            (byte)'r',
-            (byte)'i',
-            (byte)'a',
-            (byte)'b',
-            (byte)'l',
-            (byte)'e',
-            (byte)'s'
-        };
+    private static ReadOnlySpan<byte> Variables => "variables"u8;
 
-    private static ReadOnlySpan<byte> Extensions => new[]
-    {
-        (byte)'e',
-        (byte)'x',
-        (byte)'t',
-        (byte)'e',
-        (byte)'n',
-        (byte)'s',
-        (byte)'i',
-        (byte)'o',
-        (byte)'n',
-        (byte)'s'
-    };
+    private static ReadOnlySpan<byte> Extensions => "extensions"u8;
 
-    private static ReadOnlySpan<byte> Type => new[]
-    {
-        (byte)'t',
-        (byte)'y',
-        (byte)'p',
-        (byte)'e'
-    };
+    private static ReadOnlySpan<byte> Type => "type"u8;
 
-    private static ReadOnlySpan<byte> Id => new[]
-    {
-        (byte)'i',
-        (byte)'d'
-    };
+    private static ReadOnlySpan<byte> Id => "id"u8;
 
-    private static ReadOnlySpan<byte> Payload => new[]
-    {
-        (byte)'p',
-        (byte)'a',
-        (byte)'y',
-        (byte)'l',
-        (byte)'o',
-        (byte)'a',
-        (byte)'d'
-    };
+    private static ReadOnlySpan<byte> Payload => "payload"u8;
 }
