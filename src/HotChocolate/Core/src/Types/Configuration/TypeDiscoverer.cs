@@ -81,6 +81,8 @@ internal sealed class TypeDiscoverer
         _interceptor = interceptor;
     }
 
+    public TypeRegistrar Registrar => _typeRegistrar;
+
     public IReadOnlyList<ISchemaError> DiscoverTypes()
     {
         const int max = 1000;

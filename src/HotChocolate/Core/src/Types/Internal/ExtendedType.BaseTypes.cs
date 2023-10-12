@@ -66,8 +66,7 @@ internal sealed partial class ExtendedType
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsGenericType &&
-                _baseTypes.Contains(type.GetGenericTypeDefinition()))
+            if (type.IsGenericType && _baseTypes.Contains(type.GetGenericTypeDefinition()))
             {
                 return true;
             }

@@ -6,5 +6,7 @@ type DefaultSignedByte {
   byte: SignedByte!
 }
 
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
 "The SignedByte scalar type represents a numeric non-fractional value greater than or equal to -127."
 scalar SignedByte

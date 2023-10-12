@@ -2,7 +2,6 @@ using System;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 

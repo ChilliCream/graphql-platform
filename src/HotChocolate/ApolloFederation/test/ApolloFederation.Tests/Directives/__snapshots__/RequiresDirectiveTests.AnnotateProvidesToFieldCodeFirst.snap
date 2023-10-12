@@ -21,5 +21,7 @@ directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
 "Used to annotate the required input fieldset from a base type for a resolver."
 directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
 
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
 "Scalar representing a set of fields."
 scalar _FieldSet

@@ -1225,6 +1225,31 @@
           "onOperation": true,
           "onFragment": false,
           "onField": true
+        },
+        {
+          "name": "tag",
+          "description": null,
+          "args": [
+            {
+              "name": "name",
+              "description": null,
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "defaultValue": null,
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "onOperation": false,
+          "onFragment": false,
+          "onField": false
         }
       ]
     }

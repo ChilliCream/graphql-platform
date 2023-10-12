@@ -7,7 +7,7 @@ namespace HotChocolate.Types;
 
 internal static class ErrorFactoryCompiler
 {
-    public static IReadOnlyList<ErrorDefinition> Compile(Type errorType)
+    public static IReadOnlyList<ErrorDefinition> Compile(Type errorType, bool needsRegistration = false)
     {
         if (errorType is null)
         {
@@ -35,7 +35,29 @@ internal static class ErrorFactoryCompiler
             };
         }
 
-        throw ThrowHelper.TypeDoesNotExposeErrorFactory(errorType);
+        // if none of the above patterns applied it must be an error result type.
+        // We will first check if the error was provided as schema type.
+        if (ExtendedType.Tools.IsGenericBaseType(errorType) &&
+            typeof(ObjectType).IsAssignableFrom(errorType))
+        {
+            return new[]
+            {
+                new ErrorDefinition(
+                    errorType.GetGenericArguments()[0], 
+                    errorType, 
+                    NeedsRegistration: needsRegistration)
+            };
+        }
+        
+        // else we will create a schema type.
+        var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
+        return new[]
+        {
+            new ErrorDefinition(
+                errorType, 
+                schemaType,
+                NeedsRegistration: needsRegistration)
+        };
     }
 
     private static bool TryCreateFactoryFromException(
@@ -48,7 +70,9 @@ internal static class ErrorFactoryCompiler
             definition = new ErrorDefinition(
                 errorType,
                 schemaType,
-                ex => ex.GetType() == errorType ? ex : null);
+                ex => ex.GetType() == errorType
+                    ? ex
+                    : null);
             return true;
         }
 
@@ -62,9 +86,10 @@ internal static class ErrorFactoryCompiler
     {
         var getTypeMethod = typeof(Expression)
             .GetMethods()
-            .Single(t =>
-                t.Name.EqualsOrdinal(nameof(GetType)) &&
-                t.GetParameters().Length == 0);
+            .Single(
+                t =>
+                    t.Name.EqualsOrdinal(nameof(GetType)) &&
+                    t.GetParameters().Length == 0);
 
         const string ex = nameof(ex);
 
@@ -73,6 +98,7 @@ internal static class ErrorFactoryCompiler
         List<ErrorDefinition> errorDefinitions = new();
 
         Expression? instance = null;
+
         foreach (var methodInfo in errorType
             .GetMethods(Public | Static | Instance)
             .Where(x => x.Name == "CreateErrorFrom"))
@@ -95,6 +121,7 @@ internal static class ErrorFactoryCompiler
                 Expression castedException = Expression.Convert(exception, expectedException);
 
                 Expression createError;
+
                 if (methodInfo.IsStatic)
                 {
                     createError = Expression.Call(methodInfo, castedException);
@@ -130,9 +157,10 @@ internal static class ErrorFactoryCompiler
 
         var getTypeMethod = typeof(Expression)
             .GetMethods()
-            .Single(t =>
-                t.Name.EqualsOrdinal(nameof(GetType)) &&
-                t.GetParameters().Length == 0);
+            .Single(
+                t =>
+                    t.Name.EqualsOrdinal(nameof(GetType)) &&
+                    t.GetParameters().Length == 0);
 
         var exception = Expression.Parameter(typeof(Exception), ex);
         Expression nullValue = Expression.Constant(null, typeof(object));
@@ -143,6 +171,7 @@ internal static class ErrorFactoryCompiler
             errorType.GetConstructors(Public | NonPublic | Instance))
         {
             var parameters = constructor.GetParameters();
+
             if (parameters.Length == 1 &&
                 typeof(Exception).IsAssignableFrom(parameters[0].ParameterType))
             {

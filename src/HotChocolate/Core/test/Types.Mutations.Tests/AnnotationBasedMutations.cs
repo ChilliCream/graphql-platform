@@ -28,14 +28,27 @@ public class AnnotationBasedMutations
     }
     
     [Fact]
+    public async Task SimpleMutation_Inferred_With_ErrorObj()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationWithErrorObj>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+    
+    [Fact]
     public async Task SimpleMutation_Inferred_Global_Errors()
     {
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddMutationType<SimpleMutation>()
-                .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .AddMutationConventions()
                 .TryAddTypeInterceptor<ErrorInterceptor>()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -84,11 +97,13 @@ public class AnnotationBasedMutations
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) {
-                            string
-                        }
-                    }");
+                    """
+                    mutation {
+                      doSomething(input: { something: "abc" }) {
+                        string
+                      }
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -225,11 +240,13 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) {
-                            string
-                        }
-                    }");
+                    """
+                    mutation {
+                      doSomething(input: { something: "abc" }) {
+                        string
+                      }
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -1409,6 +1426,13 @@ public class AnnotationBasedMutations
             throw new AggregateException(errors);
         }
     }
+    
+    public class SimpleMutationWithErrorObj
+    {
+        [Error<SomeNewError>]
+        public string DoSomething(string something)
+            => something;
+    }
 
     public record DoSomething2Payload(int? UserId);
 
@@ -1422,7 +1446,8 @@ public class AnnotationBasedMutations
         {
             mutationField.AddErrorType(
                 completionContext.DescriptorContext, 
-                typeof(SomeNewError));
+                typeof(SomeNewError),
+                needsRegistration: true);
         }
     }
 }
