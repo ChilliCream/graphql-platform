@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +26,23 @@ public class AnnotationBasedMutations
 
         schema.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task SimpleMutation_Inferred_Global_Errors()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .TryAddTypeInterceptor<ErrorInterceptor>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
+        schema.MatchSnapshot();
+    }
+    
     [Fact]
     public async Task SimpleMutation_Inferred_Query_Field_Stays_NonNull()
     {
@@ -1397,4 +1411,18 @@ public class AnnotationBasedMutations
     }
 
     public record DoSomething2Payload(int? UserId);
+
+    public record SomeNewError(string Message);
+
+    public class ErrorInterceptor : TypeInterceptor
+    {
+        public override void OnBeforeCompleteMutationField(
+            ITypeCompletionContext completionContext, 
+            ObjectFieldDefinition mutationField)
+        {
+            mutationField.AddErrorType(
+                completionContext.DescriptorContext, 
+                typeof(SomeNewError));
+        }
+    }
 }
