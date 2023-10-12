@@ -39,6 +39,7 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddQueryType(d => d.Name("Query"))
                 .AddRemoteSchema(_accounts)
                 .AddRemoteSchema(_inventory)
@@ -96,6 +97,7 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
                 .AddRemoteSchema(_accounts)
                 .AddRemoteSchema(_inventory)
@@ -133,6 +135,7 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
                 .AddRemoteSchema(_accounts)
                 .AddRemoteSchema(_inventory)
@@ -170,6 +173,7 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
                 .AddRemoteSchema(_accounts)
                 .AddRemoteSchema(_inventory)
@@ -209,6 +213,7 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddAccountsSchema()
                 .PublishSchemaDefinition(c => c
                     .SetName(_accounts)
@@ -231,6 +236,7 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddInventorySchema()
                 .PublishSchemaDefinition(c => c
                     .SetName(_inventory)
@@ -252,6 +258,7 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddProductsSchema()
                 .PublishSchemaDefinition(c => c
                     .SetName(_products)
@@ -274,6 +281,7 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddReviewSchema()
                 .PublishSchemaDefinition(c => c
                     .SetName(_reviews)
