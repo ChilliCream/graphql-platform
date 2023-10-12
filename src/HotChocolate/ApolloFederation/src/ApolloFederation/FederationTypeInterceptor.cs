@@ -42,6 +42,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     private readonly List<ObjectType> _entityTypes = new();
     private IDescriptorContext _context = default!;
     private ITypeInspector _typeInspector = default!;
+    private ObjectType _queryType = default!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -81,6 +82,17 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         if (_entityTypes.Count == 0)
         {
             throw EntityType_NoEntities();
+        }
+    }
+
+    internal override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    {
+        if (operationType is OperationType.Query)
+        {
+            _queryType = (ObjectType) completionContext.Type;
         }
     }
 
@@ -159,7 +171,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase? definition)
     {
-        if (completionContext.IsQueryType == true &&
+        if (ReferenceEquals(completionContext.Type, _queryType) &&
             definition is ObjectTypeDefinition objectTypeDefinition)
         {
             var serviceFieldDescriptor = ObjectFieldDescriptor.New(

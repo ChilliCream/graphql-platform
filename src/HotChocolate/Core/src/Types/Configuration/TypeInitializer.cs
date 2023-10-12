@@ -373,6 +373,15 @@ internal sealed class TypeInitializer
         }
 
         _interceptor.OnAfterMergeTypeExtensions();
+
+        var mutationType = _rootTypes.FirstOrDefault(t => t.Kind == OperationType.Mutation);
+
+        if (mutationType.IsInitialized)
+        {
+            _interceptor.OnBeforeCompleteMutation(
+                mutationType.Type, 
+                ((ObjectType)mutationType.Type.Type).Definition!);
+        }
     }
 
     private void MergeTypeExtension(
@@ -658,6 +667,7 @@ internal sealed class TypeInitializer
             Context = context;
             Type = type;
             Kind = kind;
+            IsInitialized = true;
         }
 
         public ITypeCompletionContext Context { get; }
@@ -665,5 +675,7 @@ internal sealed class TypeInitializer
         public RegisteredType Type { get; }
 
         public OperationType Kind { get; }
+        
+        public bool IsInitialized { get; }
     }
 }

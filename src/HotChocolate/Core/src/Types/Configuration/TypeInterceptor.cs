@@ -10,6 +10,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration;
 
+// note: this type is considered internal and should not be used by users.
 /// <summary>
 /// A type initialization interceptors can hook into the various initialization events
 /// of type system members and change / rewrite them. This is useful in order to transform
@@ -17,14 +18,14 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public abstract class TypeInterceptor
 {
-    private const uint _position = uint.MaxValue / 2;
+    private const uint _defaultPosition = uint.MaxValue / 2;
 
     /// <summary>
     /// A weight to order interceptors.
     /// </summary>
-    internal virtual uint Position => _position;
+    internal virtual uint Position => _defaultPosition;
     
-    public virtual bool IsEnabled(IDescriptorContext context) => true;
+    internal virtual bool IsEnabled(IDescriptorContext context) => true;
 
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
@@ -169,9 +170,10 @@ public abstract class TypeInterceptor
 
     internal virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
-        OperationType operationType) { }
-
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    { }
+    
     public virtual void OnTypesCompletedName() { }
 
     /// <summary>
@@ -183,6 +185,23 @@ public abstract class TypeInterceptor
     /// This method is called after the type extensions are merged.
     /// </summary>
     public virtual void OnAfterMergeTypeExtensions() { }
+    
+    internal virtual void OnBeforeCompleteMutation(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition)
+    {
+        foreach (var field in definition.Fields)
+        {
+            OnBeforeCompleteMutationField(completionContext, field);
+        }
+    }
+    
+    public virtual void OnBeforeCompleteMutationField(
+        ITypeCompletionContext completionContext,
+        ObjectFieldDefinition mutationField)
+    {
+    }
+
 
     /// <summary>
     /// This method is called before the types are completed.

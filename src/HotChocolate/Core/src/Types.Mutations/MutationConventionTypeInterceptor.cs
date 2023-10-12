@@ -55,25 +55,17 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     public override void OnAfterCompleteTypeNames()
         => _mutations = _context.ContextData.GetMutationFields();
 
-    internal override void OnAfterResolveRootType(
-        ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        OperationType operationType)
+    internal override void OnBeforeCompleteMutation(
+        ITypeCompletionContext completionContext, 
+        ObjectTypeDefinition definition)
     {
-        // if the type initialization resolved the root type we will capture its definition
-        // so we can use it after the type extensions are merged into this type.
-        if (operationType is OperationType.Mutation)
-        {
-            _mutationTypeDef = (ObjectTypeDefinition)definition!;
-        }
-
         // we need to capture a completion context to resolve types.
         // any context will do.
         _completionContext ??= completionContext;
-    }
-
-    public override void OnAfterMergeTypeExtensions()
-    {
+        _mutationTypeDef = definition;
+        
+        base.OnBeforeCompleteMutation(completionContext, definition);
+        
         // if we have found a mutation type we will start applying the mutation conventions
         // on the mutations.
         if (_mutationTypeDef is not null)

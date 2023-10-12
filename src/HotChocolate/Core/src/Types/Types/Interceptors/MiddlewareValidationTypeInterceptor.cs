@@ -177,7 +177,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
 internal sealed class EnableTrueNullabilityTypeInterceptor : TypeInterceptor
 {
-    public override bool IsEnabled(IDescriptorContext context)
+    internal override bool IsEnabled(IDescriptorContext context)
         => context.Options.EnableTrueNullability;
 
     public override void OnBeforeCreateSchema(IDescriptorContext context, ISchemaBuilder schemaBuilder)
