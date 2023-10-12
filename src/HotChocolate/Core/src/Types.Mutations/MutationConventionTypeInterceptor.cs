@@ -54,6 +54,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         for (var i = 0; i < all.Length; i++)
         {
             var interceptor = all[i];
+
             if (!ReferenceEquals(interceptor, this))
             {
                 _siblings[j++] = interceptor;
@@ -74,7 +75,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             TryAddErrorInterface(objectTypeDef, _errorInterfaceTypeRef);
         }
     }
-    
+
     public override void OnAfterCompleteTypeNames()
         => _mutations = _context.ContextData.GetMutationFields();
 
@@ -87,7 +88,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         {
             sibling.OnBeforeCompleteMutation(completionContext, definition);
         }
-        
+
         // we need to capture a completion context to resolve types.
         // any context will do.
         _completionContext ??= completionContext;
@@ -258,25 +259,30 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         foreach (var errorDef in errorDefinitions)
         {
-            if (!errorDef.NeedsRegistration)
+            var obj = TryRegisterType(errorDef.SchemaType);
+            if (obj is not null)
             {
-                continue;
+                _typeRegistry.Register(obj);
+                _typeRegistry.TryRegister(
+                    _context.TypeInspector.GetOutputTypeRef(errorDef.SchemaType),
+                    Create(obj.Type));
+                _typeRegistry.TryRegister(
+                    _context.TypeInspector.GetOutputTypeRef(errorDef.RuntimeType),
+                    Create(obj.Type));
             }
-            
-            var obj = RegisterType(errorDef.SchemaType);
-            _typeRegistry.Register(obj);
-            _typeRegistry.TryRegister(_context.TypeInspector.GetTypeRef(errorDef.SchemaType, TypeContext.Output), Create(obj.Type));
-            _typeRegistry.TryRegister(_context.TypeInspector.GetTypeRef(errorDef.RuntimeType, TypeContext.Output), Create(obj.Type));
-            
+
             if (!errorInterfaceIsRegistered && _typeRegistry.TryGetTypeRef(_errorInterfaceTypeRef!, out _))
             {
                 continue;
             }
-            
-            var err = RegisterType(_errorInterfaceTypeRef!.Type.Type);
-            err.References.Add(_errorInterfaceTypeRef);
-            _typeRegistry.Register(err);
-            _typeRegistry.TryRegister(_errorInterfaceTypeRef!, Create(err.Type));
+
+            var err = TryRegisterType(_errorInterfaceTypeRef!.Type.Type);
+            if (err is not null)
+            {
+                err.References.Add(_errorInterfaceTypeRef);
+                _typeRegistry.Register(err);
+                _typeRegistry.TryRegister(_errorInterfaceTypeRef!, Create(err.Type));
+            }
             errorInterfaceIsRegistered = true;
         }
 
@@ -504,14 +510,16 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     {
         var errorInterfaceType =
             context.ContextData.TryGetValue(ErrorType, out var value) &&
-            value is Type type ? type : typeof(ErrorInterfaceType);
+            value is Type type
+                ? type
+                : typeof(ErrorInterfaceType);
 
         if (!context.TypeInspector.IsSchemaType(errorInterfaceType))
         {
             errorInterfaceType = typeof(InterfaceType<>).MakeGenericType(errorInterfaceType);
         }
 
-        return (ExtendedTypeReference)context.TypeInspector.GetOutputTypeRef(errorInterfaceType);
+        return (ExtendedTypeReference) context.TypeInspector.GetOutputTypeRef(errorInterfaceType);
     }
 
     private static void TryAddErrorInterface(
@@ -676,9 +684,14 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             parent.PayloadErrorsFieldName,
             true);
     }
-    
-    private RegisteredType RegisterType(Type type)
+
+    private RegisteredType? TryRegisterType(Type type)
     {
+        if (_typeRegistry.IsRegistered(_context.TypeInspector.GetOutputTypeRef(type)))
+        {
+            return null;
+        }
+
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
         return registeredType;
@@ -737,7 +750,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private ITypeNode CreateTypeNode(IType type)
         => type switch
         {
-            NonNullType nnt => new NonNullTypeNode((INullableTypeNode)CreateTypeNode(nnt.Type)),
+            NonNullType nnt => new NonNullTypeNode((INullableTypeNode) CreateTypeNode(nnt.Type)),
             ListType lt => new ListTypeNode(CreateTypeNode(lt.ElementType)),
             INamedType nt => new NamedTypeNode(nt.Name),
             _ => throw new NotSupportedException("Type is not supported.")

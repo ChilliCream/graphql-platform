@@ -8,28 +8,20 @@ public static class TypeInspectorExtensions
     public static TypeReference GetInputReturnTypeRef(
         this ITypeInspector typeInspector,
         MemberInfo member)
-    {
-        return typeInspector.GetReturnTypeRef(member, TypeContext.Input);
-    }
+        => typeInspector.GetReturnTypeRef(member, TypeContext.Input);
 
     public static TypeReference GetInputTypeRef(
         this ITypeInspector typeInspector,
         Type type)
-    {
-        return typeInspector.GetReturnTypeRef(type, TypeContext.Input);
-    }
+        => typeInspector.GetReturnTypeRef(type, TypeContext.Input);
 
     public static TypeReference GetOutputReturnTypeRef(
         this ITypeInspector typeInspector,
         MemberInfo member)
-    {
-        return typeInspector.GetReturnTypeRef(member, TypeContext.Output);
-    }
+        => typeInspector.GetReturnTypeRef(member, TypeContext.Output);
 
-    public static TypeReference GetOutputTypeRef(
+    public static ExtendedTypeReference GetOutputTypeRef(
         this ITypeInspector typeInspector,
         Type type)
-    {
-        return typeInspector.GetTypeRef(type, TypeContext.Output);
-    }
+        => typeInspector.GetTypeRef(type, TypeContext.Output);
 }
