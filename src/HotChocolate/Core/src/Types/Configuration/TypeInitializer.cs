@@ -48,7 +48,7 @@ internal sealed class TypeInitializer
             throw new ArgumentNullException(nameof(descriptorContext));
         _typeRegistry = typeRegistry ??
             throw new ArgumentNullException(nameof(typeRegistry));
-        IReadOnlyList<TypeReference> initialTypes1 = initialTypes ??
+        var initialTypes1 = initialTypes ??
             throw new ArgumentNullException(nameof(initialTypes));
         _getTypeKind = getTypeKind ??
             throw new ArgumentNullException(nameof(getTypeKind));

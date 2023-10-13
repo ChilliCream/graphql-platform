@@ -88,7 +88,7 @@ internal sealed class TypeDiscoverer
         const int max = 1000;
         var processed = new HashSet<TypeReference>();
 
-DISCOVER:
+        DISCOVER:
         var tries = 0;
         var resolved = false;
 
@@ -106,13 +106,13 @@ DISCOVER:
             }
             catch (Exception ex)
             {
-                _errors.Add(SchemaErrorBuilder.New()
-                    .SetMessage(ex.Message)
-                    .SetException(ex)
-                    .Build());
+                _errors.Add(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(ex.Message)
+                        .SetException(ex)
+                        .Build());
             }
-        }
-        while (resolved && tries < max && _errors.Count == 0);
+        } while (resolved && tries < max && _errors.Count == 0);
 
         if (_errors.Count == 0 && _unregistered.Count == 0)
         {
@@ -147,7 +147,8 @@ DISCOVER:
         {
             foreach (var typeRef in _unregistered)
             {
-                var index = (int)typeRef.Kind;
+                var index = (int) typeRef.Kind;
+
                 if (_handlers.Length > index)
                 {
                     _handlers[index].Handle(_typeRegistrar, typeRef);
@@ -165,6 +166,18 @@ DISCOVER:
 
         foreach (var unresolvedTypeRef in _typeRegistrar.Unresolved)
         {
+            // first we will check if we have a type binding for the unresolved type.
+            // type bindings are types that will be registered instead of the actual discovered type.
+            if (unresolvedTypeRef is ExtendedTypeReference extendedTypeRef &&
+                _typeRegistry.RuntimeTypeRefs.TryGetValue(extendedTypeRef, out var typeReference))
+            {
+                inferred = true;
+                _unregistered.Add(typeReference);
+                _resolved.Add(unresolvedTypeRef);
+                continue;
+            }
+
+            // if we do not have a type binding or if we have a directive we will try to infer the type.
             if (unresolvedTypeRef is ExtendedTypeReference or ExtendedTypeDirectiveReference &&
                 _context.TryInferSchemaType(unresolvedTypeRef, out var schemaTypeRefs))
             {
@@ -217,7 +230,7 @@ DISCOVER:
                         .Any(r => r.Equals(unresolvedReference))).ToList();
 
                 var builder =
-                     SchemaErrorBuilder.New()
+                    SchemaErrorBuilder.New()
                         .SetMessage(
                             TypeResources.TypeRegistrar_TypesInconsistent,
                             unresolvedReference)
