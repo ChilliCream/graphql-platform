@@ -22,7 +22,6 @@ internal sealed class TypeInitializer
     private readonly List<FieldMiddleware> _globalComps = new();
     private readonly List<ISchemaError> _errors = new();
     private readonly IDescriptorContext _context;
-    private readonly IReadOnlyList<TypeReference> _initialTypes;
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
     private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
@@ -35,6 +34,7 @@ internal sealed class TypeInitializer
     private readonly List<TypeReference> _typeRefs = new();
     private readonly HashSet<TypeReference> _typeRefSet = new();
     private readonly List<RegisteredRootType> _rootTypes = new();
+    private readonly TypeDiscoverer _typeDiscoverer;
 
     public TypeInitializer(
         IDescriptorContext descriptorContext,
@@ -48,7 +48,7 @@ internal sealed class TypeInitializer
             throw new ArgumentNullException(nameof(descriptorContext));
         _typeRegistry = typeRegistry ??
             throw new ArgumentNullException(nameof(typeRegistry));
-        _initialTypes = initialTypes ??
+        var initialTypes1 = initialTypes ??
             throw new ArgumentNullException(nameof(initialTypes));
         _getTypeKind = getTypeKind ??
             throw new ArgumentNullException(nameof(getTypeKind));
@@ -71,6 +71,13 @@ internal sealed class TypeInitializer
             _typeRegistry,
             _typeLookup,
             _typeReferenceResolver);
+
+        _typeDiscoverer = new TypeDiscoverer(
+            _context,
+            _typeRegistry,
+            _typeLookup,
+            initialTypes1,
+            _interceptor);
     }
 
     public IList<FieldMiddleware> GlobalComponents => _globalComps;
@@ -121,14 +128,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeDiscoverTypes();
 
-        var typeRegistrar = new TypeDiscoverer(
-            _context,
-            _typeRegistry,
-            _typeLookup,
-            _initialTypes,
-            _interceptor);
-
-        if (typeRegistrar.DiscoverTypes() is { Count: > 0 } errors)
+        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0 } errors)
         {
             throw new SchemaException(errors);
         }
@@ -156,7 +156,7 @@ internal sealed class TypeInitializer
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeRef);
+                        ((ObjectType) objectType.Type).Definition!.Interfaces.Add(typeRef);
                         objectType.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -170,7 +170,7 @@ internal sealed class TypeInitializer
                         interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeRef);
+                        ((InterfaceType) implementing.Type).Definition!.Interfaces.Add(typeRef);
                         implementing.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -188,7 +188,7 @@ internal sealed class TypeInitializer
                     if (unionType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = objectType.TypeReference;
-                        ((UnionType)unionType.Type).Definition!.Types.Add(typeRef);
+                        ((UnionType) unionType.Type).Definition!.Types.Add(typeRef);
                     }
                 }
             }
@@ -229,6 +229,12 @@ internal sealed class TypeInitializer
         EnsureNoErrors();
 
         _interceptor.OnAfterCompleteTypeNames();
+    }
+
+    internal RegisteredType InitializeType(Type type)
+    {
+        var typeObj = _typeDiscoverer.Registrar.CreateInstance(type);
+        return InitializeType(typeObj);
     }
 
     internal RegisteredType InitializeType(
@@ -277,7 +283,7 @@ internal sealed class TypeInitializer
                 new RegisteredRootType(
                     registeredType,
                     registeredType,
-                    (OperationType)(int)kind));
+                    (OperationType) (int) kind));
         }
 
         return true;
@@ -289,7 +295,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnAfterResolveRootType(
                 type.Context,
-                ((ObjectType)type.Type.Type).Definition!,
+                ((ObjectType) type.Type.Type).Definition!,
                 type.Kind);
         }
     }
@@ -354,7 +360,7 @@ internal sealed class TypeInitializer
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType)possibleMatchingType.Type,
+                                (INamedType) possibleMatchingType.Type,
                                 processed);
                         }
                         else if (!isSchemaType &&
@@ -364,7 +370,7 @@ internal sealed class TypeInitializer
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType)possibleMatchingType.Type,
+                                (INamedType) possibleMatchingType.Type,
                                 processed);
                         }
                     }
@@ -379,8 +385,8 @@ internal sealed class TypeInitializer
         if (mutationType.IsInitialized)
         {
             _interceptor.OnBeforeCompleteMutation(
-                mutationType.Type, 
-                ((ObjectType)mutationType.Type.Type).Definition!);
+                mutationType.Type,
+                ((ObjectType) mutationType.Type.Type).Definition!);
         }
     }
 
@@ -405,7 +411,7 @@ internal sealed class TypeInitializer
                                     CultureInfo.InvariantCulture,
                                     TypeInitializer_Merge_KindDoesNotMatch,
                                     namedType.Name))
-                            .SetTypeSystemObject((ITypeSystemObject)namedType)
+                            .SetTypeSystemObject((ITypeSystemObject) namedType)
                             .Build());
                 }
 
@@ -675,7 +681,7 @@ internal sealed class TypeInitializer
         public RegisteredType Type { get; }
 
         public OperationType Kind { get; }
-        
+
         public bool IsInitialized { get; }
     }
 }

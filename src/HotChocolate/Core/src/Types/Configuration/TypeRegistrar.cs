@@ -9,34 +9,26 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Configuration;
 
-internal sealed partial class TypeRegistrar : ITypeRegistrar
+internal sealed partial class TypeRegistrar(
+    IDescriptorContext context,
+    TypeRegistry typeRegistry,
+    TypeLookup typeLookup,
+    TypeInterceptor typeInterceptor)
+    : ITypeRegistrar
 {
     private readonly HashSet<TypeReference> _unresolved = new();
     private readonly HashSet<RegisteredType> _handled = new();
-    private readonly TypeRegistry _typeRegistry;
-    private readonly TypeLookup _typeLookup;
-    private readonly IDescriptorContext _context;
-    private readonly TypeInterceptor _interceptor;
-    private readonly IServiceProvider _schemaServices;
-    private readonly IServiceProvider? _applicationServices;
-
-    public TypeRegistrar(
-        IDescriptorContext context,
-        TypeRegistry typeRegistry,
-        TypeLookup typeLookup,
-        TypeInterceptor typeInterceptor)
-    {
-        _context = context ??
-            throw new ArgumentNullException(nameof(context));
-        _typeRegistry = typeRegistry ??
-            throw new ArgumentNullException(nameof(typeRegistry));
-        _typeLookup = typeLookup ??
-            throw new ArgumentNullException(nameof(typeLookup));
-        _interceptor = typeInterceptor ??
-            throw new ArgumentNullException(nameof(typeInterceptor));
-        _schemaServices = context.Services;
-        _applicationServices = context.Services.GetService<IApplicationServiceProvider>();
-    }
+    private readonly TypeRegistry _typeRegistry = typeRegistry ??
+        throw new ArgumentNullException(nameof(typeRegistry));
+    private readonly TypeLookup _typeLookup = typeLookup ??
+        throw new ArgumentNullException(nameof(typeLookup));
+    private readonly IDescriptorContext _context = context ??
+        throw new ArgumentNullException(nameof(context));
+    private readonly TypeInterceptor _interceptor = typeInterceptor ?? 
+        throw new ArgumentNullException(nameof(typeInterceptor));
+    private readonly IServiceProvider _schemaServices = context.Services;
+    private readonly IServiceProvider? _applicationServices = 
+        context.Services.GetService<IApplicationServiceProvider>();
 
     public void Register(
         TypeSystemObjectBase obj,
@@ -53,28 +45,34 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
         configure?.Invoke(registeredType);
 
-        if (registeredType.References.Count > 0)
+        if (registeredType.References.Count <= 0)
         {
-            RegisterTypeAndResolveReferences(registeredType);
-
-            if (obj is IHasRuntimeType hasRuntimeType
-                && hasRuntimeType.RuntimeType != typeof(object))
-            {
-                var runtimeTypeRef =
-                    _context.TypeInspector.GetTypeRef(
-                        hasRuntimeType.RuntimeType,
-                        SchemaTypeReference.InferTypeContext(obj),
-                        scope);
-
-                var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
-
-                if (!explicitBind)
-                {
-                    MarkResolved(runtimeTypeRef);
-                    _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
-                }
-            }
+            return;
         }
+        
+        RegisterTypeAndResolveReferences(registeredType);
+
+        if (obj is not IHasRuntimeType hasRuntimeType || 
+            hasRuntimeType.RuntimeType == typeof(object))
+        {
+            return;
+        }
+            
+        var runtimeTypeRef =
+            _context.TypeInspector.GetTypeRef(
+                hasRuntimeType.RuntimeType,
+                SchemaTypeReference.InferTypeContext(obj),
+                scope);
+
+        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
+
+        if (explicitBind)
+        {
+            return;
+        }
+                
+        MarkResolved(runtimeTypeRef);
+        _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
     }
 
     private void RegisterTypeAndResolveReferences(RegisteredType registeredType)

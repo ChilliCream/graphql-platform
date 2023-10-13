@@ -131,6 +131,15 @@
         "BarType (Output)",
         "ObjectType<Bar> (Output)"
       ]
+    },
+    {
+      "type": "HotChocolate.Types.DirectiveType<HotChocolate.Types.Tag>",
+      "runtimeType": "HotChocolate.Types.Tag",
+      "references": [
+        "DirectiveType<Tag>",
+        "@Tag",
+        "HotChocolate.Types.DirectiveType`1[HotChocolate.Types.Tag]"
+      ]
     }
   ],
   "runtimeTypeRefs": {
@@ -146,6 +155,7 @@
     "Foo (Output)": "ObjectType<Foo> (Output)",
     "String": "HotChocolate.Types.StringType",
     "Boolean!": "HotChocolate.Types.BooleanType",
-    "Bar (Output)": "HotChocolate.Configuration.TypeDiscovererTests+BarType (Output)"
+    "Bar (Output)": "HotChocolate.Configuration.TypeDiscovererTests+BarType (Output)",
+    "Tag": "DirectiveType<Tag>"
   }
 }

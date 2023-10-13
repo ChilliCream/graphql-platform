@@ -26,6 +26,10 @@ public abstract class TypeInterceptor
     internal virtual uint Position => _defaultPosition;
     
     internal virtual bool IsEnabled(IDescriptorContext context) => true;
+    
+    internal virtual bool IsMutationAggregator(IDescriptorContext context) => false;
+    
+    internal virtual void SetSiblings(TypeInterceptor[] all) { }
 
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification

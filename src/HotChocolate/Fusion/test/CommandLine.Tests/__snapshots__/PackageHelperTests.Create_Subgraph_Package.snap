@@ -33,16 +33,16 @@ type Mutation {
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
 
+type Viewer {
+  user: User
+  data: SomeData!
+}
+
 type User implements Node {
   id: ID!
   name: String!
   birthdate: Date!
   username: String!
-}
-
-type Viewer {
-  user: User
-  data: SomeData!
 }
 
 type SomeData {
@@ -58,6 +58,8 @@ input AddUserInput {
 type AddUserPayload {
   user: User
 }
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 ---------------
 
 Extensions

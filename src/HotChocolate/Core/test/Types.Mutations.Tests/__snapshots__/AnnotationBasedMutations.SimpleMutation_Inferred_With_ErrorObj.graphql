@@ -1,0 +1,28 @@
+schema {
+  mutation: SimpleMutationWithErrorObj
+}
+
+interface Error {
+  message: String!
+}
+
+type DoSomethingPayload {
+  string: String
+  errors: [DoSomethingError!]
+}
+
+type SimpleMutationWithErrorObj {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type SomeNewError implements Error {
+  message: String!
+}
+
+union DoSomethingError = SomeNewError
+
+input DoSomethingInput {
+  something: String!
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

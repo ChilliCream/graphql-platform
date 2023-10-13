@@ -30,6 +30,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .BuildSchemaAsync();
@@ -49,6 +50,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
@@ -78,6 +80,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddTypeExtension(new ObjectTypeExtension(d
                     => d.Name("Query").Field("local").Resolve("I am local.")))
                 .AddRemoteSchema(Context.ContractSchema)
@@ -110,6 +113,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddResolver("Query", "local", "I am local")
@@ -142,6 +146,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -189,6 +194,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -240,6 +246,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -329,6 +336,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -389,6 +397,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -452,6 +461,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -487,6 +497,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -522,6 +533,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -557,6 +569,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -590,6 +603,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -630,6 +644,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddType(new FloatType("Foo"))
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
@@ -697,6 +712,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -732,6 +748,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -767,6 +784,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -802,6 +820,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -830,6 +849,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -853,6 +873,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromResource(
@@ -877,6 +898,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromResource(
@@ -908,6 +930,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddLocalSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(

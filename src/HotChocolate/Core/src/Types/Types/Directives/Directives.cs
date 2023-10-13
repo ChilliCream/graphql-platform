@@ -46,6 +46,11 @@ public static class Directives
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(NullBubblingDirective)));
         }
 
+        if (descriptorContext.Options.EnableTag)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(Tag)));
+        }
+
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(SkipDirectiveType)));
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(IncludeDirectiveType)));
         directiveTypes.Add(typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)));
