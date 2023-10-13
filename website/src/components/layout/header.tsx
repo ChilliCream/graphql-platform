@@ -16,6 +16,7 @@ import styled from "styled-components";
 
 import { WorkshopNdcCopenhagen } from "@/components/images/workshop-ndc-copenhagen";
 import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
+import { WorkshopOnline } from "@/components/images/workshop-online";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -936,6 +937,9 @@ const WorkshopHero: FC<WorkshopHeroProps> = ({ image }) => {
 
     case "ndc-copenhagen":
       return <WorkshopNdcCopenhagen />;
+
+    case "online":
+      return <WorkshopOnline />;
 
     default:
       return null;
