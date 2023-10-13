@@ -42,7 +42,10 @@
   <data name="LogEntryHelper_OutputFieldArgumentMismatch" xml:space="preserve">
     <value>The number of arguments in an output field does not match the number of arguments in the same field in of a subgraph schema.</value>
   </data>
-  <data name="DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate" xml:space="preserve">
+  <data name="IsDirective_GetFrom_DirectiveNotValid" xml:space="preserve">
+    <value>The is directive must have a value for coordinate or field.</value>
+  </data>
+  <data name="RequireDirective_GetFrom_DirectiveNotValid" xml:space="preserve">
     <value>The is directive must have a value for coordinate or field.</value>
   </data>
   <data name="LogEntryHelper_OutputFieldArgumentSetMismatch" xml:space="preserve">
@@ -71,5 +74,20 @@ Source Arguments: {2}</value>
   </data>
   <data name="LogEntryHelper_RootTypeNameMismatch" xml:space="preserve">
     <value>The {0} type name `{1}` does not match to the {0} type name `{2}` on subgraph `{3}`. Make sure that the root type names on the various subgraph match.</value>
+  </data>
+  <data name="DirectiveHelpers_ExpectStringLiteral_Message" xml:space="preserve">
+    <value>The value node must be a string literal.</value>
+  </data>
+  <data name="DirectiveHelpers_ExpectFieldSelection_Message" xml:space="preserve">
+    <value>The value node must be a field selection.</value>
+  </data>
+  <data name="DeclareDirective_Parse_DirectiveMustBeDeclare" xml:space="preserve">
+    <value>The directive node must be of type @declare.</value>
+  </data>
+  <data name="DeclareDirective_Parse_DeclareMustHaveName" xml:space="preserve">
+    <value>The @declare directive must have a name argument.</value>
+  </data>
+  <data name="DeclareDirective_Parse_DeclareMustHaveSelect" xml:space="preserve">
+    <value>The @declare directive must have a select argument.</value>
   </data>
 </root>

@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using static HotChocolate.Fusion.Composition.DirectivesHelper;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
 using IHasName = HotChocolate.Skimmed.IHasName;
 
@@ -16,7 +15,7 @@ internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
     {
         foreach (var schema in context.Subgraphs)
         {
-            foreach (var directive in schema.GetRenameDirectives(context))
+            foreach (var directive in  RenameDirective.GetAllFrom(schema, context.FusionTypes))
             {
                 if (schema.TryGetMember(directive.Coordinate, out IHasName? member) &&
                     member is IHasContextData memberWithContext)
@@ -34,44 +33,6 @@ internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
         if (!context.Log.HasErrors)
         {
             await next(context).ConfigureAwait(false);
-        }
-    }
-}
-
-static file class ApplyRenameDirectiveMiddlewareExtensions
-{
-    public static IEnumerable<RenameDirective> GetRenameDirectives(
-        this Schema schema,
-        CompositionContext context)
-    {
-        foreach (var directive in schema.Directives[RenameDirectiveName])
-        {
-            if (!directive.Arguments.TryGetValue(CoordinateArg, out var argumentValue))
-            {
-                context.Log.Write(DirectiveArgumentMissing(CoordinateArg, directive, schema));
-                continue;
-            }
-
-            if (argumentValue is not StringValueNode coordinateValue ||
-                !SchemaCoordinate.TryParse(coordinateValue.Value, out var coordinate))
-            {
-                context.Log.Write(DirectiveArgumentValueInvalid(CoordinateArg, directive, schema));
-                continue;
-            }
-
-            if (!directive.Arguments.TryGetValue(NewNameArg, out argumentValue))
-            {
-                context.Log.Write(DirectiveArgumentMissing(NewNameArg, directive, schema));
-                continue;
-            }
-
-            if (argumentValue is not StringValueNode { Value: { Length: > 0 } newName })
-            {
-                context.Log.Write(DirectiveArgumentValueInvalid(NewNameArg, directive, schema));
-                continue;
-            }
-
-            yield return new RenameDirective(coordinate.Value, newName);
         }
     }
 }

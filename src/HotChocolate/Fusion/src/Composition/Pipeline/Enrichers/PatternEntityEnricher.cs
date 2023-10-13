@@ -42,7 +42,13 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                             var field = type.Fields.FirstOrDefault(f => f.Name.Equals(fieldName, OrdinalIgnoreCase));
                             if (field is not null)
                             {
-                                TryRegisterEntityResolver(entity, type, entityResolver, field, schema);
+                                TryRegisterEntityResolver(
+                                    entity, 
+                                    type, 
+                                    entityResolver, 
+                                    field, 
+                                    schema, 
+                                    context.FusionTypes);
                             }
                         }
                         else if (isList && typeName.Equals(originalTypeName, OrdinalIgnoreCase) || 
@@ -59,7 +65,13 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                             
                             if (field is not null)
                             {
-                                TryRegisterBatchEntityResolver(entity, type, entityResolver, field, schema);
+                                TryRegisterBatchEntityResolver(
+                                    entity, 
+                                    type, 
+                                    entityResolver, 
+                                    field, 
+                                    schema,
+                                    context.FusionTypes);
                             }
                         }
                     }
@@ -74,9 +86,10 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         ObjectType entityType,
         OutputField entityResolverField,
         OutputField keyField,
-        Schema schema)
+        Schema schema,
+        IFusionTypeContext context)
     {
-        if (!TryResolveKeyArgument(entityResolverField, keyField, out var keyArg))
+        if (!TryResolveKeyArgument(entityResolverField, keyField, context, out var keyArg))
         {
             return;
         }
@@ -129,11 +142,12 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     private static bool TryResolveKeyArgument(
         OutputField entityResolverField,
         OutputField keyField,
+        IFusionTypeContext context,
         [NotNullWhen(true)] out InputField? keyArgument)
     {
         if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
         {
-            return !keyArgument.ContainsIsDirective() && 
+            return !IsDirective.ExistsIn(keyArgument, context) && 
                 keyArgument.Type.Equals(keyField.Type, TypeComparison.Structural);
         }
 
@@ -165,7 +179,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         }
 
         return (keyArgument?.Type.Equals(keyField.Type, TypeComparison.Structural) ?? false) && 
-            !keyArgument.ContainsIsDirective();
+            !IsDirective.ExistsIn(keyArgument, context);
     }
     
     private static void TryRegisterBatchEntityResolver(
@@ -173,9 +187,10 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         ObjectType entityType,
         OutputField entityResolverField,
         OutputField keyField,
-        Schema schema)
+        Schema schema,
+        IFusionTypeContext context)
     {
-        if (!TryResolveBatchKeyArgument(entityResolverField, keyField, out var keyArg))
+        if (!TryResolveBatchKeyArgument(entityResolverField, keyField, context, out var keyArg))
         {
             return;
         }
@@ -242,11 +257,12 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     private static bool TryResolveBatchKeyArgument(
         OutputField entityResolverField,
         OutputField keyField,
+        IFusionTypeContext context,
         [NotNullWhen(true)] out InputField? keyArgument)
     {
         if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
         {
-            if (keyArgument.Type.IsListType() && !keyArgument.ContainsIsDirective())
+            if (keyArgument.Type.IsListType() && !IsDirective.ExistsIn(keyArgument, context))
             {
                 return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
             }
@@ -259,7 +275,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         {
             keyArgument = entityResolverField.Arguments.First();
             
-            if (keyArgument.Type.IsListType() && !keyArgument.ContainsIsDirective())
+            if (keyArgument.Type.IsListType() && !IsDirective.ExistsIn(keyArgument, context))
             {
                 return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
             }
@@ -290,7 +306,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
 
         if (keyArgument?.Type.IsListType() is true && 
             keyArgument.Type.InnerType().Equals(keyField.Type, TypeComparison.Structural) &&
-            !keyArgument.ContainsIsDirective())
+            !IsDirective.ExistsIn(keyArgument, context))
         {
             return true;
         }

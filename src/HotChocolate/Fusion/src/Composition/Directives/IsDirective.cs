@@ -1,5 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Skimmed;
+using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
+using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
+using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -49,4 +54,117 @@ internal sealed class IsDirective
     /// field of the return type of the declaring field.
     /// </summary>
     public FieldNode? Field { get; }
+    
+    /// <summary>
+    /// Creates a <see cref="Directive"/> from this <see cref="IsDirective"/>.
+    /// </summary>
+    /// <param name="context">
+    /// The fusion type context that provides the directive names.
+    /// </param>
+    /// <returns></returns>
+    public Directive ToDirective(IFusionTypeContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        
+        var args = Coordinate is not null ? new Argument[1] : new Argument[2];
+        
+        if (Coordinate is not null)
+        {
+            args[0] = new Argument(CoordinateArg, new StringValueNode(Coordinate.ToString()!));
+        }
+        else
+        {
+            args[0] = new Argument(FieldArg, new StringValueNode(Field!.ToString(false)));
+        }
+
+        return new Directive(context.IsDirective, args);
+    }
+
+    /// <summary>
+    /// Tries to parse a <see cref="IsDirective"/> from a <see cref="Directive"/>.
+    /// </summary>
+    /// <param name="directiveNode">
+    /// The directive node that shall be parsed.
+    /// </param>
+    /// <param name="context">
+    /// The fusion type context that provides the directive names.
+    /// </param>
+    /// <param name="directive">
+    /// The parsed directive.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the directive could be parsed; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool TryParse(
+        Directive directiveNode,
+        IFusionTypeContext context,
+        [NotNullWhen(true)] out IsDirective? directive)
+    {
+        ArgumentNullException.ThrowIfNull(directiveNode);
+        ArgumentNullException.ThrowIfNull(context);
+
+        if (!directiveNode.Name.EqualsOrdinal(context.IsDirective.Name))
+        {
+            directive = null;
+            return false;
+        }
+
+        var coordinate = directiveNode.Arguments
+            .GetValueOrDefault(CoordinateArg)
+            ?.Value;
+
+        if (coordinate is StringValueNode coordinateValue)
+        {
+            directive = new IsDirective(SchemaCoordinate.Parse(coordinateValue.Value));
+            return true;
+        }
+
+        var field = directiveNode.Arguments
+            .GetValueOrDefault(FieldArg)
+            ?.Value;
+
+        if (field is StringValueNode fieldValue)
+        {
+            directive = new IsDirective(Utf8GraphQLParser.Syntax.ParseField(fieldValue.Value));
+            return true;
+        }
+
+        directive = null;
+        return false;
+    }
+    
+    public static IsDirective GetFrom(IHasDirectives member, IFusionTypeContext context)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(member));
+        ArgumentNullException.ThrowIfNull(nameof(context));
+        
+        var directive = member.Directives[context.IsDirective.Name].First();
+
+        if (TryParse(directive, context, out var result))
+        {
+            return result;
+        }
+
+        throw new InvalidOperationException(IsDirective_GetFrom_DirectiveNotValid);
+    }
+    
+    /// <summary>
+    /// Checks if the specified member has a @is directive.
+    /// </summary>
+    /// <param name="member">
+    /// The member that shall be checked.
+    /// </param>
+    /// <param name="context">
+    /// The fusion type context that provides the directive names.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the member has a @is directive; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool ExistsIn(IHasDirectives member, IFusionTypeContext context)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(member));
+        ArgumentNullException.ThrowIfNull(nameof(context));
+        
+        return member.Directives.ContainsName(context.IsDirective.Name);
+    }
 }

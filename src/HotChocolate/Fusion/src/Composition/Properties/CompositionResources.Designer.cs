@@ -93,9 +93,15 @@ namespace HotChocolate.Fusion.Composition.Properties {
             }
         }
         
-        internal static string DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate {
+        internal static string IsDirective_GetFrom_DirectiveNotValid {
             get {
-                return ResourceManager.GetString("DirectivesHelper_GetIsDirective_NoFieldAndNoCoordinate", resourceCulture);
+                return ResourceManager.GetString("IsDirective_GetFrom_DirectiveNotValid", resourceCulture);
+            }
+        }
+        
+        internal static string RequireDirective_GetFrom_DirectiveNotValid {
+            get {
+                return ResourceManager.GetString("RequireDirective_GetFrom_DirectiveNotValid", resourceCulture);
             }
         }
         
@@ -144,6 +150,36 @@ namespace HotChocolate.Fusion.Composition.Properties {
         internal static string LogEntryHelper_RootTypeNameMismatch {
             get {
                 return ResourceManager.GetString("LogEntryHelper_RootTypeNameMismatch", resourceCulture);
+            }
+        }
+        
+        internal static string DirectiveHelpers_ExpectStringLiteral_Message {
+            get {
+                return ResourceManager.GetString("DirectiveHelpers_ExpectStringLiteral_Message", resourceCulture);
+            }
+        }
+        
+        internal static string DirectiveHelpers_ExpectFieldSelection_Message {
+            get {
+                return ResourceManager.GetString("DirectiveHelpers_ExpectFieldSelection_Message", resourceCulture);
+            }
+        }
+        
+        internal static string DeclareDirective_Parse_DirectiveMustBeDeclare {
+            get {
+                return ResourceManager.GetString("DeclareDirective_Parse_DirectiveMustBeDeclare", resourceCulture);
+            }
+        }
+        
+        internal static string DeclareDirective_Parse_DeclareMustHaveName {
+            get {
+                return ResourceManager.GetString("DeclareDirective_Parse_DeclareMustHaveName", resourceCulture);
+            }
+        }
+        
+        internal static string DeclareDirective_Parse_DeclareMustHaveSelect {
+            get {
+                return ResourceManager.GetString("DeclareDirective_Parse_DeclareMustHaveSelect", resourceCulture);
             }
         }
     }

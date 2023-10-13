@@ -27,7 +27,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
             // Loop through each query field
             foreach (var entityResolverField in schema.QueryType.Fields)
             {
-                TryRegisterEntityResolver(entity, type, entityResolverField, schema);
+                TryRegisterEntityResolver(entity, type, entityResolverField, schema, context.FusionTypes);
 
                 // Check if the query field can be used to infer a batch by key resolver.
                 if (IsListOf(entityResolverField.Type, type) &&
@@ -35,7 +35,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                 {
                     var argument = entityResolverField.Arguments.First();
 
-                    if (argument.ContainsIsDirective() && IsListOfScalar(argument.Type))
+                    if (IsDirective.ExistsIn(argument, context.FusionTypes) && IsListOfScalar(argument.Type))
                     {
                         var arguments = new List<ArgumentNode>();
 
@@ -63,12 +63,10 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                         // and VariableNode for the @ref directive argument
                         foreach (var arg in entityResolverField.Arguments)
                         {
-                            var directive = arg.GetIsDirective();
+                            var directive = IsDirective.GetFrom(arg, context.FusionTypes);
                             var var = type.CreateVariableName(directive);
                             arguments.Add(new ArgumentNode(arg.Name, new VariableNode(var)));
-                            resolver.Variables.Add(
-                                var,
-                                arg.CreateVariableField(directive, var));
+                            resolver.Variables.Add(var, arg.CreateVariableField(directive, var));
                         }
 
                         // Add the new EntityResolver to the entity metadata
@@ -85,7 +83,8 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
         EntityGroup entity,
         ObjectType entityType,
         OutputField entityResolverField,
-        Schema schema)
+        Schema schema,
+        IFusionTypeContext context)
     {
         // Check if the query field type matches the entity type
         // and if it has any arguments that contain the @is directive
@@ -93,7 +92,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                 (entityResolverField.Type.Kind is TypeKind.NonNull &&
                     entityResolverField.Type.InnerType() == entityType)) &&
             entityResolverField.Arguments.Count > 0 &&
-            entityResolverField.Arguments.All(t => t.ContainsIsDirective()))
+            entityResolverField.Arguments.All(t => IsDirective.ExistsIn(t, context)))
         {
             var arguments = new List<ArgumentNode>();
 
@@ -121,7 +120,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
             // and VariableNode for the @is directive argument
             foreach (var arg in entityResolverField.Arguments)
             {
-                var directive = arg.GetIsDirective();
+                var directive = IsDirective.GetFrom(arg, context);
                 var var = entityType.CreateVariableName(directive);
                 arguments.Add(new ArgumentNode(arg.Name, new VariableNode(var)));
                 resolver.Variables.Add(var, arg.CreateVariableField(directive, var));

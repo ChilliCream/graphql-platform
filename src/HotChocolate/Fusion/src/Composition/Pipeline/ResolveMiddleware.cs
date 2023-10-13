@@ -31,7 +31,7 @@ internal sealed class ResolveMiddleware : IMergeMiddleware
             
             foreach (var field in fields)
             {
-                if (!field.ContainsResolveDirective())
+                if (!ResolveDirective.ExistsIn(field, Context.FusionTypes))
                 {
                     continue;
                 }
@@ -39,7 +39,7 @@ internal sealed class ResolveMiddleware : IMergeMiddleware
                 context.PrepareObjectStates(fields);
                 context.PrepareFieldState(field.Arguments);
 
-                foreach (var VARIABLE in field.GetRequireDirective())
+                foreach (var declare in DeclareDirective.GetAllFrom(field, Context.FusionTypes))
                 {
                     
                 }
@@ -58,7 +58,12 @@ internal sealed class ResolveMiddleware : IMergeMiddleware
 
         public void PrepareObjectStates(FieldCollection<OutputField> fields)
         {
+            ObjectStates.Clear();
             
+            foreach (var field in fields)
+            {
+                ObjectStates.Add(field.Name, new ResolverState(field));
+            }            
         }
 
         public void PrepareFieldState(FieldCollection<InputField> arguments)

@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Composition;
 /// <summary>
 /// Registers and provides access to internal fusion types.
 /// </summary>
-public sealed class FusionTypes
+public sealed class FusionTypes : IFusionTypeContext
 {
     private readonly Schema _fusionGraph;
     private readonly bool _prefixSelf;
@@ -111,13 +111,6 @@ public sealed class FusionTypes
     public DirectiveType Private { get; }
 
     public DirectiveType Resolver { get; }
-    
-    public DirectiveType Resolve { get; }
-    
-    public DirectiveType Declare { get; }
-    
-    public DirectiveType Require { get; }
-
     public DirectiveType Variable { get; }
 
     public DirectiveType Source { get; }
@@ -130,7 +123,15 @@ public sealed class FusionTypes
 
     public DirectiveType Fusion { get; }
     
-    public DirectiveType Is { get; }
+    public DirectiveType DeclareDirective { get; }
+
+    public DirectiveType IsDirective { get; }
+
+    public DirectiveType RemoveDirective { get; }
+
+    public DirectiveType RequireDirective { get; }
+
+    public DirectiveType RenameDirective { get; }
 
     private ScalarType RegisterScalarType(string name)
     {

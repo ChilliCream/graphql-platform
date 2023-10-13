@@ -9,11 +9,21 @@ internal static class FusionDirectiveArgumentNames
     /// Gets the name of the name argument.
     /// </summary>
     public const string NameArg = "name";
+    
+    /// <summary>
+    /// Gets the name of the newName argument.
+    /// </summary>
+    public const string NewNameArg = "newName";
 
     /// <summary>
     /// Gets the name of the client grouping argument.
     /// </summary>
     public const string ClientGroupArg = "group";
+    
+    /// <summary>
+    /// Gets the name of the field argument.
+    /// </summary>
+    public const string FieldArg = "field";
 
     /// <summary>
     /// Gets the name of the select argument.
@@ -44,6 +54,11 @@ internal static class FusionDirectiveArgumentNames
     /// Gets the name of the subgraph argument.
     /// </summary>
     public const string SubgraphArg = "subgraph";
+    
+    /// <summary>
+    /// Gets the name of the subgraph argument.
+    /// </summary>
+    public const string FromArg = "from";
 
     /// <summary>
     /// Gets the name of the kind argument.
@@ -69,4 +84,9 @@ internal static class FusionDirectiveArgumentNames
     /// Gets the name of the location argument.
     /// </summary>
     public const string LocationArg = "location";
+    
+    /// <summary>
+    /// Gets the name of the coordinate argument.
+    /// </summary>
+    public const string CoordinateArg = "coordinate";
 }
