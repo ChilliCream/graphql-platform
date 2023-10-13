@@ -17,7 +17,7 @@ export type WorkshopsState = Workshop[];
 export const initialState: WorkshopsState = [
   {
     id: "online-231106",
-    title: "Fullstack GraphQL Vienna",
+    title: "Fullstack GraphQL from Vienna",
     teaser:
       "Learn to build modern APIs like Facebook and Netflix in our Fullstack GraphQL workshop.",
     date: "6 - 7 November 2023",
