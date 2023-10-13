@@ -14,6 +14,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
+using static HotChocolate.Types.TagHelper;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -53,6 +54,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         _context = context;
         _typeInspector = context.TypeInspector;
+        ModifyOptions(context, o => o.Mode = TagMode.ApolloFederation);
     }
 
     public override void OnAfterInitialize(
