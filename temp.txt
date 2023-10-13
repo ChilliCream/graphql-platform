@@ -1,0 +1,2 @@
+DIRECTIVE_DEFINITION_INVALID: Invalid definition for directive "@tag": argument "name" should have type "String!" but found type "String"
+DIRECTIVE_DEFINITION_INVALID: Invalid definition for directive "@tag": "@tag" should have locations FIELD_DEFINITION, OBJECT, INTERFACE, UNION, ARGUMENT_DEFINITION, SCALAR, ENUM, ENUM_VALUE, INPUT_OBJECT, INPUT_FIELD_DEFINITION, but found (non-subset) SCHEMA, SCALAR, OBJECT, FIELD_DEFINITION, ARGUMENT_DEFINITION, INTERFACE, UNION, ENUM, ENUM_VALUE, INPUT_OBJECT, INPUT_FIELD_DEFINITION
