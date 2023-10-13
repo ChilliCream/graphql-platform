@@ -3,8 +3,7 @@ namespace HotChocolate.Types;
 internal sealed class ErrorDefinition(
     Type runtimeType,
     Type schemaType,
-    CreateError? factory = null,
-    bool NeedsRegistration = false)
+    CreateError? factory = null)
 {
     private static readonly CreateError _empty = o => o;
 
@@ -13,6 +12,4 @@ internal sealed class ErrorDefinition(
     public Type RuntimeType { get; } = runtimeType;
 
     public CreateError Factory { get; } = factory ?? _empty;
-
-    public bool NeedsRegistration { get; } = NeedsRegistration;
 }

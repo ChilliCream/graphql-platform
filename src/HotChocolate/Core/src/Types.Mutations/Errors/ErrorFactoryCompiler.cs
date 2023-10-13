@@ -7,7 +7,7 @@ namespace HotChocolate.Types;
 
 internal static class ErrorFactoryCompiler
 {
-    public static IReadOnlyList<ErrorDefinition> Compile(Type errorType, bool needsRegistration = false)
+    public static IReadOnlyList<ErrorDefinition> Compile(Type errorType)
     {
         if (errorType is null)
         {
@@ -40,24 +40,12 @@ internal static class ErrorFactoryCompiler
         if (ExtendedType.Tools.IsGenericBaseType(errorType) &&
             typeof(ObjectType).IsAssignableFrom(errorType))
         {
-            return new[]
-            {
-                new ErrorDefinition(
-                    errorType.GetGenericArguments()[0], 
-                    errorType, 
-                    NeedsRegistration: needsRegistration)
-            };
+            return new[] { new ErrorDefinition(errorType.GetGenericArguments()[0], errorType) };
         }
         
         // else we will create a schema type.
         var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
-        return new[]
-        {
-            new ErrorDefinition(
-                errorType, 
-                schemaType,
-                NeedsRegistration: needsRegistration)
-        };
+        return new[] { new ErrorDefinition(errorType, schemaType) };
     }
 
     private static bool TryCreateFactoryFromException(

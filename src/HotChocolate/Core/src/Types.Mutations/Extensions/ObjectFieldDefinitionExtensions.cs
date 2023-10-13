@@ -20,14 +20,10 @@ public static class ObjectFieldDefinitionExtensions
     /// The type of the exception, the class with factory methods or the error with an exception
     /// as the argument. See the examples in <see cref="Error"/>.
     /// </param>
-    /// <param name="needsRegistration">
-    /// If the type needs an adhoc registration set to true.
-    /// </param>
     public static void AddErrorType(
         this ObjectFieldDefinition fieldDefinition,
         IDescriptorContext descriptorContext,
-        Type errorType,
-        bool needsRegistration = false)
+        Type errorType)
     {
         if (fieldDefinition is null)
         {
@@ -58,7 +54,7 @@ public static class ObjectFieldDefinitionExtensions
             throw new SchemaException(schemaError);
         }
 
-        var definitions = ErrorFactoryCompiler.Compile(errorType, needsRegistration);
+        var definitions = ErrorFactoryCompiler.Compile(errorType);
 
         if (!fieldDefinition.ContextData.TryGetValue(ErrorDefinitions, out var value) ||
             value is not List<ErrorDefinition> errorFactories)
