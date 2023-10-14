@@ -19,6 +19,21 @@ internal static class FusionTypeBaseNames
     /// The base name of the source directive.
     /// </summary>
     public const string SourceDirective = "source";
+    
+    /// <summary>
+    /// The base name of the source directive.
+    /// </summary>
+    public const string DeclareDirective = "declare";
+
+    /// <summary>
+    /// The base name of the remove directive.
+    /// </summary>
+    public static string RemoveDirective = "remove";
+    
+    /// <summary>
+    /// The base name of the schema coordinate type.
+    /// </summary>
+    public const string SchemaCoordinate = "SchemaCoordinate";
 
     /// <summary>
     /// The base name of the is directive which is used during composition.
@@ -56,19 +71,19 @@ internal static class FusionTypeBaseNames
     public const string FusionDirective = "fusion";
 
     /// <summary>
-    /// The base name of the GraphQL selection directive.
+    /// The base name of the GraphQL selection scalar.
     /// </summary>
     public const string Selection = "Selection";
 
     /// <summary>
-    /// The base name of the GraphQL selection set directive.
+    /// The base name of the GraphQL selection set scalar.
     /// </summary>
     public const string SelectionSet = "SelectionSet";
 
     /// <summary>
-    /// The base name of the GraphQL type name scalar.
+    /// The base name of the GraphQL name scalar.
     /// </summary>
-    public const string TypeName = "TypeName";
+    public const string Name = "TypeName";
 
     /// <summary>
     /// The base name of the GraphQL type scalar.

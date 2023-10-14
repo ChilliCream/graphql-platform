@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
+using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 
 namespace HotChocolate.Fusion.Composition;
@@ -123,5 +124,35 @@ internal sealed class RemoveDirective(SchemaCoordinate coordinate)
         ArgumentNullException.ThrowIfNull(nameof(context));
         
         return member.Directives.ContainsName(context.RemoveDirective.Name);
+    }
+    
+    /// <summary>
+    /// Creates the remove directive type.
+    /// </summary>
+    public static DirectiveType CreateType()
+    {
+        /*
+         * directive @remove(
+         *   coordinate: SchemaCoordinate!
+         * ) repeatable on SCHEMA
+         */
+        
+        var schemaCoordinate = new MissingType(FusionTypeBaseNames.SchemaCoordinate);
+        
+        var directiveType = new DirectiveType(FusionTypeBaseNames.RemoveDirective)
+        {
+            Locations = DirectiveLocation.Schema,
+            IsRepeatable = true,
+            Arguments =
+            {
+                new InputField(CoordinateArg, new NonNullType(schemaCoordinate))
+            },
+            ContextData =
+            {
+                [WellKnownContextData.IsFusionType] = true
+            }
+        };
+        
+        return directiveType;
     }
 }

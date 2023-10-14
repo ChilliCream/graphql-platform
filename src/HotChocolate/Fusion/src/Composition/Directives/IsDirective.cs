@@ -4,6 +4,7 @@ using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
+using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 
 namespace HotChocolate.Fusion.Composition;
@@ -166,5 +167,40 @@ internal sealed class IsDirective
         ArgumentNullException.ThrowIfNull(nameof(context));
         
         return member.Directives.ContainsName(context.IsDirective.Name);
+    }
+    
+    /// <summary>
+    /// Creates the is directive type.
+    /// </summary>
+    public static DirectiveType CreateType()
+    {
+        /*
+         * directive @is(
+         *   field: Selection
+         *   coordinate: SchemaCoordinate
+         * ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+         */
+
+        var selectionType = new MissingType(FusionTypeBaseNames.Selection);
+        var schemaCoordinate = new MissingType(FusionTypeBaseNames.SchemaCoordinate);
+        
+        var directiveType = new DirectiveType(FusionTypeBaseNames.IsDirective)
+        {
+            Locations = DirectiveLocation.FieldDefinition | 
+                DirectiveLocation.ArgumentDefinition | 
+                DirectiveLocation.InputFieldDefinition,
+            IsRepeatable = false,
+            Arguments =
+            {
+                new InputField(FieldArg, new NonNullType(selectionType)),
+                new InputField(CoordinateArg, new NonNullType(schemaCoordinate))
+            },
+            ContextData =
+            {
+                [WellKnownContextData.IsFusionType] = true
+            }
+        };
+        
+        return directiveType;
     }
 }

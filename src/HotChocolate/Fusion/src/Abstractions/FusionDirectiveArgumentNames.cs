@@ -6,6 +6,11 @@ namespace HotChocolate.Fusion;
 internal static class FusionDirectiveArgumentNames
 {
     /// <summary>
+    /// Gets the name of the variable argument.
+    /// </summary>
+    public const string VariableArg = "name";
+    
+    /// <summary>
     /// Gets the name of the name argument.
     /// </summary>
     public const string NameArg = "name";

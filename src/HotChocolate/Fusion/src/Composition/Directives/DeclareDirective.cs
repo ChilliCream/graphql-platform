@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
+using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 
 namespace HotChocolate.Fusion.Composition;
@@ -162,4 +163,39 @@ internal sealed class DeclareDirective(string name, FieldNode select, string? fr
     /// </returns>
     public static bool ExistsIn(IHasDirectives member, IFusionTypeContext context)
         => member.Directives.ContainsName(context.DeclareDirective.Name);
+    
+    /// <summary>
+    /// Creates the declare directive type.
+    /// </summary>
+    public static DirectiveType CreateType()
+    {
+        /*
+         * directive @declare(
+         *   variable: Name!
+         *   select: Selection!
+         *   from: Name
+         * ) repeatable on FIELD_DEFINITION
+         */
+
+        var nameType = new MissingType(FusionTypeBaseNames.Name);
+        var selectionType = new MissingType(FusionTypeBaseNames.Selection);
+        
+        var directiveType = new DirectiveType(FusionTypeBaseNames.DeclareDirective)
+        {
+            Locations = DirectiveLocation.FieldDefinition,
+            IsRepeatable = true,
+            Arguments =
+            {
+                new InputField(VariableArg, new NonNullType(nameType)),
+                new InputField(TypeArg, new NonNullType(selectionType)),
+                new InputField(FromArg, nameType)
+            },
+            ContextData =
+            {
+                [WellKnownContextData.IsFusionType] = true
+            }
+        };
+        
+        return directiveType;
+    }
 }

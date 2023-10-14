@@ -14,6 +14,7 @@ public sealed class FusionTypes : IFusionTypeContext
 {
     private readonly Schema _fusionGraph;
     private readonly bool _prefixSelf;
+    private readonly Dictionary<string, INamedType> _types = new();
 
     public FusionTypes(Schema fusionGraph, string? prefix = null, bool prefixSelf = false)
     {
@@ -90,6 +91,10 @@ public sealed class FusionTypes : IFusionTypeContext
             stringType,
             TypeName,
             Uri);
+        
+        DeclareDirective = RewriteDirective(Composition.DeclareDirective.CreateType(), names.DeclareDirective);
+        IsDirective = RewriteDirective(Composition.IsDirective.CreateType(), names.IsDirective);
+        RemoveDirective = RewriteDirective(Composition.RemoveDirective.CreateType(), names.RemoveDirective);
     }
 
     private string Prefix { get; }
@@ -133,15 +138,16 @@ public sealed class FusionTypes : IFusionTypeContext
 
     public DirectiveType RenameDirective { get; }
 
-    private ScalarType RegisterScalarType(string name)
+    public DirectiveType ResolveDirective => throw new NotImplementedException();
+
+    private static ScalarType RegisterScalarType(string name)
     {
         var scalarType = new ScalarType(name);
         scalarType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.Types.Add(scalarType);
         return scalarType;
     }
 
-    private InputObjectType RegisterArgumentDefType(
+    private static InputObjectType RegisterArgumentDefType(
         string name,
         ScalarType typeName,
         ScalarType type)
@@ -150,18 +156,16 @@ public sealed class FusionTypes : IFusionTypeContext
         argumentDef.Fields.Add(new InputField(NameArg, new NonNullType(typeName)));
         argumentDef.Fields.Add(new InputField(TypeArg, new NonNullType(type)));
         argumentDef.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.Types.Add(argumentDef);
         return argumentDef;
     }
 
-    private EnumType RegisterResolverKindType(string name)
+    private static EnumType RegisterResolverKindType(string name)
     {
         var resolverKind = new EnumType(name);
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Fetch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscribe));
         resolverKind.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.Types.Add(resolverKind);
         return resolverKind;
     }
 
@@ -185,7 +189,7 @@ public sealed class FusionTypes : IFusionTypeContext
             new Argument(NameArg, variableName),
             new Argument(ArgumentArg, argumentName));
 
-    private DirectiveType RegisterVariableDirectiveType(
+    private static DirectiveType RegisterVariableDirectiveType(
         string name,
         ScalarType typeName,
         ScalarType selection)
@@ -198,7 +202,6 @@ public sealed class FusionTypes : IFusionTypeContext
         directiveType.Locations |= DirectiveLocation.Object;
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
@@ -210,19 +213,17 @@ public sealed class FusionTypes : IFusionTypeContext
         var directiveType = new DirectiveType(name);
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
     public Directive CreatePrivateDirective()
         => new Directive(Private);
 
-    private DirectiveType RegisterPrivateDirectiveType(string name)
+    private static DirectiveType RegisterPrivateDirectiveType(string name)
     {
         var directiveType = new DirectiveType(name);
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
@@ -271,7 +272,7 @@ public sealed class FusionTypes : IFusionTypeContext
         return new Directive(Resolver, directiveArgs);
     }
 
-    private DirectiveType RegisterResolverDirectiveType(
+    private static DirectiveType RegisterResolverDirectiveType(
         string name,
         ScalarType typeName,
         InputObjectType argumentDef,
@@ -285,7 +286,6 @@ public sealed class FusionTypes : IFusionTypeContext
         directiveType.Arguments.Add(new InputField(ArgumentsArg, new ListType(new NonNullType(argumentDef))));
         directiveType.Arguments.Add(new InputField(KindArg, resolverKind));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
@@ -299,7 +299,7 @@ public sealed class FusionTypes : IFusionTypeContext
                 new Argument(SubgraphArg, subgraphName),
                 new Argument(NameArg, originalName));
 
-    private DirectiveType RegisterSourceDirectiveType(string name, ScalarType typeName)
+    private static DirectiveType RegisterSourceDirectiveType(string name, ScalarType typeName)
     {
         var directiveType = new DirectiveType(name)
         {
@@ -320,7 +320,6 @@ public sealed class FusionTypes : IFusionTypeContext
                 [WellKnownContextData.IsFusionType] = true
             }
         };
-        _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
@@ -334,7 +333,7 @@ public sealed class FusionTypes : IFusionTypeContext
             new Argument(TypesArg, new ListValueNode(null, temp)));
     }
 
-    private DirectiveType RegisterNodeDirectiveType(string name, ScalarType typeName)
+    private static DirectiveType RegisterNodeDirectiveType(string name, ScalarType typeName)
     {
         var directiveType = new DirectiveType(name);
         directiveType.Locations = DirectiveLocation.Schema;
@@ -342,7 +341,6 @@ public sealed class FusionTypes : IFusionTypeContext
         directiveType.Arguments.Add(
             new InputField(TypesArg, new NonNullType(new ListType(new NonNullType(typeName)))));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
@@ -360,7 +358,7 @@ public sealed class FusionTypes : IFusionTypeContext
                 new Argument(LocationArg, location.ToString()),
                 new Argument(KindArg, "HTTP"));
 
-    private DirectiveType RegisterTransportDirectiveType(
+    private static DirectiveType RegisterTransportDirectiveType(
         string name,
         ScalarType stringType,
         ScalarType typeName,
@@ -373,7 +371,6 @@ public sealed class FusionTypes : IFusionTypeContext
         directiveType.Arguments.Add(new InputField(LocationArg, uri));
         directiveType.Arguments.Add(new InputField(KindArg, new NonNullType(stringType)));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
     }
 
@@ -403,7 +400,6 @@ public sealed class FusionTypes : IFusionTypeContext
         directiveType.Arguments.Add(new InputField(PrefixSelfArg, boolean));
         directiveType.Arguments.Add(new InputField(VersionArg, integer));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
 
         if (string.IsNullOrEmpty(Prefix))
         {
@@ -423,5 +419,22 @@ public sealed class FusionTypes : IFusionTypeContext
         }
 
         return directiveType;
+    }
+    
+
+    private T RewriteDirective<T>(T member, string name) where T : ITypeSystemMember 
+    {
+        switch (member)
+        {
+            case DirectiveType directiveType:
+                directiveType.Name = name;
+
+                foreach (var argument in directiveType.Arguments)
+                {
+                    argument.Type = argument.Type.ReplaceNameType(n => _types[n]);
+                }
+
+                return member;
+        }
     }
 }

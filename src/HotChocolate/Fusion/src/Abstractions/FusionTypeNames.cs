@@ -32,6 +32,7 @@ public sealed class FusionTypeNames
         UriScalar = config.UriScalar;
         ArgumentDefinition = config.ArgumentDefinition;
         ResolverKind = config.ResolverKind;
+        DeclareDirective = config.DeclareDirective;
 
         _fusionDirectives.Add(config.PrivateDirective);
         _fusionDirectives.Add(config.VariableDirective);
@@ -42,6 +43,7 @@ public sealed class FusionTypeNames
         _fusionDirectives.Add(config.ReEncodeIdDirective);
         _fusionDirectives.Add(config.TransportDirective);
         _fusionDirectives.Add(config.FusionDirective);
+        _fusionDirectives.Add(config.DeclareDirective);
 
         _fusionTypes.Add(config.SelectionScalar);
         _fusionTypes.Add(config.SelectionSetScalar);
@@ -86,6 +88,11 @@ public sealed class FusionTypeNames
     /// Gets the name of the node directive.
     /// </summary>
     public string NodeDirective { get; }
+    
+    /// <summary>
+    /// Gets the name of the declare directive.
+    /// </summary>
+    public string DeclareDirective { get; }
 
     /// <summary>
     /// Gets the name of the reEncodeId directive.
@@ -140,7 +147,9 @@ public sealed class FusionTypeNames
     /// <summary>
     /// Gets the name of the private directive.
     /// </summary>
-    public string PrivateDirective { get; set; }
+    public string PrivateDirective { get; private set; }
+
+    public string RemoveDirective { get; private set; }
 
     /// <summary>
     /// Specifies if the <paramref name="directiveName"/> represents a fusion directive.
@@ -201,12 +210,13 @@ public sealed class FusionTypeNames
                         : FusionTypeBaseNames.FusionDirective,
                     SelectionScalar = $"{prefix}_{FusionTypeBaseNames.Selection}",
                     SelectionSetScalar = $"{prefix}_{FusionTypeBaseNames.SelectionSet}",
-                    TypeNameScalar = $"{prefix}_{FusionTypeBaseNames.TypeName}",
+                    TypeNameScalar = $"{prefix}_{FusionTypeBaseNames.Name}",
                     TypeScalar = $"{prefix}_{FusionTypeBaseNames.Type}",
                     UriScalar = $"{prefix}_{FusionTypeBaseNames.Uri}",
                     ArgumentDefinition = $"{prefix}_{FusionTypeBaseNames.ArgumentDefinition}",
                     ResolverKind = $"{prefix}_{FusionTypeBaseNames.ResolverKind}",
-                    PrivateDirective = $"{prefix}_{FusionTypeBaseNames.PrivateDirective}"
+                    PrivateDirective = $"{prefix}_{FusionTypeBaseNames.PrivateDirective}",
+                    DeclareDirective = $"{prefix}_{FusionTypeBaseNames.DeclareDirective}",
                 });
         }
 
@@ -224,12 +234,13 @@ public sealed class FusionTypeNames
                 FusionDirective = FusionTypeBaseNames.FusionDirective,
                 SelectionScalar = FusionTypeBaseNames.Selection,
                 SelectionSetScalar = FusionTypeBaseNames.SelectionSet,
-                TypeNameScalar = FusionTypeBaseNames.TypeName,
+                TypeNameScalar = FusionTypeBaseNames.Name,
                 TypeScalar = FusionTypeBaseNames.Type,
                 UriScalar = FusionTypeBaseNames.Uri,
                 ArgumentDefinition = FusionTypeBaseNames.ArgumentDefinition,
                 ResolverKind = FusionTypeBaseNames.ResolverKind,
-                PrivateDirective = FusionTypeBaseNames.PrivateDirective
+                PrivateDirective = FusionTypeBaseNames.PrivateDirective,
+                DeclareDirective = FusionTypeBaseNames.DeclareDirective
             });
     }
 
@@ -314,6 +325,7 @@ public sealed class FusionTypeNames
         public string SourceDirective { get; set; }
         public string IsDirective { get; set; }
         public string ResolveDirective { get; set; }
+        public string DeclareDirective { get; set; }
         public string NodeDirective { get; set; }
         public string ReEncodeIdDirective { get; set; }
         public string TransportDirective { get; set; }

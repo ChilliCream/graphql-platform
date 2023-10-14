@@ -36,3 +36,4 @@ internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
         }
     }
 }
+
