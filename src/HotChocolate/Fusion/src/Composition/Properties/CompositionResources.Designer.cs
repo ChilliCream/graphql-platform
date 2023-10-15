@@ -153,6 +153,12 @@ namespace HotChocolate.Fusion.Composition.Properties {
             }
         }
         
+        internal static string DirectiveHelpers_ExpectBooleanLiteral_Message {
+            get {
+                return ResourceManager.GetString("DirectiveHelpers_ExpectBooleanLiteral_Message", resourceCulture);
+            }
+        }
+        
         internal static string DirectiveHelpers_ExpectStringLiteral_Message {
             get {
                 return ResourceManager.GetString("DirectiveHelpers_ExpectStringLiteral_Message", resourceCulture);
@@ -186,6 +192,12 @@ namespace HotChocolate.Fusion.Composition.Properties {
         internal static string TransportKind_InvalidName {
             get {
                 return ResourceManager.GetString("TransportKind_InvalidName", resourceCulture);
+            }
+        }
+        
+        internal static string NodeDirective_TypesCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("NodeDirective_TypesCannotBeNullOrEmpty", resourceCulture);
             }
         }
     }

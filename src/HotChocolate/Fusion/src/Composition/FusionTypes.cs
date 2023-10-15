@@ -74,23 +74,16 @@ public sealed class FusionTypes : IFusionTypeContext
             TypeName,
             Selection);
         
-        Node = RegisterNodeDirectiveType(
-            names.NodeDirective,
-            TypeName);
-        Fusion = RegisterFusionDirectiveType(
-            names.FusionDirective,
-            TypeName,
-            booleanType,
-            intType);
-        
         DeclareDirective = RewriteDirective(Composition.DeclareDirective.CreateType(), names.DeclareDirective);
+        FusionDirective = RewriteDirective(Composition.FusionDirective.CreateType(), names.FusionDirective);
         IsDirective = RewriteDirective(Composition.IsDirective.CreateType(), names.IsDirective);
+        NodeDirective = RewriteDirective(Composition.NodeDirective.CreateType(), names.NodeDirective);
         RemoveDirective = RewriteDirective(Composition.RemoveDirective.CreateType(), names.RemoveDirective);
         RenameDirective = RewriteDirective(Composition.RenameDirective.CreateType(), names.RenameDirective);
         RequireDirective = RewriteDirective(Composition.RequireDirective.CreateType(), names.RequireDirective);
         ResolveDirective = RewriteDirective(Composition.ResolveDirective.CreateType(), names.ResolveDirective);
-        SourceDirective = RewriteDirective(Composition.ResolveDirective.CreateType(), names.SourceDirective);
-        TransportDirective = RewriteDirective(Composition.ResolveDirective.CreateType(), names.TransportDirective);
+        SourceDirective = RewriteDirective(Composition.SourceDirective.CreateType(), names.SourceDirective);
+        TransportDirective = RewriteDirective(Composition.TransportDirective.CreateType(), names.TransportDirective);
     }
 
     private string Prefix { get; }
@@ -113,16 +106,14 @@ public sealed class FusionTypes : IFusionTypeContext
 
     public DirectiveType Resolver { get; }
     public DirectiveType Variable { get; }
-
-    public DirectiveType Source { get; }
-
-    public DirectiveType Node { get; }
-
-    public DirectiveType Fusion { get; }
     
     public DirectiveType DeclareDirective { get; }
 
+    public DirectiveType FusionDirective { get; }
+
     public DirectiveType IsDirective { get; }
+
+    public DirectiveType NodeDirective { get; }
 
     public DirectiveType RemoveDirective { get; }
 
@@ -273,61 +264,6 @@ public sealed class FusionTypes : IFusionTypeContext
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         return directiveType;
     }
-
-    public Directive CreateNodeDirective(string subgraphName, IReadOnlyCollection<ObjectType> types)
-    {
-        var temp = types.Select(t => new StringValueNode(t.Name)).ToArray();
-
-        return new Directive(
-            Node,
-            new Argument(SubgraphArg, subgraphName),
-            new Argument(TypesArg, new ListValueNode(null, temp)));
-    }
-
-    private static DirectiveType RegisterNodeDirectiveType(string name, ScalarType typeName)
-    {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations = DirectiveLocation.Schema;
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(
-            new InputField(TypesArg, new NonNullType(new ListType(new NonNullType(typeName)))));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        return directiveType;
-    }
-
-    private DirectiveType RegisterFusionDirectiveType(
-        string name,
-        ScalarType typeName,
-        ScalarType boolean,
-        ScalarType integer)
-    {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations = DirectiveLocation.Schema;
-        directiveType.Arguments.Add(new InputField(PrefixArg, typeName));
-        directiveType.Arguments.Add(new InputField(PrefixSelfArg, boolean));
-        directiveType.Arguments.Add(new InputField(VersionArg, integer));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-
-        if (string.IsNullOrEmpty(Prefix))
-        {
-            _fusionGraph.Directives.Add(
-                new Directive(
-                    directiveType,
-                    new Argument(VersionArg, 1)));
-        }
-        else
-        {
-            _fusionGraph.Directives.Add(
-                new Directive(
-                    directiveType,
-                    new Argument(PrefixArg, Prefix),
-                    new Argument(PrefixSelfArg, _prefixSelf),
-                    new Argument(VersionArg, 1)));
-        }
-
-        return directiveType;
-    }
-    
 
     private T RewriteDirective<T>(T member, string name) where T : ITypeSystemMember 
     {

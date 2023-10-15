@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
+using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -36,8 +37,7 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
         string subgraphName,
         List<SchemaCoordinate> coordinates)
     {
-        const string subgraphArg = "subgraph";
-        var source = types.Source.Name;
+        var source = types.SourceDirective.Name;
         var resolver = types.Resolver.Name;
 
         foreach (var group in coordinates.GroupBy(t => t.Name))
@@ -65,7 +65,7 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
                         moreThanOne++;
                     }
 
-                    if (!match && ((StringValueNode)directive.Arguments[subgraphArg]).Value.EqualsOrdinal(subgraphName))
+                    if (!match && ((StringValueNode)directive.Arguments[SubgraphArg]).Value.EqualsOrdinal(subgraphName))
                     {
                         matchingDir = directive;
                         match = true;
@@ -90,7 +90,7 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
                             moreThanOne++;
                         }
 
-                        if (!match && ((StringValueNode)directive.Arguments[subgraphArg]).Value.EqualsOrdinal(subgraphName))
+                        if (!match && ((StringValueNode)directive.Arguments[SubgraphArg]).Value.EqualsOrdinal(subgraphName))
                         {
                             matchingDir = directive;
                             match = true;

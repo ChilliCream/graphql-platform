@@ -75,6 +75,9 @@ Source Arguments: {2}</value>
   <data name="LogEntryHelper_RootTypeNameMismatch" xml:space="preserve">
     <value>The {0} type name `{1}` does not match to the {0} type name `{2}` on subgraph `{3}`. Make sure that the root type names on the various subgraph match.</value>
   </data>
+  <data name="DirectiveHelpers_ExpectBooleanLiteral_Message" xml:space="preserve">
+    <value>The value node must be a boolean literal.</value>
+  </data>
   <data name="DirectiveHelpers_ExpectStringLiteral_Message" xml:space="preserve">
     <value>The value node must be a string literal.</value>
   </data>
@@ -92,5 +95,8 @@ Source Arguments: {2}</value>
   </data>
   <data name="TransportKind_InvalidName" xml:space="preserve">
     <value>Invalid transport kind name</value>
+  </data>
+  <data name="NodeDirective_TypesCannotBeNullOrEmpty" xml:space="preserve">
+    <value>Node types list cannot be null or empty.</value>
   </data>
 </root>

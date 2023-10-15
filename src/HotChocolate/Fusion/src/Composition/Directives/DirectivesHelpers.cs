@@ -5,6 +5,20 @@ namespace HotChocolate.Fusion.Composition;
 
 internal static class DirectivesHelpers
 {
+    public static BooleanValueNode ExpectBooleanValue(this IValueNode valueNode)
+    {
+        ArgumentNullException.ThrowIfNull(valueNode);
+
+        if (valueNode is BooleanValueNode booleanValue)
+        {
+            return booleanValue;
+        }
+
+        throw new ArgumentException(
+            CompositionResources.DirectiveHelpers_ExpectBooleanValue_Message,
+            nameof(valueNode));
+    }
+    
     public static StringValueNode ExpectStringLiteral(this IValueNode valueNode)
     {
         ArgumentNullException.ThrowIfNull(valueNode);

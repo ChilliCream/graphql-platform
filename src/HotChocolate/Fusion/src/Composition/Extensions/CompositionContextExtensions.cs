@@ -67,7 +67,7 @@ internal static class CompositionContextExtensions
 
         supportedBy.IntersectWith(
             fieldDef.Directives
-                .Where(t => t.Name.EqualsOrdinal(context.FusionTypes.Source.Name))
+                .Where(t => t.Name.EqualsOrdinal(context.FusionTypes.SourceDirective.Name))
                 .Select(t => ((StringValueNode)t.Arguments[SubgraphArg]).Value));
 
         return supportedBy.Count > 0;

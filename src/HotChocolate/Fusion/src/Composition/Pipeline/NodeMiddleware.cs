@@ -34,8 +34,9 @@ internal sealed class NodeMiddleware : IMergeMiddleware
 
                 if (nodes.Count > 0)
                 {
-                    var nodeDirective = context.FusionTypes.CreateNodeDirective(schema.Name, nodes);
-                    context.FusionGraph.Directives.Add(nodeDirective);
+                    context.FusionGraph.Directives.Add(
+                        new NodeDirective(nodes.Select(t => t.Name).ToArray(), schema.Name)
+                            .ToDirective(context.FusionTypes));
                 }
             }
         }
