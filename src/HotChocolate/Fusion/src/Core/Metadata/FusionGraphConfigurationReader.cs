@@ -168,7 +168,7 @@ internal sealed class FusionGraphConfigurationReader
         {
             switch (argument.Name.Value)
             {
-                case ClientGroupArg:
+                case GroupArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
@@ -200,7 +200,7 @@ internal sealed class FusionGraphConfigurationReader
 
         static void OptionalArgs(HashSet<string> assert)
         {
-            assert.Remove(ClientGroupArg);
+            assert.Remove(GroupArg);
         }
     }
 
@@ -243,7 +243,7 @@ internal sealed class FusionGraphConfigurationReader
         {
             switch (argument.Name.Value)
             {
-                case ClientGroupArg:
+                case GroupArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
@@ -275,7 +275,7 @@ internal sealed class FusionGraphConfigurationReader
 
         static void OptionalArgs(HashSet<string> assert)
         {
-            assert.Remove(ClientGroupArg);
+            assert.Remove(GroupArg);
         }
     }
 

@@ -8,6 +8,7 @@ internal sealed class RemoveFusionTypesMiddleware : IMergeMiddleware
 {
     public ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
+        /*
         // Remove the fusion types from the GraphQL schema
         context.FusionGraph.Types.Remove(context.FusionTypes.Type);
         context.FusionGraph.Types.Remove(context.FusionTypes.TypeName);
@@ -25,6 +26,7 @@ internal sealed class RemoveFusionTypesMiddleware : IMergeMiddleware
         context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.ReEncodeId);
         context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Transport);
         context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Fusion);
+        */
 
         return next(context);
     }

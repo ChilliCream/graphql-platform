@@ -24,9 +24,8 @@ internal static class TypeExtensions
         if (source.TryGetOriginalName(out var originalName))
         {
             target.Directives.Add(
-                context.FusionTypes.CreateSourceDirective(
-                    subgraphName,
-                    originalName));
+                new SourceDirective(subgraphName, originalName)
+                    .ToDirective(context.FusionTypes));
         }
     }
 
@@ -45,19 +44,10 @@ internal static class TypeExtensions
         T target)
         where T : ITypeSystemMember, IHasContextData, IHasDirectives
     {
-        if (source.TryGetOriginalName(out var originalName))
-        {
-            target.Directives.Add(
-                context.FusionTypes.CreateSourceDirective(
-                    subgraphName,
-                    originalName));
-        }
-        else
-        {
-            target.Directives.Add(
-                context.FusionTypes.CreateSourceDirective(
-                    subgraphName));
-        }
+        source.TryGetOriginalName(out var originalName);
+        target.Directives.Add(
+            new SourceDirective(subgraphName, originalName)
+                .ToDirective(context.FusionTypes));
     }
 
     public static bool TryGetOriginalName<T>(

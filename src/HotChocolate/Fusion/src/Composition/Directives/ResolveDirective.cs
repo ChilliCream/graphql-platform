@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
-using IHasDirectives = HotChocolate.Language.IHasDirectives;
+using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -151,5 +151,36 @@ internal sealed class ResolveDirective
         ArgumentNullException.ThrowIfNull(nameof(context));
         
         return member.Directives.ContainsName(context.ResolveDirective.Name);
+    }
+    
+    /// <summary>
+    /// Creates the rename directive type.
+    /// </summary>
+    public static DirectiveType CreateType()
+    {
+        // directive @resolve(
+        //   select: Selection,
+        //   from: Name
+        // ) repeatable on FIELD_DEFINITION
+        
+        var selectionType = new MissingType(FusionTypeBaseNames.Selection);
+        var nameType = new MissingType(FusionTypeBaseNames.Name);
+        
+        var directiveType = new DirectiveType(FusionTypeBaseNames.ResolveDirective)
+        {
+            Locations = DirectiveLocation.FieldDefinition,
+            IsRepeatable = true,
+            Arguments =
+            {
+                new InputField(SelectArg, new NonNullType(selectionType)),
+                new InputField(FromArg, new NonNullType(nameType))
+            },
+            ContextData =
+            {
+                [WellKnownContextData.IsFusionType] = true
+            }
+        };
+        
+        return directiveType;
     }
 }

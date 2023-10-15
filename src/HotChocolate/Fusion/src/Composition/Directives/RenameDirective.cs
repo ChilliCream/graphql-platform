@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
 /// Represents the runtime value of
-/// `directive @rename(coordinate: _SchemaCoordinate) ON SCHEMA`.
+/// `directive @rename(coordinate: SchemaCoordinate, newName: Name!) ON SCHEMA`.
 /// </summary>
 internal sealed class RenameDirective
 {
@@ -154,5 +154,38 @@ internal sealed class RenameDirective
         ArgumentNullException.ThrowIfNull(nameof(context));
         
         return member.Directives.ContainsName(context.RenameDirective.Name);
+    }
+    
+    /// <summary>
+    /// Creates the rename directive type.
+    /// </summary>
+    public static DirectiveType CreateType()
+    {
+        /*
+         * directive @rename(
+         *   coordinate: SchemaCoordinate!
+         *   newName: Name!
+         * ) repeatable on SCHEMA
+         */
+        
+        var schemaCoordinateType = new MissingType(FusionTypeBaseNames.SchemaCoordinate);
+        var nameType = new MissingType(FusionTypeBaseNames.Name);
+        
+        var directiveType = new DirectiveType(FusionTypeBaseNames.RenameDirective)
+        {
+            Locations = DirectiveLocation.Schema,
+            IsRepeatable = true,
+            Arguments =
+            {
+                new InputField(CoordinateArg, new NonNullType(schemaCoordinateType)),
+                new InputField(NewNameArg, new NonNullType(nameType))
+            },
+            ContextData =
+            {
+                [WellKnownContextData.IsFusionType] = true
+            }
+        };
+        
+        return directiveType;
     }
 }

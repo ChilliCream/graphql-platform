@@ -21,7 +21,6 @@ public sealed class FusionTypeNames
         IsDirective = config.IsDirective;
         ResolveDirective = config.ResolveDirective;
         NodeDirective = config.NodeDirective;
-        ReEncodeIdDirective = config.ReEncodeIdDirective;
         TransportDirective = config.TransportDirective;
         PrivateDirective = config.PrivateDirective;
         FusionDirective = config.FusionDirective;
@@ -40,7 +39,6 @@ public sealed class FusionTypeNames
         _fusionDirectives.Add(config.SourceDirective);
         _fusionDirectives.Add(config.IsDirective);
         _fusionDirectives.Add(config.NodeDirective);
-        _fusionDirectives.Add(config.ReEncodeIdDirective);
         _fusionDirectives.Add(config.TransportDirective);
         _fusionDirectives.Add(config.FusionDirective);
         _fusionDirectives.Add(config.DeclareDirective);
@@ -93,11 +91,6 @@ public sealed class FusionTypeNames
     /// Gets the name of the declare directive.
     /// </summary>
     public string DeclareDirective { get; }
-
-    /// <summary>
-    /// Gets the name of the reEncodeId directive.
-    /// </summary>
-    public string ReEncodeIdDirective { get; }
     
     /// <summary>
     /// Gets the name of the transport directive.
@@ -151,6 +144,10 @@ public sealed class FusionTypeNames
 
     public string RemoveDirective { get; private set; }
 
+    public string RenameDirective { get; private set; }
+
+    public string RequireDirective { get; private set; }
+
     /// <summary>
     /// Specifies if the <paramref name="directiveName"/> represents a fusion directive.
     /// </summary>
@@ -203,7 +200,6 @@ public sealed class FusionTypeNames
                     IsDirective = $"{prefix}_{FusionTypeBaseNames.IsDirective}",
                     ResolveDirective = $"{prefix}_{FusionTypeBaseNames.ResolveDirective}",
                     NodeDirective = $"{prefix}_{FusionTypeBaseNames.NodeDirective}",
-                    ReEncodeIdDirective = $"{prefix}_{FusionTypeBaseNames.ReEncodeIdDirective}",
                     TransportDirective = $"{prefix}_{FusionTypeBaseNames.TransportDirective}",
                     FusionDirective = prefixSelf
                         ? $"{prefix}_{FusionTypeBaseNames.FusionDirective}"
@@ -229,7 +225,6 @@ public sealed class FusionTypeNames
                 IsDirective = FusionTypeBaseNames.IsDirective,
                 ResolveDirective = FusionTypeBaseNames.ResolveDirective,
                 NodeDirective = FusionTypeBaseNames.NodeDirective,
-                ReEncodeIdDirective = FusionTypeBaseNames.ReEncodeIdDirective,
                 TransportDirective = FusionTypeBaseNames.TransportDirective,
                 FusionDirective = FusionTypeBaseNames.FusionDirective,
                 SelectionScalar = FusionTypeBaseNames.Selection,
@@ -327,7 +322,6 @@ public sealed class FusionTypeNames
         public string ResolveDirective { get; set; }
         public string DeclareDirective { get; set; }
         public string NodeDirective { get; set; }
-        public string ReEncodeIdDirective { get; set; }
         public string TransportDirective { get; set; }
         public string FusionDirective { get; set; }
         public string SelectionScalar { get; set; }

@@ -5,14 +5,18 @@ namespace HotChocolate.Fusion.Composition;
 public interface IFusionTypeContext
 {
     DirectiveType DeclareDirective { get; } 
-    
+
     DirectiveType IsDirective { get; }
     
     DirectiveType RemoveDirective { get; }
-    
-    DirectiveType RequireDirective { get; }
 
     DirectiveType RenameDirective { get; }
+
+    DirectiveType RequireDirective { get; }
     
     DirectiveType ResolveDirective { get; }
+    
+    DirectiveType SourceDirective { get; }
+
+    DirectiveType TransportDirective { get; }
 }

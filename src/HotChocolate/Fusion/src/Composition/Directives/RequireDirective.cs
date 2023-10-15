@@ -4,6 +4,7 @@ using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
+using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
 
 namespace HotChocolate.Fusion.Composition;
@@ -130,5 +131,33 @@ internal sealed class RequireDirective(FieldNode field)
         ArgumentNullException.ThrowIfNull(nameof(context));
         
         return member.Directives.ContainsName(context.RequireDirective.Name);
+    }
+    
+    /// <summary>
+    /// Creates the rename directive type.
+    /// </summary>
+    public static DirectiveType CreateType()
+    {
+        // directive @require(
+        //   field: Selection
+        // ) on ARGUMENT_DEFINITION
+        
+        var selectionType = new MissingType(FusionTypeBaseNames.Selection);
+        
+        var directiveType = new DirectiveType(FusionTypeBaseNames.RequireDirective)
+        {
+            Locations = DirectiveLocation.ArgumentDefinition,
+            IsRepeatable = false,
+            Arguments =
+            {
+                new InputField(FieldArg, new NonNullType(selectionType))
+            },
+            ContextData =
+            {
+                [WellKnownContextData.IsFusionType] = true
+            }
+        };
+        
+        return directiveType;
     }
 }

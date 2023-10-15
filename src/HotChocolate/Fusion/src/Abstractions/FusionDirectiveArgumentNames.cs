@@ -23,7 +23,7 @@ internal static class FusionDirectiveArgumentNames
     /// <summary>
     /// Gets the name of the client grouping argument.
     /// </summary>
-    public const string ClientGroupArg = "group";
+    public const string GroupArg = "group";
     
     /// <summary>
     /// Gets the name of the field argument.

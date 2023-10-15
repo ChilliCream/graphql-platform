@@ -1,6 +1,5 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Skimmed;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -9,13 +8,12 @@ internal sealed class NodeMiddleware : IMergeMiddleware
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         var fusionGraph = context.FusionGraph;
-        var fusionTypes = context.FusionTypes;
 
         if (fusionGraph.QueryType is not null &&
             context.Features.IsNodeFieldSupported() &&
-            fusionGraph.QueryType.Fields.TryGetField("node", out var nodeField))
+            fusionGraph.QueryType.Fields.TryGetField("node", out _))
         {
-            fusionGraph.QueryType.Fields.TryGetField("nodes", out var nodesField);
+            fusionGraph.QueryType.Fields.TryGetField("nodes", out _);
 
             var nodes = new HashSet<ObjectType>();
 
@@ -29,17 +27,7 @@ internal sealed class NodeMiddleware : IMergeMiddleware
                     {
                         if (possibleNode.Implements.Contains(nodeInterface))
                         {
-                            var nodeName = possibleNode.Name;
                             nodes.Add(possibleNode);
-
-                            if (possibleNode.TryGetOriginalName(out var originalNodeName) &&
-                                !originalNodeName.EqualsOrdinal(nodeName) &&
-                                fusionGraph.Types.TryGetType<ObjectType>(nodeName, out var node) &&
-                                node.Fields.TryGetField("id", out var idField) &&
-                                !node.Directives.ContainsName(fusionTypes.ReEncodeId.Name))
-                            {
-                                idField.Directives.Add(fusionTypes.CreateReEncodeIdDirective());
-                            }
                         }
                     }
                 }

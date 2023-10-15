@@ -28,7 +28,17 @@ internal static class FusionTypeBaseNames
     /// <summary>
     /// The base name of the remove directive.
     /// </summary>
-    public static string RemoveDirective = "remove";
+    public const string RemoveDirective = "remove";
+    
+    /// <summary>
+    /// The base name of the remove directive.
+    /// </summary>
+    public const string RenameDirective = "rename";
+    
+    /// <summary>
+    /// The base name of the require directive.
+    /// </summary>
+    public const string RequireDirective = "rename";
     
     /// <summary>
     /// The base name of the schema coordinate type.

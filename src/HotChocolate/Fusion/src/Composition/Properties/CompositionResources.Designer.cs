@@ -182,5 +182,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("DeclareDirective_Parse_DeclareMustHaveSelect", resourceCulture);
             }
         }
+        
+        internal static string TransportKind_InvalidName {
+            get {
+                return ResourceManager.GetString("TransportKind_InvalidName", resourceCulture);
+            }
+        }
     }
 }

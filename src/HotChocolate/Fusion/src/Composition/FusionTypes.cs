@@ -73,28 +73,24 @@ public sealed class FusionTypes : IFusionTypeContext
             names.VariableDirective,
             TypeName,
             Selection);
-        Source = RegisterSourceDirectiveType(
-            names.SourceDirective,
-            TypeName);
+        
         Node = RegisterNodeDirectiveType(
             names.NodeDirective,
             TypeName);
-        ReEncodeId = RegisterReEncodeIdDirectiveType(
-            names.ReEncodeIdDirective);
         Fusion = RegisterFusionDirectiveType(
             names.FusionDirective,
             TypeName,
             booleanType,
             intType);
-        Transport = RegisterTransportDirectiveType(
-            names.TransportDirective,
-            stringType,
-            TypeName,
-            Uri);
         
         DeclareDirective = RewriteDirective(Composition.DeclareDirective.CreateType(), names.DeclareDirective);
         IsDirective = RewriteDirective(Composition.IsDirective.CreateType(), names.IsDirective);
         RemoveDirective = RewriteDirective(Composition.RemoveDirective.CreateType(), names.RemoveDirective);
+        RenameDirective = RewriteDirective(Composition.RenameDirective.CreateType(), names.RenameDirective);
+        RequireDirective = RewriteDirective(Composition.RequireDirective.CreateType(), names.RequireDirective);
+        ResolveDirective = RewriteDirective(Composition.ResolveDirective.CreateType(), names.ResolveDirective);
+        SourceDirective = RewriteDirective(Composition.ResolveDirective.CreateType(), names.SourceDirective);
+        TransportDirective = RewriteDirective(Composition.ResolveDirective.CreateType(), names.TransportDirective);
     }
 
     private string Prefix { get; }
@@ -122,10 +118,6 @@ public sealed class FusionTypes : IFusionTypeContext
 
     public DirectiveType Node { get; }
 
-    public DirectiveType ReEncodeId { get; }
-
-    public DirectiveType Transport { get; }
-
     public DirectiveType Fusion { get; }
     
     public DirectiveType DeclareDirective { get; }
@@ -138,7 +130,11 @@ public sealed class FusionTypes : IFusionTypeContext
 
     public DirectiveType RenameDirective { get; }
 
-    public DirectiveType ResolveDirective => throw new NotImplementedException();
+    public DirectiveType ResolveDirective { get; }
+
+    public DirectiveType SourceDirective { get; }
+
+    public DirectiveType TransportDirective { get; }
 
     private static ScalarType RegisterScalarType(string name)
     {
@@ -200,17 +196,6 @@ public sealed class FusionTypes : IFusionTypeContext
         directiveType.Arguments.Add(new InputField(ArgumentArg, typeName));
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
         directiveType.Locations |= DirectiveLocation.Object;
-        directiveType.Locations |= DirectiveLocation.FieldDefinition;
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        return directiveType;
-    }
-
-    public Directive CreateReEncodeIdDirective()
-        => new Directive(ReEncodeId);
-
-    private DirectiveType RegisterReEncodeIdDirectiveType(string name)
-    {
-        var directiveType = new DirectiveType(name);
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         return directiveType;
@@ -289,40 +274,6 @@ public sealed class FusionTypes : IFusionTypeContext
         return directiveType;
     }
 
-    public Directive CreateSourceDirective(string subgraphName, string? originalName = null)
-        => originalName is null
-            ? new Directive(
-                Source,
-                new Argument(SubgraphArg, subgraphName))
-            : new Directive(
-                Source,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(NameArg, originalName));
-
-    private static DirectiveType RegisterSourceDirectiveType(string name, ScalarType typeName)
-    {
-        var directiveType = new DirectiveType(name)
-        {
-            Locations = DirectiveLocation.Object |
-                DirectiveLocation.FieldDefinition |
-                DirectiveLocation.Enum |
-                DirectiveLocation.EnumValue |
-                DirectiveLocation.InputObject |
-                DirectiveLocation.InputFieldDefinition |
-                DirectiveLocation.Scalar,
-            Arguments =
-            {
-                new InputField(SubgraphArg, new NonNullType(typeName)),
-                new InputField(NameArg, typeName)
-            },
-            ContextData =
-            {
-                [WellKnownContextData.IsFusionType] = true
-            }
-        };
-        return directiveType;
-    }
-
     public Directive CreateNodeDirective(string subgraphName, IReadOnlyCollection<ObjectType> types)
     {
         var temp = types.Select(t => new StringValueNode(t.Name)).ToArray();
@@ -343,50 +294,6 @@ public sealed class FusionTypes : IFusionTypeContext
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         return directiveType;
     }
-
-    public Directive CreateHttpDirective(string subgraphName, string? clientName, Uri location)
-        =>  clientName is null 
-            ? new Directive(
-                Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "HTTP"))
-            : new Directive(
-                Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(ClientGroupArg, clientName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "HTTP"));
-
-    private static DirectiveType RegisterTransportDirectiveType(
-        string name,
-        ScalarType stringType,
-        ScalarType typeName,
-        ScalarType uri)
-    {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations = DirectiveLocation.FieldDefinition;
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(ClientGroupArg, typeName));
-        directiveType.Arguments.Add(new InputField(LocationArg, uri));
-        directiveType.Arguments.Add(new InputField(KindArg, new NonNullType(stringType)));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        return directiveType;
-    }
-
-    public Directive CreateWebSocketDirective(string subgraphName, string? clientName, Uri location)
-        =>  clientName is null 
-            ? new Directive(
-                Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "WebSocket"))
-            : new Directive(
-                Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(ClientGroupArg, clientName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "WebSocket"));
 
     private DirectiveType RegisterFusionDirectiveType(
         string name,
@@ -435,6 +342,9 @@ public sealed class FusionTypes : IFusionTypeContext
                 }
 
                 return member;
+            
+            default:
+                throw new NotSupportedException();
         }
     }
 }

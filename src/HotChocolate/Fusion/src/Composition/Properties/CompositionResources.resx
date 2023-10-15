@@ -90,4 +90,7 @@ Source Arguments: {2}</value>
   <data name="DeclareDirective_Parse_DeclareMustHaveSelect" xml:space="preserve">
     <value>The @declare directive must have a select argument.</value>
   </data>
+  <data name="TransportKind_InvalidName" xml:space="preserve">
+    <value>Invalid transport kind name</value>
+  </data>
 </root>
