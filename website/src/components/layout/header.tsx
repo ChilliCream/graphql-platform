@@ -370,22 +370,19 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
         <TileLink to="/products/bananacakepop" onClick={hideSubNav}>
           <TileLinkTitle>Banana Cake Pop</TileLinkTitle>
           <TileLinkDescription>
-            The IDE to create, explore, manage, and test <em>GraphQL</em> APIs
-            with ease.
+            The IDE to create, explore, manage, and test GraphQL APIs with ease.
           </TileLinkDescription>
         </TileLink>
         <TileLink to="/products/hotchocolate" onClick={hideSubNav}>
           <TileLinkTitle>Hot Chocolate</TileLinkTitle>
           <TileLinkDescription>
-            The server to create high-performance <em>.NET GraphQL</em> APIs in
-            no time.
+            The server to create high-performance .NET GraphQL APIs in no time.
           </TileLinkDescription>
         </TileLink>
         <TileLink to="/products/strawberryshake" onClick={hideSubNav}>
           <TileLinkTitle>Strawberry Shake</TileLinkTitle>
           <TileLinkDescription>
-            The client to create modern <em>.NET</em> apps that consume{" "}
-            <em>GraphQL</em> APIs effortless.
+            Effortlessly create modern .NET apps that consume GraphQL APIs.
           </TileLinkDescription>
         </TileLink>
       </SubNavMain>
