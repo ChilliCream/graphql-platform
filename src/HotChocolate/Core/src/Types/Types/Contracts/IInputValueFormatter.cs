@@ -22,5 +22,5 @@ public interface IInputValueFormatter
     /// Returns either the <paramref name="runtimeValue"/> or another value
     /// that represents a formatted version or it.
     /// </returns>
-    object? Format(object? runtimeValue);
+    object? Format(object runtimeValue);
 }
