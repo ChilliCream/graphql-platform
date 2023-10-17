@@ -73,7 +73,6 @@
     "Postgraphile",
     "Normen",
     "typeof",
-    // youtube
     "Ufjn",
     "Wguo",
     "Ymgw",
@@ -90,7 +89,9 @@
     "PKCE",
     "URQL",
     "unpublish",
-    "elete"
+    "elete",
+    "Wundergraph",
+    "Wunder"
   ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links
