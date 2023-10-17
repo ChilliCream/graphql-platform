@@ -42,8 +42,7 @@
     "meros",
     "Structs",
     "reencode",
-    "Wundergraph",
-    "Wunder"
+    "Wundergraph"
   ],
   "ignoreWords": [
     "Badurina",
@@ -89,9 +88,7 @@
     "PKCE",
     "URQL",
     "unpublish",
-    "elete",
-    "Wundergraph",
-    "Wunder"
+    "elete"
   ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links
