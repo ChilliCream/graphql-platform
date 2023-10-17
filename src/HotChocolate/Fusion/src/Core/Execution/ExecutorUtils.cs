@@ -17,9 +17,6 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class ExecutorUtils
 {
-    private const CustomOptionsFlags _reEncodeIdFlag =
-        (CustomOptionsFlags)ObjectFieldFlags.ReEncodeId;
-
     private const CustomOptionsFlags _typeNameFlag =
         (CustomOptionsFlags)ObjectFieldFlags.TypeName;
 
@@ -87,14 +84,6 @@ internal static class ExecutorUtils
                     }
 
                     result.Set(responseName, value, nullable);
-
-                    if (value.ValueKind is JsonValueKind.String &&
-                        (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
-                    {
-                        var subgraphName = data.Single.SubgraphName;
-                        var reformattedId = context.ReformatId(value.GetString()!, subgraphName);
-                        result.Set(responseName, reformattedId, nullable);
-                    }
                 }
                 else if (namedType.IsType(TypeKind.Enum))
                 {
@@ -253,13 +242,6 @@ internal static class ExecutorUtils
             if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
                 return null;
-            }
-
-            if (value.ValueKind is JsonValueKind.String &&
-                (selection.CustomOptions & _reEncodeIdFlag) == _reEncodeIdFlag)
-            {
-                var subgraphName = selectionData.Single.SubgraphName;
-                return context.ReformatId(value.GetString()!, subgraphName);
             }
 
             return value;

@@ -18,6 +18,17 @@ namespace HotChocolate.Fusion.Composition;
 internal sealed class RequireDirective(FieldNode field)
 {
     /// <summary>
+    /// Initializes a new instance of <see cref="RequireDirective"/>.
+    /// </summary>
+    /// <param name="fieldSyntax">
+    /// The field selection syntax which specifies the requirement.
+    /// </param>
+    public RequireDirective(string fieldSyntax)
+        : this(Utf8GraphQLParser.Syntax.ParseField(fieldSyntax))
+    {
+    }
+    
+    /// <summary>
     /// Gets the field selection syntax which specifies the requirement.
     /// </summary>
     public FieldNode Field { get; } = field;

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Skimmed;
 
@@ -145,6 +146,9 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
         member = null;
         return false;
     }
+
+    public override string ToString()
+        => SchemaFormatter.FormatAsString(this);
 
     public static Schema Create(string name) => new() { Name = name };
 }

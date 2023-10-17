@@ -1,3 +1,4 @@
+/*
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
@@ -183,3 +184,4 @@ file static class MergeQueryTypeMiddlewareExtensions
             variableName,
             variableName);
 }
+*/

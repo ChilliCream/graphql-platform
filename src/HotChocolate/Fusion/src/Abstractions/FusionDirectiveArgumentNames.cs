@@ -71,6 +71,11 @@ internal static class FusionDirectiveArgumentNames
     public const string KindArg = "kind";
 
     /// <summary>
+    /// Gets the name of the operation argument.
+    /// </summary>
+    public const string OperationArg = "operation";
+
+    /// <summary>
     /// Gets the name of the prefix argument.
     /// </summary>
     public const string PrefixArg = "prefix";

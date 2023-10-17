@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
 /// Represents the runtime value of
-/// `directive @rename(coordinate: SchemaCoordinate, newName: Name!) ON SCHEMA`.
+/// `directive @rename(coordinate: SchemaCoordinate, newName: Name!) repeatable ON SCHEMA`.
 /// </summary>
 internal sealed class RenameDirective
 {

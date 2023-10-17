@@ -1,9 +1,6 @@
 using HotChocolate.Fusion.Composition.Properties;
-using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
-using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
-using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -13,7 +10,6 @@ namespace HotChocolate.Fusion.Composition;
 public sealed class FusionTypes : IFusionTypeContext
 {
     private readonly Schema _fusionGraph;
-    private readonly bool _prefixSelf;
     private readonly Dictionary<string, INamedType> _types = new();
 
     public FusionTypes(Schema fusionGraph, string? prefix = null, bool prefixSelf = false)
@@ -25,7 +21,6 @@ public sealed class FusionTypes : IFusionTypeContext
 
         var names = FusionTypeNames.Create(prefix, prefixSelf);
         _fusionGraph = fusionGraph;
-        _prefixSelf = prefixSelf;
 
         Prefix = prefix ?? string.Empty;
 
@@ -37,76 +32,32 @@ public sealed class FusionTypes : IFusionTypeContext
                 nameof(fusionGraph));
         }
 
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Boolean, out var booleanType))
-        {
-            booleanType = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true };
-            _fusionGraph.Types.Add(booleanType);
-        }
-
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Int, out var intType))
-        {
-            intType = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true };
-            _fusionGraph.Types.Add(intType);
-        }
+        RewriteType(CreateScalarType(FusionTypeBaseNames.Uri), names.UriScalar);
+        RewriteType(CreateScalarType(FusionTypeBaseNames.Name), names.NameScalar);
+        RewriteType(CreateScalarType(FusionTypeBaseNames.SchemaCoordinate), names.SchemaCoordinateScalar);
+        RewriteType(CreateScalarType(FusionTypeBaseNames.Selection), names.SelectionScalar);
+        RewriteType(CreateScalarType(FusionTypeBaseNames.SelectionSet), names.SelectionSetScalar);
+        RewriteType(CreateScalarType(FusionTypeBaseNames.OperationDefinition), names.OperationDefinitionScalar);
+        RewriteType(CreateResolverKindType(), names.ResolverKindEnum);
+        CreateSpecScalars();
         
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.String, out var stringType))
-        {
-            stringType = new ScalarType(SpecScalarTypes.String) { IsSpecScalar = true };
-            _fusionGraph.Types.Add(stringType);
-        }
-
-        Selection = RegisterScalarType(names.SelectionScalar);
-        SelectionSet = RegisterScalarType(names.SelectionSetScalar);
-        TypeName = RegisterScalarType(names.TypeNameScalar);
-        Type = RegisterScalarType(names.TypeScalar);
-        Uri = RegisterScalarType(names.UriScalar);
-        ArgumentDefinition = RegisterArgumentDefType(names.ArgumentDefinition, TypeName, Type);
-        ResolverKind = RegisterResolverKindType(names.ResolverKind);
-        Private = RegisterPrivateDirectiveType(names.PrivateDirective);
-        Resolver = RegisterResolverDirectiveType(
-            names.ResolverDirective,
-            SelectionSet,
-            ArgumentDefinition,
-            SelectionSet,
-            ResolverKind);
-        Variable = RegisterVariableDirectiveType(
-            names.VariableDirective,
-            TypeName,
-            Selection);
-        
-        DeclareDirective = RewriteDirective(Composition.DeclareDirective.CreateType(), names.DeclareDirective);
-        FusionDirective = RewriteDirective(Composition.FusionDirective.CreateType(), names.FusionDirective);
-        IsDirective = RewriteDirective(Composition.IsDirective.CreateType(), names.IsDirective);
-        NodeDirective = RewriteDirective(Composition.NodeDirective.CreateType(), names.NodeDirective);
-        RemoveDirective = RewriteDirective(Composition.RemoveDirective.CreateType(), names.RemoveDirective);
-        RenameDirective = RewriteDirective(Composition.RenameDirective.CreateType(), names.RenameDirective);
-        RequireDirective = RewriteDirective(Composition.RequireDirective.CreateType(), names.RequireDirective);
-        ResolveDirective = RewriteDirective(Composition.ResolveDirective.CreateType(), names.ResolveDirective);
-        SourceDirective = RewriteDirective(Composition.SourceDirective.CreateType(), names.SourceDirective);
-        TransportDirective = RewriteDirective(Composition.TransportDirective.CreateType(), names.TransportDirective);
+        DeclareDirective = RewriteType(Composition.DeclareDirective.CreateType(), names.DeclareDirective);
+        FusionDirective = RewriteType(Composition.FusionDirective.CreateType(), names.FusionDirective);
+        IsDirective = RewriteType(Composition.IsDirective.CreateType(), names.IsDirective);
+        NodeDirective = RewriteType(Composition.NodeDirective.CreateType(), names.NodeDirective);
+        PrivateDirective = RewriteType(Composition.PrivateDirective.CreateType(), names.PrivateDirective);
+        RemoveDirective = RewriteType(Composition.RemoveDirective.CreateType(), names.RemoveDirective);
+        RenameDirective = RewriteType(Composition.RenameDirective.CreateType(), names.RenameDirective);
+        RequireDirective = RewriteType(Composition.RequireDirective.CreateType(), names.RequireDirective);
+        ResolveDirective = RewriteType(Composition.ResolveDirective.CreateType(), names.ResolveDirective);
+        ResolverDirective = RewriteType(Composition.ResolverDirective.CreateType(), names.ResolverDirective);
+        SourceDirective = RewriteType(Composition.SourceDirective.CreateType(), names.SourceDirective);
+        TransportDirective = RewriteType(Composition.TransportDirective.CreateType(), names.TransportDirective);
+        VariableDirective = RewriteType(Composition.VariableDirective.CreateType(), names.VariableDirective);
     }
 
     private string Prefix { get; }
 
-    public ScalarType Selection { get; }
-
-    public ScalarType SelectionSet { get; }
-
-    public ScalarType TypeName { get; }
-
-    public ScalarType Type { get; }
-
-    public ScalarType Uri { get; }
-
-    public InputObjectType ArgumentDefinition { get; }
-
-    public EnumType ResolverKind { get; }
-    
-    public DirectiveType Private { get; }
-
-    public DirectiveType Resolver { get; }
-    public DirectiveType Variable { get; }
-    
     public DirectiveType DeclareDirective { get; }
 
     public DirectiveType FusionDirective { get; }
@@ -114,6 +65,8 @@ public sealed class FusionTypes : IFusionTypeContext
     public DirectiveType IsDirective { get; }
 
     public DirectiveType NodeDirective { get; }
+
+    public DirectiveType PrivateDirective { get; }
 
     public DirectiveType RemoveDirective { get; }
 
@@ -123,32 +76,17 @@ public sealed class FusionTypes : IFusionTypeContext
 
     public DirectiveType ResolveDirective { get; }
 
+    public DirectiveType ResolverDirective { get; }
+
     public DirectiveType SourceDirective { get; }
 
     public DirectiveType TransportDirective { get; }
 
-    private static ScalarType RegisterScalarType(string name)
-    {
-        var scalarType = new ScalarType(name);
-        scalarType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        return scalarType;
-    }
+    public DirectiveType VariableDirective { get; }
 
-    private static InputObjectType RegisterArgumentDefType(
-        string name,
-        ScalarType typeName,
-        ScalarType type)
+    private static EnumType CreateResolverKindType()
     {
-        var argumentDef = new InputObjectType(name);
-        argumentDef.Fields.Add(new InputField(NameArg, new NonNullType(typeName)));
-        argumentDef.Fields.Add(new InputField(TypeArg, new NonNullType(type)));
-        argumentDef.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        return argumentDef;
-    }
-
-    private static EnumType RegisterResolverKindType(string name)
-    {
-        var resolverKind = new EnumType(name);
+        var resolverKind = new EnumType(FusionTypeBaseNames.ResolverKind);
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Fetch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscribe));
@@ -156,116 +94,38 @@ public sealed class FusionTypes : IFusionTypeContext
         return resolverKind;
     }
 
-    public Directive CreateVariableDirective(
-        string subgraphName,
-        string variableName,
-        FieldNode select)
-        => new Directive(
-            Variable,
-            new Argument(SubgraphArg, subgraphName),
-            new Argument(NameArg, variableName),
-            new Argument(SelectArg, select.ToString(false)));
-
-    public Directive CreateVariableDirective(
-        string subgraphName,
-        string variableName,
-        string argumentName)
-        => new Directive(
-            Variable,
-            new Argument(SubgraphArg, subgraphName),
-            new Argument(NameArg, variableName),
-            new Argument(ArgumentArg, argumentName));
-
-    private static DirectiveType RegisterVariableDirectiveType(
-        string name,
-        ScalarType typeName,
-        ScalarType selection)
+    private void CreateSpecScalars()
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Arguments.Add(new InputField(NameArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(SelectArg, selection));
-        directiveType.Arguments.Add(new InputField(ArgumentArg, typeName));
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Locations |= DirectiveLocation.Object;
-        directiveType.Locations |= DirectiveLocation.FieldDefinition;
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        return directiveType;
-    }
-
-    public Directive CreatePrivateDirective()
-        => new Directive(Private);
-
-    private static DirectiveType RegisterPrivateDirectiveType(string name)
-    {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations |= DirectiveLocation.FieldDefinition;
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        return directiveType;
-    }
-
-    public Directive CreateResolverDirective(
-        string subgraphName,
-        SelectionSetNode select,
-        Dictionary<string, ITypeNode>? arguments = null,
-        EntityResolverKind kind = EntityResolverKind.Single)
-    {
-        var directiveArgs = new List<Argument>
+        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Boolean, out var booleanType))
         {
-            new(SubgraphArg, subgraphName), new(SelectArg, select.ToString(false))
-        };
-
-        if (arguments is { Count: > 0 })
-        {
-            var argumentDefs = new List<IValueNode>();
-
-            foreach (var argumentDef in arguments)
-            {
-                argumentDefs.Add(
-                    new ObjectValueNode(
-                        new ObjectFieldNode(
-                            NameArg,
-                            argumentDef.Key),
-                        new ObjectFieldNode(
-                            TypeArg,
-                            argumentDef.Value.ToString(false))));
-            }
-
-            directiveArgs.Add(new Argument(ArgumentsArg, new ListValueNode(argumentDefs)));
+            booleanType = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true };
+            _fusionGraph.Types.Add(booleanType);
         }
+        _types.Add(booleanType.Name, booleanType);
 
-        if (kind != EntityResolverKind.Single)
+        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Int, out var intType))
         {
-            var kindValue = kind switch
-            {
-                EntityResolverKind.Batch => FusionEnumValueNames.Batch,
-                EntityResolverKind.Subscribe => FusionEnumValueNames.Subscribe,
-                _ => throw new NotSupportedException()
-            };
-
-            directiveArgs.Add(new Argument(KindArg, kindValue));
+            intType = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true };
+            _fusionGraph.Types.Add(intType);
         }
-
-        return new Directive(Resolver, directiveArgs);
+        _types.Add(intType.Name, intType);
+        
+        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.String, out var stringType))
+        {
+            stringType = new ScalarType(SpecScalarTypes.String) { IsSpecScalar = true };
+            _fusionGraph.Types.Add(stringType);
+        }
+        _types.Add(stringType.Name, stringType);
     }
-
-    private static DirectiveType RegisterResolverDirectiveType(
-        string name,
-        ScalarType typeName,
-        InputObjectType argumentDef,
-        ScalarType selectionSet,
-        EnumType resolverKind)
+    
+    private static ScalarType CreateScalarType(string name)
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations |= DirectiveLocation.Object;
-        directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selectionSet)));
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(ArgumentsArg, new ListType(new NonNullType(argumentDef))));
-        directiveType.Arguments.Add(new InputField(KindArg, resolverKind));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        return directiveType;
+        var scalarType = new ScalarType(name);
+        scalarType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        return scalarType;
     }
 
-    private T RewriteDirective<T>(T member, string name) where T : ITypeSystemMember 
+    private T RewriteType<T>(T member, string name) where T : ITypeSystemMember 
     {
         switch (member)
         {
@@ -277,6 +137,16 @@ public sealed class FusionTypes : IFusionTypeContext
                     argument.Type = argument.Type.ReplaceNameType(n => _types[n]);
                 }
 
+                return member;
+            
+            case EnumType enumType:
+                _types.Add(enumType.Name, enumType);
+                enumType.Name = name;
+                return member;
+            
+            case ScalarType scalarType:
+                _types.Add(scalarType.Name, scalarType);
+                scalarType.Name = name;
                 return member;
             
             default:

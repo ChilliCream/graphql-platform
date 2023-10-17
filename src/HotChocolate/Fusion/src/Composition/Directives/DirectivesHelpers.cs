@@ -15,10 +15,10 @@ internal static class DirectivesHelpers
         }
 
         throw new ArgumentException(
-            CompositionResources.DirectiveHelpers_ExpectBooleanValue_Message,
+            CompositionResources.DirectiveHelpers_ExpectBooleanLiteral_Message,
             nameof(valueNode));
     }
-    
+
     public static StringValueNode ExpectStringLiteral(this IValueNode valueNode)
     {
         ArgumentNullException.ThrowIfNull(valueNode);
@@ -32,7 +32,7 @@ internal static class DirectivesHelpers
             CompositionResources.DirectiveHelpers_ExpectStringLiteral_Message,
             nameof(valueNode));
     }
-    
+
     public static StringValueNode? ExpectStringOrNullLiteral(this IValueNode valueNode)
     {
         ArgumentNullException.ThrowIfNull(valueNode);
@@ -51,11 +51,25 @@ internal static class DirectivesHelpers
             CompositionResources.DirectiveHelpers_ExpectStringLiteral_Message,
             nameof(valueNode));
     }
-    
+
     public static FieldNode ExpectFieldSelection(this IValueNode valueNode)
     {
         ArgumentNullException.ThrowIfNull(valueNode);
         var value = valueNode.ExpectStringLiteral();
         return Utf8GraphQLParser.Syntax.ParseField(value.AsSpan());
+    }
+
+    public static SelectionSetNode ExpectSelectionSet(this IValueNode valueNode)
+    {
+        ArgumentNullException.ThrowIfNull(valueNode);
+        var value = valueNode.ExpectStringLiteral();
+        return Utf8GraphQLParser.Syntax.ParseSelectionSet(value.AsSpan());
+    }
+    
+    public static OperationDefinitionNode ExpectOperationDefinition(this IValueNode valueNode)
+    {
+        ArgumentNullException.ThrowIfNull(valueNode);
+        var value = valueNode.ExpectStringLiteral();
+        return Utf8GraphQLParser.Syntax.ParseOperationDefinition(value.AsSpan());
     }
 }

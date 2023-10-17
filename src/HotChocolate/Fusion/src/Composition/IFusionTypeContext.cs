@@ -12,6 +12,8 @@ public interface IFusionTypeContext
     
     DirectiveType NodeDirective { get; }
     
+    DirectiveType PrivateDirective { get; }
+    
     DirectiveType RemoveDirective { get; }
 
     DirectiveType RenameDirective { get; }
@@ -20,7 +22,11 @@ public interface IFusionTypeContext
     
     DirectiveType ResolveDirective { get; }
     
+    DirectiveType ResolverDirective { get; }
+    
     DirectiveType SourceDirective { get; }
 
     DirectiveType TransportDirective { get; }
+
+    DirectiveType VariableDirective { get; }
 }

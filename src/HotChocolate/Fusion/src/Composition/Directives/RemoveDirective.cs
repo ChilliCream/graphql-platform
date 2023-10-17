@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
 /// Represents the runtime value of
-/// `directive @remove(coordinate: _SchemaCoordinate) ON SCHEMA`.
+/// `directive @remove(coordinate: _SchemaCoordinate) repeatable ON SCHEMA`.
 /// </summary>
 /// <param name="coordinate">
 /// A reference to the type system member that shall be removed.

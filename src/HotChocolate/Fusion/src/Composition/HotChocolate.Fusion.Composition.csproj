@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
   </ItemGroup>
 
   <ItemGroup>

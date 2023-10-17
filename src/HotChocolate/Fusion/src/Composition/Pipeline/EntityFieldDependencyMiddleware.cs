@@ -1,3 +1,4 @@
+/*
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
@@ -154,3 +155,4 @@ static file class MergeEntitiesMiddlewareExtensions
             arguments,
             kind);
 }
+*/

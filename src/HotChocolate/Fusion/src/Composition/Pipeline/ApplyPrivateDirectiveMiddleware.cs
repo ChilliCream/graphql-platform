@@ -9,7 +9,7 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
 {
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
-        var rewriterContext = new PrivateContext(context.FusionTypes.Private.Name);
+        var rewriterContext = new PrivateContext(context.FusionTypes.PrivateDirective.Name);
         var collectPrivateFields = new CollectPrivateFieldsVisitor();
 
         foreach (var subgraph in context.Subgraphs)
@@ -38,7 +38,7 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
         List<SchemaCoordinate> coordinates)
     {
         var source = types.SourceDirective.Name;
-        var resolver = types.Resolver.Name;
+        var resolver = types.ResolverDirective.Name;
 
         foreach (var group in coordinates.GroupBy(t => t.Name))
         {

@@ -14,6 +14,12 @@ public sealed class OutputField : IField, INamedTypeSystemMember<OutputField>
         _name = name.EnsureGraphQLName();
         Type = NotSetType.Default;
     }
+    
+    public OutputField(string name, IType type)
+    {
+        _name = name.EnsureGraphQLName();
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+    }
 
     public string Name
     {

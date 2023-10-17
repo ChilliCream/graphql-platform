@@ -11,35 +11,60 @@ namespace HotChocolate.Fusion.Composition;
 /// <summary>
 /// Represents a variable declaration that can be used to declare state for the @resolve directive.
 /// </summary>
-/// <param name="name">
-/// The name of the variable that shall be declared.
-/// </param>
-/// <param name="select">
-/// The field selection syntax that refers to a field
-/// relative to the current type and specifies it as state.
-/// </param>
-/// <param name="from">
-/// The subgraph the declaration refers to.
-/// If set to <c>null</c> it will match state from all applicable subgraphs.
-/// </param>
-internal sealed class DeclareDirective(string name, FieldNode select, string? from = null)
+internal sealed class DeclareDirective
 {
+    public DeclareDirective(string name, string selectSyntax, string? from = null)
+    {
+        name.EnsureGraphQLName();
+        ArgumentException.ThrowIfNullOrEmpty(selectSyntax);
+        from?.EnsureGraphQLName();
+
+        Name = name;
+        Select = Utf8GraphQLParser.Syntax.ParseField(selectSyntax);
+        From = from;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DeclareDirective"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the variable that shall be declared.
+    /// </param>
+    /// <param name="select">
+    /// The field selection syntax that refers to a field
+    /// relative to the current type and specifies it as state.
+    /// </param>
+    /// <param name="from">
+    /// The subgraph the declaration refers to.
+    /// If set to <c>null</c> it will match state from all applicable subgraphs.
+    /// </param>
+    public DeclareDirective(string name, FieldNode select, string? from = null)
+    {
+        name.EnsureGraphQLName();
+        ArgumentNullException.ThrowIfNull(select);
+        from?.EnsureGraphQLName();
+        
+        Name = name;
+        Select = select;
+        From = from;
+    }
+
     /// <summary>
     /// Gets the name of the variable that shall be declared.
     /// </summary>
-    public string Name { get; } = name;
+    public string Name { get; }
 
     /// <summary>
     /// Gets the field selection syntax that refers to a field relative
     /// to the current type and specifies it as state.
     /// </summary>
-    public FieldNode Select { get; } = select;
+    public FieldNode Select { get; }
 
     /// <summary>
     /// Gets the subgraph the declaration refers to.
     /// If set to <c>null</c> it will match state from all applicable subgraphs.
     /// </summary>
-    public string? From { get; } = from;
+    public string? From { get; }
 
     /// <summary>
     /// Creates a <see cref="Directive"/> from this <see cref="DeclareDirective"/>.
@@ -59,7 +84,7 @@ internal sealed class DeclareDirective(string name, FieldNode select, string? fr
 
         if (From is not null)
         {
-            args[3] = new Argument(FromArg, new StringValueNode(From));
+            args[2] = new Argument(FromArg, new StringValueNode(From));
         }
 
         return new Directive(context.DeclareDirective, args);
