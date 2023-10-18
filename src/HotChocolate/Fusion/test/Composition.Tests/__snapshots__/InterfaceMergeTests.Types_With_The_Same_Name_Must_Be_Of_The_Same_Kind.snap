@@ -1,0 +1,7 @@
+---------------
+Unable to merge the field `Interface1.field1` because the type `Enum1!` does not match the type `Enum1!`.
+---------------
+
+---------------
+Unable to merge the distributed type `Enum1`.
+---------------

@@ -219,4 +219,94 @@ public class ObjectMergeTests(ITestOutputHelper output)
               @source(subgraph: "A")
           }
           """);
+    
+    [Fact]
+    public async Task Merge_Implemented_Interfaces_When_The_Same()
+      => await Succeed(
+          """
+          interface Node {
+            id: ID!
+          }
+
+          type User implements Node {
+            id: ID!
+            field1(a: String!): String
+          }
+          """,
+          """
+          interface Node {
+            id: ID!
+          }
+          
+          type User implements Node {
+            field1(a: String): String
+          }
+          """)
+        .MatchInlineSnapshotAsync(
+          """
+          type User implements Node
+            @source(subgraph: "A")
+            @source(subgraph: "B") {
+            field1(a: String!): String
+              @source(subgraph: "A")
+              @source(subgraph: "B")
+            id: ID!
+              @source(subgraph: "A")
+          }
+          
+          interface Node
+            @source(subgraph: "A")
+            @source(subgraph: "B") {
+            id: ID!
+              @source(subgraph: "A")
+              @source(subgraph: "B")
+          }
+          """);
+    
+    [Fact]
+    public async Task Merge_Implemented_Interfaces_When_Different()
+      => await Succeed(
+          """
+          interface Node1 {
+            id: ID!
+          }
+
+          type User implements Node1 {
+            id: ID!
+            field1(a: String!): String
+          }
+          """,
+          """
+          interface Node2 {
+            id: ID!
+          }
+
+          type User implements Node2 {
+            field1(a: String): String
+          }
+          """)
+        .MatchInlineSnapshotAsync(
+          """
+          type User implements Node1 & Node2
+            @source(subgraph: "A")
+            @source(subgraph: "B") {
+            field1(a: String!): String
+              @source(subgraph: "A")
+              @source(subgraph: "B")
+            id: ID!
+              @source(subgraph: "A")
+          }
+          
+          interface Node1
+            @source(subgraph: "A") {
+            id: ID!
+              @source(subgraph: "A")
+          }
+          
+          interface Node2
+            @source(subgraph: "B") {
+            id: ID!
+              @source(subgraph: "B")
+          }
+          """);
 }
