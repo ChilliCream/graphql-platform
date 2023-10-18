@@ -41,8 +41,11 @@ public sealed class FusionGraphComposer2
             },
             new ITypeMergeHandler[]
             {
-                new InterfaceTypeMergeHandler(), new UnionTypeMergeHandler(),
-                new InputObjectTypeMergeHandler(), new EnumTypeMergeHandler(),
+                new ObjectTypeMergeHandler(),
+                new InterfaceTypeMergeHandler(), 
+                new UnionTypeMergeHandler(),
+                new InputObjectTypeMergeHandler(), 
+                new EnumTypeMergeHandler(),
                 new ScalarTypeMergeHandler()
             },
             fusionTypePrefix,
@@ -64,6 +67,7 @@ public sealed class FusionGraphComposer2
                 .Use<RegisterClientsMiddleware>()
                 .Use<ApplyRenameDirectiveMiddleware>()
                 .Use<ApplyRemoveDirectiveMiddleware>()
+                .Use(() => new MergeTypeMiddleware(mergeHandlers))
                 
                 .Build();
         _logFactory = logFactory;

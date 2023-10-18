@@ -1,3 +1,5 @@
+using HotChocolate.Skimmed;
+
 namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
@@ -11,4 +13,7 @@ namespace HotChocolate.Fusion.Composition;
 /// </param>
 internal sealed record TypeGroup(
     string Name,
-    IReadOnlyList<TypePart> Parts);
+    IReadOnlyList<TypePart> Parts)
+{
+    public TypeKind Kind => Parts[0].Type.Kind;
+}

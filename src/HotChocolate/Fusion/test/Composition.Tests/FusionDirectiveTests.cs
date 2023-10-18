@@ -37,7 +37,7 @@ public class FusionDirectiveTests
                 {
                     Directives =
                     {
-                        new FusionDirective("prefix", true, "2023-12").ToDirective(typeContext)
+                        new FusionDirective("prefix", true, "2024-12").ToDirective(typeContext)
                     }
                 }
             }
@@ -50,7 +50,7 @@ public class FusionDirectiveTests
             """
             type Foo {
               bar: String
-                @fusion(version: "2023-12", prefix: "prefix", prefixSelf: true)
+                @fusion(version: "2024-12", prefix: "prefix", prefixSelf: true)
             }
             """);
     }

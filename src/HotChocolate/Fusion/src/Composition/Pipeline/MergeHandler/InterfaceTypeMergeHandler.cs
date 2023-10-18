@@ -1,5 +1,6 @@
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Composition.Pipeline.MergeHelper;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -10,19 +11,19 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
 {
     /// <inheritdoc />
-    public ValueTask<MergeStatus> MergeAsync(
-        CompositionContext context,
-        TypeGroup typeGroup,
-        CancellationToken cancellationToken)
+    public TypeKind Kind => TypeKind.Interface;
+    
+    /// <inheritdoc />
+    public MergeStatus Merge(CompositionContext context, TypeGroup typeGroup)
     {
         // If the types in the group are not interface types, skip merging them.
         if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.Interface))
         {
-            return new(MergeStatus.Skipped);
+            return MergeStatus.Skipped;
         }
 
         // Get the target interface type from the fusion graph.
-        var target = (InterfaceType)context.FusionGraph.Types[typeGroup.Name];
+        var target = GetOrCreateType<InterfaceType>(context.FusionGraph, typeGroup.Name);
 
         // Merge the parts of the interface type group into the target interface type.
         foreach (var part in typeGroup.Parts)
@@ -31,7 +32,7 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
             MergeType(context, source, part.Schema, target);
         }
 
-        return new(MergeStatus.Completed);
+        return MergeStatus.Completed;
     }
 
     private static void MergeType(
@@ -51,7 +52,7 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
         {
             if (!target.Implements.Any(t => t.Name.EqualsOrdinal(interfaceType.Name)))
             {
-                target.Implements.Add((InterfaceType)context.FusionGraph.Types[interfaceType.Name]);
+                target.Implements.Add(GetOrCreateType<InterfaceType>(context.FusionGraph, interfaceType.Name));
             }
         }
 

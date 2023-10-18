@@ -74,10 +74,10 @@ public static class TypeExtensions
             _ => throw new NotSupportedException()
         };
 
-    public static IType ReplaceNameType(this IType type, Func<string, INamedType> newNamedType)
+    public static IType ReplaceNameType(this IType type, Func<INamedType, INamedType> newNamedType)
         => type switch
         {
-            INamedType namedType => newNamedType(namedType.Name),
+            INamedType namedType => newNamedType(namedType),
             ListType listType => new ListType(ReplaceNameType(listType.ElementType, newNamedType)),
             NonNullType nonNullType => new NonNullType(ReplaceNameType(nonNullType.NullableType, newNamedType)),
             _ => throw new NotSupportedException()

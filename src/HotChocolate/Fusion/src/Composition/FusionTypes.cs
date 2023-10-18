@@ -134,7 +134,7 @@ public sealed class FusionTypes : IFusionTypeContext
 
                 foreach (var argument in directiveType.Arguments)
                 {
-                    argument.Type = argument.Type.ReplaceNameType(n => _types[n]);
+                    argument.Type = argument.Type.ReplaceNameType(n => _types[n.Name]);
                 }
 
                 return member;

@@ -1,4 +1,7 @@
 using HotChocolate.Skimmed;
+using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Composition.LogEntryHelper;
+using static HotChocolate.Fusion.Composition.Pipeline.MergeHelper;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -9,19 +12,20 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 internal sealed class ObjectTypeMergeHandler : ITypeMergeHandler
 {
     /// <inheritdoc />
-    public ValueTask<MergeStatus> MergeAsync(
-        CompositionContext context,
-        TypeGroup typeGroup,
-        CancellationToken cancellationToken)
+    public TypeKind Kind => TypeKind.Object;
+    
+    /// <inheritdoc />
+    public MergeStatus Merge(CompositionContext context, TypeGroup typeGroup)
     {
         // If any type in the group is not an input object type, skip merging
         if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.Object))
         {
-            return new(MergeStatus.Skipped);
+            context.Log.Write(DifferentTypeKindsCannotBeMerged(typeGroup));
+            return MergeStatus.Skipped;
         }
 
         // Get the target input object type from the fusion graph
-        var target = (ObjectType)context.FusionGraph.Types[typeGroup.Name];
+        var target = GetOrCreateType<ObjectType>(context.FusionGraph, typeGroup.Name);
 
         // Merge each part of the input object type into the target input object type
         foreach (var part in typeGroup.Parts)
@@ -30,7 +34,7 @@ internal sealed class ObjectTypeMergeHandler : ITypeMergeHandler
             MergeType(context, source, part.Schema, target, context.FusionGraph);
         }
 
-        return new(MergeStatus.Completed);
+        return MergeStatus.Completed;
     }
 
     private static void MergeType(
@@ -46,6 +50,15 @@ internal sealed class ObjectTypeMergeHandler : ITypeMergeHandler
         // If the target input object type doesn't have a description, use the source input
         // object type's description
         target.MergeDescriptionWith(source);
+        
+        // Add all of the interfaces that the source type implements to the target type.
+        foreach (var interfaceType in source.Implements)
+        {
+            if (!target.Implements.Any(t => t.Name.EqualsOrdinal(interfaceType.Name)))
+            {
+                target.Implements.Add(GetOrCreateType<InterfaceType>(context.FusionGraph, interfaceType.Name));
+            }
+        }
 
         // Merge each field of the input object type
         foreach (var sourceField in source.Fields)

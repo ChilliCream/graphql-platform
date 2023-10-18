@@ -12,6 +12,12 @@ public static class SnapshotExtensions
         string snapshot,
         ISnapshotValueFormatter? formatter = null)
         => Snapshot.Create().Add(value, formatter: formatter).MatchInline(snapshot);
+    
+    public static async Task MatchInlineSnapshotAsync<T>(
+        this Task<T> value,
+        string snapshot,
+        ISnapshotValueFormatter? formatter = null)
+        => Snapshot.Create().Add(await value, formatter: formatter).MatchInline(snapshot);
 
     public static void MatchSnapshot(this Snapshot value)
         => value.Match();

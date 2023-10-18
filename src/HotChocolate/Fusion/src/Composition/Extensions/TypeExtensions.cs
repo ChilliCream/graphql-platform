@@ -21,12 +21,10 @@ internal static class TypeExtensions
         T target)
         where T : ITypeSystemMember, IHasContextData, IHasDirectives
     {
-        if (source.TryGetOriginalName(out var originalName))
-        {
-            target.Directives.Add(
-                new SourceDirective(subgraphName, originalName)
-                    .ToDirective(context.FusionTypes));
-        }
+        source.TryGetOriginalName(out var originalName);
+        target.Directives.Add(
+            new SourceDirective(subgraphName, originalName)
+                .ToDirective(context.FusionTypes));
     }
 
     public static void ApplySource<T>(

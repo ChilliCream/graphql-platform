@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Composition.Pipeline;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.MergeExtensions;
 
@@ -16,7 +17,7 @@ internal static class InputObjectMergeExtensions
         InputField source,
         Schema targetSchema)
     {
-        var targetFieldType = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
+        var targetFieldType = MergeHelper.GetOrCreateType(context.FusionGraph, source.Type);
         var target = new InputField(source.Name, targetFieldType);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);

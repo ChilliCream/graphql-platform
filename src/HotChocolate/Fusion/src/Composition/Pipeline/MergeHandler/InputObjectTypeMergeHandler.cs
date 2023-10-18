@@ -9,15 +9,15 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
 {
     /// <inheritdoc />
-    public ValueTask<MergeStatus> MergeAsync(
-        CompositionContext context,
-        TypeGroup typeGroup,
-        CancellationToken cancellationToken)
+    public TypeKind Kind => TypeKind.InputObject;
+    
+    /// <inheritdoc />
+    public MergeStatus Merge(CompositionContext context, TypeGroup typeGroup)
     {
         // If any type in the group is not an input object type, skip merging
         if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.InputObject))
         {
-            return new(MergeStatus.Skipped);
+            return MergeStatus.Skipped;
         }
 
         // Get the target input object type from the fusion graph
@@ -30,7 +30,7 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
             MergeType(context, source, part.Schema, target, context.FusionGraph);
         }
 
-        return new(MergeStatus.Completed);
+        return MergeStatus.Completed;
     }
 
     private static void MergeType(

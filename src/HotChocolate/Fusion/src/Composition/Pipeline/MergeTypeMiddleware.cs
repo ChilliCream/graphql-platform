@@ -1,5 +1,3 @@
-using HotChocolate.Skimmed;
-
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
 internal sealed class MergeTypeMiddleware : IMergeMiddleware
@@ -38,17 +36,14 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             var typeGroup = new TypeGroup(types.Key, types.Value);
             var status = MergeStatus.Skipped;
 
-            // Entity type groups are handled in a separate middleware and we
-            // will just skip those here.
-            if (types.Value.All(t => t.Type.Kind is TypeKind.Object))
-            {
-                continue;
-            }
-
             foreach (var handler in _mergeHandlers)
             {
-                status = await handler.MergeAsync(context, typeGroup, context.Abort)
-                    .ConfigureAwait(false);
+                if (handler.Kind != typeGroup.Kind)
+                {
+                    continue;
+                }
+                
+                status = handler.Merge(context, typeGroup);
 
                 if (status is MergeStatus.Completed)
                 {
