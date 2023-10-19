@@ -1747,7 +1747,11 @@ namespace Foo.Bar.State
             var persons = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                persons.Add(Update_IGetPeople_People_NodesEntity(session, child, entityIds));
+                global::StrawberryShake.EntityId? parsedValue = Update_IGetPeople_People_NodesEntity(session, child, entityIds);
+                if (parsedValue is not null)
+                {
+                    persons.Add(parsedValue);
+                }
             }
 
             return persons;
@@ -1760,7 +1764,12 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
@@ -1815,7 +1824,11 @@ namespace Foo.Bar.State
             var messages = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                messages.Add(Update_IGetPeople_People_Nodes_Messages_NodesEntity(session, child, entityIds));
+                global::StrawberryShake.EntityId? parsedValue = Update_IGetPeople_People_Nodes_Messages_NodesEntity(session, child, entityIds);
+                if (parsedValue is not null)
+                {
+                    messages.Add(parsedValue);
+                }
             }
 
             return messages;
@@ -1828,7 +1841,12 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Message", global::System.StringComparison.Ordinal))
             {
@@ -1854,7 +1872,12 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
@@ -1927,7 +1950,12 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Message", global::System.StringComparison.Ordinal))
             {
@@ -1953,7 +1981,12 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
@@ -2242,6 +2275,19 @@ namespace Foo.Bar.State
                 "Person" => ParsePersonEntityId(obj, __typename),
                 "Message" => ParseMessageEntityId(obj, __typename),
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)

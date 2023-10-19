@@ -566,7 +566,11 @@ namespace Foo.Bar.State
             var searchResults = new global::System.Collections.Generic.List<global::Foo.Bar.State.ISearchResultData?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                searchResults.Add(Deserialize_ISearchResultData(child));
+                global::Foo.Bar.State.ISearchResultData? parsedValue = Deserialize_ISearchResultData(child);
+                if (parsedValue is not null)
+                {
+                    searchResults.Add(parsedValue);
+                }
             }
 
             return searchResults;

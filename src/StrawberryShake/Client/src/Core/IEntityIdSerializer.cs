@@ -20,6 +20,18 @@ public interface IEntityIdSerializer
     EntityId Parse(JsonElement obj);
 
     /// <summary>
+    /// Try parse an entity ID from a JSON object.
+    /// </summary>
+    /// <param name="obj">
+    /// The JSON object.
+    /// </param>
+    /// <param name="entityId">The parsed entity id</param>
+    /// <returns>
+    /// Returns true if entity id could be parsed otherwise false.
+    /// </returns>
+    bool TryParse(JsonElement obj, out EntityId entityId);
+
+    /// <summary>
     /// Formats the <paramref name="entityId"/> to a JSON object.
     /// </summary>
     /// <param name="entityId">

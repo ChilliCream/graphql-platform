@@ -1008,7 +1008,11 @@ namespace Foo.Bar.State
             var bazs = new global::System.Collections.Generic.List<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                bazs.Add(Deserialize_IGetFoo_Foo_NestedMatrixArray(child));
+                global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>? parsedValue = Deserialize_IGetFoo_Foo_NestedMatrixArray(child);
+                if (parsedValue is not null)
+                {
+                    bazs.Add(parsedValue);
+                }
             }
 
             return bazs;
@@ -1024,7 +1028,11 @@ namespace Foo.Bar.State
             var bazs = new global::System.Collections.Generic.List<global::Foo.Bar.State.BazData?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                bazs.Add(Deserialize_IGetFoo_Foo_NestedMatrix(child));
+                global::Foo.Bar.State.BazData? parsedValue = Deserialize_IGetFoo_Foo_NestedMatrix(child);
+                if (parsedValue is not null)
+                {
+                    bazs.Add(parsedValue);
+                }
             }
 
             return bazs;
@@ -1092,6 +1100,19 @@ namespace Foo.Bar.State
             return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)

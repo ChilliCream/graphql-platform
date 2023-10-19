@@ -8,6 +8,7 @@ public class ParameterBuilder : ICodeBuilder
     private string? _name;
     private string? _default;
     private bool _this;
+    private bool _isOut;
 
     public static ParameterBuilder New() => new();
 
@@ -38,6 +39,12 @@ public class ParameterBuilder : ICodeBuilder
         return this;
     }
 
+    public ParameterBuilder SetIsOut(bool isOut = true)
+    {
+        _isOut = isOut;
+        return this;
+    }
+
     public ParameterBuilder SetDefault(string value = "default", bool condition = true)
     {
         if (condition)
@@ -62,6 +69,11 @@ public class ParameterBuilder : ICodeBuilder
         if (_this)
         {
             writer.Write("this ");
+        }
+
+        if (_isOut)
+        {
+            writer.Write("out ");
         }
 
         _type.Build(writer);

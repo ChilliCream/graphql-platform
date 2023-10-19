@@ -955,7 +955,11 @@ namespace Foo.Bar.State
             var characters = new global::System.Collections.Generic.List<global::Foo.Bar.State.ICharacterData?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                characters.Add(Deserialize_ICharacterData(child));
+                global::Foo.Bar.State.ICharacterData? parsedValue = Deserialize_ICharacterData(child);
+                if (parsedValue is not null)
+                {
+                    characters.Add(parsedValue);
+                }
             }
 
             return characters;

@@ -485,7 +485,12 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            global::System.Boolean parseSuccess = _idSerializer.TryParse(obj.Value, out global::StrawberryShake.EntityId entityId);
+            if (!parseSuccess)
+            {
+                return default;
+            }
+
             entityIds.Add(entityId);
             if (entityId.Name.Equals("people", global::System.StringComparison.Ordinal))
             {
@@ -549,6 +554,19 @@ namespace Foo.Bar.State
             {
                 "people" => ParsepeopleEntityId(obj, __typename),
                 _ => throw new global::System.NotSupportedException()};
+        }
+
+        public global::System.Boolean TryParse(global::System.Text.Json.JsonElement obj, out global::StrawberryShake.EntityId entityId)
+        {
+            try
+            {
+                entityId = Parse(obj);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
