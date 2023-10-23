@@ -6,5 +6,7 @@ type Query {
   scalar: UnsignedLong
 }
 
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
 "The UnsignedLong scalar type represents a unsigned 64-bit numeric non-fractional value greater than or equal to 0."
 scalar UnsignedLong

@@ -34,6 +34,9 @@ internal sealed class ComposeCommand : Command
         fusionPackageSettingsFile.AddAlias("--package-settings");
         fusionPackageSettingsFile.AddAlias("--settings");
 
+        var removeSubgraphs = new Option<List<string>?>("--remove");
+        removeSubgraphs.AddAlias("-r");
+
         var workingDirectory = new WorkingDirectoryOption();
 
         var enableNodes = new Option<bool?>("--enable-nodes");
@@ -43,12 +46,14 @@ internal sealed class ComposeCommand : Command
         AddOption(subgraphPackageFile);
         AddOption(workingDirectory);
         AddOption(enableNodes);
+        AddOption(removeSubgraphs);
 
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<IConsole>(),
             fusionPackageFile,
             subgraphPackageFile,
+            removeSubgraphs,
             fusionPackageSettingsFile,
             workingDirectory,
             enableNodes,
@@ -61,6 +66,7 @@ internal sealed class ComposeCommand : Command
         IConsole console,
         FileInfo packageFile,
         List<string>? subgraphPackageFiles,
+        List<string>? removeSubgraphs,
         FileInfo? settingsFile,
         DirectoryInfo workingDirectory,
         bool? enableNodes,
@@ -72,7 +78,7 @@ internal sealed class ComposeCommand : Command
             packageFile.Directory.Create();
         }
 
-        // Append file extension if not exists. 
+        // Append file extension if not exists.
         if (!packageFile.Extension.EqualsOrdinal(Extensions.FusionPackage) &&
             !packageFile.Extension.EqualsOrdinal(Extensions.ZipPackage))
         {
@@ -94,8 +100,21 @@ internal sealed class ComposeCommand : Command
 
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
+        if(removeSubgraphs is not null)
+        {
+            foreach (var subgraph in removeSubgraphs)
+            {
+                await package.RemoveSubgraphConfigurationAsync(subgraph, cancellationToken);
+            }
+        }
+
         var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
-        await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
+
+        // resolve subraph packages will scan the directory for fsp's. In case of remove we don't want to do that.
+        if (removeSubgraphs is not { Count: > 0 } || subgraphPackageFiles is { Count: > 0 })
+        {
+            await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
+        }
 
         using var settingsJson = settingsFile.Exists
             ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, cancellationToken))
@@ -228,7 +247,7 @@ internal sealed class ComposeCommand : Command
                                 extensions = new[] { await File.ReadAllTextAsync(extensionFile, cancellationToken) };
                             }
 
-                            temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients));
+                            temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients, conf.Extensions));
                         }
                     }
                     else

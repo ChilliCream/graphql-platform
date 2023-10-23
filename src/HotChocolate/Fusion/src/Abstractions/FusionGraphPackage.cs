@@ -27,7 +27,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     private static readonly SyntaxSerializerOptions _syntaxSerializerOptions =
         new()
         {
-            Indented = true, 
+            Indented = true,
             MaxDirectivesPerLine = 0
         };
 
@@ -202,7 +202,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             return Task.FromResult(
                 JsonDocument.Parse(
                     """
-                    { 
+                    {
                       "fusionTypePrefix" : null,
                       "fusionTypeSelf": false
                     }
@@ -416,7 +416,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// <exception cref="FusionGraphPackageException">
     /// The Fusion graph package must be opened in read/write mode to update contents.
     /// </exception>
-    public Task SetSubgraphConfigurationAsync(
+    public async Task SetSubgraphConfigurationAsync(
         SubgraphConfiguration configuration,
         CancellationToken cancellationToken = default)
     {
@@ -430,9 +430,46 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             throw new FusionGraphPackageException(FusionGraphPackage_CannotWrite);
         }
 
-        if (_package.RelationshipExists(configuration.Name))
+        await RemoveSubgraphConfigurationAsync(configuration.Name, cancellationToken);
+
+        await WriteSubgraphConfigurationAsync(configuration, cancellationToken);
+    }
+
+    /// <summary>
+    /// Removes a subgraph configuration from the package.
+    /// </summary>
+    /// <param name="subgraphName">
+    /// The name of the subgraph configuration to remove.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task"/> representing the asynchronous operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="subgraphName"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="FusionGraphPackageException">
+    /// The Fusion graph package must be opened in read/write mode to update contents.
+    /// </exception>
+    public Task RemoveSubgraphConfigurationAsync(
+        string subgraphName,
+        CancellationToken cancellationToken = default)
+    {
+        if (subgraphName is null)
         {
-            var rootRel = _package.GetRelationship(configuration.Name);
+            throw new ArgumentNullException(nameof(subgraphName));
+        }
+
+        if (_package.FileOpenAccess != FileAccess.ReadWrite)
+        {
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotWrite);
+        }
+
+        if (_package.RelationshipExists(subgraphName))
+        {
+            var rootRel = _package.GetRelationship(subgraphName);
             var rootPart = _package.GetPart(rootRel.TargetUri);
 
             foreach (var relationship in rootPart.GetRelationships())
@@ -440,11 +477,13 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
                 _package.DeletePart(relationship.TargetUri);
             }
 
-            _package.DeleteRelationship(configuration.Name);
+            _package.DeleteRelationship(subgraphName);
             _package.DeletePart(rootPart.Uri);
         }
 
-        return WriteSubgraphConfigurationAsync(configuration, cancellationToken);
+        _package.Flush();
+
+        return Task.CompletedTask;
     }
 
     private static async Task<DocumentNode> ReadSchemaPartAsync(
@@ -523,7 +562,8 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             config.Name,
             schema.ToString(true),
             extensions.Select(t => t.ToString(_syntaxSerializerOptions)).ToArray(),
-            config.Clients);
+            config.Clients,
+            config.Extensions);
     }
 
     private async Task<SubgraphConfigJson> ReadSubgraphConfigurationJsonPartAsync(
@@ -578,7 +618,8 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     {
         var config = new SubgraphConfigJson(
             configuration.Name,
-            configuration.Clients);
+            configuration.Clients,
+            configuration.ConfigurationExtensions);
 
         var path = $"{configuration.Name}/{SubgraphConfigFileName}";
         var uri = PackUriHelper.CreatePartUri(new Uri(path, UriKind.Relative));

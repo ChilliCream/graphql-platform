@@ -24,5 +24,6 @@
   "EnableStream": false,
   "MaxAllowedNodeBatchSize": 50,
   "StripLeadingIFromInterface": false,
-  "EnableTrueNullability": false
+  "EnableTrueNullability": false,
+  "EnableTag": true
 }

@@ -34,3 +34,5 @@ union DoSomething2Error = CustomError | Custom2Error
 input DoSomething2Input {
   userId: Int
 }
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

@@ -1,0 +1,69 @@
+schema {
+  query: Query
+}
+
+type Query {
+  estimatesPrice(end_latitude: Float end_longitude: Float start_latitude: Float start_longitude: Float): [PriceEstimate]
+  estimatesTime(customer_uuid: String product_id: String start_latitude: Float start_longitude: Float): [Product]
+  history(limit: Int offset: Int): Activities
+  me: Profile
+  products(latitude: Float longitude: Float): [Product]
+}
+
+type Activities {
+  "Total number of items available."
+  count: Int
+  history: [Activity]
+  "Number of items to retrieve (100 max)."
+  limit: Int
+  "Position in pagination."
+  offset: Int
+}
+
+type Activity {
+  "Unique identifier for the activity"
+  uuid: String
+}
+
+type PriceEstimate {
+  "[ISO 4217](http:\/\/en.wikipedia.org\/wiki\/ISO_4217) currency code."
+  currencyCode: String
+  "Display name of product."
+  displayName: String
+  "Formatted string of estimate in local currency of the start location. Estimate could be a range, a single number (flat rate) or \"Metered\" for TAXI."
+  estimate: String
+  "Upper bound of the estimated price."
+  highEstimate: Float
+  "Lower bound of the estimated price."
+  lowEstimate: Float
+  "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles"
+  productId: String
+  "Expected surge multiplier. Surge is active if surge_multiplier is greater than 1. Price estimate already factors in the surge multiplier."
+  surgeMultiplier: Float
+}
+
+type Product {
+  "Capacity of product. For example, 4 people."
+  capacity: String
+  "Description of product."
+  description: String
+  "Display name of product."
+  displayName: String
+  "Image URL representing the product."
+  image: String
+  "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles."
+  productId: String
+}
+
+type Profile {
+  "Email address of the Uber user"
+  email: String
+  "First name of the Uber user."
+  firstName: String
+  "Last name of the Uber user."
+  lastName: String
+  "Image URL of the Uber user."
+  picture: String
+  "Promo code of the Uber user."
+  promoCode: String
+}

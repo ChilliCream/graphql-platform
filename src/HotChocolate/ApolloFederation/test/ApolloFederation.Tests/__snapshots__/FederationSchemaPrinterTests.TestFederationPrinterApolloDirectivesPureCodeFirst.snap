@@ -12,3 +12,5 @@ type User @key(fields: "id") {
   idCodeShort: String! @requires(fields: "idCode")
   address: Address! @provides(fields: "zipcode")
 }
+
+directive @tag(name: String!) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

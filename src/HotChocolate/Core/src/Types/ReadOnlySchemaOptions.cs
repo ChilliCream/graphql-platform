@@ -54,6 +54,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize;
         StripLeadingIFromInterface = options.StripLeadingIFromInterface;
         EnableTrueNullability = options.EnableTrueNullability;
+        EnableTag = options.EnableTag;
     }
 
     /// <inheritdoc />
@@ -132,4 +133,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public bool EnableTrueNullability { get; }
+
+    /// <inheritdoc />
+    public bool EnableTag { get; }
 }

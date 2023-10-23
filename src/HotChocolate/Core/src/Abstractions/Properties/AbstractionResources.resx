@@ -225,4 +225,7 @@
   <data name="AttributeExtensions_FormatFieldName_FieldNameEmpty" xml:space="preserve">
     <value>The fieldName cannot be null or empty.</value>
   </data>
+  <data name="MutationError_ErrorsEmpty" xml:space="preserve">
+    <value>There must be at least one error in the errors list.</value>
+  </data>
 </root>
