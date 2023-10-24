@@ -50,7 +50,7 @@ internal sealed class ExportCommand : Command
 
         var sdl = schema.Schema.Print();
 
-        if (output is { })
+        if (output is not null)
         {
             await File.WriteAllTextAsync(output.FullName, sdl, Encoding.UTF8, cancellationToken);
         }
