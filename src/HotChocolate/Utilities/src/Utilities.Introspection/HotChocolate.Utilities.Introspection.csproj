@@ -14,7 +14,7 @@
   <ItemGroup>
     <None Remove="Queries\introspection_phase_1.graphql" />
     <None Remove="Queries\introspection_phase_2.graphql" />
-    <EmbeddedResource Include="Queries\introspection_phase_1.graphql" />
+    <EmbeddedResource Include="Queries\inspect_directive_type.graphql" />
     <EmbeddedResource Include="Queries\introspection_phase_2.graphql" />
   </ItemGroup>
 

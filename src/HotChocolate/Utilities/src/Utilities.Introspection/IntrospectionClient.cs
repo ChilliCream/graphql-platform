@@ -164,7 +164,7 @@ public static class IntrospectionClient
     /// The cancellation token.
     /// </param>
     /// <returns>Returns an object that indicates what features are supported.</returns>
-    public static async Task<ISchemaFeatures> GetSchemaFeaturesAsync(
+    public static async Task<SchemaFeatures> GetSchemaFeaturesAsync(
         HttpClient client, 
         CancellationToken cancellationToken = default)
     {
@@ -187,7 +187,7 @@ public static class IntrospectionClient
     /// The cancellation token.
     /// </param>
     /// <returns>Returns an object that indicates what features are supported.</returns>
-    public static async Task<ISchemaFeatures> GetSchemaFeaturesAsync(
+    public static async Task<SchemaFeatures> GetSchemaFeaturesAsync(
         GraphQLHttpClient client,
         CancellationToken cancellationToken = default)
     {
@@ -204,7 +204,7 @@ public static class IntrospectionClient
 
         EnsureNoGraphQLErrors(result);
 
-        return SchemaFeatures.FromIntrospectionResult(result);
+        return LegacySchemaFeatures.FromIntrospectionResult(result);
     }
 
     private static void EnsureNoGraphQLErrors(IntrospectionResult result)

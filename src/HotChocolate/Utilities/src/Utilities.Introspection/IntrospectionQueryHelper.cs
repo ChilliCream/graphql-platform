@@ -1,34 +1,57 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Transport;
+using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Utilities.Introspection;
 
 internal static class IntrospectionQueryHelper
 {
     private const string _resourceNamespace = "HotChocolate.Utilities.Introspection.Queries";
-    private const string _featureQueryFile = "introspection_phase_1.graphql";
+    private const string _argumentDeprecationQueryFile = "inspect_argument_deprecation.graphql";
+    private const string _inspectDirectiveType = "inspect_directive_type.graphql";
+    private const string _inspectDirectives = "inspect_directives.graphql";
+    private const string _inspectSchema = "inspect_schema.graphql";
     private const string _introspectionQueryFile = "introspection_phase_2.graphql";
     private const string _onOperation = "onOperation";
     private const string _onFragment = "onFragment";
     private const string _onField = "onField";
     private const string _directivesField = "directives";
+    private const string _operationName = "IntrospectionQuery";
+    
+    public static GraphQLHttpRequest CreateInspectArgumentDeprecationRequest(IntrospectionOptions options)
+        => CreateRequest(CreateOperation(GetArgumentDeprecationQuery()), options);
+    
+    public static GraphQLHttpRequest CreateInspectDirectiveTypeRequest(IntrospectionOptions options)
+        => CreateRequest(CreateOperation(GetInspectDirectiveTypeQuery()), options);
+    
+    public static GraphQLHttpRequest CreateInspectDirectivesRequest(IntrospectionOptions options)
+        => CreateRequest(CreateOperation(GetInspectDirectiveTypeQuery()), options);
 
-    public static OperationRequest CreateFeatureQuery() =>
-        new(GetFeatureQuery(), operationName: "IntrospectionQuery");
+    private static OperationRequest CreateOperation(string document)
+        => new(document, operationName: _operationName);
 
-    public static OperationRequest CreateIntrospectionQuery(ISchemaFeatures features)
+    private static GraphQLHttpRequest CreateRequest(OperationRequest operation, IntrospectionOptions options)
+        => new(operation)
+        {
+            Method = options.Method,
+            Uri = options.Uri,
+            OnMessageCreated = options.OnMessageCreated
+        };
+
+    public static OperationRequest CreateIntrospectionQuery(SchemaFeatures features)
     {
         var document = CreateIntrospectionQueryDocument(features);
         var sourceText = document.Print(false);
         return new(sourceText, operationName: "IntrospectionQuery");
     }
 
-    private static DocumentNode CreateIntrospectionQueryDocument(ISchemaFeatures features)
+    private static DocumentNode CreateIntrospectionQueryDocument(SchemaFeatures features)
     {
         var query = Utf8GraphQLParser.Parse(GetIntrospectionQuery());
 
@@ -44,8 +67,9 @@ internal static class IntrospectionQueryHelper
         }
 
         var directives =
-            schema.SelectionSet.Selections.OfType<FieldNode>().First(t =>
-                t.Name.Value.Equals(_directivesField, StringComparison.Ordinal));
+            schema.SelectionSet.Selections.OfType<FieldNode>().First(
+                t =>
+                    t.Name.Value.Equals(_directivesField, StringComparison.Ordinal));
 
         if (directives.SelectionSet is null)
         {
@@ -82,12 +106,12 @@ internal static class IntrospectionQueryHelper
     }
 
     private static void AddDirectiveFeatures(
-        ISchemaFeatures features,
+        SchemaFeatures features,
         ICollection<ISelectionNode> selections)
     {
         if (features.HasDirectiveLocations)
         {
-            selections.Add(CreateField(SchemaFeatures.Locations));
+            selections.Add(CreateField(LegacySchemaFeatures.Locations));
         }
         else
         {
@@ -98,34 +122,40 @@ internal static class IntrospectionQueryHelper
 
         if (features.HasRepeatableDirectives)
         {
-            selections.Add(CreateField(SchemaFeatures.IsRepeatable));
+            selections.Add(CreateField(LegacySchemaFeatures.IsRepeatable));
         }
     }
 
     private static void RemoveSubscriptionIfNotSupported(
-        ISchemaFeatures features,
+        SchemaFeatures features,
         ICollection<ISelectionNode> selections)
     {
         if (!features.HasSubscriptionSupport)
         {
             var subscriptionField = selections.OfType<FieldNode>()
-                .First(t => t.Name.Value.Equals(
-                    SchemaFeatures.SubscriptionType,
-                    StringComparison.Ordinal));
+                .First(
+                    t => t.Name.Value.Equals(
+                        LegacySchemaFeatures.SubscriptionType,
+                        StringComparison.Ordinal));
             selections.Remove(subscriptionField);
         }
     }
 
     private static FieldNode CreateField(string name) =>
-        new(null,
+        new(
+            null,
             new NameNode(name),
             null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             null);
-
-    private static string GetFeatureQuery() => GetQueryFile(_featureQueryFile);
+    
+    private static string GetArgumentDeprecationQuery() => GetQueryFile(_argumentDeprecationQueryFile);
+    
+    private static string GetInspectDirectiveTypeQuery() => GetQueryFile(_inspectDirectiveType);
+    
+    private static string GetInspectDirectivesQuery() => GetQueryFile(_inspectDirectives);
 
     private static string GetIntrospectionQuery() => GetQueryFile(_introspectionQueryFile);
 
@@ -141,6 +171,7 @@ internal static class IntrospectionQueryHelper
             try
             {
                 var buffer = new byte[stream.Length];
+
                 if (stream.Read(buffer, 0, buffer.Length) > 0)
                 {
                     return Encoding.UTF8.GetString(buffer);
@@ -154,4 +185,22 @@ internal static class IntrospectionQueryHelper
 
         throw new IntrospectionException("Could not find query file: " + fileName);
     }
+}
+
+public struct IntrospectionOptions
+{
+    /// <summary>
+    /// Gets or sets the HTTP method.
+    /// </summary>
+    public GraphQLHttpMethod Method { get; set; } = GraphQLHttpMethod.Post;
+
+    /// <summary>
+    /// Gets or sets the GraphQL request <see cref="Uri"/>.
+    /// </summary>
+    public Uri? Uri { get; set; }
+
+    /// <summary>
+    /// Gets or sets a hook that can alter the <see cref="HttpRequestMessage"/> before it is sent.
+    /// </summary>
+    public OnHttpRequestMessageCreated? OnMessageCreated { get; set; }
 }

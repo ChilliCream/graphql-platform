@@ -1,50 +1,31 @@
-﻿using System;
-using System.Linq;
-using static HotChocolate.Utilities.Introspection.WellKnownTypes;
-
 namespace HotChocolate.Utilities.Introspection;
 
-internal sealed class SchemaFeatures : ISchemaFeatures
+/// <summary>
+/// Represents the features that are supported by a GraphQL server.
+/// </summary>
+public class SchemaFeatures
 {
-    public const string Locations = "locations";
-    public const string IsRepeatable = "isRepeatable";
-    public const string SubscriptionType = "subscriptionType";
+    /// <summary>
+    /// Gets a value that indicates whether the server supports the
+    /// newer directive locations on when introspecting.
+    /// </summary>
+    public bool HasDirectiveLocations { get; internal set; }
 
-    private SchemaFeatures()
-    {
-    }
+    /// <summary>
+    /// Gets a value that indicates whether the server supports the repeatable directives.
+    /// </summary>
+    public bool HasRepeatableDirectives { get; internal set;}
 
-    public bool HasDirectiveLocations { get; private set; }
+    /// <summary>
+    /// Gets a value that indicates whether the server supports subscriptions.
+    /// </summary>
+    public bool HasSubscriptionSupport { get; internal set;}
 
-    public bool HasRepeatableDirectives { get; private set; }
+    public bool HasDeferSupport { get; internal set;}
 
-    public bool HasSubscriptionSupport { get; private set; }
+    public bool HasStreamSupport { get; internal set;}
 
-    internal static SchemaFeatures FromIntrospectionResult(
-        IntrospectionResult result)
-    {
-        var features = new SchemaFeatures();
+    public bool HasSpecifiedBySupport { get; internal set;}
 
-        var directive = result.Data!.Schema.Types.FirstOrDefault(t =>
-            t.Name.Equals(__Directive, StringComparison.Ordinal));
-
-        if (directive is not null)
-        {
-            features.HasRepeatableDirectives = directive.Fields.Any(t =>
-                t.Name.Equals(IsRepeatable, StringComparison.Ordinal));
-            features.HasDirectiveLocations = directive.Fields.Any(t =>
-                t.Name.Equals(Locations, StringComparison.Ordinal));
-        }
-
-        var schema = result.Data.Schema.Types.FirstOrDefault(t =>
-            t.Name.Equals(__Schema, StringComparison.Ordinal));
-
-        if (schema is not null)
-        {
-            features.HasSubscriptionSupport = schema.Fields.Any(t =>
-                t.Name.Equals(SubscriptionType, StringComparison.Ordinal));
-        }
-
-        return features;
-    }
+    public bool HasArgumentDeprecationSupport { get; internal set;}
 }
