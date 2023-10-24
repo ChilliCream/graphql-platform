@@ -19,6 +19,25 @@ namespace HotChocolate.Transport.Http;
 public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 {
     private readonly HttpClient _http;
+    private readonly bool _disposeInnerClient;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DefaultGraphQLHttpClient"/>.
+    /// </summary>
+    /// <param name="httpClient">
+    /// The underlying HTTP client that is used to send the GraphQL request.
+    /// </param>
+    /// <param name="disposeInnerClient">
+    /// Specifies if <paramref name="httpClient"/> shall be disposed when this instance is disposed.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="httpClient"/> is <see langword="null"/>.
+    /// </exception>
+    public DefaultGraphQLHttpClient(HttpClient httpClient, bool disposeInnerClient)
+    {
+        _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _disposeInnerClient = disposeInnerClient;
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultGraphQLHttpClient"/>.
@@ -30,8 +49,8 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
     /// <paramref name="httpClient"/> is <see langword="null"/>.
     /// </exception>
     public DefaultGraphQLHttpClient(HttpClient httpClient)
+        : this(httpClient, disposeInnerClient: true)
     {
-        _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
     /// <summary>
@@ -278,5 +297,11 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 #endif
     }
 
-    public void Dispose() => _http.Dispose();
+    public void Dispose()
+    {
+        if (_disposeInnerClient)
+        {
+            _http.Dispose();
+        }
+    }
 }

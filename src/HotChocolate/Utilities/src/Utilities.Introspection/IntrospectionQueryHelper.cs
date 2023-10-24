@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Transport;
 
 namespace HotChocolate.Utilities.Introspection;
 
@@ -18,14 +19,14 @@ internal static class IntrospectionQueryHelper
     private const string _onField = "onField";
     private const string _directivesField = "directives";
 
-    public static HttpQueryRequest CreateFeatureQuery() =>
-        new(GetFeatureQuery(), "IntrospectionQuery");
+    public static OperationRequest CreateFeatureQuery() =>
+        new(GetFeatureQuery(), operationName: "IntrospectionQuery");
 
-    public static HttpQueryRequest CreateIntrospectionQuery(ISchemaFeatures features)
+    public static OperationRequest CreateIntrospectionQuery(ISchemaFeatures features)
     {
         var document = CreateIntrospectionQueryDocument(features);
         var sourceText = document.Print(false);
-        return new HttpQueryRequest(sourceText, "IntrospectionQuery");
+        return new(sourceText, operationName: "IntrospectionQuery");
     }
 
     private static DocumentNode CreateIntrospectionQueryDocument(ISchemaFeatures features)

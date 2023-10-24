@@ -2,21 +2,43 @@
   "version": 1,
   "dependencies": {
     "net6.0": {
+      "ChilliCream.Testing.Utilities": {
+        "type": "Direct",
+        "requested": "[0.2.0, )",
+        "resolved": "0.2.0",
+        "contentHash": "gqRu5DNIt6FphQX4EZYlkOI3QmyzatQhuqf3zNXYBmmvmVQ0KaJStDvrANosxlrlVtVX+L5q/s4z9gZMCeuwkA==",
+        "dependencies": {
+          "Newtonsoft.Json": "11.0.2",
+          "xunit": "2.3.1"
+        }
+      },
       "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
         "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
-      "Microsoft.Extensions.DependencyInjection": {
+      "DiffPlex": {
         "type": "Direct",
-        "requested": "[6.0.0, )",
-        "resolved": "6.0.0",
-        "contentHash": "k6PWQMuoBDGGHOQTtyois2u4AwyVcIwL2LaSLlTZQm2CYcJ1pxbt6jfAnpWmzENA/wfrYRI/X9DTLoUkE4AsLw==",
+        "requested": "[1.7.1, )",
+        "resolved": "1.7.1",
+        "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
+      },
+      "FsCheck.Xunit": {
+        "type": "Direct",
+        "requested": "[3.0.0-beta2, )",
+        "resolved": "3.0.0-beta2",
+        "contentHash": "tSiX6zDaaUix6euJdvx7+n5VQO2Nr+WC2gPJWi+Vj+ytkrAw+hcsyC6U14OGWhQhZUKu781Iq4AywDurL+s8Tg==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "6.0.0",
-          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+          "FsCheck": "[3.0.0-beta2]",
+          "xunit.extensibility.execution": "[2.4.1, 2.5.0)"
         }
+      },
+      "FSharp.Core": {
+        "type": "Direct",
+        "requested": "[8.0.100-beta.23475.2, )",
+        "resolved": "8.0.100-beta.23475.2",
+        "contentHash": "EEYKMpieataf/B7mcoHTDPGw8cnREa1AKwyFgHtiGwTOEJlzY7XIRMyOQvN4P9aMFh55ILZN6NKgPQrktcnQNg=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
@@ -48,32 +70,24 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
-      "sqlite-net-pcl": {
+      "Snapshooter.Xunit": {
         "type": "Direct",
-        "requested": "[1.8.116, )",
-        "resolved": "1.8.116",
-        "contentHash": "W0NuwAOVVAR9LP4eZwNBIrim1p3EN7t8iNfSHXEhtzKAd4YyItekoQ8NyWYs4faVSrN2KZr/P5u4hycCjKKexg==",
+        "requested": "[0.5.4, )",
+        "resolved": "0.5.4",
+        "contentHash": "gE9VlseOySUSwwAKCXastwxJ7qYpVHwIEi+QbzRVmdOvV6Ry/vE1WqyuolRHwhjx2QZY8+YuO4L/cKJGrt2H6w==",
         "dependencies": {
-          "SQLitePCLRaw.bundle_green": "2.0.4"
+          "Snapshooter": "0.5.4",
+          "xunit.assert": "2.4.1",
+          "xunit.core": "2.4.1"
         }
       },
-      "SQLitePCLRaw.bundle_green": {
+      "Unquote": {
         "type": "Direct",
-        "requested": "[2.1.4, )",
-        "resolved": "2.1.4",
-        "contentHash": "TddzKjYBURIRLNySFUonIOxTL0tKM3agxd/FqAKUKVDJbhFHQZefWo8iFp+VjauPv6mYklxGNpc0WO3UoWfdfA==",
+        "requested": "[6.1.0, )",
+        "resolved": "6.1.0",
+        "contentHash": "eWcVdoxGSRqmvRr6RUN4ko73nLxiY1yhZXdqlriEucAqylcPQc/RCZDobJSnE858MA8SHXwBOX79RQuYp8Z3Cw==",
         "dependencies": {
-          "SQLitePCLRaw.lib.e_sqlite3": "2.1.4",
-          "SQLitePCLRaw.provider.e_sqlite3": "2.1.4"
-        }
-      },
-      "SQLitePCLRaw.core": {
-        "type": "Direct",
-        "requested": "[2.1.4, )",
-        "resolved": "2.1.4",
-        "contentHash": "inBjvSHo9UDKneGNzfUfDjK08JzlcIhn1+SP5Y3m6cgXpCxXKCJDy6Mka7LpgSV+UZmKSnC8rTwB0SQ0xKu5pA==",
-        "dependencies": {
-          "System.Memory": "4.5.3"
+          "FSharp.Core": "4.7.2"
         }
       },
       "xunit": {
@@ -109,10 +123,13 @@
           "System.Diagnostics.EventLog": "6.0.0"
         }
       },
-      "DiffPlex": {
+      "FsCheck": {
         "type": "Transitive",
-        "resolved": "1.7.1",
-        "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
+        "resolved": "3.0.0-beta2",
+        "contentHash": "QIyrg3VHlnd0cKzIsH9s4nGpm33u2cEQRKtorhAL4r8I+lu4ukJzrZ6r0frpj/KT8wOeh0i6hbFyEOIDA4Sy+Q==",
+        "dependencies": {
+          "FSharp.Core": "4.5.0"
+        }
       },
       "Microsoft.AspNetCore.WebUtilities": {
         "type": "Transitive",
@@ -138,18 +155,18 @@
         "resolved": "17.1.0",
         "contentHash": "0N/ZJ71ncCxQWhgtkEYKOgu2oMHa8h1tsOUbhmIKXF8UwtSUCe4vHAsJ3DVcNWRwNfQzSTy263ZE+QF6MdIhhQ=="
       },
-      "Microsoft.Data.Sqlite.Core": {
+      "Microsoft.Extensions.DependencyInjection": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "O1PBB9Y9bU9Fb3FkewqeXzVJ3hI2DW9DtRGj7lGkT1FnP1B3kqjn3xpG2AaVzkv2MkzzKHNJAh+LQq3XaFcAMw==",
+        "resolved": "3.1.4",
+        "contentHash": "dAWhz6BEjUFIVLUPbT1s1sUrPTwbUWdw2iBRRe3ej3xXcKS+oo64dKrIWFxRjYP6TWyESpGFNY5NGeA5FcHVlg==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.0.4"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "3.1.4"
         }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "xlzi2IYREJH3/m6+lUrQlujzX8wDitm4QGnUu6kUXTQAWPuZY8i+ticFJbzfqaetLA6KR/rO6Ew/HuYD+bxifg=="
+        "resolved": "3.1.4",
+        "contentHash": "AceHamXNKDMDwIoZqEoApLp8s3935wSC3VXrPaRWa0wWOaEcYdDlo1nWQ1zLiezoDmpJzV7FqDm53E0Ty/hEMg=="
       },
       "Microsoft.Extensions.DiagnosticAdapter": {
         "type": "Transitive",
@@ -398,17 +415,12 @@
         "resolved": "4.3.0",
         "contentHash": "VB5cn/7OzUfzdnC8tqAIMQciVLiq2epm2NrAm1E9OjNRyG4lVhfR61SMcLizejzQP8R8Uf/0l5qOIbUEi+RdEg=="
       },
-      "SQLitePCLRaw.lib.e_sqlite3": {
+      "Snapshooter": {
         "type": "Transitive",
-        "resolved": "2.1.4",
-        "contentHash": "2C9Q9eX7CPLveJA0rIhf9RXAvu+7nWZu1A2MdG6SD/NOu26TakGgL1nsbc0JAspGijFOo3HoN79xrx8a368fBg=="
-      },
-      "SQLitePCLRaw.provider.e_sqlite3": {
-        "type": "Transitive",
-        "resolved": "2.1.4",
-        "contentHash": "CSlb5dUp1FMIkez9Iv5EXzpeq7rHryVNqwJMWnpq87j9zWZexaEMdisDktMsnnrzKM6ahNrsTkjqNodTBPBxtQ==",
+        "resolved": "0.5.4",
+        "contentHash": "znayjnxtFjFcRFdS4W8KyeODS/FOVkIzlAD8hRfrrf3fd3hJ9k+XMNRYCARtzrN3ueIpF4USQbAhWrO73Z9z6w==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.1.4"
+          "Newtonsoft.Json": "12.0.1"
         }
       },
       "System.AppContext": {
@@ -453,8 +465,8 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "FXkLXiK0sVVewcso0imKQoOxjoPAj42R8HtjjbSjVPAzwDfzoyoznWxgA3c38LDbN9SJux1xXoXYAhz98j7r2g=="
+        "resolved": "1.7.0",
+        "contentHash": "RVSM6wZUo6L2y6P3vN6gjUtyJ2IF2RVtrepF3J7nrDKfFQd5u/SnSUFclchYQis8/k5scHy9E+fVeKVQLnnkzw=="
       },
       "System.ComponentModel.Annotations": {
         "type": "Transitive",
@@ -739,11 +751,6 @@
           "System.Runtime": "4.3.0",
           "System.Threading": "4.3.0"
         }
-      },
-      "System.Reactive": {
-        "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "erBZjkQHWL9jpasCE/0qKAryzVBJFxGHVBAvgRN1bzM0q2s1S4oYREEEL0Vb+1kA/6BKb5FjUZMp5VXmy+gzkQ=="
       },
       "System.Reflection": {
         "type": "Transitive",
@@ -1110,8 +1117,8 @@
       },
       "System.Threading.Channels": {
         "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "TY8/9+tI0mNaUMgntOxxaq2ndTkdXqLSxvPmas7XEqOlv9lQtB7wLjYGd756lOaO7Dvb5r/WXhluM+0Xe87v5Q=="
+        "resolved": "4.7.0",
+        "contentHash": "gdOOXBhtt2UpTxYJm1DRmoqNfYg5ypvhzhVt0vxKhzxXFjS81r8yIOSFsJYLRa1Jc14GBAqCnjxJstO3zBN7gg=="
       },
       "System.Threading.Tasks": {
         "type": "Transitive",
@@ -1349,6 +1356,19 @@
           "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
+      "HotChocolate.StarWars": {
+        "type": "Project",
+        "dependencies": {
+          "ChilliCream.Testing.Utilities": "[0.2.0, )",
+          "CookieCrumble": "[0.0.0, )",
+          "DiffPlex": "[1.7.1, )",
+          "HotChocolate": "[0.0.0, )",
+          "Microsoft.NET.Test.Sdk": "[17.1.0, )",
+          "Moq": "[4.18.1, )",
+          "Snapshooter.Xunit": "[0.5.4, )",
+          "xunit": "[2.4.1, )"
+        }
+      },
       "hotchocolate.subscriptions": {
         "type": "Project",
         "dependencies": {
@@ -1362,6 +1382,20 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Subscriptions": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )"
+        }
+      },
+      "hotchocolate.tests.utilities": {
+        "type": "Project",
+        "dependencies": {
+          "ChilliCream.Testing.Utilities": "[0.2.0, )",
+          "CookieCrumble": "[0.0.0, )",
+          "DiffPlex": "[1.7.1, )",
+          "HotChocolate.StarWars": "[0.0.0, )",
+          "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
+          "Microsoft.NET.Test.Sdk": "[17.1.0, )",
+          "Moq": "[4.18.1, )",
+          "Snapshooter.Xunit": "[0.5.4, )",
+          "xunit": "[2.4.1, )"
         }
       },
       "hotchocolate.transport.abstractions": {
@@ -1394,6 +1428,15 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )"
+        }
+      },
+      "hotchocolate.types.fsharp": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[8.0.100-beta.23475.2, )",
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
@@ -1438,46 +1481,46 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )",
           "Microsoft.Extensions.Options": "[3.1.4, )"
         }
-      },
-      "strawberryshake.core": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.0, )",
-          "StrawberryShake.Resources": "[0.0.0, )",
-          "System.Collections.Immutable": "[5.0.0, )",
-          "System.Text.Json": "[6.0.7, )",
-          "System.Threading.Channels": "[6.0.0, )"
-        }
-      },
-      "strawberryshake.persistence.sqlite": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.Data.Sqlite.Core": "[5.0.0, )",
-          "Newtonsoft.Json": "[13.0.2, )",
-          "StrawberryShake.Core": "[0.0.0, )",
-          "StrawberryShake.Resources": "[0.0.0, )",
-          "System.Reactive": "[5.0.0, )"
-        }
-      },
-      "strawberryshake.resources": {
-        "type": "Project"
       }
     },
     "net7.0": {
+      "ChilliCream.Testing.Utilities": {
+        "type": "Direct",
+        "requested": "[0.2.0, )",
+        "resolved": "0.2.0",
+        "contentHash": "gqRu5DNIt6FphQX4EZYlkOI3QmyzatQhuqf3zNXYBmmvmVQ0KaJStDvrANosxlrlVtVX+L5q/s4z9gZMCeuwkA==",
+        "dependencies": {
+          "Newtonsoft.Json": "11.0.2",
+          "xunit": "2.3.1"
+        }
+      },
       "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
         "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
-      "Microsoft.Extensions.DependencyInjection": {
+      "DiffPlex": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "elNeOmkeX3eDVG6pYVeV82p29hr+UKDaBhrZyWvWLw/EVZSYEkZlQdkp0V39k/Xehs2Qa0mvoCvkVj3eQxNQ1Q==",
+        "requested": "[1.7.1, )",
+        "resolved": "1.7.1",
+        "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
+      },
+      "FsCheck.Xunit": {
+        "type": "Direct",
+        "requested": "[3.0.0-beta2, )",
+        "resolved": "3.0.0-beta2",
+        "contentHash": "tSiX6zDaaUix6euJdvx7+n5VQO2Nr+WC2gPJWi+Vj+ytkrAw+hcsyC6U14OGWhQhZUKu781Iq4AywDurL+s8Tg==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "7.0.0"
+          "FsCheck": "[3.0.0-beta2]",
+          "xunit.extensibility.execution": "[2.4.1, 2.5.0)"
         }
+      },
+      "FSharp.Core": {
+        "type": "Direct",
+        "requested": "[8.0.100-beta.23475.2, )",
+        "resolved": "8.0.100-beta.23475.2",
+        "contentHash": "EEYKMpieataf/B7mcoHTDPGw8cnREa1AKwyFgHtiGwTOEJlzY7XIRMyOQvN4P9aMFh55ILZN6NKgPQrktcnQNg=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
@@ -1509,32 +1552,24 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
-      "sqlite-net-pcl": {
+      "Snapshooter.Xunit": {
         "type": "Direct",
-        "requested": "[1.8.116, )",
-        "resolved": "1.8.116",
-        "contentHash": "W0NuwAOVVAR9LP4eZwNBIrim1p3EN7t8iNfSHXEhtzKAd4YyItekoQ8NyWYs4faVSrN2KZr/P5u4hycCjKKexg==",
+        "requested": "[0.5.4, )",
+        "resolved": "0.5.4",
+        "contentHash": "gE9VlseOySUSwwAKCXastwxJ7qYpVHwIEi+QbzRVmdOvV6Ry/vE1WqyuolRHwhjx2QZY8+YuO4L/cKJGrt2H6w==",
         "dependencies": {
-          "SQLitePCLRaw.bundle_green": "2.0.4"
+          "Snapshooter": "0.5.4",
+          "xunit.assert": "2.4.1",
+          "xunit.core": "2.4.1"
         }
       },
-      "SQLitePCLRaw.bundle_green": {
+      "Unquote": {
         "type": "Direct",
-        "requested": "[2.1.4, )",
-        "resolved": "2.1.4",
-        "contentHash": "TddzKjYBURIRLNySFUonIOxTL0tKM3agxd/FqAKUKVDJbhFHQZefWo8iFp+VjauPv6mYklxGNpc0WO3UoWfdfA==",
+        "requested": "[6.1.0, )",
+        "resolved": "6.1.0",
+        "contentHash": "eWcVdoxGSRqmvRr6RUN4ko73nLxiY1yhZXdqlriEucAqylcPQc/RCZDobJSnE858MA8SHXwBOX79RQuYp8Z3Cw==",
         "dependencies": {
-          "SQLitePCLRaw.lib.e_sqlite3": "2.1.4",
-          "SQLitePCLRaw.provider.e_sqlite3": "2.1.4"
-        }
-      },
-      "SQLitePCLRaw.core": {
-        "type": "Direct",
-        "requested": "[2.1.4, )",
-        "resolved": "2.1.4",
-        "contentHash": "inBjvSHo9UDKneGNzfUfDjK08JzlcIhn1+SP5Y3m6cgXpCxXKCJDy6Mka7LpgSV+UZmKSnC8rTwB0SQ0xKu5pA==",
-        "dependencies": {
-          "System.Memory": "4.5.3"
+          "FSharp.Core": "4.7.2"
         }
       },
       "xunit": {
@@ -1570,10 +1605,13 @@
           "System.Diagnostics.EventLog": "6.0.0"
         }
       },
-      "DiffPlex": {
+      "FsCheck": {
         "type": "Transitive",
-        "resolved": "1.7.1",
-        "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
+        "resolved": "3.0.0-beta2",
+        "contentHash": "QIyrg3VHlnd0cKzIsH9s4nGpm33u2cEQRKtorhAL4r8I+lu4ukJzrZ6r0frpj/KT8wOeh0i6hbFyEOIDA4Sy+Q==",
+        "dependencies": {
+          "FSharp.Core": "4.5.0"
+        }
       },
       "Microsoft.AspNetCore.WebUtilities": {
         "type": "Transitive",
@@ -1599,12 +1637,12 @@
         "resolved": "17.1.0",
         "contentHash": "0N/ZJ71ncCxQWhgtkEYKOgu2oMHa8h1tsOUbhmIKXF8UwtSUCe4vHAsJ3DVcNWRwNfQzSTy263ZE+QF6MdIhhQ=="
       },
-      "Microsoft.Data.Sqlite.Core": {
+      "Microsoft.Extensions.DependencyInjection": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "O1PBB9Y9bU9Fb3FkewqeXzVJ3hI2DW9DtRGj7lGkT1FnP1B3kqjn3xpG2AaVzkv2MkzzKHNJAh+LQq3XaFcAMw==",
+        "resolved": "7.0.0",
+        "contentHash": "elNeOmkeX3eDVG6pYVeV82p29hr+UKDaBhrZyWvWLw/EVZSYEkZlQdkp0V39k/Xehs2Qa0mvoCvkVj3eQxNQ1Q==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.0.4"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "7.0.0"
         }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
@@ -1886,17 +1924,12 @@
         "resolved": "4.3.0",
         "contentHash": "VB5cn/7OzUfzdnC8tqAIMQciVLiq2epm2NrAm1E9OjNRyG4lVhfR61SMcLizejzQP8R8Uf/0l5qOIbUEi+RdEg=="
       },
-      "SQLitePCLRaw.lib.e_sqlite3": {
+      "Snapshooter": {
         "type": "Transitive",
-        "resolved": "2.1.4",
-        "contentHash": "2C9Q9eX7CPLveJA0rIhf9RXAvu+7nWZu1A2MdG6SD/NOu26TakGgL1nsbc0JAspGijFOo3HoN79xrx8a368fBg=="
-      },
-      "SQLitePCLRaw.provider.e_sqlite3": {
-        "type": "Transitive",
-        "resolved": "2.1.4",
-        "contentHash": "CSlb5dUp1FMIkez9Iv5EXzpeq7rHryVNqwJMWnpq87j9zWZexaEMdisDktMsnnrzKM6ahNrsTkjqNodTBPBxtQ==",
+        "resolved": "0.5.4",
+        "contentHash": "znayjnxtFjFcRFdS4W8KyeODS/FOVkIzlAD8hRfrrf3fd3hJ9k+XMNRYCARtzrN3ueIpF4USQbAhWrO73Z9z6w==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.1.4"
+          "Newtonsoft.Json": "12.0.1"
         }
       },
       "System.AppContext": {
@@ -1941,8 +1974,8 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "FXkLXiK0sVVewcso0imKQoOxjoPAj42R8HtjjbSjVPAzwDfzoyoznWxgA3c38LDbN9SJux1xXoXYAhz98j7r2g=="
+        "resolved": "1.7.0",
+        "contentHash": "RVSM6wZUo6L2y6P3vN6gjUtyJ2IF2RVtrepF3J7nrDKfFQd5u/SnSUFclchYQis8/k5scHy9E+fVeKVQLnnkzw=="
       },
       "System.ComponentModel.Annotations": {
         "type": "Transitive",
@@ -2603,8 +2636,8 @@
       },
       "System.Threading.Channels": {
         "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "TY8/9+tI0mNaUMgntOxxaq2ndTkdXqLSxvPmas7XEqOlv9lQtB7wLjYGd756lOaO7Dvb5r/WXhluM+0Xe87v5Q=="
+        "resolved": "4.7.0",
+        "contentHash": "gdOOXBhtt2UpTxYJm1DRmoqNfYg5ypvhzhVt0vxKhzxXFjS81r8yIOSFsJYLRa1Jc14GBAqCnjxJstO3zBN7gg=="
       },
       "System.Threading.Tasks": {
         "type": "Transitive",
@@ -2864,6 +2897,19 @@
           "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
+      "HotChocolate.StarWars": {
+        "type": "Project",
+        "dependencies": {
+          "ChilliCream.Testing.Utilities": "[0.2.0, )",
+          "CookieCrumble": "[0.0.0, )",
+          "DiffPlex": "[1.7.1, )",
+          "HotChocolate": "[0.0.0, )",
+          "Microsoft.NET.Test.Sdk": "[17.1.0, )",
+          "Moq": "[4.18.1, )",
+          "Snapshooter.Xunit": "[0.5.4, )",
+          "xunit": "[2.4.1, )"
+        }
+      },
       "hotchocolate.subscriptions": {
         "type": "Project",
         "dependencies": {
@@ -2877,6 +2923,20 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Subscriptions": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )"
+        }
+      },
+      "hotchocolate.tests.utilities": {
+        "type": "Project",
+        "dependencies": {
+          "ChilliCream.Testing.Utilities": "[0.2.0, )",
+          "CookieCrumble": "[0.0.0, )",
+          "DiffPlex": "[1.7.1, )",
+          "HotChocolate.StarWars": "[0.0.0, )",
+          "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
+          "Microsoft.NET.Test.Sdk": "[17.1.0, )",
+          "Moq": "[4.18.1, )",
+          "Snapshooter.Xunit": "[0.5.4, )",
+          "xunit": "[2.4.1, )"
         }
       },
       "hotchocolate.transport.abstractions": {
@@ -2931,6 +2991,15 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.fsharp": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[8.0.100-beta.23475.2, )",
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
@@ -2972,46 +3041,46 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )",
           "Microsoft.Extensions.Options": "[3.1.4, )"
         }
-      },
-      "strawberryshake.core": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.0, )",
-          "StrawberryShake.Resources": "[0.0.0, )",
-          "System.Collections.Immutable": "[5.0.0, )",
-          "System.Text.Json": "[6.0.7, )",
-          "System.Threading.Channels": "[6.0.0, )"
-        }
-      },
-      "strawberryshake.persistence.sqlite": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.Data.Sqlite.Core": "[5.0.0, )",
-          "Newtonsoft.Json": "[13.0.2, )",
-          "StrawberryShake.Core": "[0.0.0, )",
-          "StrawberryShake.Resources": "[0.0.0, )",
-          "System.Reactive": "[5.0.0, )"
-        }
-      },
-      "strawberryshake.resources": {
-        "type": "Project"
       }
     },
     "net8.0": {
+      "ChilliCream.Testing.Utilities": {
+        "type": "Direct",
+        "requested": "[0.2.0, )",
+        "resolved": "0.2.0",
+        "contentHash": "gqRu5DNIt6FphQX4EZYlkOI3QmyzatQhuqf3zNXYBmmvmVQ0KaJStDvrANosxlrlVtVX+L5q/s4z9gZMCeuwkA==",
+        "dependencies": {
+          "Newtonsoft.Json": "11.0.2",
+          "xunit": "2.3.1"
+        }
+      },
       "coverlet.msbuild": {
         "type": "Direct",
         "requested": "[3.1.2, )",
         "resolved": "3.1.2",
         "contentHash": "QhM0fnDtmIMImY7oxyQ/kh1VYtRxPyRVeLwRUGuUvI6Xp83pSYG9gerK8WgJj4TzUl7ISziADUGtIWKhtlbkbQ=="
       },
-      "Microsoft.Extensions.DependencyInjection": {
+      "DiffPlex": {
         "type": "Direct",
-        "requested": "[8.0.0-rc.2.23479.6, )",
-        "resolved": "8.0.0-rc.2.23479.6",
-        "contentHash": "pUD/Gjd0MTrWPD4/SnKazYQvky2EHEtPyGb3FWZkEPWAfYPFVVw5fMRTkfoBPivpWLuxEw4FNK7GX77xEErUQQ==",
+        "requested": "[1.7.1, )",
+        "resolved": "1.7.1",
+        "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
+      },
+      "FsCheck.Xunit": {
+        "type": "Direct",
+        "requested": "[3.0.0-beta2, )",
+        "resolved": "3.0.0-beta2",
+        "contentHash": "tSiX6zDaaUix6euJdvx7+n5VQO2Nr+WC2gPJWi+Vj+ytkrAw+hcsyC6U14OGWhQhZUKu781Iq4AywDurL+s8Tg==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0-rc.2.23479.6"
+          "FsCheck": "[3.0.0-beta2]",
+          "xunit.extensibility.execution": "[2.4.1, 2.5.0)"
         }
+      },
+      "FSharp.Core": {
+        "type": "Direct",
+        "requested": "[8.0.100-beta.23475.2, )",
+        "resolved": "8.0.100-beta.23475.2",
+        "contentHash": "EEYKMpieataf/B7mcoHTDPGw8cnREa1AKwyFgHtiGwTOEJlzY7XIRMyOQvN4P9aMFh55ILZN6NKgPQrktcnQNg=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
@@ -3043,32 +3112,24 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
-      "sqlite-net-pcl": {
+      "Snapshooter.Xunit": {
         "type": "Direct",
-        "requested": "[1.8.116, )",
-        "resolved": "1.8.116",
-        "contentHash": "W0NuwAOVVAR9LP4eZwNBIrim1p3EN7t8iNfSHXEhtzKAd4YyItekoQ8NyWYs4faVSrN2KZr/P5u4hycCjKKexg==",
+        "requested": "[0.5.4, )",
+        "resolved": "0.5.4",
+        "contentHash": "gE9VlseOySUSwwAKCXastwxJ7qYpVHwIEi+QbzRVmdOvV6Ry/vE1WqyuolRHwhjx2QZY8+YuO4L/cKJGrt2H6w==",
         "dependencies": {
-          "SQLitePCLRaw.bundle_green": "2.0.4"
+          "Snapshooter": "0.5.4",
+          "xunit.assert": "2.4.1",
+          "xunit.core": "2.4.1"
         }
       },
-      "SQLitePCLRaw.bundle_green": {
+      "Unquote": {
         "type": "Direct",
-        "requested": "[2.1.4, )",
-        "resolved": "2.1.4",
-        "contentHash": "TddzKjYBURIRLNySFUonIOxTL0tKM3agxd/FqAKUKVDJbhFHQZefWo8iFp+VjauPv6mYklxGNpc0WO3UoWfdfA==",
+        "requested": "[6.1.0, )",
+        "resolved": "6.1.0",
+        "contentHash": "eWcVdoxGSRqmvRr6RUN4ko73nLxiY1yhZXdqlriEucAqylcPQc/RCZDobJSnE858MA8SHXwBOX79RQuYp8Z3Cw==",
         "dependencies": {
-          "SQLitePCLRaw.lib.e_sqlite3": "2.1.4",
-          "SQLitePCLRaw.provider.e_sqlite3": "2.1.4"
-        }
-      },
-      "SQLitePCLRaw.core": {
-        "type": "Direct",
-        "requested": "[2.1.4, )",
-        "resolved": "2.1.4",
-        "contentHash": "inBjvSHo9UDKneGNzfUfDjK08JzlcIhn1+SP5Y3m6cgXpCxXKCJDy6Mka7LpgSV+UZmKSnC8rTwB0SQ0xKu5pA==",
-        "dependencies": {
-          "System.Memory": "4.5.3"
+          "FSharp.Core": "4.7.2"
         }
       },
       "xunit": {
@@ -3104,10 +3165,13 @@
           "System.Diagnostics.EventLog": "6.0.0"
         }
       },
-      "DiffPlex": {
+      "FsCheck": {
         "type": "Transitive",
-        "resolved": "1.7.1",
-        "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
+        "resolved": "3.0.0-beta2",
+        "contentHash": "QIyrg3VHlnd0cKzIsH9s4nGpm33u2cEQRKtorhAL4r8I+lu4ukJzrZ6r0frpj/KT8wOeh0i6hbFyEOIDA4Sy+Q==",
+        "dependencies": {
+          "FSharp.Core": "4.5.0"
+        }
       },
       "Microsoft.AspNetCore.WebUtilities": {
         "type": "Transitive",
@@ -3133,14 +3197,6 @@
         "resolved": "17.1.0",
         "contentHash": "0N/ZJ71ncCxQWhgtkEYKOgu2oMHa8h1tsOUbhmIKXF8UwtSUCe4vHAsJ3DVcNWRwNfQzSTy263ZE+QF6MdIhhQ=="
       },
-      "Microsoft.Data.Sqlite.Core": {
-        "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "O1PBB9Y9bU9Fb3FkewqeXzVJ3hI2DW9DtRGj7lGkT1FnP1B3kqjn3xpG2AaVzkv2MkzzKHNJAh+LQq3XaFcAMw==",
-        "dependencies": {
-          "SQLitePCLRaw.core": "2.0.4"
-        }
-      },
       "Microsoft.Extensions.Configuration": {
         "type": "Transitive",
         "resolved": "8.0.0-rc.2.23479.6",
@@ -3164,6 +3220,14 @@
         "contentHash": "PCaxgxWQQ9Tp7s2ZGQ5gGgHJrZvof7Cx4ZYXACNGjSJqZy1fHLBGY9swBAF3EiYiZaT3Gi1n5ULcg4zBDyBQ8g==",
         "dependencies": {
           "Microsoft.Extensions.Configuration.Abstractions": "8.0.0-rc.2.23479.6"
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection": {
+        "type": "Transitive",
+        "resolved": "8.0.0-rc.2.23479.6",
+        "contentHash": "pUD/Gjd0MTrWPD4/SnKazYQvky2EHEtPyGb3FWZkEPWAfYPFVVw5fMRTkfoBPivpWLuxEw4FNK7GX77xEErUQQ==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0-rc.2.23479.6"
         }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
@@ -3481,17 +3545,12 @@
         "resolved": "4.3.0",
         "contentHash": "VB5cn/7OzUfzdnC8tqAIMQciVLiq2epm2NrAm1E9OjNRyG4lVhfR61SMcLizejzQP8R8Uf/0l5qOIbUEi+RdEg=="
       },
-      "SQLitePCLRaw.lib.e_sqlite3": {
+      "Snapshooter": {
         "type": "Transitive",
-        "resolved": "2.1.4",
-        "contentHash": "2C9Q9eX7CPLveJA0rIhf9RXAvu+7nWZu1A2MdG6SD/NOu26TakGgL1nsbc0JAspGijFOo3HoN79xrx8a368fBg=="
-      },
-      "SQLitePCLRaw.provider.e_sqlite3": {
-        "type": "Transitive",
-        "resolved": "2.1.4",
-        "contentHash": "CSlb5dUp1FMIkez9Iv5EXzpeq7rHryVNqwJMWnpq87j9zWZexaEMdisDktMsnnrzKM6ahNrsTkjqNodTBPBxtQ==",
+        "resolved": "0.5.4",
+        "contentHash": "znayjnxtFjFcRFdS4W8KyeODS/FOVkIzlAD8hRfrrf3fd3hJ9k+XMNRYCARtzrN3ueIpF4USQbAhWrO73Z9z6w==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.1.4"
+          "Newtonsoft.Json": "12.0.1"
         }
       },
       "System.AppContext": {
@@ -3536,8 +3595,8 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "FXkLXiK0sVVewcso0imKQoOxjoPAj42R8HtjjbSjVPAzwDfzoyoznWxgA3c38LDbN9SJux1xXoXYAhz98j7r2g=="
+        "resolved": "1.7.0",
+        "contentHash": "RVSM6wZUo6L2y6P3vN6gjUtyJ2IF2RVtrepF3J7nrDKfFQd5u/SnSUFclchYQis8/k5scHy9E+fVeKVQLnnkzw=="
       },
       "System.ComponentModel.Annotations": {
         "type": "Transitive",
@@ -4198,8 +4257,8 @@
       },
       "System.Threading.Channels": {
         "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "TY8/9+tI0mNaUMgntOxxaq2ndTkdXqLSxvPmas7XEqOlv9lQtB7wLjYGd756lOaO7Dvb5r/WXhluM+0Xe87v5Q=="
+        "resolved": "4.7.0",
+        "contentHash": "gdOOXBhtt2UpTxYJm1DRmoqNfYg5ypvhzhVt0vxKhzxXFjS81r8yIOSFsJYLRa1Jc14GBAqCnjxJstO3zBN7gg=="
       },
       "System.Threading.Tasks": {
         "type": "Transitive",
@@ -4459,6 +4518,19 @@
           "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
+      "HotChocolate.StarWars": {
+        "type": "Project",
+        "dependencies": {
+          "ChilliCream.Testing.Utilities": "[0.2.0, )",
+          "CookieCrumble": "[0.0.0, )",
+          "DiffPlex": "[1.7.1, )",
+          "HotChocolate": "[0.0.0, )",
+          "Microsoft.NET.Test.Sdk": "[17.1.0, )",
+          "Moq": "[4.18.1, )",
+          "Snapshooter.Xunit": "[0.5.4, )",
+          "xunit": "[2.4.1, )"
+        }
+      },
       "hotchocolate.subscriptions": {
         "type": "Project",
         "dependencies": {
@@ -4472,6 +4544,20 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Subscriptions": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )"
+        }
+      },
+      "hotchocolate.tests.utilities": {
+        "type": "Project",
+        "dependencies": {
+          "ChilliCream.Testing.Utilities": "[0.2.0, )",
+          "CookieCrumble": "[0.0.0, )",
+          "DiffPlex": "[1.7.1, )",
+          "HotChocolate.StarWars": "[0.0.0, )",
+          "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
+          "Microsoft.NET.Test.Sdk": "[17.1.0, )",
+          "Moq": "[4.18.1, )",
+          "Snapshooter.Xunit": "[0.5.4, )",
+          "xunit": "[2.4.1, )"
         }
       },
       "hotchocolate.transport.abstractions": {
@@ -4526,6 +4612,15 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.fsharp": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[8.0.100-beta.23475.2, )",
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
@@ -4567,29 +4662,6 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )",
           "Microsoft.Extensions.Options": "[3.1.4, )"
         }
-      },
-      "strawberryshake.core": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.0, )",
-          "StrawberryShake.Resources": "[0.0.0, )",
-          "System.Collections.Immutable": "[5.0.0, )",
-          "System.Text.Json": "[6.0.7, )",
-          "System.Threading.Channels": "[6.0.0, )"
-        }
-      },
-      "strawberryshake.persistence.sqlite": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.Data.Sqlite.Core": "[5.0.0, )",
-          "Newtonsoft.Json": "[13.0.2, )",
-          "StrawberryShake.Core": "[0.0.0, )",
-          "StrawberryShake.Resources": "[0.0.0, )",
-          "System.Reactive": "[5.0.0, )"
-        }
-      },
-      "strawberryshake.resources": {
-        "type": "Project"
       }
     }
   }

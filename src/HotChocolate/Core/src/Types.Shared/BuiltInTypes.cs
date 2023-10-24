@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
-using static HotChocolate.Utilities.Introspection.WellKnownTypes;
-using static HotChocolate.Utilities.Introspection.WellKnownDirectives;
 
 namespace HotChocolate.Utilities.Introspection;
 
@@ -10,30 +7,30 @@ public static class BuiltInTypes
     private static readonly HashSet<string> _typeNames =
         new()
         {
-            __Directive,
-            __DirectiveLocation,
-            __EnumValue,
-            __Field,
-            __InputValue,
-            __Schema,
-            __Type,
-            __TypeKind,
-            String,
-            Boolean,
-            Float,
-            ID,
-            Int,
+            WellKnownTypes.__Directive,
+            WellKnownTypes.__DirectiveLocation,
+            WellKnownTypes.__EnumValue,
+            WellKnownTypes.__Field,
+            WellKnownTypes.__InputValue,
+            WellKnownTypes.__Schema,
+            WellKnownTypes.__Type,
+            WellKnownTypes.__TypeKind,
+            WellKnownTypes.String,
+            WellKnownTypes.Boolean,
+            WellKnownTypes.Float,
+            WellKnownTypes.ID,
+            WellKnownTypes.Int,
         };
 
     private static readonly HashSet<string> _directiveNames =
         new()
         {
-            Skip,
-            Include,
-            Deprecated,
-            Defer,
-            Stream,
-            SpecifiedBy
+            WellKnownDirectives.Skip,
+            WellKnownDirectives.Include,
+            WellKnownDirectives.Deprecated,
+            WellKnownDirectives.Defer,
+            WellKnownDirectives.Stream,
+            WellKnownDirectives.SpecifiedBy
         };
 
     public static bool IsBuiltInType(string name)
@@ -43,7 +40,7 @@ public static class BuiltInTypes
     {
         if (schema is null)
         {
-            throw new System.ArgumentNullException(nameof(schema));
+            throw new ArgumentNullException(nameof(schema));
         }
 
         var definitions = new List<IDefinitionNode>();

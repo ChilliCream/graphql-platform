@@ -3,7 +3,7 @@
 
 namespace HotChocolate.Utilities.Introspection;
 
-internal class IntrospectionData
+internal sealed class IntrospectionData
 {
     public Schema Schema { get; set; }
 }
