@@ -11,6 +11,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using static HotChocolate.Utilities.Introspection.FeatureInspector;
 
 namespace HotChocolate.Utilities.Introspection;
 
@@ -176,6 +177,33 @@ public static class IntrospectionClient
         using var internalClient = new DefaultGraphQLHttpClient(client, disposeInnerClient: false);
         return await GetSchemaFeaturesAsync(internalClient, cancellationToken).ConfigureAwait(false);
     }
+    
+    /// <summary>
+    /// Gets the supported GraphQL features from the server by doing an introspection query.
+    /// </summary>
+    /// <param name="client">
+    /// The HttpClient that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="options">
+    /// The introspection options.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns an object that indicates what features are supported.</returns>
+    public static async Task<SchemaFeatures> GetSchemaFeaturesAsync(
+        HttpClient client, 
+        IntrospectionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        if (client is null)
+        {
+            throw new ArgumentNullException(nameof(client));
+        }
+        
+        using var internalClient = GraphQLHttpClient.Create(client, disposeHttpClient: false);
+        return await GetSchemaFeaturesAsync(internalClient, options, cancellationToken).ConfigureAwait(false);
+    }
 
     /// <summary>
     /// Gets the supported GraphQL features from the server by doing an introspection query.
@@ -187,8 +215,27 @@ public static class IntrospectionClient
     /// The cancellation token.
     /// </param>
     /// <returns>Returns an object that indicates what features are supported.</returns>
+    public static Task<SchemaFeatures> GetSchemaFeaturesAsync(
+        GraphQLHttpClient client,
+        CancellationToken cancellationToken = default)
+        => GetSchemaFeaturesAsync(client, default, cancellationToken);
+
+    /// <summary>
+    /// Gets the supported GraphQL features from the server by doing an introspection query.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="options">
+    /// The introspection options.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns an object that indicates what features are supported.</returns>
     public static async Task<SchemaFeatures> GetSchemaFeaturesAsync(
         GraphQLHttpClient client,
+        IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
         if (client is null)
@@ -196,15 +243,7 @@ public static class IntrospectionClient
             throw new ArgumentNullException(nameof(client));
         }
 
-        var request = IntrospectionQueryHelper.CreateFeatureQuery();
-
-        var result =
-            await ExecuteIntrospectionAsync(client, request, cancellationToken)
-                .ConfigureAwait(false);
-
-        EnsureNoGraphQLErrors(result);
-
-        return LegacySchemaFeatures.FromIntrospectionResult(result);
+        return await InspectSchemaAsync(client, options, cancellationToken).ConfigureAwait(false);
     }
 
     private static void EnsureNoGraphQLErrors(IntrospectionResult result)

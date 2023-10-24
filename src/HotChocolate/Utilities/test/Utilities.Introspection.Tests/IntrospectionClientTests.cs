@@ -109,3 +109,15 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
     }
 }
+
+public class IntrospectionQueryBuilderTests
+{
+    [Fact]
+    public void Create_Default_Query()
+    {
+        var features = new SchemaFeatures();
+        var options = new IntrospectionOptions();
+
+        IntrospectionQueryBuilder.CreateQuery(features, options);
+    }
+}

@@ -25,7 +25,7 @@ public class SchemaFeatures
 
     public bool HasStreamSupport { get; internal set;}
 
-    public bool HasSpecifiedBySupport { get; internal set;}
-
-    public bool HasArgumentDeprecationSupport { get; internal set;}
+    public bool HasArgumentDeprecation { get; internal set;}
+    
+    public bool HasSchemaDescription { get; internal set;}
 }

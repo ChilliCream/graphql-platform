@@ -1,5 +1,5 @@
 query IntrospectionQuery {
-  schema: __schema {
+  __schema {
     queryType {
       name
     }

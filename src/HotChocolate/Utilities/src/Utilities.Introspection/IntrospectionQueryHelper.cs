@@ -23,15 +23,18 @@ internal static class IntrospectionQueryHelper
     private const string _onField = "onField";
     private const string _directivesField = "directives";
     private const string _operationName = "IntrospectionQuery";
-    
+
     public static GraphQLHttpRequest CreateInspectArgumentDeprecationRequest(IntrospectionOptions options)
         => CreateRequest(CreateOperation(GetArgumentDeprecationQuery()), options);
-    
+
     public static GraphQLHttpRequest CreateInspectDirectiveTypeRequest(IntrospectionOptions options)
         => CreateRequest(CreateOperation(GetInspectDirectiveTypeQuery()), options);
-    
+
     public static GraphQLHttpRequest CreateInspectDirectivesRequest(IntrospectionOptions options)
-        => CreateRequest(CreateOperation(GetInspectDirectiveTypeQuery()), options);
+        => CreateRequest(CreateOperation(GetInspectDirectivesQuery()), options);
+
+    public static GraphQLHttpRequest CreateInspectSchemaRequest(IntrospectionOptions options)
+        => CreateRequest(CreateOperation(GetInspectSchemaQuery()), options);
 
     private static OperationRequest CreateOperation(string document)
         => new(document, operationName: _operationName);
@@ -150,12 +153,14 @@ internal static class IntrospectionQueryHelper
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             null);
-    
+
     private static string GetArgumentDeprecationQuery() => GetQueryFile(_argumentDeprecationQueryFile);
-    
+
     private static string GetInspectDirectiveTypeQuery() => GetQueryFile(_inspectDirectiveType);
-    
+
     private static string GetInspectDirectivesQuery() => GetQueryFile(_inspectDirectives);
+
+    private static string GetInspectSchemaQuery() => GetQueryFile(_inspectSchema);
 
     private static string GetIntrospectionQuery() => GetQueryFile(_introspectionQueryFile);
 
@@ -187,12 +192,20 @@ internal static class IntrospectionQueryHelper
     }
 }
 
-public struct IntrospectionOptions
+public struct IntrospectionOptions : IEquatable<IntrospectionOptions>
 {
+    public IntrospectionOptions()
+    {
+        Method = GraphQLHttpMethod.Post;
+        Uri = null;
+        OnMessageCreated = null;
+        TypeDepth = 6;
+    }
+
     /// <summary>
     /// Gets or sets the HTTP method.
     /// </summary>
-    public GraphQLHttpMethod Method { get; set; } = GraphQLHttpMethod.Post;
+    public GraphQLHttpMethod Method { get; set; }
 
     /// <summary>
     /// Gets or sets the GraphQL request <see cref="Uri"/>.
@@ -203,4 +216,31 @@ public struct IntrospectionOptions
     /// Gets or sets a hook that can alter the <see cref="HttpRequestMessage"/> before it is sent.
     /// </summary>
     public OnHttpRequestMessageCreated? OnMessageCreated { get; set; }
+
+    public int TypeDepth { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool operator ==(IntrospectionOptions left, IntrospectionOptions right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(IntrospectionOptions left, IntrospectionOptions right)
+    {
+        return !(left == right);
+    }
+
+    public bool Equals(IntrospectionOptions other)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -2,10 +2,11 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Transport.Http;
+using static HotChocolate.Utilities.Introspection.IntrospectionQueryHelper;
 
 namespace HotChocolate.Utilities.Introspection;
 
-internal class FeatureInspector
+internal sealed class FeatureInspector
 {
     private readonly SchemaFeatures _features = new();
     private readonly GraphQLHttpClient _client;
@@ -22,20 +23,34 @@ internal class FeatureInspector
         _cancellationToken = cancellationToken;
     }
 
-    private Task InspectAsync()
+    public static async Task<SchemaFeatures> InspectSchemaAsync(
+        GraphQLHttpClient client,
+        IntrospectionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        var inspector = new FeatureInspector(client, options, cancellationToken);
+        await inspector.RunInspectionAsync().ConfigureAwait(false);
+        return inspector._features;
+    }
+    
+    private Task RunInspectionAsync()
         => Task.WhenAll(
             InspectArgumentDeprecationAsync(),
-            InspectDirectiveTypeAsync());
+            InspectDirectiveTypeAsync(),
+            InspectDirectivesAsync(),
+            InspectSchemaAsync());
 
     private async Task InspectArgumentDeprecationAsync()
     {
+        // Queries/inspect_argument_deprecation.graphql
+
         /*
         {
             "data": {
                 "__type": {
                     "fields": [
                         {
-                            "name": "args", 
+                            "name": "args",
                             "args": [
                                 {
                                     "name": "includeDeprecated" # <--- we are looking for this!
@@ -47,19 +62,19 @@ internal class FeatureInspector
             }
         }
         */
-        
-        var request = IntrospectionQueryHelper.CreateInspectArgumentDeprecationRequest(_options);
+
+        var request = CreateInspectArgumentDeprecationRequest(_options);
 
         using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
 
-        if (result.Data.ValueKind is JsonValueKind.Object && 
+        if (result.Data.ValueKind is JsonValueKind.Object &&
             result.Data.TryGetProperty("__type", out var type) &&
             type.TryGetProperty("fields", out var fields))
         {
             foreach (var field in fields.EnumerateArray())
             {
-                if (!field.TryGetProperty("name", out var fieldName) || 
+                if (!field.TryGetProperty("name", out var fieldName) ||
                     fieldName.ValueKind is not JsonValueKind.String)
                 {
                     return;
@@ -67,7 +82,7 @@ internal class FeatureInspector
 
                 if (fieldName.GetString().EqualsOrdinal("args"))
                 {
-                    if(!field.TryGetProperty("args", out var args) ||
+                    if (!field.TryGetProperty("args", out var args) ||
                         args.ValueKind is not JsonValueKind.Array)
                     {
                         return;
@@ -79,17 +94,18 @@ internal class FeatureInspector
                             argName.ValueKind is JsonValueKind.String &&
                             argName.GetString().EqualsOrdinal("includeDeprecated"))
                         {
-                            _features.HasArgumentDeprecationSupport = true;
+                            _features.HasArgumentDeprecation = true;
                         }
                     }
                 }
             }
-        } 
-        
+        }
     }
 
     private async Task InspectDirectiveTypeAsync()
     {
+        // Queries/inspect_directive_type.graphql
+
         /*
         {
             "data": {
@@ -106,8 +122,8 @@ internal class FeatureInspector
             }
         }
         */
-        
-        var request = IntrospectionQueryHelper.CreateInspectDirectiveTypeRequest(_options);
+
+        var request = CreateInspectDirectiveTypeRequest(_options);
 
         using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
@@ -118,23 +134,23 @@ internal class FeatureInspector
         {
             var locations = false;
             var isRepeatable = false;
-            
+
             foreach (var field in fields.EnumerateArray())
             {
-                if (!field.TryGetProperty("name", out var fieldName) || 
+                if (!field.TryGetProperty("name", out var fieldName) ||
                     fieldName.ValueKind is not JsonValueKind.String)
                 {
                     return;
                 }
 
                 var fieldNameString = fieldName.GetString();
-                
+
                 if (fieldNameString.EqualsOrdinal("locations"))
                 {
                     locations = true;
                     _features.HasDirectiveLocations = true;
                 }
-                
+
                 if (fieldNameString.EqualsOrdinal("isRepeatable"))
                 {
                     isRepeatable = true;
@@ -142,6 +158,153 @@ internal class FeatureInspector
                 }
 
                 if (locations && isRepeatable)
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    private async Task InspectDirectivesAsync()
+    {
+        // Queries/inspect_directives.graphql
+
+        /*
+        {
+            "data": {
+                "__schema": {
+                    "directives": [
+                        {
+                            "name": "skip"
+                        },
+                        {
+                            "name": "include"
+                        },
+                        {
+                            "name": "defer"             # <--- we are looking for this!
+                        },
+                        {
+                            "name": "stream"            # <--- or this!
+                        },
+                        {
+                            "name": "deprecated"
+                        }
+                    ]
+                }
+            }
+        }
+        */
+
+        var request = CreateInspectDirectivesRequest(_options);
+
+        using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
+        using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
+
+        if (result.Data.ValueKind is JsonValueKind.Object &&
+            result.Data.TryGetProperty("__schema", out var schema) &&
+            schema.TryGetProperty("directives", out var directives))
+        {
+            var defer = false;
+            var stream = false;
+
+            foreach (var directive in directives.EnumerateArray())
+            {
+                if (!directive.TryGetProperty("name", out var directiveName) ||
+                    directiveName.ValueKind is not JsonValueKind.String)
+                {
+                    return;
+                }
+
+                var directiveNameString = directiveName.GetString();
+
+                if (directiveNameString.EqualsOrdinal("defer"))
+                {
+                    defer = true;
+                    _features.HasDeferSupport = true;
+                }
+
+                if (directiveNameString.EqualsOrdinal("stream"))
+                {
+                    stream = true;
+                    _features.HasStreamSupport = true;
+                }
+
+                if (defer && stream)
+                {
+                    return;
+                }
+            }
+        }
+    }
+    
+    private async Task InspectSchemaAsync()
+    {
+        // Queries/inspect_schema.graphql
+
+        /*
+        {
+            "data": {
+                "__type": {
+                    "fields": [
+                        {
+                            "name": "description"               # <--- we are looking for this!
+                        },
+                        {
+                            "name": "types"
+                        },
+                        {
+                            "name": "queryType"
+                        },
+                        {
+                            "name": "mutationType"
+                        },
+                        {
+                            "name": "subscriptionType"          # <--- or this!
+                        },
+                        {
+                            "name": "directives"
+                        }
+                    ]
+                }
+            }
+        }
+        */
+
+        var request = CreateInspectSchemaRequest(_options);
+
+        using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
+        using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
+        
+        if (result.Data.ValueKind is JsonValueKind.Object &&
+            result.Data.TryGetProperty("__type", out var type) &&
+            type.TryGetProperty("fields", out var fields))
+        {
+            var description = false;
+            var subscriptionType = false;
+
+            foreach (var field in fields.EnumerateArray())
+            {
+                if (!field.TryGetProperty("name", out var fieldName) ||
+                    fieldName.ValueKind is not JsonValueKind.String)
+                {
+                    return;
+                }
+
+                var fieldNameString = fieldName.GetString();
+
+                if (fieldNameString.EqualsOrdinal("description"))
+                {
+                    description = true;
+                    _features.HasSchemaDescription = true;
+                }
+
+                if (fieldNameString.EqualsOrdinal("subscriptionType"))
+                {
+                    subscriptionType = true;
+                    _features.HasSubscriptionSupport = true;
+                }
+
+                if (description && subscriptionType)
                 {
                     return;
                 }
