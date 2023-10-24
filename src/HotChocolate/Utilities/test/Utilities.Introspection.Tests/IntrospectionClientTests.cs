@@ -6,6 +6,7 @@ using System.Net.Http;
 using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
+
 // ReSharper disable AccessToDisposedClosure
 
 namespace HotChocolate.Utilities.Introspection;
@@ -107,17 +108,5 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
-    }
-}
-
-public class IntrospectionQueryBuilderTests
-{
-    [Fact]
-    public void Create_Default_Query()
-    {
-        var features = new SchemaFeatures();
-        var options = new IntrospectionOptions();
-
-        IntrospectionQueryBuilder.CreateQuery(features, options);
     }
 }

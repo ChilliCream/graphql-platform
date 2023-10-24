@@ -219,6 +219,11 @@ public struct IntrospectionOptions : IEquatable<IntrospectionOptions>
 
     public int TypeDepth { get; set; }
 
+    internal void Validate()
+    {
+        
+    }
+
     public override bool Equals(object obj)
     {
         throw new NotImplementedException();

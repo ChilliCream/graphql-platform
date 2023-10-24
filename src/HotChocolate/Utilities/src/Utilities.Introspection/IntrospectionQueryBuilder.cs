@@ -6,7 +6,7 @@ namespace HotChocolate.Utilities.Introspection;
 
 internal static class IntrospectionQueryBuilder
 {
-    public static DocumentNode CreateQuery(SchemaFeatures features, IntrospectionOptions options)
+    public static DocumentNode Build(SchemaFeatures features, IntrospectionOptions options)
     {
         var selections = new List<ISelectionNode>();
 
