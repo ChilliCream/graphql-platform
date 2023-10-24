@@ -30,10 +30,10 @@ internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
             runtimeType: typeof(ArgumentNode))
         {
             Fields =
-                {
-                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                    new(Names.Value, type: nonNullStringType, pureResolver: Resolvers.Value)
-                }
+            {
+                new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                new(Names.Value, type: nonNullStringType, pureResolver: Resolvers.Value)
+            }
         };
     }
 
