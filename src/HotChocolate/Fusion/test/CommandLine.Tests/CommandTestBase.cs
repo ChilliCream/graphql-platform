@@ -19,7 +19,7 @@ public abstract class CommandTestBase : IDisposable
     {
         var files = new Files(CreateTempFile(), CreateTempFile(), new[] { CreateTempFile() });
         var configJson = PackageHelper.FormatSubgraphConfig(
-            new(configuration.Name, configuration.Clients));
+            new(configuration.Name, configuration.Clients, configuration.ConfigurationExtensions));
         File.WriteAllText(files.SchemaFile, configuration.Schema);
         File.WriteAllText(files.TransportConfigFile, configJson);
         File.WriteAllText(files.ExtensionFiles[0], configuration.Extensions[0]);

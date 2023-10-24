@@ -19,11 +19,11 @@ internal static class PackageHelper
     private const string _schemaExtensionKind = "urn:graphql:schema-extensions";
     private const string _subgraphConfigKind = "urn:hotchocolate:fusion:subgraph-config";
     private const string _subgraphConfigId = "subgraph-config";
-    
+
     private static readonly SyntaxSerializerOptions _serializerOptions =
         new()
         {
-            Indented = true, 
+            Indented = true,
             MaxDirectivesPerLine = 0
         };
 
@@ -51,7 +51,7 @@ internal static class PackageHelper
         await AddTransportConfigToPackage(package, transportConfig);
         await AddSchemaExtensionsToPackage(package, extensions);
     }
-    
+
     public static async Task<SubgraphConfigurationDto> LoadSubgraphConfigFromSubgraphPackageAsync(
         string packageFile,
         CancellationToken ct = default)
@@ -60,7 +60,7 @@ internal static class PackageHelper
         var transportConfig = await ReadSubgraphConfigPartAsync(package, ct);
         return transportConfig;
     }
-    
+
     public static async Task ReplaceSubgraphConfigInSubgraphPackageAsync(
         string packageFile,
         SubgraphConfigurationDto config)
@@ -108,7 +108,8 @@ internal static class PackageHelper
             subgraphConfig.Name,
             schema.ToString(_serializerOptions),
             extensions.Select(t => t.ToString(_serializerOptions)).ToArray(),
-            subgraphConfig.Clients);
+            subgraphConfig.Clients,
+            subgraphConfig.Extensions);
     }
 
     public static async Task ExtractSubgraphPackageAsync(
@@ -203,6 +204,7 @@ internal static class PackageHelper
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
         var configs = new List<IClientConfiguration>();
         var subgraph = default(string?);
+        var extensions = default(JsonElement?);
 
         foreach (var property in document.RootElement.EnumerateObject())
         {
@@ -220,6 +222,10 @@ internal static class PackageHelper
                     configs.Add(ReadWebSocketClientConfiguration(property.Value));
                     break;
 
+                case "extensions":
+                    extensions = property.Value.SafeClone();
+                    break;
+
                 default:
                     throw new NotSupportedException(
                         $"Configuration property `{property.Value}` is not supported.");
@@ -231,7 +237,7 @@ internal static class PackageHelper
             throw new InvalidOperationException("No subgraph name was specified.");
         }
 
-        return new SubgraphConfigurationDto(subgraph, configs);
+        return new SubgraphConfigurationDto(subgraph, configs, extensions);
     }
 
     public static string FormatSubgraphConfig(
@@ -255,6 +261,7 @@ internal static class PackageHelper
                     {
                         writer.WriteString("clientName", config.ClientName);
                     }
+
                     writer.WriteEndObject();
                     break;
 
@@ -266,12 +273,19 @@ internal static class PackageHelper
                     {
                         writer.WriteString("clientName", config.ClientName);
                     }
+
                     writer.WriteEndObject();
                     break;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(client));
             }
+        }
+
+        if (subgraphConfig.Extensions is not null)
+        {
+            writer.WritePropertyName("extensions");
+            subgraphConfig.Extensions.Value.WriteTo(writer);
         }
 
         writer.WriteEndObject();
@@ -354,9 +368,13 @@ internal static class PackageHelper
         await using var writer = new StreamWriter(stream, Encoding.UTF8);
         await writer.WriteAsync(FormatSubgraphConfig(subgraphConfig));
 
-        package.CreateRelationship(part.Uri, TargetMode.Internal, _subgraphConfigKind, _subgraphConfigId);
+        package.CreateRelationship(
+            part.Uri,
+            TargetMode.Internal,
+            _subgraphConfigKind,
+            _subgraphConfigId);
     }
-    
+
     private static async Task ReplaceTransportConfigInPackageAsync(
         Package package,
         SubgraphConfigurationDto subgraphConfig)

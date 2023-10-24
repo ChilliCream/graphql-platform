@@ -48,7 +48,7 @@ public class MongoDbAggregateFluentExecutable<T> : MongoDbExecutable<T>
     /// Applies filtering sorting and projections on the <see cref="IExecutable.Source"/>
     /// </summary>
     /// <returns>A aggregate fluent including the configuration of this executable</returns>
-    public IAggregateFluent<T> BuildPipeline()
+    public virtual IAggregateFluent<T> BuildPipeline()
     {
         var pipeline = _aggregate;
         if (Sorting is not null)

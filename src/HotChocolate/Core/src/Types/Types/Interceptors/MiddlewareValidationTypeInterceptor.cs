@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -170,6 +171,25 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                 sb.Append("...");
                 other = true;
             }
+        }
+    }
+}
+
+internal sealed class EnableTrueNullabilityTypeInterceptor : TypeInterceptor
+{
+    internal override bool IsEnabled(IDescriptorContext context)
+        => context.Options.EnableTrueNullability;
+
+    public override void OnBeforeCreateSchema(IDescriptorContext context, ISchemaBuilder schemaBuilder)
+    {
+        base.OnBeforeCreateSchema(context, schemaBuilder);
+    }
+
+    public override void OnAfterInitialize(ITypeDiscoveryContext discoveryContext, DefinitionBase definition)
+    {
+        if (definition is SchemaTypeDefinition schemaDef)
+        {
+            schemaDef.ContextData[WellKnownContextData.EnableTrueNullability] = true;
         }
     }
 }

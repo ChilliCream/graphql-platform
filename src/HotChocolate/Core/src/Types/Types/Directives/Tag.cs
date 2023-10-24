@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
@@ -32,6 +34,7 @@ namespace HotChocolate.Types;
     DirectiveLocation.EnumValue |
     DirectiveLocation.Schema,
     IsRepeatable = true)]
+[TagDirectiveConfig]
 public sealed class Tag
 {
     /// <summary>
@@ -54,7 +57,7 @@ public sealed class Tag
 
         Name = name;
     }
-    
+
     /// <summary>
     /// The name of the tag.
     /// </summary>

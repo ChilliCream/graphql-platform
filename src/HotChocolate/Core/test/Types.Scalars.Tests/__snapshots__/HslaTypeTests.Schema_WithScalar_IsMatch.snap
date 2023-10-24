@@ -6,5 +6,7 @@ type Query {
   scalar: Hsla
 }
 
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
 "The Hsla scalar type represents a CSS HSLA color as defined in https:\/\/www.w3.org\/TR\/css-color-3\/#hsla-color."
 scalar Hsla

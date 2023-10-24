@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
@@ -20,16 +22,21 @@ public sealed class SubgraphConfiguration
     /// <param name="clients">
     /// The list of clients that can be used to fetch data from this subgraph.
     /// </param>
+    /// <param name="configurationExtensions">
+    /// The "extensions" field of the subgraph-config.json.
+    /// </param>
     public SubgraphConfiguration(
         string name,
         string schema,
         IReadOnlyList<string> extensions,
-        IReadOnlyList<IClientConfiguration> clients)
+        IReadOnlyList<IClientConfiguration> clients,
+        JsonElement? configurationExtensions)
     {
         Name = name;
         Schema = schema;
         Extensions = extensions;
         Clients = clients;
+        ConfigurationExtensions = configurationExtensions;
     }
 
     /// <summary>
@@ -47,12 +54,16 @@ public sealed class SubgraphConfiguration
     /// <param name="clients">
     /// The list of clients that can be used to fetch data from this subgraph.
     /// </param>
+    /// <param name="configurationExtensions">
+    /// The "extensions" field of the subgraph-config.json.
+    /// </param>
     public SubgraphConfiguration(
         string name,
         string schema,
         string extensions,
-        IReadOnlyList<IClientConfiguration> clients)
-        : this(name, schema, new[] { extensions }, clients) { }
+        IReadOnlyList<IClientConfiguration> clients,
+        JsonElement? configurationExtensions)
+        : this(name, schema, new[] { extensions }, clients, configurationExtensions) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SubgraphConfiguration"/> class.
@@ -69,12 +80,16 @@ public sealed class SubgraphConfiguration
     /// <param name="client">
     /// The client that can be used to fetch data from this subgraph.
     /// </param>
+    /// <param name="configurationExtensions">
+    /// The "extensions" field of the subgraph-config.json.
+    /// </param>
     public SubgraphConfiguration(
         string name,
         string schema,
         string extensions,
-        IClientConfiguration client)
-        : this(name, schema, new[] { extensions }, new[] { client }) { }
+        IClientConfiguration client,
+        JsonElement? configurationExtensions)
+        : this(name, schema, new[] { extensions }, new[] { client }, configurationExtensions) { }
 
     /// <summary>
     /// Gets the name of the subgraph.
@@ -95,4 +110,9 @@ public sealed class SubgraphConfiguration
     /// Gets the list of clients that can be used to fetch data from this subgraph.
     /// </summary>
     public IReadOnlyList<IClientConfiguration> Clients { get; }
+
+    /// <summary>
+    /// Gets the configuration extension.
+    /// </summary>
+    public JsonElement? ConfigurationExtensions { get; }
 }

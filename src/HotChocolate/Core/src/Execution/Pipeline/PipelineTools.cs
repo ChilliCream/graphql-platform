@@ -25,19 +25,20 @@ internal static class PipelineTools
         string? operationName)
         => CreateCacheId(context, CreateOperationId(documentId, operationName));
 
-    public static void CoerceVariables(
+    public static IVariableValueCollection CoerceVariables(
         IRequestContext context,
         VariableCoercionHelper coercionHelper,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions)
     {
         if (context.Variables is not null)
         {
-            return;
+            return context.Variables;
         }
 
         if (variableDefinitions.Count == 0)
         {
             context.Variables = _noVariables;
+            return _noVariables;
         }
         else
         {
@@ -52,6 +53,7 @@ internal static class PipelineTools
                     coercedValues);
 
                 context.Variables = new VariableValueCollection(coercedValues);
+                return context.Variables;
             }
         }
     }

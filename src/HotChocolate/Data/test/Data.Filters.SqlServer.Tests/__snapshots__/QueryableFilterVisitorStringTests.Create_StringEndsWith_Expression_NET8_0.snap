@@ -13,11 +13,11 @@ atest Result:
 
 atest SQL:
 ---------------
-.param set @__p_0 'atest'
+.param set @__p_0_rewritten '%atest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE @__p_0 = '' OR substr("d"."Bar", -length(@__p_0)) = @__p_0 OR @__p_0 = ''
+WHERE "d"."Bar" LIKE @__p_0_rewritten ESCAPE '\'
 ---------------
 
 btest Result:
@@ -35,11 +35,11 @@ btest Result:
 
 btest SQL:
 ---------------
-.param set @__p_0 'btest'
+.param set @__p_0_rewritten '%btest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE @__p_0 = '' OR substr("d"."Bar", -length(@__p_0)) = @__p_0 OR @__p_0 = ''
+WHERE "d"."Bar" LIKE @__p_0_rewritten ESCAPE '\'
 ---------------
 
 null

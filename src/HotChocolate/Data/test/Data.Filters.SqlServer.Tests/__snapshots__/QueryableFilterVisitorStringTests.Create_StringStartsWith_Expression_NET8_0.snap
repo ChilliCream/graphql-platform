@@ -13,11 +13,11 @@ testa Result:
 
 testa SQL:
 ---------------
-.param set @__p_0 'testa'
+.param set @__p_0_rewritten 'testa%'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE @__p_0 = '' OR ("d"."Bar" LIKE @__p_0 || '%' AND substr("d"."Bar", 1, length(@__p_0)) = @__p_0) OR @__p_0 = ''
+WHERE "d"."Bar" LIKE @__p_0_rewritten ESCAPE '\'
 ---------------
 
 testb Result:
@@ -35,11 +35,11 @@ testb Result:
 
 testb SQL:
 ---------------
-.param set @__p_0 'testb'
+.param set @__p_0_rewritten 'testb%'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE @__p_0 = '' OR ("d"."Bar" LIKE @__p_0 || '%' AND substr("d"."Bar", 1, length(@__p_0)) = @__p_0) OR @__p_0 = ''
+WHERE "d"."Bar" LIKE @__p_0_rewritten ESCAPE '\'
 ---------------
 
 null

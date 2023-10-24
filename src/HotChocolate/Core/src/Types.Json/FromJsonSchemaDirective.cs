@@ -29,7 +29,8 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
 
                         if (type.IsListType())
                         {
-                            throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
+                            JsonObjectTypeExtensions.InferListResolver(def);
+                            return;
                         }
 
                         if (namedType is ScalarType scalarType)
@@ -46,7 +47,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
         }
     }
 
-    private string? GetPropertyName(DirectiveNode directive)
+    private static string? GetPropertyName(DirectiveNode directive)
     {
         if (directive.Arguments.Count == 0)
         {

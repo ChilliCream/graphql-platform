@@ -21,6 +21,7 @@ public class StitchingTestContext
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddCustomerSchema(),
             app => app
                 .UseWebSockets()
@@ -32,6 +33,7 @@ public class StitchingTestContext
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddContractSchema(),
             app => app
                 .UseWebSockets()

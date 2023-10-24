@@ -1097,7 +1097,7 @@ public class RequestPlannerTests
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
         await snapshot.MatchAsync();
     }
-    
+
     [Fact]
     public async Task Query_Plan_28_Simple_Root_Data()
     {
@@ -1107,16 +1107,16 @@ public class RequestPlannerTests
             type Query {
                 data: Data
             }
-            
+
             type Data {
                 a: String
             }
-            
+
             schema {
                 query: Query
             }
             """;
-        
+
         var schemaB =
             """
             type Query {
@@ -1126,18 +1126,17 @@ public class RequestPlannerTests
             type Data {
                 b: String
             }
-            
+
             schema {
                 query: Query
             }
             """;
-        
-        var fusionGraph = await FusionGraphComposer.ComposeAsync(
-            new[]
-            {
-                new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients()),
-                new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients()),
-            });
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
+        {
+            new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+        });
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -1156,7 +1155,7 @@ public class RequestPlannerTests
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
         await snapshot.MatchAsync();
     }
-    
+
     [Fact]
     public async Task Query_Plan_29_Simple_Root_List_Data()
     {
@@ -1175,7 +1174,7 @@ public class RequestPlannerTests
                 query: Query
             }
             """;
-        
+
         var schemaB =
             """
             type Query {
@@ -1190,13 +1189,12 @@ public class RequestPlannerTests
                 query: Query
             }
             """;
-        
-        var fusionGraph = await FusionGraphComposer.ComposeAsync(
-            new[]
-            {
-                new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients()),
-                new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients()),
-            });
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
+        {
+            new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+        });
 
         // act
         var result = await CreateQueryPlanAsync(
@@ -1215,7 +1213,7 @@ public class RequestPlannerTests
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
         await snapshot.MatchAsync();
     }
-    
+
     [Fact]
     public async Task Query_Plan_30_Entity_Data()
     {
@@ -1235,7 +1233,7 @@ public class RequestPlannerTests
                 query: Query
             }
             """;
-        
+
         var schemaB =
             """
             type Query {
@@ -1251,13 +1249,12 @@ public class RequestPlannerTests
                 query: Query
             }
             """;
-        
-        var fusionGraph = await FusionGraphComposer.ComposeAsync(
-            new[]
-            {
-                new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients()),
-                new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients()),
-            });
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
+        {
+            new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+        });
 
         // act
         var result = await CreateQueryPlanAsync(

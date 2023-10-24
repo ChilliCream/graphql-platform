@@ -9,7 +9,7 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public class InputFormatter
+public sealed class InputFormatter
 {
     private readonly ITypeConverter _converter;
 

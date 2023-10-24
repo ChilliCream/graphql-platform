@@ -204,6 +204,16 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool StripLeadingIFromInterface { get; set; } = false;
 
     /// <summary>
+    /// Specifies that the true nullability proto type shall be enabled.
+    /// </summary>
+    public bool EnableTrueNullability { get; set; } = false;
+
+    /// <summary>
+    /// Specifies that the @tag directive shall be registered with the type system.
+    /// </summary>
+    public bool EnableTag { get; set; } = true;
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -236,7 +246,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableStream = options.EnableStream,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
-            StripLeadingIFromInterface = options.StripLeadingIFromInterface
+            StripLeadingIFromInterface = options.StripLeadingIFromInterface,
+            EnableTrueNullability = options.EnableTrueNullability,
+            EnableTag = options.EnableTag
         };
     }
 }

@@ -6,5 +6,7 @@ type Query {
   scalar: NonEmptyString
 }
 
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
 "The NonEmptyString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character"
 scalar NonEmptyString

@@ -1,0 +1,14 @@
+{
+  "data": {
+    "products": [
+      {
+        "productId": "ProductA",
+        "displayName": "Product A"
+      },
+      {
+        "productId": "ProductB",
+        "displayName": "Product B"
+      }
+    ]
+  }
+}
