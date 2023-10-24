@@ -1,3 +1,5 @@
+// ReSharper disable IntroduceOptionalParameters.Global
+
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -14,9 +16,9 @@ using static System.Net.Http.HttpCompletionOption;
 namespace HotChocolate.Transport.Http;
 
 /// <summary>
-/// A default implementation of <see cref="IGraphQLHttpClient"/> that supports the GraphQL over HTTP spec draft.
+/// A default implementation of <see cref="GraphQLHttpClient"/> that supports the GraphQL over HTTP spec draft.
 /// </summary>
-public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
+public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 {
     private readonly HttpClient _http;
     private readonly bool _disposeInnerClient;
@@ -70,7 +72,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
     /// <paramref name="request"/> has no <see cref="GraphQLHttpRequest.Uri"/> and the underlying
     /// HTTP client has no <see cref="HttpClient.BaseAddress"/>.
     /// </exception>
-    public Task<GraphQLHttpResponse> SendAsync(
+    public override Task<GraphQLHttpResponse> SendAsync(
         GraphQLHttpRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -297,9 +299,9 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 #endif
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        if (_disposeInnerClient)
+        if (disposing && _disposeInnerClient)
         {
             _http.Dispose();
         }

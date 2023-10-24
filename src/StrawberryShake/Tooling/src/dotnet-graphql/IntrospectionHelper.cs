@@ -1,6 +1,3 @@
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Utilities.Introspection;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
@@ -17,10 +14,9 @@ public static class IntrospectionHelper
     {
         try
         {
-            var introspectionClient = new IntrospectionClient();
             await fileSystem.WriteToAsync(
                     fileName,
-                    stream => introspectionClient.DownloadSchemaAsync(
+                    stream => IntrospectionClient.DownloadSchemaAsync(
                         client, stream, cancellationToken))
                 .ConfigureAwait(false);
             return true;

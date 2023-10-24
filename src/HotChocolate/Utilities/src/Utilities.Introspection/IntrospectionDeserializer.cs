@@ -11,13 +11,12 @@ internal static class IntrospectionDeserializer
     public static DocumentNode Deserialize(IntrospectionResult result)
     {
         var typeDefinitions = new List<IDefinitionNode>();
-        typeDefinitions.Add(CreateSchema(result.Data.Schema));
+        typeDefinitions.Add(CreateSchema(result.Data!.Schema));
         typeDefinitions.AddRange(CreateTypes(result.Data.Schema.Types));
 
         foreach (var directive in result.Data.Schema.Directives)
         {
-            var directiveDefinition =
-                CreateDirectiveDefinition(directive);
+            var directiveDefinition = CreateDirectiveDefinition(directive);
             if (directiveDefinition.Locations.Any())
             {
                 typeDefinitions.Add(directiveDefinition);
@@ -60,7 +59,7 @@ internal static class IntrospectionDeserializer
         OperationType operation,
         ICollection<OperationTypeDefinitionNode> operations)
     {
-        if (rootType != null && rootType.Name != null)
+        if (rootType is { Name: not null })
         {
             operations.Add(new OperationTypeDefinitionNode(
                 null,
@@ -252,9 +251,8 @@ internal static class IntrospectionDeserializer
     private static DirectiveDefinitionNode CreateDirectiveDefinition(
         Directive directive)
     {
-        var locations = directive.Locations == null
-            ? InferDirectiveLocation(directive)
-            : directive.Locations.Select(t => new NameNode(t)).ToList();
+        var locations = directive.Locations?.Select(t => new NameNode(t)).ToList() ?? 
+            InferDirectiveLocation(directive);
 
         return new DirectiveDefinitionNode
         (

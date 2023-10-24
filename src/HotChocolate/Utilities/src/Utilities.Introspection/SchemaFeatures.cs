@@ -25,7 +25,7 @@ internal sealed class SchemaFeatures : ISchemaFeatures
     {
         var features = new SchemaFeatures();
 
-        var directive = result.Data.Schema.Types.FirstOrDefault(t =>
+        var directive = result.Data!.Schema.Types.FirstOrDefault(t =>
             t.Name.Equals(__Directive, StringComparison.Ordinal));
 
         if (directive is not null)

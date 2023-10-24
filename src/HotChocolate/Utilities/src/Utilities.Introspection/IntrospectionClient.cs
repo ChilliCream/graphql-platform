@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,26 +14,34 @@ using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Utilities.Introspection;
 
-[SuppressMessage("Performance", "CA1822:Mark members as static")]
-public class IntrospectionClient : IIntrospectionClient
+/// <summary>
+/// A utility for introspecting a GraphQL server and
+/// downloading the introspection result as GraphQL SDL.
+/// </summary>
+public static class IntrospectionClient
 {
-    private static readonly JsonSerializerOptions _serializerOptions;
-
-#pragma warning disable CA1810
-    static IntrospectionClient()
+    private static readonly JsonSerializerOptions _serializerOptions = new()
     {
-        var options = new JsonSerializerOptions();
-        options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.Converters.Add(new JsonStringEnumConverter());
-        _serializerOptions = options;
-    }
-#pragma warning restore CA1810
-
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() }
+    };
+    
     internal static JsonSerializerOptions SerializerOptions => _serializerOptions;
 
-    public static IntrospectionClient Default { get; } = new();
-
-    public async Task DownloadSchemaAsync(
+    /// <summary>
+    /// Downloads the schema information from a GraphQL server
+    /// and writes it as GraphQL SDL to the given stream.
+    /// </summary>
+    /// <param name="client">
+    /// The HttpClient that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="stream">
+    /// The stream to which the schema shall be written to.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    public static async Task DownloadSchemaAsync(
         HttpClient client,
         Stream stream,
         CancellationToken cancellationToken = default)
@@ -51,12 +56,25 @@ public class IntrospectionClient : IIntrospectionClient
             throw new ArgumentNullException(nameof(stream));
         }
         
-        using var internalClient = new DefaultGraphQLHttpClient(client, disposeInnerClient: false);
+        using var internalClient = GraphQLHttpClient.Create(client, disposeHttpClient: false);
         await DownloadSchemaAsync(internalClient, stream, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task DownloadSchemaAsync(
-        IGraphQLHttpClient client,
+    /// <summary>
+    /// Downloads the schema information from a GraphQL server
+    /// and writes it as GraphQL SDL to the given stream.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="stream">
+    /// The stream to which the schema shall be written to.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    public static async Task DownloadSchemaAsync(
+        GraphQLHttpClient client,
         Stream stream,
         CancellationToken cancellationToken = default)
     {
@@ -79,15 +97,43 @@ public class IntrospectionClient : IIntrospectionClient
             .ConfigureAwait(false);
     }
     
-    public Task<DocumentNode> DownloadSchemaAsync(
+    /// <summary>
+    /// Downloads the schema information from a GraphQL server
+    /// and returns the schema syntax tree.
+    /// </summary>
+    /// <param name="client">
+    /// The HttpClient that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns a parsed GraphQL schema syntax tree.</returns>
+    public static async Task<DocumentNode> DownloadSchemaAsync(
         HttpClient client, 
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (client is null)
+        {
+            throw new ArgumentNullException(nameof(client));
+        }
+        
+        using var internalClient = GraphQLHttpClient.Create(client, disposeHttpClient: false);
+        return await DownloadSchemaAsync(internalClient, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<DocumentNode> DownloadSchemaAsync(
-        IGraphQLHttpClient client,
+    /// <summary>
+    /// Downloads the schema information from a GraphQL server
+    /// and returns the schema syntax tree.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns a parsed GraphQL schema syntax tree.</returns>
+    public static async Task<DocumentNode> DownloadSchemaAsync(
+        GraphQLHttpClient client,
         CancellationToken cancellationToken = default)
     {
         if (client is null)
@@ -108,7 +154,17 @@ public class IntrospectionClient : IIntrospectionClient
         return IntrospectionDeserializer.Deserialize(result).RemoveBuiltInTypes();
     }
     
-    public async Task<ISchemaFeatures> GetSchemaFeaturesAsync(
+    /// <summary>
+    /// Gets the supported GraphQL features from the server by doing an introspection query.
+    /// </summary>
+    /// <param name="client">
+    /// The HttpClient that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns an object that indicates what features are supported.</returns>
+    public static async Task<ISchemaFeatures> GetSchemaFeaturesAsync(
         HttpClient client, 
         CancellationToken cancellationToken = default)
     {
@@ -121,8 +177,18 @@ public class IntrospectionClient : IIntrospectionClient
         return await GetSchemaFeaturesAsync(internalClient, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ISchemaFeatures> GetSchemaFeaturesAsync(
-        IGraphQLHttpClient client,
+    /// <summary>
+    /// Gets the supported GraphQL features from the server by doing an introspection query.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns an object that indicates what features are supported.</returns>
+    public static async Task<ISchemaFeatures> GetSchemaFeaturesAsync(
+        GraphQLHttpClient client,
         CancellationToken cancellationToken = default)
     {
         if (client is null)
@@ -141,7 +207,7 @@ public class IntrospectionClient : IIntrospectionClient
         return SchemaFeatures.FromIntrospectionResult(result);
     }
 
-    private void EnsureNoGraphQLErrors(IntrospectionResult result)
+    private static void EnsureNoGraphQLErrors(IntrospectionResult result)
     {
         if (result.Errors is null)
         {
@@ -163,7 +229,7 @@ public class IntrospectionClient : IIntrospectionClient
     }
 
     private static async Task<IntrospectionResult> ExecuteIntrospectionAsync(
-        IGraphQLHttpClient client,
+        GraphQLHttpClient client,
         OperationRequest operation,
         CancellationToken cancellationToken)
     {

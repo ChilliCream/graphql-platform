@@ -20,10 +20,8 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
-        var introspectionClient = new IntrospectionClient();
-
         // act
-        var features = await introspectionClient.GetSchemaFeaturesAsync(client);
+        var features = await IntrospectionClient.GetSchemaFeaturesAsync(client);
 
         // assert
         Assert.True(features.HasDirectiveLocations);
@@ -35,10 +33,8 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
     public async Task GetSchemaFeatures_HttpClient_Is_Null()
     {
         // arrange
-        var introspectionClient = new IntrospectionClient();
-
         // act
-        Task Error() => introspectionClient.GetSchemaFeaturesAsync(((HttpClient)null)!);
+        Task Error() => IntrospectionClient.GetSchemaFeaturesAsync(((HttpClient)null)!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
@@ -52,10 +48,8 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         var client = server.CreateClient();
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
-        var introspectionClient = new IntrospectionClient();
-
         // act
-        var schema = await introspectionClient.DownloadSchemaAsync(client);
+        var schema = await IntrospectionClient.DownloadSchemaAsync(client);
 
         // assert
         schema.ToString(true).MatchSnapshot();
@@ -65,10 +59,8 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
     public async Task Download_Schema_AST_HttpClient_Is_Null()
     {
         // arrange
-        var introspectionClient = new IntrospectionClient();
-
         // act
-        Task Error() => introspectionClient.DownloadSchemaAsync(((HttpClient)null)!);
+        Task Error() => IntrospectionClient.DownloadSchemaAsync(((HttpClient)null)!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
@@ -81,12 +73,11 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         var server = CreateStarWarsServer();
         var client = server.CreateClient();
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
-
-        var introspectionClient = new IntrospectionClient();
+        
         using var stream = new MemoryStream();
 
         // act
-        await introspectionClient.DownloadSchemaAsync(client, stream);
+        await IntrospectionClient.DownloadSchemaAsync(client, stream);
 
         // assert
         Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
@@ -96,11 +87,10 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
     public async Task Download_Schema_SDL_HttpClient_Is_Null()
     {
         // arrange
-        var introspectionClient = new IntrospectionClient();
         using var stream = new MemoryStream();
 
         // act
-        Task Error() => introspectionClient.DownloadSchemaAsync(((HttpClient)null)!, stream);
+        Task Error() => IntrospectionClient.DownloadSchemaAsync(((HttpClient)null)!, stream);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
@@ -111,10 +101,9 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
     {
         // arrange
         var server = CreateStarWarsServer();
-        var introspectionClient = new IntrospectionClient();
 
         // act
-        Task Error() => introspectionClient.DownloadSchemaAsync(server.CreateClient(), null!);
+        Task Error() => IntrospectionClient.DownloadSchemaAsync(server.CreateClient(), null!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
