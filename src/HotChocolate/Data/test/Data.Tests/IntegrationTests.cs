@@ -1,6 +1,8 @@
 // ReSharper disable ClassNeverInstantiated.Local
 // ReSharper disable UnusedMember.Local
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable MoveLocalFunctionAfterJumpStatement
 
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +11,6 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-// ReSharper disable MemberCanBePrivate.Global
 
 namespace HotChocolate.Data;
 
@@ -460,8 +461,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
-    public async Task
-        ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -501,8 +501,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
-    public async Task
-        ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -741,8 +740,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
-    public async Task
-        Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
+    public async Task Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -762,8 +760,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
-    public async Task
-        Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
+    public async Task Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -783,8 +780,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
-    public async Task
-    Schema_Should_Generate_WhenStaticTypeExtensionWithOffsetPagingOnStaticResolver()
+    public async Task Schema_Should_Generate_WhenStaticTypeExtensionWithOffsetPagingOnStaticResolver()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -799,7 +795,26 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         // assert
         result.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task Duplicate_Filter_Attribute_Throws()
+    {
+        // arrange
+        async Task Error() 
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<DuplicateAttribute>()
+                .AddFiltering()
+                .BuildRequestExecutorAsync();
 
+        // act & assert
+        var error = await Assert.ThrowsAsync<SchemaException>(Error);
+        error.Errors[0].Message.MatchInlineSnapshot(
+            """
+            The field `DuplicateAttribute.addBook` declares the data middleware `UseFiltering` more than once.
+            """);
+    }
+    
     [QueryType]
     public static class StaticQuery
     {
@@ -940,6 +955,21 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     {
         [UseFirstOrDefault]
         [UseProjection]
+        public IQueryable<Author> AddBook(Book book) 
+            => new[]
+            {
+                new Author
+                {
+                    Name = "Author", 
+                    Books = new List<Book> { book }
+                }
+            }.AsQueryable();
+    }
+    
+    public class DuplicateAttribute
+    {
+        [UseFiltering]
+        [UseFiltering]
         public IQueryable<Author> AddBook(Book book) 
             => new[]
             {
