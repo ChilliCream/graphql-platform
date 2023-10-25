@@ -15,21 +15,6 @@ namespace HotChocolate.Configuration;
 public interface ITypeCompletionContext : ITypeSystemObjectContext
 {
     /// <summary>
-    /// Defines if the type that is being completed is the query type.
-    /// </summary>
-    bool? IsQueryType { get; }
-
-    /// <summary>
-    /// Defines if the type that is being completed is the mutation type.
-    /// </summary>
-    bool? IsMutationType { get; }
-
-    /// <summary>
-    /// Defines if the type that is being completed is the subscription type.
-    /// </summary>
-    bool? IsSubscriptionType { get; }
-
-    /// <summary>
     /// Global middleware components.
     /// </summary>
     IReadOnlyList<FieldMiddleware> GlobalComponents { get; }

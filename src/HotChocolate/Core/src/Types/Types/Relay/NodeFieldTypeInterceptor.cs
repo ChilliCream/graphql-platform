@@ -27,13 +27,13 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
-        if (operationType is OperationType.Query && definition is ObjectTypeDefinition typeDef)
+        if (operationType is OperationType.Query)
         {
             _queryContext = completionContext;
-            _queryTypeDefinition = typeDef;
+            _queryTypeDefinition = definition;
         }
     }
 

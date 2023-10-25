@@ -25,7 +25,7 @@ internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
 
         return new ObjectTypeDefinition(
             Names.__AppliedDirective,
-            TypeResources.___AppliedDirective_Description,
+            TypeResources.AppliedDirective_Description,
             typeof(DirectiveNode))
         {
             Fields =

@@ -363,7 +363,8 @@ public class QueryableProjectionFilterTests
 
         // assert
         await Snapshot
-            .Create().AddResult(res1)
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

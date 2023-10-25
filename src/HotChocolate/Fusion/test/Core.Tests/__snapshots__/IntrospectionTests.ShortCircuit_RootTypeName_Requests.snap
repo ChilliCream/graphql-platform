@@ -4140,10 +4140,10 @@ Fusion Graph
 ---------------
 schema
   @fusion(version: 1)
-  @httpClient(subgraph: "Reviews2", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Reviews2", baseAddress: "ws:\/\/localhost:5000\/graphql")
-  @httpClient(subgraph: "Accounts", baseAddress: "http:\/\/localhost:5000\/graphql")
-  @webSocketClient(subgraph: "Accounts", baseAddress: "ws:\/\/localhost:5000\/graphql") {
+  @transport(subgraph: "Reviews2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Reviews2", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
+  @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
   query: Query
   mutation: Mutation
   subscription: Subscription
@@ -4170,6 +4170,9 @@ type Query {
   usersById(ids: [ID!]!): [User!]!
     @variable(subgraph: "Accounts", name: "ids", argument: "ids")
     @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+  viewer: Viewer!
+    @resolver(subgraph: "Reviews2", select: "{ viewer }")
+    @resolver(subgraph: "Accounts", select: "{ viewer }")
 }
 
 type Mutation {
@@ -4183,7 +4186,7 @@ type Mutation {
 
 type Subscription {
   onNewReview: Review!
-    @resolver(subgraph: "Reviews2", select: "{ onNewReview }", kind: "SUBSCRIPTION")
+    @resolver(subgraph: "Reviews2", select: "{ onNewReview }", kind: "SUBSCRIBE")
 }
 
 type AddReviewPayload {
@@ -4207,8 +4210,8 @@ type Product
 
 type Review implements Node
   @variable(subgraph: "Reviews2", name: "Review_id", select: "id")
-  @resolver(subgraph: "Reviews2", select: "{ node(id: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $Review_id) }", arguments: [ { name: "Review_id", type: "ID!" } ])
+  @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH") {
   author: User!
     @source(subgraph: "Reviews2")
   body: String!
@@ -4219,16 +4222,21 @@ type Review implements Node
     @source(subgraph: "Reviews2")
 }
 
+type SomeData {
+  accountValue: String!
+    @source(subgraph: "Accounts")
+  reviewsValue: String!
+    @source(subgraph: "Reviews2")
+}
+
+"The user who wrote the review."
 type User implements Node
   @variable(subgraph: "Reviews2", name: "User_id", select: "id")
   @variable(subgraph: "Accounts", name: "User_id", select: "id")
   @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY")
-  @resolver(subgraph: "Reviews2", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY")
-  @resolver(subgraph: "Accounts", select: "{ node(id: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH_BY_KEY") {
+  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
+  @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
     @source(subgraph: "Accounts")
   id: ID!
@@ -4243,6 +4251,17 @@ type User implements Node
     @source(subgraph: "Accounts")
 }
 
+type Viewer {
+  data: SomeData!
+    @source(subgraph: "Reviews2")
+    @source(subgraph: "Accounts")
+  latestReview: Review
+    @source(subgraph: "Reviews2")
+  user: User
+    @source(subgraph: "Accounts")
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
@@ -4256,14 +4275,11 @@ input AddReviewInput {
 }
 
 input AddUserInput {
-  birthdate: DateTime!
+  birthdate: Date!
   name: String!
   username: String!
 }
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
-
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime
 ---------------

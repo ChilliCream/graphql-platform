@@ -1,0 +1,59 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+"This is the query type"
+type Query {
+  "field 1"
+  field1("arg 1" arg1: String): Foo!
+    @variable(subgraph: "A", name: "arg1", argument: "arg1")
+    @resolver(subgraph: "A", select: "{ field1(arg1: $arg1) }", arguments: [ { name: "arg1", type: "String" } ])
+    @variable(subgraph: "B", name: "arg1", argument: "arg1")
+    @resolver(subgraph: "B", select: "{ field1(arg1: $arg1) }", arguments: [ { name: "arg1", type: "String" } ])
+  field2(arg1: FooInput): Foo!
+    @variable(subgraph: "A", name: "arg1", argument: "arg1")
+    @resolver(subgraph: "A", select: "{ field2(arg1: $arg1) }", arguments: [ { name: "arg1", type: "FooInput" } ])
+    @variable(subgraph: "B", name: "arg1", argument: "arg1")
+    @resolver(subgraph: "B", select: "{ field2(arg1: $arg1) }", arguments: [ { name: "arg1", type: "FooInput" } ])
+  field3: A_B
+    @resolver(subgraph: "A", select: "{ field3 }")
+    @resolver(subgraph: "B", select: "{ field3 }")
+}
+
+type A {
+  a: String
+    @source(subgraph: "A")
+    @source(subgraph: "B")
+}
+
+type B {
+  a: String
+    @source(subgraph: "A")
+    @source(subgraph: "B")
+}
+
+"This is the interface"
+interface Field2Interface {
+  "field 2 description"
+  field2("arg 1 field 2" arg1: FooInput): Foo!
+}
+
+"union A_B1"
+union A_B = A | B
+
+"input FooInput"
+input FooInput {
+  "bar input field"
+  bar: String!
+}
+
+"Foo enum type"
+enum Foo {
+  "Bar enum value"
+  BAR
+    @source(subgraph: "A")
+    @source(subgraph: "B")
+}

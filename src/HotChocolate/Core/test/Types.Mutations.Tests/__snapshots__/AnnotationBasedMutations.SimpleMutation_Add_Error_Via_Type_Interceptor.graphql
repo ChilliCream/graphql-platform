@@ -1,0 +1,29 @@
+schema {
+  mutation: SimpleMutationInputOverride
+}
+
+interface Error {
+  message: String!
+}
+
+type DoSomethingPayload {
+  string: String
+  errors: [DoSomethingError!]
+}
+
+type OutOfMemoryError implements Error {
+  message: String!
+}
+
+type SimpleMutationInputOverride {
+  doSomething(something: DoSomethingInput!): DoSomethingPayload!
+}
+
+union DoSomethingError = OutOfMemoryError
+
+input DoSomethingInput {
+  myInput1: String!
+  myInput2: String!
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

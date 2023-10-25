@@ -7,6 +7,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
   </ItemGroup>

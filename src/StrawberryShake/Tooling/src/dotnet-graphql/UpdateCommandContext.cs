@@ -10,13 +10,15 @@ public class UpdateCommandContext
         string? path,
         string? token,
         string? scheme,
-        Dictionary<string, IEnumerable<string>> customHeaders)
+        Dictionary<string, IEnumerable<string>> customHeaders,
+        int typeDepth)
     {
         Uri = uri;
         Path = path;
         Token = token;
         Scheme = scheme;
         CustomHeaders = customHeaders;
+        TypeDepth = typeDepth;
     }
 
     public Uri? Uri { get; }
@@ -24,4 +26,5 @@ public class UpdateCommandContext
     public string? Token { get; }
     public string? Scheme { get; }
     public Dictionary<string, IEnumerable<string>> CustomHeaders { get; }
+    public int TypeDepth { get; }
 }

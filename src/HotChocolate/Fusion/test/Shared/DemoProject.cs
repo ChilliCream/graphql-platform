@@ -6,6 +6,8 @@ using HotChocolate.Fusion.Shared.Patients;
 using HotChocolate.Fusion.Shared.Products;
 using HotChocolate.Fusion.Shared.Reviews;
 using HotChocolate.Fusion.Shared.Shipping;
+using HotChocolate.Fusion.Shared.Books;
+using HotChocolate.Fusion.Shared.Authors;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities.Introspection;
@@ -29,6 +31,8 @@ public sealed class DemoProject : IDisposable
         DemoSubgraph shipping,
         DemoSubgraph appointment,
         DemoSubgraph patient1,
+        DemoSubgraph books,
+        DemoSubgraph authors,
         IHttpClientFactory clientFactory,
         IWebSocketConnectionFactory webSocketConnectionFactory)
     {
@@ -40,6 +44,8 @@ public sealed class DemoProject : IDisposable
         Shipping = shipping;
         Appointment = appointment;
         Patient1 = patient1;
+        Books = books;
+        Authors = authors;
         HttpClientFactory = clientFactory;
         WebSocketConnectionFactory = webSocketConnectionFactory;
     }
@@ -62,13 +68,15 @@ public sealed class DemoProject : IDisposable
 
     public DemoSubgraph Patient1 { get; }
 
+    public DemoSubgraph Books { get; }
+
+    public DemoSubgraph Authors { get; }
+
     public static async Task<DemoProject> CreateAsync(CancellationToken ct = default)
     {
         var disposables = new List<IDisposable>();
         TestServerFactory testServerFactory = new();
         disposables.Add(testServerFactory);
-
-        var introspection = new IntrospectionClient();
 
         var reviews = testServerFactory.Create(
             s => s
@@ -89,8 +97,8 @@ public sealed class DemoProject : IDisposable
 
         var reviewsClient = reviews.CreateClient();
         reviewsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var reviewsSchema = await introspection
-            .DownloadSchemaAsync(reviewsClient, ct)
+        var reviewsSchema = await IntrospectionClient
+            .IntrospectServerAsync(reviewsClient, ct)
             .ConfigureAwait(false);
 
         var reviews2 = testServerFactory.Create(
@@ -112,8 +120,8 @@ public sealed class DemoProject : IDisposable
 
         var reviews2Client = reviews2.CreateClient();
         reviews2Client.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var reviews2Schema = await introspection
-            .DownloadSchemaAsync(reviews2Client, ct)
+        var reviews2Schema = await IntrospectionClient
+            .IntrospectServerAsync(reviews2Client, ct)
             .ConfigureAwait(false);
 
         var accounts = testServerFactory.Create(
@@ -133,8 +141,8 @@ public sealed class DemoProject : IDisposable
 
         var accountsClient = accounts.CreateClient();
         accountsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var accountsSchema = await introspection
-            .DownloadSchemaAsync(accountsClient, ct)
+        var accountsSchema = await IntrospectionClient
+            .IntrospectServerAsync(accountsClient, ct)
             .ConfigureAwait(false);
 
         var products = testServerFactory.Create(
@@ -155,8 +163,8 @@ public sealed class DemoProject : IDisposable
 
         var productsClient = products.CreateClient();
         productsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var productsSchema = await introspection
-            .DownloadSchemaAsync(productsClient, ct)
+        var productsSchema = await IntrospectionClient
+            .IntrospectServerAsync(productsClient, ct)
             .ConfigureAwait(false);
 
         var shipping = testServerFactory.Create(
@@ -173,8 +181,8 @@ public sealed class DemoProject : IDisposable
 
         var shippingClient = shipping.CreateClient();
         shippingClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var shippingSchema = await introspection
-            .DownloadSchemaAsync(shippingClient, ct)
+        var shippingSchema = await IntrospectionClient
+            .IntrospectServerAsync(shippingClient, ct)
             .ConfigureAwait(false);
 
         var appointment = testServerFactory.Create(
@@ -193,8 +201,8 @@ public sealed class DemoProject : IDisposable
 
         var appointmentClient = appointment.CreateClient();
         appointmentClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var appointmentSchema = await introspection
-            .DownloadSchemaAsync(appointmentClient, ct)
+        var appointmentSchema = await IntrospectionClient
+            .IntrospectServerAsync(appointmentClient, ct)
             .ConfigureAwait(false);
 
         var patient1 = testServerFactory.Create(
@@ -211,8 +219,42 @@ public sealed class DemoProject : IDisposable
 
         var patient1Client = patient1.CreateClient();
         patient1Client.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var patient1Schema = await introspection
-            .DownloadSchemaAsync(patient1Client, ct)
+        var patient1Schema = await IntrospectionClient
+            .IntrospectServerAsync(patient1Client, ct)
+            .ConfigureAwait(false);
+
+        var books = testServerFactory.Create(
+            s => s
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType<BookQuery>()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
+            c => c
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        disposables.Add(books);
+
+        var booksClient = books.CreateClient();
+        booksClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+        var booksSchema = await IntrospectionClient
+            .IntrospectServerAsync(booksClient, ct)
+            .ConfigureAwait(false);
+
+         var authors = testServerFactory.Create(
+            s => s
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType<AuthorQuery>()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
+            c => c
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        disposables.Add(authors);
+
+        var authorsClient = authors.CreateClient();
+        authorsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+        var authorsSchema = await IntrospectionClient
+            .IntrospectServerAsync(authorsClient, ct)
             .ConfigureAwait(false);
 
         var httpClients = new Dictionary<string, Func<HttpClient>>
@@ -287,12 +329,35 @@ public sealed class DemoProject : IDisposable
                     return httpClient;
                 }
             },
+             {
+                "Books", () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = books.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
+                    return httpClient;
+                }
+            },
+            {
+                "Authors", () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = books.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
+                    return httpClient;
+                }
+            },
         };
 
         var webSocketClients = new Dictionary<string, Func<IWebSocketConnection>>
         {
             {
                 "Reviews", () => new MockWebSocketConnection(reviews.CreateWebSocketClient())
+            },
+            {
+                "Reviews2", () => new MockWebSocketConnection(reviews2.CreateWebSocketClient())
             },
             {
                 "Accounts", () => new MockWebSocketConnection(accounts.CreateWebSocketClient())
@@ -308,6 +373,12 @@ public sealed class DemoProject : IDisposable
             },
             {
                 "Patient1", () => new MockWebSocketConnection(patient1.CreateWebSocketClient())
+            },
+            {
+                "Books", () => new MockWebSocketConnection(books.CreateWebSocketClient())
+            },
+            {
+                "Authors", () => new MockWebSocketConnection(authors.CreateWebSocketClient())
             },
         };
 
@@ -355,6 +426,18 @@ public sealed class DemoProject : IDisposable
                 new Uri("ws://localhost:5000/graphql"),
                 patient1Schema,
                 patient1),
+            new DemoSubgraph(
+                "Books",
+                booksClient.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                booksSchema,
+                books),
+            new DemoSubgraph(
+                "Authors",
+                authorsClient.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                authorsSchema,
+                authors),    
             new MockHttpClientFactory(httpClients),
             new MockWebSocketConnectionFactory(webSocketClients));
     }

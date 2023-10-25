@@ -33,7 +33,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
 
         var classBuilder = ClassBuilder
             .New()
-            .SetAccessModifier(AccessModifier.Public)
+            .SetAccessModifier(settings.AccessModifier)
             .AddImplements(TypeNames.IEntityIdSerializer)
             .SetName(fileName);
 

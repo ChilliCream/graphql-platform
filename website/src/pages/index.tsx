@@ -7,6 +7,7 @@ import { BananaCakePop } from "@/components/images/banana-cake-pop";
 import { BlogPostBananaCakePopApis } from "@/components/images/blog-post-banana-cake-pop-apis";
 import { BlogPostEFMeetsGraphQL } from "@/components/images/blog-post-ef-meets-graphql";
 import { BlogPostHotChocolate13 } from "@/components/images/blog-post-hot-chocolate-13";
+import { BlogPostGraphQLFusion } from "@/components/images/blog-post-graphql-fusion";
 import { Layout } from "@/components/layout";
 import { Link } from "@/components/misc/link";
 import {
@@ -74,6 +75,11 @@ const IndexPage: FC = () => {
           showStatus={false}
           showThumbs={false}
         >
+          <Slide>
+            <Link to="/blog/2023/08/15/graphql-fusion">
+              <BlogPostGraphQLFusion />
+            </Link>
+          </Slide>
           <Slide>
             <Link to="/blog/2023/02/08/new-in-hot-chocolate-13">
               <BlogPostHotChocolate13 />

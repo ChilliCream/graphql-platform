@@ -251,11 +251,21 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
     private ISelectionSet ResolveSelectionSet(
         QueryPlanContext context,
         ExecutionStep executionStep)
-        => executionStep.ParentSelection is null
+    {
+        if (executionStep is SelectionExecutionStep selectionExecStep && 
+            selectionExecStep.Resolver is null &&
+            selectionExecStep.SelectionResolvers.Count == 0 &&
+            selectionExecStep.ParentSelectionPath is not null)
+        {
+            return context.Operation.RootSelectionSet;
+        }
+        
+        return executionStep.ParentSelection is null
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
                 _schema.GetType<Types.ObjectType>(executionStep.SelectionSetTypeMetadata.Name));
+    }
 
     private readonly record struct BacklogItem(NodeAndStep[] Batch, Sequence Parent);
 }

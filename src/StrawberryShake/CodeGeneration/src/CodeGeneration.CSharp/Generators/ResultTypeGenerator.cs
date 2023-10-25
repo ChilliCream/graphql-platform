@@ -39,6 +39,7 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetComment(descriptor.Description)
             .SetName(fileName)
             .AddEquality(fileName, equalityProperties);

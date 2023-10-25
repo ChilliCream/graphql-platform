@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -10,10 +11,22 @@ namespace HotChocolate.Stitching.SchemaDefinitions;
 internal sealed class SchemaDefinitionTypeInterceptor : TypeInterceptor
 {
     private readonly bool _publishOnSchema;
+    private ITypeCompletionContext _queryContext = default!;
 
     public SchemaDefinitionTypeInterceptor(bool publishOnSchema)
     {
         _publishOnSchema = publishOnSchema;
+    }
+
+    internal override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    {
+        if (operationType is OperationType.Query)
+        {
+            _queryContext = completionContext;
+        }
     }
 
     public override void OnBeforeCompleteType(
@@ -22,7 +35,7 @@ internal sealed class SchemaDefinitionTypeInterceptor : TypeInterceptor
     {
         // when we are visiting the query type we will add the schema definition field.
         if (_publishOnSchema &&
-            (completionContext.IsQueryType ?? false) &&
+            ReferenceEquals(completionContext, _queryContext) &&
             definition is ObjectTypeDefinition objectTypeDefinition &&
             !objectTypeDefinition.Fields.Any(t => t.Name.Equals(SchemaDefinitionField)))
         {

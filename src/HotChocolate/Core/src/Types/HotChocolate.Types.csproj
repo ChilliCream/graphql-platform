@@ -31,6 +31,7 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Filters" />
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting" />
     <InternalsVisibleTo Include="HotChocolate.Types.Selections" />
+    <InternalsVisibleTo Include="HotChocolate.Stitching" />
 
     <!--Tests-->
     <InternalsVisibleTo Include="HotChocolate.Types.Filters.Tests" />
@@ -52,16 +53,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
-    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Types.Shared\HotChocolate.Types.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\TypeResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TypeResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="Types\ObjectType.Initialization.cs">
       <DependentUpon>ObjectType.cs</DependentUpon>
     </Compile>
@@ -127,6 +123,11 @@
     </Compile>
     <Compile Update="Types\Descriptors\Conventions\DescriptorContext.Services.cs">
       <DependentUpon>DescriptorContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\TypeResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TypeResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 

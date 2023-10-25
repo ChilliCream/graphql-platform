@@ -53,12 +53,11 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// </summary>
     public bool IsSuccessStatusCode => _message.IsSuccessStatusCode;
 
-
     /// <summary>
     /// Gets the reason phrase which typically is sent by servers together with the status code.
     /// </summary>
     public string? ReasonPhrase => _message.ReasonPhrase;
-
+    
     /// <summary>
     /// Throws an exception if the HTTP response was unsuccessful.
     /// </summary>

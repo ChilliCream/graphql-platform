@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Execution;
@@ -17,13 +18,15 @@ internal sealed class FusionExecutionContext : IDisposable
     private readonly GraphQLClientFactory _clientFactory;
     private readonly IIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
+    private readonly NodeIdParser _nodeIdParser;
 
     public FusionExecutionContext(
         FusionGraphConfiguration configuration,
         QueryPlan queryPlan,
         OperationContextOwner operationContextOwner,
         GraphQLClientFactory clientFactory,
-        IIdSerializer idSerializer)
+        IIdSerializer idSerializer,
+        NodeIdParser nodeIdParser)
     {
         Configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));
@@ -35,6 +38,8 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(clientFactory));
         _idSerializer = idSerializer ??
             throw new ArgumentNullException(nameof(idSerializer));
+        _nodeIdParser = nodeIdParser ?? 
+            throw new ArgumentNullException(nameof(nodeIdParser));
         _schemaName = Schema.Name;
     }
 
@@ -96,9 +101,9 @@ internal sealed class FusionExecutionContext : IDisposable
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
         return _idSerializer.Serialize(_schemaName, typeName, id.Value);
     }
-
-    public IdValue ParseId(string formattedId)
-        => _idSerializer.Deserialize(formattedId);
+    
+    public string ParseTypeNameFromId(string id)
+        => _nodeIdParser.ParseTypeName(id);
 
     public async Task<GraphQLResponse> ExecuteAsync(
         string subgraphName,
@@ -155,5 +160,6 @@ internal sealed class FusionExecutionContext : IDisposable
             context.QueryPlan,
             operationContextOwner,
             context._clientFactory,
-            context._idSerializer);
+            context._idSerializer,
+            context._nodeIdParser);
 }

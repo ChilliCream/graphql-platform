@@ -33,6 +33,8 @@ public static class RequestExecutorServiceCollectionExtensions
         services.AddOptions();
 
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+        services.TryAddSingleton<DefaultRequestContextAccessor>();
+        services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
 
         services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
         {
@@ -62,7 +64,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddOperationContextPool()
             .TryAddDeferredWorkStatePool()
             .TryAddDataLoaderTaskCachePool()
-            .TryAddPathSegmentPool()
             .TryAddOperationCompilerPool();
 
         // global executor services

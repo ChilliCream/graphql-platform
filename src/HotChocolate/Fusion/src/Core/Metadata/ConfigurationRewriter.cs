@@ -38,9 +38,9 @@ public abstract class ConfigurationRewriter : IConfigurationRewriter
             if (!ReferenceEquals(rewritten, client))
             {
                 var arguments = new List<ArgumentNode>();
-                arguments.Add(new ArgumentNode(ClientNameArg, rewritten.ClientName));
+                arguments.Add(new ArgumentNode(ClientGroupArg, rewritten.ClientName));
                 arguments.Add(new ArgumentNode(SubgraphArg, rewritten.SubgraphName));
-                arguments.Add(new ArgumentNode(BaseAddressArg, rewritten.EndpointUri.ToString()));
+                arguments.Add(new ArgumentNode(LocationArg, rewritten.EndpointUri.ToString()));
                 Replace(client.SyntaxNode!, client.SyntaxNode!.WithArguments(arguments));
             }
         }
@@ -52,9 +52,9 @@ public abstract class ConfigurationRewriter : IConfigurationRewriter
             if (!ReferenceEquals(rewritten, client))
             {
                 var arguments = new List<ArgumentNode>();
-                arguments.Add(new ArgumentNode(ClientNameArg, rewritten.ClientName));
+                arguments.Add(new ArgumentNode(ClientGroupArg, rewritten.ClientName));
                 arguments.Add(new ArgumentNode(SubgraphArg, rewritten.SubgraphName));
-                arguments.Add(new ArgumentNode(BaseAddressArg, rewritten.EndpointUri.ToString()));
+                arguments.Add(new ArgumentNode(LocationArg, rewritten.EndpointUri.ToString()));
                 Replace(client.SyntaxNode!, client.SyntaxNode!.WithArguments(arguments));
             }
         }

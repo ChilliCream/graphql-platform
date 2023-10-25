@@ -64,7 +64,9 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                         roots.Add(siblingExecutionStep.SubgraphName);
                     }
 
-                    schemas.TryAdd(siblingExecutionStep.SubgraphName, siblingExecutionStep);
+                    // Tracks the most recent execution step (by query plan step order) targeting a given subgraph
+                    // Replacing a previous execution step if necessary. 
+                    schemas[siblingExecutionStep.SubgraphName] = siblingExecutionStep;
                 }
 
                 // clean and fill requires set
@@ -94,7 +96,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 // already depends on.
                 var variables = OrderByUsage(step.SelectionSetTypeMetadata.Variables, currentStep);
 
-                // if we have root steps as siblings we will prfer to fulfill the requirements
+                // if we have root steps as siblings we will prefer to fulfill the requirements
                 // from these steps.
                 if (roots.Count > 0 && requires.Count > 0)
                 {
@@ -165,7 +167,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
                 // if we do by key batching the current execution step must
                 // re-export its requirements so we know where entities belong to.
-                if (currentStep.Resolver.Kind is ResolverKind.BatchByKey)
+                if (currentStep.Resolver.Kind is ResolverKind.Batch)
                 {
                     foreach (var variable in step.SelectionSetTypeMetadata.Variables)
                     {

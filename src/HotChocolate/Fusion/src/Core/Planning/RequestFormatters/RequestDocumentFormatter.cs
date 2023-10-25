@@ -59,6 +59,15 @@ internal abstract class RequestDocumentFormatter
             path = p;
         }
 
+        if (executionStep.Resolver is null &&
+            executionStep.SelectionResolvers.Count == 0 &&
+            executionStep.ParentSelectionPath is not null)
+        {
+            rootSelectionSetNode = CreateRootLevelQuery(
+                executionStep.ParentSelectionPath,
+                rootSelectionSetNode);
+        }
+
         var operationDefinitionNode = new OperationDefinitionNode(
             null,
             context.CreateRemoteOperationName(),
@@ -73,6 +82,26 @@ internal abstract class RequestDocumentFormatter
         return new RequestDocument(
             new DocumentNode(new[] { operationDefinitionNode }),
             path);
+    }
+
+    private SelectionSetNode CreateRootLevelQuery(
+        SelectionPath path, 
+        SelectionSetNode selectionSet)
+    {
+        var current = path;
+
+        while (current is not null)
+        {
+            selectionSet = new SelectionSetNode(
+                new[]
+                {
+                    current.Selection.SyntaxNode.WithSelectionSet(selectionSet)
+                });
+            
+            current = current.Parent;
+        }
+
+        return selectionSet;
     }
 
     protected virtual SelectionSetNode CreateRootSelectionSetNode(

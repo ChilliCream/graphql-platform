@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+<PropertyGroup>
+  <PackageId>HotChocolate.Types.Shared</PackageId>
+  <AssemblyName>HotChocolate.Types.Shared</AssemblyName>
+  <RootNamespace>HotChocolate.Types</RootNamespace>
+  <Description>Contains shared helper methods.</Description>
+</PropertyGroup>
+
+<PropertyGroup>
+  <Nullable>enable</Nullable>
+  <ImplicitUsings>enable</ImplicitUsings>
+  
+  <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+  <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
+  <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsTrimmable>
+</PropertyGroup>
+
+<ItemGroup>
+  <InternalsVisibleTo Include="HotChocolate.Types" />
+  <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection" />
+</ItemGroup>
+
+<ItemGroup>
+  <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+</ItemGroup>
+
+</Project>

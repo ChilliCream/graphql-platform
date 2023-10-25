@@ -322,3 +322,4 @@ conferences.db-wal
 
 .server/
 .nuke/
+.mono/

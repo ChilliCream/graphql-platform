@@ -1,0 +1,77 @@
+name: Publish Website
+
+# When to trigger the workflow
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-website.yml
+      - .docker/website/**
+      - website/**
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Docker Login
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.CONTAINER_REG_URL }}
+          username: ${{ secrets.CONTAINER_REG_USERNAME }}
+          password: ${{ secrets.CONTAINER_REG_PASSWORD }}
+
+      - run: echo ${{ secrets.CONTAINER_REG_URL }}
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18.x"
+          cache: "yarn"
+          cache-dependency-path: "website/yarn.lock"
+
+      - name: Cache Yarn Packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            website/.yarn/cache
+            website/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install Packages
+        run: yarn --immutable --network-timeout 100000
+        working-directory: website
+
+      - name: Build Website
+        run: yarn build --prefix-paths
+        working-directory: website
+
+      - name: Build WebSite Container
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: .docker/website/dockerfile
+          push: true
+          tags: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
+
+      - name: Deploy to Azure WebApp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ccc-p-us1-website
+          slot-name: "production"
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          images: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
+
+      - name: Purge CDN Cache
+        run: |
+          curl --request POST \
+            --url https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Bearer ${{ secrets.CLOUDFLARE_AUTH_TOKEN }}' \
+            --data '{ "purge_everything": true }'

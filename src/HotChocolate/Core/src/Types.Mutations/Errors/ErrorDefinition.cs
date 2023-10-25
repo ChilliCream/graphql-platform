@@ -1,17 +1,15 @@
 namespace HotChocolate.Types;
 
-internal sealed class ErrorDefinition
+internal sealed class ErrorDefinition(
+    Type runtimeType,
+    Type schemaType,
+    CreateError? factory = null)
 {
-    public ErrorDefinition(Type runtimeType, Type schemaType, CreateError factory)
-    {
-        RuntimeType = runtimeType;
-        SchemaType = schemaType;
-        Factory = factory;
-    }
+    private static readonly CreateError _empty = o => o;
 
-    public Type SchemaType { get; }
+    public Type SchemaType { get; } = schemaType;
 
-    public Type RuntimeType { get; }
+    public Type RuntimeType { get; } = runtimeType;
 
-    public CreateError Factory { get; }
+    public CreateError Factory { get; } = factory ?? _empty;
 }

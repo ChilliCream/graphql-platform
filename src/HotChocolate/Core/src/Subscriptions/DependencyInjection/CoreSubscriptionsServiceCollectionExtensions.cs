@@ -30,7 +30,32 @@ public static class CoreSubscriptionsServiceCollectionExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.TryAddSingleton<ISubscriptionDiagnosticEvents>(
+        builder.Services.AddSubscriptionDiagnostics();
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds the subscription provider diagnostics.
+    /// </summary>
+    /// <param name="services">
+    /// The ServiceCollection.
+    /// </param>
+    /// <returns>
+    /// Returns the ServiceCollection for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="services"/> is <c>null</c>.
+    /// </exception>
+    public static IServiceCollection AddSubscriptionDiagnostics(
+        this IServiceCollection services)
+    {
+        if (services is null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        services.TryAddSingleton<ISubscriptionDiagnosticEvents>(
             sp =>
             {
                 var listeners = sp.GetService<IEnumerable<ISubscriptionDiagnosticEventsListener>>();
@@ -61,6 +86,6 @@ public static class CoreSubscriptionsServiceCollectionExtensions
                 return new AggregateSubscriptionDiagnosticEventsListener(listenerArray);
             });
 
-        return builder;
+        return services;
     }
 }

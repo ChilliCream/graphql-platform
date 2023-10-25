@@ -1,13 +1,6 @@
-using System;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using StrawberryShake.Tools.OAuth;
-
 namespace StrawberryShake.Tools;
 
-public class DownloadCommandHandler
-    : CommandHandler<DownloadCommandArguments>
+public class DownloadCommandHandler : CommandHandler<DownloadCommandArguments>
 {
     public DownloadCommandHandler(
         IFileSystem fileSystem,
@@ -41,7 +34,10 @@ public class DownloadCommandHandler
             FileSystem.ResolvePath(arguments.FileName.Value()?.Trim(), "schema.graphql"),
             accessToken?.Token,
             accessToken?.Scheme,
-            CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
+            CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values),
+            arguments.TypeDepth.HasValue() && 
+            int.TryParse(arguments.TypeDepth.Value(), out var typeDepth) && 
+            typeDepth >= 3 ? typeDepth : 6);
 
         FileSystem.EnsureDirectoryExists(
             FileSystem.GetDirectoryName(context.FileName)!);
@@ -62,7 +58,7 @@ public class DownloadCommandHandler
             context.Uri, context.Token, context.Scheme, context.CustomHeaders);
 
         return await IntrospectionHelper.DownloadSchemaAsync(
-                client, FileSystem, activity, context.FileName,
+                client, FileSystem, activity, context.FileName, context.TypeDepth,
                 cancellationToken)
             .ConfigureAwait(false);
     }

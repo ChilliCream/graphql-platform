@@ -1,0 +1,26 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 5,
+          "column": 13
+        }
+      ],
+      "path": [
+        "book",
+        "author",
+        "name"
+      ]
+    }
+  ],
+  "data": {
+    "book": {
+      "name": "Some book!",
+      "author": {
+        "name": null
+      }
+    }
+  }
+}

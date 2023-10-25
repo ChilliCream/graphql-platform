@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -13,7 +14,7 @@ public sealed class DemoSubgraph
             Indented = true,
             MaxDirectivesPerLine = 0
         };
-    
+
     public DemoSubgraph(
         string name,
         Uri httpEndpointUri,
@@ -39,17 +40,15 @@ public sealed class DemoSubgraph
     public TestServer Server { get; }
 
     public SubgraphConfiguration ToConfiguration(
-        string extensions, 
+        string extensions,
         bool onlyHttp = false)
         => onlyHttp
             ? new SubgraphConfiguration(
                 Name,
                 Schema.ToString(_serializerOptions),
                 Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
-                new IClientConfiguration[]
-                {
-                    new HttpClientConfiguration(HttpEndpointUri)
-                })
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                null)
             : new SubgraphConfiguration(
                 Name,
                 Schema.ToString(_serializerOptions),
@@ -58,19 +57,39 @@ public sealed class DemoSubgraph
                 {
                     new HttpClientConfiguration(HttpEndpointUri),
                     new WebSocketClientConfiguration(WebSocketEndpointUri)
-                });
+                },
+                null);
 
-     public SubgraphConfiguration ToConfiguration(
-         bool onlyHttp = false)
-        => onlyHttp 
+    public SubgraphConfiguration ToConfiguration(
+        string extensions,
+        JsonElement configurationExtensions,
+        bool onlyHttp = false)
+        => onlyHttp
+            ? new SubgraphConfiguration(
+                Name,
+                Schema.ToString(_serializerOptions),
+                Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                configurationExtensions)
+            : new SubgraphConfiguration(
+                Name,
+                Schema.ToString(_serializerOptions),
+                Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
+                new IClientConfiguration[]
+                {
+                    new HttpClientConfiguration(HttpEndpointUri),
+                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                },
+                configurationExtensions);
+
+    public SubgraphConfiguration ToConfiguration(bool onlyHttp = false)
+        => onlyHttp
             ? new SubgraphConfiguration(
                 Name,
                 Schema.ToString(_serializerOptions),
                 Array.Empty<string>(),
-                new IClientConfiguration[]
-                {
-                    new HttpClientConfiguration(HttpEndpointUri)
-                })
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                null)
             : new SubgraphConfiguration(
                 Name,
                 Schema.ToString(_serializerOptions),
@@ -79,5 +98,6 @@ public sealed class DemoSubgraph
                 {
                     new HttpClientConfiguration(HttpEndpointUri),
                     new WebSocketClientConfiguration(WebSocketEndpointUri)
-                });
+                },
+                null);
 }

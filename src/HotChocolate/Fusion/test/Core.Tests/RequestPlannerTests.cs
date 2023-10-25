@@ -12,6 +12,7 @@ using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
+using HttpClientConfiguration = HotChocolate.Fusion.Composition.HttpClientConfiguration;
 
 namespace HotChocolate.Fusion;
 
@@ -541,7 +542,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
@@ -575,7 +576,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
@@ -612,7 +613,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
@@ -690,7 +691,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(
             new[]
             {
-                demoProject.Reviews2.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
@@ -1057,6 +1058,222 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task Query_Plan_27_Multiple_Require_Steps_From_Same_Subgraph()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Authors.ToConfiguration(),
+                demoProject.Books.ToConfiguration()
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                authorById(id: "1") {
+                    id,
+                    name,
+                    bio,
+                    books {
+                        id
+                        author {
+                            books {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_28_Simple_Root_Data()
+    {
+        // arrange
+        var schemaA =
+            """
+            type Query {
+                data: Data
+            }
+
+            type Data {
+                a: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+
+        var schemaB =
+            """
+            type Query {
+                data: Data
+            }
+
+            type Data {
+                b: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
+        {
+            new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+        });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                data {
+                    a
+                    b
+                }
+            }
+            """);
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_29_Simple_Root_List_Data()
+    {
+        // arrange
+        var schemaA =
+            """
+            type Query {
+                data: [Data]
+            }
+
+            type Data {
+                a: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+
+        var schemaB =
+            """
+            type Query {
+                data: [Data]
+            }
+
+            type Data {
+                b: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
+        {
+            new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+        });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                data {
+                    a
+                    b
+                }
+            }
+            """);
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_30_Entity_Data()
+    {
+        // arrange
+        var schemaA =
+            """
+            type Query {
+                entity(id: ID!): Entity
+            }
+
+            type Entity {
+                id: ID!
+                a: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+
+        var schemaB =
+            """
+            type Query {
+                entity(id: ID!): Entity
+            }
+
+            type Entity {
+                id: ID!
+                b: String
+            }
+
+            schema {
+                query: Query
+            }
+            """;
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
+        {
+            new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+        });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Query {
+                entity(id: 123) {
+                    a
+                    b
+                }
+            }
+            """);
+
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)
@@ -1095,4 +1312,10 @@ public class RequestPlannerTests
 
         return (request, queryPlan);
     }
+
+    private static IClientConfiguration[] CreateClients()
+        => new IClientConfiguration[]
+        {
+            new HttpClientConfiguration(new Uri("http://nothing"))
+        };
 }

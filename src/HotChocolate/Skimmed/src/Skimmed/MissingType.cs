@@ -24,4 +24,17 @@ public sealed class MissingType : INamedType
     public DirectiveCollection Directives { get; } = new();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public bool Equals(IType? other)
+        => Equals(other, TypeComparison.Reference);
+    
+    public bool Equals(IType? other, TypeComparison comparison)
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is MissingType otherMissing && otherMissing.Name.Equals(Name, StringComparison.Ordinal);
+    }
 }

@@ -25,9 +25,6 @@
   <data name="ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError" xml:space="preserve">
     <value>Error while building type {0}. The runtime type {1} does not defined a property `Message`</value>
   </data>
-  <data name="ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory" xml:space="preserve">
-    <value>The error type {0} does not expose any error factory.</value>
-  </data>
   <data name="ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch" xml:space="preserve">
     <value>Could not find a unique type name for input type of the argument {0} on field {1}. The type name {2} collides with {3}.
 Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "{2}")` on type {4} for naming collisions.</value>
