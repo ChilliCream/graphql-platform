@@ -26,7 +26,7 @@ internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
 
         return new ObjectTypeDefinition(
             Names.__DirectiveArgument,
-            TypeResources.__DirectiveArgument_Description,
+            TypeResources.DirectiveArgument_Description,
             runtimeType: typeof(ArgumentNode))
         {
             Fields =

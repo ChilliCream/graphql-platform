@@ -58,11 +58,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\TypeResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TypeResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="Types\ObjectType.Initialization.cs">
       <DependentUpon>ObjectType.cs</DependentUpon>
     </Compile>
@@ -128,6 +123,11 @@
     </Compile>
     <Compile Update="Types\Descriptors\Conventions\DescriptorContext.Services.cs">
       <DependentUpon>DescriptorContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\TypeResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TypeResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 

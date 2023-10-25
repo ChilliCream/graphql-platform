@@ -11,7 +11,7 @@ namespace HotChocolate.Properties {
     using System;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TypeResources {
@@ -1173,15 +1173,15 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ___AppliedDirective_Description {
+        internal static string AppliedDirective_Description {
             get {
-                return ResourceManager.GetString("__AppliedDirective_Description", resourceCulture);
+                return ResourceManager.GetString("AppliedDirective_Description", resourceCulture);
             }
         }
         
-        internal static string ___DirectiveArgument_Description {
+        internal static string DirectiveArgument_Description {
             get {
-                return ResourceManager.GetString("__DirectiveArgument_Description", resourceCulture);
+                return ResourceManager.GetString("DirectiveArgument_Description", resourceCulture);
             }
         }
         
