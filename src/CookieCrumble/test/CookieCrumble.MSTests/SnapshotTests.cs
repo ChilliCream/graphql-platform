@@ -2,53 +2,56 @@ using System.Buffers;
 using System.Text;
 using CookieCrumble.Formatters;
 using HotChocolate.Language;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CookieCrumble.XunitTests;
+namespace CookieCrumble.MSTests;
 
-public class SnapshotTests
+[TestClass]
+public class SnapshotMSTests
 {
-    public SnapshotTests()
+    [TestInitialize()]
+    public void Initialize()
     {
-        CookieCrumble.Snapshot.RegisterTestFramework(new CookieCrumble.Xunit.XunitFramework());
+        CookieCrumble.Snapshot.RegisterTestFramework(new CookieCrumble.MSTest.MSTestFramework());
     }
 
-    [Fact]
+    [TestMethod]
     public void MatchSnapshot()
     {
         new MyClass().MatchSnapshot();
     }
 
-    [Fact]
+    [TestMethod]
     public void OneSnapshot()
     {
         Snapshot.Match(new MyClass());
     }
 
-    [Fact]
+    [TestMethod]
     public void OneSnapshot_Txt_Extension()
     {
         Snapshot.Match(new MyClass(), extension: ".txt");
     }
 
-    [Fact]
+    [TestMethod]
     public void OneSnapshot_Post_Fix()
     {
         Snapshot.Match(new MyClass(), "ABC");
     }
 
-    [Fact]
+    [TestMethod]
     public void TwoSnapshot()
     {
         Snapshot.Match(new MyClass(), new MyClass());
     }
 
-    [Fact]
+    [TestMethod]
     public void ThreeSnapshot()
     {
         Snapshot.Match(new MyClass(), new MyClass(), new MyClass());
     }
 
-    [Fact]
+    [TestMethod]
     public void SnapshotBuilder()
     {
         var snapshot = new Snapshot();
@@ -58,7 +61,7 @@ public class SnapshotTests
         snapshot.Match();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task SnapshotBuilderAsync()
     {
         var snapshot = new Snapshot();
@@ -68,7 +71,7 @@ public class SnapshotTests
         await snapshot.MatchAsync();
     }
 
-    [Fact]
+    [TestMethod]
     public void SnapshotBuilder_Segment_Name()
     {
         var snapshot = new Snapshot();
@@ -78,7 +81,7 @@ public class SnapshotTests
         snapshot.Match();
     }
 
-    [Fact]
+    [TestMethod]
     public void SnapshotBuilder_Segment_Name_All()
     {
         var snapshot = new Snapshot();
@@ -88,7 +91,7 @@ public class SnapshotTests
         snapshot.Match();
     }
 
-    [Fact]
+    [TestMethod]
     public void SnapshotBuilder_Segment_Custom_Serializer_For_Segment()
     {
         var snapshot = new Snapshot();
@@ -99,7 +102,7 @@ public class SnapshotTests
         snapshot.Match();
     }
 
-    [Fact]
+    [TestMethod]
     public void SnapshotBuilder_Segment_Custom_Global_Serializer()
     {
         Snapshot.RegisterFormatter(new CustomSerializer());
@@ -109,7 +112,7 @@ public class SnapshotTests
         snapshot.Match();
     }
 
-    [Fact]
+    [TestMethod]
     public void SnapshotBuilder_GraphQL_Segment()
     {
         var snapshot = new Snapshot();
