@@ -162,7 +162,11 @@ internal partial class MiddlewareContext
             return argument.Kind ?? ValueKind.Unknown;
         }
 
-        public T Service<T>() => _parentContext.Service<T>();
+        public T Service<T>() where T: notnull => _parentContext.Service<T>();
+        
+#if NET8_0_OR_GREATER
+        public T? Service<T>(object key) where T : notnull => _parentContext.Service<T>(key);
+#endif
 
         public T Resolver<T>() => _parentContext.Resolver<T>();
 
