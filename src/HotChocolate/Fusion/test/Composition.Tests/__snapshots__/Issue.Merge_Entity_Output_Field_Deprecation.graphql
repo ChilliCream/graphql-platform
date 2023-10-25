@@ -1,0 +1,35 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  conversationByLeadId(leadId: UUID!): ConversationModel!
+    @variable(subgraph: "A", name: "leadId", argument: "leadId")
+    @resolver(subgraph: "A", select: "{ conversationByLeadId(leadId: $leadId) }", arguments: [ { name: "leadId", type: "UUID!" } ])
+  conversations: [ConversationModel!]!
+    @resolver(subgraph: "B", select: "{ conversations }")
+  leads: [LeadModel!]!
+    @resolver(subgraph: "A", select: "{ leads }")
+}
+
+type ConversationModel {
+  conversation: String!
+    @source(subgraph: "B")
+  lead: LeadModel
+    @source(subgraph: "A")
+  leadId: UUID!
+    @source(subgraph: "A")
+    @source(subgraph: "B")
+}
+
+type LeadModel {
+  id: UUID!
+    @source(subgraph: "A")
+  name: String
+    @source(subgraph: "A")
+}
+
+scalar UUID

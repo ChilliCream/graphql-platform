@@ -7,7 +7,15 @@
     <Description>Contains an introspection client to download a GraphQL schema over HTTP.</Description>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.Text.Json" Version="8.0.0-rc.2.23479.6" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="System.Text.Json" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Text.Json" Version="6.0.7" />
   </ItemGroup>
 
