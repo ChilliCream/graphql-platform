@@ -1524,11 +1524,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         schema.ToString().MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -1541,11 +1537,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         schema.ToString().MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -1571,11 +1563,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         schema.ToString().MatchSnapshot();
-#endif
     }
 
     [Fact]
