@@ -10,7 +10,6 @@ namespace HotChocolate;
 /// <see cref="InvalidSchemaCoordinateException.Coordinate"/> 
 /// could not be resolved.
 /// </summary>
-[Serializable]
 public class InvalidSchemaCoordinateException : Exception
 {
     /// <summary>
@@ -25,27 +24,8 @@ public class InvalidSchemaCoordinateException : Exception
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="InvalidSchemaCoordinateException"/> 
-    /// class with serialized data.
-    /// </summary>
-    /// <param name="info">The <see cref="SerializationInfo"/>.</param>
-    /// <param name="context">The <see cref="StreamingContext"/>.</param>
-    protected InvalidSchemaCoordinateException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
-    {
-        Coordinate = SchemaCoordinate.Parse(info.GetString(nameof(Coordinate))!);
-    }
-
-    /// <summary>
     /// The invalid schema coordinate.
     /// </summary>
     /// <value></value>
     public SchemaCoordinate Coordinate { get; }
-
-    /// <inheritdoc />
-    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        base.GetObjectData(info, context);
-        info.AddValue(nameof(Coordinate), Coordinate.ToString());
-    }
 }
