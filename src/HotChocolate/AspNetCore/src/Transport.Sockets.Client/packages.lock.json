@@ -85,12 +85,12 @@
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
-        "resolved": "4.7.0",
-        "contentHash": "S0L7oyWyQdVzD+5xIvcC8h44Vc+FY+qXDCLRh2+YsuBDORNphcxNX+tXR6ByLMjQ/7jDaXxsYBF6qbAr7ZIaFw==",
+        "resolved": "6.0.0",
+        "contentHash": "mXX66shZ4xLlI3vNLaJ0lt8OIZdmXTvIqXRdQX5HLVGSkLhINLsVhyZuX2UdRFnOGkqnwmMUs40pIIQ7mna4+A==",
         "dependencies": {
-          "System.Buffers": "4.5.0",
-          "System.Memory": "4.5.3",
-          "System.Threading.Tasks.Extensions": "4.5.2"
+          "System.Buffers": "4.5.1",
+          "System.Memory": "4.5.4",
+          "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
       "System.Memory": {
@@ -151,7 +151,7 @@
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[6.0.0, )"
         }
       },
       "hotchocolate.utilities": {
@@ -212,8 +212,8 @@
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
-        "resolved": "4.7.0",
-        "contentHash": "S0L7oyWyQdVzD+5xIvcC8h44Vc+FY+qXDCLRh2+YsuBDORNphcxNX+tXR6ByLMjQ/7jDaXxsYBF6qbAr7ZIaFw=="
+        "resolved": "6.0.0",
+        "contentHash": "mXX66shZ4xLlI3vNLaJ0lt8OIZdmXTvIqXRdQX5HLVGSkLhINLsVhyZuX2UdRFnOGkqnwmMUs40pIIQ7mna4+A=="
       },
       "System.Memory": {
         "type": "Transitive",
@@ -255,7 +255,7 @@
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[6.0.0, )"
         }
       },
       "hotchocolate.utilities": {
@@ -316,8 +316,8 @@
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
-        "resolved": "4.7.0",
-        "contentHash": "S0L7oyWyQdVzD+5xIvcC8h44Vc+FY+qXDCLRh2+YsuBDORNphcxNX+tXR6ByLMjQ/7jDaXxsYBF6qbAr7ZIaFw=="
+        "resolved": "7.0.0",
+        "contentHash": "jRn6JYnNPW6xgQazROBLSfpdoczRw694vO5kKvMcNnpXuolEixUyw6IBuBs2Y2mlSX/LdLvyyWmfXhaI3ND1Yg=="
       },
       "System.Memory": {
         "type": "Transitive",
@@ -359,7 +359,7 @@
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[7.0.0, )"
         }
       },
       "hotchocolate.utilities": {
@@ -420,8 +420,8 @@
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
-        "resolved": "4.7.0",
-        "contentHash": "S0L7oyWyQdVzD+5xIvcC8h44Vc+FY+qXDCLRh2+YsuBDORNphcxNX+tXR6ByLMjQ/7jDaXxsYBF6qbAr7ZIaFw=="
+        "resolved": "8.0.0-rc.2.23479.6",
+        "contentHash": "4bqn2Kj0keumJ0x3wdZtO1Ex/5Ppu01fP7Rtmn1uJBR08WWRKeKSX6U9a/BiEieE9JjhzapvhjPtFypE7ZIAyQ=="
       },
       "System.Memory": {
         "type": "Transitive",
@@ -463,7 +463,7 @@
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.utilities": {

@@ -6,5 +6,7 @@ type Query {
   scalar: MacAddress
 }
 
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
 "The `MacAddress` scalar type represents a IEEE 802 48-bit or 64-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specifications defined in RFC7042 and RFC7043 respectively."
 scalar MacAddress

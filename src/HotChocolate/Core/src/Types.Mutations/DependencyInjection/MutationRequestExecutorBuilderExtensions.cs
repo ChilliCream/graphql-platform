@@ -109,4 +109,41 @@ public static class MutationRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type type) =>
         builder.ConfigureSchema(x => x.AddErrorInterfaceType(type));
+    
+    /// <summary>
+    /// Adds a new error registrar.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder
+    /// </param>
+    /// <typeparam name="T">
+    /// The mutation error registrar.
+    /// </typeparam>
+    /// <returns>
+    /// The request executor builder
+    /// </returns>
+    public static IRequestExecutorBuilder AddMutationErrorConfiguration<T>(this IRequestExecutorBuilder builder) 
+        where T : MutationErrorConfiguration, new()
+        => builder.TryAddTypeInterceptor(new MutationErrorTypeInterceptor<T>(new T()));
+
+    /// <summary>
+    /// Adds a new error registrar.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder
+    /// </param>
+    /// <param name="configuration">
+    /// The mutation error configuration.
+    /// </param>
+    /// <typeparam name="T">
+    /// The mutation error registrar.
+    /// </typeparam>
+    /// <returns>
+    /// The request executor builder
+    /// </returns>
+    public static IRequestExecutorBuilder AddMutationErrorConfiguration<T>(
+        this IRequestExecutorBuilder builder,
+        T configuration) 
+        where T : MutationErrorConfiguration
+        => builder.TryAddTypeInterceptor(new MutationErrorTypeInterceptor<T>(configuration));
 }

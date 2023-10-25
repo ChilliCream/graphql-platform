@@ -172,6 +172,66 @@ public class EntitiesResolverTests
         await Assert.ThrowsAsync<SchemaException>(ShouldThrow);
     }
 
+    [Fact]
+    public async Task TestDetailFieldResolver_Required()
+    {
+        var schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .AddType<FederatedTypeWithRequiredDetail>()
+            .Create();
+
+        var context = CreateResolverContext(schema);
+
+        var representations = new List<Representation>
+        {
+            new("FederatedTypeWithRequiredDetail",
+                new ObjectValueNode(new[]
+                {
+                    new ObjectFieldNode("detail",
+                        new ObjectValueNode(new[] { new ObjectFieldNode("id", "testId") }))
+                }))
+        };
+
+        var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+
+        Assert.Equal(1, result.Count);
+        var obj = Assert.IsType<FederatedTypeWithRequiredDetail>(result[0]);
+
+        Assert.Equal("testId", obj.Id);
+        Assert.Equal("testId", obj.Detail.Id);
+    }
+
+    [Fact]
+    public async Task TestDetailFieldResolver_Optional()
+    {
+        var schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .AddType<FederatedTypeWithOptionalDetail>()
+            .Create();
+
+        var context = CreateResolverContext(schema);
+
+        var representations = new List<Representation>
+        {
+            new("FederatedTypeWithOptionalDetail",
+                new ObjectValueNode(new[]
+                {
+                    new ObjectFieldNode("detail",
+                        new ObjectValueNode(new[] { new ObjectFieldNode("id", "testId") }))
+                }))
+        };
+
+        var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+
+        Assert.Equal(1, result.Count);
+        var obj = Assert.IsType<FederatedTypeWithOptionalDetail>(result[0]);
+
+        Assert.Equal("testId", obj.Id);
+        Assert.Equal("testId", obj.Detail!.Id);
+    }
+
     public class Query
     {
         public ForeignType ForeignType { get; set; } = default!;
@@ -290,5 +350,31 @@ public class EntitiesResolverTests
 
             return Task.FromResult<IReadOnlyDictionary<string, FederatedType>>(result);
         }
+    }
+
+    public class FederatedTypeWithRequiredDetail
+    {
+        public string Id { get; set; } = default!;
+
+        public FederatedTypeDetail Detail { get; set; } = default!;
+
+        [ReferenceResolver]
+        public static FederatedTypeWithRequiredDetail ReferenceResolver([Map("detail.id")] string detailId) => new() { Id = detailId, Detail = new FederatedTypeDetail { Id = detailId } };
+    }
+
+    public class FederatedTypeWithOptionalDetail
+    {
+        public string Id { get; set; } = default!;
+
+        public FederatedTypeDetail? Detail { get; set; } = default!;
+
+        [ReferenceResolver]
+        public static FederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId) => new() { Id = detailId, Detail = new FederatedTypeDetail { Id = detailId } };
+
+    }
+
+    public class FederatedTypeDetail
+    {
+        public string Id { get; set; } = default!;
     }
 }

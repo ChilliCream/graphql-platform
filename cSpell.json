@@ -41,7 +41,8 @@
     "sublicensable",
     "meros",
     "Structs",
-    "reencode"
+    "reencode",
+    "WunderGraph"
   ],
   "ignoreWords": [
     "Badurina",
@@ -71,7 +72,6 @@
     "Postgraphile",
     "Normen",
     "typeof",
-    // youtube
     "Ufjn",
     "Wguo",
     "Ymgw",

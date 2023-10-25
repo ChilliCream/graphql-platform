@@ -19,11 +19,8 @@ partial class Build
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coberage-reports";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
-
     AbsolutePath StarWarsTemplateNuSpec => RootDirectory / "templates" / "StarWars" / "HotChocolate.Templates.StarWars.nuspec";
-
     AbsolutePath HotChocolateDirectoryBuildProps => SourceDirectory / "HotChocolate" / "Directory.Build.Props";
-
     AbsolutePath StarWarsProj => RootDirectory / "templates" / "StarWars" / "content" / "StarWars.csproj";
     AbsolutePath EmptyServerTemplateNuSpec => RootDirectory / "templates" / "Server" / "HotChocolate.Templates.Server.nuspec";
     AbsolutePath EmptyServerProj => RootDirectory / "templates" / "Server" / "content" / "HotChocolate.Server.Template.csproj";
@@ -33,4 +30,5 @@ partial class Build
     AbsolutePath EmptyAzfUp12Proj => RootDirectory / "templates" / "v12" / "function-isolated" / "HotChocolate.Template.AzureFunctions.Isolated.csproj";
     AbsolutePath Gateway13Proj => RootDirectory / "templates" / "v12" / "gateway" / "HotChocolate.Template.Gateway.csproj";
     AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "v12" / "gateway-bcp" / "HotChocolate.Template.Gateway.Managed.csproj";
+    AbsolutePath FSharpTypes => SourceDirectory/"HotChocolate" /"Core" / "src" / "Types.FSharp" / "HotChocolate.Types.FSharp.fsproj";
 }

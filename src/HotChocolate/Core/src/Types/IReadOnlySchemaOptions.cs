@@ -90,4 +90,7 @@ public interface IReadOnlySchemaOptions
     
     /// <inheritdoc cref="SchemaOptions.EnableTrueNullability"/>
     bool EnableTrueNullability { get; }
+    
+    /// <inheritdoc cref="SchemaOptions.EnableTag"/>
+    bool EnableTag { get; }
 }

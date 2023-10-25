@@ -1,11 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -303,6 +300,80 @@ public class SelectionIncludeConditionTests
             """
             {
                 "data": {}
+            }
+            """);
+    }
+    
+    [Fact]
+    public async Task Skip_Include_Merge_Issue_6550_True()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            """
+                            query($shouldSkip: Boolean! = true) {
+                                person @skip(if: $shouldSkip) {
+                                    a: name
+                                }
+                                person @skip(if: $shouldSkip) {
+                                    b: name
+                                }
+                                person @skip(if: $shouldSkip) {
+                                    c: name
+                                }
+                            }
+                            """)
+                        .SetVariableValue("shouldSkip", true)
+                        .Create());
+
+        result.MatchInlineSnapshot(
+            """
+            {
+                "data": {}
+            }
+            """);
+    }
+    
+    [Fact]
+    public async Task Skip_Include_Merge_Issue_6550_False()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            """
+                            query($shouldSkip: Boolean! = true) {
+                                person @skip(if: $shouldSkip) {
+                                    a: name
+                                }
+                                person @skip(if: $shouldSkip) {
+                                    b: name
+                                }
+                                person @skip(if: $shouldSkip) {
+                                    c: name
+                                }
+                            }
+                            """)
+                        .SetVariableValue("shouldSkip", false)
+                        .Create());
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "person": {
+                  "a": "hello",
+                  "b": "hello",
+                  "c": "hello"
+                }
+              }
             }
             """);
     }

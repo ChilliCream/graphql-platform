@@ -9,7 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
     <ProjectReference Include="..\Stitching.Abstractions\HotChocolate.Stitching.Abstractions.csproj" />
   </ItemGroup>
   

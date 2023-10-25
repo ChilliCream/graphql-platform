@@ -1463,8 +1463,8 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "HotChocolate.Utilities.Introspection": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )",
           "Microsoft.Extensions.ObjectPool": "[3.1.4, )",
           "System.ComponentModel.Annotations": "[4.7.0, )",
@@ -1485,19 +1485,18 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.shared": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
       "hotchocolate.utilities": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
-        }
-      },
-      "hotchocolate.utilities.introspection": {
-        "type": "Project",
-        "dependencies": {
-          "HotChocolate.Language": "[0.0.0, )",
-          "System.Text.Json": "[6.0.7, )"
         }
       },
       "hotchocolate.validation": {
@@ -2971,8 +2970,8 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "HotChocolate.Utilities.Introspection": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )",
           "Microsoft.Extensions.ObjectPool": "[3.1.4, )",
           "System.ComponentModel.Annotations": "[4.7.0, )",
@@ -2993,19 +2992,18 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.shared": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
       "hotchocolate.utilities": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
-        }
-      },
-      "hotchocolate.utilities.introspection": {
-        "type": "Project",
-        "dependencies": {
-          "HotChocolate.Language": "[0.0.0, )",
-          "System.Text.Json": "[6.0.7, )"
         }
       },
       "hotchocolate.validation": {
@@ -3194,8 +3192,8 @@
       },
       "Microsoft.Extensions.ObjectPool": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.1.23421.29",
-        "contentHash": "R589RNp1N8VqoEvIa5+/seM37Xuf64k9YU7DLMufcYZqfXJaNxHEav4q2MURh9tmfJsVCH+NkN+7gBOOHepyuQ=="
+        "resolved": "8.0.0-rc.2.23480.2",
+        "contentHash": "iL9VcNK4dbMOLqAHInwcmVxzr+5sXp70m5Tt1uyIkc5SfJUTuFN6VaxrZy3k91oquTtYrkK9DbE5IP18iJUrtw=="
       },
       "Microsoft.Extensions.Options": {
         "type": "Transitive",
@@ -4410,7 +4408,7 @@
           "HotChocolate.Data": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
           "HotChocolate.Types.OffsetPagination": "[0.0.0, )",
-          "Microsoft.Extensions.ObjectPool": "[8.0.0-rc.1.23421.29, )",
+          "Microsoft.Extensions.ObjectPool": "[8.0.0-rc.2.23480.2, )",
           "Neo4j.Driver": "[5.2.0, )",
           "ServiceStack.Text": "[6.4.0, )"
         }
@@ -4479,8 +4477,8 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "HotChocolate.Utilities.Introspection": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[3.1.4, )",
           "Microsoft.Extensions.ObjectPool": "[3.1.4, )",
           "System.ComponentModel.Annotations": "[4.7.0, )",
@@ -4501,19 +4499,18 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.shared": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
       "hotchocolate.utilities": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
-        }
-      },
-      "hotchocolate.utilities.introspection": {
-        "type": "Project",
-        "dependencies": {
-          "HotChocolate.Language": "[0.0.0, )",
-          "System.Text.Json": "[6.0.7, )"
         }
       },
       "hotchocolate.validation": {

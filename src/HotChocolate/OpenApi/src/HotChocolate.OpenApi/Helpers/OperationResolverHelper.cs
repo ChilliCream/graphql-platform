@@ -105,7 +105,7 @@ internal static class OperationResolverHelper
                     resolverContext.ArgumentLiteral<IValueNode>(InputField), 
                     parameter.Name);
             sb.Replace($"{{{parameter.Name}}}", pathValue);
-            parameter = ref Unsafe.Add(ref parameter, 1);
+            parameter = ref Unsafe.Add(ref parameter, 1)!;
         }
     }
 
@@ -140,7 +140,7 @@ internal static class OperationResolverHelper
                 sb.Append(pathValue);
             }
 
-            parameter = ref Unsafe.Add(ref parameter, 1);
+            parameter = ref Unsafe.Add(ref parameter, 1)!;
         }
     }
 

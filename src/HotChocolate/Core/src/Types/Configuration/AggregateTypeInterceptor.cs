@@ -16,6 +16,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 {
     private readonly List<TypeReference> _typeReferences = new();
     private TypeInterceptor[] _typeInterceptors = Array.Empty<TypeInterceptor>();
+    private TypeInterceptor? _mutationAggregator;
 
     public void SetInterceptors(IReadOnlyCollection<TypeInterceptor> typeInterceptors)
     {
@@ -25,6 +26,11 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         foreach (var typeInterceptor in typeInterceptors.OrderBy(t => t.Position))
         {
             _typeInterceptors[i++] = typeInterceptor;
+        }
+
+        foreach (var interceptor in _typeInterceptors)
+        {
+            interceptor.SetSiblings(_typeInterceptors);
         }
     }
 
@@ -40,33 +46,43 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         while (Unsafe.IsAddressLessThan(ref current, ref end))
         {
             current.OnBeforeCreateSchema(context, schemaBuilder);
-            current = ref Unsafe.Add(ref current, 1);
+            current = ref Unsafe.Add(ref current, 1)!;
         }
         
-        current = ref Unsafe.Add(ref start, 0);
+        current = ref Unsafe.Add(ref start, 0)!;
         var i = 0;
         TypeInterceptor[]? temp = null; 
         
         // next we determine the type interceptors that are enabled ...
         while (Unsafe.IsAddressLessThan(ref current, ref end))
         {
-            if (temp is null && !current.IsEnabled(context))
+            var enabled = current.IsEnabled(context);
+            
+            if (temp is null && !enabled)
             {
                 temp ??= new TypeInterceptor[_typeInterceptors.Length];
                 ref var next = ref Unsafe.Add(ref start, 0);
                 while (Unsafe.IsAddressLessThan(ref next, ref current))
                 {
                     temp[i++] = next;   
-                    next = ref Unsafe.Add(ref next, 1);
+                    next = ref Unsafe.Add(ref next, 1)!;
                 }
             }
 
-            if (temp is not null && current.IsEnabled(context))
-            {   
-                temp[i++] = current;   
+            if (enabled)
+            {
+                if (temp is not null)
+                {
+                    temp[i++] = current;
+                }
+
+                if (_mutationAggregator is null && current.IsMutationAggregator(context))
+                {
+                    _mutationAggregator = current;
+                }
             }
-            
-            current = ref Unsafe.Add(ref current, 1);
+
+            current = ref Unsafe.Add(ref current, 1)!;
         }
 
         if (temp is not null)
@@ -259,7 +275,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
         ref var first = ref GetReference();
@@ -304,6 +320,25 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         for (var i = 0; i < length; i++)
         {
             Unsafe.Add(ref first, i).OnAfterMergeTypeExtensions();
+        }
+    }
+
+    internal override void OnBeforeCompleteMutation(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition)
+    {
+        if (_mutationAggregator is not null)
+        {
+            _mutationAggregator.OnBeforeCompleteMutation(completionContext, definition);
+            return;
+        }
+        
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeCompleteMutation(completionContext, definition);
         }
     }
 

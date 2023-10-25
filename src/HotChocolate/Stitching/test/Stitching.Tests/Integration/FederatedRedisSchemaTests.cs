@@ -60,6 +60,7 @@ public class FederatedRedisSchemaTests
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddQueryType(d => d.Name("Query"))
                 .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                 .ModifyOptions(o => o.SortFieldsByName = true)
@@ -93,6 +94,7 @@ public class FederatedRedisSchemaTests
             new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddQueryType(d => d.Name("Query"))
                 .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                 .Services
@@ -161,6 +163,7 @@ public class FederatedRedisSchemaTests
             new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddQueryType(d => d.Name("Query").Field("foo").Resolve("foo"))
                 .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                 .Services
@@ -245,6 +248,8 @@ public class FederatedRedisSchemaTests
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
+                .ModifyOptions(o => o.EnableTag = false)
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddQueryType(d => d.Name("Query"))
                 .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                 .BuildRequestExecutorAsync(cancellationToken: cts.Token);
@@ -296,6 +301,7 @@ public class FederatedRedisSchemaTests
                 await new ServiceCollection()
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL(configurationName)
+                    .ModifyOptions(o => o.EnableTag = false)
                     .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
                     .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                     .BuildRequestExecutorAsync(configurationName, ct);
@@ -329,6 +335,7 @@ public class FederatedRedisSchemaTests
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddAccountsSchema()
                 .InitializeOnStartup()
                 .PublishSchemaDefinition(c => c
@@ -355,6 +362,7 @@ public class FederatedRedisSchemaTests
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddInventorySchema()
                 .InitializeOnStartup()
                 .PublishSchemaDefinition(c => c
@@ -381,6 +389,7 @@ public class FederatedRedisSchemaTests
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddProductsSchema()
                 .InitializeOnStartup()
                 .PublishSchemaDefinition(c => c
@@ -407,6 +416,7 @@ public class FederatedRedisSchemaTests
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyOptions(o => o.EnableTag = false)
                 .AddReviewSchema()
                 .InitializeOnStartup()
                 .PublishSchemaDefinition(c => c

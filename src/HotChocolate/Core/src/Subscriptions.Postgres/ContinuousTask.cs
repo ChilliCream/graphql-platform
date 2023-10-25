@@ -62,7 +62,8 @@ internal sealed class ContinuousTask : IAsyncDisposable
         }
 
         _completion.Dispose();
-
         disposed = true;
+
+        await ValueTask.CompletedTask;
     }
 }

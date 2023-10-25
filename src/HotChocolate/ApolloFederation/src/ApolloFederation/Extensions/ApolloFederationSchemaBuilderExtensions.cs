@@ -20,7 +20,7 @@ public static class ApolloFederationSchemaBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static ISchemaBuilder AddApolloFederation(
+    internal static ISchemaBuilder AddApolloFederation(
         this ISchemaBuilder builder)
     {
         if (builder is null)

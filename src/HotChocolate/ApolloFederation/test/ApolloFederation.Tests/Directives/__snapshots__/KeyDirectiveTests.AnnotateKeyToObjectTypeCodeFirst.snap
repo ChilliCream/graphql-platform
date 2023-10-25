@@ -14,5 +14,7 @@ type TestType @key(fields: "id") {
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
 directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
 
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
 "Scalar representing a set of fields."
 scalar _FieldSet

@@ -177,19 +177,18 @@
           "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.shared": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
       "hotchocolate.utilities": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
-        }
-      },
-      "hotchocolate.utilities.introspection": {
-        "type": "Project",
-        "dependencies": {
-          "HotChocolate.Language": "[0.0.0, )",
-          "System.Text.Json": "[6.0.7, )"
         }
       }
     },
@@ -316,19 +315,18 @@
           "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.shared": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
       "hotchocolate.utilities": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
-        }
-      },
-      "hotchocolate.utilities.introspection": {
-        "type": "Project",
-        "dependencies": {
-          "HotChocolate.Language": "[0.0.0, )",
-          "System.Text.Json": "[6.0.7, )"
         }
       }
     },
@@ -455,19 +453,18 @@
           "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.shared": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
       "hotchocolate.utilities": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
-        }
-      },
-      "hotchocolate.utilities.introspection": {
-        "type": "Project",
-        "dependencies": {
-          "HotChocolate.Language": "[0.0.0, )",
-          "System.Text.Json": "[6.0.7, )"
         }
       }
     },
@@ -594,19 +591,18 @@
           "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.shared": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
       "hotchocolate.utilities": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
-        }
-      },
-      "hotchocolate.utilities.introspection": {
-        "type": "Project",
-        "dependencies": {
-          "HotChocolate.Language": "[0.0.0, )",
-          "System.Text.Json": "[6.0.7, )"
         }
       }
     }

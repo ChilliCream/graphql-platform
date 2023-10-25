@@ -266,9 +266,9 @@
       },
       "System.IO.Pipelines": {
         "type": "Direct",
-        "requested": "[6.0.0, )",
-        "resolved": "6.0.0",
-        "contentHash": "mXX66shZ4xLlI3vNLaJ0lt8OIZdmXTvIqXRdQX5HLVGSkLhINLsVhyZuX2UdRFnOGkqnwmMUs40pIIQ7mna4+A=="
+        "requested": "[7.0.0, )",
+        "resolved": "7.0.0",
+        "contentHash": "jRn6JYnNPW6xgQazROBLSfpdoczRw694vO5kKvMcNnpXuolEixUyw6IBuBs2Y2mlSX/LdLvyyWmfXhaI3ND1Yg=="
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
@@ -363,9 +363,9 @@
       },
       "System.IO.Pipelines": {
         "type": "Direct",
-        "requested": "[6.0.0, )",
-        "resolved": "6.0.0",
-        "contentHash": "mXX66shZ4xLlI3vNLaJ0lt8OIZdmXTvIqXRdQX5HLVGSkLhINLsVhyZuX2UdRFnOGkqnwmMUs40pIIQ7mna4+A=="
+        "requested": "[8.0.0-rc.2.23479.6, )",
+        "resolved": "8.0.0-rc.2.23479.6",
+        "contentHash": "4bqn2Kj0keumJ0x3wdZtO1Ex/5Ppu01fP7Rtmn1uJBR08WWRKeKSX6U9a/BiEieE9JjhzapvhjPtFypE7ZIAyQ=="
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",

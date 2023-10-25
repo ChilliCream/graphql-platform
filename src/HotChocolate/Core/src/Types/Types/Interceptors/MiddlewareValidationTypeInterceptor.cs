@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -12,6 +11,14 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 {
+    private const string _useDbContext = "UseDbContext";
+    private const string _usePaging = "UsePaging";
+    private const string _useProjection = "UseProjection";
+    private const string _useFiltering = "UseFiltering";
+    private const string _useSorting = "UseSorting";
+    
+    private readonly HashSet<string> _names = new();
+    
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
         DefinitionBase definition)
@@ -39,11 +46,14 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         ISyntaxNode? syntaxNode,
         IList<FieldMiddlewareDefinition> middlewareDefinitions)
     {
+        _names.Clear();
+        
         var usePaging = false;
         var useProjections = false;
         var useFiltering = false;
         var useSorting = false;
         var error = false;
+        HashSet<string>? duplicates = null;
 
         foreach (var definition in middlewareDefinitions)
         {
@@ -56,6 +66,11 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                         {
                             error = true;
                         }
+
+                        if (!_names.Add(definition.Key))
+                        {
+                            (duplicates ??= new HashSet<string>()).Add(_useDbContext);
+                        }
                         break;
 
                     case WellKnownMiddleware.Paging:
@@ -64,6 +79,12 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                             error = true;
                             break;
                         }
+                        
+                        if (!_names.Add(definition.Key))
+                        {
+                            (duplicates ??= new HashSet<string>()).Add(_usePaging);
+                        }
+                        
                         usePaging = true;
                         break;
 
@@ -73,18 +94,42 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                             error = true;
                             break;
                         }
+                        
+                        if (!_names.Add(definition.Key))
+                        {
+                            (duplicates ??= new HashSet<string>()).Add(_useProjection);
+                        }
+                        
                         useProjections = true;
                         break;
 
                     case WellKnownMiddleware.Filtering:
+                        if (!_names.Add(definition.Key))
+                        {
+                            (duplicates ??= new HashSet<string>()).Add(_useFiltering);
+                        }
                         useFiltering = true;
                         break;
 
                     case WellKnownMiddleware.Sorting:
+                        if (!_names.Add(definition.Key))
+                        {
+                            (duplicates ??= new HashSet<string>()).Add(_useSorting);
+                        }
                         useSorting = true;
                         break;
                 }
             }
+        }
+
+        if (duplicates?.Count > 0)
+        {
+            throw new SchemaException(
+                ErrorHelper.DuplicateDataMiddlewareDetected(
+                    field,
+                    type,
+                    syntaxNode,
+                    duplicates));
         }
 
         if (error)
@@ -98,7 +143,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         }
     }
 
-    private string PrintPipeline(
+    private static string PrintPipeline(
         IList<FieldMiddlewareDefinition> middlewareDefinitions)
     {
         var sb = new StringBuilder();
@@ -114,31 +159,31 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.DbContext:
                         other = false;
                         PrintNext();
-                        sb.Append("UseDbContext");
+                        sb.Append(_useDbContext);
                         break;
 
                     case WellKnownMiddleware.Paging:
                         other = false;
                         PrintNext();
-                        sb.Append("UsePaging");
+                        sb.Append(_usePaging);
                         break;
 
                     case WellKnownMiddleware.Projection:
                         other = false;
                         PrintNext();
-                        sb.Append("UseProjection");
+                        sb.Append(_useProjection);
                         break;
 
                     case WellKnownMiddleware.Filtering:
                         other = false;
                         PrintNext();
-                        sb.Append("UseFiltering");
+                        sb.Append(_useFiltering);
                         break;
 
                     case WellKnownMiddleware.Sorting:
                         other = false;
                         PrintNext();
-                        sb.Append("UseSorting");
+                        sb.Append(_useSorting);
                         break;
 
                     default:
@@ -171,25 +216,6 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                 sb.Append("...");
                 other = true;
             }
-        }
-    }
-}
-
-internal sealed class EnableTrueNullabilityTypeInterceptor : TypeInterceptor
-{
-    public override bool IsEnabled(IDescriptorContext context)
-        => context.Options.EnableTrueNullability;
-
-    public override void OnBeforeCreateSchema(IDescriptorContext context, ISchemaBuilder schemaBuilder)
-    {
-        base.OnBeforeCreateSchema(context, schemaBuilder);
-    }
-
-    public override void OnAfterInitialize(ITypeDiscoveryContext discoveryContext, DefinitionBase definition)
-    {
-        if (definition is SchemaTypeDefinition schemaDef)
-        {
-            schemaDef.ContextData[WellKnownContextData.EnableTrueNullability] = true;
         }
     }
 }

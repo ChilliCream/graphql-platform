@@ -31,6 +31,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
     private ExtensionData _schemaContextData = default!;
+    private ITypeCompletionContext _queryContext = default!;
 
     internal override uint Position => uint.MaxValue;
 
@@ -102,13 +103,24 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         FindFieldsAndApplyAuthMiddleware(state);
     }
 
+    internal override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    {
+        if (operationType is OperationType.Query)
+        {
+            _queryContext = completionContext;
+        }
+    }
+
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
         // last in the initialization we need to intercept the query type and ensure that
         // authorization configuration is applied to the special introspection and node fields.
-        if ((completionContext.IsQueryType ?? false) &&
+        if (ReferenceEquals(_queryContext, completionContext) &&
             definition is ObjectTypeDefinition typeDef)
         {
             var state = _state ?? throw ThrowHelper.StateNotInitialized();

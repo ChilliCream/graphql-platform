@@ -26,3 +26,6 @@ input InputObjectNamingConventionInput_Named {
   "GetMemberDescription"
   inputField_Named: String
 }
+
+"GetTypeDescription"
+directive @tag("GetMemberDescription" name_Named: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

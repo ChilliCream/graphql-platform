@@ -142,6 +142,7 @@ public sealed class ExtendObjectTypeAttribute
 /// <summary>
 /// Annotate classes which represent extensions to other object types.
 /// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class ExtendObjectTypeAttribute<T>
     : ObjectTypeDescriptorAttribute
     , ITypeAttribute
