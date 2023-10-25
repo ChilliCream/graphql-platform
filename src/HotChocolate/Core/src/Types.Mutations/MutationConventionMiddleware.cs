@@ -35,27 +35,32 @@ internal sealed class MutationConventionMiddleware
 
         var arguments = new Dictionary<string, ArgumentValue>(StringComparer.Ordinal);
         var preservedArguments = context.ReplaceArguments(arguments);
-        var inputArgument = preservedArguments[_inputArgumentName];
 
         foreach (var argument in _resolverArguments)
         {
             input.TryGetValue(argument.Name, out var value);
 
-            inputLiteral.TryGetValue(argument.Name, out var valueLiteral);
+            var omitted = false;
+            if (!inputLiteral.TryGetValue(argument.Name, out var valueLiteral))
+            {
+                omitted = true;
+                valueLiteral = argument.DefaultValue;
+                value = null;
+            }
             valueLiteral ??= NullValueNode.Default;
 
             if (!valueLiteral.TryGetValueKind(out var kind))
             {
                 kind = ValueKind.Unknown;
             }
-
+            
             arguments.Add(
                 argument.Name,
                 new ArgumentValue(
                     argument,
                     kind,
-                    true,
-                    inputArgument.IsDefaultValue,
+                    !omitted,
+                    omitted,
                     value,
                     valueLiteral));
         }

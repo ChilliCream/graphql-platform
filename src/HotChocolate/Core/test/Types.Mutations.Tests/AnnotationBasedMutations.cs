@@ -1137,8 +1137,37 @@ public class AnnotationBasedMutations
 
         result.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task Mutation_With_Optional_Arg()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithOptionalArg>()
+                .AddMutationConventions()
+                .ExecuteRequestAsync(
+                    """
+                    mutation {
+                        doSomething(input: { }) {
+                            string
+                        }
+                    }
+                    """);
 
-
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "doSomething": {
+                  "string": "nothing"
+                }
+              }
+            }
+            """);
+    }
+    
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -1530,5 +1559,11 @@ public class AnnotationBasedMutations
                     ctx.Result = new MutationError(new SomeNewError("This is my error."));
                 }));
         }
+    }
+
+    public class MutationWithOptionalArg
+    {
+        public string DoSomething(Optional<string?> something)
+            => something.Value ?? "nothing";
     }
 }
