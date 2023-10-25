@@ -1102,4 +1102,10 @@ Type: `{0}`</value>
   <data name="ErrorHelper_DuplicateDataMiddlewareDetected_Message" xml:space="preserve">
     <value>The field `{0}` declares the data middleware `{1}` more than once.</value>
   </data>
+  <data name="SchemaException_UnexpectedError" xml:space="preserve">
+    <value>Unexpected schema exception occurred.</value>
+  </data>
+  <data name="SchemaException_ErrorSummaryText" xml:space="preserve">
+    <value>For more details look at the `Errors` property.</value>
+  </data>
 </root>
