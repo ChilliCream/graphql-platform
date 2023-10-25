@@ -11,7 +11,7 @@ public class IntrospectionQueryBuilderTests
     {
         // arrange
         var options = new IntrospectionOptions();
-        var features = new SchemaFeatures();
+        var features = new ServerCapabilities();
 
         // act
         var document = IntrospectionQueryBuilder.Build(features, options);
@@ -25,7 +25,7 @@ public class IntrospectionQueryBuilderTests
     {
         // arrange
         var options = new IntrospectionOptions();
-        var features = new SchemaFeatures
+        var features = new ServerCapabilities
         {
             HasArgumentDeprecation = true
         };
@@ -42,7 +42,7 @@ public class IntrospectionQueryBuilderTests
     {
         // arrange
         var options = new IntrospectionOptions();
-        var features = new SchemaFeatures
+        var features = new ServerCapabilities
         {
             HasDirectiveLocations = true
         };
@@ -59,7 +59,7 @@ public class IntrospectionQueryBuilderTests
     {
         // arrange
         var options = new IntrospectionOptions();
-        var features = new SchemaFeatures
+        var features = new ServerCapabilities
         {
             HasRepeatableDirectives = true
         };
@@ -76,7 +76,7 @@ public class IntrospectionQueryBuilderTests
     {
         // arrange
         var options = new IntrospectionOptions();
-        var features = new SchemaFeatures
+        var features = new ServerCapabilities
         {
             HasSchemaDescription = true
         };
@@ -93,7 +93,7 @@ public class IntrospectionQueryBuilderTests
     {
         // arrange
         var options = new IntrospectionOptions();
-        var features = new SchemaFeatures
+        var features = new ServerCapabilities
         {
             HasSubscriptionSupport = true
         };

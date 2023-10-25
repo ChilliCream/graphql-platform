@@ -4,9 +4,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Utilities.Introspection;
 
+/// <summary>
+/// A utility to build the GraphQL introspection request document. 
+/// </summary>
 internal static class IntrospectionQueryBuilder
 {
-    public static DocumentNode Build(SchemaFeatures features, IntrospectionOptions options)
+    public static DocumentNode Build(ServerCapabilities features, IntrospectionOptions options)
     {
         var selections = new List<ISelectionNode>();
 

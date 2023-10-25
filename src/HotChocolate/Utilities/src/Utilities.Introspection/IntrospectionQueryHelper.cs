@@ -27,7 +27,7 @@ internal static class IntrospectionQueryHelper
     public static GraphQLHttpRequest CreateInspectSchemaRequest(IntrospectionOptions options)
         => CreateRequest(CreateOperation(GetInspectSchemaQuery()), options);
 
-    public static GraphQLHttpRequest CreateIntrospectionRequest(SchemaFeatures features, IntrospectionOptions options)
+    public static GraphQLHttpRequest CreateIntrospectionRequest(ServerCapabilities features, IntrospectionOptions options)
         => CreateRequest(CreateOperation(Build(features, options).Print(false)), options);
 
     private static OperationRequest CreateOperation(string document)

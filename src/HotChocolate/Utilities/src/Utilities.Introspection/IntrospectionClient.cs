@@ -8,14 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
-using static HotChocolate.Utilities.Introspection.FeatureInspector;
+using static HotChocolate.Utilities.Introspection.CapabilityInspector;
 using static HotChocolate.Utilities.Introspection.IntrospectionQueryHelper;
 
 namespace HotChocolate.Utilities.Introspection;
 
 /// <summary>
-/// A utility for introspecting a GraphQL server and
-/// downloading the introspection result as GraphQL SDL.
+/// A utility for inspecting GraphQL server feature support and for introspecting a GraphQL server.
 /// </summary>
 public static class IntrospectionClient
 {
@@ -127,8 +126,8 @@ public static class IntrospectionClient
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        var features = await InspectServerAsync(client, options, cancellationToken).ConfigureAwait(false);
-        var result = await IntrospectAsync(client, features, options, cancellationToken).ConfigureAwait(false);
+        var capabilities = await InspectServerAsync(client, options, cancellationToken).ConfigureAwait(false);
+        var result = await IntrospectAsync(client, capabilities, options, cancellationToken).ConfigureAwait(false);
         
         EnsureNoGraphQLErrors(result);
 
@@ -136,7 +135,7 @@ public static class IntrospectionClient
     }
 
     /// <summary>
-    /// Gets the supported GraphQL features from the server by doing an introspection query.
+    /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
     /// </summary>
     /// <param name="client">
     /// The HttpClient that shall be used to execute the introspection query.
@@ -144,15 +143,15 @@ public static class IntrospectionClient
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    /// <returns>Returns an object that indicates what features are supported.</returns>
-    public static Task<SchemaFeatures> InspectServerAsync(
+    /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
+    public static Task<ServerCapabilities> InspectServerAsync(
         HttpClient client,
         CancellationToken cancellationToken = default)
         => InspectServerAsync(client, default, cancellationToken);
         
     
     /// <summary>
-    /// Gets the supported GraphQL features from the server by doing an introspection query.
+    /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
     /// </summary>
     /// <param name="client">
     /// The HttpClient that shall be used to execute the introspection query.
@@ -163,8 +162,8 @@ public static class IntrospectionClient
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    /// <returns>Returns an object that indicates what features are supported.</returns>
-    public static Task<SchemaFeatures> InspectServerAsync(
+    /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
+    public static Task<ServerCapabilities> InspectServerAsync(
         HttpClient client, 
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
@@ -177,7 +176,7 @@ public static class IntrospectionClient
         return InspectServerInternalAsync(client, options, cancellationToken);
     }
     
-    private static async Task<SchemaFeatures> InspectServerInternalAsync(
+    private static async Task<ServerCapabilities> InspectServerInternalAsync(
         HttpClient client, 
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
@@ -187,7 +186,7 @@ public static class IntrospectionClient
     }
 
     /// <summary>
-    /// Gets the supported GraphQL features from the server by doing an introspection query.
+    /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
     /// </summary>
     /// <param name="client">
     /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
@@ -195,14 +194,14 @@ public static class IntrospectionClient
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    /// <returns>Returns an object that indicates what features are supported.</returns>
-    public static Task<SchemaFeatures> InspectServerAsync(
+    /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
+    public static Task<ServerCapabilities> InspectServerAsync(
         GraphQLHttpClient client,
         CancellationToken cancellationToken = default)
         => InspectServerAsync(client, default, cancellationToken);
 
     /// <summary>
-    /// Gets the supported GraphQL features from the server by doing an introspection query.
+    /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
     /// </summary>
     /// <param name="client">
     /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
@@ -213,8 +212,8 @@ public static class IntrospectionClient
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    /// <returns>Returns an object that indicates what features are supported.</returns>
-    public static Task<SchemaFeatures> InspectServerAsync(
+    /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
+    public static Task<ServerCapabilities> InspectServerAsync(
         GraphQLHttpClient client,
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
@@ -250,7 +249,7 @@ public static class IntrospectionClient
 
     private static async Task<IntrospectionResult> IntrospectAsync(
         GraphQLHttpClient client,
-        SchemaFeatures features,
+        ServerCapabilities features,
         IntrospectionOptions options,
         CancellationToken cancellationToken)
     {

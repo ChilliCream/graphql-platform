@@ -6,14 +6,17 @@ using static HotChocolate.Utilities.Introspection.IntrospectionQueryHelper;
 
 namespace HotChocolate.Utilities.Introspection;
 
-internal sealed class FeatureInspector
+/// <summary>
+/// This helper class issues requests to determine what capabilities a GraphQL server has. 
+/// </summary>
+internal sealed class CapabilityInspector
 {
-    private readonly SchemaFeatures _features = new();
+    private readonly ServerCapabilities _features = new();
     private readonly GraphQLHttpClient _client;
     private readonly IntrospectionOptions _options;
     private readonly CancellationToken _cancellationToken;
 
-    private FeatureInspector(
+    private CapabilityInspector(
         GraphQLHttpClient client,
         IntrospectionOptions options,
         CancellationToken cancellationToken)
@@ -23,12 +26,12 @@ internal sealed class FeatureInspector
         _cancellationToken = cancellationToken;
     }
 
-    public static async Task<SchemaFeatures> InspectAsync(
+    public static async Task<ServerCapabilities> InspectAsync(
         GraphQLHttpClient client,
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
-        var inspector = new FeatureInspector(client, options, cancellationToken);
+        var inspector = new CapabilityInspector(client, options, cancellationToken);
         await inspector.RunInspectionAsync().ConfigureAwait(false);
         return inspector._features;
     }

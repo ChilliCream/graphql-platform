@@ -3,6 +3,9 @@ using System.Runtime.Serialization;
 
 namespace HotChocolate.Utilities.Introspection;
 
+/// <summary>
+/// This exception is thrown if an error happens during introspection.
+/// </summary>
 [Serializable]
 public class IntrospectionException : Exception
 {

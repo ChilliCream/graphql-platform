@@ -5,13 +5,16 @@ using static HotChocolate.Utilities.Introspection.Properties.IntroResources;
 
 namespace HotChocolate.Utilities.Introspection;
 
+/// <summary>
+/// Represents the GraphQL introspection options.
+/// </summary>
 public struct IntrospectionOptions : IEquatable<IntrospectionOptions>
 {
     private GraphQLHttpMethod? _method;
     private int? _typeDepth;
 
     /// <summary>
-    /// Gets or sets the HTTP method.
+    /// Gets or sets the HTTP method that shall be used for the introspection request.
     /// </summary>
     public GraphQLHttpMethod Method
     {
@@ -20,7 +23,7 @@ public struct IntrospectionOptions : IEquatable<IntrospectionOptions>
     }
 
     /// <summary>
-    /// Gets or sets the GraphQL request <see cref="Uri"/>.
+    /// Gets or sets the GraphQL server <see cref="Uri"/>.
     /// </summary>
     public Uri? Uri { get; set; }
 
@@ -29,6 +32,9 @@ public struct IntrospectionOptions : IEquatable<IntrospectionOptions>
     /// </summary>
     public OnHttpRequestMessageCreated? OnMessageCreated { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value that determines how deep the introspection request shall dive into types.
+    /// </summary>
     public int TypeDepth
     {
         get => _typeDepth ??= 6;
@@ -46,28 +52,21 @@ public struct IntrospectionOptions : IEquatable<IntrospectionOptions>
         }
     }
 
-    public override bool Equals(object obj)
-    {
-        throw new NotImplementedException();
-    }
+    public bool Equals(IntrospectionOptions other)
+        => Equals(_method, other._method) &&
+            Equals(_typeDepth, other._typeDepth) &&
+            Equals(Uri, other.Uri) &&
+            ReferenceEquals(OnMessageCreated, other.OnMessageCreated);
+    
+    public override bool Equals(object? obj)
+        => obj is IntrospectionOptions options && Equals(options);
 
     public override int GetHashCode()
-    {
-        throw new NotImplementedException();
-    }
+        => HashCode.Combine(_method, _typeDepth, Uri, OnMessageCreated);
 
     public static bool operator ==(IntrospectionOptions left, IntrospectionOptions right)
-    {
-        return left.Equals(right);
-    }
+        => left.Equals(right);
 
     public static bool operator !=(IntrospectionOptions left, IntrospectionOptions right)
-    {
-        return !(left == right);
-    }
-
-    public bool Equals(IntrospectionOptions other)
-    {
-        throw new NotImplementedException();
-    }
+        => !(left == right);
 }

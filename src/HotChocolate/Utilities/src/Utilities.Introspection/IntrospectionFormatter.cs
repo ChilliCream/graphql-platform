@@ -6,6 +6,9 @@ using HotChocolate.Utilities.Introspection.Properties;
 
 namespace HotChocolate.Utilities.Introspection;
 
+/// <summary>
+/// A utility to format an introspection result into a GraphQL schema document. 
+/// </summary>
 internal static class IntrospectionFormatter
 {
     public static DocumentNode Format(IntrospectionResult result)
