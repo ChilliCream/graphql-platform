@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
   </ItemGroup>
 
 </Project>

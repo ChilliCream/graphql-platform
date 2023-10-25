@@ -254,6 +254,21 @@ public class TestGeneration
                 }
             }");
 
+    [Fact]
+    public void StarWarsOnReviewSubGraphQLSSE() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(profiles: new[]
+            {
+                new TransportProfile("default", TransportType.Http)
+            }),
+            @"subscription OnReviewSub {
+                onReview(episode: NEW_HOPE) {
+                    __typename
+                    stars
+                    commentary
+                }
+            }");
+
     /*
     [Fact]
     public void StarWarsGetFriendsDeferredData() =>
