@@ -108,6 +108,31 @@ public ref partial struct Utf8GraphQLParser
         public static FieldNode ParseField(
             Utf8GraphQLReader reader) =>
             new Utf8GraphQLParser(reader).ParseField();
+        
+        /// <summary>
+        /// Parses a GraphQL field selection string e.g. field(arg: "abc")
+        /// </summary>
+        public static FragmentDefinitionNode ParseFragmentDefinition(
+#if NET7_0_OR_GREATER
+            [StringSyntax("graphql")] string sourceText) =>
+#else
+            string sourceText) =>
+#endif
+            Parse(sourceText, parser => parser.ParseFragmentDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL field selection string e.g. field(arg: "abc")
+        /// </summary>
+        public static FragmentDefinitionNode ParseFragmentDefinition(
+            ReadOnlySpan<byte> sourceText) =>
+            Parse(sourceText, parser => parser.ParseFragmentDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL fragment definition string e.g. fragment Abc on Def { ghi }
+        /// </summary>
+        public static FragmentDefinitionNode ParseFragmentDefinition(
+            Utf8GraphQLReader reader) =>
+            new Utf8GraphQLParser(reader).ParseFragmentDefinition();
 
         /// <summary>
         /// Parses a GraphQL selection set string e.g. { field(arg: "abc") }

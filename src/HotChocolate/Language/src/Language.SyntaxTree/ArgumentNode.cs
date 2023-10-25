@@ -36,6 +36,20 @@ public sealed class ArgumentNode : ISyntaxNode
         : this(null, new NameNode(name), new IntValueNode(value))
     {
     }
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
+    public ArgumentNode(string name, bool value)
+        : this(null, new NameNode(name), new BooleanValueNode(value))
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="ArgumentNode"/>.

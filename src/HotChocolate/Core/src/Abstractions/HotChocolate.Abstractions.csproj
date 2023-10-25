@@ -5,6 +5,9 @@
     <AssemblyName>HotChocolate.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <Description>Contains common abstractions used between the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <Nullable>enable</Nullable>
     <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
     <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
