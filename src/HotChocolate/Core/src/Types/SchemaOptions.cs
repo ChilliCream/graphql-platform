@@ -211,7 +211,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
-    public bool EnableTag { get; set; } = true;
+    public bool EnableTag { get; set; } = false;
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
