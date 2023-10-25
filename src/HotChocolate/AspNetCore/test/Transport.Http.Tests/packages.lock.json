@@ -1406,7 +1406,7 @@
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[6.0.0, )"
         }
       },
       "hotchocolate.transport.sockets.client": {
@@ -2940,13 +2940,13 @@
         "dependencies": {
           "HotChocolate.Transport.Abstractions": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "System.IO.Pipelines": "[6.0.0, )"
+          "System.IO.Pipelines": "[7.0.0, )"
         }
       },
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[7.0.0, )"
         }
       },
       "hotchocolate.transport.sockets.client": {
@@ -4541,13 +4541,13 @@
         "dependencies": {
           "HotChocolate.Transport.Abstractions": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "System.IO.Pipelines": "[6.0.0, )"
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.transport.sockets.client": {

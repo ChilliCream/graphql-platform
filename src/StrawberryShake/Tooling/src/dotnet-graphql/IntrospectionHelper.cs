@@ -1,4 +1,7 @@
+using System.Text;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Utilities.Introspection;
+using static HotChocolate.Utilities.Introspection.IntrospectionClient;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools;
@@ -10,15 +13,14 @@ public static class IntrospectionHelper
         IFileSystem fileSystem,
         IActivity activity,
         string fileName,
+        int typeDepth,
         CancellationToken cancellationToken)
     {
         try
         {
-            await fileSystem.WriteToAsync(
-                    fileName,
-                    stream => IntrospectionClient.DownloadSchemaAsync(
-                        client, stream, cancellationToken))
-                .ConfigureAwait(false);
+            var options = new IntrospectionOptions { TypeDepth = typeDepth };
+            var document = await IntrospectServerAsync(client, options, cancellationToken).ConfigureAwait(false);
+            await fileSystem.WriteTextAsync(fileName, document.ToString(true)).ConfigureAwait(false);
             return true;
         }
         catch (IntrospectionException ex)

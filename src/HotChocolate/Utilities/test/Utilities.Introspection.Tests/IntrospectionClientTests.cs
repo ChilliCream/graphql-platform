@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Snapshooter.Xunit;
@@ -14,7 +12,7 @@ namespace HotChocolate.Utilities.Introspection;
 public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     [Fact]
-    public async Task GetSchemaFeatures()
+    public async Task InspectServer()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -22,27 +20,31 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         // act
-        var features = await IntrospectionClient.GetSchemaFeaturesAsync(client);
+        var features = await IntrospectionClient.InspectServerAsync(client);
 
         // assert
+        Assert.True(features.HasArgumentDeprecation);
         Assert.True(features.HasDirectiveLocations);
-        Assert.True(features.HasRepeatableDirectives);
         Assert.True(features.HasSubscriptionSupport);
+        Assert.True(features.HasSchemaDescription);
+        Assert.True(features.HasRepeatableDirectives);
+        Assert.True(features.HasDeferSupport);
+        Assert.True(features.HasStreamSupport);
     }
 
     [Fact]
-    public async Task GetSchemaFeatures_HttpClient_Is_Null()
+    public async Task InspectServer_HttpClient_Is_Null()
     {
         // arrange
         // act
-        Task Error() => IntrospectionClient.GetSchemaFeaturesAsync(((HttpClient)null)!);
+        Task Error() => IntrospectionClient.InspectServerAsync(((HttpClient)null)!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);
     }
 
     [Fact]
-    public async Task Download_Schema_AST()
+    public async Task IntrospectServer()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -50,61 +52,18 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         // act
-        var schema = await IntrospectionClient.DownloadSchemaAsync(client);
+        var schema = await IntrospectionClient.IntrospectServerAsync(client);
 
         // assert
         schema.ToString(true).MatchSnapshot();
     }
 
     [Fact]
-    public async Task Download_Schema_AST_HttpClient_Is_Null()
+    public async Task IntrospectServer_HttpClient_Is_Null()
     {
         // arrange
         // act
-        Task Error() => IntrospectionClient.DownloadSchemaAsync(((HttpClient)null)!);
-
-        // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Error);
-    }
-
-    [Fact]
-    public async Task Download_Schema_SDL()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-        var client = server.CreateClient();
-        client.BaseAddress = new Uri("http://localhost:5000/graphql");
-        
-        using var stream = new MemoryStream();
-
-        // act
-        await IntrospectionClient.DownloadSchemaAsync(client, stream);
-
-        // assert
-        Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Download_Schema_SDL_HttpClient_Is_Null()
-    {
-        // arrange
-        using var stream = new MemoryStream();
-
-        // act
-        Task Error() => IntrospectionClient.DownloadSchemaAsync(((HttpClient)null)!, stream);
-
-        // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Error);
-    }
-
-    [Fact]
-    public async Task Download_Schema_SDL_Stream_Is_Null()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        Task Error() => IntrospectionClient.DownloadSchemaAsync(server.CreateClient(), null!);
+        Task Error() => IntrospectionClient.IntrospectServerAsync(((HttpClient)null)!);
 
         // assert
         await Assert.ThrowsAsync<ArgumentNullException>(Error);

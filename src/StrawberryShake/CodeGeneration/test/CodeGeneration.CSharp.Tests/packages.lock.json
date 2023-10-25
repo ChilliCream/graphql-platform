@@ -303,17 +303,20 @@
       },
       "Microsoft.Extensions.Options": {
         "type": "Transitive",
-        "resolved": "3.1.4",
-        "contentHash": "ntWmD8i6UmAo0nn5MiCXIVl3+75aybVHgP/NxL9B16zwsbGkSfs+66BullsGEDNvrimgIFVDO+iB/h0yWfATWg==",
+        "resolved": "6.0.0",
+        "contentHash": "dzXN0+V1AyjOe2xcJ86Qbo233KHuLEY0njf/P2Kw8SfJU+d45HNS2ctJdnEnrWbM9Ye2eFgaC5Mj9otRMU6IsQ==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "3.1.4",
-          "Microsoft.Extensions.Primitives": "3.1.4"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "6.0.0",
+          "Microsoft.Extensions.Primitives": "6.0.0"
         }
       },
       "Microsoft.Extensions.Primitives": {
         "type": "Transitive",
-        "resolved": "3.1.4",
-        "contentHash": "tLR9n5ltwA56nr1t5M6q5IBfGLXtMS+XgumtqVENmtPQOWUD+m0Kgo1U6GWr06Y875WUN3sOGnmqkvW4an7fYA=="
+        "resolved": "6.0.0",
+        "contentHash": "9+PnzmQFfEFNR9J2aDTfJGGupShHjOuGw4VUv+JB044biSHrnmCIMD+mJHmb2H7YryrfBEXDurxQ47gJZdCKNQ==",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
       },
       "Microsoft.Net.Http.Headers": {
         "type": "Transitive",
@@ -1676,7 +1679,7 @@
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[6.0.0, )"
         }
       },
       "hotchocolate.transport.sockets.client": {
@@ -1817,7 +1820,7 @@
       "strawberryshake.transport.websockets": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Extensions.Options": "[3.1.4, )",
+          "Microsoft.Extensions.Options": "[6.0.0, )",
           "StrawberryShake.Core": "[0.0.0, )",
           "StrawberryShake.Resources": "[0.0.0, )",
           "System.IO.Pipelines": "[6.0.0, )",
@@ -3187,8 +3190,8 @@
       },
       "System.Threading.Channels": {
         "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "TY8/9+tI0mNaUMgntOxxaq2ndTkdXqLSxvPmas7XEqOlv9lQtB7wLjYGd756lOaO7Dvb5r/WXhluM+0Xe87v5Q=="
+        "resolved": "7.0.0",
+        "contentHash": "qmeeYNROMsONF6ndEZcIQ+VxR4Q/TX/7uIVLJqtwIWL7dDWeh0l1UIqgo4wYyjG//5lUNhwkLDSFl+pAWO6oiA=="
       },
       "System.Threading.Tasks": {
         "type": "Transitive",
@@ -3519,13 +3522,13 @@
         "dependencies": {
           "HotChocolate.Transport.Abstractions": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "System.IO.Pipelines": "[6.0.0, )"
+          "System.IO.Pipelines": "[7.0.0, )"
         }
       },
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[7.0.0, )"
         }
       },
       "hotchocolate.transport.sockets.client": {
@@ -3666,11 +3669,11 @@
       "strawberryshake.transport.websockets": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Extensions.Options": "[3.1.4, )",
+          "Microsoft.Extensions.Options": "[7.0.0, )",
           "StrawberryShake.Core": "[0.0.0, )",
           "StrawberryShake.Resources": "[0.0.0, )",
-          "System.IO.Pipelines": "[6.0.0, )",
-          "System.Threading.Channels": "[6.0.0, )"
+          "System.IO.Pipelines": "[7.0.0, )",
+          "System.Threading.Channels": "[7.0.0, )"
         }
       },
       "StrawberryShake.Transport.WebSockets.Tests": {
@@ -5097,8 +5100,8 @@
       },
       "System.Threading.Channels": {
         "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "TY8/9+tI0mNaUMgntOxxaq2ndTkdXqLSxvPmas7XEqOlv9lQtB7wLjYGd756lOaO7Dvb5r/WXhluM+0Xe87v5Q=="
+        "resolved": "8.0.0-rc.2.23479.6",
+        "contentHash": "z8/q0WPKxQsxuzywRbY1oCb2ZO4qgRbE0nYwXjwrIJ7y10796vJl9P2++MF4JcBcKXfNLgw0JSQslMTxXB+C/A=="
       },
       "System.Threading.Tasks": {
         "type": "Transitive",
@@ -5429,13 +5432,13 @@
         "dependencies": {
           "HotChocolate.Transport.Abstractions": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "System.IO.Pipelines": "[6.0.0, )"
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.transport.sockets.client": {
@@ -5576,11 +5579,11 @@
       "strawberryshake.transport.websockets": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Extensions.Options": "[3.1.4, )",
+          "Microsoft.Extensions.Options": "[8.0.0-rc.2.23479.6, )",
           "StrawberryShake.Core": "[0.0.0, )",
           "StrawberryShake.Resources": "[0.0.0, )",
-          "System.IO.Pipelines": "[6.0.0, )",
-          "System.Threading.Channels": "[6.0.0, )"
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )",
+          "System.Threading.Channels": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "StrawberryShake.Transport.WebSockets.Tests": {

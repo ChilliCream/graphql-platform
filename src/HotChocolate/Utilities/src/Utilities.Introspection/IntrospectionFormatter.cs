@@ -6,9 +6,9 @@ using HotChocolate.Utilities.Introspection.Properties;
 
 namespace HotChocolate.Utilities.Introspection;
 
-internal static class IntrospectionDeserializer
+internal static class IntrospectionFormatter
 {
-    public static DocumentNode Deserialize(IntrospectionResult result)
+    public static DocumentNode Format(IntrospectionResult result)
     {
         var typeDefinitions = new List<IDefinitionNode>();
         typeDefinitions.Add(CreateSchema(result.Data!.Schema));

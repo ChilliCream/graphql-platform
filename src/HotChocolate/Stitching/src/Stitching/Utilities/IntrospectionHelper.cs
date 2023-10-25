@@ -19,7 +19,7 @@ public class IntrospectionHelper(HttpClient httpClient, string configuration)
         // the features this schema supports and convert the introspection
         // result into a parsed GraphQL SDL document.
         var schemaDocument = await IntrospectionClient
-            .DownloadSchemaAsync(_httpClient, cancellationToken)
+            .IntrospectServerAsync(_httpClient, cancellationToken)
             .ConfigureAwait(false);
 
         // If the down-stream service provides a schema definition we will fetch it.

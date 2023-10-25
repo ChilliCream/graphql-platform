@@ -3,22 +3,21 @@ using ChilliCream.Testing;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Utilities.Introspection.IntrospectionClient;
 
 namespace HotChocolate.Utilities.Introspection
 {
-    public class IntrospectionDeserializerTests
+    public class IntrospectionFormatterTests
     {
         [Fact]
         public void DeserializeStarWarsIntrospectionResult()
         {
             // arrange
             var json = FileResource.Open("StarWarsIntrospectionResult.json");
-            var result = JsonSerializer.Deserialize<IntrospectionResult>(
-                json,
-                IntrospectionClient.SerializerOptions);
+            var result = JsonSerializer.Deserialize<IntrospectionResult>(json, SerializerOptions);
 
             // act
-            var schema = IntrospectionDeserializer.Deserialize(result);
+            var schema = IntrospectionFormatter.Format(result);
 
             // assert
             schema.ToString(true).MatchSnapshot();
@@ -29,12 +28,10 @@ namespace HotChocolate.Utilities.Introspection
         {
             // arrange
             var json = FileResource.Open("IntrospectionWithDefaultValues.json");
-            var result = JsonSerializer.Deserialize<IntrospectionResult>(
-                json,
-                IntrospectionClient.SerializerOptions);
+            var result = JsonSerializer.Deserialize<IntrospectionResult>(json, SerializerOptions);
 
             // act
-            var schema = IntrospectionDeserializer.Deserialize(result);
+            var schema = IntrospectionFormatter.Format(result);
 
             // assert
             schema.ToString(true).MatchSnapshot();

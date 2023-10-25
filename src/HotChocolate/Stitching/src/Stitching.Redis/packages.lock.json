@@ -151,8 +151,8 @@
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
-        "resolved": "5.0.1",
-        "contentHash": "qEePWsaq9LoEEIqhbGe6D5J8c9IqQOUuTzzV6wn1POlfdLkJliZY3OlB0j0f17uMWlqZYjH7txj+2YbyrIA8Yg=="
+        "resolved": "6.0.0",
+        "contentHash": "mXX66shZ4xLlI3vNLaJ0lt8OIZdmXTvIqXRdQX5HLVGSkLhINLsVhyZuX2UdRFnOGkqnwmMUs40pIIQ7mna4+A=="
       },
       "System.Memory": {
         "type": "Transitive",
@@ -291,6 +291,8 @@
         "dependencies": {
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Stitching.Abstractions": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[0.0.0, )",
+          "HotChocolate.Utilities.Introspection": "[0.0.0, )",
           "Microsoft.Extensions.Http": "[3.1.4, )"
         }
       },
@@ -299,6 +301,22 @@
         "dependencies": {
           "HotChocolate.Abstractions": "[0.0.0, )",
           "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
+      "hotchocolate.transport.abstractions": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
+          "System.Collections.Immutable": "[1.7.0, )",
+          "System.Text.Json": "[6.0.7, )"
+        }
+      },
+      "hotchocolate.transport.http": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Transport.Abstractions": "[0.0.0, )",
+          "HotChocolate.Utilities": "[0.0.0, )",
+          "System.IO.Pipelines": "[6.0.0, )"
         }
       },
       "hotchocolate.types": {
@@ -346,6 +364,15 @@
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
+        }
+      },
+      "hotchocolate.utilities.introspection": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "System.Text.Json": "[6.0.7, )"
         }
       },
       "hotchocolate.validation": {
@@ -507,8 +534,8 @@
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
-        "resolved": "5.0.1",
-        "contentHash": "qEePWsaq9LoEEIqhbGe6D5J8c9IqQOUuTzzV6wn1POlfdLkJliZY3OlB0j0f17uMWlqZYjH7txj+2YbyrIA8Yg=="
+        "resolved": "7.0.0",
+        "contentHash": "jRn6JYnNPW6xgQazROBLSfpdoczRw694vO5kKvMcNnpXuolEixUyw6IBuBs2Y2mlSX/LdLvyyWmfXhaI3ND1Yg=="
       },
       "System.Memory": {
         "type": "Transitive",
@@ -647,6 +674,8 @@
         "dependencies": {
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Stitching.Abstractions": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[0.0.0, )",
+          "HotChocolate.Utilities.Introspection": "[0.0.0, )",
           "Microsoft.Extensions.Http": "[3.1.4, )"
         }
       },
@@ -655,6 +684,22 @@
         "dependencies": {
           "HotChocolate.Abstractions": "[0.0.0, )",
           "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
+      "hotchocolate.transport.abstractions": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
+          "System.Collections.Immutable": "[1.7.0, )",
+          "System.Text.Json": "[6.0.7, )"
+        }
+      },
+      "hotchocolate.transport.http": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Transport.Abstractions": "[0.0.0, )",
+          "HotChocolate.Utilities": "[0.0.0, )",
+          "System.IO.Pipelines": "[7.0.0, )"
         }
       },
       "hotchocolate.types": {
@@ -702,6 +747,15 @@
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
+        }
+      },
+      "hotchocolate.utilities.introspection": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "System.Text.Json": "[6.0.7, )"
         }
       },
       "hotchocolate.validation": {
@@ -863,8 +917,8 @@
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
-        "resolved": "5.0.1",
-        "contentHash": "qEePWsaq9LoEEIqhbGe6D5J8c9IqQOUuTzzV6wn1POlfdLkJliZY3OlB0j0f17uMWlqZYjH7txj+2YbyrIA8Yg=="
+        "resolved": "8.0.0-rc.2.23479.6",
+        "contentHash": "4bqn2Kj0keumJ0x3wdZtO1Ex/5Ppu01fP7Rtmn1uJBR08WWRKeKSX6U9a/BiEieE9JjhzapvhjPtFypE7ZIAyQ=="
       },
       "System.Memory": {
         "type": "Transitive",
@@ -1003,6 +1057,8 @@
         "dependencies": {
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Stitching.Abstractions": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[0.0.0, )",
+          "HotChocolate.Utilities.Introspection": "[0.0.0, )",
           "Microsoft.Extensions.Http": "[3.1.4, )"
         }
       },
@@ -1011,6 +1067,22 @@
         "dependencies": {
           "HotChocolate.Abstractions": "[0.0.0, )",
           "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
+        }
+      },
+      "hotchocolate.transport.abstractions": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
+          "System.Collections.Immutable": "[1.7.0, )",
+          "System.Text.Json": "[6.0.7, )"
+        }
+      },
+      "hotchocolate.transport.http": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Transport.Abstractions": "[0.0.0, )",
+          "HotChocolate.Utilities": "[0.0.0, )",
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.types": {
@@ -1058,6 +1130,15 @@
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
+        }
+      },
+      "hotchocolate.utilities.introspection": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "System.Text.Json": "[6.0.7, )"
         }
       },
       "hotchocolate.validation": {

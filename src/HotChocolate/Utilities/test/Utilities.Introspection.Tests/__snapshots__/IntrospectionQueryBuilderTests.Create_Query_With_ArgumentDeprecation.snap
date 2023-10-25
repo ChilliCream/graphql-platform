@@ -1,19 +1,24 @@
 query IntrospectionQuery {
-  queryType {
-    name
-  }
-  mutationType {
-    name
-  }
-  directives {
-    name
-    description
-    args {
-      ... InputValue
+  __schema {
+    queryType {
+      name
     }
-    onOperation
-    onFragment
-    onField
+    mutationType {
+      name
+    }
+    types {
+      ... FullType
+    }
+    directives {
+      name
+      description
+      args {
+        ... InputValue
+      }
+      onOperation
+      onFragment
+      onField
+    }
   }
 }
 

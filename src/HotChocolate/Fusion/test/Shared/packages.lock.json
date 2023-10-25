@@ -1473,13 +1473,13 @@
         "dependencies": {
           "HotChocolate.Transport.Abstractions": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "System.IO.Pipelines": "[6.0.0, )"
+          "System.IO.Pipelines": "[7.0.0, )"
         }
       },
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[7.0.0, )"
         }
       },
       "hotchocolate.transport.sockets.client": {
@@ -1544,6 +1544,15 @@
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
+        }
+      },
+      "hotchocolate.utilities.introspection": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "System.Text.Json": "[6.0.7, )"
         }
       },
       "hotchocolate.validation": {
@@ -3088,13 +3097,13 @@
         "dependencies": {
           "HotChocolate.Transport.Abstractions": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "System.IO.Pipelines": "[6.0.0, )"
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.transport.sockets": {
         "type": "Project",
         "dependencies": {
-          "System.IO.Pipelines": "[4.7.0, )"
+          "System.IO.Pipelines": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.transport.sockets.client": {
@@ -3159,6 +3168,15 @@
           "Microsoft.Bcl.AsyncInterfaces": "[1.1.0, )",
           "System.Memory": "[4.5.4, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
+        }
+      },
+      "hotchocolate.utilities.introspection": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Language": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "System.Text.Json": "[6.0.7, )"
         }
       },
       "hotchocolate.validation": {

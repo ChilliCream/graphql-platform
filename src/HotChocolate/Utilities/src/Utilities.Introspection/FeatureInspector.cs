@@ -23,7 +23,7 @@ internal sealed class FeatureInspector
         _cancellationToken = cancellationToken;
     }
 
-    public static async Task<SchemaFeatures> InspectSchemaAsync(
+    public static async Task<SchemaFeatures> InspectAsync(
         GraphQLHttpClient client,
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)

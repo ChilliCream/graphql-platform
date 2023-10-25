@@ -56,6 +56,8 @@ internal static class IntrospectionQueryBuilder
                             new FieldNode("name")
                         })));
         }
+        
+        selections.Add(CreateTypesField());
 
         selections.Add(
             CreateDirectivesField(
@@ -71,13 +73,39 @@ internal static class IntrospectionQueryBuilder
                     OperationType.Query,
                     Array.Empty<VariableDefinitionNode>(),
                     Array.Empty<DirectiveNode>(),
-                    new SelectionSetNode(selections)),
+                    new SelectionSetNode(
+                        new ISelectionNode[]
+                        {
+                            new FieldNode(
+                                new NameNode("__schema"),
+                                null, 
+                                null,
+                                Array.Empty<DirectiveNode>(),
+                                Array.Empty<ArgumentNode>(),
+                                new SelectionSetNode(selections))
+                        })),
                 BuildFullTypeFragment(features.HasArgumentDeprecation),
                 BuildInputValueFragment(),
                 BuildTypeRefFragment(options.TypeDepth)
             });
     }
 
+    private static FieldNode CreateTypesField()
+        => new FieldNode(
+            new NameNode("types"),
+            null,
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            new SelectionSetNode(
+                new ISelectionNode[]
+                {
+                    new FragmentSpreadNode(
+                        null,
+                        new NameNode("FullType"),
+                        Array.Empty<DirectiveNode>())
+                }));
+    
     private static FieldNode CreateDirectivesField(bool hasLocationsField, bool hasRepeatableDirective)
     {
         var selections = new List<ISelectionNode>
