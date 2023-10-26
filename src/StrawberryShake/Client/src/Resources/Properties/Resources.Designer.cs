@@ -278,5 +278,11 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("ResponseEnumerator_HttpNoSuccessStatusCode", resourceCulture);
             }
         }
+        
+        internal static string HttpConnection_FileMapDoesNotMatch {
+            get {
+                return ResourceManager.GetString("HttpConnection_FileMapDoesNotMatch", resourceCulture);
+            }
+        }
     }
 }

@@ -206,14 +206,7 @@ internal static class Utf8JsonWriterHelper
 
         for (var i = 0; i < list.Count; i++)
         {
-            var element = list[i];
-
-            if (element is null)
-            {
-                continue;
-            }
-
-            WriteFieldValue(writer, element);
+            WriteFieldValue(writer, list[i]);
         }
 
         writer.WriteEndArray();

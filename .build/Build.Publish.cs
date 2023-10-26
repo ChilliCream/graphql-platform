@@ -86,6 +86,15 @@ partial class Build
                 .SetVersion(SemVersion));
 
             DotNetPack(c => c
+                .SetProject(FSharpTypes)
+                .SetConfiguration(Configuration)
+                .SetOutputDirectory(PackageDirectory)
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion));
+
+            DotNetPack(c => c
                 .SetNoRestore(true)
                 .SetNoBuild(true)
                 .SetProject(PackSolutionFile)

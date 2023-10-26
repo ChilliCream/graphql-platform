@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public static class SchemaHelper
 {
-    private static string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
+    private const string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
 
     public static ISchema Load(
         IReadOnlyCollection<GraphQLFile> schemaFiles,
@@ -91,6 +91,10 @@ public static class SchemaHelper
                 {
                     o.EnableDefer = true;
                     o.EnableStream = true;
+                    o.EnableTag = false;
+                    o.EnableOneOf = false;
+                    o.EnableFlagEnums = false;
+                    o.EnableTrueNullability = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))

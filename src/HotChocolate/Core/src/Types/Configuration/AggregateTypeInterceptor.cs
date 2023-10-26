@@ -46,10 +46,10 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         while (Unsafe.IsAddressLessThan(ref current, ref end))
         {
             current.OnBeforeCreateSchema(context, schemaBuilder);
-            current = ref Unsafe.Add(ref current, 1);
+            current = ref Unsafe.Add(ref current, 1)!;
         }
         
-        current = ref Unsafe.Add(ref start, 0);
+        current = ref Unsafe.Add(ref start, 0)!;
         var i = 0;
         TypeInterceptor[]? temp = null; 
         
@@ -65,7 +65,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
                 while (Unsafe.IsAddressLessThan(ref next, ref current))
                 {
                     temp[i++] = next;   
-                    next = ref Unsafe.Add(ref next, 1);
+                    next = ref Unsafe.Add(ref next, 1)!;
                 }
             }
 
@@ -82,7 +82,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
                 }
             }
 
-            current = ref Unsafe.Add(ref current, 1);
+            current = ref Unsafe.Add(ref current, 1)!;
         }
 
         if (temp is not null)

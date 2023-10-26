@@ -396,7 +396,7 @@ internal sealed partial class SubscriptionExecutor
             {
                 if (await _eventEnumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    Current = await _onEvent(_eventEnumerator.Current).ConfigureAwait(false);
+                    Current = await _onEvent(_eventEnumerator.Current!).ConfigureAwait(false);
                     return true;
                 }
             }

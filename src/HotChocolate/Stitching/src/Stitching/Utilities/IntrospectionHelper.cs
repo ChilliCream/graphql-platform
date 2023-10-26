@@ -7,16 +7,10 @@ using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public class IntrospectionHelper
+public class IntrospectionHelper(HttpClient httpClient, string configuration)
 {
-    private readonly HttpClient _httpClient;
-    private readonly string _configuration;
-
-    public IntrospectionHelper(HttpClient httpClient, string configuration)
-    {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _configuration = configuration.EnsureGraphQLName(nameof(configuration));
-    }
+    private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+    private readonly string _configuration = configuration.EnsureGraphQLName(nameof(configuration));
 
     public async Task<RemoteSchemaDefinition> GetSchemaDefinitionAsync(
         CancellationToken cancellationToken)
@@ -24,8 +18,8 @@ public class IntrospectionHelper
         // The introspection client will do all the hard work to negotiate
         // the features this schema supports and convert the introspection
         // result into a parsed GraphQL SDL document.
-        var schemaDocument = await new IntrospectionClient()
-            .DownloadSchemaAsync(_httpClient, cancellationToken)
+        var schemaDocument = await IntrospectionClient
+            .IntrospectServerAsync(_httpClient, cancellationToken)
             .ConfigureAwait(false);
 
         // If the down-stream service provides a schema definition we will fetch it.

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -244,9 +245,9 @@ public class Selection : ISelection
                     temp[next++] = directives[i];
                 }
 
-                for (var i = 0; i < first.Directives.Count; i++)
+                for (var i = 0; i < other.Directives.Count; i++)
                 {
-                    temp[next++] = first.Directives[i];
+                    temp[next++] = other.Directives[i];
                 }
 
                 directives = temp;

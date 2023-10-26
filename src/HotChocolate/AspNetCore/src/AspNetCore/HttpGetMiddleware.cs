@@ -97,11 +97,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
             statusCode = HttpStatusCode.BadRequest;
 
-#if NET5_0_OR_GREATER
             var errors = headerResult.ErrorResult.Errors!;
-#else
-            var errors = headerResult.ErrorResult!.Errors!;
-#endif
             result = headerResult.ErrorResult;
             _diagnosticEvents.HttpRequestError(context, errors[0]);
             goto HANDLE_RESULT;
@@ -169,23 +165,23 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             {
                 var flags = options.AllowedGetOperations;
                 var newRequestFlags = GraphQLRequestFlags.None;
-                
+
                 if ((flags & AllowedGetOperations.Query) == AllowedGetOperations.Query)
                 {
                     newRequestFlags |= AllowQuery;
                 }
-                
+
                 if ((flags & AllowedGetOperations.Mutation) == AllowedGetOperations.Mutation)
                 {
                     newRequestFlags |= AllowMutation;
                 }
-                
+
                 if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription &&
                     (requestFlags & AllowSubscription) == AllowSubscription)
                 {
                     newRequestFlags |= AllowSubscription;
                 }
-                
+
                 if((requestFlags & AllowStreams) == AllowStreams)
                 {
                     newRequestFlags |= AllowStreams;
