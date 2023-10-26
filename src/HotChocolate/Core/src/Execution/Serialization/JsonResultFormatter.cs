@@ -218,11 +218,15 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        await using var writer = new Utf8JsonWriter(outputStream, _options);
+        using var buffer = new ArrayWriter();
 
-        WriteResult(writer, result);
+        Format(result, buffer);
 
-        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await outputStream
+            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .ConfigureAwait(false);
+
+        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private void WriteResult(Utf8JsonWriter writer, IQueryResult result)
