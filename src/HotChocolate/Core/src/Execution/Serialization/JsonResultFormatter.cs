@@ -222,9 +222,15 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
         Format(result, buffer);
 
+#if NETSTANDARD2_0
+        await outputStream
+            .WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, cancellationToken)
+            .ConfigureAwait(false);
+#else
         await outputStream
             .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
             .ConfigureAwait(false);
+#endif
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
