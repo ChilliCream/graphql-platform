@@ -2,12 +2,16 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Framework>net8.0</Framework>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
+<!--    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />-->
+    <PackageReference Include="HotChocolate" Version="13.6.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.8" />
+    <PackageReference Include="System.IO.Pipelines" Version="8.0.0-rc.2.23479.6" />
   </ItemGroup>
 
   <ItemGroup>
