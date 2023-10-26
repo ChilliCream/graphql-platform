@@ -189,6 +189,11 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
             throw new ArgumentNullException(nameof(writer));
         }
 
+        FormatInternal(result, writer);
+    }
+    
+    private void FormatInternal(IQueryResult result, IBufferWriter<byte> writer)
+    {
         using var jsonWriter = new Utf8JsonWriter(writer, _options);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
@@ -219,8 +224,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         CancellationToken cancellationToken = default)
     {
         using var buffer = new ArrayWriter();
-
-        Format(result, buffer);
+        FormatInternal(result, buffer);
 
 #if NETSTANDARD2_0
         await outputStream
