@@ -1,3 +1,5 @@
+using HotChocolate.Skimmed;
+
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
 internal sealed class MergeTypeMiddleware : IMergeMiddleware
@@ -6,11 +8,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
 
     public MergeTypeMiddleware(IEnumerable<ITypeMergeHandler> mergeHandlers)
     {
-        if (mergeHandlers is null)
-        {
-            throw new ArgumentNullException(nameof(mergeHandlers));
-        }
-
+        ArgumentNullException.ThrowIfNull(mergeHandlers);
         _mergeHandlers = mergeHandlers.ToArray();
     }
 
@@ -42,7 +40,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
                 {
                     continue;
                 }
-                
+
                 status = handler.Merge(context, typeGroup);
 
                 if (status is MergeStatus.Completed)
@@ -60,9 +58,69 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             }
         }
 
+        var rewriter = new EnsureTypesAreConsistent(context.FusionGraph);
+        rewriter.VisitSchema(context.FusionGraph, null);
+
         if (!context.Log.HasErrors)
         {
             await next(context).ConfigureAwait(false);
+        }
+    }
+
+    private class EnsureTypesAreConsistent(Schema fusionGraph) : SchemaVisitor<object?>
+    {
+        public override void VisitOutputField(OutputField field, object? context)
+        {
+            var source = field.Type.NamedType();
+
+            switch (source)
+            {
+                case MissingType:
+                {
+                    if (fusionGraph.Types.TryGetType(source.Name, out var target))
+                    {
+                        field.Type = field.Type.ReplaceNameType(_ => target);
+                    }
+                }
+                    break;
+
+                default:
+                {
+                    if (fusionGraph.Types.TryGetType(source.Name, out var target) &&
+                        !ReferenceEquals(source, target))
+                    {
+                        field.Type = field.Type.ReplaceNameType(_ => target);
+                    }
+                }
+                    break;
+            }
+        }
+
+        public override void VisitInputField(InputField field, object? context)
+        {
+            var source = field.Type.NamedType();
+
+            switch (source)
+            {
+                case MissingType:
+                {
+                    if (fusionGraph.Types.TryGetType(source.Name, out var target))
+                    {
+                        field.Type = field.Type.ReplaceNameType(_ => target);
+                    }
+                    break;
+                }
+
+                default:
+                {
+                    if (fusionGraph.Types.TryGetType(source.Name, out var target) &&
+                        !ReferenceEquals(source, target))
+                    {
+                        field.Type = field.Type.ReplaceNameType(_ => target);
+                    }
+                    break;
+                }
+            }
         }
     }
 }
