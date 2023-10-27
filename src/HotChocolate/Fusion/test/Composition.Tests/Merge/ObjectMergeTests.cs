@@ -4,25 +4,29 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class InterfaceMergeTests(ITestOutputHelper output) 
-    : CompositionTestBase(output, new InterfaceTypeMergeHandler(), new ScalarTypeMergeHandler())
+public class ObjectMergeTests(ITestOutputHelper output)
+    : CompositionTestBase(
+        output,
+        new ObjectTypeMergeHandler(),
+        new InterfaceTypeMergeHandler(),
+        new ScalarTypeMergeHandler())
 {
     [Fact]
-    public async Task Identical_Interfaces_Merge()
+    public async Task Identical_Objects_Merge()
         => await Succeed(
                 """
-                interface Interface1 {
+                type Query {
                   field1: String!
                 }
                 """,
                 """
-                interface Interface1 {
+                type Query {
                   field1: String!
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                interface Interface1
+                type Query
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1: String!
@@ -30,23 +34,23 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                     @source(subgraph: "B")
                 }
                 """);
-    
+
     [Fact]
-    public async Task Interfaces_With_Different_Fields_Merge()
+    public async Task Objects_With_Different_Fields_Merge()
         => await Succeed(
                 """
-                interface Interface1 {
+                type Query {
                   field1: String!
                 }
                 """,
                 """
-                interface Interface1 {
+                type Query {
                   field2: Int!
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                interface Interface1
+                type Query
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1: String!
@@ -55,23 +59,23 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                     @source(subgraph: "B")
                 }
                 """);
-    
+
     [Fact]
     public async Task Fields_Merge_When_Nullability_Is_Different()
         => await Succeed(
                 """
-                interface Interface1 {
+                type Query {
                   field1: String!
                 }
                 """,
                 """
-                interface Interface1 {
+                type Query {
                   field1: String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                interface Interface1
+                type Query
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1: String
@@ -84,12 +88,12 @@ public class InterfaceMergeTests(ITestOutputHelper output)
     public async Task Fields_Do_Not_Merge_When_Return_Type_Differs()
         => await Fail(
             """
-            interface Interface1 {
+            type Query {
               field1: String
             }
             """,
             """
-            interface Interface1 {
+            type Query {
               field1: Int
             }
             """,
@@ -99,7 +103,7 @@ public class InterfaceMergeTests(ITestOutputHelper output)
     public async Task Types_With_The_Same_Name_Must_Be_Of_The_Same_Kind()
         => await Fail(
             """
-            interface Interface1 {
+            type Query {
               field1: Enum1!
             }
 
@@ -108,7 +112,7 @@ public class InterfaceMergeTests(ITestOutputHelper output)
             }
             """,
             """
-            interface Interface1 {
+            type Query {
               field1: Enum1!
             }
 
@@ -120,18 +124,18 @@ public class InterfaceMergeTests(ITestOutputHelper output)
     public async Task Fields_Merge_When_Arguments_Are_Identical()
         => await Succeed(
                 """
-                interface Interface1 {
+                type Query {
                   field1(a: String): String
                 }
                 """,
                 """
-                interface Interface1 {
+                type Query {
                   field1(a: String): String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                interface Interface1
+                type Query
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1(a: String): String
@@ -139,23 +143,23 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                     @source(subgraph: "B")
                 }
                 """);
-    
+
     [Fact]
     public async Task Fields_Merge_When_Arguments_Nullability_Is_Different()
         => await Succeed(
                 """
-                interface Interface1 {
+                type Query {
                   field1(a: String!): String
                 }
                 """,
                 """
-                interface Interface1 {
+                type Query {
                   field1(a: String): String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                interface Interface1
+                type Query
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1(a: String!): String
@@ -163,22 +167,22 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                     @source(subgraph: "B")
                 }
                 """);
-    
+
     [Fact]
     public async Task Fields_Do_Not_Merge_When_Argument_Types_Are_Different()
         => await Fail(
             """
-            interface Interface1 {
+            type Query {
               field1(a: String): String
             }
             """,
             """
-            interface Interface1 {
+            type Query {
               field1(a: Int): String
             }
             """,
             "F0004");
-    
+
     [Fact]
     public async Task Merge_Implemented_Interfaces()
         => await Succeed(
@@ -187,19 +191,19 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                   id: ID!
                 }
 
-                interface Interface1 implements Node {
+                type User implements Node {
                   id: ID!
                   field1(a: String!): String
                 }
                 """,
                 """
-                interface Interface1 {
+                type User {
                   field1(a: String): String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                interface Interface1 implements Node
+                type User implements Node
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1(a: String!): String
@@ -215,7 +219,7 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                     @source(subgraph: "A")
                 }
                 """);
-    
+
     [Fact]
     public async Task Merge_Implemented_Interfaces_When_The_Same()
         => await Succeed(
@@ -224,7 +228,7 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                   id: ID!
                 }
 
-                interface Interface1 implements Node {
+                type User implements Node {
                   id: ID!
                   field1(a: String!): String
                 }
@@ -234,13 +238,13 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                   id: ID!
                 }
 
-                interface Interface1 implements Node {
+                type User implements Node {
                   field1(a: String): String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                interface Interface1 implements Node
+                type User implements Node
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1(a: String!): String
@@ -258,7 +262,7 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                     @source(subgraph: "B")
                 }
                 """);
-    
+
     [Fact]
     public async Task Merge_Implemented_Interfaces_When_Different()
         => await Succeed(
@@ -267,7 +271,7 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                   id: ID!
                 }
 
-                interface Interface1 implements Node1 {
+                type User implements Node1 {
                   id: ID!
                   field1(a: String!): String
                 }
@@ -277,13 +281,13 @@ public class InterfaceMergeTests(ITestOutputHelper output)
                   id: ID!
                 }
 
-                interface Interface1 implements Node2 {
+                type User implements Node2 {
                   field1(a: String): String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                interface Interface1 implements Node1 & Node2
+                type User implements Node1 & Node2
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1(a: String!): String

@@ -1,6 +1,8 @@
 using System;
 using System.Buffers;
+#if NET7_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -83,6 +85,31 @@ public ref partial struct Utf8GraphQLParser
         public static FieldDefinitionNode ParseFieldDefinition(
             Utf8GraphQLReader reader) =>
             new Utf8GraphQLParser(reader).ParseFieldDefinition();
+        
+        /// <summary>
+        /// Parses a GraphQL operation definition string e.g. query Foo($abc: String)
+        /// </summary>
+        public static OperationDefinitionNode ParseOperationDefinition(
+#if NET7_0_OR_GREATER
+            [StringSyntax("graphql")] string sourceText) =>
+#else
+            string sourceText) =>
+#endif
+            Parse(sourceText, parser => parser.ParseOperationDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL operation definition string e.g. query Foo($abc: String)
+        /// </summary>
+        public static OperationDefinitionNode ParseOperationDefinition(
+            ReadOnlySpan<byte> sourceText) =>
+            Parse(sourceText, parser => parser.ParseOperationDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL operation definition string e.g. query Foo($abc: String)
+        /// </summary>
+        public static OperationDefinitionNode ParseOperationDefinition(
+            Utf8GraphQLReader reader) =>
+            new Utf8GraphQLParser(reader).ParseOperationDefinition();
 
         /// <summary>
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")

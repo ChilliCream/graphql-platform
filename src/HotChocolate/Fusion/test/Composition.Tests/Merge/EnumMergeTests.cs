@@ -1,3 +1,4 @@
+using CookieCrumble;
 using HotChocolate.Fusion.Composition.Pipeline;
 using Xunit.Abstractions;
 
@@ -9,16 +10,26 @@ public class EnumMergeTests(ITestOutputHelper output)
     [Fact]
     public async Task Identical_Enums_Merge()
         => await Succeed(
-            """
-            enum Enum1 {
-              BAR
-            }
-            """,
-            """
-            enum Enum1 {
-              BAR
-            }
-            """);
+                """
+                enum Enum1 {
+                  BAR
+                }
+                """,
+                """
+                enum Enum1 {
+                  BAR
+                }
+                """)
+            .MatchInlineSnapshotAsync(
+                """"
+                enum Enum1
+                  @source(subgraph: "A")
+                  @source(subgraph: "B") {
+                  BAR
+                    @source(subgraph: "A")
+                    @source(subgraph: "B")
+                }
+                """");
 
     [Fact]
     public async Task Enums_Do_Not_Merge_When_Values_Differ()

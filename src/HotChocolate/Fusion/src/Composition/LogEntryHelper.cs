@@ -169,7 +169,7 @@ internal static class LogEntryHelper
                 schemaCoordinate,
                 targetType.ToTypeNode().ToString(),
                 sourceType.ToTypeNode().ToString()),
-            SpecErrorCodes.FieldTypeKindMismatch,
+            SpecErrorCodes.InputTypeKindMismatch,
             severity: LogSeverity.Error,
             coordinate: schemaCoordinate,
             member: source,
@@ -229,6 +229,21 @@ internal static class LogEntryHelper
             SpecErrorCodes.EnumValuesDiffer,
             LogSeverity.Error,
             new SchemaCoordinate(typeName));
+    
+    public static LogEntry InputFieldsDifferAcrossSubgraphs(
+        string typeName,
+        IEnumerable<string> expectedValues,
+        IEnumerable<string> unexpectedValues)
+        => new LogEntry(
+            string.Format(
+                "The composition expected the input object type `{0}` to have the input fields `{1}` across all subgraphs. " + 
+                "But found the following input fields on some subgraphs `{2}`.",
+                typeName,
+                string.Join(",", expectedValues.OrderBy(t => t)),
+                string.Join(",", unexpectedValues.OrderBy(t => t))),
+            SpecErrorCodes.InputFieldsDiffer,
+            LogSeverity.Error,
+            new SchemaCoordinate(typeName));
 }
 
 static file class LogEntryCodes
@@ -262,6 +277,9 @@ static file class SpecErrorCodes
     
     public const string ArgumentTypeKindMismatch = "F0004";
     
+    public const string InputTypeKindMismatch = "F0005";
+    
     public const string EnumValuesDiffer = "F0003";
+    public const string InputFieldsDiffer = "F0006";
 
 }

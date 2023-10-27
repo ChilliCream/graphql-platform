@@ -1,0 +1,7 @@
+---------------
+The composition expected the input object type `Input1` to have the input fields `field1` across all subgraphs. But found the following input fields on some subgraphs `field2`.
+---------------
+
+---------------
+Unable to merge the distributed type `Input1`.
+---------------

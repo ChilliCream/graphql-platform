@@ -1,0 +1,7 @@
+---------------
+The composition expected the enum type `Enum1` to have the enum values `BAR` across all subgraphs. But found the following values on some subgraphs `BAZ`.
+---------------
+
+---------------
+Unable to merge the distributed type `Enum1`.
+---------------
