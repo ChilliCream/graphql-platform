@@ -54,7 +54,7 @@ internal static class GraphQLHttpEventStreamProcessor
                     }
 
                     var memory = writer.GetMemory(bytesRead);
-                    buffer.AsSpan().CopyTo(memory.Span);
+                    buffer.AsSpan().Slice(0, bytesRead).CopyTo(memory.Span);
                     writer.Advance(bytesRead);
                 }
                 catch
@@ -84,17 +84,15 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         using var message = new ArrayWriter();
 
+        using var tokenRegistration = ct.Register(
+            static reader => ((PipeReader)reader!).CancelPendingRead(), reader, false);
+
         while (true)
         {
-            ReadResult result;
-
-            try
+            var result = await reader.ReadAsync(default).ConfigureAwait(false);
+            if (result.IsCanceled)
             {
-                result = await reader.ReadAsync(ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                yield break;
+                break;
             }
 
             var buffer = result.Buffer;
@@ -154,7 +152,7 @@ internal static class GraphQLHttpEventStreamProcessor
             {
                 var size = segment.Span.Length;
                 var span = message.GetSpan(size);
-                buffer.First.Span.CopyTo(span);
+                segment.Span.CopyTo(span);
                 message.Advance(size);
             }
         }
