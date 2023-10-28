@@ -37,7 +37,7 @@ namespace HotChocolate.Fusion.Composition
             var args = new[]
             {
                 new Argument(OperationArg, new StringValueNode(Operation.ToString(false))),
-                new Argument(KindArg, Kind.ToString()),
+                new Argument(KindArg, new EnumValueNode(Kind.ToString().ToUpperInvariant())),
                 new Argument(SubgraphArg, Subgraph)
             };
 
@@ -67,7 +67,7 @@ namespace HotChocolate.Fusion.Composition
             }
 
             var kindString = directiveNode.Arguments.GetValueOrDefault(KindArg)?.ExpectStringLiteral().Value;
-            if(kindString is null || !Enum.TryParse<ResolverKind>(kindString, out var kind))
+            if(kindString is null || !Enum.TryParse<ResolverKind>(kindString, ignoreCase: true, out var kind))
             {
                 directive = null;
                 return false;

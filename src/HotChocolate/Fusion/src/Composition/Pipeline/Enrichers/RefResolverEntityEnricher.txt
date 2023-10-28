@@ -11,10 +11,7 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 internal sealed class RefResolverEntityEnricher : IEntityEnricher
 {
     /// <inheritdoc />
-    public ValueTask EnrichAsync(
-        CompositionContext context,
-        EntityGroup entity,
-        CancellationToken cancellationToken = default)
+    public void Enrich(CompositionContext context, EntityGroup entity)
     {
         foreach (var (type, schema) in entity.Parts)
         {
@@ -30,8 +27,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                 TryRegisterEntityResolver(entity, type, entityResolverField, schema, context.FusionTypes);
 
                 // Check if the query field can be used to infer a batch by key resolver.
-                if (IsListOf(entityResolverField.Type, type) &&
-                    entityResolverField.Arguments.Count == 1)
+                if (IsListOf(entityResolverField.Type, type) && entityResolverField.Arguments.Count == 1)
                 {
                     var argument = entityResolverField.Arguments.First();
 
@@ -75,8 +71,6 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                 }
             }
         }
-
-        return default;
     }
 
     private static void TryRegisterEntityResolver(

@@ -2,7 +2,7 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 
 internal sealed class RequireEnricher : IEntityEnricher
 {
-    public ValueTask EnrichAsync(
+    public ValueTask Enrich(
         CompositionContext context,
         EntityGroup entity,
         CancellationToken cancellationToken = default)

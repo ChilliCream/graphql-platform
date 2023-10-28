@@ -34,10 +34,7 @@ public sealed class FusionGraphComposer2
         : this(
             new IEntityEnricher[]
             {
-                new RefResolverEntityEnricher(),
-                new PatternEntityEnricher(),
-                new RequireEnricher(),
-                new NodeEntityEnricher()
+                
             },
             new ITypeMergeHandler[]
             {

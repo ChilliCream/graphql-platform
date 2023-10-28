@@ -53,8 +53,7 @@ internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
 
                 foreach (var enricher in _enrichers)
                 {
-                    await enricher.EnrichAsync(context, typeGroup, context.Abort)
-                        .ConfigureAwait(false);
+                    enricher.Enrich(context, typeGroup);
                 }
 
                 context.Entities.Add(typeGroup);

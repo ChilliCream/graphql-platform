@@ -15,7 +15,7 @@ internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
     {
         foreach (var schema in context.Subgraphs)
         {
-            foreach (var directive in  RenameDirective.GetAllFrom(schema, context.FusionTypes))
+            foreach (var directive in RenameDirective.GetAllFrom(schema, context.FusionTypes))
             {
                 if (schema.TryGetMember(directive.Coordinate, out IHasName? member) &&
                     member is IHasContextData memberWithContext)

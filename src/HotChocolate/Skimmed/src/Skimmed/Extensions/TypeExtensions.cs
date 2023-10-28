@@ -73,6 +73,15 @@ public static class TypeExtensions
             NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode) ToTypeNode(nonNullType.NullableType)),
             _ => throw new NotSupportedException()
         };
+    
+    public static ITypeNode ToTypeNode(this IType type, string name)
+        => type switch
+        {
+            INamedType => new NamedTypeNode(name),
+            ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
+            NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode) ToTypeNode(nonNullType.NullableType)),
+            _ => throw new NotSupportedException()
+        };
 
     public static IType ReplaceNameType(this IType type, Func<INamedType, INamedType> newNamedType)
         => type switch

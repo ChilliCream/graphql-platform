@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -5,6 +6,7 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 internal sealed class MergeTypeMiddleware : IMergeMiddleware
 {
     private readonly ITypeMergeHandler[] _mergeHandlers;
+    private readonly QueryTypeMergeHandler _queryTypeMergeHandler = new();
 
     public MergeTypeMiddleware(IEnumerable<ITypeMergeHandler> mergeHandlers)
     {
@@ -14,21 +16,89 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
 
     public async ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
+        var rootTypes = new Dictionary<OperationType, List<TypePart>>();
         var groupedTypes = new Dictionary<string, List<TypePart>>();
-
+        
         foreach (var schema in context.Subgraphs)
         {
             foreach (var type in schema.Types)
             {
-                if (!groupedTypes.TryGetValue(type.Name, out var types))
-                {
-                    types = new List<TypePart>();
-                    groupedTypes.Add(type.Name, types);
-                }
-                types.Add(new TypePart(type, schema));
+                GroupType(type, schema, rootTypes, groupedTypes);
             }
         }
 
+        MergeQueryTypes(context, rootTypes);
+        MergeTypes(context, groupedTypes);
+
+        var rewriter = new EnsureTypesAreConsistent(context.FusionGraph);
+        rewriter.VisitSchema(context.FusionGraph, null);
+
+        if (!context.Log.HasErrors)
+        {
+            await next(context).ConfigureAwait(false);
+        }
+    }
+
+    private static void GroupType(
+        INamedType type,
+        Schema schema,
+        Dictionary<OperationType, List<TypePart>> rootTypes, 
+        Dictionary<string, List<TypePart>> groupedTypes)
+    {
+        if (ReferenceEquals(schema.QueryType, type))
+        {
+            if (!rootTypes.TryGetValue(OperationType.Query, out var types))
+            {
+                types = new List<TypePart>();
+                rootTypes.Add(OperationType.Query, types);
+            }
+            types.Add(new TypePart(type, schema));
+        }
+        else if (ReferenceEquals(schema.MutationType, type))
+        {
+            if (!rootTypes.TryGetValue(OperationType.Mutation, out var types))
+            {
+                types = new List<TypePart>();
+                rootTypes.Add(OperationType.Mutation, types);
+            }
+            types.Add(new TypePart(type, schema));
+        }
+        else if (ReferenceEquals(schema.SubscriptionType, type))
+        {
+            if (!rootTypes.TryGetValue(OperationType.Subscription, out var types))
+            {
+                types = new List<TypePart>();
+                rootTypes.Add(OperationType.Subscription, types);
+            }
+            types.Add(new TypePart(type, schema));
+        }
+        else
+        {
+            if (!groupedTypes.TryGetValue(type.Name, out var types))
+            {
+                types = new List<TypePart>();
+                groupedTypes.Add(type.Name, types);
+            }
+            types.Add(new TypePart(type, schema));
+        }
+    }
+    
+    private void MergeQueryTypes(
+        CompositionContext context,
+        Dictionary<OperationType, List<TypePart>> groupedTypes)
+    {
+        if (groupedTypes.TryGetValue(OperationType.Query, out var types))
+        {
+            var typeName = types.First().Type.Name;
+            var typeGroup = new TypeGroup(typeName, types);
+            _queryTypeMergeHandler.Merge(context, typeGroup);
+        }
+    }
+
+    private void MergeTypes(
+        CompositionContext context,
+        Dictionary<string, List<TypePart>> groupedTypes)
+    {
         foreach (var types in groupedTypes)
         {
             var typeGroup = new TypeGroup(types.Key, types.Value);
@@ -56,14 +126,6 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             {
                 context.Log.Write(LogEntryHelper.UnableToMergeType(typeGroup));
             }
-        }
-
-        var rewriter = new EnsureTypesAreConsistent(context.FusionGraph);
-        rewriter.VisitSchema(context.FusionGraph, null);
-
-        if (!context.Log.HasErrors)
-        {
-            await next(context).ConfigureAwait(false);
         }
     }
 

@@ -12,6 +12,17 @@ public sealed class SelectionSetNode : ISyntaxNode
     /// <summary>
     /// Initializes a new instance of <see cref="SchemaDefinitionNode"/>
     /// </summary>
+    /// <param name="selection">
+    /// The selection.
+    /// </param>
+    public SelectionSetNode(ISelectionNode selection)
+        : this(null, new[] { selection })
+    {
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="SchemaDefinitionNode"/>
+    /// </summary>
     /// <param name="selections">
     /// The selections.
     /// </param>

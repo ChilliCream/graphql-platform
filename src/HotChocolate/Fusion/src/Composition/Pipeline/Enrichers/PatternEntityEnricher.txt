@@ -11,7 +11,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     [GeneratedRegex("^(.*?[a-z0-9])(By)([A-Z].*)$")]
     private static partial Regex CreateRegex();
 
-    public ValueTask EnrichAsync(
+    public ValueTask Enrich(
         CompositionContext context,
         EntityGroup entity,
         CancellationToken cancellationToken = default)

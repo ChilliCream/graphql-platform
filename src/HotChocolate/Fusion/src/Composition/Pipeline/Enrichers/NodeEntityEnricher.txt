@@ -31,7 +31,7 @@ internal class NodeEntityEnricher : IEntityEnricher
             null,
             Array.Empty<DirectiveNode>());
 
-    public ValueTask EnrichAsync(
+    public ValueTask Enrich(
         CompositionContext context,
         EntityGroup entity,
         CancellationToken cancellationToken = default)

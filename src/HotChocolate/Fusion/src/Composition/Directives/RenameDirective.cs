@@ -108,7 +108,7 @@ internal sealed class RenameDirective
         directive = new RenameDirective(
             SchemaCoordinate.Parse(coordinate.Value),
             newName.Value);
-        return false;
+        return true;
     }
     
     /// <summary>
