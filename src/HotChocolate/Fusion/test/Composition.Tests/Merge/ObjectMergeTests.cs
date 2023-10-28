@@ -15,18 +15,18 @@ public class ObjectMergeTests(ITestOutputHelper output)
     public async Task Identical_Objects_Merge()
         => await Succeed(
                 """
-                type Query {
+                type Person {
                   field1: String!
                 }
                 """,
                 """
-                type Query {
+                type Person {
                   field1: String!
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                type Query
+                type Person
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1: String!
@@ -39,18 +39,18 @@ public class ObjectMergeTests(ITestOutputHelper output)
     public async Task Objects_With_Different_Fields_Merge()
         => await Succeed(
                 """
-                type Query {
+                type Person {
                   field1: String!
                 }
                 """,
                 """
-                type Query {
+                type Person {
                   field2: Int!
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                type Query
+                type Person
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1: String!
@@ -64,18 +64,18 @@ public class ObjectMergeTests(ITestOutputHelper output)
     public async Task Fields_Merge_When_Nullability_Is_Different()
         => await Succeed(
                 """
-                type Query {
+                type Person {
                   field1: String!
                 }
                 """,
                 """
-                type Query {
+                type Person {
                   field1: String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                type Query
+                type Person
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1: String
@@ -88,12 +88,12 @@ public class ObjectMergeTests(ITestOutputHelper output)
     public async Task Fields_Do_Not_Merge_When_Return_Type_Differs()
         => await Fail(
             """
-            type Query {
+            type Person {
               field1: String
             }
             """,
             """
-            type Query {
+            type Person {
               field1: Int
             }
             """,
@@ -103,7 +103,7 @@ public class ObjectMergeTests(ITestOutputHelper output)
     public async Task Types_With_The_Same_Name_Must_Be_Of_The_Same_Kind()
         => await Fail(
             """
-            type Query {
+            type Person {
               field1: Enum1!
             }
 
@@ -112,7 +112,7 @@ public class ObjectMergeTests(ITestOutputHelper output)
             }
             """,
             """
-            type Query {
+            type Person {
               field1: Enum1!
             }
 
@@ -124,18 +124,18 @@ public class ObjectMergeTests(ITestOutputHelper output)
     public async Task Fields_Merge_When_Arguments_Are_Identical()
         => await Succeed(
                 """
-                type Query {
+                type Person {
                   field1(a: String): String
                 }
                 """,
                 """
-                type Query {
+                type Person {
                   field1(a: String): String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                type Query
+                type Person
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1(a: String): String
@@ -148,18 +148,18 @@ public class ObjectMergeTests(ITestOutputHelper output)
     public async Task Fields_Merge_When_Arguments_Nullability_Is_Different()
         => await Succeed(
                 """
-                type Query {
+                type Person {
                   field1(a: String!): String
                 }
                 """,
                 """
-                type Query {
+                type Person {
                   field1(a: String): String
                 }
                 """)
             .MatchInlineSnapshotAsync(
                 """
-                type Query
+                type Person
                   @source(subgraph: "A")
                   @source(subgraph: "B") {
                   field1(a: String!): String
@@ -172,12 +172,12 @@ public class ObjectMergeTests(ITestOutputHelper output)
     public async Task Fields_Do_Not_Merge_When_Argument_Types_Are_Different()
         => await Fail(
             """
-            type Query {
+            type Person {
               field1(a: String): String
             }
             """,
             """
-            type Query {
+            type Person {
               field1(a: Int): String
             }
             """,

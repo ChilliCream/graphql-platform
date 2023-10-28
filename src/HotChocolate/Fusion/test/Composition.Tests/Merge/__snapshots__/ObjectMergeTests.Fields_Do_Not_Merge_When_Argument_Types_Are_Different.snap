@@ -1,1 +1,1 @@
-Unable to merge the field `Query.field1(a:)` because the type `Int` does not match the type `String`.
+Unable to merge the field `Person.field1(a:)` because the type `Int` does not match the type `String`.

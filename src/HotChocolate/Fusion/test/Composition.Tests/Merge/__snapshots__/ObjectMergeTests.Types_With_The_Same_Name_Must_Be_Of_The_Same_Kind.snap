@@ -1,5 +1,5 @@
 ---------------
-Unable to merge the field `Query.field1` because the type `Enum1!` does not match the type `Enum1!`.
+Unable to merge the field `Person.field1` because the type `Enum1!` does not match the type `Enum1!`.
 ---------------
 
 ---------------

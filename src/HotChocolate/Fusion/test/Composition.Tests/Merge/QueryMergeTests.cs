@@ -83,4 +83,43 @@ public class QueryMergeTests(ITestOutputHelper output) : CompositionTestBase(out
                   @source(subgraph: "A")
                   @source(subgraph: "B", name: "Bar")
                 """);
+    
+    [Fact]
+    public async Task Identical_Query_Fields_And_Object_Merge()
+      => await Succeed(
+          """
+          type Query {
+            foo: Foo!
+          }
+          
+          type Foo {
+            field1: String!
+          }
+          """,
+          """
+          type Query {
+            foo: Foo!
+          }
+          
+          type Foo {
+            field2: String!
+          }
+          """)
+        .MatchInlineSnapshotAsync(
+          """
+          type Foo
+            @source(subgraph: "A")
+            @source(subgraph: "B") {
+            field1: String!
+              @source(subgraph: "A")
+            field2: String!
+              @source(subgraph: "B")
+          }
+          
+          type Query {
+            foo: Foo!
+              @resolver(operation: "{ foo }", kind: FETCH, subgraph: "A")
+              @resolver(operation: "{ foo }", kind: FETCH, subgraph: "B")
+          }
+          """);
 }
