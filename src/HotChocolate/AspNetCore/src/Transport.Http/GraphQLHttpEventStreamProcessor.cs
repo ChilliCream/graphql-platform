@@ -36,46 +36,42 @@ internal static class GraphQLHttpEventStreamProcessor
         var bufferMemory = new Memory<byte>(buffer);
 #endif
 
-        try
+        using var tokenRegistration = ct.Register(
+            static writer => ((PipeWriter)writer!).CancelPendingFlush(), writer, false);
+
+        while (true)
         {
-            while (true)
+            try
             {
-                try
-                {
 #if NET6_0_OR_GREATER
-                    var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
+                var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
 #else
-                    var bytesRead = await stream.ReadAsync(buffer, 0, bufferSize, ct).ConfigureAwait(false);
+                var bytesRead = await stream.ReadAsync(buffer, 0, bufferSize, ct).ConfigureAwait(false);
 #endif
 
-                    if (bytesRead == 0)
-                    {
-                        break;
-                    }
-
-                    var memory = writer.GetMemory(bytesRead);
-                    buffer.AsSpan().Slice(0, bytesRead).CopyTo(memory.Span);
-                    writer.Advance(bytesRead);
-                }
-                catch
+                if (bytesRead == 0)
                 {
                     break;
                 }
 
-                var result = await writer.FlushAsync(ct).ConfigureAwait(false);
-
-                if (result.IsCompleted)
-                {
-                    break;
-                }
+                var memory = writer.GetMemory(bytesRead);
+                buffer.AsSpan().Slice(0, bytesRead).CopyTo(memory.Span);
+                writer.Advance(bytesRead);
+            }
+            catch
+            {
+                break;
             }
 
-            await writer.CompleteAsync().ConfigureAwait(false);
+            var result = await writer.FlushAsync(default).ConfigureAwait(false);
+
+            if (result.IsCompleted || result.IsCanceled)
+            {
+                break;
+            }
         }
-        catch (OperationCanceledException)
-        {
-            // we were canceled and stop executing.
-        }
+
+        await writer.CompleteAsync().ConfigureAwait(false);
     }
 
     private static async IAsyncEnumerable<OperationResult> ReadMessagesPipeAsync(
