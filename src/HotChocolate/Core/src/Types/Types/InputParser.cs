@@ -260,7 +260,7 @@ public sealed class InputParser
                             defaults,
                             field);
                         value = FormatValue(field, value);
-                        value = ConvertValue(field.RuntimeType, value);
+                        value = ConvertValue(field.Type.RuntimeType, value);
 
                         if (field.IsOptional)
                         {
