@@ -20,7 +20,7 @@ type DoSomethingPayload {
   errors: [DoSomethingError!]
 }
 
-type ErrorWithInterface implements Error {
+type ErrorWithInterface implements Error & IInterfaceError & IInterfaceError2 {
   name: String!
   message: String!
 }

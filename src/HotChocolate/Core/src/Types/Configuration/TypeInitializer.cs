@@ -156,7 +156,7 @@ internal sealed class TypeInitializer
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((ObjectType) objectType.Type).Definition!.Interfaces.Add(typeRef);
+                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeRef);
                         objectType.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -170,7 +170,7 @@ internal sealed class TypeInitializer
                         interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
                     {
                         var typeRef = interfaceType.TypeReference;
-                        ((InterfaceType) implementing.Type).Definition!.Interfaces.Add(typeRef);
+                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeRef);
                         implementing.Dependencies.Add(new(typeRef, Completed));
                     }
                 }
@@ -188,7 +188,7 @@ internal sealed class TypeInitializer
                     if (unionType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         var typeRef = objectType.TypeReference;
-                        ((UnionType) unionType.Type).Definition!.Types.Add(typeRef);
+                        ((UnionType)unionType.Type).Definition!.Types.Add(typeRef);
                     }
                 }
             }
@@ -283,7 +283,7 @@ internal sealed class TypeInitializer
                 new RegisteredRootType(
                     registeredType,
                     registeredType,
-                    (OperationType) (int) kind));
+                    (OperationType)(int)kind));
         }
 
         return true;
@@ -295,7 +295,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnAfterResolveRootType(
                 type.Context,
-                ((ObjectType) type.Type.Type).Definition!,
+                ((ObjectType)type.Type.Type).Definition!,
                 type.Kind);
         }
     }
@@ -360,7 +360,7 @@ internal sealed class TypeInitializer
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType) possibleMatchingType.Type,
+                                (INamedType)possibleMatchingType.Type,
                                 processed);
                         }
                         else if (!isSchemaType &&
@@ -370,7 +370,7 @@ internal sealed class TypeInitializer
                             MergeTypeExtension(
                                 extensionArray,
                                 possibleMatchingType,
-                                (INamedType) possibleMatchingType.Type,
+                                (INamedType)possibleMatchingType.Type,
                                 processed);
                         }
                     }
@@ -386,7 +386,7 @@ internal sealed class TypeInitializer
         {
             _interceptor.OnBeforeCompleteMutation(
                 mutationType.Type,
-                ((ObjectType) mutationType.Type.Type).Definition!);
+                ((ObjectType)mutationType.Type.Type).Definition!);
         }
     }
 
@@ -411,7 +411,7 @@ internal sealed class TypeInitializer
                                     CultureInfo.InvariantCulture,
                                     TypeInitializer_Merge_KindDoesNotMatch,
                                     namedType.Name))
-                            .SetTypeSystemObject((ITypeSystemObject) namedType)
+                            .SetTypeSystemObject((ITypeSystemObject)namedType)
                             .Build());
                 }
 
