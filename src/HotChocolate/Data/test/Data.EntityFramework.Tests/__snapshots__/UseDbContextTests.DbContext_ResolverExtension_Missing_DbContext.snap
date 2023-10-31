@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "A DbContext of type \u0060HotChocolate.Data.BookContext\u0060 could not be retrieved from the \u0060LocalContextData\u0060. Most likely the \u0060UseDbContext\u003CHotChocolate.Data.BookContext\u003E()\u0060 middleware is missing.",
+      "message": "A DbContext of type `HotChocolate.Data.BookContext` could not be retrieved from the `LocalContextData`. Most likely the `UseDbContext<HotChocolate.Data.BookContext>()` middleware is missing.",
       "locations": [
         {
           "line": 2,

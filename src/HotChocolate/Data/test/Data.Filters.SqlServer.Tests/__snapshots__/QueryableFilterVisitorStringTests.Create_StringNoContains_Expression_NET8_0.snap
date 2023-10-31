@@ -47,7 +47,7 @@ null
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060ncontains\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `ncontains` of type StringOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
