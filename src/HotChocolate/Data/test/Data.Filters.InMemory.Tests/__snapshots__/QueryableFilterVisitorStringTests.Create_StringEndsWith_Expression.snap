@@ -29,7 +29,7 @@ null
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060endsWith\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `endsWith` of type StringOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,

@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Unknown type \u0060Polygon\u0060.",
+      "message": "Unknown type `Polygon`.",
       "locations": [
         {
           "line": 1,

@@ -56,7 +56,7 @@ Short_NotGreaterThanOrEquals_null
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060ngte\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `ngte` of type ShortOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
