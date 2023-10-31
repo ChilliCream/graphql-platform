@@ -32,11 +32,20 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     /// </param>
     public JsonQueryResultSerializer(bool indented = false, JavaScriptEncoder? encoder = null)
     {
-        _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
+        _options = new JsonWriterOptions
+        {
+            Indented = indented, 
+            Encoder = encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
     }
 
     public unsafe string Serialize(IQueryResult result)
     {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+        
         using var buffer = new ArrayWriter();
 
         Serialize(result, buffer);
@@ -50,13 +59,28 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     /// <inheritdoc />
     public void Serialize(IQueryResult result, IBufferWriter<byte> writer)
     {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+
+        SerializeInternal(result, writer);
+    }
+    
+    private void SerializeInternal(IQueryResult result, IBufferWriter<byte> writer)
+    {
         using var jsonWriter = new Utf8JsonWriter(writer, _options);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
     }
 
     /// <inheritdoc />
-    public async Task SerializeAsync(
+    public Task SerializeAsync(
         IQueryResult result,
         Stream stream,
         CancellationToken cancellationToken = default)
@@ -71,11 +95,32 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
             throw new ArgumentNullException(nameof(stream));
         }
 
-        await using var writer = new Utf8JsonWriter(stream, _options);
+        return SerializeInternalAsync(result, stream, cancellationToken);
+    }
+    
+    private async Task SerializeInternalAsync(
+        IQueryResult result,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        await using var writer = new Utf8JsonWriter(outputStream, _options);
 
         WriteResult(writer, result);
+        using var buffer = new ArrayWriter();
+        SerializeInternal(result, buffer);
+
+#if NETSTANDARD2_0
+        await outputStream
+            .WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, cancellationToken)
+            .ConfigureAwait(false);
+#else
+        await outputStream
+            .WriteAsync(buffer.Body, cancellationToken)
+            .ConfigureAwait(false);
+#endif
 
         await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private void WriteResult(Utf8JsonWriter writer, IQueryResult result)
