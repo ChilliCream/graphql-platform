@@ -261,7 +261,7 @@ internal static class ErrorHelper
              .Build();
     }
 
-    public static IError FieldsAreNotMergable(
+    public static IError FieldsAreNotMergeable(
         this IDocumentValidatorContext context,
         FieldInfo fieldA,
         FieldInfo fieldB)

@@ -100,6 +100,12 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public IDictionary<string, object?> ContextData { get; set; } = default!;
 
+    public List<FieldInfoPair> CurrentFieldPairs { get; } = new();
+
+    public List<FieldInfoPair> NextFieldPairs { get; } = new();
+
+    public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = new();
+
     public IList<FieldInfo> RentFieldInfoList()
     {
         FieldInfoListBuffer buffer = _buffers.Peek();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -190,6 +191,7 @@ public static class TypeExtensions
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsType(this IType type, TypeKind kind)
     {
         if (type.Kind == kind)
@@ -197,9 +199,51 @@ public static class TypeExtensions
             return true;
         }
 
-        if (type.Kind == TypeKind.NonNull && ((NonNullType)type).Type.Kind == kind)
+        if (type.Kind == TypeKind.NonNull && ((NonNullType) type).Type.Kind == kind)
         {
             return true;
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsType(this IType type, TypeKind kind1, TypeKind kind2)
+    {
+        if (type.Kind == kind1 || type.Kind == kind2)
+        {
+            return true;
+        }
+
+        if (type.Kind == TypeKind.NonNull)
+        {
+            var innerKind = ((NonNullType) type).Type.Kind;
+
+            if (innerKind == kind1 || innerKind == kind2)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsType(this IType type, TypeKind kind1, TypeKind kind2, TypeKind kind3)
+    {
+        if (type.Kind == kind1 || type.Kind == kind2 || type.Kind == kind3)
+        {
+            return true;
+        }
+
+        if (type.Kind == TypeKind.NonNull)
+        {
+            var innerKind = ((NonNullType) type).Type.Kind;
+
+            if (innerKind == kind1 || innerKind == kind2 || innerKind == kind3)
+            {
+                return true;
+            }
         }
 
         return false;
