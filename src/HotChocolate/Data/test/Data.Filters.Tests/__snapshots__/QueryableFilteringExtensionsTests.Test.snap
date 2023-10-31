@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "The field \u0060shouldWork\u0060 does not exist on the type \u0060Query\u0060.",
+      "message": "The field `shouldWork` does not exist on the type `Query`.",
       "locations": [
         {
           "line": 1,

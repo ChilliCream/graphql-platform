@@ -103,6 +103,10 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         // DO NOT move the writer out of this method.
         using var arrayWriter = new ArrayWriter();
         using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
+#if NET5_0_OR_GREATER
+        requestMessage.Version = _http.DefaultRequestVersion;
+        requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
+#endif
         var responseMessage = await _http.SendAsync(requestMessage, ResponseHeadersRead, ct).ConfigureAwait(false);
         return new GraphQLHttpResponse(responseMessage);
     }

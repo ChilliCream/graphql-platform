@@ -59,7 +59,7 @@ nullAndFoo Result:
 {
   "errors": [
     {
-      "message": "The specified value type of field \u0060in\u0060 does not match the field type.",
+      "message": "The specified value type of field `in` does not match the field type.",
       "locations": [
         {
           "line": 1,

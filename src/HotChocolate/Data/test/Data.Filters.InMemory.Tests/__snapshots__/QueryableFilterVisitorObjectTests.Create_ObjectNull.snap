@@ -28,7 +28,7 @@ null
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060foo\u0060 of type FooNullableFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `foo` of type FooNullableFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,

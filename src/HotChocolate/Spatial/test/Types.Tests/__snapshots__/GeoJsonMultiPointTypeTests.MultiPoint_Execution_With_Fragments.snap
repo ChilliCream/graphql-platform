@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Unknown type \u0060MultiPoint\u0060.",
+      "message": "Unknown type `MultiPoint`.",
       "locations": [
         {
           "line": 1,
