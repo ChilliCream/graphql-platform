@@ -106,6 +106,12 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public IDictionary<string, object?> ContextData { get; set; } = default!;
 
+    public List<FieldInfoPair> CurrentFieldPairs { get; } = new();
+
+    public List<FieldInfoPair> NextFieldPairs { get; } = new();
+
+    public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = new();
+
     public IList<FieldInfo> RentFieldInfoList()
     {
         var buffer = _buffers.Peek();
@@ -159,6 +165,9 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         InputFields.Clear();
         _errors.Clear();
         List.Clear();
+        CurrentFieldPairs.Clear();
+        NextFieldPairs.Clear();
+        ProcessedFieldPairs.Clear();
         UnexpectedErrorsDetected = false;
         Count = 0;
         Max = 0;
