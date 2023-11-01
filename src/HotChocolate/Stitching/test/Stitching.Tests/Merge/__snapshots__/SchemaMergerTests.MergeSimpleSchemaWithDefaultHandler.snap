@@ -1,5 +1,0 @@
-union Foo @source(name: "Foo", schema: "A") = Bar | Baz
-
-union B_Foo @source(name: "Foo", schema: "B") = Bar | Baz
-
-union A @source(name: "A", schema: "A") = B | C
