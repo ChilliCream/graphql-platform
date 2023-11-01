@@ -11,10 +11,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
     private const int _minRequestSize = 256;
     private const string _queryIdIdentifier = "id";
+    internal const string QueryIdKey = _queryIdIdentifier;
     private const string _operationNameIdentifier = "operationName";
     private const string _queryIdentifier = "query";
+    internal const string QueryKey = _queryIdentifier;
     private const string _variablesIdentifier = "variables";
     private const string _extensionsIdentifier = "extensions";
+    internal const string ExtensionsKey = _extensionsIdentifier;
 
     private readonly IDocumentCache _documentCache;
     private readonly IDocumentHashProvider _documentHashProvider;

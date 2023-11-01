@@ -1,7 +1,7 @@
+using BananaCakePop.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
-using Microsoft.Extensions.FileProviders;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
@@ -69,20 +69,15 @@ public static class EndpointRouteBuilderExtensions
         RoutePattern pattern = Parse(path + "/{**slug}");
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
-        IFileProvider fileProvider = CreateFileProvider();
 
         requestPipeline
             .UseCancellation()
             .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetSchemaMiddleware>(
-                schemaNameOrDefault,
-                MiddlewareRoutingType.Integrated)
-            .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-            .UseMiddleware<ToolOptionsFileMiddleware>(path)
-            .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
             .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, MiddlewareRoutingType.Integrated)
+            .UseBananaCakePop(path)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -352,13 +347,10 @@ public static class EndpointRouteBuilderExtensions
 
         RoutePattern pattern = Parse(toolPath.ToString() + "/{**slug}");
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        IFileProvider fileProvider = CreateFileProvider();
 
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, toolPath)
-            .UseMiddleware<ToolOptionsFileMiddleware>(toolPath)
-            .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, toolPath)
+            .UseBananaCakePop(toolPath.Value)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -368,7 +360,7 @@ public static class EndpointRouteBuilderExtensions
         IEndpointConventionBuilder builder = endpointRouteBuilder
             .Map(pattern, requestPipeline.Build())
             .WithDisplayName("Banana Cake Pop Pipeline")
-            .WithMetadata(new GraphQLEndpointOptions { GraphQLEndpoint = relativeRequestPath });
+            .WithMetadata(new BananaCakePopOptions { GraphQLEndpoint = relativeRequestPath });
 
         return new BananaCakePopEndpointConventionBuilder(builder);
     }
@@ -389,7 +381,9 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLEndpointConventionBuilder WithOptions(
         this GraphQLEndpointConventionBuilder builder,
         GraphQLServerOptions serverOptions) =>
-        builder.WithMetadata(serverOptions);
+        builder
+            .WithMetadata(serverOptions)
+            .WithMetadata(serverOptions.Tool.ToBcpOptions());
 
     /// <summary>
     /// Specifies the GraphQL HTTP request options.
@@ -429,16 +423,12 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static BananaCakePopEndpointConventionBuilder WithOptions(
         this BananaCakePopEndpointConventionBuilder builder,
-        GraphQLToolOptions toolOptions) =>
-        builder.WithMetadata(new GraphQLServerOptions { Tool = toolOptions });
-
-    private static IFileProvider CreateFileProvider()
+        GraphQLToolOptions toolOptions)
     {
-        Type? type = typeof(EndpointRouteBuilderExtensions);
-        var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
-        return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
+        builder.Add(c => c.Metadata.Add(toolOptions.ToBcpOptions()));
+        return builder;
     }
-
+    
     private static IApplicationBuilder UseCancellation(this IApplicationBuilder builder)
         => builder.Use(next => async context =>
         {
@@ -451,4 +441,20 @@ public static class EndpointRouteBuilderExtensions
                 // we just catch cancellations here and do nothing.
             }
         });
+    
+    internal static BananaCakePopOptions ToBcpOptions(this GraphQLToolOptions options)
+        => new()
+        {
+            ServeMode = ServeMode.Version(options.ServeMode.Mode),
+            Title = options.Title,
+            Document = options.Document,
+            UseBrowserUrlAsGraphQLEndpoint = options.UseBrowserUrlAsGraphQLEndpoint,
+            GraphQLEndpoint = options.GraphQLEndpoint,
+            IncludeCookies = options.IncludeCookies,
+            HttpHeaders = options.HttpHeaders,
+            UseGet = options.HttpMethod == DefaultHttpMethod.Get,
+            Enable = options.Enable,
+            GaTrackingId = options.GaTrackingId,
+            DisableTelemetry = options.DisableTelemetry,
+        };
 }
