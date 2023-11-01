@@ -158,29 +158,6 @@ public class DirectiveTypeDescriptor
         return Use(DirectiveClassMiddlewareFactory.Create(factory));
     }
 
-    [Obsolete("Replace Middleware with `Use`.")]
-    public IDirectiveTypeDescriptor Middleware(
-        DirectiveMiddleware middleware)
-    {
-        return Use(middleware);
-    }
-
-    [Obsolete("Replace Middleware with `Use`.", true)]
-    public IDirectiveTypeDescriptor Middleware<T>(
-        Expression<Func<T, object>> method)
-    {
-        throw new NotSupportedException(
-            TypeResources.DirectiveType_ReplaceWithUse);
-    }
-
-    [Obsolete("Replace Middleware with `Use`.", true)]
-    public IDirectiveTypeDescriptor Middleware<T>(
-        Expression<Action<T>> method)
-    {
-        throw new NotSupportedException(
-            TypeResources.DirectiveType_ReplaceWithUse);
-    }
-
     public IDirectiveTypeDescriptor Repeatable()
     {
         Definition.IsRepeatable = true;

@@ -172,25 +172,6 @@ public class ObjectTypeExtensionTests
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
-    [Fact]
-    public async Task ObjectTypeExtension_DeprecateField_Obsolete()
-    {
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<FooType>()
-            .AddTypeExtension(new ObjectTypeExtension(d => d
-                .Name("Foo")
-                .Field("description")
-                .Type<StringType>()
-                .DeprecationReason("Foo")))
-            .BuildSchemaAsync();
-
-        var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["description"].IsDeprecated);
-        Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
-    }
-
     [Fact]
     public async Task ObjectTypeExtension_DeprecateField_With_Reason()
     {

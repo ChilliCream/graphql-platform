@@ -109,21 +109,6 @@ public class InterfaceTypeDescriptor
         return this;
     }
 
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface<TInterface>()
-        where TInterface : InterfaceType
-        => Implements<TInterface>();
-
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface<TInterface>(
-        TInterface type)
-        where TInterface : InterfaceType
-        => Implements(type);
-
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface(NamedTypeNode namedType)
-        => Implements(namedType);
-
     public IInterfaceTypeDescriptor Implements<T>()
         where T : InterfaceType
     {

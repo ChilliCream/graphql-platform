@@ -101,10 +101,6 @@ public class InterfaceFieldDescriptor
         return this;
     }
 
-    [Obsolete("Use `Deprecated`.")]
-    public IInterfaceFieldDescriptor DeprecationReason(string reason) =>
-        Deprecated(reason);
-
     public new IInterfaceFieldDescriptor Deprecated(string reason)
     {
         base.Deprecated(reason);

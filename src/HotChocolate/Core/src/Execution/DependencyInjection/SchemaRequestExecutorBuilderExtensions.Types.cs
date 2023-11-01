@@ -1541,12 +1541,6 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         return builder.ConfigureSchema(b => b.AddType<TExtension>());
     }
 
-    [Obsolete("Use BindRuntimeType")]
-    public static IRequestExecutorBuilder BindClrType<TRuntimeType, TSchemaType>(
-        this IRequestExecutorBuilder builder)
-        where TSchemaType : INamedType =>
-        BindRuntimeType<TRuntimeType, TSchemaType>(builder);
-
     public static IRequestExecutorBuilder BindRuntimeType<TRuntimeType, TSchemaType>(
         this IRequestExecutorBuilder builder)
         where TSchemaType : INamedType
@@ -1558,13 +1552,6 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType, TSchemaType>());
     }
-
-    [Obsolete("Use BindRuntimeType")]
-    public static IRequestExecutorBuilder BindClrType(
-        this IRequestExecutorBuilder builder,
-        Type runtimeType,
-        Type schemaType) =>
-        BindRuntimeType(builder, runtimeType, schemaType);
 
     public static IRequestExecutorBuilder BindRuntimeType(
         this IRequestExecutorBuilder builder,

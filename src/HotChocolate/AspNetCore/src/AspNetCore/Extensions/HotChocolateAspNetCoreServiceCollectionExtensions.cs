@@ -131,54 +131,6 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         string? schemaName = default) =>
         builder.Services.AddGraphQLServer(schemaName);
 
-    [Obsolete(
-        "Use the new configuration API -> " +
-        "services.AddGraphQLServer().AddQueryType<Query>()...")]
-    public static IServiceCollection AddGraphQL(
-        this IServiceCollection services,
-        ISchema schema,
-        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
-        RequestExecutorBuilderLegacyHelper.SetSchema(
-            services
-                .AddGraphQLServerCore(maxAllowedRequestSize)
-                .AddGraphQL()
-                .AddDefaultHttpRequestInterceptor()
-                .AddSubscriptionServices(),
-            schema)
-            .Services;
-
-    [Obsolete(
-        "Use the new configuration API -> " +
-        "services.AddGraphQLServer().AddQueryType<Query>()...")]
-    public static IServiceCollection AddGraphQL(
-        this IServiceCollection services,
-        Func<IServiceProvider, ISchema> schemaFactory,
-        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
-        RequestExecutorBuilderLegacyHelper.SetSchema(
-                services
-                    .AddGraphQLServerCore(maxAllowedRequestSize)
-                    .AddGraphQL()
-                    .AddDefaultHttpRequestInterceptor()
-                    .AddSubscriptionServices(),
-                schemaFactory)
-            .Services;
-
-    [Obsolete(
-        "Use the new configuration API -> " +
-        "services.AddGraphQLServer().AddQueryType<Query>()...")]
-    public static IServiceCollection AddGraphQL(
-        this IServiceCollection services,
-        ISchemaBuilder schemaBuilder,
-        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
-        RequestExecutorBuilderLegacyHelper.SetSchemaBuilder(
-            services
-                .AddGraphQLServerCore(maxAllowedRequestSize)
-                .AddGraphQL()
-                .AddDefaultHttpRequestInterceptor()
-                .AddSubscriptionServices(),
-            schemaBuilder)
-            .Services;
-
     /// <summary>
     /// Registers the GraphQL Upload Scalar.
     /// </summary>

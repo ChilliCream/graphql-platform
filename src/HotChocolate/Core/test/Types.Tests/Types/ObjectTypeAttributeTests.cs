@@ -191,9 +191,7 @@ public class ObjectTypeAttributeTests
             IObjectTypeDescriptor descriptor,
             Type type)
         {
-#pragma warning disable CS0618
-            descriptor.Field("abc").Resolver<string>("def");
-#pragma warning restore CS0618
+            descriptor.Field("abc").Resolve<string>("def");
         }
     }
 
