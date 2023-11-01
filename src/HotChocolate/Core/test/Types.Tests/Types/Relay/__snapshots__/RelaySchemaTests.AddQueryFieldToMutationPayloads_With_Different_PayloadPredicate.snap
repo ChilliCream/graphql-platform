@@ -1,0 +1,32 @@
+﻿schema {
+  query: QueryType
+  mutation: Mutation2
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type BarResult {
+  query: QueryType!
+}
+
+type BazPayload {
+  some: String
+}
+
+type Mutation2 {
+  baz: BazPayload
+  bar: BarResult
+}
+
+type QueryType {
+  some: Some
+}
+
+type Some implements Node {
+  id: ID!
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
