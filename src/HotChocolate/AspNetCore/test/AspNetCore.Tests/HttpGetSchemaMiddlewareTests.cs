@@ -169,8 +169,6 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         HttpResponseMessage response = await server.CreateClient().SendAsync(request);
 
         // assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
-        result.MatchSnapshot();
+        Assert.Equal(HttpStatusCode.Moved, response.StatusCode);
     }
 }

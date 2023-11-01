@@ -103,9 +103,6 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        await using var writer = new Utf8JsonWriter(outputStream, _options);
-
-        WriteResult(writer, result);
         using var buffer = new ArrayWriter();
         SerializeInternal(result, buffer);
 
@@ -119,7 +116,6 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
             .ConfigureAwait(false);
 #endif
 
-        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
