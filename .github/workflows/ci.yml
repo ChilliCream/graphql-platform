@@ -235,7 +235,7 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
 
           # Comment on the PR using the PR number
-          gh pr comment $PR_NUMBER --body-file comment.txt
+          # gh pr comment $PR_NUMBER --body-file comment.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
