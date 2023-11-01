@@ -17,7 +17,7 @@ namespace HotChocolate.Stitching.Utilities;
 
 internal sealed class StitchingSchemaInterceptor : TypeInterceptor
 {
-    public override void OnBeforeCreateSchema(
+    internal override void OnBeforeCreateSchemaInternal(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {

@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />

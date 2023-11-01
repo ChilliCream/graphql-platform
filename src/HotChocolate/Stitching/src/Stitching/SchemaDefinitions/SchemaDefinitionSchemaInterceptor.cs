@@ -13,12 +13,12 @@ internal sealed class SchemaDefinitionSchemaInterceptor : TypeInterceptor
         _descriptor = descriptor;
     }
 
-    public override void OnBeforeCreateSchema(
+    internal override void OnBeforeCreateSchemaInternal(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
         => context.GetOrAddSchemaDefinitions();
 
-    public override void OnAfterCreateSchema(
+    internal override void OnAfterCreateSchemaInternal(
         IDescriptorContext context,
         ISchema schema)
     {
