@@ -30,7 +30,12 @@ public abstract class TypeInterceptor
     internal virtual bool IsMutationAggregator(IDescriptorContext context) => false;
     
     internal virtual void SetSiblings(TypeInterceptor[] all) { }
-
+    
+    [Obsolete("The schema builder is obsolete and will be removed in the next version.", error: true)]
+    public virtual void OnBeforeCreateSchema_(
+        IDescriptorContext context,
+        ISchemaBuilder schemaBuilder) { }
+    
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
     /// with the schema builder.
@@ -41,7 +46,7 @@ public abstract class TypeInterceptor
     /// <param name="schemaBuilder">
     /// The schema builder.
     /// </param>
-    public virtual void OnBeforeCreateSchema(
+    internal virtual void OnBeforeCreateSchemaInternal(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder) { }
 
@@ -259,7 +264,10 @@ public abstract class TypeInterceptor
         DefinitionBase definition) { }
 
     public virtual void OnTypesCompleted() { }
-
+    
+    [Obsolete("The schema builder is obsolete and will be removed in the next version.", error: true)]
+    public virtual void OnAfterCreateSchema_(IDescriptorContext context, ISchema schema) { }
+    
     /// <summary>
     /// This hook is invoked after schema is fully created and gives access
     /// to the created schema object.
@@ -270,7 +278,7 @@ public abstract class TypeInterceptor
     /// <param name="schema">
     /// The created schema.
     /// </param>
-    public virtual void OnAfterCreateSchema(IDescriptorContext context, ISchema schema) { }
+    internal virtual void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema) { }
 
     /// <summary>
     /// This hook is invoked if an error occured during schema creation.
