@@ -309,4 +309,88 @@ public class ObjectMergeTests(ITestOutputHelper output)
                     @source(subgraph: "B")
                 }
                 """);
+
+    [Fact]
+    public async Task ResolveDirective_On_Field()
+        => await Succeed(
+                """
+                type Person {
+                  field1: String!
+                    @resolve(select: "bar")
+                }
+                """,
+                """
+                type Person {
+                  field2: String!
+                }
+                """)
+            .MatchInlineSnapshotAsync(
+                """
+                type Person
+                  @source(subgraph: "A")
+                  @source(subgraph: "B") {
+                  field1: String!
+                    @resolve(select: "bar")
+                  field2: String!
+                    @source(subgraph: "B")
+                }
+                """);
+
+    [Fact]
+    public async Task ResolveDirective_With_DeclareDirective_On_Field()
+        => await Succeed(
+                """
+                type Person {
+                  field1: String!
+                    @declare(variable: "a", select: "bar { baz }")
+                    @resolve(select: "bar(a: $a)")
+                }
+                """,
+                """
+                type Person {
+                  field2: String!
+                }
+                """)
+            .MatchInlineSnapshotAsync(
+                """
+                type Person
+                  @source(subgraph: "A")
+                  @source(subgraph: "B") {
+                  field1: String!
+                    @resolve(select: "bar(a: $a)")
+                    @declare(variable: "a", select: "bar { baz }")
+                  field2: String!
+                    @source(subgraph: "B")
+                }
+                """);
+
+    [Fact]
+    public async Task ResolveDirective_On_Field_Combine_Source_And_Resolve()
+        => await Fail(
+            """
+            type Person {
+              field1: String!
+                @resolve(select: "bar")
+            }
+            """,
+            """
+            type Person {
+              field1: String!
+            }
+            """);
+
+    [Fact]
+    public async Task DeclareDirective_Without_ResolveDirective()
+        => await Fail(
+            """
+            type Person {
+              field1: String!
+                @declare(variable: "foo", select: "bar")
+            }
+            """,
+            """
+            type Person {
+              field1: String!
+            }
+            """);
 }

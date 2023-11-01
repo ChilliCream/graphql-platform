@@ -79,7 +79,7 @@ internal sealed class DeclareDirective
         
         var args = From is null ? new Argument[2] : new Argument[3];
         
-        args[0] = new Argument(NameArg, new StringValueNode(Name));
+        args[0] = new Argument(VariableArg, new StringValueNode(Name));
         args[1] = new Argument(SelectArg, new StringValueNode(Select.ToString(false)));
 
         if (From is not null)
@@ -120,7 +120,7 @@ internal sealed class DeclareDirective
         }
 
         var name = directiveNode.Arguments
-            .GetValueOrDefault(NameArg)?
+            .GetValueOrDefault(VariableArg)?
             .ExpectStringLiteral()
             .Value;
 
@@ -150,7 +150,7 @@ internal sealed class DeclareDirective
     }
     
     /// <summary>
-    /// Gets all @rename directives from the specified member.
+    /// Gets all @declare directives from the specified member.
     /// </summary>
     /// <param name="member">
     /// The member that shall be checked.
@@ -159,7 +159,7 @@ internal sealed class DeclareDirective
     /// The fusion type context that provides the directive names.
     /// </param>
     /// <returns>
-    /// Returns all @rename directives.
+    /// Returns all @declare directives.
     /// </returns>
     public static IEnumerable<DeclareDirective> GetAllFrom(
         IHasDirectives member,

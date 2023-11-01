@@ -19,6 +19,7 @@ internal sealed class ResolveDirective
     /// <param name="from"></param>
     public ResolveDirective(FieldNode select, string? from = null)
     {
+        ArgumentNullException.ThrowIfNull(select);
         Select = select;
         From = from;
     }
@@ -38,7 +39,7 @@ internal sealed class ResolveDirective
     public string? From { get; }
     
     /// <summary>
-    /// Creates a <see cref="Skimmed.Directive"/> from this <see cref="RenameDirective"/>.
+    /// Creates a <see cref="Skimmed.Directive"/> from this <see cref="ResolveDirective"/>.
     /// </summary>
     /// <param name="context">
     /// The fusion type context that provides the directive names.
@@ -56,11 +57,11 @@ internal sealed class ResolveDirective
             args[1] = new Argument(FromArg, SubgraphArg);
         }
 
-        return new Directive(context.RenameDirective, args);
+        return new Directive(context.ResolveDirective, args);
     }
 
     /// <summary>
-    /// Tries to parse a <see cref="RenameDirective"/> from a <see cref="Directive"/>.
+    /// Tries to parse a <see cref="ResolveDirective"/> from a <see cref="Directive"/>.
     /// </summary>
     /// <param name="directiveNode">
     /// The directive node that shall be parsed.
@@ -105,11 +106,11 @@ internal sealed class ResolveDirective
         directive = new ResolveDirective(
             Utf8GraphQLParser.Syntax.ParseField(select.Value),
             from?.Value);
-        return false;
+        return true;
     }
     
     /// <summary>
-    /// Gets all @rename directives from the specified member.
+    /// Gets all @resolve directives from the specified member.
     /// </summary>
     /// <param name="member">
     /// The member that shall be checked.
@@ -118,7 +119,7 @@ internal sealed class ResolveDirective
     /// The fusion type context that provides the directive names.
     /// </param>
     /// <returns>
-    /// Returns all @rename directives.
+    /// Returns all @resolve directives.
     /// </returns>
     public static IEnumerable<ResolveDirective> GetAllFrom(
         Skimmed.IHasDirectives member,
@@ -154,7 +155,7 @@ internal sealed class ResolveDirective
     }
     
     /// <summary>
-    /// Creates the rename directive type.
+    /// Creates the resolve directive type.
     /// </summary>
     public static DirectiveType CreateType()
     {

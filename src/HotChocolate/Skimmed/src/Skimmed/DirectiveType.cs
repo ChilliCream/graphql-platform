@@ -29,7 +29,7 @@ public sealed class DirectiveType : IHasName, IHasContextData, INamedTypeSystemM
 
     public DirectiveLocation Locations { get; set; }
 
-    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
 
     public override string ToString()
         => RewriteDirectiveType(this).ToString(true);

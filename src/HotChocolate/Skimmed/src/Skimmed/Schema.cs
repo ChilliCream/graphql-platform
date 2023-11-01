@@ -21,7 +21,7 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
 
     public DirectiveCollection Directives { get; } = new();
 
-    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.

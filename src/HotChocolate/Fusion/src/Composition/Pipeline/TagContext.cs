@@ -3,10 +3,9 @@ namespace HotChocolate.Fusion.Composition;
 internal sealed class TagContext
 {
     private static readonly HashSet<SchemaCoordinate> _empty = new();
-    private readonly Dictionary<string, HashSet<SchemaCoordinate>> _taggedTypes =
-        new(StringComparer.Ordinal);
+    private readonly Dictionary<string, HashSet<SchemaCoordinate>> _taggedTypes = new(StringComparer.Ordinal);
 
-    public bool HasTags { get; set; } = false;
+    public bool HasTags { get; set; }
     
     public void RegisterTagCoordinate(string name, SchemaCoordinate coordinate)
     {

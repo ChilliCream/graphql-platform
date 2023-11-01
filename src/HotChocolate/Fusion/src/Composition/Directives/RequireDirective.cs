@@ -12,10 +12,7 @@ namespace HotChocolate.Fusion.Composition;
 /// <summary>
 /// Represents the @require directive. 
 /// </summary>
-/// <param name="field">
-/// The field syntax that refers to the required field.
-/// </param>
-internal sealed class RequireDirective(FieldNode field)
+internal sealed class RequireDirective
 {
     /// <summary>
     /// Initializes a new instance of <see cref="RequireDirective"/>.
@@ -27,11 +24,23 @@ internal sealed class RequireDirective(FieldNode field)
         : this(Utf8GraphQLParser.Syntax.ParseField(fieldSyntax))
     {
     }
-    
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="RequireDirective"/>.
+    /// </summary>
+    /// <param name="field">
+    /// The field syntax that refers to the required field.
+    /// </param>
+    public RequireDirective(FieldNode field)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+        Field = field;
+    }
+
     /// <summary>
     /// Gets the field selection syntax which specifies the requirement.
     /// </summary>
-    public FieldNode Field { get; } = field;
+    public FieldNode Field { get; }
     
     /// <summary>
     /// Creates a <see cref="Directive"/> from this <see cref="RequireDirective"/>.

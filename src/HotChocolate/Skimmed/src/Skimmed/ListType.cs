@@ -2,18 +2,13 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ListType : IType
+public sealed class ListType(IType elementType) : IType
 {
-    public ListType(IType elementType)
-    {
-        ElementType = elementType ??
-            throw new ArgumentNullException(nameof(elementType));
-    }
-
     public TypeKind Kind => TypeKind.List;
 
-    public IType ElementType { get; }
-    
+    public IType ElementType { get; } = elementType ??
+        throw new ArgumentNullException(nameof(elementType));
+
     public override string ToString()
         => RewriteTypeRef(this).ToString(true);
     

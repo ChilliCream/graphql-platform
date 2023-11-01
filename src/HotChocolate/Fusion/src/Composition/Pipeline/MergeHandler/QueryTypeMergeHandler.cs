@@ -75,35 +75,102 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
                 targetField = context.CreateField(sourceField, targetSchema);
                 target.Fields.Add(targetField);
             }
-            
-            var arguments = new List<ArgumentNode>();
-            var variables = new List<VariableDefinitionNode>();
 
-            var selection = new FieldNode(
-                null,
-                new NameNode(targetField.GetOriginalName()),
-                null,
-                null,
-                Array.Empty<DirectiveNode>(),
-                arguments,
-                null);
+            AddRootResolver(context, sourceSchema, sourceField, targetField);
 
-            foreach (var arg in sourceField.Arguments)
+            // if we find a query field that returns an object type,
+            // we need to check if the query field can be used as an entity resolver.
+            if (targetField.Type.NamedType().Kind == TypeKind.Object)
             {
-                var variableType = arg.Type.ToTypeNode(arg.Type.NamedType().GetOriginalName());
-                var variable = new VariableNode(arg.Name);
-                arguments.Add(new ArgumentNode(arg.Name, variable));
-                variables.Add(new VariableDefinitionNode(variable, variableType, null, Array.Empty<DirectiveNode>()));
+                TryExtractAnnotationBasedEntityResolver(context, sourceSchema, sourceField, targetField);
+            }
+        }
+    }
+
+    private static void AddRootResolver(
+        CompositionContext context,
+        Schema sourceSchema, 
+        OutputField sourceField, 
+        OutputField targetField)
+    {
+        var arguments = new List<ArgumentNode>();
+        var variables = new List<VariableDefinitionNode>();
+
+        var selection = new FieldNode(
+            null,
+            new NameNode(targetField.GetOriginalName()),
+            null,
+            null,
+            Array.Empty<DirectiveNode>(),
+            arguments,
+            null);
+
+        foreach (var arg in sourceField.Arguments)
+        {
+            var variableType = arg.Type.ToTypeNode(arg.Type.NamedType().GetOriginalName());
+            var variable = new VariableNode(arg.Name);
+            arguments.Add(new ArgumentNode(arg.Name, variable));
+            variables.Add(new VariableDefinitionNode(variable, variableType, null, Array.Empty<DirectiveNode>()));
+        }
+            
+        var operation = new OperationDefinitionNode(
+            OperationType.Query, 
+            variables, 
+            Array.Empty<DirectiveNode>(), 
+            new SelectionSetNode(selection));
+            
+        var resolver = new ResolverDirective(operation, ResolverKind.Fetch, sourceSchema.Name);
+        targetField.Directives.Add(resolver.ToDirective(context.FusionTypes));
+    }
+
+    private static void TryExtractAnnotationBasedEntityResolver(
+        CompositionContext context,
+        Schema sourceSchema, 
+        OutputField sourceField, 
+        OutputField targetField)
+    {
+        if (sourceField.Arguments.Count == 0)
+        {
+            return;
+        }
+
+        List<EntitySourceArgument>? arguments = null;
+        ResolverKind kind = ResolverKind.Fetch;
+        
+        foreach (var argument in sourceField.Arguments)
+        {
+            if (kind is ResolverKind.Fetch && argument.Type.IsListType())
+            {
+                kind = ResolverKind.Batch;
             }
             
-            var operation = new OperationDefinitionNode(
-                OperationType.Query, 
-                variables, 
-                Array.Empty<DirectiveNode>(), 
-                new SelectionSetNode(selection));
+            if (!IsDirective.ExistsIn(argument, context.FusionTypes))
+            {
+                return;
+            }
+
+            var directive = IsDirective.TryGetFrom(argument, context.FusionTypes);
             
-            var resolver = new ResolverDirective(operation, ResolverKind.Fetch, sourceSchema.Name);
-            targetField.Directives.Add(resolver.ToDirective(context.FusionTypes));
+            if (directive is null)
+            {
+                // TODO : ERROR
+                context.Log.Write(
+                    new LogEntry(
+                        "The is directive must have a value for coordinate or field.",
+                        severity: LogSeverity.Error));
+                return;
+            }
+            
+            (arguments ??= new()).Add(new EntitySourceArgument(argument, directive));
         }
+        
+        context.EntityResolverInfos.Add(
+            new EntityResolverInfo(
+                targetField.Type.NamedType().Name,
+                sourceField.Type.NamedType().GetOriginalName(),
+                kind,
+                targetField,
+                new EntitySourceField(sourceSchema, sourceField),
+                arguments!));
     }
 }

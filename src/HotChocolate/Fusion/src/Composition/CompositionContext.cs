@@ -46,7 +46,7 @@ internal sealed class CompositionContext
     /// Gets the subgraph configurations.
     /// </summary>
     public IReadOnlyList<SubgraphConfiguration> Configurations { get; }
-    
+
     /// <summary>
     /// Gets the composition features.
     /// </summary>
@@ -83,10 +83,15 @@ internal sealed class CompositionContext
     public ICompositionLog Log { get; }
 
     /// <summary>
+    /// Gets the entity resolver infos.
+    /// </summary>
+    public List<EntityResolverInfo> EntityResolverInfos { get; } = new();
+
+    /// <summary>
     /// Gets a set that can be used to calculate subgraph support of a component.
     /// </summary>
     public HashSet<string> SupportedBy { get; } = new(StringComparer.OrdinalIgnoreCase);
-    
+
     /// <summary>
     /// Gets a map that can be used to store custom context data.
     /// </summary>
@@ -128,7 +133,7 @@ internal sealed class CompositionContext
         [NotNullWhen(true)] out T? member)
         where T : ITypeSystemMember
         => GetSubgraphSchema(subgraphName).TryGetMember(coordinate, out member);
-    
+
     public IEnumerable<T> GetSubgraphMembers<T>(SchemaCoordinate coordinate)
         where T : ITypeSystemMember
     {

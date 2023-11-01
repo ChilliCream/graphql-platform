@@ -77,9 +77,48 @@ internal sealed class ObjectTypeMergeHandler : ITypeMergeHandler
                 targetField = context.CreateField(sourceField, targetSchema);
                 target.Fields.Add(targetField);
             }
+            
+            if(ResolveDirective.ExistsIn(sourceField, context.FusionTypes))
+            {
+                if (SourceDirective.ExistsIn(targetField, context.FusionTypes))
+                {
+                    // TODO : ERROR
+                    context.Log.Write(
+                        new LogEntry("Cannot combine resolve and source."));
+                    continue;
+                }
+                
+                foreach (var directive in ResolveDirective.GetAllFrom(sourceField, context.FusionTypes))
+                {
+                    targetField.Directives.Add(directive.ToDirective(context.FusionTypes));
+                }
 
-            // Try to apply the source field to the target field
-            context.TryApplySource(sourceField, sourceSchema, targetField);
+                foreach (var declare in DeclareDirective.GetAllFrom(sourceField, context.FusionTypes))
+                {
+                    targetField.Directives.Add(declare.ToDirective(context.FusionTypes));
+                }
+            }
+            else
+            {
+                if (ResolveDirective.ExistsIn(targetField, context.FusionTypes))
+                {
+                    // TODO : ERROR
+                    context.Log.Write(
+                        new LogEntry("Cannot combine resolve and source.", severity: LogSeverity.Error));
+                    continue;
+                }
+                
+                if (DeclareDirective.ExistsIn(sourceField, context.FusionTypes))
+                {
+                    // TODO : ERROR
+                    context.Log.Write(
+                        new LogEntry("Cannot have declare without resolve.", severity: LogSeverity.Error));
+                    continue;
+                }
+                
+                // Try to apply the source field to the target field
+                context.TryApplySource(sourceField, sourceSchema, targetField);
+            }
         }
     }
 }

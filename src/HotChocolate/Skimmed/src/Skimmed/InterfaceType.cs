@@ -2,12 +2,8 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class InterfaceType : ComplexType, INamedTypeSystemMember<InterfaceType>
+public sealed class InterfaceType(string name) : ComplexType(name), INamedTypeSystemMember<InterfaceType>
 {
-    public InterfaceType(string name) : base(name)
-    {
-    }
-
     public override TypeKind Kind => TypeKind.Interface;
 
     public override bool Equals(IType? other, TypeComparison comparison)

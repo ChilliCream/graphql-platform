@@ -122,4 +122,48 @@ public class QueryMergeTests(ITestOutputHelper output) : CompositionTestBase(out
               @resolver(operation: "{ foo }", kind: FETCH, subgraph: "B")
           }
           """);
+    
+    [Fact]
+    public async Task Extract_Entity_Resolvers_With_Annotations()
+      => await Succeed(
+          """
+          type Query {
+            entity(id: ID! @is(field: "id")): Entity!
+          }
+
+          type Entity {
+            id: ID!
+            field1: String!
+          }
+          """,
+          """
+          type Query {
+            entity(id: ID! @is(field: "id")): Entity!
+          }
+
+          type Entity {
+            id: ID!
+            field2: String!
+          }
+          """)
+        .MatchInlineSnapshotAsync(
+          """
+          type Entity
+            @source(subgraph: "A")
+            @source(subgraph: "B") {
+            field1: String!
+              @source(subgraph: "A")
+            field2: String!
+              @source(subgraph: "B")
+            id: ID!
+              @source(subgraph: "A")
+              @source(subgraph: "B")
+          }
+          
+          type Query {
+            entity(id: ID!): Entity!
+              @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "A")
+              @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
+          }
+          """);
 }

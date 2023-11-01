@@ -2,14 +2,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class MissingType : INamedType
+public sealed class MissingType(string name) : INamedType
 {
-    private string _name;
-
-    public MissingType(string name)
-    {
-        _name = name.EnsureGraphQLName();
-    }
+    private string _name = name.EnsureGraphQLName();
 
     public TypeKind Kind => TypeKind.Scalar;
 
@@ -23,7 +18,7 @@ public sealed class MissingType : INamedType
 
     public DirectiveCollection Directives { get; } = new();
 
-    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
 
     public bool Equals(IType? other)
         => Equals(other, TypeComparison.Reference);

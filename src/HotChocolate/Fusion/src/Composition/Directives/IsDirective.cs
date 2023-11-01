@@ -110,20 +110,14 @@ internal sealed class IsDirective
             return false;
         }
 
-        var coordinate = directiveNode.Arguments
-            .GetValueOrDefault(CoordinateArg)
-            ?.Value;
-
+        var coordinate = directiveNode.Arguments.GetValueOrDefault(CoordinateArg);
         if (coordinate is StringValueNode coordinateValue)
         {
             directive = new IsDirective(SchemaCoordinate.Parse(coordinateValue.Value));
             return true;
         }
 
-        var field = directiveNode.Arguments
-            .GetValueOrDefault(FieldArg)
-            ?.Value;
-
+        var field = directiveNode.Arguments.GetValueOrDefault(FieldArg);
         if (field is StringValueNode fieldValue)
         {
             directive = new IsDirective(Utf8GraphQLParser.Syntax.ParseField(fieldValue.Value));
@@ -147,6 +141,21 @@ internal sealed class IsDirective
         }
 
         throw new InvalidOperationException(IsDirective_GetFrom_DirectiveNotValid);
+    }
+    
+    public static IsDirective? TryGetFrom(IHasDirectives member, IFusionTypeContext context)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(member));
+        ArgumentNullException.ThrowIfNull(nameof(context));
+        
+        var directive = member.Directives[context.IsDirective.Name].First();
+
+        if (TryParse(directive, context, out var result))
+        {
+            return result;
+        }
+
+        return null;
     }
     
     /// <summary>

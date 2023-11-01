@@ -87,6 +87,26 @@ internal sealed class SourceDirective
         directive = new SourceDirective(subgraph.Value, name?.Value);
         return true;
     }
+    
+    /// <summary>
+    /// Checks if the specified member has a @source directive.
+    /// </summary>
+    /// <param name="member">
+    /// The member that shall be checked.
+    /// </param>
+    /// <param name="context">
+    /// The fusion type context that provides the directive names.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the member has a @source directive; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool ExistsIn(IHasDirectives member, IFusionTypeContext context)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(member));
+        ArgumentNullException.ThrowIfNull(nameof(context));
+        
+        return member.Directives.ContainsName(context.SourceDirective.Name);
+    }
 
     /// <summary>
     /// Creates the source directive type.
