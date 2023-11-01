@@ -27,7 +27,6 @@ static class Helpers
         Path.Combine("HotChocolate", "OpenApi"),
         Path.Combine("HotChocolate", "Raven"),
         Path.Combine("HotChocolate", "Skimmed"),
-        Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Fusion"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
