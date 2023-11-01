@@ -31,11 +31,12 @@ public abstract class TypeInterceptor
     
     internal virtual void SetSiblings(TypeInterceptor[] all) { }
     
-    [Obsolete("The schema builder is obsolete and will be removed in the next version.", error: true)]
-    public virtual void OnBeforeCreateSchema_(
+    [Obsolete("This hook is deprecated and will be removed in the next release.")]
+    internal virtual void OnBeforeCreateSchema(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder) { }
     
+    // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
     /// with the schema builder.
@@ -48,7 +49,12 @@ public abstract class TypeInterceptor
     /// </param>
     internal virtual void OnBeforeCreateSchemaInternal(
         IDescriptorContext context,
-        ISchemaBuilder schemaBuilder) { }
+        ISchemaBuilder schemaBuilder)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        OnBeforeCreateSchema(context, schemaBuilder);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
 
     internal virtual void InitializeContext(
         IDescriptorContext context,
@@ -265,9 +271,10 @@ public abstract class TypeInterceptor
 
     public virtual void OnTypesCompleted() { }
     
-    [Obsolete("The schema builder is obsolete and will be removed in the next version.", error: true)]
-    public virtual void OnAfterCreateSchema_(IDescriptorContext context, ISchema schema) { }
+    [Obsolete("This hook is deprecated and will be removed in the next release.")]
+    public virtual void OnAfterCreateSchema(IDescriptorContext context, ISchema schema) { }
     
+    // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked after schema is fully created and gives access
     /// to the created schema object.
@@ -278,7 +285,12 @@ public abstract class TypeInterceptor
     /// <param name="schema">
     /// The created schema.
     /// </param>
-    internal virtual void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema) { }
+    internal virtual void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        OnAfterCreateSchema(context, schema);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
 
     /// <summary>
     /// This hook is invoked if an error occured during schema creation.
