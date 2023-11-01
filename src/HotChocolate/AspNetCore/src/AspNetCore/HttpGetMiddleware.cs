@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
+using static HotChocolate.AspNetCore.Serialization.DefaultHttpRequestParser;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -29,28 +30,36 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
     }
-
+    
     public async Task InvokeAsync(HttpContext context)
     {
-        if (HttpMethods.IsGet(context.Request.Method) &&
-            (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
+        if (HttpMethods.IsGet(context.Request.Method))
         {
-            if (!IsDefaultSchema)
-            {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
-            }
+            var options = context.GetGraphQLServerOptions();
 
-            using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
+            if ((options?.EnableGetRequests ?? true) &&
+                // Verify that the request is relevant to this middleware.
+                (context.Request.Query.ContainsKey(QueryKey) ||
+                    context.Request.Query.ContainsKey(QueryIdKey) ||
+                    context.Request.Query.ContainsKey(ExtensionsKey)))
             {
-                await HandleRequestAsync(context);
+                if (!IsDefaultSchema)
+                {
+                    context.Items[WellKnownContextData.SchemaName] = SchemaName;
+                }
+
+                using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
+                {
+                    await HandleRequestAsync(context);
+                }
+
+                return;
             }
         }
-        else
-        {
-            // if the request is not a get request or if the content type is not correct
-            // we will just invoke the next middleware and do nothing.
-            await NextAsync(context);
-        }
+
+        // if the request is not a get request or if the content type is not correct
+        // we will just invoke the next middleware and do nothing.
+        await NextAsync(context);
     }
 
     private async Task HandleRequestAsync(HttpContext context)

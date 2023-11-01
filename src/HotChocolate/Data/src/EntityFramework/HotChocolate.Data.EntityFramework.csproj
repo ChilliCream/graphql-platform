@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.Data.EntityFramework</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netstandard2.1</TargetFrameworks>
+    <TargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; netstandard2.1</TargetFrameworks>
     <TargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TargetFrameworks>
     <Description>Contains extensions for seamless integration of Entity Framework Core into HotChocolate</Description>
   </PropertyGroup>
