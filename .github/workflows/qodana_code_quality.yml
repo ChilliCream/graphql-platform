@@ -15,9 +15,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Sonar Analysis
-        run: ./build.cmd restore
-
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2023.2
         env:

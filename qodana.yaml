@@ -19,7 +19,7 @@ profile:
 #      - <path/where/not/run/inspection>
 
 #Execute shell command before Qodana execution (Applied in CI/CD pipeline)
-#bootstrap: sh ./prepare-qodana.sh
+bootstrap: sh ./build.sh restore
 
 #Install IDE plugins before Qodana execution (Applied in CI/CD pipeline)
 #plugins:
