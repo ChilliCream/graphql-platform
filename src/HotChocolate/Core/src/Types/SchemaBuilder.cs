@@ -211,11 +211,6 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    [Obsolete]
-    public ISchemaBuilder BindClrType(Type clrType, Type schemaType)
-        => BindRuntimeType(clrType, schemaType);
-
-    /// <inheritdoc />
     public ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType)
     {
         if (runtimeType is null)

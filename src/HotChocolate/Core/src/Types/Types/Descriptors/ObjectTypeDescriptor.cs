@@ -220,7 +220,8 @@ public class ObjectTypeDescriptor
 
     protected virtual void OnCompleteFields(
         IDictionary<string, ObjectFieldDefinition> fields,
-        ISet<MemberInfo> handledMembers) { }
+        ISet<MemberInfo> handledMembers)
+    { }
 
     public IObjectTypeDescriptor SyntaxNode(
         ObjectTypeDefinitionNode? objectTypeDefinition)
@@ -240,22 +241,6 @@ public class ObjectTypeDescriptor
         Definition.Description = value;
         return this;
     }
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface<TInterface>()
-        where TInterface : InterfaceType
-        => Implements<TInterface>();
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface<TInterface>(
-        TInterface type)
-        where TInterface : InterfaceType
-        => Implements(type);
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface(
-        NamedTypeNode namedType)
-        => Implements(namedType);
 
     public IObjectTypeDescriptor Implements<T>()
         where T : InterfaceType

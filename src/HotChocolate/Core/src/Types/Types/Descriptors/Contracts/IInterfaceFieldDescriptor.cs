@@ -15,10 +15,6 @@ public interface IInterfaceFieldDescriptor
 
     IInterfaceFieldDescriptor Description(string value);
 
-    [Obsolete("Use `Deprecated`.")]
-    IInterfaceFieldDescriptor DeprecationReason(
-        string reason);
-
     IInterfaceFieldDescriptor Deprecated(string reason);
 
     IInterfaceFieldDescriptor Deprecated();

@@ -44,25 +44,7 @@ public interface IEnumTypeDescriptor
     /// <param name="value">
     /// The value to include.
     /// </param>
-    [Obsolete("Use `Value`.")]
-    IEnumValueDescriptor Item<T>(T value);
-
-    /// <summary>
-    /// Defines a value that should be included on the enum type.
-    /// </summary>
-    /// <param name="value">
-    /// The value to include.
-    /// </param>
     IEnumValueDescriptor Value<T>(T value);
-
-    /// <summary>
-    /// Specifies if the enum values shall be inferred or explicitly specfied.
-    /// </summary>
-    /// <param name="behavior">
-    /// The binding behavior.
-    /// </param>
-    [Obsolete("Use `BindValues`.")]
-    IEnumTypeDescriptor BindItems(BindingBehavior behavior);
 
     /// <summary>
     /// Specifies if the enum values shall be inferred or explicitly specfied.

@@ -26,29 +26,6 @@ public class InterfaceTypeExtensionTests
         Assert.True(type.Fields.ContainsField("test"));
     }
 
-    [Obsolete]
-    [Fact]
-    public void InterfaceTypeExtension_DeprecateField()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
-            .AddQueryType<DummyQuery>()
-            .AddType<FooType>()
-            .AddType(new InterfaceTypeExtension(d => d
-                .Name("Foo")
-                .Field("description")
-                .Type<StringType>()
-                .DeprecationReason("Foo")))
-            .ModifyOptions(o => o.StrictValidation = false)
-            .Create();
-
-        // assert
-        var type = schema.GetType<InterfaceType>("Foo");
-        Assert.True(type.Fields["description"].IsDeprecated);
-        Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
-    }
-
     [Fact]
     public void InterfaceTypeExtension_Deprecate_With_Reason()
     {

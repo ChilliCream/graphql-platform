@@ -102,24 +102,6 @@ public partial class ObjectType
         return _isOfType!.Invoke(context, resolverResult);
     }
 
-    /// <summary>
-    /// Specifies if the specified <paramref name="resolverResult" /> is an instance of
-    /// this object type.
-    /// </summary>
-    /// <param name="context">
-    /// The resolver context.
-    /// </param>
-    /// <param name="resolverResult">
-    /// The result that shall be checked.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the <see cref="context"/> is an instance of this type;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    [Obsolete("Use IsInstanceOfType")]
-    public bool IsOfType(IResolverContext context, object resolverResult)
-        => IsInstanceOfType(context, resolverResult);
-
     /// <inheritdoc />
     public bool IsImplementing(string interfaceTypeName)
     {
@@ -130,7 +112,7 @@ public partial class ObjectType
 
         for (var i = 0; i < _implements.Length; i++)
         {
-            if(interfaceTypeName.EqualsOrdinal(_implements[i].Name))
+            if (interfaceTypeName.EqualsOrdinal(_implements[i].Name))
             {
                 return true;
             }

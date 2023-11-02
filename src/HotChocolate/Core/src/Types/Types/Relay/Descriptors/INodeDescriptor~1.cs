@@ -26,26 +26,6 @@ public interface INodeDescriptor<TNode> : IDescriptor
     /// <summary>
     /// Specifies a delegate to resolve the node from its id.
     /// </summary>
-    /// <param name="nodeResolver">
-    /// The delegate to resolve the node from its id.
-    /// </param>
-    [Obsolete("Use ResolveNode.")]
-    IObjectFieldDescriptor NodeResolver(
-        NodeResolverDelegate<TNode, object> nodeResolver);
-
-    /// <summary>
-    /// Specifies a delegate to resolve the node from its id.
-    /// </summary>
-    /// <param name="nodeResolver">
-    /// The delegate to resolve the node from its id.
-    /// </param>
-    [Obsolete("Use ResolveNode.")]
-    IObjectFieldDescriptor NodeResolver<TId>(
-        NodeResolverDelegate<TNode, TId> nodeResolver);
-
-    /// <summary>
-    /// Specifies a delegate to resolve the node from its id.
-    /// </summary>
     /// <param name="fieldResolver">
     /// The delegate to resolve the node from its id.
     /// </param>
