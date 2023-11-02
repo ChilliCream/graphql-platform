@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: self-macos
     steps:
     - name: Checkout
       uses: actions/checkout@v3
