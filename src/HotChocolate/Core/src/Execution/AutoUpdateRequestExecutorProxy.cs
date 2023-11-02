@@ -136,9 +136,6 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
     /// <param name="requestBatch">
     /// The GraphQL request batch.
     /// </param>
-    /// <param name="allowParallelExecution">
-    /// Defines if the executor is allowed to execute the batch in parallel.
-    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>

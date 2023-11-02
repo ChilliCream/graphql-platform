@@ -22,7 +22,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// This type must inherit from <see cref="ObjectType{T}"/> or be a class.
     /// </param>
     /// <param name="operation">
-    /// The operation type that <see cref="rootType"/> represents.
+    /// The operation type that <paramref name="rootType"/> represents.
     /// </param>
     /// <returns>
     /// Returns the GraphQL configuration builder.
@@ -31,7 +31,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="rootType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="rootType"/> is either not a class or is not inheriting from
+    /// - <paramref name="rootType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A root type for the specified <paramref name="operation"/> was already set.
@@ -64,7 +64,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// An instance of <see cref="ObjectType"/> that represents a root type.
     /// </param>
     /// <param name="operation">
-    /// The operation type that <see cref="rootType"/> represents.
+    /// The operation type that <paramref name="rootType"/> represents.
     /// </param>
     /// <returns>
     /// Returns the GraphQL configuration builder.
@@ -114,7 +114,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL query type with the name `Query` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <param name="builder">
     /// The GraphQL configuration builder.
@@ -154,7 +154,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL query type with the name `Query` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <typeparam name="T">
     /// The query runtime type.
@@ -210,7 +210,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="queryType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="queryType"/> is either not a class or is not inheriting from
+    /// - <paramref name="queryType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A query type was already added.
@@ -321,7 +321,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL mutation type with the name `Mutation` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <param name="builder">
     /// The GraphQL configuration builder.
@@ -361,7 +361,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL mutation type with the name `Mutation` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <typeparam name="T">
     /// The mutation runtime type.
@@ -417,7 +417,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="mutationType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="mutationType"/> is either not a class or is not inheriting from
+    /// - <paramref name="mutationType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A mutation type was already added.
@@ -528,7 +528,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL subscription type with the name `Subscription` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <param name="builder">
     /// The GraphQL configuration builder.
@@ -568,7 +568,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL subscription type with the name `Subscription` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <typeparam name="T">
     /// The subscription runtime type.
@@ -624,7 +624,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="subscriptionType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="subscriptionType"/> is either not a class or is not inheriting from
+    /// - <paramref name="subscriptionType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A subscription type was already added.
