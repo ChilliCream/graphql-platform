@@ -25,7 +25,7 @@ bootstrap: sh ./init.sh
 #plugins:
 #  - id: <plugin.id> #(plugin id can be found at https://plugins.jetbrains.com)
 dotnet:
-    solution: ./src/All.sln
+    solution: All.sln
 
 #Specify Qodana linter for analysis (Applied in CI/CD pipeline)
 linter: jetbrains/qodana-dotnet:latest
