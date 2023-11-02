@@ -34,7 +34,7 @@ public sealed class ResultBuilderDescriptor : ICodeDescriptor
 
     /// <summary>
     /// A set of all type tuples, that represent the required
-    /// <see cref="ILeafValueParser{TSerialized,TRuntime}" /> of this
+    /// StrawberryShake.Serialization.ILeafValueParser{TSerialized,TRuntime} of this
     /// <see cref="ResultBuilderDescriptor" />.
     /// </summary>
     public IReadOnlyCollection<ValueParserDescriptor> ValueParsers { get; }

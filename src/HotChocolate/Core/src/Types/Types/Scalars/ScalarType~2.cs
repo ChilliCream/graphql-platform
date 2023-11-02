@@ -139,15 +139,14 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     }
 
     /// <summary>
-    /// Parses a <typeparam name="TRuntimeType">runtime value</typeparam> into a
-    /// <typeparam name="TLiteral">valueSyntax</typeparam>
+    /// Parses a runtime value into a valueSyntax.
     /// </summary>
     /// <param name="runtimeValue">The value to parse</param>
     /// <returns>The parsed value syntax</returns>
     protected abstract TLiteral ParseValue(TRuntimeType runtimeValue);
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
+    /// Creates the exception that will be thrown when <see cref="ParseLiteral(IValueNode)"/> encountered an
     /// invalid <see cref="IValueNode "/>
     /// </summary>
     /// <param name="valueSyntax">
@@ -164,8 +163,8 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     }
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseValue"/> encountered an
-    /// invalid value
+    /// Creates the exception that will be thrown when <see cref="ParseValue(object?)"/> encountered an
+    /// invalid value.
     /// </summary>
     /// <param name="runtimeValue">
     /// The runtimeValue that should be parsed

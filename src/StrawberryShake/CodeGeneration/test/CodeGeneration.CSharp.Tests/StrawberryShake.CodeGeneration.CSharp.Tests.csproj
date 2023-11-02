@@ -7,6 +7,7 @@
   <PropertyGroup>
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
+    <NoWarn>$(NoWarn);CS0108</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
