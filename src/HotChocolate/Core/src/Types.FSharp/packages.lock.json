@@ -198,7 +198,7 @@
       "hotchocolate.abstractions": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Language": "[0.0.0, )",
           "Microsoft.Bcl.AsyncInterfaces": "[6.0.0, )",
           "System.Collections.Immutable": "[6.0.0, )"
         }
@@ -206,11 +206,11 @@
       "hotchocolate.execution": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Execution.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Fetching": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Validation": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
+          "HotChocolate.Fetching": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[6.0.0, )",
           "System.Threading.Channels": "[6.0.0, )"
         }
@@ -218,24 +218,24 @@
       "hotchocolate.execution.abstractions": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[6.0.0, )"
         }
       },
       "hotchocolate.fetching": {
         "type": "Project",
         "dependencies": {
-          "GreenDonut": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )"
+          "GreenDonut": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )"
         }
       },
       "hotchocolate.language": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Utf8": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Visitors": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Web": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
+          "HotChocolate.Language.Utf8": "[0.0.0, )",
+          "HotChocolate.Language.Visitors": "[0.0.0, )",
+          "HotChocolate.Language.Web": "[0.0.0, )"
         }
       },
       "hotchocolate.language.syntaxtree": {
@@ -250,27 +250,27 @@
       "hotchocolate.language.utf8": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.language.visitors": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.language.web": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.Utf8": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
       "hotchocolate.types": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types.Shared": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Utilities": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "HotChocolate.Utilities": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[6.0.0, )",
           "Microsoft.Extensions.ObjectPool": "[6.0.0, )",
           "System.ComponentModel.Annotations": "[5.0.0, )",
@@ -280,7 +280,7 @@
       "hotchocolate.types.shared": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.utilities": {
@@ -294,7 +294,7 @@
       "hotchocolate.validation": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Types": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[6.0.0, )",
           "Microsoft.Extensions.Options": "[6.0.0, )"
         }
@@ -432,7 +432,7 @@
       "hotchocolate.abstractions": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Language": "[0.0.0, )",
           "Microsoft.Bcl.AsyncInterfaces": "[6.0.0, )",
           "System.Collections.Immutable": "[6.0.0, )"
         }
@@ -440,11 +440,11 @@
       "hotchocolate.execution": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Execution.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Fetching": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Validation": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
+          "HotChocolate.Fetching": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[6.0.0, )",
           "System.Threading.Channels": "[6.0.0, )"
         }
@@ -452,24 +452,24 @@
       "hotchocolate.execution.abstractions": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[6.0.0, )"
         }
       },
       "hotchocolate.fetching": {
         "type": "Project",
         "dependencies": {
-          "GreenDonut": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )"
+          "GreenDonut": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )"
         }
       },
       "hotchocolate.language": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Utf8": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Visitors": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Web": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
+          "HotChocolate.Language.Utf8": "[0.0.0, )",
+          "HotChocolate.Language.Visitors": "[0.0.0, )",
+          "HotChocolate.Language.Web": "[0.0.0, )"
         }
       },
       "hotchocolate.language.syntaxtree": {
@@ -481,27 +481,27 @@
       "hotchocolate.language.utf8": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.language.visitors": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.language.web": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.Utf8": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
       "hotchocolate.types": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types.Shared": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Utilities": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "HotChocolate.Utilities": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[6.0.0, )",
           "Microsoft.Extensions.ObjectPool": "[6.0.0, )",
           "System.ComponentModel.Annotations": "[5.0.0, )",
@@ -511,7 +511,7 @@
       "hotchocolate.types.shared": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.utilities": {
@@ -520,7 +520,7 @@
       "hotchocolate.validation": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Types": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[6.0.0, )",
           "Microsoft.Extensions.Options": "[6.0.0, )"
         }
@@ -634,18 +634,18 @@
       "hotchocolate.abstractions": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Language": "[0.0.0, )",
           "System.Collections.Immutable": "[7.0.0, )"
         }
       },
       "hotchocolate.execution": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Execution.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Fetching": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Validation": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
+          "HotChocolate.Fetching": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[7.0.0, )",
           "System.Threading.Channels": "[7.0.0, )"
         }
@@ -653,24 +653,24 @@
       "hotchocolate.execution.abstractions": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[7.0.0, )"
         }
       },
       "hotchocolate.fetching": {
         "type": "Project",
         "dependencies": {
-          "GreenDonut": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )"
+          "GreenDonut": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )"
         }
       },
       "hotchocolate.language": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Utf8": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Visitors": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Web": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
+          "HotChocolate.Language.Utf8": "[0.0.0, )",
+          "HotChocolate.Language.Visitors": "[0.0.0, )",
+          "HotChocolate.Language.Web": "[0.0.0, )"
         }
       },
       "hotchocolate.language.syntaxtree": {
@@ -682,27 +682,27 @@
       "hotchocolate.language.utf8": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.language.visitors": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.language.web": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.Utf8": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
       "hotchocolate.types": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types.Shared": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Utilities": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "HotChocolate.Utilities": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[7.0.0, )",
           "Microsoft.Extensions.ObjectPool": "[7.0.0, )",
           "System.ComponentModel.Annotations": "[5.0.0, )",
@@ -712,7 +712,7 @@
       "hotchocolate.types.shared": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.utilities": {
@@ -721,7 +721,7 @@
       "hotchocolate.validation": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Types": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[7.0.0, )",
           "Microsoft.Extensions.Options": "[7.0.0, )"
         }
@@ -835,18 +835,18 @@
       "hotchocolate.abstractions": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Language": "[0.0.0, )",
           "System.Collections.Immutable": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.execution": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Execution.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Fetching": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Validation": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
+          "HotChocolate.Fetching": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[8.0.0-rc.2.23479.6, )",
           "System.Threading.Channels": "[8.0.0-rc.2.23479.6, )"
         }
@@ -854,24 +854,24 @@
       "hotchocolate.execution.abstractions": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[8.0.0-rc.2.23479.6, )"
         }
       },
       "hotchocolate.fetching": {
         "type": "Project",
         "dependencies": {
-          "GreenDonut": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )"
+          "GreenDonut": "[0.0.0, )",
+          "HotChocolate.Types": "[0.0.0, )"
         }
       },
       "hotchocolate.language": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Utf8": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Visitors": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Language.Web": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
+          "HotChocolate.Language.Utf8": "[0.0.0, )",
+          "HotChocolate.Language.Visitors": "[0.0.0, )",
+          "HotChocolate.Language.Web": "[0.0.0, )"
         }
       },
       "hotchocolate.language.syntaxtree": {
@@ -883,27 +883,27 @@
       "hotchocolate.language.utf8": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.language.visitors": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.language.web": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.Utf8": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.Utf8": "[0.0.0, )"
         }
       },
       "hotchocolate.types": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Abstractions": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Types.Shared": "[14.0.0-preview.build.0, )",
-          "HotChocolate.Utilities": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Abstractions": "[0.0.0, )",
+          "HotChocolate.Types.Shared": "[0.0.0, )",
+          "HotChocolate.Utilities": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[8.0.0-rc.2.23479.6, )",
           "Microsoft.Extensions.ObjectPool": "[8.0.0-rc.2.23480.2, )",
           "System.ComponentModel.Annotations": "[5.0.0, )",
@@ -913,7 +913,7 @@
       "hotchocolate.types.shared": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Language.SyntaxTree": "[14.0.0-preview.build.0, )"
+          "HotChocolate.Language.SyntaxTree": "[0.0.0, )"
         }
       },
       "hotchocolate.utilities": {
@@ -922,7 +922,7 @@
       "hotchocolate.validation": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Types": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Types": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[8.0.0-rc.2.23479.6, )",
           "Microsoft.Extensions.Options": "[8.0.0-rc.2.23479.6, )"
         }
