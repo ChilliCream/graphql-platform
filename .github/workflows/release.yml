@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    runs-on: self-macos
+    runs-on: self-win
     steps:
     - name: Checkout
       uses: actions/checkout@v3
