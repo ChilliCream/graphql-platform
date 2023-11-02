@@ -19,9 +19,6 @@ public static class HotChocolateInMemoryPersistedQueriesServiceCollectionExtensi
     /// <param name="services">
     /// The service collection to which the services are added.
     /// </param>
-    /// <param name="cacheDirectory">
-    /// The directory path that shall be used to store queries.
-    /// </param>
     public static IServiceCollection AddInMemoryQueryStorage(
         this IServiceCollection services)
     {
@@ -42,9 +39,6 @@ public static class HotChocolateInMemoryPersistedQueriesServiceCollectionExtensi
     /// </summary>
     /// <param name="services">
     /// The service collection to which the services are added.
-    /// </param>
-    /// <param name="cacheDirectory">
-    /// The directory path that shall be used to read queries from.
     /// </param>
     public static IServiceCollection AddReadOnlyInMemoryQueryStorage(
         this IServiceCollection services)

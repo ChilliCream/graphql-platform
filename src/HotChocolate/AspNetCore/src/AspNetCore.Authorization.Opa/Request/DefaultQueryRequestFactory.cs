@@ -29,16 +29,16 @@ public sealed class DefaultQueryRequestFactory : IOpaQueryRequestFactory
             httpContext.Request.Headers,
             httpContext.Request.Host.Value,
             httpContext.Request.Method,
-            httpContext.Request.Path.Value,
+            httpContext.Request.Path.Value!,
             httpContext.Request.Query,
             httpContext.Request.Scheme);
 
         var source = new IPAndPort(
-            connection.RemoteIpAddress.ToString(),
+            connection.RemoteIpAddress!.ToString(),
             connection.RemotePort);
 
         var destination = new IPAndPort(
-            connection.LocalIpAddress.ToString(),
+            connection.LocalIpAddress!.ToString(),
             connection.LocalPort);
 
         return new OpaQueryRequest(policy, originalRequest, source, destination);

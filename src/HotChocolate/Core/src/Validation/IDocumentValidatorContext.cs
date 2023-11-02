@@ -161,6 +161,21 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     IDictionary<string, object?> ContextData { get; }
 
     /// <summary>
+    /// When processing field merging this list holds the field pairs that are processed.
+    /// </summary>
+    List<FieldInfoPair> CurrentFieldPairs  { get; }
+
+    /// <summary>
+    /// When processing field merging this list holds the field pairs that are processed next.
+    /// </summary>
+    List<FieldInfoPair> NextFieldPairs  { get; }
+
+    /// <summary>
+    /// When processing field merging this set represents the already processed field pairs.
+    /// </summary>
+    HashSet<FieldInfoPair> ProcessedFieldPairs  { get; }
+
+    /// <summary>
     /// Rents a list of field infos.
     /// </summary>
     IList<FieldInfo> RentFieldInfoList();

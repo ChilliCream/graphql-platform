@@ -34,7 +34,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnBeforeCreateSchema(
+    internal override void OnBeforeCreateSchemaInternal(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {
@@ -45,7 +45,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         // we first initialize all schema context ...
         while (Unsafe.IsAddressLessThan(ref current, ref end))
         {
-            current.OnBeforeCreateSchema(context, schemaBuilder);
+            current.OnBeforeCreateSchemaInternal(context, schemaBuilder);
             current = ref Unsafe.Add(ref current, 1)!;
         }
         
@@ -433,14 +433,14 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnAfterCreateSchema(IDescriptorContext context, ISchema schema)
+    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, i).OnAfterCreateSchema(context, schema);
+            Unsafe.Add(ref first, i).OnAfterCreateSchemaInternal(context, schema);
         }
     }
 

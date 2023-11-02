@@ -2307,7 +2307,7 @@ public class SchemaBuilderTests
         public DummySchemaInterceptor(Action<IDescriptorContext> onBeforeCreate)
             => _onBeforeCreate = onBeforeCreate;
 
-        public override void OnBeforeCreateSchema(
+        internal override void OnBeforeCreateSchemaInternal(
             IDescriptorContext context,
             ISchemaBuilder schemaBuilder) =>
             _onBeforeCreate(context);

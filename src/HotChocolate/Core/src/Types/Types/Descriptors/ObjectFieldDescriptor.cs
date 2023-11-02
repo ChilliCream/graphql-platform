@@ -237,11 +237,6 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    [Obsolete("Use `Deprecated`.")]
-    public IObjectFieldDescriptor DeprecationReason(string? reason)
-        => Deprecated(reason);
-
-    /// <inheritdoc />
     public new IObjectFieldDescriptor Deprecated(string? reason)
     {
         base.Deprecated(reason);

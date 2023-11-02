@@ -27,7 +27,7 @@ public class AnnotationBasedMutations
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task SimpleMutation_Inferred_With_ErrorObj()
     {
@@ -41,7 +41,7 @@ public class AnnotationBasedMutations
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task SimpleMutation_Inferred_Global_Errors()
     {
@@ -56,7 +56,7 @@ public class AnnotationBasedMutations
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task SimpleMutation_Inferred_Global_Errors_Execute()
     {
@@ -85,7 +85,6 @@ public class AnnotationBasedMutations
         result.MatchSnapshot();
     }
 
-    
     [Fact]
     public async Task SimpleMutation_Inferred_Query_Field_Stays_NonNull()
     {
@@ -1137,7 +1136,7 @@ public class AnnotationBasedMutations
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Mutation_With_Optional_Arg()
     {
@@ -1167,7 +1166,23 @@ public class AnnotationBasedMutations
             }
             """);
     }
-    
+
+    [Fact]
+    public async Task Mutation_With_ErrorWithInterface()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithInterfaces>()
+                .AddType<IInterfaceError>()
+                .AddType<IInterfaceError2>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        result.Print().MatchSnapshot();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -1272,8 +1287,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationInputOverride
     {
-        public string DoSomething(
-            DoSomethingInput something)
+        public string DoSomething(DoSomethingInput something)
         {
             throw new Exception();
         }
@@ -1302,7 +1316,9 @@ public class AnnotationBasedMutations
         }
     }
 
-    public class Foo { }
+    public class Foo
+    {
+    }
 
     public class MutationWithInputObject
     {
@@ -1535,7 +1551,7 @@ public class AnnotationBasedMutations
             throw new AggregateException(errors);
         }
     }
-    
+
     public class SimpleMutationWithErrorObj
     {
         [Error<SomeNewError>]
@@ -1549,7 +1565,9 @@ public class AnnotationBasedMutations
 
     public class CustomErrorConfig : MutationErrorConfiguration
     {
-        public override void OnConfigure(IDescriptorContext context, ObjectFieldDefinition mutationField)
+        public override void OnConfigure(
+            IDescriptorContext context,
+            ObjectFieldDefinition mutationField)
         {
             mutationField.AddErrorType(context, typeof(SomeNewError));
             mutationField.MiddlewareDefinitions.Add(
@@ -1565,5 +1583,28 @@ public class AnnotationBasedMutations
     {
         public string DoSomething(Optional<string?> something)
             => something.Value ?? "nothing";
+    }
+
+    public class MutationWithInterfaces
+    {
+        [Error<ErrorWithInterface>]
+        public bool DoSomething(string something) => true;
+    }
+
+    public interface IInterfaceError
+    {
+        public string Name { get; set; }
+    }
+
+    public interface IInterfaceError2
+    {
+        public string Name { get; set; }
+    }
+
+    public class ErrorWithInterface : IInterfaceError, IInterfaceError2
+    {
+        public string Name { get; set; } = default!;
+
+        public string Message { get; set; } = default!;
     }
 }

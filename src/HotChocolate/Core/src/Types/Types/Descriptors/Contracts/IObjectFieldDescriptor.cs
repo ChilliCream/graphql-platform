@@ -44,13 +44,6 @@ public interface IObjectFieldDescriptor
     IObjectFieldDescriptor Description(string? value);
 
     /// <summary>
-    /// Specifies a deprecation reason for this field.
-    /// </summary>
-    /// <param name="reason">The reason why this field is deprecated.</param>
-    [Obsolete("Use `Deprecated`.")]
-    IObjectFieldDescriptor DeprecationReason(string? reason);
-
-    /// <summary>
     /// Deprecates the object field.
     /// </summary>
     /// <param name="reason">The reason why this field is deprecated.</param>
@@ -119,74 +112,6 @@ public interface IObjectFieldDescriptor
     /// The value specifying if this field shall be ignored by the type initialization.
     /// </param>
     IObjectFieldDescriptor Ignore(bool ignore = true);
-
-    /// <summary>
-    /// Adds a resolver to the field. A resolver is a method that resolves the value for a
-    /// field. The resolver can access parent object, arguments, services and more through the
-    /// <see cref="IResolverContext"/>.
-    /// </summary>
-    /// <param name="fieldResolver">The resolver of the field</param>
-    /// <example>
-    /// Resolver accessing the parent
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Resolve(context => context.Parent<Example>().Foo);
-    /// ]]>
-    /// </code>
-    /// Resolver with static value
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Resolve("Static Value");
-    /// ]]>
-    /// </code>
-    /// Resolver accessing service
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Resolve(context => context.Service<ISomeService>().GetFoo());
-    /// ]]>
-    /// </code>
-    /// Resolver accessing argument
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Argument("arg1", x => x.Type<StringType>())
-    ///     .Resolve(context => context.ArgumentValue<string>("arg1"));
-    /// ]]>
-    /// </code>
-    /// </example>
-    /// <returns></returns>
-    [Obsolete("Use Resolve(...)")]
-    IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
-
-    /// <summary>
-    /// Adds a resolver to the field. A resolver is a method that resolves the value for a
-    /// field. The resolver can access parent object, arguments, services and more through the
-    /// <see cref="IResolverContext"/>.
-    /// </summary>
-    /// <param name="fieldResolver">The resolver of the field</param>
-    /// <param name="resultType">The result type of the resolver</param>
-    /// <example>
-    /// Resolver accessing the parent
-    /// <code>
-    /// <![CDATA[
-    /// descriptor
-    ///     .Field(x => x.Foo)
-    ///     .Resolve(context => context.Parent<Example>().Foo, typeof(string));
-    /// ]]>
-    /// </code>
-    /// </example>
-    /// <returns></returns>
-    [Obsolete("Use Resolve(...)")]
-    IObjectFieldDescriptor Resolver(
-        FieldResolverDelegate fieldResolver,
-        Type resultType);
 
     /// <summary>
     /// Adds a resolver to the field. A resolver is a method that resolves the value for a

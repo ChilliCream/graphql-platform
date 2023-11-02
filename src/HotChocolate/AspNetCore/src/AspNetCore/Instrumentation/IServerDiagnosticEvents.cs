@@ -145,7 +145,7 @@ public interface IServerDiagnosticEvents
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
     /// </param>
-    /// <param name="errors">
+    /// <param name="exception">
     /// The <see cref="Exception"/>.
     /// </param>
     void WebSocketSessionError(HttpContext context, Exception exception);

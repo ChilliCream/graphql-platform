@@ -72,7 +72,7 @@ public class CodeFirstTests
             .Create();
 
         // assert
-        var exists = schema.TryGetType("Url", out INamedType _);
+        var exists = schema.TryGetType<INamedType>("Url", out _);
         Assert.False(exists);
     }
 

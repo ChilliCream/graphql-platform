@@ -75,7 +75,7 @@ null
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060ngt\u0060 of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `ngt` of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
