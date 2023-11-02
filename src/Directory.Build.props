@@ -7,7 +7,8 @@
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
-    <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041</NoWarn>
+    <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041;AD0001</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

@@ -1,6 +1,5 @@
 using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
-using System.IO.Packaging;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.Fusion.CommandLine.Helpers;
@@ -19,7 +18,8 @@ namespace HotChocolate.Fusion.CommandLine.Commands;
 internal sealed class ComposeCommand : Command
 {
     [RequiresUnreferencedCode(
-        "Calls HotChocolate.Fusion.CommandLine.Commands.ComposeCommand.ExecuteAsync(IConsole, FileInfo, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
+        "Calls HotChocolate.Fusion.CommandLine.Commands.ComposeCommand.ExecuteAsync(IConsole, FileInfo, " +
+        "List<String>, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
     public ComposeCommand() : base("compose")
     {
         var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true };

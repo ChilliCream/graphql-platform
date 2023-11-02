@@ -9,7 +9,6 @@ namespace StrawberryShake;
 /// <summary>
 /// GraphQL client-side error.
 /// </summary>
-[Serializable]
 public class GraphQLClientException : Exception
 {
     /// <summary>
@@ -98,15 +97,6 @@ public class GraphQLClientException : Exception
         // with a proper ArgumentNullException.
         : this(errors?.ToArray()!)
     {
-    }
-
-    protected GraphQLClientException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context)
-    {
-        Message = base.Message;
-        Errors ??= Array.Empty<IClientError>();
     }
 
     /// <summary>

@@ -4,6 +4,7 @@
     <AssemblyName>StrawberryShake.Transport.WebSockets.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.WebSockets</RootNamespace>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS0414</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
