@@ -202,11 +202,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationExecution();
     }
 
-    [Obsolete("Use UseAutomaticPersistedQueryPipeline")]
-    public static IRequestExecutorBuilder UseActivePersistedQueryPipeline(
-        this IRequestExecutorBuilder builder) =>
-        UseAutomaticPersistedQueryPipeline(builder);
-
     public static IRequestExecutorBuilder UseAutomaticPersistedQueryPipeline(
         this IRequestExecutorBuilder builder)
     {

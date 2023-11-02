@@ -49,18 +49,6 @@ public interface IDirectiveTypeDescriptor
     /// <param name="value">The directive location.</param>
     IDirectiveTypeDescriptor Location(DirectiveLocation value);
 
-    [Obsolete("Replace Middleware with `Use`.")]
-    IDirectiveTypeDescriptor Middleware(
-        DirectiveMiddleware middleware);
-
-    [Obsolete("Replace Middleware with `Use`.", true)]
-    IDirectiveTypeDescriptor Middleware<T>(
-        Expression<Func<T, object>> method);
-
-    [Obsolete("Replace Middleware with `Use`.", true)]
-    IDirectiveTypeDescriptor Middleware<T>(
-        Expression<Action<T>> method);
-
     /// <summary>
     /// Configure a middleware for this directive.
     /// </summary>

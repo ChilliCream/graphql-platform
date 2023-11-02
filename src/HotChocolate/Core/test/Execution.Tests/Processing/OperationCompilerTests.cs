@@ -324,7 +324,7 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean){
+            @"query foo($v: Boolean!){
                 hero(episode: EMPIRE) {
                     name
                     ... abc @include(if: $v)
@@ -363,7 +363,7 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean){
+            @"query foo($v: Boolean!){
                 hero(episode: EMPIRE) {
                     name @include(if: $v)
                     ... abc
@@ -403,7 +403,7 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean, $q: Boolean){
+            @"query foo($v: Boolean!, $q: Boolean!){
                 hero(episode: EMPIRE) {
                     name @include(if: $v)
                     ... abc @include(if: $q)
@@ -442,7 +442,7 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean){
+            @"query foo($v: Boolean!){
                 hero(episode: EMPIRE) {
                     name @include(if: $v)
                     ... abc
@@ -487,7 +487,7 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean) {
+            @"query foo($v: Boolean!) {
                 hero(episode: EMPIRE) @include(if: $v) {
                     name
                 }
@@ -608,7 +608,7 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean, $q: Boolean) {
+            @"query foo($v: Boolean!, $q: Boolean!) {
                 hero(episode: EMPIRE) @include(if: $v) {
                     name @include(if: $q)
                 }
@@ -653,7 +653,7 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean, $q: Boolean) {
+            @"query foo($v: Boolean!, $q: Boolean!) {
                 hero(episode: EMPIRE) @include(if: $v) {
                     name @include(if: $q)
                 }
@@ -1162,14 +1162,14 @@ public class OperationCompilerTests
 
     public class Foo
     {
-        public Bar Bar => new Bar();
+        public Bar Bar => new();
     }
 
     public class Bar
     {
         public string Text => "Bar";
 
-        public Baz Baz => new Baz();
+        public Baz Baz => new();
     }
 
     public class Baz
