@@ -3,7 +3,7 @@
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
-    <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041;AD0001;CS1591;NU5104;</NoWarn>
+    <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041;AD0001;CS1591;NU5104;NU5128;NU5501</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'debug'">
