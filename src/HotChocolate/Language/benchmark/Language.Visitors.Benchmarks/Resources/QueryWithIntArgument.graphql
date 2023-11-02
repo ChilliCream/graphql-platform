@@ -1,5 +1,0 @@
-{
-  first: changeTheNumber(newNumber: 1) {
-    theNumber
-  }
-}

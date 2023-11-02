@@ -16,7 +16,7 @@ public abstract class StringToClassBaseType<TRuntimeType>
     where TRuntimeType : class
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="StringToClassBaseType"/>.
+    /// Initializes a new instance of <see cref="StringToClassBaseType{TRuntimeType}"/>.
     /// </summary>
     /// <param name="name">
     /// The name of the scalar.

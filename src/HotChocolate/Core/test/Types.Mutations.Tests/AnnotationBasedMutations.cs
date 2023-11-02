@@ -1603,8 +1603,8 @@ public class AnnotationBasedMutations
 
     public class ErrorWithInterface : IInterfaceError, IInterfaceError2
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = default!;
 
-        public string Message { get; set; }
+        public string Message { get; set; } = default!;
     }
 }

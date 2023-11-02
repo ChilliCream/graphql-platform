@@ -8,13 +8,14 @@ public sealed class AuthorQuery
         [Service] AuthorRepository repository)
         => repository.GetAuthorById(id);
 
-    public IEnumerable<Author> Authors(int limit, [Service] AuthorRepository repository) 
+    public IEnumerable<Author> Authors(int limit, [Service] AuthorRepository repository)
         => repository.GetAuthors(limit);
 
     public Book BookByAuthorId(
         string authorId,
-        [Service] AuthorRepository repository) {
-            Author author = repository.GetAuthorById(authorId);
-            return new Book(authorId, author);
-        }
+        [Service] AuthorRepository repository)
+    {
+        var author = repository.GetAuthorById(authorId);
+        return new Book(authorId, author!);
+    }
 }

@@ -104,16 +104,6 @@ public class NodeDescriptor
         throw new ArgumentException(NodeDescriptor_IdField_MustBePropertyOrMethod);
     }
 
-    /// <inheritdoc cref="INodeDescriptor.NodeResolver(NodeResolverDelegate{object, object})"/>
-    public IObjectFieldDescriptor NodeResolver(
-        NodeResolverDelegate<object, object> nodeResolver)
-        => ResolveNode(nodeResolver);
-
-    /// <inheritdoc cref="INodeDescriptor.NodeResolver{TId}(NodeResolverDelegate{object, TId})"/>
-    public IObjectFieldDescriptor NodeResolver<TId>(
-        NodeResolverDelegate<object, TId> nodeResolver)
-        => ResolveNode(nodeResolver);
-
     /// <inheritdoc cref="INodeDescriptor.ResolveNode(Type)"/>
     public IObjectFieldDescriptor ResolveNode(Type type)
         => ResolveNodeWith(

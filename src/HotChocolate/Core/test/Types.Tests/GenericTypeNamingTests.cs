@@ -73,7 +73,7 @@ public class GenericTypesNamingTests
     [GraphQLName("Bar")]
     public class Foo<T>
     {
-        public T Test { get; init; }
+        public T Test { get; init; } = default!;
     }
 
     [GraphQLName("MyType")]
