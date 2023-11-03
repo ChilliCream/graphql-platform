@@ -1183,6 +1183,23 @@ public class AnnotationBasedMutations
         result.Print().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Mutation_With_ErrorAnnotatedAndCustomInterface()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithErrorInterface>()
+                .AddErrorInterfaceType<IErrorInterface>()
+                .AddType<IInterfaceError>()
+                .AddType<IInterfaceError2>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        result.Print().MatchSnapshot();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -1591,6 +1608,35 @@ public class AnnotationBasedMutations
         public bool DoSomething(string something) => true;
     }
 
+    public class MutationWithErrorInterface
+    {
+        [Error<ErrorAnnotated>]
+        [Error<ErrorAnnotatedAndNot>]
+        public bool Annotated(string something) => true;
+
+        public ErrorNotAnnotated NotAnnotated(string something) => default!;
+
+        public ErrorAnnotatedAndNot Both(string something) => default!;
+    }
+
+    public class ErrorAnnotated : IErrorInterface
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
+    }
+
+    public class ErrorNotAnnotated : IErrorInterface
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
+    }
+
+    public class ErrorAnnotatedAndNot : IErrorInterface
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
+    }
+
     public interface IInterfaceError
     {
         public string Name { get; set; }
@@ -1606,5 +1652,10 @@ public class AnnotationBasedMutations
         public string Name { get; set; } = default!;
 
         public string Message { get; set; } = default!;
+    }
+
+    public interface IErrorInterface
+    {
+        public string Message { get; }
     }
 }
