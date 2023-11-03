@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - mst/jetbrains-build
+      - mst/mst/build-fix-0001
 
 jobs:
   qodana:
