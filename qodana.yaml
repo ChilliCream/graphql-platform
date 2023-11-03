@@ -1,16 +1,17 @@
-#-------------------------------------------------------------------------------#
-#               Qodana analysis is configured by qodana.yaml file               #
-#             https://www.jetbrains.com/help/qodana/qodana-yaml.html            #
-#-------------------------------------------------------------------------------#
 version: "1.0"
 
+linter: jetbrains/qodana-dotnet:latest
+
 profile:
-  name: qodana.starter
+  name: qodana.recommended
+
+failThreshold: 1
+
+exclude:
+  name: NotAccessedPositionalProperty.Global
 
 bootstrap: |
-  curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --jsonfile /data/project/src/global.json -i /usr/share/dotnet
+  curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --jsonfile /data/project/global.json -i /usr/share/dotnet
   sh ./init.sh
 dotnet:
     solution: All.sln
-
-linter: jetbrains/qodana-dotnet:latest
