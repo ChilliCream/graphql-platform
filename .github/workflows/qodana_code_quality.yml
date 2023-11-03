@@ -21,3 +21,4 @@ jobs:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
         with:
           args: --ide,QDNET
+          pr-mode: false
