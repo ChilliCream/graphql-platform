@@ -8,7 +8,7 @@ profile:
 failThreshold: 1
 
 exclude:
-  name: NotAccessedPositionalProperty.Global
+  - name: NotAccessedPositionalProperty.Global
 
 bootstrap: |
   curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --jsonfile /data/project/global.json -i /usr/share/dotnet
