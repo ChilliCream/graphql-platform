@@ -91,7 +91,7 @@ scalar Date
 
 Rewritten:
 ---------------
-schema @fusion(version: 1) @transport(group: "Reviews2", subgraph: "Reviews2", location: "http:\/\/client\/") @transport(subgraph: "Reviews2", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") @transport(group: "Accounts", subgraph: "Accounts", location: "http:\/\/client\/") @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
+schema @fusion(version: 1) @transport(group: "Reviews2", subgraph: "Reviews2", location: "http:\/\/client\/", location: "http:\/\/client\/", kind: "HTTP") @transport(subgraph: "Reviews2", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") @transport(group: "Accounts", subgraph: "Accounts", location: "http:\/\/client\/", location: "http:\/\/client\/", kind: "HTTP") @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
   query: Query
   mutation: Mutation
   subscription: Subscription
