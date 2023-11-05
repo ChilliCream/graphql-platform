@@ -1321,7 +1321,7 @@ public class AnnotationBasedMutations
     {
         public User? DoSomething([ID("Foo")] Guid id)
         {
-            return new User() { Name = "Foo", Id = id, };
+            return new User { Name = "Foo", Id = id, };
         }
     }
 
@@ -1341,7 +1341,7 @@ public class AnnotationBasedMutations
     {
         public User? DoSomething(Test test)
         {
-            return new User() { Name = test.Name };
+            return new User { Name = test.Name };
         }
     }
 
@@ -1613,38 +1613,34 @@ public class AnnotationBasedMutations
         [Error<ErrorAnnotated>]
         [Error<ErrorAnnotatedAndNot>]
         public bool Annotated(string something) => true;
-
-        public ErrorNotAnnotated NotAnnotated(string something) => default!;
-
-        public ErrorAnnotatedAndNot Both(string something) => default!;
     }
 
-    public class ErrorAnnotated : IErrorInterface
+    public class ErrorAnnotated : IErrorInterface, IInterfaceError
     {
         /// <inheritdoc />
         public string Message => string.Empty;
+
+        /// <inheritdoc />
+        public string Name => string.Empty;
     }
 
-    public class ErrorNotAnnotated : IErrorInterface
+    public class ErrorAnnotatedAndNot : IErrorInterface, IInterfaceError2
     {
         /// <inheritdoc />
         public string Message => string.Empty;
-    }
-
-    public class ErrorAnnotatedAndNot : IErrorInterface
-    {
+        
         /// <inheritdoc />
-        public string Message => string.Empty;
+        public string Name => string.Empty;
     }
 
     public interface IInterfaceError
     {
-        public string Name { get; set; }
+        public string Name { get; }
     }
 
     public interface IInterfaceError2
     {
-        public string Name { get; set; }
+        public string Name { get; }
     }
 
     public class ErrorWithInterface : IInterfaceError, IInterfaceError2
