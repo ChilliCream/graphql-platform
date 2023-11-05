@@ -1613,6 +1613,22 @@ public class AnnotationBasedMutations
         [Error<ErrorAnnotated>]
         [Error<ErrorAnnotatedAndNot>]
         public bool Annotated(string something) => true;
+
+        public ExampleResult ExampleResult(string something) => default!;
+    }
+
+    public class ExampleResult
+    {
+        public ErrorNotAnnotated NotAnnotated(string something) => default!;
+
+        public ErrorAnnotatedAndNot Both(string something) => default!;
+
+    }
+
+    public class ErrorNotAnnotated : IErrorInterface
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
     }
 
     public class ErrorAnnotated : IErrorInterface, IInterfaceError
@@ -1628,7 +1644,7 @@ public class AnnotationBasedMutations
     {
         /// <inheritdoc />
         public string Message => string.Empty;
-        
+
         /// <inheritdoc />
         public string Name => string.Empty;
     }
