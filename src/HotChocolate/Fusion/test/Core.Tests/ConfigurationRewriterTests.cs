@@ -14,6 +14,7 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.TestHelper;
 using HttpClientConfiguration = HotChocolate.Fusion.Metadata.HttpClientConfiguration;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion;
 
@@ -50,6 +51,11 @@ public class ConfigurationRewriterTests
         snapshot.Add(configuration, "Original:");
         snapshot.Add(rewritten, "Rewritten:");
         await snapshot.MatchAsync();
+
+        // this should not throw
+        var reader = new FusionGraphConfigurationReader();
+        var config = reader.Read(rewritten);
+        Assert.Contains(config.HttpClients, t => t.EndpointUri == new Uri("http://client"));
     }
 
     private class CustomRewriter : ConfigurationRewriter
