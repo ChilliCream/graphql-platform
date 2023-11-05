@@ -41,6 +41,8 @@ public abstract class ConfigurationRewriter : IConfigurationRewriter
                 arguments.Add(new ArgumentNode(GroupArg, rewritten.ClientName));
                 arguments.Add(new ArgumentNode(SubgraphArg, rewritten.SubgraphName));
                 arguments.Add(new ArgumentNode(LocationArg, rewritten.EndpointUri.ToString()));
+                arguments.Add(new ArgumentNode(LocationArg, rewritten.EndpointUri.ToString()));
+                arguments.Add(new ArgumentNode(KindArg, "HTTP"));
                 Replace(client.SyntaxNode!, client.SyntaxNode!.WithArguments(arguments));
             }
         }
@@ -55,6 +57,7 @@ public abstract class ConfigurationRewriter : IConfigurationRewriter
                 arguments.Add(new ArgumentNode(GroupArg, rewritten.ClientName));
                 arguments.Add(new ArgumentNode(SubgraphArg, rewritten.SubgraphName));
                 arguments.Add(new ArgumentNode(LocationArg, rewritten.EndpointUri.ToString()));
+                arguments.Add(new ArgumentNode(KindArg, "WebSocket"));
                 Replace(client.SyntaxNode!, client.SyntaxNode!.WithArguments(arguments));
             }
         }
