@@ -1637,7 +1637,9 @@
           ]
         }
       }
-    ]
+    ],
+    "Count": 155,
+    "FieldsCount": 20
   },
   {
     "Kind": "OperationDefinition",

@@ -1,0 +1,17 @@
+schema {
+  query: RootQuery
+}
+
+"The root query"
+type RootQuery {
+  "Returns testDataType."
+  testData: TestDataType
+}
+
+"Test Data Type."
+type TestDataType {
+  "Id"
+  id: String
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

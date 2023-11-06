@@ -47,9 +47,9 @@ internal sealed class VariableCoercionHelper
 
         for (var i = 0; i < variableDefinitions.Count; i++)
         {
-            VariableDefinitionNode variableDefinition = variableDefinitions[i];
+            var variableDefinition = variableDefinitions[i];
             var variableName = variableDefinition.Variable.Name.Value;
-            IInputType variableType = AssertInputType(schema, variableDefinition);
+            var variableType = AssertInputType(schema, variableDefinition);
             VariableValueOrLiteral coercedVariable;
 
             var hasValue = values.TryGetValue(variableName, out var value);
@@ -90,7 +90,7 @@ internal sealed class VariableCoercionHelper
         IInputType variableType,
         object value)
     {
-        Path root = PathFactory.Instance.New(variableDefinition.Variable.Name.Value);
+        var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
 
         if (value is IValueNode valueLiteral)
         {
@@ -115,7 +115,7 @@ internal sealed class VariableCoercionHelper
         }
 
         var runtimeValue = _inputParser.ParseResult(value, variableType, root);
-        IValueNode literal = _inputFormatter.FormatResult(value, variableType, root);
+        var literal = _inputFormatter.FormatResult(value, variableType, root);
         return new VariableValueOrLiteral(variableType, runtimeValue, literal);
     }
 
@@ -169,7 +169,7 @@ internal sealed class VariableCoercionHelper
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            ObjectFieldNode current = node.Fields[i];
+            var current = node.Fields[i];
 
             if (!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
             {
@@ -178,7 +178,7 @@ internal sealed class VariableCoercionHelper
                 continue;
             }
 
-            IValueNode rewritten = Rewrite(field.Type, current.Value);
+            var rewritten = Rewrite(field.Type, current.Value);
 
             // we try initially just to traverse the input graph, only if we detect a change
             // will we create a new input object. In this case if the fields list is initialized
@@ -218,13 +218,13 @@ internal sealed class VariableCoercionHelper
             return node;
         }
 
-        IType elementType = inputType.ListType().ElementType;
+        var elementType = inputType.ListType().ElementType;
         List<IValueNode>? values = null;
 
         for (var i = 0; i < node.Items.Count; i++)
         {
-            IValueNode current = node.Items[i];
-            IValueNode value = Rewrite(elementType, current);
+            var current = node.Items[i];
+            var value = Rewrite(elementType, current);
 
             // we try initially just to traverse the list graph, only if we detect a change
             // will we create a new list object. In this case if values list is initialized

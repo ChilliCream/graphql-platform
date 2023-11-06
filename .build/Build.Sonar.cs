@@ -25,58 +25,30 @@ partial class Build
             Log.Information($"GitHubBaseRef: {GitHubBaseRef}");
             Log.Information($"GitHubPRNumber: {GitHubPRNumber}");
 
-            TryDelete(SonarSolutionFile);
             DotNetBuildSonarSolution(AllSolutionFile);
-            DotNetBuildSonarSolution(SonarSolutionFile, include: IsRelevantForSonar);
 
             DotNetRestore(c => c
-                .SetProjectFile(SonarSolutionFile)
+                .SetProjectFile(AllSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
 
             SonarScannerBegin(SonarBeginPrSettings);
-
-            BuildCodeGenServer();
-
             DotNetBuild(SonarBuildAll);
-
-            try
-            {
-                DotNetTest(
-                    c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
-                    degreeOfParallelism: DegreeOfParallelism,
-                    completeOnFailure: true);
-            }
-            catch { }
             SonarScannerEnd(SonarEndSettings);
         });
 
     Target Sonar => _ => _
         .Executes(() =>
         {
-            TryDelete(SonarSolutionFile);
             DotNetBuildSonarSolution(AllSolutionFile);
-            DotNetBuildSonarSolution(SonarSolutionFile, include: IsRelevantForSonar);
 
             DotNetRestore(c => c
-                .SetProjectFile(SonarSolutionFile)
+                .SetProjectFile(AllSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
 
-            Log.Information("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
+            Log.Information("Creating Sonar analysis for version: {0} ...", SemVersion);
 
             SonarScannerBegin(SonarBeginFullSettings);
-
-            BuildCodeGenServer();
-
             DotNetBuild(SonarBuildAll);
-
-            try
-            {
-                DotNetTest(
-                    c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
-                    degreeOfParallelism: DegreeOfParallelism,
-                    completeOnFailure: true);
-            }
-            catch { }
             SonarScannerEnd(SonarEndSettings);
         });
 
@@ -94,7 +66,7 @@ partial class Build
 
     SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
         SonarBeginBaseSettings(settings)
-            .SetVersion(GitVersion.SemVer)
+            .SetVersion(SemVersion)
             .SetFramework(Net50);
 
     SonarScannerBeginSettings SonarBeginBaseSettings(SonarScannerBeginSettings settings) =>
@@ -123,11 +95,10 @@ partial class Build
 
     DotNetBuildSettings SonarBuildAll(DotNetBuildSettings settings) =>
         settings
-            .SetProjectFile(SonarSolutionFile)
+            .SetProjectFile(AllSolutionFile)
             .SetNoRestore(true)
             .SetConfiguration(Debug)
-            .SetProcessWorkingDirectory(RootDirectory)
-            .SetFramework(Net60);
+            .SetProcessWorkingDirectory(RootDirectory);
 
     bool IsRelevantForSonar(string fileName)
         => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName)) &&

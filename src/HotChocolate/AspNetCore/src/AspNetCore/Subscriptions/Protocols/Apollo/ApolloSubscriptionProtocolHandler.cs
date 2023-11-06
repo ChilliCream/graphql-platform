@@ -15,7 +15,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
-    private readonly JsonQueryResultFormatter _formatter = new();
+    private readonly JsonResultFormatter _formatter = new();
     private readonly ISocketSessionInterceptor _interceptor;
 
     public ApolloSubscriptionProtocolHandler(ISocketSessionInterceptor interceptor)
@@ -48,7 +48,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken)
     {
-        ISocketConnection connection = session.Connection;
+        var connection = session.Connection;
         var connected = connection.ContextData.ContainsKey(Connected);
 
         if (connected && message.IsSingleSegment &&
@@ -59,7 +59,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         }
 
         using var document = JsonDocument.Parse(message);
-        JsonElement root = document.RootElement;
+        var root = document.RootElement;
         JsonElement idProp;
 
         if (root.ValueKind is not JsonValueKind.Object)
@@ -71,7 +71,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             return;
         }
 
-        if (!root.TryGetProperty(Utf8MessageProperties.Type, out JsonElement type) ||
+        if (!root.TryGetProperty(Utf8MessageProperties.Type, out var type) ||
             type.ValueKind is not JsonValueKind.String)
         {
             await connection.CloseAsync(
@@ -92,12 +92,12 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                 return;
             }
 
-            InitializeConnectionMessage operationMessageObj =
-                TryGetPayload(root, out JsonElement payload)
+            var operationMessageObj =
+                TryGetPayload(root, out var payload)
                     ? new InitializeConnectionMessage(payload)
                     : InitializeConnectionMessage.Default;
 
-            ConnectionStatus connectionStatus =
+            var connectionStatus =
                 await _interceptor.OnConnectAsync(
                     session,
                     operationMessageObj,
@@ -131,7 +131,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         {
             try
             {
-                if (!TryParseSubscribeMessage(root, out DataStartMessage? dataStartMessage))
+                if (!TryParseSubscribeMessage(root, out var dataStartMessage))
                 {
                     await connection.CloseAsync(
                         Apollo_OnReceive_InvalidSubscribeMessage,
@@ -225,10 +225,10 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Data);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Serialize(result, jsonWriter);
+        _formatter.Format(result, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
     }
 
     public async ValueTask SendErrorMessageAsync(
@@ -243,10 +243,10 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Serialize(errors[0], jsonWriter);
+        _formatter.FormatError(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
     }
 
     public async ValueTask SendCompleteMessageAsync(
@@ -256,7 +256,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.Complete, id: operationSessionId);
-        await session.Connection.SendAsync(writer.Body, cancellationToken);
+        await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
     }
 
     private static async ValueTask SendConnectionAcceptMessage(
@@ -266,7 +266,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.ConnectionAccept, payload);
-        await session.Connection.SendAsync(writer.Body, cancellationToken);
+        await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
     }
 
     private static async ValueTask SendConnectionRejectMessage(
@@ -287,7 +287,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteEndObject();
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
     }
 
     public ValueTask OnConnectionInitTimeoutAsync(
@@ -302,7 +302,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         JsonElement messageElement,
         [NotNullWhen(true)] out DataStartMessage? message)
     {
-        if (!messageElement.TryGetProperty(Id, out JsonElement idProp) ||
+        if (!messageElement.TryGetProperty(Id, out var idProp) ||
             idProp.ValueKind is not JsonValueKind.String ||
             string.IsNullOrEmpty(idProp.GetString()))
         {
@@ -310,7 +310,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             return false;
         }
 
-        if (!messageElement.TryGetProperty(Payload, out JsonElement payloadProp) ||
+        if (!messageElement.TryGetProperty(Payload, out var payloadProp) ||
             payloadProp.ValueKind is not JsonValueKind.Object)
         {
             message = null;
@@ -318,7 +318,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         }
 
         var id = idProp.GetString()!;
-        IReadOnlyList<GraphQLRequest> request = Parse(payloadProp.GetRawText());
+        var request = Parse(payloadProp.GetRawText());
 
         if (request.Count == 0)
         {

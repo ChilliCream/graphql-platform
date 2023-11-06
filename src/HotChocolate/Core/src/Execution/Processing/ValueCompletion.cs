@@ -1,96 +1,58 @@
-using System.Collections.Generic;
-using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
+using static HotChocolate.Execution.Processing.PathHelper;
 
 namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    public static bool TryComplete(
-        IOperationContext operationContext,
-        MiddlewareContext resolverContext,
+    public static object? Complete(
+        ValueCompletionContext context,
         ISelection selection,
-        Path path,
-        IType fieldType,
-        string responseName,
-        int responseIndex,
-        object? result,
-        List<ResolverTask> bufferedTasks,
-        out object? completedResult)
+        ResultData parent,
+        int index,
+        object? result)
+        => Complete( context, selection, selection.Type, parent, index, result);
+    
+    public static object? Complete(
+        ValueCompletionContext context,
+        ISelection selection,
+        IType type,
+        ResultData parent,
+        int index,
+        object? result)
     {
-        TypeKind typeKind = fieldType.Kind;
+        var typeKind = type.Kind;
 
         if (typeKind is TypeKind.NonNull)
         {
-            return TryComplete(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType.InnerType(),
-                responseName,
-                responseIndex,
-                result,
-                bufferedTasks,
-                out completedResult) &&
-                completedResult is not null;
+            type = type.InnerType();
+            typeKind = type.Kind;
         }
 
         if (result is null)
         {
-            completedResult = null;
-            return true;
-        }
-
-        if (typeKind is TypeKind.List)
-        {
-            return TryCompleteListValue(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType,
-                responseName,
-                responseIndex,
-                result,
-                bufferedTasks,
-                out completedResult);
+            return null;
         }
 
         if (typeKind is TypeKind.Scalar or TypeKind.Enum)
         {
-            return TryCompleteLeafValue(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType,
-                result,
-                out completedResult);
+            return CompleteLeafValue(context, selection, type, parent, index, result);
+        }
+
+        if (typeKind is TypeKind.List)
+        {
+            return CompleteListValue(context, selection, type, parent, index, result);
         }
 
         if (typeKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
         {
-            return TryCompleteCompositeValue(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType,
-                result,
-                bufferedTasks,
-                out completedResult);
+            return CompleteCompositeValue(context, selection, type, parent, index, result);
         }
 
-        ReportError(
-            operationContext,
-            resolverContext,
-            selection,
-            UnexpectedValueCompletionError(selection.SyntaxNode, path));
-
-        completedResult = null;
-        return false;
+        var errorPath = CreatePathFromContext(selection, parent, index);
+        var error = UnexpectedValueCompletionError(selection.SyntaxNode, errorPath);
+        context.OperationContext.ReportError(error, context.ResolverContext, selection);
+        return null;
     }
-
 }

@@ -6,6 +6,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions
@@ -50,7 +51,7 @@ public static partial class RequestExecutorBuilderExtensions
         else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.Services.TryAddSingleton<T>();
-            builder.Services.AddSingleton(s => (IDataLoaderDiagnosticEventListener)s.GetService<T>());
+            builder.Services.AddSingleton(s => (IDataLoaderDiagnosticEventListener)s.GetRequiredService<T>());
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
@@ -59,8 +60,8 @@ public static partial class RequestExecutorBuilderExtensions
             foreach (var attribute in
                 typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
             {
-                Type listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
-                builder.Services.AddSingleton(listener, s => s.GetService<T>());
+                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+                builder.Services.AddSingleton(listener, s => s.GetRequiredService<T>());
             }
         }
         else
@@ -103,7 +104,7 @@ public static partial class RequestExecutorBuilderExtensions
             foreach (var attribute in
                 typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
             {
-                Type listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
                 builder.Services.AddSingleton(listener, diagnosticEventListener);
             }
         }

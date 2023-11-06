@@ -1,0 +1,53 @@
+12
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnQKczEy"
+      }
+    ]
+  }
+}
+---------------
+
+13
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnQKczEz"
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type IdOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "ID!",
+        "filterType": "IdOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

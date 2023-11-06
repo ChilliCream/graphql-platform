@@ -1,1 +1,0 @@
-﻿find({ "ObjectId" : { "$ne" : null } })

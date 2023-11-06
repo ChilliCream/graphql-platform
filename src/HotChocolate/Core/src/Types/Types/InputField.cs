@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -10,7 +9,7 @@ using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Types;
 
-public class InputField : FieldBase<InputFieldDefinition>, IInputField
+public class InputField : FieldBase<InputFieldDefinition>, IInputField, IHasProperty
 {
     private Type _runtimeType = default!;
 
@@ -20,7 +19,7 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
         DefaultValue = definition.DefaultValue;
         Property = definition.Property;
 
-        IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
+        var formatters = definition.GetFormatters();
         Formatter = formatters.Count switch
         {
             0 => null,
@@ -70,7 +69,7 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
     /// If this field is bound to a property on a concrete model,
     /// then this property exposes this property.
     /// </summary>
-    protected internal PropertyInfo? Property { get; }
+    public PropertyInfo? Property { get; }
 
     protected override void OnCompleteField(
         ITypeCompletionContext context,
@@ -79,7 +78,7 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
     {
         base.OnCompleteField(context, declaringMember, definition);
 
-        Type = context.GetType<IInputType>(definition.Type!);
+        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.RuntimeType ?? definition.Property?.PropertyType!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);

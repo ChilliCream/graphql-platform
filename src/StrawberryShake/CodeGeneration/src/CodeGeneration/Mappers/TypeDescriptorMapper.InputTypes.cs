@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
-using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Mappers;
 
@@ -14,19 +12,20 @@ public static partial class TypeDescriptorMapper
     private static void CollectInputTypes(
         ClientModel model,
         IMapperContext context,
-        Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors)
+        Dictionary<string, InputTypeDescriptorModel> typeDescriptors)
     {
         foreach (var inputType in model.InputObjectTypes)
         {
             if (!typeDescriptors.TryGetValue(
                     inputType.Name,
-                    out InputTypeDescriptorModel descriptorModel))
+                    out var descriptorModel))
             {
                 descriptorModel = new InputTypeDescriptorModel(
                     inputType,
                     new InputObjectTypeDescriptor(
                         inputType.Type.Name,
-                        new (inputType.Type.Name, context.Namespace),
+                        new(inputType.Type.Name, context.Namespace),
+                        inputType.HasUpload,
                         inputType.Description));
 
                 typeDescriptors.Add(inputType.Name, descriptorModel);
@@ -35,17 +34,17 @@ public static partial class TypeDescriptorMapper
     }
 
     private static void AddInputTypeProperties(
-        Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors,
-        Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
+        Dictionary<string, InputTypeDescriptorModel> typeDescriptors,
+        Dictionary<string, INamedTypeDescriptor> leafTypeDescriptors)
     {
-        foreach (InputTypeDescriptorModel typeDescriptorModel in typeDescriptors.Values)
+        foreach (var typeDescriptorModel in typeDescriptors.Values)
         {
             var properties = new List<PropertyDescriptor>();
 
             foreach (var field in typeDescriptorModel.Model.Fields)
             {
                 INamedTypeDescriptor? fieldType;
-                INamedType namedType = field.Type.NamedType();
+                var namedType = field.Type.NamedType();
 
                 if (namedType.IsScalarType() || namedType.IsEnumType())
                 {
@@ -74,10 +73,10 @@ public static partial class TypeDescriptorMapper
 
     private static INamedTypeDescriptor GetInputTypeDescriptor(
         INamedType fieldNamedType,
-        Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors)
+        Dictionary<string, InputTypeDescriptorModel> typeDescriptors)
     {
         return typeDescriptors.Values
-            .First(t => t.Model.Type.Name.Equals(fieldNamedType.Name))
+            .First(t => t.Model.Type.Name.EqualsOrdinal(fieldNamedType.Name))
             .Descriptor;
     }
 }

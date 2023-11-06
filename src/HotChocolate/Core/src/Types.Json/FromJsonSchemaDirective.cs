@@ -8,7 +8,7 @@ namespace HotChocolate.Types;
 
 internal sealed class FromJsonSchemaDirective : ISchemaDirective
 {
-    public NameString Name => "fromJson";
+    public string Name => "fromJson";
 
     public void ApplyConfiguration(
         IDescriptorContext context,
@@ -23,13 +23,14 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
                     (ctx, def) =>
                     {
                         var propertyName = GetPropertyName(directiveNode);
-                        propertyName ??= def.Name.Value;
-                        IType type = ctx.GetType<IType>(def.Type!);
-                        INamedType namedType = type.NamedType();
+                        propertyName ??= def.Name;
+                        var type = ctx.GetType<IType>(def.Type!);
+                        var namedType = type.NamedType();
 
                         if (type.IsListType())
                         {
-                            throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
+                            JsonObjectTypeExtensions.InferListResolver(def);
+                            return;
                         }
 
                         if (namedType is ScalarType scalarType)
@@ -42,11 +43,11 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
                         throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
                     },
                     fieldDef,
-                    ApplyConfigurationOn.Completion));
+                    ApplyConfigurationOn.BeforeCompletion));
         }
     }
 
-    private string? GetPropertyName(DirectiveNode directive)
+    private static string? GetPropertyName(DirectiveNode directive)
     {
         if (directive.Arguments.Count == 0)
         {
@@ -55,7 +56,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
 
         if (directive.Arguments.Count == 1)
         {
-            ArgumentNode argument = directive.Arguments[0];
+            var argument = directive.Arguments[0];
             if (argument.Name.Value.EqualsOrdinal("name") &&
                 argument.Value is StringValueNode { Value: { Length: > 0 } name })
             {

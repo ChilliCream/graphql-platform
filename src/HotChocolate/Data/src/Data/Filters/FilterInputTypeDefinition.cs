@@ -16,4 +16,6 @@ public class FilterInputTypeDefinition
     public bool UseOr { get; set; }
 
     public bool UseAnd { get; set; }
+
+    internal bool IsNamed { get; set; }
 }

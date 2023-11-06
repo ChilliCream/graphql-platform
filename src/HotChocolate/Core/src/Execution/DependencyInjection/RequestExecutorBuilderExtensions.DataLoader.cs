@@ -20,7 +20,8 @@ public static partial class RequestExecutorBuilderExtensions
         where TService : class, IDataLoader
         where TImplementation : class, TService
     {
-        builder.Services.TryAddScoped<TService, TImplementation>();
+        builder.Services.TryAddScoped<TImplementation>();
+        builder.Services.TryAddScoped<TService>(sp => sp.GetRequiredService<TImplementation>());
         return builder;
     }
 

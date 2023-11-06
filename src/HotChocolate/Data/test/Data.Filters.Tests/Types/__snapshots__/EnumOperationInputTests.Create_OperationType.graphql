@@ -1,0 +1,21 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooBarOperationFilterInput): String
+}
+
+input FooBarOperationFilterInput {
+  eq: FooBar
+  neq: FooBar
+  in: [FooBar!]
+  nin: [FooBar!]
+}
+
+enum FooBar {
+  FOO
+  BAR
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

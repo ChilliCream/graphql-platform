@@ -57,7 +57,9 @@
             ]
           }
         }
-      ]
+      ],
+      "Count": 5,
+      "FieldsCount": 1
     }
   },
   "QueryId": null,
@@ -67,6 +69,5 @@
   "Extensions": null,
   "ContextData": null,
   "Services": null,
-  "InitialValue": null,
-  "AllowedOperations": null
+  "Flags": "AllowAll"
 }

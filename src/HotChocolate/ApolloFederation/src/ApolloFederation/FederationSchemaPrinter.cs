@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Language;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.ApolloFederation;
@@ -13,7 +14,7 @@ namespace HotChocolate.ApolloFederation;
 /// </summary>
 public static partial class FederationSchemaPrinter
 {
-    private readonly static HashSet<string> _builtInDirectives = new()
+    private static readonly HashSet<string> _builtInDirectives = new()
     {
         WellKnownTypeNames.External,
         WellKnownTypeNames.Requires,
@@ -53,7 +54,7 @@ public static partial class FederationSchemaPrinter
         var context = new Context();
         var definitionNodes = new List<IDefinitionNode>();
 
-        foreach (DirectiveType directive in schema.DirectiveTypes)
+        foreach (var directive in schema.DirectiveTypes)
         {
             if (directive.IsPublic)
             {
@@ -61,17 +62,17 @@ public static partial class FederationSchemaPrinter
             }
         }
 
-        foreach (INamedType namedType in GetRelevantTypes(schema))
+        foreach (var namedType in GetRelevantTypes(schema))
         {
-            if (TrySerializeType(namedType, context, out IDefinitionNode? definitionNode))
+            if (TrySerializeType(namedType, context, out var definitionNode))
             {
                 definitionNodes.Add(definitionNode);
             }
         }
 
-        foreach (DirectiveType directive in schema.DirectiveTypes)
+        foreach (var directive in schema.DirectiveTypes)
         {
-            if (!_builtInDirectives.Contains(directive.Name.Value) && directive.IsPublic)
+            if (!_builtInDirectives.Contains(directive.Name) && directive.IsPublic)
             {
                 definitionNodes.Add(SerializeDirectiveTypeDefinition(directive, context));
             }
@@ -83,7 +84,7 @@ public static partial class FederationSchemaPrinter
     private static IEnumerable<INamedType> GetRelevantTypes(ISchema schema)
         => schema.Types
             .Where(IncludeType)
-            .OrderBy(t => t.Name.Value, StringComparer.Ordinal);
+            .OrderBy(t => t.Name, StringComparer.Ordinal);
 
     private static bool TrySerializeType(
         INamedType namedType,
@@ -126,7 +127,7 @@ public static partial class FederationSchemaPrinter
     }
 
     private static IReadOnlyList<DirectiveNode> SerializeDirectives(
-        IReadOnlyCollection<IDirective> directives,
+        IReadOnlyCollection<Directive> directives,
         Context context)
     {
         if (directives.Count == 0)
@@ -136,11 +137,11 @@ public static partial class FederationSchemaPrinter
 
         List<DirectiveNode>? directiveNodes = null;
 
-        foreach (IDirective directive in directives)
+        foreach (var directive in directives)
         {
-            if (context.DirectiveNames.Contains(directive.Name))
+            if (context.DirectiveNames.Contains(directive.Type.Name))
             {
-                (directiveNodes ??= new()).Add(directive.ToNode(true));
+                (directiveNodes ??= new()).Add(directive.AsSyntaxNode(true));
             }
         }
 
@@ -167,8 +168,8 @@ public static partial class FederationSchemaPrinter
 
     private static bool IsApolloFederationType(INamedType type)
         => type is EntityType or ServiceType ||
-           type.Name.Equals(WellKnownTypeNames.Any) ||
-           type.Name.Equals(WellKnownTypeNames.FieldSet);
+           type.Name.EqualsOrdinal(WellKnownTypeNames.Any) ||
+           type.Name.EqualsOrdinal(WellKnownTypeNames.FieldSet);
 
     private static bool IsBuiltInType(INamedType type) =>
         IntrospectionTypes.IsIntrospectionType(type.Name) ||
@@ -176,6 +177,7 @@ public static partial class FederationSchemaPrinter
 
     private sealed class Context
     {
+        // ReSharper disable once CollectionNeverQueried.Local
         public HashSet<string> TypeNames { get; } = new();
         public HashSet<string> DirectiveNames { get; } = new(_builtInDirectives);
     }

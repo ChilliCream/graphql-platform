@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
@@ -15,104 +12,104 @@ public class MongoDbSortVisitorObjectTests
 {
     private static readonly Bar[] _barEntities =
     {
-            new Bar
+        new()
+        {
+            Foo = new Foo
             {
-                Foo = new Foo
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                ObjectArray = new List<Bar>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    ObjectArray = new List<Bar>
-                    {
-                        new Bar { Foo = new Foo { BarShort = 12, BarString = "a" } }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 14,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    ObjectArray = new List<Bar>
-                    {
-                        new Bar { Foo = new Foo { BarShort = 14, BarString = "d" } }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testctest",
-                    ObjectArray = null!,
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
                 }
             }
-        };
+        },
+        new()
+        {
+            Foo = new Foo
+            {
+                BarShort = 14,
+                BarBool = true,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                ObjectArray = new List<Bar>
+                {
+                    new() { Foo = new Foo { BarShort = 14, BarString = "d" } }
+                }
+            }
+        },
+        new()
+        {
+            Foo = new Foo
+            {
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testctest",
+                ObjectArray = null!,
+            }
+        }
+    };
 
     private static readonly BarNullable?[] _barNullableEntities =
     {
-            new BarNullable
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    ObjectArray = new List<BarNullable>
-                    {
-                        new BarNullable { Foo = new FooNullable { BarShort = 12 } }
-                    }
+                    new() { Foo = new FooNullable { BarShort = 12 } }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = null,
+                BarBool = null,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = null,
-                    BarBool = null,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    ObjectArray = new List<BarNullable>
-                    {
-                        new BarNullable { Foo = new FooNullable { BarShort = null } }
-                    }
+                    new() { Foo = new FooNullable { BarShort = null } }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = 14,
+                BarBool = false,
+                BarEnum = BarEnum.QUX,
+                BarString = "testctest",
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = 14,
-                    BarBool = false,
-                    BarEnum = BarEnum.QUX,
-                    BarString = "testctest",
-                    ObjectArray = new List<BarNullable>
-                    {
-                        new BarNullable { Foo = new FooNullable { BarShort = 14 } }
-                    }
+                    new() { Foo = new FooNullable { BarShort = 14 } }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testdtest",
-                    ObjectArray = null
-                }
-            },
-            new BarNullable { Foo = null }
-        };
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testdtest",
+                ObjectArray = null
+            }
+        },
+        new() { Foo = null }
+    };
 
     public MongoDbSortVisitorObjectTests(MongoResource resource)
     {
@@ -123,17 +120,17 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectShort_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barShort: ASC}}) " +
                     "{ foo{ barShort}}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barShort: DESC}}) " +
@@ -141,26 +138,29 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNullableShort_OrderBy()
     {
         // arrange
-        IRequestExecutor? tester =
+        var tester =
             CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barShort: ASC}}) " +
                     "{ foo{ barShort}}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barShort: DESC}}) " +
@@ -168,25 +168,28 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("13");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectEnum_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barEnum: ASC}}) " +
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barEnum: DESC}}) " +
@@ -194,26 +197,29 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNullableEnum_OrderBy()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barEnum: ASC}}) " +
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barEnum: DESC}}) " +
@@ -221,25 +227,28 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("13");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectString_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barString: ASC}}) " +
                     "{ foo{ barString}}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barString: DESC}}) " +
@@ -247,26 +256,29 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNullableString_OrderBy()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barString: ASC}}) " +
                     "{ foo{ barString}}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barString: DESC}}) " +
@@ -274,25 +286,28 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("13");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectBool_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barBool: ASC}}) " +
                     "{ foo{ barBool}}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barBool: DESC}}) " +
@@ -300,26 +315,29 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNullableBool_OrderBy()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barBool: ASC}}) " +
                     "{ foo{ barBool}}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { foo: { barBool: DESC}}) " +
@@ -327,8 +345,11 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("13");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
+            .MatchAsync();
     }
 
     public class Foo
@@ -385,13 +406,11 @@ public class MongoDbSortVisitorObjectTests
         public FooNullable? Foo { get; set; }
     }
 
-    public class BarSortType
-        : SortInputType<Bar>
+    public class BarSortType : SortInputType<Bar>
     {
     }
 
-    public class BarNullableSortType
-        : SortInputType<BarNullable>
+    public class BarNullableSortType : SortInputType<BarNullable>
     {
     }
 

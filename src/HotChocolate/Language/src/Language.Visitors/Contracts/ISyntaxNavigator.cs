@@ -11,11 +11,6 @@ namespace HotChocolate.Language.Visitors;
 public interface ISyntaxNavigator
 {
     /// <summary>
-    /// Returns the immediate parent of the current Syntax Node
-    /// </summary>
-    ISyntaxNode? Parent { get; }
-
-    /// <summary>
     /// Returns the count of items in the current path.
     /// </summary>
     int Count { get; }
@@ -66,7 +61,16 @@ public interface ISyntaxNavigator
     bool TryPeek([NotNullWhen(true)] out ISyntaxNode? node);
 
     /// <summary>
-    /// Returns the first ancestor of the provided <see cref="TNode" /> type.
+    /// Attempts to return the current parent node from the Syntax Navigator without removing it.
+    /// </summary>
+    /// <param name="count">The ancestor level.</param>
+    /// <param name="node">The removed parent node.</param>
+    /// <returns>True when a syntax node was successfully removed from the Syntax Navigator.
+    /// False when a syntax node was not removed.</returns>
+    bool TryPeek(int count, [NotNullWhen(true)] out ISyntaxNode? node);
+
+    /// <summary>
+    /// Returns the first ancestor of the provided <typeparamref name="TNode" /> type.
     /// </summary>
     /// <typeparam name="TNode">The type of syntax node to be returned.</typeparam>
     /// <returns>The matching first ancestor or null if no match is found.</returns>
@@ -74,10 +78,10 @@ public interface ISyntaxNavigator
         where TNode : ISyntaxNode;
 
     /// <summary>
-    /// Returns all ancestors of the provided <see cref="TNode" /> type.
+    /// Returns all ancestors of the provided <typeparamref name="TNode" /> type.
     /// </summary>
     /// <typeparam name="TNode">The type of syntax nodes to be returned.</typeparam>
-    /// <returns>A collection of Syntax Nodes of type <see cref="TNode" /></returns>
+    /// <returns>A collection of Syntax Nodes of type <typeparamref name="TNode" /></returns>
     IEnumerable<TNode> GetAncestors<TNode>()
         where TNode : ISyntaxNode;
 

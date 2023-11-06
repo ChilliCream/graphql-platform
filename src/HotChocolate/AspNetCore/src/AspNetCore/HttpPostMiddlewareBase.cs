@@ -2,10 +2,11 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
-using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
+using static HotChocolate.Execution.GraphQLRequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -17,16 +18,16 @@ public class HttpPostMiddlewareBase : MiddlewareBase
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName)
-        : base(next, executorResolver, resultSerializer, schemaName)
+        string schemaName)
+        : base(next, executorResolver, responseFormatter, schemaName)
     {
         RequestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));
-        DiagnosticEvents = diagnosticEvents
-            ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+        DiagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
     }
 
     protected IHttpRequestParser RequestParser { get; }
@@ -36,16 +37,16 @@ public class HttpPostMiddlewareBase : MiddlewareBase
     public virtual async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsPost(context.Request.Method) &&
-            ParseContentType(context) is AllowedContentType.Json)
+            ParseContentType(context) is RequestContentType.Json)
         {
             if (!IsDefaultSchema)
             {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+                context.Items[WellKnownContextData.SchemaName] = SchemaName;
             }
 
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
             {
-                await HandleRequestAsync(context, AllowedContentType.Json);
+                await HandleRequestAsync(context);
             }
         }
         else
@@ -56,21 +57,56 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         }
     }
 
-    protected async Task HandleRequestAsync(
-        HttpContext context,
-        AllowedContentType contentType)
+    protected async Task HandleRequestAsync(HttpContext context)
     {
-        // first we need to get the request executor to be able to execute requests.
-        IRequestExecutor requestExecutor = await GetExecutorAsync(context.RequestAborted);
-        IHttpRequestInterceptor requestInterceptor = requestExecutor.GetRequestInterceptor();
-        IErrorHandler errorHandler = requestExecutor.GetErrorHandler();
-        context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
-
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;
 
+        // first we need to get the request executor to be able to execute requests.
+        var requestExecutor = await GetExecutorAsync(context.RequestAborted);
+        var requestInterceptor = requestExecutor.GetRequestInterceptor();
+        var errorHandler = requestExecutor.GetErrorHandler();
+        context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
+
+        // next we will inspect the accept headers and determine if we can execute this request.
+        var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
+        var acceptMediaTypes = headerResult.AcceptMediaTypes;
+
+        // if we cannot parse all media types that we provided we will fail the request
+        // with a 400 Bad Request.
+        if (headerResult.HasError)
+        {
+            // in this case accept headers were specified and we will
+            // respond with proper error codes
+            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
+            statusCode = HttpStatusCode.BadRequest;
+
+            var errors = headerResult.ErrorResult.Errors!;
+            result = headerResult.ErrorResult;
+            DiagnosticEvents.HttpRequestError(context, errors[0]);
+            goto HANDLE_RESULT;
+        }
+
+        var requestFlags = CreateRequestFlags(headerResult.AcceptMediaTypes);
+
+        // if the request defines accept header values of which we cannot handle any provided
+        // media type then we will fail the request with 406 Not Acceptable.
+        if (requestFlags is None)
+        {
+            // in this case accept headers were specified and we will
+            // respond with proper error codes
+            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
+            statusCode = HttpStatusCode.NotAcceptable;
+
+            var error = ErrorHelper.NoSupportedAcceptMediaType();
+            result = QueryResultBuilder.CreateError(error);
+            DiagnosticEvents.HttpRequestError(context, error);
+            goto HANDLE_RESULT;
+        }
+
         // next we parse the GraphQL request.
         IReadOnlyList<GraphQLRequest> requests;
+
         using (DiagnosticEvents.ParseHttpRequest(context))
         {
             try
@@ -83,7 +119,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // parsed. In this case we will return HTTP status code 400 and return a
                 // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
-                IReadOnlyList<IError> errors = errorHandler.Handle(ex.Errors);
+                var errors = errorHandler.Handle(ex.Errors);
                 result = QueryResultBuilder.CreateError(errors);
                 DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
@@ -91,7 +127,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
-                IError error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = errorHandler.CreateUnexpectedError(ex).Build();
                 result = QueryResultBuilder.CreateError(error);
                 DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
@@ -108,7 +144,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 case 0:
                     {
                         statusCode = HttpStatusCode.BadRequest;
-                        IError error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
+                        var error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
                         result = QueryResultBuilder.CreateError(error);
                         DiagnosticEvents.HttpRequestError(context, error);
                         break;
@@ -123,9 +159,11 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // defines the order in which the operations shall be executed.
                 case 1 when context.Request.Query.ContainsKey(_batchOperations):
                     {
-                        string operationNames = context.Request.Query[_batchOperations];
+                        string? operationNames = context.Request.Query[_batchOperations];
 
-                        if (TryParseOperations(operationNames, out IReadOnlyList<string>? ops))
+                        if (!string.IsNullOrEmpty(operationNames) &&
+                            TryParseOperations(operationNames, out var ops) &&
+                            GetOptions(context).EnableBatching)
                         {
                             result = await ExecuteOperationBatchAsync(
                                 context,
@@ -133,11 +171,12 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                                 requestInterceptor,
                                 DiagnosticEvents,
                                 requests[0],
+                                requestFlags,
                                 ops);
                         }
                         else
                         {
-                            IError error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                            var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
                             statusCode = HttpStatusCode.BadRequest;
                             result = QueryResultBuilder.CreateError(error);
                             DiagnosticEvents.HttpRequestError(context, error);
@@ -159,7 +198,8 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                             requestExecutor,
                             requestInterceptor,
                             DiagnosticEvents,
-                            requests[0]);
+                            requests[0],
+                            requestFlags);
                         break;
                     }
 
@@ -167,12 +207,23 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // we need to execute a request batch where we need to execute multiple
                 // fully specified GraphQL requests at once.
                 default:
-                    result = await ExecuteBatchAsync(
-                        context,
-                        requestExecutor,
-                        requestInterceptor,
-                        DiagnosticEvents,
-                        requests);
+                    if (GetOptions(context).EnableBatching)
+                    {
+                        result = await ExecuteBatchAsync(
+                            context,
+                            requestExecutor,
+                            requestInterceptor,
+                            DiagnosticEvents,
+                            requests,
+                            requestFlags);
+                    }
+                    else
+                    {
+                        var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                        statusCode = HttpStatusCode.BadRequest;
+                        result = QueryResultBuilder.CreateError(error);
+                        DiagnosticEvents.HttpRequestError(context, error);
+                    }
                     break;
             }
         }
@@ -182,7 +233,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             statusCode = null; // we let the serializer determine the status code.
             result = QueryResultBuilder.CreateError(ex.Errors);
 
-            foreach (IError error in ex.Errors)
+            foreach (var error in ex.Errors)
             {
                 DiagnosticEvents.HttpRequestError(context, error);
             }
@@ -190,7 +241,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         catch (Exception ex)
         {
             statusCode = HttpStatusCode.InternalServerError;
-            IError error = errorHandler.CreateUnexpectedError(ex).Build();
+            var error = errorHandler.CreateUnexpectedError(ex).Build();
             result = QueryResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
         }
@@ -200,7 +251,7 @@ HANDLE_RESULT:
 
         try
         {
-            // if cancellation is requested we will not try to attempt to write the result to the 
+            // if cancellation is requested we will not try to attempt to write the result to the
             // response stream.
             if (context.RequestAborted.IsCancellationRequested)
             {
@@ -216,7 +267,7 @@ HANDLE_RESULT:
                 formatScope = DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }
 
-            await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
+            await WriteResultAsync(context, result, acceptMediaTypes, statusCode);
         }
         finally
         {
@@ -225,14 +276,9 @@ HANDLE_RESULT:
 
             // query results use pooled memory an need to be disposed after we have
             // used them.
-            if (result is IAsyncDisposable asyncDisposable)
+            if (result is not null)
             {
-                await asyncDisposable.DisposeAsync();
-            }
-
-            if (result is IDisposable disposable)
-            {
-                disposable.Dispose();
+                await result.DisposeAsync();
             }
         }
     }

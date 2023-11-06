@@ -1,4 +1,4 @@
-import { createAction } from "../state.helpers";
+import { createAction } from "@/state/state.helpers";
 
 export const changeSearchQuery = createAction<{ readonly query: string }>(
   "[Common] Change search query"
@@ -19,6 +19,10 @@ export const hideLegacyDocHeader = createAction(
 export const showCookieConsent = createAction(
   "[Common] Show cookie consent message"
 );
+
+export const showPromo = createAction("[Common] Show promo message");
+
+export const hidePromo = createAction("[Common] Hide promo message");
 
 export const showLegacyDocInfo = createAction(
   "[Common] Show legacy documentation message"

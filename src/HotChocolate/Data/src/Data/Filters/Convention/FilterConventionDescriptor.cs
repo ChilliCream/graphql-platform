@@ -6,11 +6,9 @@ using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilterConventionDescriptor
-    : IFilterConventionDescriptor
+public class FilterConventionDescriptor : IFilterConventionDescriptor
 {
-    private readonly Dictionary<int, FilterOperationConventionDescriptor> _operations =
-        new Dictionary<int, FilterOperationConventionDescriptor>();
+    private readonly Dictionary<int, FilterOperationConventionDescriptor> _operations = new();
 
     protected FilterConventionDescriptor(IDescriptorContext context, string? scope)
     {
@@ -25,7 +23,7 @@ public class FilterConventionDescriptor
     public FilterConventionDefinition CreateDefinition()
     {
         // collect all operation configurations and add them to the convention definition.
-        foreach (FilterOperationConventionDescriptor operation in _operations.Values)
+        foreach (var operation in _operations.Values)
         {
             Definition.Operations.Add(operation.CreateDefinition());
         }
@@ -37,14 +35,15 @@ public class FilterConventionDescriptor
     public IFilterOperationConventionDescriptor Operation(int operationId)
     {
         if (_operations.TryGetValue(
-            operationId,
-            out FilterOperationConventionDescriptor? descriptor))
+                operationId,
+                out var descriptor))
         {
             return descriptor;
         }
 
         descriptor = FilterOperationConventionDescriptor.New(operationId);
         _operations.Add(operationId, descriptor);
+
         return descriptor;
     }
 
@@ -74,12 +73,12 @@ public class FilterConventionDescriptor
         }
 
         Definition.Bindings[runtimeType] = filterType;
+
         return this;
     }
 
     /// <inheritdoc />
-    public IFilterConventionDescriptor Configure<TFilterType>(
-        ConfigureFilterInputType configure)
+    public IFilterConventionDescriptor Configure<TFilterType>(ConfigureFilterInputType configure)
         where TFilterType : FilterInputType =>
         Configure(
             Context.TypeInspector.GetTypeRef(
@@ -106,18 +105,19 @@ public class FilterConventionDescriptor
             });
 
     protected IFilterConventionDescriptor Configure(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ConfigureFilterInputType configure)
     {
         if (!Definition.Configurations.TryGetValue(
-            typeReference,
-            out List<ConfigureFilterInputType>? configurations))
+                typeReference,
+                out var configurations))
         {
             configurations = new List<ConfigureFilterInputType>();
             Definition.Configurations.Add(typeReference, configurations);
         }
 
         configurations.Add(configure);
+
         return this;
     }
 
@@ -132,6 +132,7 @@ public class FilterConventionDescriptor
     {
         Definition.Provider = typeof(TProvider);
         Definition.ProviderInstance = provider;
+
         return this;
     }
 
@@ -151,13 +152,15 @@ public class FilterConventionDescriptor
         }
 
         Definition.Provider = provider;
+
         return this;
     }
 
     /// <inheritdoc />
-    public IFilterConventionDescriptor ArgumentName(NameString argumentName)
+    public IFilterConventionDescriptor ArgumentName(string argumentName)
     {
         Definition.ArgumentName = argumentName;
+
         return this;
     }
 
@@ -165,6 +168,7 @@ public class FilterConventionDescriptor
         where TExtension : class, IFilterProviderExtension
     {
         Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+
         return this;
     }
 
@@ -172,18 +176,21 @@ public class FilterConventionDescriptor
         where TExtension : class, IFilterProviderExtension
     {
         Definition.ProviderExtensions.Add(provider);
+
         return this;
     }
 
     public IFilterConventionDescriptor AllowOr(bool allow = true)
     {
         Definition.UseOr = allow;
+
         return this;
     }
 
     public IFilterConventionDescriptor AllowAnd(bool allow = true)
     {
         Definition.UseAnd = allow;
+
         return this;
     }
 

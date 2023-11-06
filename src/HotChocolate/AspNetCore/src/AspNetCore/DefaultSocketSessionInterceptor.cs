@@ -20,13 +20,17 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken = default)
     {
-        HttpContext context = session.Connection.HttpContext;
+        var context = session.Connection.HttpContext;
+        var userState = new UserState(context.User);
+
         requestBuilder.TrySetServices(session.Connection.RequestServices);
         requestBuilder.TryAddGlobalState(nameof(CancellationToken), session.Connection.RequestAborted);
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
-        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), context.User);
         requestBuilder.TryAddGlobalState(nameof(ISocketSession), session);
         requestBuilder.TryAddGlobalState(OperationSessionId, operationSessionId);
+
+        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
+        requestBuilder.TryAddGlobalState(WellKnownContextData.UserState, userState);
 
         if (context.IsTracingEnabled())
         {

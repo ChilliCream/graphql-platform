@@ -1,0 +1,42 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+interface Entity {
+  name: String!
+}
+
+type Mutation {
+  doSomething: String!
+}
+
+type Person implements Entity {
+  name: String!
+  address: String!
+  lastName: String!
+}
+
+type Query {
+  person: Entity
+  enum: CustomEnum
+  book: SomeBook!
+  withDataLoader: String!
+  staticField: String!
+}
+
+type SomeBook {
+  title: String
+}
+
+type Subscription {
+  onSomething: String!
+}
+
+enum CustomEnum {
+  ABC
+  DEF
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

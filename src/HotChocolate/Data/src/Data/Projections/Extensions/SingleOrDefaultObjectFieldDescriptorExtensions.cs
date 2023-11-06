@@ -39,20 +39,21 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
             .OnBeforeCreate(
                 (context, definition) =>
                 {
-                    definition.ContextData[optionName] = null;
+                    definition.ContextData[optionName] = true;
+                    definition.ContextData[SelectionOptions.MemberIsList] = true;
 
                     if (definition.ResultType is null ||
                         !context.TypeInspector.TryCreateTypeInfo(
                             definition.ResultType,
-                            out ITypeInfo? typeInfo))
+                            out var typeInfo))
                     {
-                        Type resultType = definition.ResolverType ?? typeof(object);
+                        var resultType = definition.ResolverType ?? typeof(object);
                         throw new ArgumentException(
                             $"Cannot handle the specified type `{resultType.FullName}`.",
                             nameof(descriptor));
                     }
 
-                    Type selectionType = typeInfo.NamedType;
+                    var selectionType = typeInfo.NamedType;
                     definition.ResultType = selectionType;
                     definition.Type =
                         context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
@@ -68,7 +69,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
                                     middlewareDefinition);
                             },
                             definition,
-                            ApplyConfigurationOn.Completion));
+                            ApplyConfigurationOn.BeforeCompletion));
                 });
 
         return descriptor;
@@ -80,8 +81,8 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition placeholder,
         Type middlewareDefinition)
     {
-        Type middlewareType = middlewareDefinition.MakeGenericType(type);
-        FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
+        var middlewareType = middlewareDefinition.MakeGenericType(type);
+        var middleware = FieldClassMiddlewareFactory.Create(middlewareType);
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] =
             new(middleware, key: WellKnownMiddleware.SingleOrDefault);

@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+#if NET6_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities.Properties;
+#if NET6_0_OR_GREATER
+using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
+#endif
 
 namespace HotChocolate.Utilities;
 
@@ -20,10 +26,24 @@ internal static class ActivatorHelper
 
     private static readonly ConcurrentDictionary<Type, CreateServiceDelegate> _cache = new();
 
-    public static CreateServiceDelegate<TService> CompileFactory<TService>() =>
-        CompileFactory<TService>(typeof(TService));
+#if NET6_0_OR_GREATER
+    public static CreateServiceDelegate<TService> CompileFactory<
+        [DynamicallyAccessedMembers(PublicConstructors)] TService>()
+        => CompileFactory<TService>(typeof(TService));
+#else
+    public static CreateServiceDelegate<TService> CompileFactory<TService>()
+        => CompileFactory<TService>(typeof(TService));
+#endif
 
-    public static CreateServiceDelegate<TService> CompileFactory<TService>(Type implementation)
+
+#if NET6_0_OR_GREATER
+    public static CreateServiceDelegate<TService> CompileFactory<TService>(
+        [DynamicallyAccessedMembers(PublicConstructors)]
+        Type implementation)
+#else
+    public static CreateServiceDelegate<TService> CompileFactory<TService>(
+        Type implementation)
+#endif
     {
         if (implementation == null)
         {
@@ -33,34 +53,58 @@ internal static class ActivatorHelper
         return s => (TService)CompileFactory(implementation).Invoke(s)!;
     }
 
-    public static CreateServiceDelegate CompileFactory(Type type)
+#if NET6_0_OR_GREATER
+    public static CreateServiceDelegate CompileFactory(
+        [DynamicallyAccessedMembers(PublicConstructors)]
+        Type type)
+#else
+    public static CreateServiceDelegate CompileFactory(
+        Type type)
+#endif
     {
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
         }
 
-        return _cache.GetOrAdd(type, _ =>
-        {
-            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
-            NewExpression newInstance = CreateNewInstance(type, services);
-            return Expression.Lambda<CreateServiceDelegate>(newInstance, services).Compile();
-        });
+        return _cache.GetOrAdd(
+            type,
+            _ =>
+            {
+                var services = Expression.Parameter(typeof(IServiceProvider));
+                var newInstance = CreateNewInstance(type, services);
+                return Expression.Lambda<CreateServiceDelegate>(newInstance, services).Compile();
+            });
     }
 
+#if NET6_0_OR_GREATER
+    private static NewExpression CreateNewInstance(
+        [DynamicallyAccessedMembers(PublicConstructors)]
+        Type type,
+        ParameterExpression services)
+#else
     private static NewExpression CreateNewInstance(
         Type type,
         ParameterExpression services)
+#endif
     {
-        ConstructorInfo constructor = ResolveConstructor(type);
-        IEnumerable<Expression> arguments = CreateParameters(
-            constructor.GetParameters(), services);
+        var constructor = ResolveConstructor(type);
+        var arguments = CreateParameters(
+            constructor.GetParameters(),
+            services);
         return Expression.New(constructor, arguments);
     }
 
-    private static ConstructorInfo ResolveConstructor(Type type)
+#if NET6_0_OR_GREATER
+    internal static ConstructorInfo ResolveConstructor(
+        [DynamicallyAccessedMembers(PublicConstructors)]
+        Type type)
+#else
+    internal static ConstructorInfo ResolveConstructor(
+        Type type)
+#endif
     {
-        if ((!type.IsClass && !type.IsValueType) || type.IsAbstract)
+        if (type is { IsClass: false, IsValueType: false } || type.IsAbstract)
         {
             throw new InvalidOperationException(
                 string.Format(
@@ -69,7 +113,7 @@ internal static class ActivatorHelper
                     type.FullName));
         }
 
-        ConstructorInfo[] constructors = type
+        var constructors = type
             .GetConstructors()
             .Where(t => t.IsPublic)
             .ToArray();
@@ -88,12 +132,13 @@ internal static class ActivatorHelper
         IEnumerable<ParameterInfo> parameters,
         Expression services)
     {
-        foreach (ParameterInfo parameter in parameters)
+        foreach (var parameter in parameters)
         {
-            yield return Expression.Convert(Expression.Call(
-                services,
-                _getService,
-                Expression.Constant(parameter.ParameterType)),
+            yield return Expression.Convert(
+                Expression.Call(
+                    services,
+                    _getService,
+                    Expression.Constant(parameter.ParameterType)),
                 parameter.ParameterType);
         }
     }

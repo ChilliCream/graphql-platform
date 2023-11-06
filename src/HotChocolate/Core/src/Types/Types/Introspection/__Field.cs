@@ -4,7 +4,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -13,17 +12,18 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __Field : ObjectType<IOutputField>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
-        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        SyntaxTypeReference booleanType = Parse($"{ScalarNames.Boolean}");
-        SyntaxTypeReference argumentListType = Parse($"[{nameof(__InputValue)}!]!");
-        SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullTypeType = Parse($"{nameof(__Type)}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var booleanType = Parse($"{ScalarNames.Boolean}");
+        var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
+        var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var def = new ObjectTypeDefinition(
             Names.__Field,
@@ -68,14 +68,14 @@ internal sealed class __Field : ObjectType<IOutputField>
     private static class Resolvers
     {
         public static string Name(IPureResolverContext context)
-            => context.Parent<IOutputField>().Name.Value;
+            => context.Parent<IOutputField>().Name;
 
         public static string? Description(IPureResolverContext context)
             => context.Parent<IOutputField>().Description;
 
-        public static object? Arguments(IPureResolverContext context)
+        public static object Arguments(IPureResolverContext context)
         {
-            IOutputField field = context.Parent<IOutputField>();
+            var field = context.Parent<IOutputField>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
                 ? field.Arguments
                 : field.Arguments.Where(t => !t.IsDeprecated);
@@ -94,11 +94,12 @@ internal sealed class __Field : ObjectType<IOutputField>
             context.Parent<IOutputField>()
                 .Directives
                 .Where(t => t.Type.IsPublic)
-                .Select(d => d.ToNode());
+                .Select(d => d.AsSyntaxNode());
     }
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __Field = "__Field";
         public const string Name = "name";
         public const string Description = "description";

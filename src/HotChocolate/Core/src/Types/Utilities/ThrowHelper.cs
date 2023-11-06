@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -8,13 +9,13 @@ using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Properties.TypeResources;
+using IHasName = HotChocolate.Types.IHasName;
 
 namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
 {
-    public static ArgumentException String_NullOrEmpty(
-        string parameterName) =>
+    public static ArgumentException String_NullOrEmpty(string parameterName) =>
         new ArgumentException(
             $@"'{parameterName}' cannot be null or empty",
             parameterName);
@@ -25,7 +26,7 @@ internal static class ThrowHelper
         new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(
-                    "The event message is of the type `{0}` and cannot be casted to `{1}.`",
+                    ThrowHelper_EventMessage_InvalidCast,
                     messageType.FullName!,
                     expectedType.FullName!)
                 .Build());
@@ -33,37 +34,24 @@ internal static class ThrowHelper
     public static GraphQLException EventMessage_NotFound() =>
         new GraphQLException(
             ErrorBuilder.New()
-                .SetMessage("There is no event message on the context.")
+                .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(
-        MemberInfo member) =>
+    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "You need to specify the message type on {0}.{1}. (SubscribeAttribute)",
+                    ThrowHelper_SubscribeAttribute_MessageTypeUnspecified,
                     member.DeclaringType!.FullName,
                     member.Name)
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(
-        MemberInfo member) =>
+    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "You need to specify the topic type on {0}.{1}. (SubscribeAttribute)",
-                    member.DeclaringType!.FullName,
-                    member.Name)
-                .SetExtension("member", member)
-                .Build());
-
-    public static SchemaException SubscribeAttribute_TopicOnParameterAndMethod(
-        MemberInfo member) =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    "The topic is declared multiple times on {0}.{1}. (TopicAttribute)",
+                    ThrowHelper_SubscribeAttribute_TopicTypeUnspecified,
                     member.DeclaringType!.FullName,
                     member.Name)
                 .SetExtension("member", member)
@@ -75,26 +63,22 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to find the subscribe resolver `{2}` defined on {0}.{1}. " +
-                    "The subscribe resolver bust be a method that is public, non-static " +
-                    "and on the same type as the resolver. (SubscribeAttribute)",
+                    ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound,
                     member.DeclaringType!.FullName,
                     member.Name,
                     subscribeResolverName)
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException Convention_UnableToCreateConvention(
-        Type convention) =>
+    public static SchemaException Convention_UnableToCreateConvention(Type convention) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to create a convention instance from {0}.",
+                    ThrowHelper_Convention_UnableToCreateConvention,
                     convention.FullName ?? convention.Name)
                 .Build());
 
-    public static SchemaException UsePagingAttribute_NodeTypeUnknown(
-        MemberInfo member) =>
+    public static SchemaException UsePagingAttribute_NodeTypeUnknown(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
@@ -108,7 +92,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to create instance of type `{0}`.",
+                    ThrowHelper_TypeRegistrar_CreateInstanceFailed,
                     namedSchemaType.FullName)
                 .SetException(exception)
                 .SetExtension(nameof(namedSchemaType), namedSchemaType)
@@ -116,11 +100,11 @@ internal static class ThrowHelper
 
     public static SchemaException TypeCompletionContext_UnableToResolveType(
         ITypeSystemObject type,
-        ITypeReference typeRef) =>
+        TypeReference typeRef) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to resolve type reference `{0}`.",
+                    ThrowHelper_TypeCompletionContext_UnableToResolveType,
                     typeRef)
                 .SetTypeSystemObject(type)
                 .SetExtension(nameof(typeRef), typeRef)
@@ -132,22 +116,33 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    TypeResources.TypeInitializer_CompleteName_Duplicate,
+                    TypeInitializer_CompleteName_Duplicate,
                     type.Name)
                 .SetTypeSystemObject(type)
+                .SetCode(ErrorCodes.Schema.DuplicateTypeName)
                 .SetExtension(nameof(otherType), otherType)
                 .Build());
 
-    public static SchemaException NodeAttribute_NodeResolverNotFound(
-        Type type,
-        string nodeResolver) =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    "The specified node resolver `{0}` does not exist on `{1}`.",
-                    nodeResolver,
-                    type.FullName ?? type.Name)
-                .Build());
+    public static SchemaException TypeInitializer_MutationDuplicateErrorName(
+        ITypeSystemObject type,
+        string mutationName,
+        string errorName,
+        IReadOnlyList<ISchemaError> originalErrors)
+    {
+        var mutationError = SchemaErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_MutationDuplicateErrorName,
+                mutationName,
+                errorName)
+            .SetTypeSystemObject(type)
+            .SetCode(ErrorCodes.Schema.DuplicateMutationErrorTypeName)
+            .Build();
+
+        var errors = new List<ISchemaError>(originalErrors);
+        errors.Insert(0, mutationError);
+
+        return new SchemaException(errors);
+    }
 
     public static SchemaException NodeAttribute_IdFieldNotFound(
         Type type,
@@ -155,7 +150,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "The specified id field `{0}` does not exist on `{1}`.",
+                    ThrowHelper_NodeAttribute_IdFieldNotFound,
                     idField,
                     type.FullName ?? type.Name)
                 .Build());
@@ -169,9 +164,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "There are two conventions registered for {0} in scope {1}. Only one " +
-                    "convention is allowed. Use convention extensions if additional " +
-                    "configuration is needed. Colliding conventions are {2} and {3}",
+                    ThrowHelper_Convention_TwoConventionsRegisteredForScope,
                     conventionType.FullName ?? conventionType.Name,
                     scope ?? "default",
                     first.GetType().FullName ?? first.GetType().Name,
@@ -184,17 +177,16 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Convention of type {0} in scope {1} could not be created",
+                    ThrowHelper_Convention_ConventionCouldNotBeCreated,
                     conventionType.FullName ?? conventionType.Name,
                     scope ?? "default")
                 .Build());
 
-    public static SchemaException DataLoader_InvalidType(
-        Type dataLoaderType) =>
+    public static SchemaException DataLoader_InvalidType(Type dataLoaderType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "The provided type {0} is not a dataloader",
+                    ThrowHelper_DataLoader_InvalidType,
                     dataLoaderType.FullName ?? dataLoaderType.Name)
                 .Build());
 
@@ -206,12 +198,12 @@ internal static class ThrowHelper
                 .Build());
 
     public static SerializationException RequiredInputFieldIsMissing(
-        InputField field,
+        IInputField field,
         Path fieldPath)
         => new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
-                    "The required input field `{0}` is missing.",
+                    ThrowHelper_RequiredInputFieldIsMissing,
                     field.Name)
                 .SetPath(fieldPath)
                 .SetExtension("field", field.Coordinate.ToString())
@@ -219,19 +211,20 @@ internal static class ThrowHelper
             field.Type,
             fieldPath);
 
-    public static SerializationException InvalidInputFieldNames(
-        InputObjectType type,
+    public static SerializationException InvalidInputFieldNames<T>(
+        T type,
         IReadOnlyList<string> invalidFieldNames,
         Path path)
+        where T : ITypeSystemMember, IHasName
     {
         if (invalidFieldNames.Count == 1)
         {
             throw new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        "The field `{0}` does not exist on the type `{1}`.",
+                        ThrowHelper_InvalidInputFieldNames_Single,
                         invalidFieldNames[0],
-                        type.Name.Value)
+                        type.Name)
                     .SetPath(path)
                     .SetExtension("type", type.Name)
                     .Build(),
@@ -242,9 +235,9 @@ internal static class ThrowHelper
         throw new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
-                    "The fields `{0}` do not exist on the type `{1}`.",
+                    ThrowHelper_InvalidInputFieldNames,
                     string.Join(", ", invalidFieldNames.Select(t => $"`{t}`")),
-                    type.Name.Value)
+                    type.Name)
                 .SetPath(path)
                 .SetExtension("type", type.Name)
                 .Build(),
@@ -256,10 +249,8 @@ internal static class ThrowHelper
         InputObjectType type,
         Path? path)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_OneOfNoFieldSet,
-                type.Name.Value)
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_OneOfNoFieldSet, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
             .SetPath(path);
 
@@ -270,10 +261,8 @@ internal static class ThrowHelper
         InputObjectType type,
         Path? path)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_OneOfMoreThanOneFieldSet,
-                type.Name.Value)
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_OneOfMoreThanOneFieldSet, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
             .SetPath(path);
 
@@ -285,11 +274,8 @@ internal static class ThrowHelper
         Path? path,
         InputField field)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_OneOfFieldIsNull,
-                field.Name.Value,
-                type.Name.Value)
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_OneOfFieldIsNull, field.Name, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
             .SetPath(path)
             .SetExtension(nameof(field), field.Coordinate.ToString());
@@ -298,12 +284,12 @@ internal static class ThrowHelper
     }
 
     public static SerializationException NonNullInputViolation(
-        IType type,
+        ITypeSystemMember type,
         Path? path,
-        InputField? field = null)
+        IInputField? field = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
-            .SetMessage("Cannot accept null for non-nullable input.")
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_NonNullInputViolation)
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path);
 
@@ -321,13 +307,13 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                "The syntax node `{0}` is incompatible with the type `{1}`.",
-                kind,
-                type.Name.Value)
-            .SetPath(path)
-            .SetExtension(nameof(type), type.Name.Value)
-            .Build(),
+                .SetMessage(
+                    ThrowHelper_ParseInputObject_InvalidSyntaxKind,
+                    kind,
+                    type.Name)
+                .SetPath(path)
+                .SetExtension(nameof(type), type.Name)
+                .Build(),
             type,
             path);
 
@@ -337,18 +323,16 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                "The input object `{1}` must to be serialized as `{2}` or as " +
-                "`IReadOnlyDictionary<string. object?>` but not as `{0}`.",
-                objectType.FullName ?? objectType.Name,
-                type.Name.Value,
-                type.RuntimeType.FullName ?? type.RuntimeType.Name)
-            .SetPath(path)
-            .SetExtension(nameof(type), type.Name.Value)
-            .Build(),
+                .SetMessage(
+                    ThrowHelper_ParseInputObject_InvalidObjectKind,
+                    objectType.FullName ?? objectType.Name,
+                    type.Name,
+                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .SetPath(path)
+                .SetExtension(nameof(type), type.Name)
+                .Build(),
             type,
             path);
-
 
     public static SerializationException ParseNestedList_InvalidSyntaxKind(
         ListType type,
@@ -356,15 +340,14 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                "The item syntax node for a nested list must be " +
-                "`ListValue` but the parser found `{0}`.",
-                kind)
-            .SetPath(path)
-            .SetExtension(
-                "specifiedBy",
-                "https://spec.graphql.org/June2018/#sec-Type-System.List")
-            .Build(),
+                .SetMessage(
+                    ThrowHelper_ParseNestedList_InvalidSyntaxKind,
+                    kind)
+                .SetPath(path)
+                .SetExtension(
+                    "specifiedBy",
+                    "https://spec.graphql.org/June2018/#sec-Type-System.List")
+                .Build(),
             type,
             path);
 
@@ -374,13 +357,12 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                "The list `{1}` must to be serialized as `{2}` or as " +
-                "`IList` but not as `{0}`.",
-                listType.FullName ?? listType.Name,
-                type.Print(),
-                type.RuntimeType.FullName ?? type.RuntimeType.Name)
-            .Build(),
+                .SetMessage(
+                    ThrowHelper_ParseList_InvalidObjectKind,
+                    listType.FullName ?? listType.Name,
+                    type.Print(),
+                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .Build(),
             type,
             path);
 
@@ -391,8 +373,7 @@ internal static class ThrowHelper
         => new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
-                    "The list runtime value of {0} must implement IEnumerable or IList " +
-                    "but is of the type {1}.",
+                    ThrowHelper_FormatValueList_InvalidObjectKind,
                     type.Print(),
                     listType.FullName ?? listType.Name)
                 .SetPath(path)
@@ -407,13 +388,12 @@ internal static class ThrowHelper
         => new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
-                    "The input object `{1}` must to be of type `{2}` or serialized as " +
-                    "`IReadOnlyDictionary<string. object?>` but not as `{0}`.",
+                    ThrowHelper_FormatResultObject_InvalidObjectKind,
                     objectType.FullName ?? objectType.Name,
-                    type.Name.Value,
+                    type.Name,
                     type.RuntimeType.FullName ?? type.RuntimeType.Name)
                 .SetPath(path)
-                .SetExtension(nameof(type), type.Name.Value)
+                .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
             path);
@@ -425,8 +405,7 @@ internal static class ThrowHelper
         => new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
-                    "The list result value of {0} must implement IList " +
-                    "but is of the type {1}.",
+                    ThrowHelper_FormatResultList_InvalidObjectKind,
                     type.Print(),
                     listType.FullName ?? listType.Name)
                 .SetPath(path)
@@ -441,7 +420,7 @@ internal static class ThrowHelper
         => new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(
-                    "The type `{0}` does mot expect `{1}`.",
+                    ThrowHelper_FormatResultLeaf_InvalidSyntaxKind,
                     type.Print(),
                     kind)
                 .SetPath(path)
@@ -457,8 +436,8 @@ internal static class ThrowHelper
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Argument `{0}` was not found on directive `@{1}`.",
-                coordinate.ArgumentName!.Value,
+                ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound,
+                coordinate.ArgumentName!,
                 coordinate.Name),
             coordinate);
 
@@ -467,7 +446,7 @@ internal static class ThrowHelper
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Directive `@{0}` not found.",
+                ThrowHelper_Schema_GetMember_DirectiveNotFound,
                 coordinate.Name),
             coordinate);
 
@@ -476,8 +455,8 @@ internal static class ThrowHelper
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Enum value `{0}` was not found on type `{1}`.",
-                coordinate.MemberName!.Value,
+                ThrowHelper_Schema_GetMember_EnumValueNotFound,
+                coordinate.MemberName!,
                 coordinate.Name),
             coordinate);
 
@@ -486,8 +465,8 @@ internal static class ThrowHelper
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Input field `{0}` was not found on type `{1}`.",
-                coordinate.MemberName!.Value,
+                ThrowHelper_Schema_GetMember_InputFieldNotFound,
+                coordinate.MemberName!,
                 coordinate.Name),
             coordinate);
 
@@ -497,9 +476,9 @@ internal static class ThrowHelper
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
-                "The coordinate `{0}` is invalid for the type `{1}`.",
+                ThrowHelper_Schema_GetMember_InvalidCoordinate,
                 coordinate.ToString(),
-                type.Name.Value),
+                type.Name),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_FieldArgNotFound(
@@ -507,10 +486,10 @@ internal static class ThrowHelper
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Argument `{0}` was not found on field `{1}.{2}`.",
-                coordinate.ArgumentName!.Value,
-                coordinate.Name.Value,
-                coordinate.MemberName!.Value),
+                ThrowHelper_Schema_GetMember_FieldArgNotFound,
+                coordinate.ArgumentName!,
+                coordinate.Name,
+                coordinate.MemberName!),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_FieldNotFound(
@@ -518,9 +497,9 @@ internal static class ThrowHelper
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Field `{0}` was not found on type `{1}`.",
-                coordinate.MemberName!.Value,
-                coordinate.Name.Value),
+                ThrowHelper_Schema_GetMember_FieldNotFound,
+                coordinate.MemberName!,
+                coordinate.Name),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_TypeNotFound(
@@ -528,7 +507,87 @@ internal static class ThrowHelper
         => new InvalidSchemaCoordinateException(
             string.Format(
                 CultureInfo.InvariantCulture,
-                "A type with the name `{0}` was not found.",
-                coordinate.Name.Value),
+                ThrowHelper_Schema_GetMember_TypeNotFound,
+                coordinate.Name),
             coordinate);
+
+    public static InvalidOperationException FieldBase_Sealed()
+        => new(ThrowHelper_FieldBase_Sealed);
+
+    public static InvalidOperationException NodeResolver_ArgumentTypeMissing()
+        => new(ThrowHelper_NodeResolver_ArgumentTypeMissing);
+
+    public static InvalidOperationException NodeResolver_ObjNoDefinition()
+        => new(ThrowHelper_NodeResolver_ObjNoDefinition);
+
+    public static SchemaException RelayIdFieldHelpers_NoFieldType(
+        string fieldName,
+        ITypeSystemObject? type = null)
+    {
+        var builder = SchemaErrorBuilder.New();
+        builder.SetMessage(ThrowHelper_RelayIdFieldHelpers_NoFieldType, fieldName);
+
+        if (type is not null)
+        {
+            builder.SetTypeSystemObject(type);
+        }
+
+        return new SchemaException(builder.Build());
+    }
+
+    public static GraphQLException MissingIfArgument(DirectiveNode directive)
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_MissingDirectiveIfArgument,
+                directive.Name.Value)
+            .AddLocation(directive)
+            .Build());
+
+    public static InvalidOperationException Flags_Enum_Shape_Unknown(Type type)
+        => new(string.Format(
+            CultureInfo.InvariantCulture,
+            ThrowHelper_Flags_Enum_Shape_Unknown,
+            type.FullName ?? type.Name));
+
+    public static GraphQLException Flags_Parser_NoSelection(InputObjectType type)
+        => new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_Flags_Parser_NoSelection, type.Name)
+            .Build());
+
+    public static GraphQLException Flags_Parser_UnknownSelection(string value, InputObjectType type)
+        => new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_Flags_Parser_UnknownSelection, value, type.Name)
+            .Build());
+
+    public static SchemaException Flags_IllegalFlagEnumName(Type type, string? valueName)
+        => new(SchemaErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_Flags_IllegalFlagEnumName,
+                type.FullName ?? type.Name,
+                valueName ?? "value is null")
+            .Build());
+
+    public static SchemaException InputTypeExpected(IType type)
+    {
+        var namedType = type.NamedType();
+
+        return new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(ThrowHelper_InputTypeExpected_Message, namedType.Name)
+                .SetTypeSystemObject((ITypeSystemObject)namedType)
+                .SetExtension("type", type.Print())
+                .Build());
+    }
+
+    public static SchemaException OutputTypeExpected(IType type)
+    {
+        var namedType = type.NamedType();
+
+        return new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(ThrowHelper_OutputTypeExpected_Message, namedType.Name)
+                .SetTypeSystemObject((ITypeSystemObject)namedType)
+                .SetExtension("type", type.Print())
+                .Build());
+    }
 }

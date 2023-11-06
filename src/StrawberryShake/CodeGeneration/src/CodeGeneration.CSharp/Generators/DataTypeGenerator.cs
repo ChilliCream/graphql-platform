@@ -16,18 +16,23 @@ public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
         DataTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
+        var modifier = settings.AccessModifier == AccessModifier.Public
+            ? SyntaxKind.PublicKeyword
+            : SyntaxKind.InternalKeyword;
+
         return descriptor.IsInterface
-            ? GenerateDataInterface(descriptor)
-            : GenerateDataClass(descriptor, settings);
+            ? GenerateDataInterface(descriptor, modifier)
+            : GenerateDataClass(descriptor, modifier, settings.EntityRecords);
     }
 
     private CSharpSyntaxGeneratorResult GenerateDataInterface(
-        DataTypeDescriptor descriptor)
+        DataTypeDescriptor descriptor,
+        SyntaxKind accessModifier)
     {
-        InterfaceDeclarationSyntax interfaceDeclaration =
+        var interfaceDeclaration =
             InterfaceDeclaration(descriptor.RuntimeType.Name)
                 .AddModifiers(
-                    Token(SyntaxKind.PublicKeyword),
+                    Token(accessModifier),
                     Token(SyntaxKind.PartialKeyword))
                 .AddGeneratedAttribute()
                 .AddSummary(descriptor.Documentation)
@@ -48,14 +53,15 @@ public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
 
     private CSharpSyntaxGeneratorResult GenerateDataClass(
         DataTypeDescriptor descriptor,
-        CSharpSyntaxGeneratorSettings settings)
+        SyntaxKind accessModifier,
+        bool hasEntityRecords)
     {
-        if (settings.EntityRecords)
+        if (hasEntityRecords)
         {
-            RecordDeclarationSyntax recordDeclarationSyntax =
+            var recordDeclarationSyntax =
                 RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.RuntimeType.Name)
                     .AddModifiers(
-                        Token(SyntaxKind.PublicKeyword),
+                        Token(accessModifier),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
                     .AddSummary(descriptor.Documentation)
@@ -63,7 +69,7 @@ public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
                     .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 
             // Adds the constructor
-            ConstructorDeclarationSyntax constructor =
+            var constructor =
                 ConstructorDeclaration(descriptor.RuntimeType.Name)
                     .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
@@ -93,17 +99,17 @@ public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
         }
         else
         {
-            ClassDeclarationSyntax classDeclaration =
+            var classDeclaration =
                 ClassDeclaration(descriptor.RuntimeType.Name)
                     .AddModifiers(
-                        Token(SyntaxKind.PublicKeyword),
+                        Token(accessModifier),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
                     .AddSummary(descriptor.Documentation)
                     .AddImplements(descriptor.Implements.Select(CreateDataTypeName).ToArray());
 
             // Adds the constructor
-            ConstructorDeclarationSyntax constructor =
+            var constructor =
                 ConstructorDeclaration(descriptor.RuntimeType.Name)
                     .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
@@ -134,9 +140,9 @@ public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
         DataTypeDescriptor descriptor,
         Action<PropertyDescriptor> action)
     {
-        foreach (PropertyDescriptor property in descriptor.Properties)
+        foreach (var property in descriptor.Properties)
         {
-            if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
+            if (property.Name.EqualsOrdinal(WellKnownNames.TypeName))
             {
                 continue;
             }

@@ -23,8 +23,9 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        InterfaceBuilder interfaceBuilder = InterfaceBuilder
+        var interfaceBuilder = InterfaceBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetComment(
                 XmlCommentBuilder
                     .New()
@@ -53,7 +54,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         OperationDescriptor descriptor,
         string runtimeTypeName)
     {
-        MethodBuilder watchMethod =
+        var watchMethod =
             MethodBuilder
                 .New()
                 .SetOnlyDeclaration()
@@ -82,7 +83,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         OperationDescriptor operationDescriptor,
         string runtimeTypeName)
     {
-        MethodBuilder executeMethod = MethodBuilder
+        var executeMethod = MethodBuilder
             .New()
             .SetOnlyDeclaration()
             .SetReturnType(

@@ -16,7 +16,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
     {
         context.Nodes.Push(node);
         context.Types.Push(context.Schema.GetOperationType(node.Operation)!);
-        node = base.RewriteOperationDefinition(node, context);
+        node = base.RewriteOperationDefinition(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
         return node;
@@ -31,7 +31,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
             return node;
         }
 
-        IOutputField field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
+        var field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
 
         if(field.Type.NamedType().IsLeafType())
         {
@@ -40,7 +40,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
 
         context.Nodes.Push(node);
         context.Types.Push(field.Type.NamedType());
-        node = base.RewriteField(node, context);
+        node = base.RewriteField(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
         return node;
@@ -54,7 +54,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         context.Types.Push(node.TypeCondition is null
             ? context.Types.Peek()
             : context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value));
-        node = base.RewriteInlineFragment(node, context);
+        node = base.RewriteInlineFragment(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
         return node;
@@ -66,7 +66,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
     {
         context.Nodes.Push(node);
         context.Types.Push(context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value));
-        node = base.RewriteFragmentDefinition(node, context);
+        node = base.RewriteFragmentDefinition(node, context)!;
         context.Types.Pop();
         context.Nodes.Pop();
         return node;
@@ -76,28 +76,28 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         SelectionSetNode node,
         Context context)
     {
-        SelectionSetNode current = base.RewriteSelectionSet(node, context);
+        var current = base.RewriteSelectionSet(node, context)!;
 
         if (context.Nodes.Peek() is FieldNode or OperationDefinitionNode)
         {
             var selections = current.Selections.ToList();
 
-            foreach (ObjectType objectType in
+            foreach (var objectType in
                      context.Schema.GetPossibleTypes(context.Types.Peek()))
             {
                 if (objectType.IsEntity())
                 {
-                    SelectionSetNode entityDefinition = objectType.GetEntityDefinition();
+                    var entityDefinition = objectType.GetEntityDefinition();
                     List<ISelectionNode> fields = new();
 
-                    foreach (ISelectionNode selection in entityDefinition.Selections)
+                    foreach (var selection in entityDefinition.Selections)
                     {
                         fields.Add(selection);
                     }
 
                     selections.Add(new InlineFragmentNode(
                         null,
-                        new NamedTypeNode(objectType.Name.Value),
+                        new NamedTypeNode(objectType.Name),
                         new List<DirectiveNode>(),
                         new SelectionSetNode(fields)));
                 }
@@ -112,7 +112,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
     public static DocumentNode Rewrite(DocumentNode document, ISchema schema)
     {
         var rewriter = new EntityIdRewriter();
-        return rewriter.RewriteDocument(document, new Context(schema));
+        return rewriter.RewriteDocument(document, new Context(schema))!;
     }
 
     public class Context : ISyntaxVisitorContext

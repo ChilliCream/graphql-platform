@@ -1,0 +1,22 @@
+schema {
+  query: Query
+}
+
+interface IPet {
+  name: String
+}
+
+type Cat implements IPet {
+  name: String
+}
+
+type Dog implements IPet {
+  name: String
+}
+
+type Query {
+  shouldBeCat: IPet
+  shouldBeDog: IPet
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

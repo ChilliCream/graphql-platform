@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 ///
 /// directive @stream(label: String, initialCount: Int!, if: Boolean) on FIELD
 /// </summary>
-public class StreamDirectiveType : DirectiveType<StreamDirective>
+public sealed class StreamDirectiveType : DirectiveType<StreamDirective>
 {
     protected override void Configure(IDirectiveTypeDescriptor<StreamDirective> descriptor)
     {

@@ -13,22 +13,28 @@ public sealed class RequestExecutorProxy : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IRequestExecutorResolver _executorResolver;
-    private readonly NameString _schemaName;
+    private readonly string _schemaName;
     private IRequestExecutor? _executor;
+    private IDisposable? _eventSubscription;
     private bool _disposed;
 
     public event EventHandler<RequestExecutorUpdatedEventArgs>? ExecutorUpdated;
 
     public event EventHandler? ExecutorEvicted;
 
-    public RequestExecutorProxy(
-        IRequestExecutorResolver executorResolver,
-        NameString schemaName)
+    public RequestExecutorProxy(IRequestExecutorResolver executorResolver, string schemaName)
     {
+        if (string.IsNullOrEmpty(schemaName))
+        {
+            throw new ArgumentNullException(nameof(schemaName));
+        }
+
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));
-        _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-        _executorResolver.RequestExecutorEvicted += EvictRequestExecutor;
+        _schemaName = schemaName;
+        _eventSubscription =
+            _executorResolver.Events.Subscribe(
+                new ExecutorObserver(name => EvictRequestExecutor(name)));
     }
 
     /// <summary>
@@ -64,11 +70,11 @@ public sealed class RequestExecutorProxy : IDisposable
             throw new ArgumentNullException(nameof(request));
         }
 
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IExecutionResult result =
+        var result =
             await executor
                 .ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -97,11 +103,11 @@ public sealed class RequestExecutorProxy : IDisposable
             throw new ArgumentNullException(nameof(requestBatch));
         }
 
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IResponseStream result =
+        var result =
             await executor
                 .ExecuteBatchAsync(requestBatch, cancellationToken)
                 .ConfigureAwait(false);
@@ -121,7 +127,7 @@ public sealed class RequestExecutorProxy : IDisposable
     public async ValueTask<ISchema> GetSchemaAsync(
         CancellationToken cancellationToken)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
         return executor.Schema;
@@ -139,7 +145,7 @@ public sealed class RequestExecutorProxy : IDisposable
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
         CancellationToken cancellationToken)
     {
-        IRequestExecutor? executor = _executor;
+        var executor = _executor;
 
         if (executor is null)
         {
@@ -173,11 +179,12 @@ public sealed class RequestExecutorProxy : IDisposable
         return executor;
     }
 
-    private void EvictRequestExecutor(object? sender, RequestExecutorEvictedEventArgs args)
+    private void EvictRequestExecutor(string schemaName)
     {
-        if (!_disposed && args.Name.Equals(_schemaName))
+        if (!_disposed && schemaName.Equals(_schemaName))
         {
             _semaphore.Wait();
+
             try
             {
                 _executor = null;
@@ -195,8 +202,31 @@ public sealed class RequestExecutorProxy : IDisposable
         if (!_disposed)
         {
             _executor = null;
+            _eventSubscription?.Dispose();
             _semaphore.Dispose();
             _disposed = true;
         }
+    }
+
+    private sealed class ExecutorObserver : IObserver<RequestExecutorEvent>
+    {
+        public ExecutorObserver(Action<string> evicted)
+        {
+            Evicted = evicted;
+        }
+
+        public Action<string> Evicted { get; }
+
+        public void OnNext(RequestExecutorEvent value)
+        {
+            if (value.Type is RequestExecutorEventType.Evicted)
+            {
+                Evicted(value.Name);
+            }
+        }
+
+        public void OnError(Exception error) { }
+
+        public void OnCompleted() { }
     }
 }

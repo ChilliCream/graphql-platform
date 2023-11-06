@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -9,8 +10,12 @@ public ref partial struct Utf8GraphQLParser
 {
     private readonly bool _createLocation;
     private readonly bool _allowFragmentVars;
+    private readonly int _maxAllowedNodes;
+    private readonly int _maxAllowedFields;
     private Utf8GraphQLReader _reader;
     private StringValueNode? _description;
+    private int _parsedNodes;
+    private int _parsedFields;
 
     public Utf8GraphQLParser(
         ReadOnlySpan<byte> graphQLData,
@@ -24,7 +29,9 @@ public ref partial struct Utf8GraphQLParser
         options ??= ParserOptions.Default;
         _createLocation = !options.NoLocations;
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
-        _reader = new Utf8GraphQLReader(graphQLData);
+        _maxAllowedNodes = options.MaxAllowedNodes;
+        _maxAllowedFields = options.MaxAllowedFields;
+        _reader = new Utf8GraphQLReader(graphQLData, options.MaxAllowedTokens);
         _description = null;
     }
 
@@ -40,15 +47,34 @@ public ref partial struct Utf8GraphQLParser
         options ??= ParserOptions.Default;
         _createLocation = !options.NoLocations;
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
+        _maxAllowedNodes = options.MaxAllowedNodes;
+        _maxAllowedFields = options.MaxAllowedFields;
         _reader = reader;
         _description = null;
     }
 
+    /// <summary>
+    /// Gets the number of parsed syntax nodes.
+    /// </summary>
+    public int ParsedSyntaxNodes => _parsedNodes;
+
+    /// <summary>
+    /// Defines if the parser reached the end of the source text.
+    /// </summary>
+    public bool IsEndOfFile => _reader.Kind is TokenKind.EndOfFile;
+
+    // note: we added this internal access for legacy stitching.
+    /// <summary>
+    /// Provides internal access to the underlying GraphQL reader.
+    /// </summary>
+    internal Utf8GraphQLReader Reader => _reader;
+
     public DocumentNode Parse()
     {
+        _parsedNodes = 0;
         var definitions = new List<IDefinitionNode>();
 
-        TokenInfo start = Start();
+        var start = Start();
 
         MoveNext();
 
@@ -57,9 +83,9 @@ public ref partial struct Utf8GraphQLParser
             definitions.Add(ParseDefinition());
         }
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
-        return new DocumentNode(location, definitions);
+        return new DocumentNode(location, definitions, _parsedNodes, _parsedFields);
     }
 
     private IDefinitionNode ParseDefinition()
@@ -138,19 +164,42 @@ public ref partial struct Utf8GraphQLParser
     }
 
     public static DocumentNode Parse(
-        ReadOnlySpan<byte> graphQLData) =>
-        new Utf8GraphQLParser(graphQLData).Parse();
+        ReadOnlySpan<byte> graphQLData)
+    {
+        if (graphQLData.Length == 0)
+        {
+            return new DocumentNode(Array.Empty<IDefinitionNode>());
+        }
+
+        return new Utf8GraphQLParser(graphQLData).Parse();
+    }
 
     public static DocumentNode Parse(
         ReadOnlySpan<byte> graphQLData,
-        ParserOptions options) =>
-        new Utf8GraphQLParser(graphQLData, options).Parse();
+        ParserOptions options)
+    {
+        if (graphQLData.Length == 0)
+        {
+            return new DocumentNode(Array.Empty<IDefinitionNode>());
+        }
 
-    public static DocumentNode Parse(string sourceText) =>
+        return new Utf8GraphQLParser(graphQLData, options).Parse();
+    }
+
+    public static DocumentNode Parse(
+#if NET7_0_OR_GREATER
+        [StringSyntax("graphql")] string sourceText) =>
+#else
+        string sourceText) =>
+#endif
         Parse(sourceText, ParserOptions.Default);
 
-    public static unsafe DocumentNode Parse(
+    public static DocumentNode Parse(
+#if NET7_0_OR_GREATER
+        [StringSyntax("graphql")] string sourceText,
+#else
         string sourceText,
+#endif
         ParserOptions options)
     {
         if (string.IsNullOrEmpty(sourceText))
@@ -166,13 +215,19 @@ public ref partial struct Utf8GraphQLParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
         try
         {
             ConvertToBytes(sourceText, ref sourceSpan);
+
+            if (sourceSpan.Length == 0)
+            {
+                return new DocumentNode(Array.Empty<IDefinitionNode>());
+            }
+
             var parser = new Utf8GraphQLParser(sourceSpan, options);
             return parser.Parse();
         }

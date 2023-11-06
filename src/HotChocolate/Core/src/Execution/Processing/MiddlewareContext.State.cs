@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Immutable;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -9,8 +8,9 @@ internal partial class MiddlewareContext
 {
     private object? _result;
     private object? _parent;
+    private Path? _path;
 
-    public Path Path { get; private set; } = default!;
+    public Path Path => _path ??= PathHelper.CreatePathFromContext(Selection, ParentResult, -1);
 
     public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = default!;
 
@@ -18,7 +18,7 @@ internal partial class MiddlewareContext
 
     public IType? ValueType { get; set; }
 
-    public ResultMap ResultMap { get; private set; } = default!;
+    public ObjectResult ParentResult { get; private set; } = default!;
 
     public bool HasErrors { get; private set; }
 
@@ -36,14 +36,14 @@ internal partial class MiddlewareContext
 
     public T Parent<T>()
     {
-        if (_parent is null)
-        {
-            return default!;
-        }
-
         if (_parent is T casted)
         {
             return casted;
+        }
+
+        if (_parent is null)
+        {
+            return default!;
         }
 
         if (_operationContext.Converter.TryConvert(_parent, out casted))

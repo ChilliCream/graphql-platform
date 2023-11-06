@@ -34,11 +34,13 @@ public static class AutoMapperQueryableExtensions
         context.LocalContextData = context.LocalContextData.SetItem(SkipProjectionKey, true);
 
         QueryableProjectionContext visitorContext =
-            new(context, context.ObjectType, context.Selection.Field.Type.UnwrapRuntimeType());
+            new(context, context.ObjectType, context.Selection.Field.Type.UnwrapRuntimeType(), true);
 
         QueryableProjectionVisitor.Default.Visit(visitorContext);
 
+#pragma warning disable CS8631
         Expression<Func<TResult, object?>> projection = visitorContext.Project<TResult, object?>();
+#pragma warning restore CS8631
 
         return queryable.ProjectTo(mapper.ConfigurationProvider, projection);
     }

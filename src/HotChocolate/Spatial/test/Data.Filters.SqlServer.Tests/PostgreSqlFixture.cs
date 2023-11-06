@@ -1,7 +1,6 @@
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 [CollectionDefinition("Postgres")]
 public class PostgreSqlFixture : ICollectionFixture<PostgreSqlResource<PostgisConfig>>

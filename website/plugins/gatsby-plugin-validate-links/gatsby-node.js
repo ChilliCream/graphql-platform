@@ -17,17 +17,31 @@ exports.onPreBuild = async ({
 
   activity.start();
 
-  const files = getNodesByType("Mdx").map((node) => getNode(node.parent));
+  const mdxFiles = getNodesByType("Mdx").map((node) => getNode(node.parent));
 
-  if (files.some((file) => !file)) {
+  if (mdxFiles.some((file) => !file)) {
     activity.panicOnBuild("MDX nodes without a parent encountered");
   }
 
-  const documents = await getDocumentsCache(files, cache, getCache);
+  const documents = await getDocumentsCache(mdxFiles, cache, getCache);
 
   if (!documents) {
     activity.panicOnBuild("Document cache failed to load");
   }
+
+  const knownLinks = [
+    "/products/bananacakepop",
+    "/products/hotchocolate",
+    "/products/strawberryshake",
+  ];
+
+  knownLinks.forEach((knownLink) => {
+    documents[knownLink] = {
+      slug: knownLink,
+      links: [],
+      headingAnchors: [],
+    };
+  });
 
   let totalBrokenLinks = 0;
 

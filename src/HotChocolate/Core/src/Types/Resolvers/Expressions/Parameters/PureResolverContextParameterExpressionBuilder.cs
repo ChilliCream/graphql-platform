@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -19,6 +18,6 @@ internal sealed class PureResolverContextParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => typeof(IPureResolverContext) == parameter.ParameterType;
 
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => context;
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => context.ResolverContext;
 }

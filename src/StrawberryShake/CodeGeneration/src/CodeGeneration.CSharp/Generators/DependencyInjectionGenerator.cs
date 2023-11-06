@@ -66,12 +66,12 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         path = DependencyInjection;
         ns = DependencyInjectionNamespace;
 
-        ClassBuilder factory = ClassBuilder
+        var factory = ClassBuilder
             .New(fileName)
             .SetStatic()
-            .SetAccessModifier(AccessModifier.Public);
+            .SetAccessModifier(settings.AccessModifier);
 
-        MethodBuilder addClientMethod = factory
+        var addClientMethod = factory
             .AddMethod($"Add{descriptor.Name}")
             .SetPublic()
             .SetStatic()
@@ -92,7 +92,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             descriptor.TransportProfiles[0].Name);
         }
 
-        foreach (TransportProfile profile in descriptor.TransportProfiles)
+        foreach (var profile in descriptor.TransportProfiles)
         {
             GenerateClientForProfile(settings, factory, descriptor, profile);
         }
@@ -154,8 +154,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         var enumName = CreateProfileEnumReference(descriptor);
         for (var index = 0; index < descriptor.TransportProfiles.Count; index++)
         {
-            TransportProfile profile = descriptor.TransportProfiles[index];
-            IfBuilder currentIf = ifProfile;
+            var profile = descriptor.TransportProfiles[index];
+            var currentIf = ifProfile;
             if (index != 0)
             {
                 currentIf = IfBuilder.New();
@@ -392,7 +392,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         var hasMutations =
             descriptor.Operations.OfType<MutationOperationDescriptor>().Any();
 
-        CodeBlockBuilder body = CodeBlockBuilder
+        var body = CodeBlockBuilder
             .New()
             .AddCode(CreateBaseCode(settings));
 
@@ -422,7 +422,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             descriptor.ResultFromEntityMappers)
         {
             var namedTypeDescriptor = (INamedTypeDescriptor)typeDescriptor.NamedType();
-            NameString className = namedTypeDescriptor.ExtractMapperName();
+            var className = namedTypeDescriptor.ExtractMapperName();
 
             var interfaceName =
                 IEntityMapper.WithGeneric(
@@ -438,7 +438,16 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
         body.AddEmptyLine();
 
-        foreach (EnumTypeDescriptor enumType in descriptor.EnumTypeDescriptor)
+        if (descriptor.Operations.Any(x => x.HasUpload))
+        {
+            body.AddMethodCall()
+                .SetMethodName(AddSingleton)
+                .AddGeneric(ISerializer)
+                .AddGeneric(UploadSerializer)
+                .AddArgument(_services);
+        }
+
+        foreach (var enumType in descriptor.EnumTypeDescriptor)
         {
             body.AddMethodCall()
                 .SetMethodName(AddSingleton)
@@ -456,10 +465,10 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .AddArgument(_services);
         }
 
-        foreach (ScalarTypeDescriptor scalarTypes in
+        foreach (var scalarTypes in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
-            if (_alternativeTypeNames.TryGetValue(scalarTypes.Name.Value, out var serializer))
+            if (_alternativeTypeNames.TryGetValue(scalarTypes.Name, out var serializer))
             {
                 body.AddMethodCall()
                     .SetMethodName(AddSingleton)
@@ -474,7 +483,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         }
 
         var stringTypeInfo = new RuntimeTypeInfo(String);
-        foreach (ScalarTypeDescriptor scalar in
+        foreach (var scalar in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
             if (scalar.RuntimeType.Equals(stringTypeInfo) &&
@@ -493,7 +502,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
         }
 
-        foreach (ITypeDescriptor inputTypeDescriptor in
+        foreach (var inputTypeDescriptor in
                  descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
         {
             var formatter =
@@ -511,14 +520,14 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
         body.AddEmptyLine();
 
-        foreach (OperationDescriptor operation in descriptor.Operations)
+        foreach (var operation in descriptor.Operations)
         {
             if (!(operation.ResultTypeReference is InterfaceTypeDescriptor typeDescriptor))
             {
                 continue;
             }
 
-            TransportType operationKind = operation switch
+            var operationKind = operation switch
             {
                 SubscriptionOperationDescriptor => profile.Subscription,
                 QueryOperationDescriptor => profile.Query,
@@ -534,7 +543,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
             };
 
-            var operationName = operation.Name.Value;
+            var operationName = operation.Name;
             var fullName = operation.RuntimeType.ToString();
             var operationInterfaceName = operation.InterfaceType.ToString();
             var resultInterface = typeDescriptor.RuntimeType.ToString();

@@ -14,13 +14,37 @@ public sealed class ParserOptions
     /// <param name="allowFragmentVariables">
     /// Defines that the parser shall parse fragment variables.
     /// </param>
+    /// <param name="maxAllowedNodes">
+    /// Parser CPU and memory usage is linear to the number of nodes in a document
+    /// however in extreme cases it becomes quadratic due to memory exhaustion.
+    /// Parsing happens before validation so even invalid queries can burn lots of
+    /// CPU time and memory.
+    /// 
+    /// To prevent this you can set a maximum number of nodes allowed within a document.
+    /// </param>
+    /// <param name="maxAllowedTokens">
+    /// Parser CPU and memory usage is linear to the number of tokens in a document
+    /// however in extreme cases it becomes quadratic due to memory exhaustion.
+    /// Parsing happens before validation so even invalid queries can burn lots of
+    /// CPU time and memory.
+    /// 
+    /// To prevent this you can set a maximum number of tokens allowed within a document.
+    /// </param>
+    /// <param name="maxAllowedFields">
+    /// The maximum number of fields allowed within a query document.
+    /// </param>
     public ParserOptions(
         bool noLocations = false,
-        bool allowFragmentVariables = false)
+        bool allowFragmentVariables = false,
+        int maxAllowedNodes = int.MaxValue,
+        int maxAllowedTokens = int.MaxValue,
+        int maxAllowedFields = 2048)
     {
         NoLocations = noLocations;
-        Experimental = new ParserOptionsExperimental(
-            allowFragmentVariables);
+        Experimental = new(allowFragmentVariables);
+        MaxAllowedTokens = maxAllowedTokens;
+        MaxAllowedNodes = maxAllowedNodes;
+        MaxAllowedFields = maxAllowedFields;
     }
 
     /// <summary>
@@ -30,6 +54,37 @@ public sealed class ParserOptions
     /// for performance or testing.
     /// </summary>
     public bool NoLocations { get; }
+
+    /// <summary>
+    /// Parser CPU and memory usage is linear to the number of tokens in a document
+    /// however in extreme cases it becomes quadratic due to memory exhaustion.
+    /// Parsing happens before validation so even invalid queries can burn lots of
+    /// CPU time and memory.
+    ///
+    /// To prevent this you can set a maximum number of tokens allowed within a document.
+    /// </summary>
+    public int MaxAllowedTokens { get; }
+
+    /// <summary>
+    /// Parser CPU and memory usage is linear to the number of nodes in a document
+    /// however in extreme cases it becomes quadratic due to memory exhaustion.
+    /// Parsing happens before validation so even invalid queries can burn lots of
+    /// CPU time and memory.
+    ///
+    /// To prevent this you can set a maximum number of nodes allowed within a document.
+    /// </summary>
+    public int MaxAllowedNodes { get; }
+
+    /// <summary>
+    /// Parser CPU and memory usage is linear to the number of nodes in a document
+    /// however in extreme cases it becomes quadratic due to memory exhaustion.
+    /// Parsing happens before validation so even invalid queries can burn lots of
+    /// CPU time and memory.
+    ///
+    /// To prevent this you can set a maximum number of fields allowed within a document
+    /// as fields is an easier way to estimate query size for GraphQL requests.
+    /// </summary>
+    public int MaxAllowedFields { get; }
 
     /// <summary>
     /// Gets the experimental parser options

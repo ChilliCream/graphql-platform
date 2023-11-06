@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using static HotChocolate.Data.Projections.WellKnownProjectionFields;
@@ -15,10 +11,13 @@ public class ProjectionVisitor<TContext>
 {
     public virtual void Visit(TContext context)
     {
-        SelectionSetNode selectionSet =
-            context.Context.Selection.SyntaxNode.SelectionSet ?? throw new Exception();
-        context.SelectionSetNodes.Push(selectionSet);
-        Visit(context.Context.Selection.Field, context);
+        Visit(context, context.ResolverContext.Selection);
+    }
+
+    public virtual void Visit(TContext context, ISelection selection)
+    {
+        context.Selection.Push(selection);
+        Visit(selection.Field, context);
     }
 
     protected override TContext OnBeforeLeave(ISelection selection, TContext localContext)
@@ -82,7 +81,7 @@ public class ProjectionVisitor<TContext>
             handler.TryHandleEnter(
                 context,
                 selection,
-                out ISelectionVisitorAction? handlerResult))
+                out var handlerResult))
         {
             return handlerResult;
         }
@@ -101,7 +100,7 @@ public class ProjectionVisitor<TContext>
             handler.TryHandleLeave(
                 context,
                 selection,
-                out ISelectionVisitorAction? handlerResult))
+                out var handlerResult))
         {
             return handlerResult;
         }
@@ -121,22 +120,22 @@ public class ProjectionVisitor<TContext>
 
     protected override ISelectionVisitorAction Visit(IOutputField field, TContext context)
     {
-        if (context.SelectionSetNodes.Count > 1 && field.HasProjectionMiddleware())
+        if (context.Selection.Count > 1 && field.IsNotProjected())
         {
             return Skip;
         }
 
         if (field.Type is IPageType and ObjectType pageType &&
-            context.SelectionSetNodes.Peek() is { } pagingFieldSelection)
+            context.Selection.Peek() is { } pagingFieldSelection)
         {
-            IReadOnlyList<IFieldSelection> selections =
-                context.Context.GetSelections(pageType, pagingFieldSelection, true);
+            var selections =
+                context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
 
-            foreach (IFieldSelection? selection in selections)
+            for (var index = selections.Count - 1; index >= 0; index--)
             {
-                if (selection.ResponseName.Value is CombinedEdgeField)
+                if (selections[index] is { ResponseName : CombinedEdgeField } selection)
                 {
-                    context.SelectionSetNodes.Push(selection.SyntaxNode.SelectionSet);
+                    context.Selection.Push(selection);
 
                     return base.Visit(selection.Field, context);
                 }

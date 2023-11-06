@@ -1,16 +1,14 @@
-using System;
 using System.Net;
 using System.Security.Claims;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -27,80 +25,167 @@ public class AuthorizationTests : ServerTestBase
     public async Task DefaultPolicy_NotFound(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
-                builder.Services.AddAuthorization(options =>
+                builder.Services.AddAuthorization(options => options.DefaultPolicy = null!);
+            },
+            context => context.User = new ClaimsPrincipal());
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task DefaultPolicy_NotFound_But_Allowed(Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization(options => options.DefaultPolicy = null!);
+            },
+            context => context.User = new ClaimsPrincipal(new ClaimsIdentity("abc")));
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task DefaultPolicy_NotFound_But_Allowed_2()
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                builder
+                    .AddQueryType<AuthorizationAttributeTestData.Query>()
+                    .AddAuthorization(options => options.DefaultPolicy = null!);
+            },
+            context => context.User = new ClaimsPrincipal(new ClaimsIdentity("abc")));
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task DefaultPolicy_Allow_Anonymous(Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var policyBuilder = new AuthorizationPolicyBuilder();
+        policyBuilder.RequireAssertion(_ => true);
+
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization(
+                    options => options.DefaultPolicy = policyBuilder.Build());
+            },
+            context => context.User = new ClaimsPrincipal());
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task DefaultPolicy_Disallow_Anonymous(Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var policyBuilder = new AuthorizationPolicyBuilder();
+        policyBuilder.RequireAssertion(_ => false);
+
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization(
+                    options => options.DefaultPolicy = policyBuilder.Build());
+            },
+            context => context.User = new ClaimsPrincipal());
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task AuthServiceIsAlwaysAdded(Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        var server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+            },
+            context =>
+            {
+                context.User = new ClaimsPrincipal(
+                    new ClaimsIdentity("testauth"));
+            });
+
+        // ac
+        var result =
+            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "age": null
+              },
+              "Errors": [
                 {
-                    options.DefaultPolicy = null;
-                });
-            },
-            context =>
-            {
-                context.User = new ClaimsPrincipal(
-                    new ClaimsIdentity("testauth"));
-            });
-
-        // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
-
-        // assert
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        result.MatchSnapshot();
-    }
-
-    [Theory]
-    [ClassData(typeof(AuthorizationTestData))]
-    [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task NoAuthServices_Authenticated_True(Action<IRequestExecutorBuilder> configure)
-    {
-        // arrange
-        TestServer server = CreateTestServer(
-            builder =>
-            {
-                configure(builder);
-            },
-            context =>
-            {
-                context.User = new ClaimsPrincipal(
-                    new ClaimsIdentity("testauth"));
-            });
-
-        // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
-
-        // assert
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        result.MatchSnapshot();
-    }
-
-    [Theory]
-    [ClassData(typeof(AuthorizationTestData))]
-    [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task NoAuthServices_Authenticated_False(Action<IRequestExecutorBuilder> configure)
-    {
-        // arrange
-        TestServer server = CreateTestServer(
-            builder =>
-            {
-                configure(builder);
-            },
-            context =>
-            {
-                context.User = new ClaimsPrincipal(
-                    new ClaimsIdentity());
-            });
-
-        // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
-
-        // assert
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        result.MatchSnapshot();
+                  "message": "The `HasAgeDefined` authorization policy does not exist.",
+                  "locations": [
+                    {
+                      "line": 1,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "age"
+                  ],
+                  "extensions": {
+                    "code": "AUTH_POLICY_NOT_FOUND"
+                  }
+                }
+              ],
+              "Extensions": null
+            }
+            """);
     }
 
     [Theory]
@@ -109,7 +194,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_NotFound(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -128,7 +213,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // ac
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
@@ -142,7 +227,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
            builder =>
             {
                 configure(builder);
@@ -161,7 +246,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
@@ -175,7 +260,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_Resources_Is_IResolverContext(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -193,7 +278,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
@@ -207,7 +292,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -229,7 +314,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
@@ -244,9 +329,10 @@ public class AuthorizationTests : ServerTestBase
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
+                builder.Services.AddAuthorizationCore();
                 configure(builder);
             },
             context =>
@@ -256,8 +342,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -270,9 +355,10 @@ public class AuthorizationTests : ServerTestBase
     public async Task Roles_UserHasDifferentRoles_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
+                builder.Services.AddAuthorizationCore();
                 configure(builder);
             },
             context =>
@@ -285,8 +371,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -299,9 +384,10 @@ public class AuthorizationTests : ServerTestBase
     public async Task Roles_UserHasNoneOfTheRoles_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
+                builder.Services.AddAuthorizationCore();
                 configure(builder);
             },
             context =>
@@ -314,8 +400,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -328,9 +413,10 @@ public class AuthorizationTests : ServerTestBase
     public async Task Roles_UserHasAllOfTheRoles_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
+                builder.Services.AddAuthorizationCore();
                 configure(builder);
             },
             context =>
@@ -346,8 +432,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -361,9 +446,10 @@ public class AuthorizationTests : ServerTestBase
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
+                builder.Services.AddAuthorizationCore();
                 configure(builder);
             },
             context =>
@@ -376,7 +462,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
@@ -390,23 +476,21 @@ public class AuthorizationTests : ServerTestBase
     public async Task Roles_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
+                builder.Services.AddAuthorizationCore();
                 configure(builder);
             },
             context =>
             {
                 var identity = new ClaimsIdentity("testauth");
-                identity.AddClaim(new Claim(
-                    ClaimTypes.Role,
-                    "a"));
+                identity.AddClaim(new Claim(ClaimTypes.Role, "a"));
                 context.User = new ClaimsPrincipal(identity);
             });
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -420,7 +504,7 @@ public class AuthorizationTests : ServerTestBase
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -450,8 +534,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ piped }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ piped }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -465,7 +548,7 @@ public class AuthorizationTests : ServerTestBase
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -492,7 +575,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ piped }" });
 
         // assert
@@ -506,7 +589,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_Is_Executed_After_Resolver_User_Is_Allowed(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -535,7 +618,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ afterResolver }" });
 
         // assert
@@ -549,7 +632,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_Is_Executed_After_Resolver_User_Is_Denied(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -578,7 +661,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ afterResolver }" });
 
         // assert
@@ -591,12 +674,12 @@ public class AuthorizationTests : ServerTestBase
     {
         // arrange
         // act
-        Action action = () =>
+        static void Action() =>
             AuthorizeSchemaBuilderExtensions
-                .AddAuthorizeDirectiveType(null);
+                .AddAuthorizeDirectiveType(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     private TestServer CreateTestServer(

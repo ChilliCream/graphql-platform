@@ -62,9 +62,9 @@ public class EnumValueDescriptor
         return this;
     }
 
-    public IEnumValueDescriptor Name(NameString value)
+    public IEnumValueDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -73,10 +73,6 @@ public class EnumValueDescriptor
         Definition.Description = value;
         return this;
     }
-
-    [Obsolete("Use `Deprecated`.")]
-    public IEnumValueDescriptor DeprecationReason(string reason) =>
-        Deprecated(reason);
 
     public IEnumValueDescriptor Deprecated(string reason)
     {
@@ -115,8 +111,7 @@ public class EnumValueDescriptor
         return this;
     }
 
-    public IEnumValueDescriptor Directive(
-        NameString name, params ArgumentNode[] arguments)
+    public IEnumValueDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;

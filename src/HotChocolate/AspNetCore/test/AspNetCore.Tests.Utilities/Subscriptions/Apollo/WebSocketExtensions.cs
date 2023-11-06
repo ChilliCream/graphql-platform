@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net.WebSockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
@@ -41,7 +37,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static async Task SendTerminateConnectionAsync(
@@ -50,7 +46,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionTerminate);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static async Task SendSubscriptionStartAsync(
@@ -72,7 +68,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Stop, id: subscriptionId);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static Task SendMessageAsync(
@@ -99,7 +95,7 @@ public static class WebSocketExtensions
     {
         var buffer = new byte[SocketDefaults.BufferSize];
 
-        await using Stream stream = message.CreateMessageStream(largeMessage);
+        await using var stream = message.CreateMessageStream(largeMessage);
         int read;
 
         do
@@ -151,7 +147,7 @@ public static class WebSocketExtensions
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
     }
 
-    public static async Task<IReadOnlyDictionary<string, object>> ReceiveServerMessageAsync(
+    public static async Task<IReadOnlyDictionary<string, object?>?> ReceiveServerMessageAsync(
         this WebSocket webSocket,
         CancellationToken cancellationToken)
     {
@@ -182,13 +178,12 @@ public static class WebSocketExtensions
             return null;
         }
 
-        return (IReadOnlyDictionary<string, object>)ParseJson(stream.ToArray());
+        return (IReadOnlyDictionary<string, object?>?)ParseJson(stream.ToArray())!;
     }
 
     private sealed class HelperOperationMessage : OperationMessage
     {
-        public HelperOperationMessage(
-            string type, string id, object payload)
+        public HelperOperationMessage(string type, string id, object payload)
             : base(type)
         {
             Id = id;

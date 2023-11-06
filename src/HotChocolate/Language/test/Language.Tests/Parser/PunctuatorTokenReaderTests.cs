@@ -98,7 +98,7 @@ public class PunctuatorTokenReaderTests
     public void SpreadExpected(string s)
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(s);
+        var source = Encoding.UTF8.GetBytes(s);
 
         // act
         void Fail() => new Utf8GraphQLReader(source).Read();
@@ -115,7 +115,7 @@ public class PunctuatorTokenReaderTests
     private void ReadToken(string sourceBody, TokenKind kind)
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(sourceBody);
+        var source = Encoding.UTF8.GetBytes(sourceBody);
         var reader = new Utf8GraphQLReader(source);
 
         // act

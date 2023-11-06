@@ -29,7 +29,7 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
         out string? path,
         out string ns)
     {
-        ComplexTypeDescriptor complexTypeDescriptor =
+        var complexTypeDescriptor =
             typeDescriptor as ComplexTypeDescriptor ??
             throw new InvalidOperationException(
                 "A result entity mapper can only be generated for complex types");
@@ -39,18 +39,19 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
         path = State;
         ns = CreateStateNamespace(complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal);
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .AddImplements(TypeNames.IOperationResultDataInfo)
             .SetName(fileName);
 
-        ConstructorBuilder constructorBuilder = classBuilder
+        var constructorBuilder = classBuilder
             .AddConstructor()
             .SetTypeName(complexTypeDescriptor.RuntimeType.Name);
 
         foreach (var prop in complexTypeDescriptor.Properties)
         {
-            TypeReferenceBuilder propTypeBuilder = prop.Type.ToStateTypeReference();
+            var propTypeBuilder = prop.Type.ToStateTypeReference();
 
             // Add Property to class
             classBuilder
@@ -113,7 +114,7 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
                 .SetNew()
                 .SetMethodName(className)
                 .AddArgumentRange(
-                    complexTypeDescriptor.Properties.Select(x => x.Name.Value))
+                    complexTypeDescriptor.Properties.Select(x => x.Name))
                 .If(settings.IsStoreEnabled(),
                     x => x.AddArgument(_entityIds).AddArgument(version)));
 

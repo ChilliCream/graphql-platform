@@ -8,12 +8,12 @@ public interface IInterfaceTypeDescriptor
     : IDescriptor<InterfaceTypeDefinition>
     , IFluent
 {
-    // <summary>
+    /// <summary>
     /// Associates the specified
     /// <paramref name="interfaceTypeDefinition"/>
     /// with the <see cref="InterfaceType"/>.
     /// </summary>
-    /// <param name="syntaxNode">
+    /// <param name="interfaceTypeDefinition">
     /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
     /// </param>
     IInterfaceTypeDescriptor SyntaxNode(
@@ -27,7 +27,7 @@ public interface IInterfaceTypeDescriptor
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IInterfaceTypeDescriptor Name(NameString value);
+    IInterfaceTypeDescriptor Name(string value);
 
     /// <summary>
     /// Adds explanatory text to the <see cref="InterfaceType"/>
@@ -35,34 +35,6 @@ public interface IInterfaceTypeDescriptor
     /// </summary>
     /// <param name="value">The interface type description.</param>
     IInterfaceTypeDescriptor Description(string value);
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface<T>()
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface<T>(T type)
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <param name="type">
-    /// A syntax node representing an interface type.
-    /// </param>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface(NamedTypeNode type);
 
     /// <summary>
     /// Specifies an interface that is implemented by the
@@ -92,7 +64,7 @@ public interface IInterfaceTypeDescriptor
     IInterfaceTypeDescriptor ResolveAbstractType(
         ResolveAbstractType typeResolver);
 
-    IInterfaceFieldDescriptor Field(NameString name);
+    IInterfaceFieldDescriptor Field(string name);
 
     IInterfaceTypeDescriptor Directive<T>(T directiveInstance)
         where T : class;
@@ -101,6 +73,6 @@ public interface IInterfaceTypeDescriptor
         where T : class, new();
 
     IInterfaceTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

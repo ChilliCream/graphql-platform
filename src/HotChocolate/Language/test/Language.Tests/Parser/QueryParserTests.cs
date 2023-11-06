@@ -1,14 +1,22 @@
 using System.Linq;
 using System.Text;
-using ChilliCream.Testing;
-using Snapshooter;
-using Snapshooter.Xunit;
+using CookieCrumble;
 using Xunit;
+using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace HotChocolate.Language;
 
 public class QueryParserTests
 {
+    [Fact]
+    public void Reject_Queries_With_More_Than_2048_Fields()
+    {;
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(FileResource.Open("aliases.graphql")))
+            .Message
+            .MatchInlineSnapshot("The GraphQL request document contains more than 2048 fields. Parsing aborted.");
+    }
+
     [Fact]
     public void ParseSimpleShortHandFormQuery()
     {
@@ -18,9 +26,11 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
+        Assert.Equal(2, document.FieldsCount);
+
         Assert.Collection(document.Definitions,
             t =>
             {
@@ -72,7 +82,7 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         Assert.Collection(document.Definitions,
@@ -130,7 +140,7 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         Assert.Collection(document.Definitions,
@@ -175,7 +185,7 @@ public class QueryParserTests
                 Assert.Empty(fragmentDefinition.VariableDefinitions);
                 Assert.Empty(fragmentDefinition.Directives);
 
-                ISelectionNode selectionNode = fragmentDefinition
+                var selectionNode = fragmentDefinition
                     .SelectionSet.Selections.Single();
                 Assert.IsType<FieldNode>(selectionNode);
                 Assert.Equal("z", ((FieldNode)selectionNode).Name.Value);
@@ -201,11 +211,13 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        document.MatchSnapshot();
-        document.ToString().MatchSnapshot(new SnapshotNameExtension("serialized"));
+        var snapshot = new Snapshot();
+        snapshot.Add(document, "Query");
+        snapshot.Add(document, "AST", Json);
+        snapshot.Match();
     }
 
     [Fact]
@@ -219,7 +231,7 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.MatchSnapshot();
@@ -236,7 +248,7 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.MatchSnapshot();
@@ -253,7 +265,7 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.MatchSnapshot();
@@ -270,10 +282,10 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        StringValueNode value = Assert.IsType<StringValueNode>(
+        var value = Assert.IsType<StringValueNode>(
             document.Definitions.OfType<OperationDefinitionNode>().First()
             .SelectionSet.Selections.OfType<FieldNode>().First()
             .Arguments.First().Value);
@@ -293,10 +305,10 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        IntValueNode value = Assert.IsType<IntValueNode>(
+        var value = Assert.IsType<IntValueNode>(
             document.Definitions.OfType<OperationDefinitionNode>().First()
             .SelectionSet.Selections.OfType<FieldNode>().First()
             .Arguments.First().Value);
@@ -318,10 +330,10 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        FloatValueNode value = Assert.IsType<FloatValueNode>(
+        var value = Assert.IsType<FloatValueNode>(
             document.Definitions.OfType<OperationDefinitionNode>().First()
             .SelectionSet.Selections.OfType<FieldNode>().First()
             .Arguments.First().Value);
@@ -341,10 +353,10 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        BooleanValueNode value = Assert.IsType<BooleanValueNode>(
+        var value = Assert.IsType<BooleanValueNode>(
             document.Definitions.OfType<OperationDefinitionNode>().First()
             .SelectionSet.Selections.OfType<FieldNode>().First()
             .Arguments.First().Value);
@@ -364,10 +376,10 @@ public class QueryParserTests
         // acts
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        EnumValueNode value = Assert.IsType<EnumValueNode>(
+        var value = Assert.IsType<EnumValueNode>(
             document.Definitions.OfType<OperationDefinitionNode>().First()
             .SelectionSet.Selections.OfType<FieldNode>().First()
             .Arguments.First().Value);
@@ -385,7 +397,7 @@ public class QueryParserTests
         // acts
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         Assert.IsType<NullValueNode>(
@@ -404,7 +416,7 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         Assert.Collection(
@@ -424,10 +436,10 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        IValueNode value =
+        var value =
             document.Definitions.OfType<OperationDefinitionNode>().First()
                 .SelectionSet.Selections.OfType<FieldNode>().First()
                 .Arguments.First().Value;
@@ -447,10 +459,10 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        IValueNode value =
+        var value =
             document.Definitions.OfType<OperationDefinitionNode>().First()
                 .SelectionSet.Selections.OfType<FieldNode>().First()
                 .Arguments.First().Value;
@@ -470,7 +482,7 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.MatchSnapshot();
@@ -488,7 +500,7 @@ public class QueryParserTests
         // act
         var parser = new Utf8GraphQLParser(
             sourceText, ParserOptions.Default);
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.MatchSnapshot();

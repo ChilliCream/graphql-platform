@@ -17,6 +17,8 @@ public sealed class SocketClientStub : ISocketClient
         new(TaskCreationOptions.None);
     private bool _isClosed = true;
 
+    public event EventHandler ReceiveFinished = default!;
+
     public SemaphoreSlim Blocker { get; } = new(0);
 
     public Uri? Uri { get; set; }
@@ -45,9 +47,9 @@ public sealed class SocketClientStub : ISocketClient
         set => _isClosed = value;
     }
 
-    public bool KeepOpen { get; set; } = false;
+    public bool KeepOpen { get; set; }
 
-    public bool IsDisposed { get; set; } = false;
+    public bool IsDisposed { get; set; }
 
     public ValueTask SendAsync(
         ReadOnlyMemory<byte> message,

@@ -1,23 +1,23 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class FragmentsOnCompositeTypesRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public FragmentsOnCompositeTypesRuleTests()
-            : base(builder => builder.AddFragmentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        /// <summary>
-        /// Validate: Fragments on composite types
-        /// </summary>
-        [Fact]
-        public void Fragment_On_Object_Is_Valid()
-        {
-            ExpectValid(@"
+public class FragmentsOnCompositeTypesRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public FragmentsOnCompositeTypesRuleTests()
+        : base(builder => builder.AddFragmentRules())
+    {
+    }
+
+    /// <summary>
+    /// Validate: Fragments on composite types
+    /// </summary>
+    [Fact]
+    public void Fragment_On_Object_Is_Valid()
+    {
+        ExpectValid(@"
                 {
                     dog {
                        ... fragOnObject
@@ -28,15 +28,15 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        /// <summary>
-        /// Interface is valid fragment type
-        /// </summary>
-        [Fact]
-        public void Fragment_On_Interface_Is_Valid()
-        {
-            ExpectValid(@"
+    /// <summary>
+    /// Interface is valid fragment type
+    /// </summary>
+    [Fact]
+    public void Fragment_On_Interface_Is_Valid()
+    {
+        ExpectValid(@"
                 {
                     dog {
                        ... fragOnInterface
@@ -47,15 +47,15 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        /// <summary>
-        /// Object is valid inline fragment type
-        /// </summary>
-        [Fact]
-        public void Object_Is_Valid_Inline_FragmentType()
-        {
-            ExpectValid(@"
+    /// <summary>
+    /// Object is valid inline fragment type
+    /// </summary>
+    [Fact]
+    public void Object_Is_Valid_Inline_FragmentType()
+    {
+        ExpectValid(@"
                 {
                     dog {
                        ... validFragment
@@ -68,15 +68,15 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        /// <summary>
-        /// interface is valid inline fragment type
-        /// </summary>
-        [Fact]
-        public void Interface_Is_Valid_Inline_FragmentType()
-        {
-            ExpectValid(@"
+    /// <summary>
+    /// interface is valid inline fragment type
+    /// </summary>
+    [Fact]
+    public void Interface_Is_Valid_Inline_FragmentType()
+    {
+        ExpectValid(@"
                 {
                     dog {
                        ... validFragment
@@ -89,15 +89,15 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        /// <summary>
-        /// inline fragment without type is valid
-        /// </summary>
-        [Fact]
-        public void InlineFragment_Without_Type_Is_Valid()
-        {
-            ExpectValid(@"
+    /// <summary>
+    /// inline fragment without type is valid
+    /// </summary>
+    [Fact]
+    public void InlineFragment_Without_Type_Is_Valid()
+    {
+        ExpectValid(@"
                 {
                     dog {
                        ... validFragment
@@ -110,16 +110,16 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        /// <summary>
-        /// union is valid fragment type
-        /// </summary>
-        [Fact]
-        public void Fragment_On_Union_Is_Valid()
-        {
-            // arrange
-            ExpectValid(@"
+    /// <summary>
+    /// union is valid fragment type
+    /// </summary>
+    [Fact]
+    public void Fragment_On_Union_Is_Valid()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     dog {
                        ... fragOnUnion
@@ -132,12 +132,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Fragment_On_Scalar_Is_Invalid()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void Fragment_On_Scalar_Is_Invalid()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                        ... fragOnScalar
@@ -151,12 +151,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(t.Message,
                 "Fragments can only be declared on unions, interfaces, " +
                 "and objects."));
-        }
+    }
 
-        [Fact]
-        public void InlineFragment_On_Scalar_Is_Invalid()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void InlineFragment_On_Scalar_Is_Invalid()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                        ... inlineFragOnScalar
@@ -172,6 +172,5 @@ namespace HotChocolate.Validation
             t => Assert.Equal(t.Message,
                 "Fragments can only be declared on unions, interfaces, " +
                 "and objects."));
-        }
     }
 }

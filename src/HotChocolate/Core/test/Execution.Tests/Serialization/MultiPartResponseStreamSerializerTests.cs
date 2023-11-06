@@ -8,77 +8,78 @@ using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution.Serialization
+namespace HotChocolate.Execution.Serialization;
+
+public class MultiPartResponseStreamSerializerTests
 {
-    public class MultiPartResponseStreamSerializerTests
+    [Fact]
+    public async Task Serialize_Response_Stream()
     {
-        [Fact]
-        public async Task Serialize_Response_Stream()
-        {
-            // arrange
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer(label: ""friends"") {
-                                    friends {
-                                        nodes {
-                                            id
-                                            ... @defer {
-                                                name
-                                            }
-                                        }
+        // arrange
+        var result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ModifyOptions(
+                    o =>
+                    {
+                        o.EnableDefer = true;
+                        o.EnableStream = true;
+                    })
+                .ExecuteRequestAsync(
+                    @"{
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... @defer(label: ""friends"") {
+                                friends {
+                                    nodes {
+                                        id
+                                        name
                                     }
                                 }
                             }
-                        }");
+                        }
+                    }");
 
-            IResponseStream stream = Assert.IsType<ResponseStream>(result);
+        IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
-            var memoryStream = new MemoryStream();
-            var serializer = new MultiPartResponseStreamFormatter();
+        var memoryStream = new MemoryStream();
+        var serializer = new MultiPartResultFormatter();
 
-            // act
-            await serializer.FormatAsync(stream, memoryStream, CancellationToken.None);
+        // act
+        await serializer.FormatAsync(stream, memoryStream, CancellationToken.None);
 
-            // assert
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            new StreamReader(memoryStream).ReadToEnd().MatchSnapshot();
-        }
+        // assert
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        (await new StreamReader(memoryStream).ReadToEndAsync()).MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Serialize_ResponseStream_Is_Null()
-        {
-            // arrange
-            var serializer = new MultiPartResponseStreamFormatter();
-           var stream = new Mock<Stream>();
+    [Fact]
+    public async Task Serialize_ResponseStream_Is_Null()
+    {
+        // arrange
+        var serializer = new MultiPartResultFormatter();
+        var stream = new Mock<Stream>();
 
-            // act
-            Task Action() =>
-                serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
+        // act
+        ValueTask Action() => serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>(Action);
-        }
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());
+    }
 
-        [Fact]
-        public async Task Serialize_OutputStream_Is_Null()
-        {
-            // arrange
-            var serializer = new MultiPartResponseStreamFormatter();
-            var stream = new Mock<IResponseStream>();
+    [Fact]
+    public async Task Serialize_OutputStream_Is_Null()
+    {
+        // arrange
+        var serializer = new MultiPartResultFormatter();
+        var stream = new Mock<IResponseStream>();
 
-            // act
-            Task Action() =>
-                serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
+        // act
+        ValueTask Action() => serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>(Action);
-        }
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());
     }
 }

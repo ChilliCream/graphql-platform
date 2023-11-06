@@ -122,7 +122,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -534,7 +534,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -2561,6 +2561,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    /// <summary>
+    /// enum Direction
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Direction
     {
@@ -2585,7 +2588,7 @@ namespace Foo.Bar
             {
                 "INCOMING" => Direction.Incoming,
                 "OUTGOING" => Direction.Outgoing,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum Direction")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -2594,7 +2597,7 @@ namespace Foo.Bar
             {
                 Direction.Incoming => "INCOMING",
                 Direction.Outgoing => "OUTGOING",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum Direction value '{runtimeValue}' can't be converted to string")};
         }
     }
 

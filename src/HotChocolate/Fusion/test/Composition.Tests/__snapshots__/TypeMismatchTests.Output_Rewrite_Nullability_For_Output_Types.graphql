@@ -1,0 +1,36 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  someData1: String
+    @resolver(subgraph: "A", select: "{ someData1 }")
+    @resolver(subgraph: "B", select: "{ someData1 }")
+  someData2: [String]
+    @resolver(subgraph: "A", select: "{ someData2 }")
+    @resolver(subgraph: "B", select: "{ someData2 }")
+  someData3: [String]
+    @resolver(subgraph: "A", select: "{ someData3 }")
+    @resolver(subgraph: "B", select: "{ someData3 }")
+  someData4: [String!]
+    @resolver(subgraph: "A", select: "{ someData4 }")
+    @resolver(subgraph: "B", select: "{ someData4 }")
+  someData5: [String]!
+    @resolver(subgraph: "A", select: "{ someData5 }")
+    @resolver(subgraph: "B", select: "{ someData5 }")
+  someData6: [[String!]]
+    @resolver(subgraph: "A", select: "{ someData6 }")
+    @resolver(subgraph: "B", select: "{ someData6 }")
+  someData7: [[String]!]
+    @resolver(subgraph: "A", select: "{ someData7 }")
+    @resolver(subgraph: "B", select: "{ someData7 }")
+  someData8: [[String!]!]
+    @resolver(subgraph: "A", select: "{ someData8 }")
+    @resolver(subgraph: "B", select: "{ someData8 }")
+  someData9: [[String]!]!
+    @resolver(subgraph: "A", select: "{ someData9 }")
+    @resolver(subgraph: "B", select: "{ someData9 }")
+}

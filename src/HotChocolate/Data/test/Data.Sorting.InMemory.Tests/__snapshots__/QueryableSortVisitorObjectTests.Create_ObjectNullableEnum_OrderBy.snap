@@ -1,0 +1,67 @@
+ASC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": null
+      },
+      null,
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "BAZ"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "QUX"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+13
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "QUX"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "BAZ"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      },
+      {
+        "foo": null
+      },
+      null
+    ]
+  }
+}
+---------------

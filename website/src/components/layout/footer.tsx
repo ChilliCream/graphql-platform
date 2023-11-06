@@ -1,29 +1,37 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetFooterDataQuery } from "../../../graphql-types";
-import LogoTextSvg from "../../images/chillicream-text.svg";
-import LogoIconSvg from "../../images/chillicream.svg";
-import GithubIconSvg from "../../images/github.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import TwitterIconSvg from "../../images/twitter.svg";
-import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { Brand, Logo } from "@/components/sprites";
+import { GetFooterDataQuery } from "@/graphql-types";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
+import { SrOnly } from "@/components/misc/sr-only";
+
+// Brands
+import GithubIconSvg from "@/images/brands/github.svg";
+import LinkedInIconSvg from "@/images/brands/linkedin.svg";
+import SlackIconSvg from "@/images/brands/slack.svg";
+import TwitterIconSvg from "@/images/brands/twitter.svg";
+import YouTubeIconSvg from "@/images/brands/youtube.svg";
+
+// Logos
+import LogoTextSvg from "@/images/logo/chillicream-text.svg";
+import LogoIconSvg from "@/images/logo/chillicream.svg";
 
 export const Footer: FC = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
     query getFooterData {
       site {
         siteMetadata {
-          topnav {
-            name
-            link
-          }
           tools {
             github
+            linkedIn
+            shop
             slack
             twitter
+            youtube
           }
         }
       }
@@ -34,6 +42,7 @@ export const Footer: FC = () => {
         products: childrenDocsJson {
           path
           title
+          latestStableVersion
           versions {
             path
           }
@@ -41,75 +50,115 @@ export const Footer: FC = () => {
       }
     }
   `);
-  const { topnav, tools } = data.site!.siteMetadata!;
+  const { tools } = data.site!.siteMetadata!;
   const { products } = data.docNav!;
 
   return (
     <Container>
       <Section>
-        <About>
-          <Logo>
+        <Company>
+          <LogoContainer>
             <LogoIcon />
             <LogoText />
-          </Logo>
-          <Description>
-            We at ChilliCream build the ultimate GraphQL platform.
-            <br />
-            Most of our code is open-source and will forever remain open-source.
-            <br />
-            You can be a valued member of our team. Start helping us today.
-          </Description>
+          </LogoContainer>
+          <About>
+            <Address>
+              16192 Coastal Highway
+              <br />
+              Lewes, DE 19958
+              <br />
+              United States
+            </Address>
+          </About>
           <Connect>
             <ConnectLink to={tools!.github!}>
               <IconContainer>
                 <GithubIcon />
-              </IconContainer>{" "}
-              to work with us on the platform
+              </IconContainer>
+              <SrOnly>to work with us on the platform</SrOnly>
             </ConnectLink>
             <ConnectLink to={tools!.slack!}>
               <IconContainer>
                 <SlackIcon />
-              </IconContainer>{" "}
-              to get in touch with us
+              </IconContainer>
+              <SrOnly>to get in touch with us</SrOnly>
+            </ConnectLink>
+            <ConnectLink to={tools!.youtube!}>
+              <IconContainer>
+                <YouTubeIcon />
+              </IconContainer>
+              <SrOnly>to learn new stuff</SrOnly>
             </ConnectLink>
             <ConnectLink to={tools!.twitter!}>
               <IconContainer>
                 <TwitterIcon />
-              </IconContainer>{" "}
-              to stay up-to-date
+              </IconContainer>
+              <SrOnly>to stay up-to-date</SrOnly>
+            </ConnectLink>
+            <ConnectLink to={tools!.linkedIn!}>
+              <IconContainer>
+                <LinkedInIcon />
+              </IconContainer>
+              <SrOnly>to connect</SrOnly>
             </ConnectLink>
           </Connect>
-        </About>
+        </Company>
         <Links>
-          <Title>Navigation</Title>
+          <Title>Products</Title>
           <Navigation>
-            {topnav!.map((item, index) => (
-              <NavLink key={`topnav-item-${index}`} to={item!.link!}>
-                {item!.name}
-              </NavLink>
-            ))}
+            <NavLink to="/products/bananacakepop">Banana Cake Pop</NavLink>
+            <NavLink to="/products/hotchocolate">Hot Chocolate</NavLink>
+            <NavLink to="/products/strawberryshake">Strawberry Shake</NavLink>
           </Navigation>
         </Links>
-        <Location>
-          <Title>Documentation</Title>
+        <Links>
+          <Title>Developers</Title>
           <Navigation>
             {products!.map((product, index) => (
               <NavLink
-                key={`products-item-${index}`}
-                to={
-                  product!.versions![0]!.path! === ""
-                    ? `/docs/${product!.path!}/`
-                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}/`
-                }
+                key={`doc-item-${index}`}
+                to={`/docs/${product!.path!}/${product!.latestStableVersion!}`}
               >
                 {product!.title}
               </NavLink>
             ))}
+            <NavLink to="/blog">Blog</NavLink>
           </Navigation>
-        </Location>
+        </Links>
+        <Links>
+          <Title>Services</Title>
+          <Navigation>
+            <NavLink to="/services/advisory">Advisory</NavLink>
+            <NavLink to="/services/training">Training</NavLink>
+            <NavLink to="/services/support">Support</NavLink>
+          </Navigation>
+        </Links>
+        <Links>
+          <Title>About</Title>
+          <Navigation>
+            <NavLink prefetch={false} to="mailto:contact@chillicream.com">
+              Contact
+            </NavLink>
+            <NavLink prefetch={false} to="/legal/acceptable-use-policy.html">
+              Acceptable Use
+            </NavLink>
+            <NavLink prefetch={false} to="/legal/cookie-policy.html">
+              Cookie Policy
+            </NavLink>
+            <NavLink prefetch={false} to="/legal/privacy-policy.html">
+              Privacy Policy
+            </NavLink>
+            <NavLink prefetch={false} to="/legal/terms-of-service.html">
+              Terms of Service
+            </NavLink>
+          </Navigation>
+        </Links>
       </Section>
       <Section>
-        <Copyright>© {new Date().getFullYear()} ChilliCream</Copyright>
+        <Copyright>
+          <span>© {new Date().getFullYear()} ChilliCream Inc</span>
+          <span>All Rights Reserved</span>
+        </Copyright>
       </Section>
     </Container>
   );
@@ -119,7 +168,7 @@ const Container = styled.footer`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 0 60px;
+  padding: 40px 0;
   width: 100%;
   background-color: #252d3c;
   color: ${THEME_COLORS.footerText};
@@ -133,47 +182,55 @@ const Section = styled.div`
   max-width: 1400px;
 `;
 
-const About = styled.div`
-  display: flex;
-  flex: 5 1 auto;
-  flex-direction: column;
+const Company = styled.div`
+  flex: 6 1 auto;
+  display: grid;
+  grid-template: 1fr 1fr auto;
+  gap: 25px;
   padding: 0 20px;
+
+  @media only screen and (min-width: 768px) {
+    flex-wrap: nowrap;
+  }
 `;
 
-const Logo = styled.div`
+const LogoContainer = styled.div`
   display: flex;
-  flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 10px;
 `;
 
-const LogoIcon = styled(LogoIconSvg)`
+const About = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+`;
+
+const LogoIcon = styled(Logo).attrs(LogoIconSvg)`
   height: 40px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const LogoText = styled(LogoTextSvg)`
+const LogoText = styled(Logo).attrs(LogoTextSvg)`
   padding-left: 15px;
   height: 24px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const Description = styled.p`
+const Address = styled.p`
   font-size: 0.833em;
-  line-height: 1.5em;
-  margin-bottom: 10px;
+  line-height: 1.75em;
+  margin: 0;
 `;
 
 const Connect = styled.div`
   display: flex;
   flex: 0 0 auto;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 0 10px;
 `;
 
 const ConnectLink = styled(Link)`
-  flex: 0 0 auto;
-  margin: 5px 0;
   font-size: 0.833em;
   text-decoration: none;
   color: ${THEME_COLORS.footerText};
@@ -197,17 +254,27 @@ const ConnectLink = styled(Link)`
   }
 `;
 
-const GithubIcon = styled(GithubIconSvg)`
+const GithubIcon = styled(Brand).attrs(GithubIconSvg)`
   height: 26px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const SlackIcon = styled(SlackIconSvg)`
+const SlackIcon = styled(Brand).attrs(SlackIconSvg)`
   height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const TwitterIcon = styled(TwitterIconSvg)`
+const YouTubeIcon = styled(Brand).attrs(YouTubeIconSvg)`
+  height: 22px;
+  fill: ${THEME_COLORS.footerText};
+`;
+
+const TwitterIcon = styled(Brand).attrs(TwitterIconSvg)`
+  height: 22px;
+  fill: ${THEME_COLORS.footerText};
+`;
+
+const LinkedInIcon = styled(Brand).attrs(LinkedInIconSvg)`
   height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;
@@ -216,7 +283,8 @@ const Links = styled.div`
   display: none;
   flex: 2 1 auto;
   flex-direction: column;
-  padding: 0 20px;
+  padding: 0 10px;
+  min-width: 150px;
 
   @media only screen and (min-width: 768px) {
     display: flex;
@@ -244,26 +312,17 @@ const NavLink = styled(Link)`
   }
 `;
 
-const Location = styled.div`
-  display: none;
-  flex: 3 1 auto;
-  flex-direction: column;
-  padding: 0 20px;
-  line-height: 1.5em;
-
-  @media only screen and (min-width: 768px) {
-    display: flex;
-  }
-`;
-
 const Title = styled.h3`
   margin: 15px 0 9px;
   font-size: 1em;
-  font-weight: bold;
-  color: ${THEME_COLORS.footerText};
+  font-weight: 600;
+  color: ${THEME_COLORS.textContrast};
 `;
 
 const Copyright = styled.div`
-  margin-top: 20px;
-  padding: 0 20px;
+  margin: 30px 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em 1em;
+  font-size: 0.833em;
 `;

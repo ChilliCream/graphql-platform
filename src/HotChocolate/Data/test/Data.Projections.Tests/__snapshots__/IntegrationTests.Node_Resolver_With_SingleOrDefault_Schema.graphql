@@ -1,0 +1,36 @@
+schema {
+  query: QueryWithNodeResolvers
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type Bar implements Node {
+  id: ID!
+  fieldOfBar: String!
+}
+
+type Baz implements Node {
+  id: ID!
+  fieldOfBaz: String!
+}
+
+type Foo implements Node {
+  id: ID!
+  fieldOfFoo: String!
+}
+
+type QueryWithNodeResolvers {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  all: [Foo!]!
+  byId(id: ID!): Foo
+  bazById(id: ID!): Baz
+  barById(id: ID!): Bar!
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

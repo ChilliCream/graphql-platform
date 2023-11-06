@@ -1,12 +1,9 @@
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using Xunit;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
@@ -40,7 +37,7 @@ public class FieldCollectorTests
             .First();
 
         // act
-        SelectionSetVariants selectionSetVariants =
+        var selectionSetVariants =
             new FieldCollector(schema, document)
                 .CollectFields(operation.SelectionSet, schema.QueryType, Path.Root);
 
@@ -86,20 +83,20 @@ public class FieldCollectorTests
             .First();
 
         // act
-        SelectionSetVariants selectionSetVariants =
+        var selectionSetVariants =
             new FieldCollector(schema, document)
                 .CollectFields(
                     secondLevel.SelectionSet!,
                     character,
-                    PathFactory.Instance.New("hero"));
+                    Path.Root.Append("hero"));
 
         // assert
         Assert.Collection(
             selectionSetVariants.ReturnType.Fields,
             field => Assert.Equal("name", field.ResponseName));
-        Assert.Equal("Character", selectionSetVariants.ReturnType.Type.Name.Value);
-        Assert.Equal("Human", selectionSetVariants.Variants[0].Type.Name.Value);
-        Assert.Equal("Droid", selectionSetVariants.Variants[1].Type.Name.Value);
+        Assert.Equal("Character", selectionSetVariants.ReturnType.Type.Name);
+        Assert.Equal("Human", selectionSetVariants.Variants[0].Type.Name);
+        Assert.Equal("Droid", selectionSetVariants.Variants[1].Type.Name);
 
         Assert.Collection(
             selectionSetVariants.Variants[1].FragmentNodes,

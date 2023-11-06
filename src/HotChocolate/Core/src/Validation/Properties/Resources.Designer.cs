@@ -255,6 +255,12 @@ namespace HotChocolate.Validation.Properties {
             }
         }
         
+        internal static string ErrorHelper_SubscriptionNoTopLevelIntrospectionField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SubscriptionNoTopLevelIntrospectionField", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_MaxOperationComplexity {
             get {
                 return ResourceManager.GetString("ErrorHelper_MaxOperationComplexity", resourceCulture);
@@ -266,7 +272,7 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_MaxExecutionDepth", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_DirectiveMustBeUniqueInLocation {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveMustBeUniqueInLocation", resourceCulture);
@@ -288,6 +294,24 @@ namespace HotChocolate.Validation.Properties {
         internal static string ErrorHelper_OneOfVariablesMustBeNonNull {
             get {
                 return ResourceManager.GetString("ErrorHelper_OneOfVariablesMustBeNonNull", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DeferAndStreamDuplicateLabel {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DeferAndStreamDuplicateLabel", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DeferAndStreamLabelIsVariable {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DeferAndStreamLabelIsVariable", resourceCulture);
             }
         }
     }

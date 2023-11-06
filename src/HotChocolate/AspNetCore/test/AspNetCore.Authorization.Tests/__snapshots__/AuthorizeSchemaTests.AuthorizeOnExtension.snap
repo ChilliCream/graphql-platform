@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "The current user is not authorized to access this resource.",
@@ -12,11 +12,8 @@
         "bar"
       ],
       "extensions": {
-        "code": "AUTH_NOT_AUTHENTICATED"
+        "code": "AUTH_NOT_AUTHORIZED"
       }
     }
-  ],
-  "data": {
-    "bar": null
-  }
+  ]
 }

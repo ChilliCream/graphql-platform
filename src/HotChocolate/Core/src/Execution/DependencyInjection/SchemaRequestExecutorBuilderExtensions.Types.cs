@@ -4,7 +4,9 @@ using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
@@ -20,7 +22,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// This type must inherit from <see cref="ObjectType{T}"/> or be a class.
     /// </param>
     /// <param name="operation">
-    /// The operation type that <see cref="rootType"/> represents.
+    /// The operation type that <paramref name="rootType"/> represents.
     /// </param>
     /// <returns>
     /// Returns the GraphQL configuration builder.
@@ -29,7 +31,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="rootType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="rootType"/> is either not a class or is not inheriting from
+    /// - <paramref name="rootType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A root type for the specified <paramref name="operation"/> was already set.
@@ -62,7 +64,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// An instance of <see cref="ObjectType"/> that represents a root type.
     /// </param>
     /// <param name="operation">
-    /// The operation type that <see cref="rootType"/> represents.
+    /// The operation type that <paramref name="rootType"/> represents.
     /// </param>
     /// <returns>
     /// Returns the GraphQL configuration builder.
@@ -112,7 +114,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL query type with the name `Query` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <param name="builder">
     /// The GraphQL configuration builder.
@@ -152,7 +154,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL query type with the name `Query` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <typeparam name="T">
     /// The query runtime type.
@@ -208,7 +210,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="queryType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="queryType"/> is either not a class or is not inheriting from
+    /// - <paramref name="queryType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A query type was already added.
@@ -319,7 +321,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL mutation type with the name `Mutation` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <param name="builder">
     /// The GraphQL configuration builder.
@@ -359,7 +361,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL mutation type with the name `Mutation` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <typeparam name="T">
     /// The mutation runtime type.
@@ -415,7 +417,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="mutationType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="mutationType"/> is either not a class or is not inheriting from
+    /// - <paramref name="mutationType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A mutation type was already added.
@@ -526,7 +528,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL subscription type with the name `Subscription` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <param name="builder">
     /// The GraphQL configuration builder.
@@ -566,7 +568,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Add a GraphQL subscription type with the name `Subscription` and applies the
-    /// <see cref="configure"/> delegate.
+    /// <paramref name="configure"/> delegate.
     /// </summary>
     /// <typeparam name="T">
     /// The subscription runtime type.
@@ -622,7 +624,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="subscriptionType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="subscriptionType"/> is either not a class or is not inheriting from
+    /// - <paramref name="subscriptionType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A subscription type was already added.
@@ -1539,12 +1541,6 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         return builder.ConfigureSchema(b => b.AddType<TExtension>());
     }
 
-    [Obsolete("Use BindRuntimeType")]
-    public static IRequestExecutorBuilder BindClrType<TRuntimeType, TSchemaType>(
-        this IRequestExecutorBuilder builder)
-        where TSchemaType : INamedType =>
-        BindRuntimeType<TRuntimeType, TSchemaType>(builder);
-
     public static IRequestExecutorBuilder BindRuntimeType<TRuntimeType, TSchemaType>(
         this IRequestExecutorBuilder builder)
         where TSchemaType : INamedType
@@ -1554,15 +1550,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.ConfigureSchema(b => b.BindClrType<TRuntimeType, TSchemaType>());
+        return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType, TSchemaType>());
     }
-
-    [Obsolete("Use BindRuntimeType")]
-    public static IRequestExecutorBuilder BindClrType(
-        this IRequestExecutorBuilder builder,
-        Type runtimeType,
-        Type schemaType) =>
-        BindRuntimeType(builder, runtimeType, schemaType);
 
     public static IRequestExecutorBuilder BindRuntimeType(
         this IRequestExecutorBuilder builder,
@@ -1589,7 +1578,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder BindRuntimeType<TRuntimeType>(
         this IRequestExecutorBuilder builder,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -1597,16 +1586,15 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         }
 
         typeName ??= typeof(TRuntimeType).Name;
+        typeName.EnsureGraphQLName();
 
-        typeName.Value.EnsureNotEmpty(nameof(typeName));
-
-        return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType>(typeName.Value));
+        return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType>(typeName));
     }
 
     public static IRequestExecutorBuilder BindRuntimeType(
         this IRequestExecutorBuilder builder,
         Type runtimeType,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -1619,10 +1607,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         }
 
         typeName ??= runtimeType.Name;
+        typeName.EnsureGraphQLName();
 
-        typeName.Value.EnsureNotEmpty(nameof(typeName));
-
-        return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, typeName.Value));
+        return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, typeName));
     }
 
     public static IRequestExecutorBuilder AddExportDirectiveType(

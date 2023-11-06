@@ -17,7 +17,6 @@ public class OutputFieldBase<TDefinition>
 
     internal OutputFieldBase(TDefinition definition, int index) : base(definition, index)
     {
-        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
         DeprecationReason = definition.DeprecationReason;
     }
 
@@ -40,10 +39,15 @@ public class OutputFieldBase<TDefinition>
     /// <summary>
     /// Defines if this field as a introspection field.
     /// </summary>
-    public virtual bool IsIntrospectionField => false;
+    public bool IsIntrospectionField
+        => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
+    
+    internal bool IsTypeNameField
+        => (Flags & FieldFlags.TypeNameField) == FieldFlags.TypeNameField;
 
     /// <inheritdoc />
-    public bool IsDeprecated { get; }
+    public bool IsDeprecated
+        => (Flags & FieldFlags.Deprecated) == FieldFlags.Deprecated;
 
     /// <inheritdoc />
     public string? DeprecationReason { get; }
@@ -55,7 +59,7 @@ public class OutputFieldBase<TDefinition>
     {
         base.OnCompleteField(context, declaringMember, definition);
 
-        Type = context.GetType<IOutputType>(definition.Type!);
+        Type = context.GetType<IOutputType>(definition.Type!).EnsureOutputType();
         _runtimeType = CompleteRuntimeType(Type, null);
         Arguments = OnCompleteFields(context, definition);
     }

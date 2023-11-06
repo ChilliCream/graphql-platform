@@ -179,7 +179,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
     public Type ErrorType { get; }
 
     /// <inheritdoc />
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
@@ -189,7 +189,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
 #if NET6_0_OR_GREATER
 /// <summary>
 /// The <see cref="ErrorAttribute{T}"/> registers a middleware that will catch all exceptions of
-/// type <see cref="ErrorAttribute{T}.ErrorType"/> on mutations.
+/// type <see cref="ErrorAttribute.ErrorType"/> on mutations.
 ///
 /// By annotating the attribute the response type
 /// of the annotated mutation resolver, will be automatically extended by a field of type
@@ -218,6 +218,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
 /// If <see cref="ErrorAttribute.ErrorType"/> is a exception, the exception is automatically
 /// mapped into a GraphQL error and the middleware will catch this exception
 /// <code>
+/// <![CDATA[
 /// public class Mutation
 /// {
 ///     [Error<SomeSpecificDomainError>]
@@ -231,9 +232,11 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
 /// public record CreateUserInput(string UserName);
 ///
 /// public record CreateUserPayload(User User);
+/// ]]>
 /// </code>
 /// This will generate the following schema
 /// <code>
+/// <![CDATA[
 /// type Mutation {
 ///   createUser(input: CreateUserInput!): CreateUserPayload!
 /// }
@@ -264,8 +267,9 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
 /// }
 ///
 /// union CreateUserError = SomeSpecificDomainError | SomeOtherDomainError
+/// ]]>
 /// </code>
-///    </item>
+/// </item>
 /// <item>
 /// <para>
 /// <b>Map Exceptions with a factory method</b>
@@ -282,6 +286,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
 /// of the error.
 /// </para>
 /// <code>
+/// <![CDATA[
 /// public class MyCustomError
 /// {
 ///     public static MyCustomError CreateErrorFrom(DomainExceptionA ex)
@@ -309,6 +314,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
 /// public record CreateUserInput(string UserName);
 ///
 /// public record CreateUserPayload(User User);
+/// ]]>
 /// </code>
 /// </item>
 /// <item>
@@ -320,6 +326,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
 /// in the constructor of the object that should be used to represent the error in the schema.
 /// </para>
 /// <code>
+/// <![CDATA[
 /// public class MyCustomError
 /// {
 ///     public MyCustomError(MyCustomDomainException exception)
@@ -343,6 +350,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
 ///        // ...
 ///     }
 /// }
+/// ]]>
 /// </code>
 /// </item>
 /// </list>

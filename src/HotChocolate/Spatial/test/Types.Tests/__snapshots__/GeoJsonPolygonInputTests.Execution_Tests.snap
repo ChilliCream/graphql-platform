@@ -1,206 +1,22 @@
-﻿{
-  "Kind": "SingleResult",
-  "Label": null,
-  "Path": null,
-  "Data": null,
-  "Errors": [
+{
+  "errors": [
     {
-      "Message": "The specified value type of field `coordinates` does not match the field type.",
-      "Code": null,
-      "Path": {
-        "Name": "test",
-        "Parent": {
-          "Parent": null,
-          "Depth": -1,
-          "IsRoot": true
-        },
-        "Depth": 0,
-        "IsRoot": false
-      },
-      "Locations": [
+      "message": "The specified value type of field `coordinates` does not match the field type.",
+      "locations": [
         {
-          "Line": 1,
-          "Column": 42
+          "line": 1,
+          "column": 42
         }
       ],
-      "Extensions": {
+      "path": [
+        "test"
+      ],
+      "extensions": {
         "fieldName": "coordinates",
         "fieldType": "[[Position]]",
         "locationType": "[[Position]]",
         "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
-      },
-      "Exception": null,
-      "SyntaxNode": {
-        "Kind": "ListValue",
-        "Location": {
-          "Start": 41,
-          "End": 95,
-          "Line": 1,
-          "Column": 42
-        },
-        "Items": [
-          {
-            "Kind": "ListValue",
-            "Location": {
-              "Start": 43,
-              "End": 54,
-              "Line": 1,
-              "Column": 44
-            },
-            "Items": [
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 44,
-                  "End": 50,
-                  "Line": 1,
-                  "Column": 45
-                },
-                "Value": "30"
-              },
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 48,
-                  "End": 51,
-                  "Line": 1,
-                  "Column": 49
-                },
-                "Value": "10"
-              }
-            ]
-          },
-          {
-            "Kind": "ListValue",
-            "Location": {
-              "Start": 53,
-              "End": 64,
-              "Line": 1,
-              "Column": 54
-            },
-            "Items": [
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 54,
-                  "End": 60,
-                  "Line": 1,
-                  "Column": 55
-                },
-                "Value": "40"
-              },
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 58,
-                  "End": 61,
-                  "Line": 1,
-                  "Column": 59
-                },
-                "Value": "40"
-              }
-            ]
-          },
-          {
-            "Kind": "ListValue",
-            "Location": {
-              "Start": 63,
-              "End": 74,
-              "Line": 1,
-              "Column": 64
-            },
-            "Items": [
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 64,
-                  "End": 70,
-                  "Line": 1,
-                  "Column": 65
-                },
-                "Value": "20"
-              },
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 68,
-                  "End": 71,
-                  "Line": 1,
-                  "Column": 69
-                },
-                "Value": "40"
-              }
-            ]
-          },
-          {
-            "Kind": "ListValue",
-            "Location": {
-              "Start": 73,
-              "End": 84,
-              "Line": 1,
-              "Column": 74
-            },
-            "Items": [
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 74,
-                  "End": 80,
-                  "Line": 1,
-                  "Column": 75
-                },
-                "Value": "10"
-              },
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 78,
-                  "End": 81,
-                  "Line": 1,
-                  "Column": 79
-                },
-                "Value": "20"
-              }
-            ]
-          },
-          {
-            "Kind": "ListValue",
-            "Location": {
-              "Start": 83,
-              "End": 93,
-              "Line": 1,
-              "Column": 84
-            },
-            "Items": [
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 84,
-                  "End": 90,
-                  "Line": 1,
-                  "Column": 85
-                },
-                "Value": "30"
-              },
-              {
-                "Kind": "IntValue",
-                "Location": {
-                  "Start": 88,
-                  "End": 91,
-                  "Line": 1,
-                  "Column": 89
-                },
-                "Value": "10"
-              }
-            ]
-          }
-        ]
       }
     }
-  ],
-  "Extensions": null,
-  "ContextData": {
-    "HotChocolate.Execution.ValidationErrors": true
-  },
-  "HasNext": null
+  ]
 }

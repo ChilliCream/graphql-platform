@@ -1,10 +1,10 @@
+#pragma warning disable CS0618
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
-using HotChocolate.Types.Pagination.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
@@ -13,6 +13,7 @@ public class Query
 {
     [UseDbContext(typeof(BookContext))]
     public IQueryable<Author> GetAuthors(
+
         [ScopedService] BookContext context) =>
         context.Authors;
 
@@ -175,7 +176,7 @@ public class QueryType : ObjectType
             .UseDbContext<BookContext>()
             .Resolve(ctx =>
             {
-                BookContext context = ctx.DbContext<BookContext>();
+                var context = ctx.DbContext<BookContext>();
 
                 return context.Books;
             });
@@ -184,9 +185,10 @@ public class QueryType : ObjectType
             .Field("booksWithMissingContext")
             .Resolve(ctx =>
             {
-                BookContext context = ctx.DbContext<BookContext>();
+                var context = ctx.DbContext<BookContext>();
 
                 return context.Books;
             });
     }
 }
+#pragma warning restore CS0618

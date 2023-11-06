@@ -3,12 +3,11 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Pagination.PagingDefaults;
-using static HotChocolate.Utilities.ThrowHelper;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -45,7 +44,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Type? itemType = null,
         GetOffsetPagingProvider? resolvePagingProvider = null,
-        NameString? collectionSegmentName = null,
+        string? collectionSegmentName = null,
         PagingOptions options = default)
         where TSchemaType : IOutputType =>
         UseOffsetPaging(
@@ -85,7 +84,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         Type? itemType = null,
         Type? entityType = null,
         GetOffsetPagingProvider? resolvePagingProvider = null,
-        NameString? collectionSegmentName = null,
+        string? collectionSegmentName = null,
         PagingOptions options = default)
     {
         if (descriptor is null)
@@ -107,17 +106,17 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                PagingOptions pagingOptions = c.GetSettings(options);
-                if (collectionSegmentName is null or {IsEmpty: true})
+                var pagingOptions = c.GetSettings(options);
+                if (string.IsNullOrEmpty(collectionSegmentName))
                 {
                     collectionSegmentName =
                         pagingOptions.InferCollectionSegmentNameFromField ??
                         InferCollectionSegmentNameFromField
-                            ? (NameString?)EnsureCollectionSegmentNameCasing(d.Name)
+                            ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
 
-                ITypeReference? typeRef = itemType is not null
+                TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
@@ -128,7 +127,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
+                var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
                 d.CustomSettings.Add(typeof(CollectionSegment));
             });
@@ -156,7 +155,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     /// </returns>
     public static IInterfaceFieldDescriptor UseOffsetPaging<TSchemaType>(
         this IInterfaceFieldDescriptor descriptor,
-        NameString? collectionSegmentName = null,
+        string? collectionSegmentName = null,
         PagingOptions options = default)
         where TSchemaType : class, IOutputType =>
         UseOffsetPaging(descriptor, typeof(TSchemaType), collectionSegmentName, options);
@@ -182,7 +181,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     public static IInterfaceFieldDescriptor UseOffsetPaging(
         this IInterfaceFieldDescriptor descriptor,
         Type? itemType = null,
-        NameString? collectionSegmentName = null,
+        string? collectionSegmentName = null,
         PagingOptions options = default)
     {
         if (descriptor is null)
@@ -196,17 +195,17 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                PagingOptions pagingOptions = c.GetSettings(options);
-                if (collectionSegmentName is null or {IsEmpty: true})
+                var pagingOptions = c.GetSettings(options);
+                if (string.IsNullOrEmpty(collectionSegmentName))
                 {
                     collectionSegmentName =
                         pagingOptions.InferCollectionSegmentNameFromField ??
                         InferCollectionSegmentNameFromField
-                            ? (NameString?)EnsureCollectionSegmentNameCasing(d.Name)
+                            ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
 
-                ITypeReference? typeRef = itemType is not null
+                TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
@@ -217,7 +216,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                MemberInfo? resolverMember =  d.Member;
+                var resolverMember =  d.Member;
                 d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
             });
 
@@ -256,28 +255,23 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());
     }
 
-    private static ITypeReference CreateTypeRef(
+    private static TypeReference CreateTypeRef(
         IDescriptorContext context,
         MemberInfo? resolverMember,
-        NameString? collectionSegmentName,
-        ITypeReference? itemsType,
+        string? collectionSegmentName,
+        TypeReference? itemsType,
         PagingOptions options)
     {
-        ITypeInspector typeInspector = context.TypeInspector;
+        var typeInspector = context.TypeInspector;
 
-        if (itemsType is null)
-        {
-            // if there is no explicit node type provided we will try and
-            // infer the schema type from the resolver member.
-            itemsType = TypeReference.Create(
-                PagingHelper.GetSchemaType(typeInspector, resolverMember),
-                TypeContext.Output);
-        }
+        itemsType ??= TypeReference.Create(
+            PagingHelper.GetSchemaType(context, resolverMember),
+            TypeContext.Output);
 
         // if the node type is a syntax type reference we will try to preserve the actual
         // runtime type for later usage.
         if (itemsType.Kind == TypeReferenceKind.Syntax &&
-            PagingHelper.TryGetNamedType(typeInspector, resolverMember, out Type? namedType))
+            PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
         {
             context.TryBindRuntimeType(
                 ((SyntaxTypeReference)itemsType).Type.NamedType().Name.Value,
@@ -298,10 +292,10 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     options.IncludeTotalCount ?? false),
                 TypeContext.Output)
             : TypeReference.Create(
-                collectionSegmentName.Value + "CollectionSegment",
+                collectionSegmentName + "CollectionSegment",
                 TypeContext.Output,
                 factory: _ => new CollectionSegmentType(
-                    collectionSegmentName.Value,
+                    collectionSegmentName,
                     itemsType,
                     options.IncludeTotalCount ?? false));
     }
@@ -319,8 +313,24 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     : entry => providerName.Equals(entry.Name, StringComparison.Ordinal);
             PagingProviderEntry? defaultEntry = null;
 
+            // if we find an application service provider we will prefer that one.
+            var applicationServices = services.GetService<IApplicationServiceProvider>();
 
-            foreach (PagingProviderEntry? entry in services.GetServices<PagingProviderEntry>())
+            if (applicationServices is not null)
+            {
+                foreach (var entry in applicationServices.GetServices<PagingProviderEntry>())
+                {
+                    // the first provider is expected to be the default provider.
+                    defaultEntry ??= entry;
+
+                    if (predicate(entry))
+                    {
+                        return entry.Provider;
+                    }
+                }
+            }
+
+            foreach (var entry in services.GetServices<PagingProviderEntry>())
             {
                 // the first provider is expected to be the default provider.
                 defaultEntry ??= entry;
@@ -346,14 +356,15 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         return new QueryableOffsetPagingProvider();
     }
 
-    private static NameString EnsureCollectionSegmentNameCasing(string collectionSegmentName)
+    private static string EnsureCollectionSegmentNameCasing(string collectionSegmentName)
     {
         if (char.IsUpper(collectionSegmentName[0]))
         {
             return collectionSegmentName;
         }
 
-        return string.Concat(char.ToUpper(collectionSegmentName[0]),
+        return string.Concat(
+            char.ToUpper(collectionSegmentName[0]),
             collectionSegmentName.Substring(1));
     }
 }

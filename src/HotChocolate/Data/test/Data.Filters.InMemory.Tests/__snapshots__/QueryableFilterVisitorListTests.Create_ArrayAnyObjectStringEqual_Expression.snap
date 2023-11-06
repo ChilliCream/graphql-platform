@@ -1,0 +1,111 @@
+false
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+true
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `all` of type FooNestedFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 35
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "FooNestedFilterInput!",
+        "filterType": "FooNestedFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

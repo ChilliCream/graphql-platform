@@ -1,39 +1,29 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Execution.Processing.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
+using static HotChocolate.Execution.Processing.PathHelper;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static bool TryCompleteCompositeValue(
-        IOperationContext operationContext,
-        MiddlewareContext resolverContext,
+    private static ObjectResult? CompleteCompositeValue(
+        ValueCompletionContext context,
         ISelection selection,
-        Path path,
-        IType fieldType,
-        object result,
-        List<ResolverTask> bufferedTasks,
-        [NotNullWhen(true)] out object? completedResult)
+        IType type,
+        ResultData parent,
+        int index,
+        object result)
     {
-        if (TryResolveObjectType(
-            operationContext,
-            resolverContext,
-            selection,
-            path,
-            fieldType,
-            result,
-            out ObjectType? objectType))
+        var operationContext = context.OperationContext;
+
+        if (TryResolveObjectType(context, selection, type, parent, index, result, out var objectType))
         {
-            SelectionSetNode selectionSet = selection.SyntaxNode.SelectionSet!;
-            ISelectionSet selections = operationContext.CollectFields(selectionSet, objectType);
-            Type runtimeType = objectType.RuntimeType;
+            var selectionSet = operationContext.CollectFields(selection, objectType);
+            var runtimeType = objectType.RuntimeType;
 
             if (!runtimeType.IsInstanceOfType(result) &&
                 operationContext.Converter.TryConvert(runtimeType, result, out var converted))
@@ -41,40 +31,28 @@ internal static partial class ValueCompletion
                 result = converted;
             }
 
-            completedResult = EnqueueOrInlineResolverTasks(
-                operationContext,
-                resolverContext,
-                path,
-                objectType,
-                result,
-                selections,
-                bufferedTasks);
-            return true;
+            return EnqueueOrInlineResolverTasks(context, objectType, parent, index, result, selectionSet);
         }
 
-        ReportError(
-            operationContext,
-            resolverContext,
-            selection,
-            ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, path, result));
-
-        completedResult = null;
-        return false;
+        var errorPath = CreatePathFromContext(selection, parent, index);
+        var error = ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, errorPath, result);
+        operationContext.ReportError(error, context.ResolverContext, selection);
+        return null;
     }
 
     private static bool TryResolveObjectType(
-        IOperationContext operationContext,
-        MiddlewareContext resolverContext,
+        ValueCompletionContext context,
         ISelection selection,
-        Path path,
         IType fieldType,
+        ResultData parent,
+        int index,
         object result,
         [NotNullWhen(true)] out ObjectType? objectType)
     {
         try
         {
-            if (resolverContext.ValueType is ObjectType valueType &&
-                ReferenceEquals(selection, resolverContext.Selection))
+            if (context.ResolverContext.ValueType is ObjectType valueType &&
+                ReferenceEquals(selection, context.ResolverContext.Selection))
             {
                 objectType = valueType;
                 return true;
@@ -83,37 +61,34 @@ internal static partial class ValueCompletion
             switch (fieldType.Kind)
             {
                 case TypeKind.Object:
-                    objectType = (ObjectType)fieldType;
+                    objectType = (ObjectType) fieldType;
                     return true;
 
                 case TypeKind.Interface:
-                    objectType = ((InterfaceType)fieldType)
-                        .ResolveConcreteType(resolverContext, result);
+                    objectType = ((InterfaceType) fieldType)
+                        .ResolveConcreteType(context.ResolverContext, result);
                     return objectType is not null;
 
                 case TypeKind.Union:
-                    objectType = ((UnionType)fieldType)
-                        .ResolveConcreteType(resolverContext, result);
+                    objectType = ((UnionType) fieldType)
+                        .ResolveConcreteType(context.ResolverContext, result);
                     return objectType is not null;
             }
 
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                UnableToResolveTheAbstractType(fieldType.Print(), selection.SyntaxNode, path));
+            var error = UnableToResolveTheAbstractType(
+                fieldType.Print(),
+                selection.SyntaxNode,
+                CreatePathFromContext(selection, parent, index));
+            context.OperationContext.ReportError(error, context.ResolverContext, selection);
         }
         catch (Exception ex)
         {
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                UnexpectedErrorWhileResolvingAbstractType(
-                    ex,
-                    fieldType.Print(),
-                    selection.SyntaxNode,
-                    path));
+            var error = UnexpectedErrorWhileResolvingAbstractType(
+                ex,
+                fieldType.Print(),
+                selection.SyntaxNode,
+                CreatePathFromContext(selection, parent, index));
+            context.OperationContext.ReportError(error, context.ResolverContext, selection);
         }
 
         objectType = null;

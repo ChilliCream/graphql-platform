@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -9,15 +8,15 @@ using WellKnownContextData = StrawberryShake.CodeGeneration.Analyzers.WellKnownC
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-public class EntityTypeInterceptor : TypeInterceptor
+internal sealed class EntityTypeInterceptor : TypeInterceptor
 {
     private readonly List<TypeInfo> _outputTypes = new();
     private readonly IReadOnlyList<SelectionSetNode> _globalEntityPatterns;
-    private readonly IReadOnlyDictionary<NameString, SelectionSetNode> _typeEntityPatterns;
+    private readonly IReadOnlyDictionary<string, SelectionSetNode> _typeEntityPatterns;
 
     public EntityTypeInterceptor(
         IReadOnlyList<SelectionSetNode> globalEntityPatterns,
-        IReadOnlyDictionary<NameString, SelectionSetNode> typeEntityPatterns)
+        IReadOnlyDictionary<string, SelectionSetNode> typeEntityPatterns)
     {
         _globalEntityPatterns = globalEntityPatterns;
         _typeEntityPatterns = typeEntityPatterns;
@@ -25,18 +24,18 @@ public class EntityTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
-        if (completionContext.Type is IComplexOutputType outputType)
+        if (completionContext.Type is IComplexOutputType outputType &&
+            definition is not null)
         {
-            if (_typeEntityPatterns.TryGetValue(outputType.Name, out SelectionSetNode? pattern))
+            if (_typeEntityPatterns.TryGetValue(outputType.Name, out var pattern))
             {
-                contextData[WellKnownContextData.Entity] = pattern;
+                definition.ContextData[WellKnownContextData.Entity] = pattern;
             }
             else
             {
-                _outputTypes.Add(new TypeInfo(outputType, contextData));
+                _outputTypes.Add(new TypeInfo(outputType, definition.ContextData));
             }
         }
     }
@@ -45,10 +44,10 @@ public class EntityTypeInterceptor : TypeInterceptor
     {
         if (_globalEntityPatterns.Count > 0)
         {
-            foreach (TypeInfo typeInfo in _outputTypes)
+            foreach (var typeInfo in _outputTypes)
             {
                 if (_globalEntityPatterns.FirstOrDefault(
-                        pattern => DoesPatternMatch(typeInfo.Type, pattern)) is { } matchedPattern)
+                    pattern => DoesPatternMatch(typeInfo.Type, pattern)) is { } matchedPattern)
                 {
                     typeInfo.ContextData[WellKnownContextData.Entity] = matchedPattern;
                 }
@@ -63,7 +62,7 @@ public class EntityTypeInterceptor : TypeInterceptor
         foreach (var selection in pattern.Selections.OfType<FieldNode>())
         {
             if (selection.SelectionSet is null &&
-                outputType.Fields.TryGetField(selection.Name.Value, out IOutputField? field) &&
+                outputType.Fields.TryGetField(selection.Name.Value, out var field) &&
                 field.Type.NamedType().IsLeafType())
             {
                 continue;

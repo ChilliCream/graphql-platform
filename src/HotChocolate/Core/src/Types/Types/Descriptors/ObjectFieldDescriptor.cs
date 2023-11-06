@@ -1,15 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static System.Reflection.BindingFlags;
+using static HotChocolate.Execution.ExecutionStrategy;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -20,24 +22,23 @@ public class ObjectFieldDescriptor
     , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
-    private readonly ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
-        NameString fieldName)
+        string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
+        Definition.Name = fieldName;
         Definition.ResultType = typeof(object);
-        Definition.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
     }
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -46,18 +47,18 @@ public class ObjectFieldDescriptor
         Type? resolverType = null)
         : base(context)
     {
-        Definition.Member = member ??
-            throw new ArgumentNullException(nameof(member));
-        Definition.Name = context.Naming.GetMemberName(member, MemberKind.ObjectField);
-        Definition.Description =
-            context.Naming.GetMemberDescription(member, MemberKind.ObjectField);
+        var naming = context.Naming;
+        Definition.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Definition.Name = naming.GetMemberName(member, MemberKind.ObjectField);
+        Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
-        Definition.ResolverType = resolverType == sourceType ? null : resolverType;
-        Definition.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Definition.ResolverType = resolverType == sourceType
+            ? null
+            : resolverType;
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
-        if (context.Naming.IsDeprecated(member, out var reason))
+        if (naming.IsDeprecated(member, out var reason))
         {
             Deprecated(reason);
         }
@@ -65,7 +66,7 @@ public class ObjectFieldDescriptor
         if (member is MethodInfo m)
         {
             _parameterInfos = m.GetParameters();
-            Parameters = _parameterInfos.ToDictionary(t => new NameString(t.Name!));
+            Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
             Definition.ResultType = m.ReturnType;
         }
         else if (member is PropertyInfo p)
@@ -75,7 +76,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <summary>
-    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -84,26 +85,21 @@ public class ObjectFieldDescriptor
         Type? resolverType = null)
         : base(context)
     {
-        Definition.Expression = expression
-            ?? throw new ArgumentNullException(nameof(expression));
+        Definition.Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Definition.SourceType = sourceType;
         Definition.ResolverType = resolverType;
-        Definition.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
-        MemberInfo? member = expression.TryExtractCallMember();
+        var member = expression.TryExtractCallMember();
 
         if (member is not null)
         {
-            Definition.Name = context.Naming.GetMemberName(
-                member,
-                MemberKind.ObjectField);
-            Definition.Description = context.Naming.GetMemberDescription(
-                member,
-                MemberKind.ObjectField);
+            var naming = context.Naming;
+            Definition.Name = naming.GetMemberName(member, MemberKind.ObjectField);
+            Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
             Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
-            if (context.Naming.IsDeprecated(member, out var reason))
+            if (naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
             }
@@ -140,7 +136,7 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
-        MemberInfo? member = definition.ResolverMember ?? definition.Member;
+        var member = definition.ResolverMember ?? definition.Member;
 
         if (!Definition.AttributesAreApplied && member is not null)
         {
@@ -151,20 +147,69 @@ public class ObjectFieldDescriptor
         base.OnCreateDefinition(definition);
 
         CompleteArguments(definition);
+
+        if (!definition.HasStreamResult &&
+            definition.ResultType?.IsGenericType is true &&
+            definition.ResultType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+        {
+            definition.HasStreamResult = true;
+        }
     }
 
     private void CompleteArguments(ObjectFieldDefinition definition)
     {
-        if (!_argumentsInitialized && Parameters.Count > 0)
+        if (!_argumentsInitialized)
         {
-            Context.ResolverCompiler.ApplyConfiguration(
-                _parameterInfos,
-                this);
+            if (definition.SubscribeWith is not null)
+            {
+                var ownerType = definition.ResolverType ?? definition.SourceType;
 
-            FieldDescriptorUtilities.DiscoverArguments(
-                Context,
-                definition.Arguments,
-                definition.Member);
+                if (ownerType is not null)
+                {
+                    var subscribeMember = ownerType.GetMember(
+                        definition.SubscribeWith,
+                        Public | NonPublic | Instance | Static)[0];
+
+                    if (subscribeMember is MethodInfo subscribeMethod)
+                    {
+                        var subscribeParameters = subscribeMethod.GetParameters();
+                        var parameterLength = _parameterInfos.Length + subscribeParameters.Length;
+                        var parameters = new ParameterInfo[parameterLength];
+
+                        _parameterInfos.CopyTo(parameters, 0);
+                        subscribeParameters.CopyTo(parameters, _parameterInfos.Length);
+                        _parameterInfos = parameters;
+
+                        var parameterLookup = Parameters.ToDictionary(
+                            t => t.Key,
+                            t => t.Value,
+                            StringComparer.Ordinal);
+                        Parameters = parameterLookup;
+
+                        foreach (var parameter in subscribeParameters)
+                        {
+                            if (!parameterLookup.ContainsKey(parameter.Name!))
+                            {
+                                parameterLookup.Add(parameter.Name!, parameter);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (Parameters.Count > 0)
+            {
+                Context.ResolverCompiler.ApplyConfiguration(
+                    _parameterInfos,
+                    this);
+
+                FieldDescriptorUtilities.DiscoverArguments(
+                    Context,
+                    definition.Arguments,
+                    definition.Member,
+                    _parameterInfos,
+                    definition.GetParameterExpressionBuilders());
+            }
 
             _argumentsInitialized = true;
         }
@@ -178,7 +223,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    public new IObjectFieldDescriptor Name(NameString value)
+    public new IObjectFieldDescriptor Name(string value)
     {
         base.Name(value);
         return this;
@@ -190,11 +235,6 @@ public class ObjectFieldDescriptor
         base.Description(value);
         return this;
     }
-
-    /// <inheritdoc />
-    [Obsolete("Use `Deprecated`.")]
-    public IObjectFieldDescriptor DeprecationReason(string? reason) =>
-        Deprecated(reason);
 
     /// <inheritdoc />
     public new IObjectFieldDescriptor Deprecated(string? reason)
@@ -241,8 +281,15 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
+    public IObjectFieldDescriptor StreamResult(bool hasStreamResult = true)
+    {
+        Definition.HasStreamResult = hasStreamResult;
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IObjectFieldDescriptor Argument(
-        NameString argumentName,
+        string argumentName,
         Action<IArgumentDescriptor> argumentDescriptor)
     {
         base.Argument(argumentName, argumentDescriptor);
@@ -257,8 +304,8 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    public IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver) =>
-        Resolve(fieldResolver);
+    public IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver)
+        => Resolve(fieldResolver);
 
     /// <inheritdoc />
     public IObjectFieldDescriptor Resolver(
@@ -298,9 +345,9 @@ public class ObjectFieldDescriptor
 
             if (resultType.IsGenericType)
             {
-                Type resultTypeDef = resultType.GetGenericTypeDefinition();
+                var resultTypeDef = resultType.GetGenericTypeDefinition();
 
-                Type clrResultType = resultTypeDef == typeof(NativeType<>)
+                var clrResultType = resultTypeDef == typeof(NativeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
 
@@ -323,7 +370,7 @@ public class ObjectFieldDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        return ResolveWith(propertyOrMethod.ExtractMember());
+        return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
     }
 
     /// <inheritdoc />
@@ -334,21 +381,44 @@ public class ObjectFieldDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
+        return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
+    }
+
+    private IObjectFieldDescriptor ResolveWithInternal(
+        MemberInfo propertyOrMethod,
+        Type? resolverType)
+    {
+        if (resolverType?.IsAbstract is true)
+        {
+            throw new ArgumentException(
+                string.Format(
+                    ObjectTypeDescriptor_ResolveWith_NonAbstract,
+                    resolverType.FullName),
+                nameof(resolverType));
+        }
+
         if (propertyOrMethod is PropertyInfo or MethodInfo)
         {
             Definition.SetMoreSpecificType(
                 Context.TypeInspector.GetReturnType(propertyOrMethod),
                 TypeContext.Output);
 
-            Definition.ResolverType = propertyOrMethod.DeclaringType;
+            Definition.ResolverType = resolverType;
             Definition.ResolverMember = propertyOrMethod;
             Definition.Resolver = null;
             Definition.ResultType = propertyOrMethod.GetReturnType();
+
+            if (propertyOrMethod is MethodInfo m)
+            {
+                _parameterInfos = m.GetParameters();
+                Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+            }
+
             return this;
         }
 
         throw new ArgumentException(
-            TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
+            ObjectTypeDescriptor_MustBePropertyOrMethod,
             nameof(propertyOrMethod));
     }
 
@@ -389,7 +459,7 @@ public class ObjectFieldDescriptor
 
     /// <inheritdoc />
     public new IObjectFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
@@ -404,8 +474,8 @@ public class ObjectFieldDescriptor
     /// <returns>An instance of <see cref="DirectiveArgumentDescriptor"/></returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
-        NameString fieldName) =>
-        new(context, fieldName);
+        string fieldName)
+        => new(context, fieldName);
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -419,8 +489,8 @@ public class ObjectFieldDescriptor
         IDescriptorContext context,
         MemberInfo member,
         Type sourceType,
-        Type? resolverType = null) =>
-        new(context, member, sourceType, resolverType);
+        Type? resolverType = null)
+        => new(context, member, sourceType, resolverType);
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -434,8 +504,8 @@ public class ObjectFieldDescriptor
         IDescriptorContext context,
         LambdaExpression expression,
         Type sourceType,
-        Type? resolverType = null) =>
-        new(context, expression, sourceType, resolverType);
+        Type? resolverType = null)
+        => new(context, expression, sourceType, resolverType);
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -445,6 +515,6 @@ public class ObjectFieldDescriptor
     /// <returns></returns>
     public static ObjectFieldDescriptor From(
         IDescriptorContext context,
-        ObjectFieldDefinition definition) =>
-        new(context, definition);
+        ObjectFieldDefinition definition)
+        => new(context, definition);
 }

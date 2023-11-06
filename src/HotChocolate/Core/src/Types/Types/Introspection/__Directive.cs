@@ -5,7 +5,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -14,16 +13,17 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __Directive : ObjectType<DirectiveType>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        SyntaxTypeReference booleanType = Parse($"{ScalarNames.Boolean}");
-        SyntaxTypeReference argumentListType = Parse($"[{nameof(__InputValue)}!]!");
-        SyntaxTypeReference locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var booleanType = Parse($"{ScalarNames.Boolean}");
+        var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
+        var locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
 
         return new ObjectTypeDefinition(
             Names.__Directive,
@@ -83,11 +83,14 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             => context.Parent<DirectiveType>().IsRepeatable;
 
         public static object Locations(IPureResolverContext context)
-            => context.Parent<DirectiveType>().Locations;
+        {
+            var locations = context.Parent<DirectiveType>().Locations;
+            return locations.AsEnumerable();
+        }
 
         public static object Arguments(IPureResolverContext context)
         {
-            DirectiveType directive = context.Parent<DirectiveType>();
+            var directive = context.Parent<DirectiveType>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
                 ? directive.Arguments
                 : directive.Arguments.Where(t => !t.IsDeprecated);
@@ -95,35 +98,26 @@ internal sealed class __Directive : ObjectType<DirectiveType>
 
         public static object OnOperation(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.Query)
-                || locations.Contains(DirectiveLocation.Mutation)
-                || locations.Contains(DirectiveLocation.Subscription);
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Operation) != 0;
         }
 
         public static object OnFragment(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.InlineFragment)
-                || locations.Contains(DirectiveLocation.FragmentSpread)
-                || locations.Contains(DirectiveLocation.FragmentDefinition);
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Fragment) != 0;
         }
 
         public static object OnField(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.Field);
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Field) != 0;
         }
     }
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __Directive = "__Directive";
         public const string Name = "name";
         public const string Description = "description";

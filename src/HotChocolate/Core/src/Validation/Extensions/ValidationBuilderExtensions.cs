@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
-using HotChocolate.Validation.Properties;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -85,11 +84,38 @@ public static partial class HotChocolateValidationBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Modifies the validation options object.
+    /// </summary>
+    /// <param name="builder">
+    /// The validation builder.
+    /// </param>
+    /// <param name="configure">
+    /// The delegate to mutate the validation options.
+    /// </param>
+    /// <returns>
+    /// Returns the validation builder for configuration chaining.
+    /// </returns>
     internal static IValidationBuilder ModifyValidationOptions(
         this IValidationBuilder builder,
         Action<ValidationOptions> configure)
         => builder.ConfigureValidation(m => m.Modifiers.Add(configure));
 
+    /// <summary>
+    /// Registers the specified validation visitor,
+    /// if the same type of validation visitor was not yet registered.
+    /// </summary>
+    /// <param name="builder">
+    /// The validation builder.
+    /// </param>
+    /// <param name="isCacheable">
+    /// Specifies if the validation visitor`s results are cachable or
+    /// if the visitor needs to be rerun on every request.
+    /// </param>
+    /// <typeparam name="T">The validation visitor type.</typeparam>
+    /// <returns>
+    /// Returns the validation builder for configuration chaining.
+    /// </returns>
     public static IValidationBuilder TryAddValidationVisitor<T>(
         this IValidationBuilder builder,
         bool isCacheable = true)
@@ -105,6 +131,24 @@ public static partial class HotChocolateValidationBuilderExtensions
             }));
     }
 
+    /// <summary>
+    /// Registers the specified validation visitor,
+    /// if the same type of validation visitor was not yet registered.
+    /// </summary>
+    /// <param name="builder">
+    /// The validation builder.
+    /// </param>
+    /// <param name="factory">
+    /// A factory to create the validation visitor.
+    /// </param>
+    /// <param name="isCacheable">
+    /// Specifies if the validation visitor`s results are cachable or
+    /// if the visitor needs to be rerun on every request.
+    /// </param>
+    /// <typeparam name="T">The validation visitor type.</typeparam>
+    /// <returns>
+    /// Returns the validation builder for configuration chaining.
+    /// </returns>
     public static IValidationBuilder TryAddValidationVisitor<T>(
         this IValidationBuilder builder,
         Func<IServiceProvider, ValidationOptions, T> factory,
@@ -121,6 +165,17 @@ public static partial class HotChocolateValidationBuilderExtensions
             }));
     }
 
+    /// <summary>
+    /// Registers the specified validation rule,
+    /// if the same type of validation rule was not yet registered.
+    /// </summary>
+    /// <param name="builder">
+    /// The validation builder.
+    /// </param>
+    /// <typeparam name="T">The validation rule type.</typeparam>
+    /// <returns>
+    /// Returns the validation builder for configuration chaining.
+    /// </returns>
     public static IValidationBuilder TryAddValidationRule<T>(
         this IValidationBuilder builder)
         where T : class, IDocumentValidatorRule, new()
@@ -135,6 +190,20 @@ public static partial class HotChocolateValidationBuilderExtensions
             }));
     }
 
+    /// <summary>
+    /// Registers the specified validation rule,
+    /// if the same type of validation rule was not yet registered.
+    /// </summary>
+    /// <param name="builder">
+    /// The validation builder.
+    /// </param>
+    /// <param name="factory">
+    /// A factory to create the validation rule.
+    /// </param>
+    /// <typeparam name="T">The validation rule type.</typeparam>
+    /// <returns>
+    /// Returns the validation builder for configuration chaining.
+    /// </returns>
     public static IValidationBuilder TryAddValidationRule<T>(
         this IValidationBuilder builder,
         Func<IServiceProvider, ValidationOptions, T> factory)
@@ -143,10 +212,40 @@ public static partial class HotChocolateValidationBuilderExtensions
         return builder.ConfigureValidation((s, m) =>
             m.Modifiers.Add(o =>
             {
-                T instance = factory(s, o);
+                var instance = factory(s, o);
                 if (o.Rules.All(t => t.GetType() != instance.GetType()))
                 {
                     o.Rules.Add(instance);
+                }
+            }));
+    }
+
+    /// <summary>
+    /// Registers the specified validation result aggregator,
+    /// if the same type of validation result aggregator was not yet registered.
+    /// </summary>
+    /// <param name="builder">
+    /// The validation builder.
+    /// </param>
+    /// <param name="factory">
+    /// A factory to create the validation result aggregator.
+    /// </param>
+    /// <typeparam name="T">The validation result aggregator type.</typeparam>
+    /// <returns>
+    /// Returns the validation builder for configuration chaining.
+    /// </returns>
+    public static IValidationBuilder TryAddValidationResultAggregator<T>(
+        this IValidationBuilder builder,
+        Func<IServiceProvider, ValidationOptions, T> factory)
+        where T : class, IValidationResultAggregator
+    {
+        return builder.ConfigureValidation((s, m) =>
+            m.Modifiers.Add(o =>
+            {
+                var instance = factory(s, o);
+                if (o.ResultAggregators.All(t => t.GetType() != instance.GetType()))
+                {
+                    o.ResultAggregators.Add(instance);
                 }
             }));
     }

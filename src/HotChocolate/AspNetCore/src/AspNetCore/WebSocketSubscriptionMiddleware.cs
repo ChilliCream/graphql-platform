@@ -6,17 +6,17 @@ using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
-public class WebSocketSubscriptionMiddleware : MiddlewareBase
+public sealed class WebSocketSubscriptionMiddleware : MiddlewareBase
 {
     private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public WebSocketSubscriptionMiddleware(
         RequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName)
-        : base(next, executorResolver, resultSerializer, schemaName)
+        string schemaName)
+        : base(next, executorResolver, responseFormatter, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
@@ -33,7 +33,7 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
     {
         if (!IsDefaultSchema)
         {
-            context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            context.Items[WellKnownContextData.SchemaName] = SchemaName;
         }
 
         using (_diagnosticEvents.WebSocketSession(context))

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -42,12 +41,12 @@ public sealed class UnionTypeExtensionNode : UnionTypeDefinitionNodeBase, ITypeE
     {
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
 
-        foreach (NamedTypeNode type in Types)
+        foreach (var type in Types)
         {
             yield return type;
         }
@@ -116,11 +115,11 @@ public sealed class UnionTypeExtensionNode : UnionTypeDefinitionNodeBase, ITypeE
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
-    /// <see cref="Types" /> with <paramref name="types" />.
+    /// <see cref="UnionTypeDefinitionNodeBase.Types" /> with <paramref name="types" />.
     /// </summary>
     /// <param name="types">
     /// The types that shall be used to replace the current
-    /// <see cref="Types" />.
+    /// <see cref="UnionTypeDefinitionNodeBase.Types" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="types" />.

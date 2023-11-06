@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -13,9 +12,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 {
-    private readonly HashSet<NameString> _takenNames = new();
-    private readonly Dictionary<ISyntaxNode, HashSet<NameString>> _syntaxNodeNames = new();
-    private readonly Dictionary<NameString, ITypeModel> _typeModels = new();
+    private readonly HashSet<string> _takenNames = new(StringComparer.Ordinal);
+    private readonly Dictionary<ISyntaxNode, HashSet<string>> _syntaxNodeNames = new();
+    private readonly Dictionary<string, ITypeModel> _typeModels = new(StringComparer.Ordinal);
     private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = new();
     private readonly FieldCollector _fieldCollector;
 
@@ -23,12 +22,12 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         ISchema schema,
         DocumentNode document)
     {
-        Schema = schema ?? throw new ArgumentNullException(nameof(document));
+        Schema = schema ?? throw new ArgumentNullException(nameof(schema));
         Document = document ?? throw new ArgumentNullException(nameof(document));
         OperationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
         OperationType = schema.GetOperationType(OperationDefinition.Operation)!;
         OperationName = OperationDefinition.Name!.Value;
-        RootPath = PathFactory.Instance.New(OperationName);
+        RootPath = Path.Root.Append(OperationName);
 
         _fieldCollector = new FieldCollector(schema, document);
     }
@@ -41,7 +40,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
     public OperationDefinitionNode OperationDefinition { get; }
 
-    public NameString OperationName { get; }
+    public string OperationName { get; }
 
     public Path RootPath { get; }
 
@@ -56,7 +55,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         _fieldCollector.CollectFields(
             OperationDefinition.SelectionSet,
             OperationType,
-            PathFactory.Instance.New(OperationName));
+            Path.Root.Append(OperationName));
 
     public SelectionSetVariants CollectFields(FieldSelection fieldSelection) =>
         CollectFields(
@@ -74,11 +73,11 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
             path);
 
     public bool TryGetModel<T>(
-        NameString name,
+        string name,
         [NotNullWhen(true)] out T? typeModel)
         where T : ITypeModel
     {
-        if (_typeModels.TryGetValue(name, out ITypeModel? model) &&
+        if (_typeModels.TryGetValue(name, out var model) &&
             model is T casted)
         {
             typeModel = casted;
@@ -89,9 +88,9 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         return false;
     }
 
-    public void RegisterModel(NameString name, ITypeModel typeModel)
+    public void RegisterModel(string name, ITypeModel typeModel)
     {
-        if (_typeModels.TryGetValue(name, out ITypeModel? registeredTypeModel) &&
+        if (_typeModels.TryGetValue(name, out var registeredTypeModel) &&
             !ReferenceEquals(registeredTypeModel, typeModel))
         {
             throw new GraphQLException("A type model name must be unique.");
@@ -142,7 +141,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         }
     }
 
-    public NameString ResolveTypeName(NameString proposedName)
+    public string ResolveTypeName(string proposedName)
     {
         if (_takenNames.Add(proposedName))
         {
@@ -151,7 +150,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
         for (var i = 1; i < 1000000; i++)
         {
-            NameString alternativeName = proposedName + "_" + i;
+            var alternativeName = proposedName + "_" + i;
 
             if (_takenNames.Add(alternativeName))
             {
@@ -163,8 +162,8 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
             "Unable to find a name for the specified syntax node.");
     }
 
-    public NameString ResolveTypeName(
-        NameString proposedName,
+    public string ResolveTypeName(
+        string proposedName,
         ISyntaxNode syntaxNode,
         IReadOnlyList<string>? additionalNamePatterns = null)
     {
@@ -176,7 +175,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
         if (!_syntaxNodeNames.TryGetValue(syntaxNode, out takenNames))
         {
-            takenNames = new HashSet<NameString>();
+            takenNames = new HashSet<string>(StringComparer.Ordinal);
             _syntaxNodeNames.Add(syntaxNode, takenNames);
         }
 
@@ -188,7 +187,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
         for (var i = 1; i < 1000000; i++)
         {
-            NameString alternativeName = proposedName + "_" + i;
+            var alternativeName = proposedName + "_" + i;
 
             if (takenNames.Contains(alternativeName))
             {

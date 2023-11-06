@@ -1,0 +1,31 @@
+﻿schema {
+  query: InputQuery
+}
+
+type FlagsEnumFlags {
+  isFoo: Boolean!
+  isBar: Boolean!
+  isBaz: Boolean!
+}
+
+type InputQuery {
+  loopback(args: FlagsEnumFlagsInput!): FlagsEnumFlags!
+  input(input: EnumInput!): FlagsEnumFlags!
+}
+
+input EnumInput {
+  single: FlagsEnumFlagsInput!
+  list: [FlagsEnumFlagsInput!]!
+  nestedList: [[FlagsEnumFlagsInput!]!]!
+  nullableSingle: FlagsEnumFlagsInput
+  nullableList: [FlagsEnumFlagsInput]
+  nullableNestedList: [[FlagsEnumFlagsInput]]
+}
+
+input FlagsEnumFlagsInput {
+  isFoo: Boolean
+  isBar: Boolean
+  isBaz: Boolean
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

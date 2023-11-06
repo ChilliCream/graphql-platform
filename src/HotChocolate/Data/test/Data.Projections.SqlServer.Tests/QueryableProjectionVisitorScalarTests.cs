@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -10,80 +9,92 @@ public class QueryableProjectionVisitorScalarTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
-        };
+        new() { Bar = true, Baz = "a" }, new() { Bar = false, Baz = "b" }
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task Create_NotSettable_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ notSettable }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_Computed_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ computed }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ProjectsTwoProperties_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ bar baz }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ProjectsOneProperty_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ baz }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ProjectsOneProperty_WithResolver()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             objectType: new ObjectType<Foo>(
                 x => x
@@ -92,13 +103,16 @@ public class QueryableProjectionVisitorScalarTests
                     .Type<ListType<StringType>>()));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ baz foo }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     public class Foo

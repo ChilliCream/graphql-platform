@@ -29,9 +29,9 @@ public class ProjectionVisitorTestBase
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
 
-        DbSet<TResult> set = dbContext.Set<TResult>();
+        var set = dbContext.Set<TResult>();
 
-        foreach (TResult result in results)
+        foreach (var result in results)
         {
             set.Add(result);
             dbContext.SaveChanges();
@@ -56,7 +56,7 @@ public class ProjectionVisitorTestBase
         provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
         var convention = new ProjectionConvention(x => x.Provider(provider));
 
-        Func<IResolverContext, IQueryable<TEntity>> resolver =
+        var resolver =
             BuildResolver(onModelCreating, entities);
 
         ISchemaBuilder builder = SchemaBuilder.New();
@@ -95,7 +95,7 @@ public class ProjectionVisitorTestBase
 
         builder.ModifyOptions(o => o.ValidatePipelineOrder = false);
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(Schema.DefaultName, o => o.Schema = schema)
@@ -106,11 +106,10 @@ public class ProjectionVisitorTestBase
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
-                                .SetContextData("sql", queryString)
-                                .Create();
+                        context.Result = QueryResultBuilder
+                            .FromResult(context.Result!.ExpectQueryResult())
+                            .SetContextData("sql", queryString)
+                            .Create();
                     }
                 })
             .UseDefaultPipeline()

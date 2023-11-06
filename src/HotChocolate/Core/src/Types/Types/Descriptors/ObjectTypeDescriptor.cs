@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -8,6 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.FieldBindingFlags;
 
 #nullable enable
 
@@ -17,6 +17,8 @@ public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
     , IObjectTypeDescriptor
 {
+    private readonly List<ObjectFieldDescriptor> _fields = new();
+
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
@@ -43,16 +45,15 @@ public class ObjectTypeDescriptor
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-        foreach (ObjectFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
-            Fields.Add(ObjectFieldDescriptor.From(Context, field));
+            _fields.Add(ObjectFieldDescriptor.From(Context, field));
         }
     }
 
     protected internal override ObjectTypeDefinition Definition { get; protected set; } = new();
 
-    protected ICollection<ObjectFieldDescriptor> Fields { get; } =
-        new List<ObjectFieldDescriptor>();
+    protected ICollection<ObjectFieldDescriptor> Fields => _fields;
 
     protected override void OnCreateDefinition(
         ObjectTypeDefinition definition)
@@ -66,42 +67,161 @@ public class ObjectTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        foreach (ObjectFieldDescriptor field in Fields)
+        foreach (var field in _fields)
         {
-            if (!field.Definition.Ignore)
+            if (field.Definition.Ignore)
             {
-                continue;
+                // if this definition is used for a type extension we need a
+                // binding to a field which shall be ignored. In case this is a
+                // definition for the type it will be ignored by the type initialization.
+                Definition.FieldIgnores.Add(
+                    new ObjectFieldBinding(field.Definition.Name, ObjectFieldBindingType.Field));
             }
-
-            // if this definition is used for a type extension we need a
-            // binding to a field which shall be ignored. In case this is a
-            // definition for the type it will be ignored by the type initialization.
-            Definition.FieldIgnores.Add(new(field.Definition.Name, ObjectFieldBindingType.Field));
         }
 
-        var fields = new Dictionary<NameString, ObjectFieldDefinition>();
-        var handledMembers = new HashSet<MemberInfo>();
+        var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
 
-        FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateDefinition()),
-            f => f.Member,
-            fields,
-            handledMembers);
+        foreach (var fieldDescriptor in _fields)
+        {
+            var fieldDefinition = fieldDescriptor.CreateDefinition();
+
+            if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
+            {
+                fields[fieldDefinition.Name] = fieldDefinition;
+            }
+
+            if (fieldDefinition.Member is { } member)
+            {
+                handledMembers.Add(member);
+            }
+        }
 
         OnCompleteFields(fields, handledMembers);
+
+        // if we find fields that match field name that are ignored we will
+        // remove them from the field map.
+        foreach (var ignore in Definition.GetFieldIgnores())
+        {
+            fields.Remove(ignore.Name);
+        }
 
         Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
 
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
+
         base.OnCreateDefinition(definition);
     }
 
-    protected virtual void OnCompleteFields(
-        IDictionary<NameString, ObjectFieldDefinition> fields,
-        ISet<MemberInfo> handledMembers)
+    internal void InferFieldsFromFieldBindingType()
     {
+        var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
 
+        InferFieldsFromFieldBindingType(fields, handledMembers, false);
+
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
     }
+
+    private protected void InferFieldsFromFieldBindingType(
+        IDictionary<string, ObjectFieldDefinition> fields,
+        ISet<MemberInfo> handledMembers,
+        bool createDefinition = true)
+    {
+        var skip = false;
+        HashSet<string>? subscribeRes = null;
+        Dictionary<MemberInfo, string>? subscribeResLook = null;
+
+        if (Definition.Fields.IsImplicitBinding() &&
+            Definition.FieldBindingType is not null)
+        {
+            var inspector = Context.TypeInspector;
+            var naming = Context.Naming;
+            var type = Definition.FieldBindingType;
+            var isExtension = Definition.IsExtension;
+            var includeStatic = (Definition.FieldBindingFlags & Static) == Static;
+            var members = inspector.GetMembers(type, isExtension, includeStatic);
+
+            foreach (var member in members)
+            {
+                var name = naming.GetMemberName(member, MemberKind.ObjectField);
+
+                if (handledMembers.Add(member) &&
+                    !fields.ContainsKey(name) &&
+                    IncludeField(ref skip, ref subscribeRes, ref subscribeResLook, members, member))
+                {
+                    var descriptor = ObjectFieldDescriptor.New(
+                        Context,
+                        member,
+                        Definition.RuntimeType,
+                        type);
+
+                    if (subscribeResLook is not null &&
+                        subscribeResLook.TryGetValue(member, out var with))
+                    {
+                        descriptor.Definition.SubscribeWith = with;
+                    }
+
+                    if (isExtension && inspector.IsMemberIgnored(member))
+                    {
+                        descriptor.Ignore();
+                    }
+
+                    _fields.Add(descriptor);
+                    handledMembers.Add(member);
+
+                    if (createDefinition)
+                    {
+                        // the create definition call will trigger the OnCompleteField call
+                        // on the field description and trigger the initialization of the
+                        // fields arguments.
+                        fields[name] = descriptor.CreateDefinition();
+                    }
+                }
+            }
+        }
+
+        static bool IncludeField(
+            ref bool skip,
+            ref HashSet<string>? subscribeResolver,
+            ref Dictionary<MemberInfo, string>? subscribeResolverLookup,
+            ReadOnlySpan<MemberInfo> allMembers,
+            MemberInfo current)
+        {
+            // if there is now with declared we can include all members.
+            if (skip)
+            {
+                return true;
+            }
+
+            if (subscribeResolver is null)
+            {
+                foreach (var member in allMembers)
+                {
+                    if (member.IsDefined(typeof(SubscribeAttribute)) &&
+                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
+                    {
+                        subscribeResolver ??= new HashSet<string>();
+                        subscribeResolverLookup ??= new Dictionary<MemberInfo, string>();
+                        subscribeResolver.Add(a.With);
+                        subscribeResolverLookup.Add(member, a.With);
+                    }
+                }
+
+                skip = subscribeResolver is null;
+            }
+
+            return !subscribeResolver?.Contains(current.Name) ?? true;
+        }
+    }
+
+    protected virtual void OnCompleteFields(
+        IDictionary<string, ObjectFieldDefinition> fields,
+        ISet<MemberInfo> handledMembers)
+    { }
 
     public IObjectTypeDescriptor SyntaxNode(
         ObjectTypeDefinitionNode? objectTypeDefinition)
@@ -110,9 +230,9 @@ public class ObjectTypeDescriptor
         return this;
     }
 
-    public IObjectTypeDescriptor Name(NameString value)
+    public IObjectTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -121,22 +241,6 @@ public class ObjectTypeDescriptor
         Definition.Description = value;
         return this;
     }
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface<TInterface>()
-        where TInterface : InterfaceType
-        => Implements<TInterface>();
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface<TInterface>(
-        TInterface type)
-        where TInterface : InterfaceType
-        => Implements(type);
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface(
-        NamedTypeNode namedType)
-        => Implements(namedType);
 
     public IObjectTypeDescriptor Implements<T>()
         where T : InterfaceType
@@ -160,8 +264,8 @@ public class ObjectTypeDescriptor
             throw new ArgumentNullException(nameof(type));
         }
 
-        Definition.Interfaces.Add(new SchemaTypeReference(
-            type));
+        Definition.Interfaces.Add(new SchemaTypeReference(type));
+
         return this;
     }
 
@@ -178,23 +282,21 @@ public class ObjectTypeDescriptor
 
     public IObjectTypeDescriptor IsOfType(IsOfType? isOfType)
     {
-        Definition.IsOfType = isOfType
-            ?? throw new ArgumentNullException(nameof(isOfType));
+        Definition.IsOfType = isOfType ?? throw new ArgumentNullException(nameof(isOfType));
         return this;
     }
 
-    public IObjectFieldDescriptor Field(NameString name)
+    public IObjectFieldDescriptor Field(string name)
     {
-        ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
-            t => t.Definition.Name.Equals(name));
+        var fieldDescriptor = _fields.Find(t => t.Definition.Name.EqualsOrdinal(name));
 
-        if (fieldDescriptor is { })
+        if (fieldDescriptor is not null)
         {
             return fieldDescriptor;
         }
 
         fieldDescriptor = ObjectFieldDescriptor.New(Context, name);
-        Fields.Add(fieldDescriptor);
+        _fields.Add(fieldDescriptor);
         return fieldDescriptor;
     }
 
@@ -212,8 +314,7 @@ public class ObjectTypeDescriptor
 
         if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
         {
-            ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
-                t => t.Definition.Member == propertyOrMethod);
+            var fieldDescriptor = _fields.Find(t => t.Definition.Member == propertyOrMethod);
 
             if (fieldDescriptor is not null)
             {
@@ -225,7 +326,7 @@ public class ObjectTypeDescriptor
                 propertyOrMethod,
                 Definition.RuntimeType,
                 propertyOrMethod.ReflectedType ?? Definition.RuntimeType);
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
@@ -242,12 +343,11 @@ public class ObjectTypeDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        MemberInfo? member = propertyOrMethod.TryExtractMember();
+        var member = propertyOrMethod.TryExtractMember();
 
         if (member is PropertyInfo or MethodInfo)
         {
-            ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
-                t => t.Definition.Member == member);
+            var fieldDescriptor = _fields.Find(t => t.Definition.Member == member);
 
             if (fieldDescriptor is not null)
             {
@@ -259,7 +359,7 @@ public class ObjectTypeDescriptor
                 member,
                 Definition.RuntimeType,
                 typeof(TResolver));
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
@@ -270,7 +370,7 @@ public class ObjectTypeDescriptor
                 propertyOrMethod,
                 Definition.RuntimeType,
                 typeof(TResolver));
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
@@ -293,9 +393,7 @@ public class ObjectTypeDescriptor
         return this;
     }
 
-    public IObjectTypeDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments)
+    public IObjectTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;
@@ -333,10 +431,7 @@ public class ObjectTypeDescriptor
     public static ObjectTypeDescriptor FromSchemaType(
         IDescriptorContext context,
         Type schemaType) =>
-        new(context, schemaType)
-        {
-            Definition = { RuntimeType = typeof(object) }
-        };
+        new(context, schemaType) { Definition = { RuntimeType = typeof(object) } };
 
     public static ObjectTypeDescriptor From(
         IDescriptorContext context,

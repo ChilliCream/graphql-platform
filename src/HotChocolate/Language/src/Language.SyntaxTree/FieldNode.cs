@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -23,6 +22,49 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FieldNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The field name.
+    /// </param>
+    public FieldNode(string name)
+        : this(null, new NameNode(name), null, null, Array.Empty<DirectiveNode>(), Array.Empty<ArgumentNode>(), null)
+    {
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="FieldNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The field name.
+    /// </param>
+    /// <param name="alias">
+    /// The fields alias name used instead if the actual name.
+    /// </param>
+    /// <param name="required">
+    /// Specifies the type nullability of this field.
+    /// </param>
+    /// <param name="directives">
+    /// The field directives.
+    /// </param>
+    /// <param name="arguments">
+    /// The field argument values.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The fields selection set.
+    /// </param>
+    public FieldNode(
+        NameNode name,
+        NameNode? alias,
+        INullabilityNode? required,
+        IReadOnlyList<DirectiveNode> directives,
+        IReadOnlyList<ArgumentNode> arguments,
+        SelectionSetNode? selectionSet)
+        : this(null, name, alias, required, directives, arguments, selectionSet)
+    {
+    }
+    
     /// <summary>
     /// Initializes a new instance of <see cref="FieldNode"/>.
     /// </summary>
@@ -97,7 +139,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
 
         yield return Name;
 
-        foreach (ArgumentNode argument in Arguments)
+        foreach (var argument in Arguments)
         {
             yield return argument;
         }
@@ -107,7 +149,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
             yield return Required;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

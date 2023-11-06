@@ -11,14 +11,15 @@ public class InterfaceFieldDescriptor
     : OutputFieldDescriptorBase<InterfaceFieldDefinition>
     , IInterfaceFieldDescriptor
 {
+    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
     private bool _argumentsInitialized;
 
     protected internal InterfaceFieldDescriptor(
         IDescriptorContext context,
-        NameString fieldName)
+        string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
+        Definition.Name = fieldName;
     }
 
     protected internal InterfaceFieldDescriptor(
@@ -34,25 +35,22 @@ public class InterfaceFieldDescriptor
         MemberInfo member)
         : base(context)
     {
-        Definition.Member = member
-            ?? throw new ArgumentNullException(nameof(member));
+        var naming = context.Naming;
 
-        Definition.Name = context.Naming.GetMemberName(
-            member,
-            MemberKind.InputObjectField);
-        Definition.Description = context.Naming.GetMemberDescription(
-            member,
-            MemberKind.InputObjectField);
+        Definition.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Definition.Name = naming.GetMemberName(member, MemberKind.InterfaceField);
+        Definition.Description = naming.GetMemberDescription(member, MemberKind.InterfaceField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
-        if (context.Naming.IsDeprecated(member, out string reason))
+        if (naming.IsDeprecated(member, out var reason))
         {
             Deprecated(reason);
         }
 
         if (member is MethodInfo m)
         {
-            Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
+            _parameterInfos = m.GetParameters();
+            Parameters = _parameterInfos.ToDictionary(t => t.Name, StringComparer.Ordinal);
         }
     }
 
@@ -62,10 +60,7 @@ public class InterfaceFieldDescriptor
     {
         if (!Definition.AttributesAreApplied && Definition.Member is not null)
         {
-            Context.TypeInspector.ApplyAttributes(
-                Context,
-                this,
-                Definition.Member);
+            Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
             Definition.AttributesAreApplied = true;
         }
 
@@ -81,18 +76,20 @@ public class InterfaceFieldDescriptor
             FieldDescriptorUtilities.DiscoverArguments(
                 Context,
                 definition.Arguments,
-                definition.Member);
+                definition.Member,
+                _parameterInfos,
+                definition.GetParameterExpressionBuilders());
             _argumentsInitialized = true;
         }
     }
 
-    public new IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode fieldDefinitionNode)
+    public new IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode fieldDefinition)
     {
-        base.SyntaxNode(fieldDefinitionNode);
+        base.SyntaxNode(fieldDefinition);
         return this;
     }
 
-    public new IInterfaceFieldDescriptor Name(NameString name)
+    public new IInterfaceFieldDescriptor Name(string name)
     {
         base.Name(name);
         return this;
@@ -103,10 +100,6 @@ public class InterfaceFieldDescriptor
         base.Description(description);
         return this;
     }
-
-    [Obsolete("Use `Deprecated`.")]
-    public IInterfaceFieldDescriptor DeprecationReason(string reason) =>
-        Deprecated(reason);
 
     public new IInterfaceFieldDescriptor Deprecated(string reason)
     {
@@ -147,7 +140,7 @@ public class InterfaceFieldDescriptor
     }
 
     public new IInterfaceFieldDescriptor Argument(
-        NameString name,
+        string name,
         Action<IArgumentDescriptor> argument)
     {
         base.Argument(name, argument);
@@ -175,25 +168,21 @@ public class InterfaceFieldDescriptor
     }
 
     public new IInterfaceFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
         return this;
     }
 
-    public static InterfaceFieldDescriptor New(
-        IDescriptorContext context,
-        NameString fieldName) =>
-        new InterfaceFieldDescriptor(context, fieldName);
+    public static InterfaceFieldDescriptor New(IDescriptorContext context, string fieldName)
+        => new(context, fieldName);
 
-    public static InterfaceFieldDescriptor New(
-        IDescriptorContext context,
-        MemberInfo member) =>
-        new InterfaceFieldDescriptor(context, member);
+    public static InterfaceFieldDescriptor New(IDescriptorContext context, MemberInfo member)
+        => new(context, member);
 
     public static InterfaceFieldDescriptor From(
         IDescriptorContext context,
-        InterfaceFieldDefinition definition) =>
-        new InterfaceFieldDescriptor(context, definition);
+        InterfaceFieldDefinition definition)
+        => new(context, definition);
 }

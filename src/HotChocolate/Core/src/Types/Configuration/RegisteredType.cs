@@ -20,7 +20,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
         IDescriptorContext descriptorContext,
-        ITypeInterceptor typeInterceptor,
+        TypeInterceptor typeInterceptor,
         string? scope)
     {
         Type = type;
@@ -51,16 +51,11 @@ internal sealed partial class RegisteredType : IHasRuntimeType
     public TypeKind? Kind { get; }
 
     public Type RuntimeType
-    {
-        get
-        {
-            return Type is IHasRuntimeType hasClrType
-                ? hasClrType.RuntimeType
-                : typeof(object);
-        }
-    }
+        => Type is IHasRuntimeType hasClrType
+            ? hasClrType.RuntimeType
+            : typeof(object);
 
-    public List<ITypeReference> References { get; } = new();
+    public List<TypeReference> References { get; } = new();
 
     public List<TypeDependency> Dependencies { get; } = new();
 
@@ -84,6 +79,8 @@ internal sealed partial class RegisteredType : IHasRuntimeType
 
     public List<ISchemaError> Errors => _errors ??= new();
 
+    public bool HasErrors => _errors is { Count: > 0 };
+
     public void ClearConditionals()
     {
         if (_conditionals is { Count: > 0 })
@@ -99,9 +96,9 @@ internal sealed partial class RegisteredType : IHasRuntimeType
             return "Schema";
         }
 
-        if (Type is IHasName { Name: { IsEmpty: false } } hasName)
+        if (Type is IHasName { Name: { Length: > 0 } name })
         {
-            return IsDirective ? $"@{hasName.Name}" : hasName.Name;
+            return IsDirective ? $"@{name}" : name;
         }
 
         return Type.ToString();

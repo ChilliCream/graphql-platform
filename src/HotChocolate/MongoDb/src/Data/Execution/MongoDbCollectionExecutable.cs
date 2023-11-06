@@ -43,11 +43,11 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     /// <inheritdoc />
     public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
     {
-        IBsonSerializerRegistry serializers = _collection.Settings.SerializerRegistry;
+        var serializers = _collection.Settings.SerializerRegistry;
         IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
 
-        FindOptions<T> options = Options as FindOptions<T> ?? new FindOptions<T>();
-        BsonDocument filters = new BsonDocument();
+        var options = Options as FindOptions<T> ?? new FindOptions<T>();
+        var filters = new BsonDocument();
 
         if (Sorting is not null)
         {
@@ -64,7 +64,7 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
             filters = Filters.Render(bsonSerializer, serializers);
         }
 
-        IAsyncCursor<T> cursor = await _collection
+        var cursor = await _collection
             .FindAsync(filters, options, cancellationToken)
             .ConfigureAwait(false);
 
@@ -89,20 +89,20 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     public override string Print() => BuildPipeline().ToString() ?? "";
 
     /// <summary>
-    /// Applies filtering sorting and projections on the <see cref="IExecutable{T}.Source"/>
+    /// Applies filtering sorting and projections on the <see cref="IExecutable.Source"/>
     /// </summary>
     /// <returns>A find fluent including the configuration of this executable</returns>
-    public IFindFluent<T, T> BuildPipeline()
+    public virtual IFindFluent<T, T> BuildPipeline()
     {
-        FindOptions options = Options as FindOptions ?? new FindOptions();
-        FilterDefinition<T> filters = FilterDefinition<T>.Empty;
+        var options = Options as FindOptions ?? new FindOptions();
+        var filters = FilterDefinition<T>.Empty;
 
         if (Filters is not null)
         {
             filters = Filters.ToFilterDefinition<T>();
         }
 
-        IFindFluent<T, T> pipeline = _collection.Find(filters, options);
+        var pipeline = _collection.Find(filters, options);
 
         if (Sorting is not null)
         {

@@ -9,15 +9,11 @@ public interface IInterfaceFieldDescriptor
     , IFluent
 {
     IInterfaceFieldDescriptor SyntaxNode(
-        FieldDefinitionNode fieldDefinitionNode);
+        FieldDefinitionNode fieldDefinition);
 
-    IInterfaceFieldDescriptor Name(NameString value);
+    IInterfaceFieldDescriptor Name(string value);
 
     IInterfaceFieldDescriptor Description(string value);
-
-    [Obsolete("Use `Deprecated`.")]
-    IInterfaceFieldDescriptor DeprecationReason(
-        string reason);
 
     IInterfaceFieldDescriptor Deprecated(string reason);
 
@@ -36,7 +32,7 @@ public interface IInterfaceFieldDescriptor
     IInterfaceFieldDescriptor Ignore(bool ignore = true);
 
     IInterfaceFieldDescriptor Argument(
-        NameString name,
+        string name,
         Action<IArgumentDescriptor> argument);
 
     IInterfaceFieldDescriptor Directive<T>(T directiveInstance)
@@ -46,6 +42,6 @@ public interface IInterfaceFieldDescriptor
         where T : class, new();
 
     IInterfaceFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

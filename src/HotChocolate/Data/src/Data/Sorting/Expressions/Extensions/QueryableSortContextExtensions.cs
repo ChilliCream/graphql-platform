@@ -29,7 +29,7 @@ public static class QueryableSortVisitorContextExtensions
 
         var firstOperation = true;
 
-        foreach (QueryableSortOperation? operation in context.Operations)
+        foreach (var operation in context.Operations)
         {
             if (firstOperation &&
                 !OrderingMethodFinder.OrderMethodExists(source))
@@ -63,6 +63,8 @@ public static class QueryableSortVisitorContextExtensions
 
             return base.Visit(node);
         }
+
+        protected override Expression VisitExtension(Expression node) => node.CanReduce ? base.VisitExtension(node) : node;
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {

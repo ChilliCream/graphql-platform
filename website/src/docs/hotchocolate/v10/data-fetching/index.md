@@ -57,7 +57,7 @@ If you think that through you can see that each GraphQL request would cause mult
 
 This, means that we reduced the round-trips from our client to our server with GraphQL but multiplied the round-trips between the data sources and the service layer.
 
-With _DataLoader_ we can now centralise our person fetching and reduce the number of round trips to our data source.
+With _DataLoader_ we can now centralize our person fetching and reduce the number of round trips to our data source.
 
 In order to use _DataLoader_ with Hot Chocolate we have to add the _DataLoader_ registry. The _DataLoader_ registry basically manages the data loader instances and interacts with the execution engine.
 
@@ -176,7 +176,7 @@ public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPer
 }
 ```
 
-_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/blob/master/misc/DataLoader/MessageType.cs)._
+_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/DataLoader/MessageType.cs)._
 
 ## Group DataLoader
 
@@ -191,7 +191,7 @@ public Task<IEnumerable<Person>> GetPersonByCountry(string country, IResolverCon
 }
 ```
 
-_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/blob/master/misc/DataLoader/QueryType.cs)._
+_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/DataLoader/QueryType.cs)._
 
 ## Cache DataLoader
 
@@ -204,7 +204,7 @@ public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPer
 }
 ```
 
-_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/blob/master/misc/DataLoader/MessageType.cs)._
+_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/DataLoader/MessageType.cs)._
 
 ## Fetch Once
 

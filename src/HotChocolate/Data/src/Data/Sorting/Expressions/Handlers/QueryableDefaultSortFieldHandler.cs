@@ -43,7 +43,7 @@ public class QueryableDefaultSortFieldHandler
             throw ThrowHelper.Sorting_InvalidState_ParentIsNoFieldSelector(field);
         }
 
-        Expression lastSelector = lastFieldSelector.Selector;
+        var lastSelector = lastFieldSelector.Selector;
         Expression nextSelector;
         if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression })
         {
@@ -116,6 +116,8 @@ public class QueryableDefaultSortFieldHandler
             _replacement = replacement;
             _parameter = parameter;
         }
+
+        protected override Expression VisitExtension(Expression node) => node.CanReduce ? base.VisitExtension(node) : node;
 
         protected override Expression VisitParameter(ParameterExpression node)
         {

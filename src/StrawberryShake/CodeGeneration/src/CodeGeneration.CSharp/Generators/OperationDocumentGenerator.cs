@@ -23,7 +23,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        string operationKind = descriptor switch
+        var operationKind = descriptor switch
         {
             MutationOperationDescriptor => "Mutation",
             QueryOperationDescriptor => "Query",
@@ -31,8 +31,9 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
         };
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName)
             .AddImplements(TypeNames.IDocument)
             .SetComment(

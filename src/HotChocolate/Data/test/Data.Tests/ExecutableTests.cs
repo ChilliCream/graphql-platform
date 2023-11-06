@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
+using CookieCrumble;
 using Xunit;
 
 namespace HotChocolate.Data;
@@ -14,7 +14,6 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         _authors = authorFixture.Authors;
     }
 
-
     [Fact]
     public void Extensions_Should_ReturnExecutable_When_DBSet()
     {
@@ -24,7 +23,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
 
         // assert
         Assert.IsType<QueryableExecutable<Author>>(executable);
-        executable.Print().MatchSnapshot();
+        executable.MatchSnapshot();
     }
 
     [Fact]
@@ -36,10 +35,9 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
             .AsQueryable()
             .AsExecutable();
 
-
         // assert
         Assert.IsType<QueryableExecutable<Author>>(executable);
-        executable.Print().MatchSnapshot();
+        executable.MatchSnapshot();
     }
 
     [Fact]
@@ -63,7 +61,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         IExecutable executable = _authors.Take(1).AsExecutable();
 
         // act
-        object? result = await executable.SingleOrDefaultAsync(default);
+        var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
         new { result, executable = executable.Print() }.MatchSnapshot();
@@ -76,7 +74,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         IExecutable executable = _authors.AsExecutable();
 
         // act
-        object? result = await executable.FirstOrDefaultAsync(default);
+        var result = await executable.FirstOrDefaultAsync(default);
 
         // assert
         new { result, executable = executable.Print() }.MatchSnapshot();

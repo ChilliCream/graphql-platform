@@ -45,7 +45,7 @@ public interface IDescriptorExtension<out T> : IHasDescriptorContext
     /// Allows to rewrite the type definition before the type
     /// is completed but after
     /// <see cref="OnBeforeNaming(Action{ITypeCompletionContext, T})"/>.
-    /// </summary>        
+    /// </summary>
     ICompletedDependencyDescriptor OnBeforeCompletion(
         Action<ITypeCompletionContext, T> configure);
 }

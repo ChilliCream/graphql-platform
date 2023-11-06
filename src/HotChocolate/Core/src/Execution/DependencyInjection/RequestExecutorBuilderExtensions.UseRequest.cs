@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
-using HotChocolate.Execution.Pipeline.Complexity;
+using static HotChocolate.Execution.ErrorHelper;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions
@@ -56,14 +59,13 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.Pipeline.Add((context, next) => middleware(next)));
+            options => options.Pipeline.Add((_, next) => middleware(next)));
     }
 
     /// <summary>
     /// Adds a type that will be used to create a middleware for the execution pipeline.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="middleware">A type that is used to create a middleware for the execution pipeline.</param>
     /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
     public static IRequestExecutorBuilder UseRequest<TMiddleware>(
         this IRequestExecutorBuilder builder)
@@ -100,7 +102,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<TimeoutMiddleware>();
 
-    public static IRequestExecutorBuilder UseInstrumentations(
+    public static IRequestExecutorBuilder UseInstrumentation(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<InstrumentationMiddleware>();
 
@@ -128,9 +130,39 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<ReadPersistedQueryMiddleware>();
 
+    public static IRequestExecutorBuilder UseAutomaticPersistedQueryNotFound(
+        this IRequestExecutorBuilder builder)
+        => builder.UseRequest(next => context =>
+        {
+            if (context.Document is null && context.Request.Query is null)
+            {
+                var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
+                var result = QueryResultBuilder.CreateError(
+                    error,
+                    new Dictionary<string, object?>
+                    {
+                        { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+                    });
+
+                context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
+                context.Result = result;
+                return default;
+            }
+
+            return next(context);
+        });
+
     public static IRequestExecutorBuilder UseWritePersistedQuery(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<WritePersistedQueryMiddleware>();
+
+    public static IRequestExecutorBuilder UsePersistedQueryNotFound(
+        this IRequestExecutorBuilder builder) =>
+        builder.UseRequest<PersistedQueryNotFoundMiddleware>();
+
+    public static IRequestExecutorBuilder UseOnlyPersistedQueriesAllowed(
+        this IRequestExecutorBuilder builder) =>
+        builder.UseRequest<OnlyPersistedQueriesAllowedMiddleware>();
 
     public static IRequestExecutorBuilder UseDefaultPipeline(
         this IRequestExecutorBuilder builder)
@@ -154,11 +186,13 @@ public static partial class RequestExecutorBuilderExtensions
         }
 
         return builder
-            .UseInstrumentations()
+            .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
             .UseReadPersistedQuery()
+            .UsePersistedQueryNotFound()
+            .UseOnlyPersistedQueriesAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
@@ -167,11 +201,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationVariableCoercion()
             .UseOperationExecution();
     }
-
-    [Obsolete("Use UseAutomaticPersistedQueryPipeline")]
-    public static IRequestExecutorBuilder UseActivePersistedQueryPipeline(
-        this IRequestExecutorBuilder builder) =>
-        UseAutomaticPersistedQueryPipeline(builder);
 
     public static IRequestExecutorBuilder UseAutomaticPersistedQueryPipeline(
         this IRequestExecutorBuilder builder)
@@ -182,20 +211,12 @@ public static partial class RequestExecutorBuilderExtensions
         }
 
         return builder
-            .UseInstrumentations()
+            .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
             .UseReadPersistedQuery()
-            .UseRequest(next => context =>
-            {
-                if (context.Document is null && context.Request.Query is null)
-                {
-                    throw ThrowHelper.ReadPersistedQueryMiddleware_PersistedQueryNotFound();
-                }
-
-                return next(context);
-            })
+            .UseAutomaticPersistedQueryNotFound()
             .UseWritePersistedQuery()
             .UseDocumentParser()
             .UseDocumentValidation()

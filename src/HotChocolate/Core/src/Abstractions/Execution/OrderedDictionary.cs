@@ -32,7 +32,7 @@ public class OrderedDictionary<TKey, TValue>
         _order = new List<KeyValuePair<TKey, TValue>>();
         _map = new Dictionary<TKey, TValue>();
 
-        foreach (KeyValuePair<TKey, TValue> item in values)
+        foreach (var item in values)
         {
             _map.Add(item.Key, item.Value);
             _order.Add(item);
@@ -50,7 +50,7 @@ public class OrderedDictionary<TKey, TValue>
         _map = new Dictionary<TKey, TValue>(source._map);
     }
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         => _map.TryGetValue(key, out value);
 #else

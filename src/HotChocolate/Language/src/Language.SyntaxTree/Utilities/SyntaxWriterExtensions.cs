@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using static HotChocolate.Language.Properties.Resources;
 
 namespace HotChocolate.Language.Utilities;
 
@@ -28,7 +29,7 @@ public static class SyntaxWriterExtensions
         {
             action(items[0], writer);
 
-            for (int i = 1; i < items.Count; i++)
+            for (var i = 1; i < items.Count; i++)
             {
                 writer.Write(separator);
                 action(items[i], writer);
@@ -46,7 +47,7 @@ public static class SyntaxWriterExtensions
         {
             action(items[0], writer);
 
-            for (int i = 1; i < items.Count; i++)
+            for (var i = 1; i < items.Count; i++)
             {
                 separator(writer);
                 action(items[i], writer);
@@ -68,30 +69,53 @@ public static class SyntaxWriterExtensions
             case SyntaxKind.IntValue:
                 WriteIntValue(writer, (IntValueNode)node);
                 break;
+
             case SyntaxKind.FloatValue:
                 WriteFloatValue(writer, (FloatValueNode)node);
                 break;
+
             case SyntaxKind.StringValue:
-                WriteStringValue(writer, (StringValueNode)node);
+                if (node is StringValueNode stringValueNode)
+                {
+                    WriteStringValue(writer, stringValueNode);
+                }
+                else if(node is IValueNode<string> stringLikeNode)
+                {
+                    WriteStringValue(writer, stringLikeNode.Value);
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        string.Format(
+                            SyntaxWriterExtensions_WriteValue_ValueNodeNotSupported, 
+                            node.GetType().FullName));
+                }
                 break;
+
             case SyntaxKind.BooleanValue:
                 WriteBooleanValue(writer, (BooleanValueNode)node);
                 break;
+
             case SyntaxKind.EnumValue:
                 WriteEnumValue(writer, (EnumValueNode)node);
                 break;
+
             case SyntaxKind.NullValue:
                 WriteNullValue(writer);
                 break;
+
             case SyntaxKind.ListValue:
                 WriteListValue(writer, (ListValueNode)node);
                 break;
+
             case SyntaxKind.ObjectValue:
                 WriteObjectValue(writer, (ObjectValueNode)node);
                 break;
+
             case SyntaxKind.Variable:
                 WriteVariable(writer, (VariableNode)node);
                 break;
+
             default:
                 throw new NotSupportedException();
         }
@@ -137,45 +161,66 @@ public static class SyntaxWriterExtensions
         }
     }
 
+    public static void WriteStringValue(this ISyntaxWriter writer, string? value)
+    {
+        if (value is null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+        
+        writer.Write('"');
+        WriteEscapeCharacters(writer, value);
+        writer.Write('"');
+    }
 
     private static void WriteEscapeCharacters(ISyntaxWriter writer, string input)
     {
-        for (int i = 0; i < input.Length; i++)
+        for (var i = 0; i < input.Length; i++)
         {
-            char c = input[i];
+            var c = input[i];
             WriteEscapeCharacter(writer, in c);
         }
     }
 
     private static void WriteEscapeCharacter(
-        ISyntaxWriter writer, in char c)
+        ISyntaxWriter writer,
+        in char c)
     {
         switch (c)
         {
             case '"':
                 WriteEscapeCharacterHelper(writer, '"');
                 break;
+
             case '\\':
                 WriteEscapeCharacterHelper(writer, '\\');
                 break;
+
             case '/':
                 WriteEscapeCharacterHelper(writer, '/');
                 break;
+
             case '\b':
                 WriteEscapeCharacterHelper(writer, 'b');
                 break;
+
             case '\f':
                 WriteEscapeCharacterHelper(writer, 'f');
                 break;
+
             case '\n':
                 WriteEscapeCharacterHelper(writer, 'n');
                 break;
+
             case '\r':
                 WriteEscapeCharacterHelper(writer, 'r');
                 break;
+
             case '\t':
                 WriteEscapeCharacterHelper(writer, 't');
                 break;
+
             default:
                 writer.Write(c);
                 break;
@@ -190,7 +235,10 @@ public static class SyntaxWriterExtensions
 
     public static void WriteBooleanValue(this ISyntaxWriter writer, BooleanValueNode node)
     {
-        writer.Write(node.Value ? Keywords.True : Keywords.False);
+        writer.Write(
+            node.Value
+                ? Keywords.True
+                : Keywords.False);
     }
 
     public static void WriteEnumValue(this ISyntaxWriter writer, EnumValueNode node)
@@ -247,12 +295,15 @@ public static class SyntaxWriterExtensions
             case SyntaxKind.NonNullType:
                 writer.WriteNonNullType((NonNullTypeNode)node);
                 break;
+
             case SyntaxKind.ListType:
                 writer.WriteListType((ListTypeNode)node);
                 break;
+
             case SyntaxKind.NamedType:
                 writer.WriteNamedType((NamedTypeNode)node);
                 break;
+
             default:
                 throw new NotSupportedException();
         }

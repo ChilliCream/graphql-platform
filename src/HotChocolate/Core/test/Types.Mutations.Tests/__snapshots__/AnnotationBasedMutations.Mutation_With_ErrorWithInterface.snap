@@ -1,0 +1,42 @@
+schema {
+  query: Query
+  mutation: MutationWithInterfaces
+}
+
+interface Error {
+  message: String!
+}
+
+interface IInterfaceError {
+  name: String!
+}
+
+interface IInterfaceError2 {
+  name: String!
+}
+
+type DoSomethingPayload {
+  boolean: Boolean
+  errors: [DoSomethingError!]
+}
+
+type ErrorWithInterface implements Error & IInterfaceError & IInterfaceError2 {
+  name: String!
+  message: String!
+}
+
+type MutationWithInterfaces {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type Query {
+  abc: String
+}
+
+union DoSomethingError = ErrorWithInterface
+
+input DoSomethingInput {
+  something: String!
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

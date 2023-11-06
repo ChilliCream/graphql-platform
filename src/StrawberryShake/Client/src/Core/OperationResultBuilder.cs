@@ -25,22 +25,31 @@ public abstract class OperationResultBuilder<TResultData>
         TResultData? data = null;
         IOperationResultDataInfo? dataInfo = null;
         IReadOnlyList<IClientError>? errors = null;
+        IReadOnlyDictionary<string, object?>? extensions = null;
 
         try
         {
             if (response.Body is { } body)
             {
-                if (body.RootElement.TryGetProperty(Data, out JsonElement dataProp) &&
+                if (body.RootElement.TryGetProperty(Data, out var dataProp) &&
                     dataProp.ValueKind is JsonValueKind.Object)
                 {
                     dataInfo = BuildData(dataProp);
                     data = ResultDataFactory.Create(dataInfo);
                 }
 
-                if (body.RootElement.TryGetProperty(Errors, out JsonElement errorsProp) &&
+                if (body.RootElement.TryGetProperty(Errors, out var errorsProp) &&
                     errorsProp.ValueKind is JsonValueKind.Array)
                 {
                     errors = JsonErrorParser.ParseErrors(errorsProp);
+                }
+
+                if (body.RootElement.TryGetProperty(
+                        ResultFields.Extensions,
+                        out var extensionsProp) &&
+                    extensionsProp.ValueKind is JsonValueKind.Object)
+                {
+                    extensions = JsonExtensionParser.ParseExtensions(extensionsProp);
                 }
             }
         }
@@ -66,12 +75,29 @@ public abstract class OperationResultBuilder<TResultData>
             errors = list;
         }
 
+        // If we have a transport error but the response does not contain any client errors
+        // we will create a client error from the provided transport error.
+        if (response.Exception is not null && errors is not { Count: > 0 })
+        {
+            errors = new IClientError[]
+            {
+                new ClientError(
+                    response.Exception.Message,
+                    ErrorCodes.InvalidResultDataStructure,
+                    exception: response.Exception,
+                    extensions: new Dictionary<string, object?>
+                    {
+                        { nameof(response.Exception.StackTrace), response.Exception.StackTrace }
+                    })
+            };
+        }
+
         return new OperationResult<TResultData>(
             data,
             dataInfo,
             ResultDataFactory,
             errors,
-            response.Extensions,
+            extensions,
             response.ContextData);
     }
 

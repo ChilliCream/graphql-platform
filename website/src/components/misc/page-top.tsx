@@ -1,7 +1,10 @@
 import React, { FC, useEffect, useRef } from "react";
 import styled from "styled-components";
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
-import { useObservable } from "../../state";
+
+import { useObservable } from "@/state";
+
+// Icons
+import ArrowUpIconSvg from "@/images/arrow-up.svg";
 
 export interface PageTopProps {
   readonly onTopScroll: () => void;
@@ -15,12 +18,8 @@ export const PageTop: FC<PageTopProps> = ({ onTopScroll }) => {
   });
 
   useEffect(() => {
-    const classes = ref.current?.className ?? "";
-
     const subscription = showButton$.subscribe((showButton) => {
-      if (ref.current) {
-        ref.current.className = classes + (showButton ? " show" : "");
-      }
+      ref.current?.classList.toggle("show", showButton);
     });
 
     return () => {
@@ -38,10 +37,9 @@ export const PageTop: FC<PageTopProps> = ({ onTopScroll }) => {
 const JumpToTop = styled.button`
   display: none;
   position: fixed;
-  right: 50px;
-  bottom: 50px;
-  z-index: 29;
-  display: none;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
   border-radius: 50%;
   padding: 8px;
   width: 50px;

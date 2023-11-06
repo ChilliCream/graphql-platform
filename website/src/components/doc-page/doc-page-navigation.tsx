@@ -9,20 +9,25 @@ import React, {
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled, { css } from "styled-components";
-import { DocPageNavigationFragment } from "../../../graphql-types";
-import ArrowDownIconSvg from "../../images/arrow-down.svg";
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
-import ProductSwitcherIconSvg from "../../images/th-large.svg";
-import { BoxShadow, IsTablet, THEME_COLORS } from "../../shared-style";
-import { State } from "../../state";
-import { closeTOC } from "../../state/common";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { DocPageNavigationFragment } from "@/graphql-types";
+import { BoxShadow, IsTablet, THEME_COLORS } from "@/shared-style";
+import { State } from "@/state";
+import { closeTOC } from "@/state/common";
+
+// Icons
+import ArrowDownIconSvg from "@/images/arrow-down.svg";
+import ArrowUpIconSvg from "@/images/arrow-up.svg";
+import ProductSwitcherIconSvg from "@/images/th-large.svg";
+
+import { ScrollContainer } from "@/components/articles/article-elements";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
 import {
   DocPageStickySideBarStyle,
   MostProminentSection,
-} from "./doc-page-elements";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
+} from "./doc-page-styles";
 
 interface NavigationContainerProps {
   readonly basePath: string;
@@ -187,6 +192,10 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
           : undefined,
       })) ?? [];
 
+  const basePath = `/docs/${activeProduct!.path!}${
+    !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
+  }`;
+
   return (
     <Navigation height={height} show={showTOC}>
       <DocPagePaneHeader
@@ -231,7 +240,7 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
             <ProductLink
               active={product === activeProduct}
               key={product.path!}
-              to={`/docs/${product.path!}`}
+              to={`/docs/${product.path!}/${product.latestStableVersion}`}
             >
               <ProductTitle>{product.title!}</ProductTitle>
               <ProductDescription>{product.description!}</ProductDescription>
@@ -244,23 +253,25 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
         open={versionSwitcherOpen}
         onClick={() => dispatch(closeTOC())}
       >
-        {activeProduct?.versions?.map((version, index) => (
-          <VersionLink
-            key={version!.path! + index}
-            to={`/docs/${activeProduct.path}/${version!.path!}`}
-          >
-            {version!.title!}
-          </VersionLink>
-        ))}
+        {activeProduct?.versions?.map((version, index) => {
+          const newVersionUrl = selectedPath.replace(
+            "/" + selectedVersion,
+            "/" + version!.path
+          );
+
+          return (
+            <VersionLink key={version!.path! + index} to={newVersionUrl}>
+              {version!.title!}
+            </VersionLink>
+          );
+        })}
       </ProductVersionDialog>
 
       {!productSwitcherOpen && activeVersion?.items && (
         <ScrollContainer>
           <MostProminentSection>
             <NavigationContainer
-              basePath={`/docs/${activeProduct!.path!}${
-                !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
-              }`}
+              basePath={basePath}
               items={subItems}
               selectedPath={selectedPath}
             />
@@ -289,6 +300,7 @@ export const DocPageNavigationGraphQLFragment = graphql`
         path
         title
         description
+        latestStableVersion
         versions {
           path
           title
@@ -323,6 +335,7 @@ export interface NavigationProps {
 
 export const Navigation = styled.nav<NavigationProps>`
   ${DocPageStickySideBarStyle}
+
   padding: 25px 0 0;
   transition: margin-left 250ms;
   background-color: white;
@@ -335,11 +348,12 @@ export const Navigation = styled.nav<NavigationProps>`
 
   ${({ height }) =>
     IsTablet(`
-      margin-left: -350px;
+      margin-left: -100%;
       height: ${height};
       position: fixed;
       top: 60px;
       left: 0;
+
       ${BoxShadow}
   `)}
 `;
@@ -438,7 +452,11 @@ interface LinkProps {
   readonly active: boolean;
 }
 
-const ProductLink = styled(Link)<LinkProps>`
+const ProductLink = styled(Link).withConfig<LinkProps>({
+  shouldForwardProp(prop, defaultValidatorFn) {
+    return prop === "active" ? false : defaultValidatorFn(prop);
+  },
+})`
   flex: 0 0 auto;
   border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--border-radius);
@@ -557,12 +575,7 @@ const NavigationItem = styled.li<{ active: boolean }>`
     active &&
     css`
       > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
-        font-weight: bold;
+        font-weight: 600;
       }
     `}
-`;
-
-export const ScrollContainer = styled.div`
-  overflow-y: auto;
-  padding-bottom: 10px;
 `;

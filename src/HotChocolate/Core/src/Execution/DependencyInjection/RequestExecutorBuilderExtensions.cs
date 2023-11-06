@@ -7,6 +7,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.Options;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
@@ -43,8 +44,9 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.SchemaBuilderActions.Add(
-                new SchemaBuilderAction((_, sb) => configureSchema(sb))));
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _) => configureSchema(ctx.SchemaBuilder))));
     }
 
     /// <summary>
@@ -76,8 +78,9 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.SchemaBuilderActions.Add(
-                new SchemaBuilderAction((_, sb, ct) => configureSchema(sb, ct))));
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, _, ct) => configureSchema(ctx.SchemaBuilder, ct))));
     }
 
     /// <summary>
@@ -113,8 +116,9 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.SchemaBuilderActions.Add(
-                new SchemaBuilderAction(configureSchema)));
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, sp) => configureSchema(sp, ctx.SchemaBuilder))));
     }
 
     /// <summary>
@@ -150,8 +154,9 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.SchemaBuilderActions.Add(
-                new SchemaBuilderAction(configureSchema)));
+            options => options.OnConfigureSchemaBuilderHooks.Add(
+                new OnConfigureSchemaBuilderAction(
+                    (ctx, sp, ct) => configureSchema(sp, ctx.SchemaBuilder, ct))));
     }
 
     /// <summary>
@@ -181,8 +186,9 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.RequestExecutorOptionsActions.Add(
-                new RequestExecutorOptionsAction(modify)));
+            options => options.OnConfigureRequestExecutorOptionsHooks.Add(
+                new OnConfigureRequestExecutorOptionsAction(
+                    (_, opt) => modify(opt))));
     }
 
     /// <summary>
@@ -214,8 +220,9 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.RequestExecutorOptionsActions.Add(
-                new RequestExecutorOptionsAction(modify)));
+            options => options.OnConfigureRequestExecutorOptionsHooks.Add(
+                new OnConfigureRequestExecutorOptionsAction(
+                    (_, opt, ct) => modify(opt, ct))));
     }
 
     /// <summary>
@@ -247,8 +254,9 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            (services, options) => options.RequestExecutorOptionsActions.Add(
-                new RequestExecutorOptionsAction(o => modify(services, o))));
+            (services, options) => options.OnConfigureRequestExecutorOptionsHooks.Add(
+                new OnConfigureRequestExecutorOptionsAction(
+                    (_, o) => modify(services, o))));
 
     }
 
@@ -281,8 +289,39 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            (services, options) => options.RequestExecutorOptionsActions.Add(
-                new RequestExecutorOptionsAction((o, ct) => modify(services, o, ct))));
+            (services, options) => options.OnConfigureRequestExecutorOptionsHooks.Add(
+                new OnConfigureRequestExecutorOptionsAction(
+                    (_, o, ct) => modify(services, o, ct))));
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="RequestParserOptions"/>.
+    /// </summary>
+    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+    /// <param name="modify">
+    /// A delegate that is used to modify the <see cref="RequestParserOptions"/>.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+    /// and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder ModifyParserOptions(
+        this IRequestExecutorBuilder builder,
+        Action<RequestParserOptions> modify)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (modify is null)
+        {
+            throw new ArgumentNullException(nameof(modify));
+        }
+
+        builder.Services.AddSingleton(modify);
+
+        return builder;
     }
 
     /// <summary>
@@ -365,7 +404,8 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.SchemaServices.Add(configureServices));
+            options => options.OnConfigureSchemaServicesHooks.Add(
+                (_, sp) => configureServices(sp)));
     }
 
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
@@ -382,8 +422,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
-        return builder.Configure(o => o.OnRequestExecutorCreated.Add(
-            new OnRequestExecutorCreatedAction(action)));
+        return builder.Configure(
+            o => o.OnRequestExecutorCreatedHooks.Add(
+                new OnRequestExecutorCreatedAction(
+                    (_, re) => action(re))));
     }
 
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
@@ -400,8 +442,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
-        return builder.Configure((s, o) => o.OnRequestExecutorCreated.Add(
-            new OnRequestExecutorCreatedAction(e => action(s, e))));
+        return builder.Configure(
+            (s, o) => o.OnRequestExecutorCreatedHooks.Add(
+                new OnRequestExecutorCreatedAction(
+                    (_, e) => action(s, e))));
     }
 
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreatedAsync(
@@ -418,8 +462,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(asyncAction));
         }
 
-        return builder.Configure(o => o.OnRequestExecutorCreated.Add(
-            new OnRequestExecutorCreatedAction(asyncAction)));
+        return builder.Configure(
+            o => o.OnRequestExecutorCreatedHooks.Add(
+                new OnRequestExecutorCreatedAction(
+                    (_, re, ct) => asyncAction(re, ct))));
     }
 
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreatedAsync(
@@ -436,8 +482,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(asyncAction));
         }
 
-        return builder.Configure((s, o) => o.OnRequestExecutorCreated.Add(
-            new OnRequestExecutorCreatedAction((e, ct) => asyncAction(s, e, ct))));
+        return builder.Configure(
+            (s, o) => o.OnRequestExecutorCreatedHooks.Add(
+                new OnRequestExecutorCreatedAction(
+                    (_, e, ct) => asyncAction(s, e, ct))));
     }
 
     internal static IRequestExecutorBuilder Configure(

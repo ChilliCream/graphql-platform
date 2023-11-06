@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
@@ -32,7 +31,7 @@ public interface IDirectiveArgumentDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    IDirectiveArgumentDescriptor Name(NameString value);
+    IDirectiveArgumentDescriptor Name(string value);
 
     /// <inheritdoc cref="IArgumentDescriptor.Description(string)"/>
     IDirectiveArgumentDescriptor Description(string value);

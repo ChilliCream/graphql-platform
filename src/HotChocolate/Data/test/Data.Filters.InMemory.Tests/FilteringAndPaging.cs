@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -20,23 +18,24 @@ public class FilteringAndPaging
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
+        var snapshot = new Snapshot();
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
                 .Create());
+        snapshot.Add(res1, "true");
 
-        res1.ToJson().MatchSnapshot(new SnapshotNameExtension("true"));
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
                 .Create());
+        snapshot.Add(res2, "true");
 
-        res2.ToJson().MatchSnapshot(new SnapshotNameExtension("false"));
+        // assert
+        await snapshot.MatchAsync();
     }
 
     public class Foo

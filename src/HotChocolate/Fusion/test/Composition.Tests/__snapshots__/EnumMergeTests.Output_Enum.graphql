@@ -1,0 +1,19 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  field1: Enum1!
+    @resolver(subgraph: "A", select: "{ field1 }")
+    @resolver(subgraph: "B", select: "{ field1 }")
+}
+
+enum Enum1 {
+  BAR
+    @source(subgraph: "A")
+  BAZ
+    @source(subgraph: "B")
+}

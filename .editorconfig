@@ -7,7 +7,7 @@ indent_size = 2
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
-rulers = 100
+rulers = 120
 
 [*.md]
 trim_trailing_whitespace = false
@@ -45,7 +45,7 @@ dotnet_style_null_propagation = true:suggestion
 # Prefer "var" everywhere
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = false
+csharp_style_var_elsewhere = true:suggestion
 
 # Prefer method-like constructs to have a block body
 csharp_style_expression_bodied_methods = false:none

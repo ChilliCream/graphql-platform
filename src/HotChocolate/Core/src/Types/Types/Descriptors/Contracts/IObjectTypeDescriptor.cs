@@ -33,7 +33,7 @@ public interface IObjectTypeDescriptor
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IObjectTypeDescriptor Name(NameString value);
+    IObjectTypeDescriptor Name(string value);
 
     /// <summary>
     /// Adds explanatory text to the <see cref="ObjectType"/>
@@ -41,34 +41,6 @@ public interface IObjectTypeDescriptor
     /// </summary>
     /// <param name="value">The object type description.</param>
     IObjectTypeDescriptor Description(string? value);
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor Interface<T>()
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor Interface<T>(T type)
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <param name="type">
-    /// A syntax node representing an interface type.
-    /// </param>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor Interface(NamedTypeNode type);
 
     /// <summary>
     /// Specifies an interface that is implemented by the
@@ -110,7 +82,7 @@ public interface IObjectTypeDescriptor
     /// <param name="name">
     /// The name that the field shall have.
     /// </param>
-    IObjectFieldDescriptor Field(NameString name);
+    IObjectFieldDescriptor Field(string name);
 
     /// <summary>
     /// Specifies an object type field which is bound to a resolver type.
@@ -131,15 +103,62 @@ public interface IObjectTypeDescriptor
     /// </param>
     IObjectFieldDescriptor Field(MemberInfo propertyOrMethod);
 
+    /// <summary>
+    /// Sets a directive on the object type
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive(new MyDirective());
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// type Query {
+    ///     ships(name: String @myDirective): [Ship!]!
+    /// }
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="directiveInstance">
+    /// The instance of the directive
+    /// </param>
+    /// <typeparam name="T">The type of the directive</typeparam>
     IObjectTypeDescriptor Directive<T>(T directiveInstance)
         where T : class;
 
+    /// <summary>
+    /// Sets a directive on the object type
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive&lt;MyDirective>();
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// type Query {
+    ///     ships(name: String @myDirective): [Ship!]!
+    /// }
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <typeparam name="T">The type of the directive</typeparam>
     IObjectTypeDescriptor Directive<T>()
         where T : class, new();
 
-    IObjectTypeDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments);
+    /// <summary>
+    /// Sets a directive on the object type
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive("myDirective");
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// type Query {
+    ///     ships(name: String @myDirective): [Ship!]!
+    /// }
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="name">The name of the directive</param>
+    /// <param name="arguments">The arguments of the directive</param>
+    IObjectTypeDescriptor Directive(string name, params ArgumentNode[] arguments);
 
     /// <summary>
     /// If configuring a type extension this is the type that shall be extended.

@@ -5,19 +5,13 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class OperationContext : IExecutionTaskContext
 {
     void IExecutionTaskContext.ReportError(IExecutionTask task, IError error)
-    {
-        ReportError(task, error);
-    }
+        => ReportError(task, error);
 
     void IExecutionTaskContext.ReportError(IExecutionTask task, Exception exception)
-    {
-        ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
-    }
+        => ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
 
     void IExecutionTaskContext.Register(IExecutionTask task)
-    {
-        Scheduler.Register(task);
-    }
+        => Scheduler.Register(task);
 
     private void ReportError(IExecutionTask task, IError error)
     {
@@ -35,7 +29,7 @@ internal sealed partial class OperationContext : IExecutionTaskContext
 
         if (error is AggregateError aggregateError)
         {
-            foreach (IError? innerError in aggregateError.Errors)
+            foreach (var innerError in aggregateError.Errors)
             {
                 ReportSingle(innerError);
             }
@@ -47,14 +41,11 @@ internal sealed partial class OperationContext : IExecutionTaskContext
 
         void ReportSingle(IError singleError)
         {
-            AddProcessedError(ErrorHandler.Handle(singleError));
-        }
+            var handled = ErrorHandler.Handle(singleError);
 
-        void AddProcessedError(IError processed)
-        {
-            if (processed is AggregateError ar)
+            if (handled is AggregateError ar)
             {
-                foreach (IError? ie in ar.Errors)
+                foreach (var ie in ar.Errors)
                 {
                     Result.AddError(ie);
                     DiagnosticEvents.TaskError(task, ie);
@@ -62,8 +53,8 @@ internal sealed partial class OperationContext : IExecutionTaskContext
             }
             else
             {
-                Result.AddError(processed);
-                DiagnosticEvents.TaskError(task, processed);
+                Result.AddError(handled);
+                DiagnosticEvents.TaskError(task, handled);
             }
         }
     }

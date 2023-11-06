@@ -440,7 +440,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1164,7 +1164,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 "NEW_HOPE" => Episode.NewHope,
                 "EMPIRE" => Episode.Empire,
                 "JEDI" => Episode.Jedi,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum Episode")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -1174,7 +1174,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 Episode.NewHope => "NEW_HOPE",
                 Episode.Empire => "EMPIRE",
                 Episode.Jedi => "JEDI",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum Episode value '{runtimeValue}' can't be converted to string")};
         }
     }
 

@@ -168,7 +168,7 @@ public void EndOperationExecute(
 
 Resolver events are raised for every single resolver that is invoked. This is the perfect event to subscribe to if you want to add performance analysis or other resolver tracing solutions.
 
-> Have a look at our [ApolloTracingDiagnosticObserver](https://github.com/ChilliCream/hotchocolate/blob/master/src/Core/Core/Execution/Instrumentation/ApolloTracingDiagnosticObserver.cs) to get an idea of how to implement a performance analysis solution.
+> Have a look at our [ApolloTracingDiagnosticObserver](https://github.com/ChilliCream/graphql-platform/blob/master/src/Core/Core/Execution/Instrumentation/ApolloTracingDiagnosticObserver.cs) to get an idea of how to implement a performance analysis solution.
 
 ## Resolver Start
 

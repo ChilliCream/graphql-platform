@@ -30,18 +30,18 @@ public abstract class MongoDbOperationHandlerBase
         ObjectFieldNode node,
         [NotNullWhen(true)] out MongoDbFilterDefinition result)
     {
-        IValueNode value = node.Value;
-        IExtendedType runtimeType = context.RuntimeTypes.Peek();
+        var value = node.Value;
+        var runtimeType = context.RuntimeTypes.Peek();
 
-        Type type = field.Type.IsListType()
+        var type = field.Type.IsListType()
             ? runtimeType.Source.MakeArrayType()
             : runtimeType.Source;
 
-        object? parsedValue = InputParser.ParseLiteral(value, field, type);
+        var parsedValue = InputParser.ParseLiteral(value, field, type);
 
         if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
         {
-            IError error = ErrorHelper.CreateNonNullError(field, value, context);
+            var error = ErrorHelper.CreateNonNullError(field, value, context);
             context.ReportError(error);
             result = null!;
             return false;
@@ -49,7 +49,7 @@ public abstract class MongoDbOperationHandlerBase
 
         if (!ValueNullabilityHelpers.IsListValueValid(field.Type, runtimeType, node.Value))
         {
-            IError error = ErrorHelper.CreateNonNullError(field, value, context, true);
+            var error = ErrorHelper.CreateNonNullError(field, value, context, true);
             context.ReportError(error);
             result = null!;
             return false;

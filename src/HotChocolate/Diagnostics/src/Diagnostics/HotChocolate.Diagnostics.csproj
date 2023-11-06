@@ -5,15 +5,25 @@
     <AssemblyName>HotChocolate.Diagnostics</AssemblyName>
     <RootNamespace>HotChocolate.Diagnostics</RootNamespace>
     <Description>Provides Hot Chocolate Diagnostics.</Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Diagnostics.Tests" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0-rc.2.23479.6" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
   </ItemGroup>
 

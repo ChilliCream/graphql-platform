@@ -21,7 +21,7 @@ We put another focus on discoverability. Many people getting into BCP had diffic
 
 ![Banana Cake Pop Tabs](bcp2.png)
 
-The new Banana Cake Pop version is now available online at https://eat.bananacakepop.com, as an application that you can download at https://bananacakepop.com or as a middleware in the new Hot Chocolate 12.5.
+The new Banana Cake Pop version is now available online at <https://eat.bananacakepop.com>, as an application that you can download at <https://bananacakepop.com> or as a middleware in the new Hot Chocolate 12.5.
 
 # Open Telemetry
 
@@ -65,15 +65,15 @@ With all this in place, we can execute requests against our demo server and insp
 
 The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OpenTelemetry).
 
-Docs can be found [here](https://chillicream.com/docs/hotchocolate/server/instrumentation/#opentelemetry).
+Docs can be found [here](https://chillicream.com/docs/hotchocolate/v12/server/instrumentation/#opentelemetry).
 
-# Oneof Input Objects
+# `OneOf` Input Objects
 
-One of the most asked-for features in GraphQL is input unions. The GraphQL working group has been discussing this feature for a long time, and we have explored multiple roads to achieve this. The most likely candidate has become the _Oneof Input Object_ representing a structural union. A structural union means that _Oneof Input Object_ is a special kind of input object where each field represents one choice. The _Oneof Input Object_ will only allow one field to be set, and the value can not be null. The type system enforces the rules for _Oneof Input Objects_.
+One of the most asked-for features in GraphQL is input unions. The GraphQL working group has been discussing this feature for a long time, and we have explored multiple roads to achieve this. The most likely candidate has become the _`OneOf` Input Object_ representing a structural union. A structural union means that _`OneOf` Input Object_ is a special kind of input object where each field represents one choice. The _`OneOf` Input Object_ will only allow one field to be set, and the value can not be null. The type system enforces the rules for `OneOf` Input Objects\_.
 
-We support _Oneof Input Objects_ in all three schema-building approaches (annotation-based, code-first, and schema-first.
+We support _`OneOf` Input Objects_ in all three schema-building approaches (annotation-based, code-first, and schema-first.
 
-In order to make an input object a _Oneof Input Object_ you simply need to annotate it with the `@oneOf` directive.
+In order to make an input object a _`OneOf` Input Object_ you simply need to annotate it with the `@oneOf` directive.
 
 **schema-first**
 
@@ -127,7 +127,7 @@ builder.Services
 
 The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OneOf).
 
-Docs can be found [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/input-object-types/#oneof-input-objects).
+Docs can be found [here](https://chillicream.com/docs/hotchocolate/v12/defining-a-schema/input-object-types/#oneof-input-objects).
 
 The current GraphQL spec RFC can be found [here](https://github.com/graphql/graphql-spec/pull/825).
 
@@ -231,4 +231,4 @@ The current GraphQL spec RFC can be found [here](https://github.com/graphql/grap
 
 # Conclusion
 
-We have implemented a ton of other smaller additions and bug fixes. Hot Chocolate 12.5 pushes further ahead and allows you to opt into the newest GraphQL spec proposals and drafts. At the GraphQL working group, we are currently discussing great new additions to the GraphQL spec like fragment modularity and object identity. Together, stream/defer, oneof, fragment modularity, object identity, and client-controlled nullability could make GraphQL so much better and help us solve fundamental problems in interacting with our data graphs. We have invested in these new features early and are iterating on these as the spec text matures.
+We have implemented a ton of other smaller additions and bug fixes. Hot Chocolate 12.5 pushes further ahead and allows you to opt into the newest GraphQL spec proposals and drafts. At the GraphQL working group, we are currently discussing great new additions to the GraphQL spec like fragment modularity and object identity. Together, stream/defer, `oneof`, fragment modularity, object identity, and client-controlled nullability could make GraphQL so much better and help us solve fundamental problems in interacting with our data graphs. We have invested in these new features early and are iterating on these as the spec text matures.

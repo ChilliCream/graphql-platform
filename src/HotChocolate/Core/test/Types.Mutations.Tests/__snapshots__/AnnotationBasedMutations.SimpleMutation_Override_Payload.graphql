@@ -1,0 +1,18 @@
+schema {
+  mutation: SimpleMutationPayloadOverride
+}
+
+type DoSomethingPayload {
+  myResult1: String!
+  myResult2: String!
+}
+
+type SimpleMutationPayloadOverride {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+input DoSomethingInput {
+  something: String!
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

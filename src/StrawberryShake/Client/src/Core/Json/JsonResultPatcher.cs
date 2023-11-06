@@ -55,17 +55,18 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
         }
 #endif
 
-        JsonNode current = _json![Data]!;
+        var current = _json![Data]!;
 
         if (response.Body is not null &&
-            response.Body.RootElement.TryGetProperty(Path, out JsonElement pathProp) &&
-            response.Body.RootElement.TryGetProperty(Data, out JsonElement dataProp))
+            response.Body.RootElement.TryGetProperty(Path, out var pathProp) &&
+            response.Body.RootElement.TryGetProperty(Data, out var dataProp))
         {
-            JsonElement[] path = pathProp.EnumerateArray().ToArray();
+            var path = pathProp.EnumerateArray().ToArray();
 
             if (path.Length > 1)
             {
                 var max = path.Length - 1;
+
                 for (var i = 0; i < max; i++)
                 {
                     current = path[i].ValueKind switch
@@ -79,9 +80,9 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
             }
 
 #if NET5_0_OR_GREATER
-            JsonElement last = path[^1];
-#else 
-            JsonElement last = path[path.Length - 1];
+            var last = path[^1];
+#else
+            var last = path[path.Length - 1];
 #endif
 
             if (last.ValueKind is JsonValueKind.String)
@@ -90,13 +91,13 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                 var patchData = JsonObject.Create(dataProp)!;
 
 #if NET5_0_OR_GREATER
-                foreach ((var key, JsonNode? value) in patchData.ToArray())
+                foreach ((var key, var value) in patchData.ToArray())
                 {
                     patchData.Remove(key);
                     current[key] = value;
                 }
 #else
-                foreach (KeyValuePair<string, JsonNode?> prop in patchData.ToArray())
+                foreach (var prop in patchData.ToArray())
                 {
                     patchData.Remove(prop.Key);
                     current[prop.Key] = prop.Value;
@@ -106,7 +107,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
             else if (last.ValueKind is JsonValueKind.Number)
             {
                 var index = last.GetInt32();
-                JsonNode? element = current[index];
+                var element = current[index];
                 var patchData = JsonObject.Create(dataProp)!;
 
                 if (element is null)
@@ -116,13 +117,13 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                 else
                 {
 #if NET5_0_OR_GREATER
-                    foreach ((var key, JsonNode? value) in patchData.ToArray())
+                    foreach ((var key, var value) in patchData.ToArray())
                     {
                         patchData.Remove(key);
                         element[key] = value;
                     }
 #else
-                    foreach (KeyValuePair<string, JsonNode?> prop in patchData.ToArray())
+                    foreach (var prop in patchData.ToArray())
                     {
                         patchData.Remove(prop.Key);
                         element[prop.Key] = prop.Value;
@@ -148,7 +149,13 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
         var json = JsonDocument.Parse(buffer.Body);
 
-        return new(json, response.Exception, false, response.HasNext, _extensions, _contextData);
+        return new Response<JsonDocument>(
+            json,
+            response.Exception,
+            false,
+            response.HasNext,
+            _extensions,
+            _contextData);
     }
 
     private static Dictionary<string, object?>? MergeExtensions(
@@ -175,7 +182,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
             target[key] = value;
         }
 #else
-        foreach (KeyValuePair<string, object?> prop in source)
+        foreach (var prop in source)
         {
             target[prop.Key] = prop.Value;
         }

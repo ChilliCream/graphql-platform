@@ -1,31 +1,28 @@
-using System;
+// ReSharper disable ClassNeverInstantiated.Local
+// ReSharper disable UnusedMember.Local
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable MoveLocalFunctionAfterJumpStatement
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
-public class IntegrationTests : IClassFixture<AuthorFixture>
+public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<AuthorFixture>
 {
-    private readonly Author[] _authors;
-
-    public IntegrationTests(AuthorFixture authorFixture)
-    {
-        _authors = authorFixture.Authors;
-    }
+    private readonly Author[] _authors = authorFixture.Authors;
 
     [Fact]
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -41,24 +38,24 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -76,24 +73,24 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultMoreThanOne()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -111,24 +108,24 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultZero()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -146,24 +143,24 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -181,24 +178,24 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefaultZero()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -216,281 +213,298 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothMiddlewaresAreApplied()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .AddObjectType<Book>(o => 
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        edges {
-                            node {
-                                id
-                                author {
-                                    name
-                                }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    edges {
+                        node {
+                            id
+                            author {
+                                name
                             }
                         }
                     }
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothAreAppliedAndProvided()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .AddObjectType<Book>(o =>
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        nodes {
-                            id
-                        }
-                        edges {
-                            node {
-                                title
-                            }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    nodes {
+                        id
+                    }
+                    edges {
+                        node {
+                            title
                         }
                     }
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .AddObjectType<Book>(o =>
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        edges {
-                            node {
-                                ... Test
-                            }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    edges {
+                        node {
+                            ... Test
                         }
                     }
                 }
-                fragment Test on Book {
-                    title
-                    id
-                }
-                ");
+            }
+            
+            fragment Test on Book {
+                title
+                id
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .AddObjectType<Book>(o =>
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        nodes {
-                            ... Test
-                        }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    nodes {
+                        ... Test
                     }
                 }
-                fragment Test on Book {
-                    title
-                    id
-                }
-                ");
+            }
+            
+            fragment Test on Book {
+                title
+                id
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .AddObjectType<Book>(o =>
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        edges {
-                            node {
-                                author {
-                                   ... Test
-                                }
-                            }
-                        }
-                    }
-                }
-                fragment Test on Author {
-                    name
-                }
-                ");
-
-        // assert
-        result.ToJson().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
-    {
-        // arrange
-        IRequestExecutor executor = await new ServiceCollection()
-            .AddGraphQL()
-            .AddFiltering()
-            .AddGlobalObjectIdentification()
-            .AddSorting()
-            .AddProjections()
-            .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-            .BuildRequestExecutorAsync();
-
-        // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        nodes {
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    edges {
+                        node {
                             author {
                                ... Test
                             }
                         }
                     }
                 }
-                fragment Test on Author {
-                    name
-                }
-                ");
+            }
+            
+            fragment Test on Author {
+                name
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task
-        ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .AddObjectType<Book>(o =>
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        nodes {
-                            ... Test
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    nodes {
+                        author {
+                           ... Test
                         }
                     }
                 }
-                fragment Test on Book {
-                    title
-                    author {
-                       name
-                    }
-                }
-                ");
+            }
+            
+            fragment Test on Author {
+                name
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task
-        ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddGlobalObjectIdentification()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<PagingAndProjection>()
+            .AddObjectType<Book>(o =>
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    nodes {
+                        ... Test
+                    }
+                }
+            }
+            
+            fragment Test on Book {
+                title
+                author {
+                   name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -498,39 +512,44 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddProjections()
             .AddQueryType(c => c.Name("Query"))
             .AddTypeExtension<PagingAndProjectionExtension>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .AddObjectType<Book>(o =>
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        nodes {
-                            ... Test
-                        }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    nodes {
+                        ... Test
                     }
                 }
-                fragment Test on Book {
-                    title
-                    author {
-                       name
-                    }
+            }
+            
+            fragment Test on Book {
+                title
+                author {
+                   name
                 }
-                ");
+            }
+            """);
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
-    public async Task
-        ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -538,57 +557,65 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddProjections()
             .AddQueryType(c => c.Name("Query"))
             .AddTypeExtension<PagingAndProjectionExtension>()
-            .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .AddObjectType<Book>(o =>
+                o.ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        nodes {
-                            authorId: title
-                        }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books {
+                    nodes {
+                        authorId: title
                     }
                 }
-                ");
+            }
+            """);
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task CreateSchema_CodeFirst_AsyncQueryable()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddQueryType<FooType>()
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    foos(where: { qux: {eq: ""a""}}) {
-                        qux
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                foos(where: { qux: {eq: "a"}}) {
+                    qux
                 }
-                ");
+            }
+            """);
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task CreateSchema_OnDifferentScope()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering("Foo")
             .AddSorting("Foo")
@@ -597,25 +624,28 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books(where: { title: {eq: ""BookTitle""}}) {
-                        nodes { title }
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books(where: { title: { eq: "BookTitle" }}) {
+                    nodes { title }
                 }
-                ");
+            }
+            """);
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Execute_And_OnRoot()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering("Foo")
             .AddSorting("Foo")
@@ -624,30 +654,34 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                query GetBooks($title: String) {
-                    books(where: {
-                            and: [
-                                { title: { startsWith: $title } },
-                                { title: { eq: ""BookTitle"" } },
-                            ]
-                    }) {
-                        nodes { title }
-                    }
-                }",
+        var result = await executor.ExecuteAsync(
+            """
+            query GetBooks($title: String) {
+                books(where: {
+                        and: [
+                            { title: { startsWith: $title } },
+                            { title: { eq: "BookTitle" } },
+                        ]
+                }) {
+                    nodes { title }
+                }
+            }
+            """,
             new Dictionary<string, object?> { ["title"] = "BookTitle" });
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Execute_And_OnRoot_Reverse()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering("Foo")
             .AddSorting("Foo")
@@ -656,63 +690,66 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                query GetBooks($title: String) {
-                    books(where: {
-                            and: [
-                                { title: { eq: ""BookTitle"" } },
-                                { title: { startsWith: $title } },
-                            ]
-                    }) {
-                        nodes { title }
-                    }
-                }",
+        var result = await executor.ExecuteAsync(
+            """
+            query GetBooks($title: String) {
+                books(where: {
+                        and: [
+                            { title: { eq: "BookTitle" } },
+                            { title: { startsWith: $title } },
+                        ]
+                }) {
+                    nodes { title }
+                }
+            }
+            """,
             new Dictionary<string, object?> { ["title"] = "BookTitle" });
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
             .AddProjections()
-            .AddQueryType<FirstOrDefaulQuery>()
+            .AddQueryType<FirstOrDefaultQuery>()
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"
-                {
-                    books(book: {id: 1, authorId: 0}) {
-                        title
-                    }
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                books(book: {id: 1, authorId: 0}) {
+                    title
                 }
-                ");
+            }
+            """);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task
-        Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
+    public async Task Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
             .AddProjections()
-            .AddQueryType<FirstOrDefaulQuery>()
-            .AddMutationType<FirstOrDefaultMutation_ManyToMany>()
+            .AddQueryType<FirstOrDefaultQuery>()
+            .AddMutationType<FirstOrDefaultMutationManyToMany>()
             .BuildRequestExecutorAsync();
 
         // act
@@ -723,17 +760,16 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    public async Task
-        Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
+    public async Task Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
             .AddProjections()
-            .AddQueryType<FirstOrDefaulQuery>()
-            .AddMutationType<FirstOrDefaultMutation_ManyToOne>()
+            .AddQueryType<FirstOrDefaultQuery>()
+            .AddMutationType<FirstOrDefaultMutationManyToOne>()
             .BuildRequestExecutorAsync();
 
         // act
@@ -741,6 +777,50 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Schema_Should_Generate_WhenStaticTypeExtensionWithOffsetPagingOnStaticResolver()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType()
+            .AddTypeExtension(typeof(StaticQuery))
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = executor.Schema.Print();
+
+        // assert
+        result.MatchSnapshot();
+    }
+    
+    [Fact]
+    public async Task Duplicate_Filter_Attribute_Throws()
+    {
+        // arrange
+        async Task Error() 
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<DuplicateAttribute>()
+                .AddFiltering()
+                .BuildRequestExecutorAsync();
+
+        // act & assert
+        var error = await Assert.ThrowsAsync<SchemaException>(Error);
+        error.Errors[0].Message.MatchInlineSnapshot(
+            """
+            The field `DuplicateAttribute.addBook` declares the data middleware `UseFiltering` more than once.
+            """);
+    }
+    
+    [QueryType]
+    public static class StaticQuery
+    {
+        [UseOffsetPaging]
+        public static IEnumerable<Bar> GetBars() 
+            => new[] { Bar.Create("tox") };
     }
 
     public class FooType : ObjectType
@@ -752,7 +832,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .Type<ListType<ObjectType<Bar>>>()
                 .Resolve(_ =>
                 {
-                    IQueryable<Bar> data = new[]
+                    var data = new[]
                     {
                         Bar.Create("a"),
                         Bar.Create("b")
@@ -774,15 +854,16 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     {
         [UsePaging]
         [UseProjection]
-        public IQueryable<Book> GetBooks() => new[]
-        {
-            new Book
+        public IQueryable<Book> GetBooks() 
+            => new[]
             {
-                Id = 1,
-                Title = "BookTitle",
-                Author = new Author { Name = "Author" }
-            }
-        }.AsQueryable();
+                new Book
+                {
+                    Id = 1,
+                    Title = "BookTitle",
+                    Author = new Author { Name = "Author" }
+                }
+            }.AsQueryable();
     }
 
     [ExtendObjectType("Query")]
@@ -792,15 +873,16 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<Book> GetBooks() => new[]
-        {
-            new Book
+        public IQueryable<Book> GetBooks() 
+            => new[]
             {
-                Id = 1,
-                Title = "BookTitle",
-                Author = new Author { Name = "Author" }
-            }
-        }.AsQueryable();
+                new Book
+                {
+                    Id = 1,
+                    Title = "BookTitle",
+                    Author = new Author { Name = "Author" }
+                }
+            }.AsQueryable();
     }
 
     public class DifferentScope
@@ -809,19 +891,22 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         [UseProjection(Scope = "Foo")]
         [UseFiltering(Scope = "Foo")]
         [UseSorting(Scope = "Foo")]
-        public IQueryable<Book> GetBooks() => new[]
-        {
-                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
+        public IQueryable<Book> GetBooks() 
+            => new[]
+            {
+                new Book
+                {
+                    Id = 1, 
+                    Title = "BookTitle", 
+                    Author = new Author
+                    {
+                        Name = "Author"
+                    }
+                }
             }.AsQueryable();
     }
-
-    public class BookInput
-    {
-        public int Id { get; set; }
-
-    }
-
-    public class FirstOrDefaulQuery
+    
+    public class FirstOrDefaultQuery
     {
         [UseFirstOrDefault]
         [UseProjection]
@@ -829,32 +914,70 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         {
             new Book
             {
-                Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" }
+                Id = 1, 
+                Title = "BookTitle", 
+                Author = new Author
+                {
+                    Name = "Author"
+                }
             },
             new Book
             {
-                Id = 2, Title = "BookTitle2", Author = new Author { Name = "Author2" }
+                Id = 2, 
+                Title = "BookTitle2", 
+                Author = new Author
+                {
+                    Name = "Author2"
+                }
             }
         }.AsQueryable().Where(x => x.Id == book.Id);
     }
 
-    public class FirstOrDefaultMutation_ManyToMany
+    public class FirstOrDefaultMutationManyToMany
     {
         [UseFirstOrDefault]
         [UseProjection]
-        public IQueryable<Author> AddPublisher(Publisher publisher) => new[]
-        {
-            new Author { Name = "Author", Publishers = new List<Publisher> { publisher } }
-        }.AsQueryable();
+        public IQueryable<Author> AddPublisher(Publisher publisher) 
+            => new[]
+            {
+                new Author
+                {
+                    Name = "Author", 
+                    Publishers = new List<Publisher>
+                    {
+                        publisher
+                    }
+                }
+            }.AsQueryable();
     }
 
-    public class FirstOrDefaultMutation_ManyToOne
+    public class FirstOrDefaultMutationManyToOne
     {
         [UseFirstOrDefault]
         [UseProjection]
-        public IQueryable<Author> AddBook(Book book) => new[]
-        {
-            new Author { Name = "Author", Books = new List<Book> { book } }
-        }.AsQueryable();
+        public IQueryable<Author> AddBook(Book book) 
+            => new[]
+            {
+                new Author
+                {
+                    Name = "Author", 
+                    Books = new List<Book> { book }
+                }
+            }.AsQueryable();
+    }
+    
+    public class DuplicateAttribute
+    {
+        [UseFiltering]
+        [UseFiltering]
+        public IQueryable<Author> AddBook(Book book) 
+            => new[]
+            {
+                new Author
+                {
+                    Name = "Author", 
+                    Books = new List<Book> { book }
+                }
+            }.AsQueryable();
     }
 }

@@ -13,18 +13,16 @@ for storing this type of data. APIs often use GeoJSON to send spatial data over 
 
 The most common library used for spatial data in .NET is [NetTopologySuite](https://github.com/NetTopologySuite/NetTopologySuite).
 Entity Framework supports [Spatial Data](https://docs.microsoft.com/en-gb/ef/core/modeling/spatial) and uses
-NetToplogySuite as its data representation.
+NetTopologySuite as its data representation.
 
 The package `HotChocolate.Spatial` integrates NetTopologySuite into HotChocolate. With this package your resolvers
 can return NetTopologySuite shapes and they will be transformed into GeoJSON.
 
 # Getting Started
 
-You first need to add the package reference to your project. You can do this with the `dotnet` cli:
+You first need to add the package reference to your project.
 
-```bash
-  dotnet add package HotChocolate.Spatial
-```
+<PackageInstallation packageName="HotChocolate.Spatial" />
 
 To make the schema recognize the spatial types you need to register them on the schema builder.
 
@@ -34,7 +32,7 @@ services
     .AddSpatialTypes();
 ```
 
-All NetToplogySuite runtime types are now bound to the corresponding GeoJSON type.
+All NetTopologySuite runtime types are now bound to the corresponding GeoJSON type.
 
 ```csharp
 public class Pub
@@ -574,15 +572,15 @@ WHERE NOT ST_Within(c."Area", @__p_0)
 
 # What's next?
 
-In upcoming releases spatial data will get reprojection features and sorting capabilities.
+In upcoming releases spatial data will get re-projection features and sorting capabilities.
 
-## Reprojection
+## Re-projection
 
 At the moment the coordinate reference system (crs) is fixed. The user has to know the crs of the backend
 to do spatial filtering. The API will furthermore always return the data in the crs it was stored in the database.
 
 We want to improve this. The user should be able to send data to the backend without knowing what the crs. The
-backend should reproject the incoming data automatically to the correct crs.
+backend should re-project the incoming data automatically to the correct crs.
 
 Additionally we want to provide a way for users, to specify in what CRS they want to receive the data.
 

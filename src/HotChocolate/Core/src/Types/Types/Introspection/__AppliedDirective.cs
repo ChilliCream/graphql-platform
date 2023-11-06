@@ -3,7 +3,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -16,23 +15,24 @@ namespace HotChocolate.Types.Introspection;
 /// This type is NOT specified by the graphql specification presently.
 /// </summary>
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
 
         return new ObjectTypeDefinition(
             Names.__AppliedDirective,
-            TypeResources.___AppliedDirective_Description,
+            TypeResources.AppliedDirective_Description,
             typeof(DirectiveNode))
         {
             Fields =
-                {
-                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                    new(Names.Args, type: locationListType, pureResolver: Resolvers.Arguments)
-                }
+            {
+                new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                new(Names.Args, type: locationListType, pureResolver: Resolvers.Arguments)
+            }
         };
     }
 
@@ -47,6 +47,7 @@ internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __AppliedDirective = "__AppliedDirective";
         public const string Name = "name";
         public const string Args = "args";

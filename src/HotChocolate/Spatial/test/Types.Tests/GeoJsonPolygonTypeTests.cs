@@ -1,31 +1,29 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonPolygonTypeTests
 {
-    private readonly Polygon _geom = new Polygon(
+    private readonly Polygon _geom = new(
         new LinearRing(new[]
         {
-                new Coordinate(30, 10),
-                new Coordinate(40, 40),
-                new Coordinate(20, 40),
-                new Coordinate(10, 20),
-                new Coordinate(30, 10)
+            new Coordinate(30, 10),
+            new Coordinate(40, 40),
+            new Coordinate(20, 40),
+            new Coordinate(10, 20),
+            new Coordinate(30, 10)
         }));
 
     [Fact]
     public async Task Polygon_Execution_Output()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonPolygonType>()
             .AddQueryType(
                 d => d
@@ -34,10 +32,10 @@ public class GeoJsonPolygonTypeTests
                     .Resolve(_geom))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { type coordinates bbox crs }}");
 
         // assert
@@ -48,7 +46,7 @@ public class GeoJsonPolygonTypeTests
     public async Task Polygon_Execution_With_Fragments()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddSpatialTypes()
             .AddQueryType(
@@ -58,10 +56,10 @@ public class GeoJsonPolygonTypeTests
                     .Type<GeoJsonPolygonType>()
                     .Resolve(_geom))
             .Create();
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { ... on Polygon { type coordinates bbox crs }}}");
 
         // assert
@@ -72,9 +70,10 @@ public class GeoJsonPolygonTypeTests
     public void Polygon_Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        // act
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonPolygonType>()
             .AddQueryType(d => d
                 .Name("Query")
@@ -82,8 +81,7 @@ public class GeoJsonPolygonTypeTests
                 .Resolve(_geom))
             .Create();
 
-        // act
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 }

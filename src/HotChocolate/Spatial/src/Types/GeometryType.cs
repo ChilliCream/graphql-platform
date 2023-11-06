@@ -15,7 +15,7 @@ public sealed class GeometryType
     }
 
     public GeometryType(
-        NameString name,
+        string name,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {

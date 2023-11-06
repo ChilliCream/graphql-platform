@@ -63,5 +63,5 @@ public interface IUnionType : INamedOutputType
     /// Returns <c>true</c>, if the type set of this union type contains the
     /// specified <paramref name="typeName"/>; otherwise, <c>false</c> is returned.
     /// </returns>
-    bool ContainsType(NameString typeName);
+    bool ContainsType(string typeName);
 }

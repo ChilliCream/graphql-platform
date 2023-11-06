@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Transport.Sockets.Client.Helpers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
@@ -33,7 +33,7 @@ internal sealed class DataMessageObserver : IObserver<IOperationMessage>, IDispo
             throw _error;
         }
 
-        _messages.TryDequeue(out IDataMessage? message);
+        _messages.TryDequeue(out var message);
         return message;
     }
 

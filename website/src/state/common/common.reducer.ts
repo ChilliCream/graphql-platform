@@ -1,13 +1,15 @@
-import { createReducer, onAction } from "../state.helpers";
+import { createReducer, onAction } from "@/state/state.helpers";
 import {
   changeSearchQuery,
   closeAside,
   closeTOC,
   hasScrolled,
+  hidePromo,
   hideCookieConsent,
   hideLegacyDocHeader,
   setArticleHeight,
   showCookieConsent,
+  showPromo,
   showLegacyDocInfo,
   toggleAside,
   toggleTOC,
@@ -34,19 +36,29 @@ export const commonReducer = createReducer<CommonState>(
     showTOC: false,
   })),
 
-  onAction(hideCookieConsent, (state) => ({
-    ...state,
-    showCookieConsent: false,
-  })),
-
   onAction(hideLegacyDocHeader, (state) => ({
     ...state,
     showLegacyDocInfo: false,
   })),
 
+  onAction(hideCookieConsent, (state) => ({
+    ...state,
+    showCookieConsent: false,
+  })),
+
   onAction(showCookieConsent, (state) => ({
     ...state,
     showCookieConsent: true,
+  })),
+
+  onAction(showPromo, (state) => ({
+    ...state,
+    showPromo: true,
+  })),
+
+  onAction(hidePromo, (state) => ({
+    ...state,
+    showPromo: false,
   })),
 
   onAction(showLegacyDocInfo, (state) => ({

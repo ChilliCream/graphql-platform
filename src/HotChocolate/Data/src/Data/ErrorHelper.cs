@@ -18,7 +18,7 @@ internal static class ErrorHelper
         IFilterVisitorContext<T> context,
         bool isMemberInvalid = false)
     {
-        IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
+        var filterType = context.Types.OfType<IFilterInputType>().First();
 
         INullabilityNode nullability =
             isMemberInvalid && field.Type.IsListType()
@@ -53,7 +53,7 @@ internal static class ErrorHelper
         IValueNode value,
         ISortVisitorContext<T> context)
     {
-        ISortInputType sortType = context.Types.OfType<ISortInputType>().First();
+        var sortType = context.Types.OfType<ISortInputType>().First();
 
         return ErrorBuilder.New()
             .SetMessage(
@@ -112,21 +112,5 @@ internal static class ErrorHelper
             .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound,
                 pageType.Name)
             .SetCode(ErrorCodes.Data.NodeFieldWasNotFound)
-            .Build();
-
-    public static ISchemaError Filtering_InlineFilterTypeHadNoFields(
-        FilterInputTypeDefinition typeDefinition,
-        ITypeSystemObject type,
-        FilterFieldDefinition fieldDefinition,
-        INamedType parentType) =>
-        SchemaErrorBuilder
-            .New()
-            .SetMessage(
-                DataResources.Filtering_InlineFilterTypeHadNoFields,
-                typeDefinition.Name.Value,
-                fieldDefinition.Name.Value,
-                parentType.Name)
-            .SetCode(ErrorCodes.Data.InlineFilterTypeNoFields)
-            .SetTypeSystemObject(type)
             .Build();
 }

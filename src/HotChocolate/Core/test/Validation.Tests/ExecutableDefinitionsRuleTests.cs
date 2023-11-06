@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class ExecutableDefinitionsRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public ExecutableDefinitionsRuleTests()
-            : base(builder => builder.AddDocumentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void QueryWithTypeSystemDefinitions()
-        {
-            ExpectErrors(@"
+public class ExecutableDefinitionsRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public ExecutableDefinitionsRuleTests()
+        : base(builder => builder.AddDocumentRules())
+    {
+    }
+
+    [Fact]
+    public void QueryWithTypeSystemDefinitions()
+    {
+        ExpectErrors(@"
                 query getDogName {
                     dog {
                         name
@@ -27,14 +27,14 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    "A document containing TypeSystemDefinition " +
-                    "is invalid for execution.", t.Message));
-        }
+                "A document containing TypeSystemDefinition " +
+                "is invalid for execution.", t.Message));
+    }
 
-        [Fact]
-        public void QueryWithoutTypeSystemDefinitions()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void QueryWithoutTypeSystemDefinitions()
+    {
+        ExpectValid(@"
                 query getDogName {
                     dog {
                         name
@@ -42,24 +42,24 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void GoodExecuableDefinitionsWithOnlyOperation()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void GoodExecuableDefinitionsWithOnlyOperation()
+    {
+        ExpectValid(@"
                  query Foo {
                     dog {
                         name
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void GoodExecuableDefinitionsWithOperationAndFragment()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void GoodExecuableDefinitionsWithOperationAndFragment()
+    {
+        ExpectValid(@"
                 query Foo {
                     dog {
                         name
@@ -70,12 +70,12 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void GoodExecuableDefinitionsWithTypeDefinitions()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void GoodExecuableDefinitionsWithTypeDefinitions()
+    {
+        ExpectErrors(@"
                 query Foo {
                     dog {
                         name
@@ -88,12 +88,12 @@ namespace HotChocolate.Validation
                     color: String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void GoodExecuableDefinitionsWithSchemaDefinitions()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void GoodExecuableDefinitionsWithSchemaDefinitions()
+    {
+        ExpectErrors(@"
                 schema {
                     query: Query
                 }
@@ -104,6 +104,5 @@ namespace HotChocolate.Validation
 
                 extend schema @directive
             ");
-        }
     }
 }

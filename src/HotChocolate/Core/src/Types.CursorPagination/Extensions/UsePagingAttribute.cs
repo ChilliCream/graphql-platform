@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -20,7 +21,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     private bool? _inferConnectionNameFromField;
 
     /// <summary>
-    /// Applies the offset paging middleware to the annotated property.
+    /// Applies the cursor paging middleware to the annotated property.
     /// </summary>
     /// <param name="type">
     /// The schema type representing the item type.
@@ -32,18 +33,6 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     {
         Type = type;
         Order = order;
-    }
-
-    /// <summary>
-    /// The schema type representation of the node type.
-    /// </summary>
-
-    public Type? SchemaType
-    {
-        [Obsolete("Use Type.")]
-        get => Type;
-        [Obsolete("Use the new constructor.")]
-        set => Type = value;
     }
 
     /// <summary>
@@ -133,7 +122,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                 ofd.UsePaging(
                     Type,
                     connectionName: string.IsNullOrEmpty(_connectionName)
-                        ? default(NameString?)
+                        ? default!
                         : _connectionName,
                     options: new PagingOptions
                     {
@@ -151,7 +140,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                 ifd.UsePaging(
                     Type,
                     connectionName: string.IsNullOrEmpty(_connectionName)
-                        ? default(NameString?)
+                        ? default!
                         : _connectionName,
                     options: new()
                     {

@@ -1,0 +1,22 @@
+schema {
+  query: QueryNestedClassNullableString
+}
+
+type Example {
+  inner: Inner!
+  outer: Outer!
+}
+
+type Inner {
+  shouldAlsoBeNullable: String!
+}
+
+type Outer {
+  shouldBeNullable: String!
+}
+
+type QueryNestedClassNullableString {
+  nestedClassNullableString: Example!
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

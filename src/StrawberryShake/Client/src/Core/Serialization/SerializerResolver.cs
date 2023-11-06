@@ -19,7 +19,7 @@ public class SerializerResolver : ISerializerResolver
     /// A enumerable of <see cref="ISerializer"/> that shall be known to the resolver
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// In case <param name="serializers"></param> is null
+    /// In case <paramref name="serializers" /> is <c>null</c>
     /// </exception>
     public SerializerResolver(IEnumerable<ISerializer> serializers)
     {
@@ -28,15 +28,19 @@ public class SerializerResolver : ISerializerResolver
             throw new ArgumentNullException(nameof(serializers));
         }
 
-        foreach (ISerializer serializer in serializers)
+        foreach (var serializer in serializers)
         {
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            _serializers.TryAdd(serializer.TypeName, serializer);
+#else
             if (!_serializers.ContainsKey(serializer.TypeName))
             {
                 _serializers[serializer.TypeName] = serializer;
             }
+#endif
         }
 
-        foreach (IInputObjectFormatter serializer in
+        foreach (var serializer in
             _serializers.Values.OfType<IInputObjectFormatter>())
         {
             serializer.Initialize(this);
@@ -65,7 +69,7 @@ public class SerializerResolver : ISerializerResolver
             throw new ArgumentNullException(nameof(typeName));
         }
 
-        if (_serializers.TryGetValue(typeName, out ISerializer? serializer) &&
+        if (_serializers.TryGetValue(typeName, out var serializer) &&
             serializer is ILeafValueParser<TSerialized, TRuntime> parser)
         {
             return parser;
@@ -92,7 +96,7 @@ public class SerializerResolver : ISerializerResolver
             throw new ArgumentNullException(nameof(typeName));
         }
 
-        if (_serializers.TryGetValue(typeName, out ISerializer? serializer) &&
+        if (_serializers.TryGetValue(typeName, out var serializer) &&
             serializer is IInputValueFormatter formatter)
         {
             return formatter;

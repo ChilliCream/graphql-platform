@@ -2,10 +2,26 @@ const { createFilePath } = require("gatsby-source-filesystem");
 const path = require("path");
 const git = require("simple-git/promise");
 
+/** @type import('gatsby').GatsbyNode["createPages"] */
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage, createRedirect } = actions;
+
   const result = await graphql(`
     {
+      basic: allFile(
+        limit: 1000
+        filter: { sourceInstanceName: { eq: "basic" }, extension: { eq: "md" } }
+      ) {
+        pages: nodes {
+          name
+          relativeDirectory
+          childMdx {
+            fields {
+              slug
+            }
+          }
+        }
+      }
       blog: allMdx(
         limit: 1000
         filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
@@ -34,6 +50,15 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
           }
         }
       }
+      productsConfig: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          latestStableVersion
+        }
+      }
     }
   `);
 
@@ -43,76 +68,32 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     return;
   }
 
+  createBasicPages(createPage, result.data.basic);
   createBlogArticles(createPage, result.data.blog);
   createDocPages(createPage, result.data.docs);
 
-  createRedirect({
-    fromPath: "/blog/2019/03/18/entity-framework",
-    toPath: "/blog/2020/03/18/entity-framework",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/docs/",
-    toPath: "/docs/hotchocolate/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/docs/marshmallowpie/",
-    toPath: "/docs/hotchocolate/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  const products = result.data.productsConfig.products;
+  const latestHcVersion = products?.find(
+    (product) => product?.path === "hotchocolate"
+  )?.latestStableVersion;
+  const latestSsVersion = products?.find(
+    (product) => product?.path === "strawberryshake"
+  )?.latestStableVersion;
 
-  // images
+  // temporary client-side redirects for missing product pages
+  // need to be kept till the product pages are created
+  // for SEO we have also configured redirects in NGINX
   createRedirect({
-    fromPath: "/img/projects/greendonut-banner.svg",
-    toPath: "/resources/greendonut-banner.svg",
+    fromPath: `/products/hotchocolate`,
+    toPath: `/docs/hotchocolate/${latestHcVersion}`,
     redirectInBrowser: true,
-    isPermanent: true,
+    isPermanent: false,
   });
   createRedirect({
-    fromPath: "/img/projects/greendonut-signet.png",
-    toPath: "/resources/greendonut-signet.png",
+    fromPath: `/products/strawberryshake`,
+    toPath: `/docs/strawberryshake/${latestSsVersion}`,
     redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/hotchocolate-banner.svg",
-    toPath: "/resources/hotchocolate-banner.svg",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/hotchocolate-signet.png",
-    toPath: "/resources/hotchocolate-signet.png",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/react-rasta-banner.svg",
-    toPath: "/resources/react-rasta-banner.svg",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/react-rasta-signet.png",
-    toPath: "/resources/react-rasta-signet.png",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/strawberryshake-banner.svg",
-    toPath: "/resources/strawberryshake-banner.svg",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/strawberryshake-signet.png",
-    toPath: "/resources/strawberryshake-signet.png",
-    redirectInBrowser: true,
-    isPermanent: true,
+    isPermanent: false,
   });
 };
 
@@ -123,7 +104,7 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
     return;
   }
 
-  // if the path is defined on the frontmatter (like for posts) use that as slug
+  // if the path is defined on the frontmatter (like for blogs) use that as slug
   let path = node.frontmatter && node.frontmatter.path;
 
   if (!path) {
@@ -183,29 +164,40 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
   });
 };
 
-function createBlogArticles(createPage, data) {
-  const blogArticleTemplate = path.resolve(
-    `src/templates/blog-article-template.tsx`
-  );
-  const { posts, tags } = data;
+function createBasicPages(createPage, data) {
+  const component = path.resolve(`src/templates/basic-page-template.tsx`);
 
+  data.pages.forEach((page) => {
+    createPage({
+      path: page.childMdx.fields.slug,
+      component,
+      context: {
+        originPath: `${page.relativeDirectory}/${page.name}.md`,
+      },
+    });
+  });
+}
+
+function createBlogArticles(createPage, data) {
   // Create Single Pages
-  posts.forEach((post) => {
+  let component = path.resolve(`src/templates/blog-article-template.tsx`);
+
+  data.posts.forEach((post) => {
     createPage({
       path: post.fields.slug,
-      component: blogArticleTemplate,
+      component,
       context: {},
     });
   });
 
   // Create List Pages
   const postsPerPage = 20;
-  const numPages = Math.ceil(posts.length / postsPerPage);
+  const numPages = Math.ceil(data.posts.length / postsPerPage);
 
   Array.from({ length: numPages }).forEach((_, i) => {
     createPage({
       path: i === 0 ? `/blog` : `/blog/${i + 1}`,
-      component: path.resolve("./src/templates/blog-articles-template.tsx"),
+      component: path.resolve(`src/templates/blog-articles-template.tsx`),
       context: {
         limit: postsPerPage,
         skip: i * postsPerPage,
@@ -216,12 +208,11 @@ function createBlogArticles(createPage, data) {
   });
 
   // Create Tag Pages
-  const tagTemplate = path.resolve(`src/templates/blog-tag-template.tsx`);
-
-  tags.forEach((tag) => {
+  component = path.resolve(`src/templates/blog-tag-template.tsx`);
+  data.tags.forEach((tag) => {
     createPage({
       path: `/blog/tags/${tag.fieldValue}`,
-      component: tagTemplate,
+      component,
       context: {
         tag: tag.fieldValue,
       },
@@ -230,17 +221,16 @@ function createBlogArticles(createPage, data) {
 }
 
 function createDocPages(createPage, data) {
-  const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
-  const { pages } = data;
+  const component = path.resolve(`src/templates/doc-page-template.tsx`);
 
   // Create Single Pages
-  pages.forEach((page) => {
+  data.pages.forEach((page) => {
     const path = page.childMdx.fields.slug;
     const originPath = `${page.relativeDirectory}/${page.name}.md`;
 
     createPage({
       path,
-      component: docTemplate,
+      component,
       context: {
         originPath,
       },

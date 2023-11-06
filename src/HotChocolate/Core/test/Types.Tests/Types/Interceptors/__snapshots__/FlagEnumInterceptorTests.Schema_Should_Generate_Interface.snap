@@ -1,0 +1,23 @@
+﻿schema {
+  query: Query
+}
+
+interface Interface {
+  single: FlagsEnumFlags!
+}
+
+type FlagsEnumFlags {
+  isFoo: Boolean!
+  isBar: Boolean!
+  isBaz: Boolean!
+}
+
+type Impl implements Interface {
+  single: FlagsEnumFlags!
+}
+
+type Query {
+  asd: Interface
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

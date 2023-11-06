@@ -20,7 +20,7 @@ public class EntityTypeGenerator : CSharpSyntaxGenerator<EntityTypeDescriptor>
     {
         if (settings.EntityRecords)
         {
-            RecordDeclarationSyntax recordDeclarationSyntax =
+            var recordDeclarationSyntax =
                 RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.RuntimeType.Name)
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
@@ -31,18 +31,18 @@ public class EntityTypeGenerator : CSharpSyntaxGenerator<EntityTypeDescriptor>
 
             if (descriptor.Properties.Count > 0)
             {
-                ConstructorDeclarationSyntax constructor =
+                var constructor =
                     ConstructorDeclaration(descriptor.RuntimeType.Name)
                         .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
-                foreach (PropertyDescriptor property in descriptor.Properties.Select(t => t.Value))
+                foreach (var property in descriptor.Properties.Select(t => t.Value))
                 {
                     constructor = constructor.AddStateParameter(property);
                 }
 
                 recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(constructor);
 
-                foreach (PropertyDescriptor property in descriptor.Properties.Select(t => t.Value))
+                foreach (var property in descriptor.Properties.Select(t => t.Value))
                 {
                     recordDeclarationSyntax =
                         recordDeclarationSyntax.AddStateProperty(property);
@@ -60,28 +60,32 @@ public class EntityTypeGenerator : CSharpSyntaxGenerator<EntityTypeDescriptor>
                 recordDeclarationSyntax);
         }
 
-        ClassDeclarationSyntax classDeclaration =
+        var modifier = settings.AccessModifier == AccessModifier.Public
+            ? SyntaxKind.PublicKeyword
+            : SyntaxKind.InternalKeyword;
+
+        var classDeclaration =
             ClassDeclaration(descriptor.RuntimeType.Name)
                 .AddModifiers(
-                    Token(SyntaxKind.PublicKeyword),
+                    Token(modifier),
                     Token(SyntaxKind.PartialKeyword))
                 .AddGeneratedAttribute()
                 .AddSummary(descriptor.Documentation);
 
         if (descriptor.Properties.Count > 0)
         {
-            ConstructorDeclarationSyntax constructor =
+            var constructor =
                 ConstructorDeclaration(descriptor.RuntimeType.Name)
                     .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
-            foreach (PropertyDescriptor property in descriptor.Properties.Select(t => t.Value))
+            foreach (var property in descriptor.Properties.Select(t => t.Value))
             {
                 constructor = constructor.AddStateParameter(property);
             }
 
             classDeclaration = classDeclaration.AddMembers(constructor);
 
-            foreach (PropertyDescriptor property in descriptor.Properties.Select(t => t.Value))
+            foreach (var property in descriptor.Properties.Select(t => t.Value))
             {
                 classDeclaration = classDeclaration.AddStateProperty(property);
             }

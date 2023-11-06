@@ -1,13 +1,14 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
-import { GetBlogArticlesQuery } from "../../graphql-types";
-import { Layout } from "../components/layout";
-import { SEO } from "../components/misc/seo";
-import { BlogArticles } from "../components/widgets/blog-articles";
+
+import { Layout } from "@/components/layout";
+import { SEO } from "@/components/misc/seo";
+import { BlogArticles } from "@/components/widgets";
+import { GetBlogArticlesQuery } from "@/graphql-types";
 
 interface BlogArticlesTemplateProps {
-  pageContext: BlogArticlesTemplatePageContext;
-  data: GetBlogArticlesQuery;
+  readonly data: GetBlogArticlesQuery;
+  readonly pageContext: BlogArticlesTemplatePageContext;
 }
 
 const BlogArticlesTemplate: FC<BlogArticlesTemplateProps> = ({
@@ -42,8 +43,8 @@ export const pageQuery = graphql`
 `;
 
 export interface BlogArticlesTemplatePageContext {
-  limit: number;
-  skip: number;
-  numPages: number;
-  currentPage: number;
+  readonly limit: number;
+  readonly skip: number;
+  readonly numPages: number;
+  readonly currentPage: number;
 }

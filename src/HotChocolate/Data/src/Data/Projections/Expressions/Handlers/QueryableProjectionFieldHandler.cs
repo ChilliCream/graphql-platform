@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Types;
 using static HotChocolate.Data.Projections.Expressions.ProjectionExpressionBuilder;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
@@ -20,7 +19,7 @@ public class QueryableProjectionFieldHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
         Expression nestedProperty;
         Type memberType;
 
@@ -32,6 +31,7 @@ public class QueryableProjectionFieldHandler
         else
         {
             action = SelectionVisitor.Skip;
+
             return true;
         }
 
@@ -43,6 +43,7 @@ public class QueryableProjectionFieldHandler
         context.PushInstance(nestedProperty);
 
         action = SelectionVisitor.Continue;
+
         return true;
     }
 
@@ -51,26 +52,28 @@ public class QueryableProjectionFieldHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
 
         if (field.Member is null)
         {
             action = null;
+
             return false;
         }
 
-        // Deque last
-        ProjectionScope<Expression> scope = context.PopScope();
+        // Dequeue last
+        var scope = context.PopScope();
 
         if (scope is not QueryableProjectionScope queryableScope)
         {
             action = null;
+
             return false;
         }
 
-        Expression memberInit = queryableScope.CreateMemberInit();
+        var memberInit = queryableScope.CreateMemberInit();
 
-        if (!context.TryGetQueryableScope(out QueryableProjectionScope? parentScope))
+        if (!context.TryGetQueryableScope(out var parentScope))
         {
             throw ThrowHelper.ProjectionVisitor_InvalidState_NoParentScope();
         }
@@ -83,14 +86,25 @@ public class QueryableProjectionFieldHandler
         else
         {
             action = SelectionVisitor.Skip;
+
             return true;
         }
 
-        parentScope.Level
-            .Peek()
-            .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+        if (context.InMemory)
+        {
+            parentScope.Level
+                .Peek()
+                .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+        }
+        else
+        {
+            parentScope.Level
+                .Peek()
+                .Enqueue(Expression.Bind(field.Member, memberInit));
+        }
 
         action = SelectionVisitor.Continue;
+
         return true;
     }
 }

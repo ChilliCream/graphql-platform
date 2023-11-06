@@ -1,9 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -38,11 +39,6 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     ITypeInspector TypeInspector { get; }
 
     /// <summary>
-    /// Gets the schema interceptor.
-    /// </summary>
-    SchemaInterceptor SchemaInterceptor { get; }
-
-    /// <summary>
     /// Gets the type interceptor.
     /// </summary>
     TypeInterceptor TypeInterceptor { get; }
@@ -51,6 +47,11 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     /// Gets the resolver compiler.
     /// </summary>
     IResolverCompiler ResolverCompiler { get; }
+
+    /// <summary>
+    /// Gets the type converter.
+    /// </summary>
+    ITypeConverter TypeConverter { get; }
 
     /// <summary>
     /// Gets the input parser.
@@ -63,11 +64,16 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     InputFormatter InputFormatter { get; }
 
     /// <summary>
-    /// Tries to resolve a schema building directive for the 
+    /// Gets the registered type discovery handlers.
+    /// </summary>
+    ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers();
+
+    /// <summary>
+    /// Tries to resolve a schema building directive for the
     /// specified <paramref name="directiveNode"/>.
     /// </summary>
     bool TryGetSchemaDirective(
-        DirectiveNode directiveNode, 
+        DirectiveNode directiveNode,
         [NotNullWhen(true)] out ISchemaDirective? directive);
 
     /// <summary>

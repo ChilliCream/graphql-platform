@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate;
 
 #nullable enable
 
@@ -14,18 +13,17 @@ public static class ScopedServiceObjectFieldDescriptorExtensions
         Action<IServiceProvider, TService>? dispose = null,
         Func<IServiceProvider, TService, ValueTask>? disposeAsync = null)
     {
-        string scopedServiceName = typeof(TService).FullName ?? typeof(TService).Name;
+        var scopedServiceName = typeof(TService).FullName ?? typeof(TService).Name;
 
         return descriptor.Use(next => async context =>
         {
-            IServiceProvider services = context.Service<IServiceProvider>();
-            TService scopedService = create(services);
+            var services = context.Service<IServiceProvider>();
+            var scopedService = create(services);
 
             try
             {
                 context.SetLocalState(scopedServiceName, scopedService);
                 await next(context).ConfigureAwait(false);
-                ;
             }
             finally
             {

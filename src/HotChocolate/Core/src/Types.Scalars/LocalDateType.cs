@@ -28,7 +28,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
     /// Initializes a new instance of the <see cref="LocalDateType"/> class.
     /// </summary>
     public LocalDateType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
@@ -42,7 +42,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
         {
             null => NullValueNode.Default,
             string s => new StringValueNode(s),
-            DateTimeOffset d => ParseValue(d),
+            DateTimeOffset o => ParseValue(o.DateTime),
             DateTime dt => ParseValue(dt),
             _ => throw ThrowHelper.LocalDateType_ParseValue_IsInvalid(this)
         };

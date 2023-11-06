@@ -10,7 +10,7 @@ namespace HotChocolate.Execution;
 /// executor for one specific schema and handles the resolving and hot-swapping
 /// the specific executor.
 /// </summary>
-public class AutoUpdateRequestExecutorProxy : IRequestExecutor
+public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly RequestExecutorProxy _executorProxy;
@@ -55,7 +55,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
             throw new ArgumentNullException(nameof(requestExecutorProxy));
         }
 
-        IRequestExecutor executor = await requestExecutorProxy
+        var executor = await requestExecutorProxy
             .GetRequestExecutorAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -136,9 +136,6 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
     /// <param name="requestBatch">
     /// The GraphQL request batch.
     /// </param>
-    /// <param name="allowParallelExecution">
-    /// Defines if the executor is allowed to execute the batch in parallel.
-    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -159,7 +156,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
 
         try
         {
-            IRequestExecutor executor = await _executorProxy
+            var executor = await _executorProxy
                 .GetRequestExecutorAsync(default)
                 .ConfigureAwait(false);
             _executor = executor;

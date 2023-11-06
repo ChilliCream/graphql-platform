@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations;
 public abstract class OperationDescriptor : ICodeDescriptor
 {
     protected OperationDescriptor(
-        NameString name,
+        string name,
         RuntimeTypeInfo runtimeType,
         ITypeDescriptor resultTypeReference,
         IReadOnlyList<PropertyDescriptor> arguments,
@@ -19,6 +19,7 @@ public abstract class OperationDescriptor : ICodeDescriptor
         string bodyString,
         string hashAlgorithm,
         string hashValue,
+        bool hasUpload,
         RequestStrategy strategy)
     {
         Name = name;
@@ -29,6 +30,7 @@ public abstract class OperationDescriptor : ICodeDescriptor
         BodyString = bodyString;
         HashAlgorithm = hashAlgorithm;
         HashValue = hashValue;
+        HasUpload = hasUpload;
         Strategy = strategy;
         InterfaceType = new("I" + runtimeType.Name, runtimeType.Namespace);
     }
@@ -36,7 +38,7 @@ public abstract class OperationDescriptor : ICodeDescriptor
     /// <summary>
     /// Gets the operation name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the runtime type name.
@@ -67,6 +69,11 @@ public abstract class OperationDescriptor : ICodeDescriptor
     /// Gets the document hash value.
     /// </summary>
     public string HashValue { get; }
+
+    /// <summary>
+    /// Defines if the operation has any file uploads
+    /// </summary>
+    public bool HasUpload { get; }
 
     /// <summary>
     /// The arguments the operation takes.

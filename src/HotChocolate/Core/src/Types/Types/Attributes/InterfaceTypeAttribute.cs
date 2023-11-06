@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
@@ -31,7 +32,7 @@ public sealed class InterfaceTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IInterfaceTypeDescriptor descriptor,
         Type type)
@@ -40,5 +41,7 @@ public sealed class InterfaceTypeAttribute
         {
             descriptor.Name(Name);
         }
+
+        descriptor.Extend().Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
     }
 }

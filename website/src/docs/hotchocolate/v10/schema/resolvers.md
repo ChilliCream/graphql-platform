@@ -190,7 +190,7 @@ services.AddGraphQL(so =>
         .Create());
 ```
 
-The schema builder will associate the various resolver methods with the correct schema fields and types by analysing the method parameters. We are providing a couple of attributes that can be used to give the resolver method more context like the return type or the description and so on.
+The schema builder will associate the various resolver methods with the correct schema fields and types by analyzing the method parameters. We are providing a couple of attributes that can be used to give the resolver method more context like the return type or the description and so on.
 
 # Resolver Dependency Injection
 
@@ -224,7 +224,7 @@ The following resolver context properties can be injected without any attributes
 
 The following resolver context data can be accessed by annotating the method argument with an attribute.
 
-## Parent
+##  Parent
 
 ```csharp
 public Person GetFriend([Parent]Person person)
@@ -242,7 +242,7 @@ public Person GetFriend([Service]IPersonRepository repository)
 }
 ```
 
-## DataLoader
+##  DataLoader
 
 ```csharp
 public Person GetFriend([DataLoader]IPersonDataLoader dataLoader)

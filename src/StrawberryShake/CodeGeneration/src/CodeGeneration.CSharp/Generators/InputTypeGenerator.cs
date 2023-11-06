@@ -14,27 +14,32 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
         InputObjectTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
-        string stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
-        string infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
+        var stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
+        var infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
+        
+        var modifier = settings.AccessModifier == AccessModifier.Public
+            ? SyntaxKind.PublicKeyword
+            : SyntaxKind.InternalKeyword;
 
         return new(
             descriptor.Name,
             null,
             descriptor.RuntimeType.NamespaceWithoutGlobal,
             settings.InputRecords
-                ? GenerateRecord(descriptor, infoInterfaceType)
-                : GenerateClass(descriptor, infoInterfaceType));
+                ? GenerateRecord(descriptor, modifier, infoInterfaceType)
+                : GenerateClass(descriptor, modifier, infoInterfaceType));
     }
 
     private BaseTypeDeclarationSyntax GenerateRecord(
         InputObjectTypeDescriptor descriptor,
+        SyntaxKind accessModifier,
         string infoInterfaceType)
     {
-        RecordDeclarationSyntax recordDeclaration =
+        var recordDeclaration =
             RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.ToEscapedName())
                 .AddImplements(infoInterfaceType)
                 .AddModifiers(
-                    Token(SyntaxKind.PublicKeyword),
+                    Token(accessModifier),
                     Token(SyntaxKind.PartialKeyword))
                 .AddGeneratedAttribute()
                 .AddEquality(descriptor.Name.ToEscapedName(), descriptor.Properties, true)
@@ -55,13 +60,14 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
 
     private BaseTypeDeclarationSyntax GenerateClass(
         InputObjectTypeDescriptor descriptor,
+        SyntaxKind accessModifier,
         string infoInterfaceType)
     {
-        ClassDeclarationSyntax classDeclaration =
+        var classDeclaration =
             ClassDeclaration(descriptor.Name.ToEscapedName())
                 .AddImplements(infoInterfaceType)
                 .AddModifiers(
-                    Token(SyntaxKind.PublicKeyword),
+                    Token(accessModifier),
                     Token(SyntaxKind.PartialKeyword))
                 .AddGeneratedAttribute()
                 .AddEquality(descriptor.Name.ToEscapedName(), descriptor.Properties)
@@ -87,7 +93,7 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
 
         foreach (var prop in descriptor.Properties)
         {
-            VariableDeclaratorSyntax variable =
+            var variable =
                 VariableDeclarator(
                     Identifier(CreateInputValueField(prop.Name)));
 
@@ -115,7 +121,7 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
 
         foreach (var prop in descriptor.Properties)
         {
-            PropertyDeclarationSyntax property =
+            var property =
                 PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
                     .AddModifiers(Token(SyntaxKind.PublicKeyword))
                     .AddSummary(prop.Description)

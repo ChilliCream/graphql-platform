@@ -1,25 +1,35 @@
-using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
-using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Http;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
-using static HotChocolate.SchemaSerializer;
+using static HotChocolate.SchemaPrinter;
+using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+
 namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 {
+    private static readonly AcceptMediaType[] _mediaTypes =
+    {
+        new AcceptMediaType(
+            ContentType.Types.Application,
+            ContentType.SubTypes.GraphQLResponse,
+            null,
+            default)
+    };
     private readonly MiddlewareRoutingType _routing;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName,
+        string schemaName,
         MiddlewareRoutingType routing)
-        : base(next, executorResolver, resultSerializer, schemaName)
+        : base(next, executorResolver, responseFormatter, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
@@ -31,15 +41,15 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         var handle = _routing == MiddlewareRoutingType.Integrated
             ? HttpMethods.IsGet(context.Request.Method) &&
               context.Request.Query.ContainsKey("SDL") &&
-              (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true)
+                GetOptions(context).EnableSchemaRequests
             : HttpMethods.IsGet(context.Request.Method) &&
-              (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true);
+                GetOptions(context).EnableSchemaRequests;
 
         if (handle)
         {
             if (!IsDefaultSchema)
             {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+                context.Items[WellKnownContextData.SchemaName] = SchemaName;
             }
 
             using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
@@ -57,25 +67,31 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
     private async Task HandleRequestAsync(HttpContext context)
     {
-        ISchema schema = await GetSchemaAsync(context.RequestAborted);
+        var schema = await GetSchemaAsync(context.RequestAborted);
         context.Items[WellKnownContextData.Schema] = schema;
 
-        bool indent =
+        var indent =
             !(context.Request.Query.ContainsKey("indentation") &&
                 string.Equals(
                     context.Request.Query["indentation"].FirstOrDefault(),
                     "none",
                     StringComparison.OrdinalIgnoreCase));
 
-        if (context.Request.Query.TryGetValue("types", out Microsoft.Extensions.Primitives.StringValues typesValue))
+        if (context.Request.Query.TryGetValue("types", out var typesValue))
         {
-            if (string.IsNullOrEmpty(typesValue))
+            string? s = typesValue;
+
+            if (string.IsNullOrEmpty(s))
             {
-                await WriteResultAsync(context, TypeNameIsEmpty(), BadRequest);
+                await WriteResultAsync(
+                    context,
+                    TypeNameIsEmpty(),
+                    _mediaTypes,
+                    BadRequest);
                 return;
             }
 
-            await WriteTypesAsync(context, schema, typesValue, indent);
+            await WriteTypesAsync(context, schema, s, indent);
         }
         else
         {
@@ -91,19 +107,27 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
     {
         var types = new List<INamedType>();
 
-        foreach (string typeName in typeNames.Split(','))
+        foreach (var typeName in typeNames.Split(','))
         {
-            if (!SchemaCoordinate.TryParse(typeName, out SchemaCoordinate? coordinate) ||
+            if (!SchemaCoordinate.TryParse(typeName, out var coordinate) ||
                 coordinate.Value.MemberName is not null ||
                 coordinate.Value.ArgumentName is not null)
             {
-                await WriteResultAsync(context, InvalidTypeName(typeName), BadRequest);
+                await WriteResultAsync(
+                    context,
+                    InvalidTypeName(typeName),
+                    _mediaTypes,
+                    BadRequest);
                 return;
             }
 
-            if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out INamedType? type))
+            if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out var type))
             {
-                await WriteResultAsync(context, TypeNotFound(typeName), NotFound);
+                await WriteResultAsync(
+                    context,
+                    TypeNotFound(typeName),
+                    _mediaTypes,
+                    NotFound);
                 return;
             }
 
@@ -112,24 +136,23 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         context.Response.ContentType = ContentType.GraphQL;
         context.Response.Headers.SetContentDisposition(GetTypesFileName(types));
-        await SerializeAsync(types, context.Response.Body, indent, context.RequestAborted);
-        return;
+        await PrintAsync(types, context.Response.Body, indent, context.RequestAborted);
     }
 
     private async Task WriteSchemaAsync(HttpContext context, ISchema schema, bool indent)
     {
         context.Response.ContentType = ContentType.GraphQL;
         context.Response.Headers.SetContentDisposition(GetSchemaFileName(schema));
-        await SerializeAsync(schema, context.Response.Body, indent, context.RequestAborted);
+        await PrintAsync(schema, context.Response.Body, indent, context.RequestAborted);
     }
 
     private string GetTypesFileName(List<INamedType> types)
         => types.Count == 1
-            ? $"{types[0].Name.Value}.graphql"
+            ? $"{types[0].Name}.graphql"
             : "types.graphql";
 
     private string GetSchemaFileName(ISchema schema)
-        => schema.Name.IsEmpty || schema.Name.Equals(Schema.DefaultName)
+        => schema.Name is null || schema.Name.EqualsOrdinal(Schema.DefaultName)
             ? "schema.graphql"
             : schema.Name + ".schema.graphql";
 }

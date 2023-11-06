@@ -11,7 +11,7 @@ public class BlockStringTokenReaderTests
     private void ReadToken()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(
+        var source = Encoding.UTF8.GetBytes(
             "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"");
         var reader = new Utf8GraphQLReader(source);
 
@@ -38,7 +38,7 @@ public class BlockStringTokenReaderTests
     private void ReadToken_WithEscapedTrippleQuote1_EscapeIsReplacedWithActualQuotes()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(
+        var source = Encoding.UTF8.GetBytes(
             "\"\"\"\\\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"");
         var reader = new Utf8GraphQLReader(source);
 
@@ -61,7 +61,7 @@ public class BlockStringTokenReaderTests
     private void ReadToken_WithEscapedTrippleQuote2_EscapeIsReplacedWithActualQuotes()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(
+        var source = Encoding.UTF8.GetBytes(
             "\"\"\"hello\\\"\"\"World_123\r\n\t\tfoo\r\n\tbar\"\"\"");
         var reader = new Utf8GraphQLReader(source);
 
@@ -84,7 +84,7 @@ public class BlockStringTokenReaderTests
     private void ReadToken_WithLeadingBlanks_BlanksAreRemoved()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(
+        var source = Encoding.UTF8.GetBytes(
             "\"\"\"\r\n\t\r\n\t\r\n\thelloWorld_123" +
             "\r\n\t\tfoo\r\n\tbar\"\"\"");
         var reader = new Utf8GraphQLReader(source);
@@ -108,7 +108,7 @@ public class BlockStringTokenReaderTests
     private void ReadToken_WithTrailingBlanks_BlanksAreRemoved()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(
+        var source = Encoding.UTF8.GetBytes(
             "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar" +
             "\r\n\t\r\n\t\r\n\t\r\n\t\"\"\"");
         var reader = new Utf8GraphQLReader(source);
@@ -132,7 +132,7 @@ public class BlockStringTokenReaderTests
     private void ReadToken_SingleLine_ParsesCorrectly()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(
+        var source = Encoding.UTF8.GetBytes(
             "\"\"\"helloWorld_123\"\"\"");
         var reader = new Utf8GraphQLReader(source);
 
@@ -152,13 +152,13 @@ public class BlockStringTokenReaderTests
     private void UnescapeEmpty()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes("\"\"");
+        var source = Encoding.UTF8.GetBytes("\"\"");
         var reader = new Utf8GraphQLReader(source);
         reader.Read();
 
         // act
         var buffer = new byte[1];
-        Span<byte> span = buffer.AsSpan();
+        var span = buffer.AsSpan();
         reader.UnescapeValue(ref span);
 
         // assert
@@ -169,13 +169,13 @@ public class BlockStringTokenReaderTests
     private void UnescapeString()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes("\"abc\"");
+        var source = Encoding.UTF8.GetBytes("\"abc\"");
         var reader = new Utf8GraphQLReader(source);
         reader.Read();
 
         // act
         var buffer = new byte[3 * 4];
-        Span<byte> span = buffer.AsSpan();
+        var span = buffer.AsSpan();
         reader.UnescapeValue(ref span);
 
         // assert
@@ -187,9 +187,9 @@ public class BlockStringTokenReaderTests
     private void UnexpectedSyntaxException()
     {
         // arrange
-        byte[] source = new byte[] { 187 };
+        var source = new byte[] { 187 };
         var reader = new Utf8GraphQLReader(source);
-        bool raised = false;
+        var raised = false;
 
         // act
         try
@@ -210,9 +210,9 @@ public class BlockStringTokenReaderTests
     private void NoDigitAfterZeroException()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes("01");
+        var source = Encoding.UTF8.GetBytes("01");
         var reader = new Utf8GraphQLReader(source);
-        bool raised = false;
+        var raised = false;
 
         // act
         try
@@ -233,9 +233,9 @@ public class BlockStringTokenReaderTests
     private void InvalidDigit()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes("123.F");
+        var source = Encoding.UTF8.GetBytes("123.F");
         var reader = new Utf8GraphQLReader(source);
-        bool raised = false;
+        var raised = false;
 
         // act
         try
@@ -256,7 +256,7 @@ public class BlockStringTokenReaderTests
     private void Zero()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes("0 ");
+        var source = Encoding.UTF8.GetBytes("0 ");
         var reader = new Utf8GraphQLReader(source);
 
         // act

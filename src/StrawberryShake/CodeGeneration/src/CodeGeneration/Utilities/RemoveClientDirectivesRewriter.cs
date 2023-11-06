@@ -11,7 +11,7 @@ internal sealed class RemoveClientDirectivesRewriter : SyntaxRewriter<ISyntaxVis
 
     protected override FieldNode RewriteField(FieldNode node, ISyntaxVisitorContext context)
     {
-        FieldNode current = node;
+        var current = node;
 
         if (current.Directives.Any(t => t.Name.Value.EqualsOrdinal(_returns)))
         {
@@ -20,9 +20,9 @@ internal sealed class RemoveClientDirectivesRewriter : SyntaxRewriter<ISyntaxVis
             current = current.WithDirectives(directiveNodes);
         }
 
-        return base.RewriteField(current, context);
+        return base.RewriteField(current, context)!;
     }
 
     public static DocumentNode Rewrite(DocumentNode document)
-        => new RemoveClientDirectivesRewriter().Rewrite(document);
+        => new RemoveClientDirectivesRewriter().Rewrite(document)!;
 }

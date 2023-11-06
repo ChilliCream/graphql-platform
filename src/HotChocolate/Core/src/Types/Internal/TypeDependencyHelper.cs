@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
 
 namespace HotChocolate.Internal;
 
@@ -25,7 +25,7 @@ public static class TypeDependencyHelper
 
         if (definition.HasDependencies)
         {
-            foreach (TypeDependency dependency in definition.Dependencies)
+            foreach (var dependency in definition.Dependencies)
             {
                 dependencies.Add(dependency);
             }
@@ -33,9 +33,9 @@ public static class TypeDependencyHelper
 
         if (definition.HasInterfaces)
         {
-            foreach (ITypeReference typeRef in definition.Interfaces)
+            foreach (var typeRef in definition.Interfaces)
             {
-                dependencies.Add(new(typeRef, TypeDependencyKind.Completed));
+                dependencies.Add(new TypeDependency(typeRef, Completed));
             }
         }
 
@@ -59,7 +59,7 @@ public static class TypeDependencyHelper
 
         if (definition.HasDependencies)
         {
-            foreach (TypeDependency dependency in definition.Dependencies)
+            foreach (var dependency in definition.Dependencies)
             {
                 dependencies.Add(dependency);
             }
@@ -67,9 +67,9 @@ public static class TypeDependencyHelper
 
         if (definition.HasInterfaces)
         {
-            foreach (ITypeReference typeRef in definition.Interfaces)
+            foreach (var typeRef in definition.Interfaces)
             {
-                dependencies.Add(new(typeRef, TypeDependencyKind.Completed));
+                dependencies.Add(new(typeRef, Completed));
             }
         }
 
@@ -93,17 +93,17 @@ public static class TypeDependencyHelper
 
         if (definition.HasDependencies)
         {
-            foreach (TypeDependency dependency in definition.Dependencies)
+            foreach (var dependency in definition.Dependencies)
             {
                 dependencies.Add(dependency);
             }
         }
 
-        foreach (InputFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
             if (field.HasDependencies)
             {
-                foreach (TypeDependency dependency in field.Dependencies)
+                foreach (var dependency in field.Dependencies)
                 {
                     dependencies.Add(dependency);
                 }
@@ -136,17 +136,17 @@ public static class TypeDependencyHelper
 
         if (definition.HasDependencies)
         {
-            foreach (TypeDependency dependency in definition.Dependencies)
+            foreach (var dependency in definition.Dependencies)
             {
                 dependencies.Add(dependency);
             }
         }
 
-        foreach (EnumValueDefinition value in definition.Values)
+        foreach (var value in definition.Values)
         {
             if (value.HasDependencies)
             {
-                foreach (TypeDependency dependency in value.Dependencies)
+                foreach (var dependency in value.Dependencies)
                 {
                     dependencies.Add(dependency);
                 }
@@ -162,10 +162,26 @@ public static class TypeDependencyHelper
         DirectiveTypeDefinition definition,
         ICollection<TypeDependency> dependencies)
     {
+        if (definition.HasDependencies)
+        {
+            foreach (var dependency in definition.Dependencies)
+            {
+                dependencies.Add(dependency);
+            }
+        }
+        
         if (definition.HasArguments)
         {
-            foreach (DirectiveArgumentDefinition argument in definition.Arguments)
+            foreach (var argument in definition.Arguments)
             {
+                if (argument.HasDependencies)
+                {
+                    foreach (var dependency in argument.Dependencies)
+                    {
+                        dependencies.Add(dependency);
+                    }
+                }
+                
                 if (argument.Type is not null)
                 {
                     dependencies.Add(new(
@@ -183,9 +199,9 @@ public static class TypeDependencyHelper
     {
         if (definition.HasDirectives)
         {
-            foreach (DirectiveDefinition directive in definition.Directives)
+            foreach (var directive in definition.Directives)
             {
-                dependencies.Add(new(directive.TypeReference, TypeDependencyKind.Completed));
+                dependencies.Add(new TypeDependency(directive.Type, Completed));
             }
         }
     }
@@ -196,9 +212,9 @@ public static class TypeDependencyHelper
     {
         if (definition.HasDirectives)
         {
-            foreach (DirectiveDefinition directive in definition.Directives)
+            foreach (var directive in definition.Directives)
             {
-                dependencies.Add(new(directive.TypeReference, TypeDependencyKind.Completed));
+                dependencies.Add(new TypeDependency(directive.Type, Completed));
             }
         }
     }
@@ -207,11 +223,11 @@ public static class TypeDependencyHelper
         IReadOnlyList<OutputFieldDefinitionBase> fields,
         ICollection<TypeDependency> dependencies)
     {
-        foreach (OutputFieldDefinitionBase field in fields)
+        foreach (var field in fields)
         {
             if (field.HasDependencies)
             {
-                foreach (TypeDependency dependency in field.Dependencies)
+                foreach (var dependency in field.Dependencies)
                 {
                     dependencies.Add(dependency);
                 }
@@ -235,11 +251,11 @@ public static class TypeDependencyHelper
         IReadOnlyList<ArgumentDefinition> fields,
         ICollection<TypeDependency> dependencies)
     {
-        foreach (ArgumentDefinition field in fields)
+        foreach (var field in fields)
         {
             if (field.HasDependencies)
             {
-                foreach (TypeDependency dependency in field.Dependencies)
+                foreach (var dependency in field.Dependencies)
                 {
                     dependencies.Add(dependency);
                 }
@@ -247,7 +263,7 @@ public static class TypeDependencyHelper
 
             if (field.Type is not null)
             {
-                dependencies.Add(new(field.Type, TypeDependencyKind.Completed));
+                dependencies.Add(new(field.Type, Completed));
             }
 
             CollectDirectiveDependencies(field, dependencies);
@@ -322,7 +338,7 @@ public static class TypeDependencyHelper
         CollectDependencies(definition, context.Dependencies);
     }
 
-    private static TypeDependencyKind GetDefaultValueDependencyKind(
+    private static TypeDependencyFulfilled GetDefaultValueDependencyKind(
         ArgumentDefinition argumentDefinition)
     {
         var hasDefaultValue =
@@ -330,7 +346,7 @@ public static class TypeDependencyHelper
             argumentDefinition.RuntimeDefaultValue is not null;
 
         return hasDefaultValue
-            ? TypeDependencyKind.Completed
-            : TypeDependencyKind.Default;
+            ? Completed
+            : Default;
     }
 }

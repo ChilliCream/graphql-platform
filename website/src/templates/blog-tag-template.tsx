@@ -1,15 +1,16 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
-import { GetBlogArticlesByTagQuery } from "../../graphql-types";
-import { Layout } from "../components/layout";
-import { SEO } from "../components/misc/seo";
-import { BlogArticles } from "../components/widgets/blog-articles";
+
+import { Layout } from "@/components/layout";
+import { SEO } from "@/components/misc/seo";
+import { BlogArticles } from "@/components/widgets";
+import { GetBlogArticlesByTagQuery } from "@/graphql-types";
 
 interface BlogTagTemplateProps {
-  pageContext: {
-    tag: string;
+  readonly data: GetBlogArticlesByTagQuery;
+  readonly pageContext: {
+    readonly tag: string;
   };
-  data: GetBlogArticlesByTagQuery;
 }
 
 const BlogTagTemplate: FC<BlogTagTemplateProps> = ({

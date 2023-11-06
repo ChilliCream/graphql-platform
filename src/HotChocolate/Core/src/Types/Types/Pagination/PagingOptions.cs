@@ -72,6 +72,7 @@ public struct PagingOptions
         AllowBackwardPagination ??= other.AllowBackwardPagination;
         RequirePagingBoundaries ??= other.RequirePagingBoundaries;
         InferConnectionNameFromField ??= other.InferConnectionNameFromField;
+        InferCollectionSegmentNameFromField ??= other.InferCollectionSegmentNameFromField;
         ProviderName ??= other.ProviderName;
         LegacySupport ??= other.LegacySupport;
     }
@@ -88,6 +89,7 @@ public struct PagingOptions
             AllowBackwardPagination = AllowBackwardPagination,
             RequirePagingBoundaries = RequirePagingBoundaries,
             InferConnectionNameFromField = InferConnectionNameFromField,
+            InferCollectionSegmentNameFromField = InferCollectionSegmentNameFromField,
             ProviderName = ProviderName,
             LegacySupport = LegacySupport
         };

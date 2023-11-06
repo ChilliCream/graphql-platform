@@ -14,38 +14,74 @@ public abstract class FieldDefinitionBase
     , IHasIgnore
 {
     private List<DirectiveDefinition>? _directives;
+    private string? _deprecationReason;
+
+    /// <summary>
+    /// Gets the internal field flags from this field.
+    /// </summary>
+    internal FieldFlags Flags { get; set; } = FieldFlags.None;
 
     /// <summary>
     /// Describes why this syntax node is deprecated.
     /// </summary>
-    public string? DeprecationReason { get; set; }
+    public string? DeprecationReason
+    {
+        get => _deprecationReason;
+        set
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                Flags &= ~FieldFlags.Deprecated;
+            }
+            else
+            {
+                Flags |= FieldFlags.Deprecated;
+            }
+
+            _deprecationReason = value;
+        }
+    }
 
     /// <summary>
     /// If true, the field is deprecated
     /// </summary>
-    public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
+    public bool IsDeprecated => (Flags & FieldFlags.Deprecated) == FieldFlags.Deprecated;
 
     /// <summary>
     /// Gets the field type.
     /// </summary>
-    public ITypeReference? Type { get; set; }
+    public TypeReference? Type { get; set; }
 
     /// <summary>
     /// Defines if this field is ignored and will
     /// not be included into the schema.
     /// </summary>
-    public bool Ignore { get; set; }
+    public bool Ignore
+    {
+        get => (Flags & FieldFlags.Ignored) == FieldFlags.Ignored;
+        set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.Ignored;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.Ignored;
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the list of directives that are annotated to this field.
     /// </summary>
-    public IList<DirectiveDefinition> Directives =>
-        _directives ??= new List<DirectiveDefinition>();
+    public IList<DirectiveDefinition> Directives
+        => _directives ??= new List<DirectiveDefinition>();
 
     /// <summary>
     /// Specifies if this field has any directives.
     /// </summary>
-    public bool HasDirectives => _directives is { Count: > 0 };
+    public bool HasDirectives => _directives?.Count > 0;
 
     /// <summary>
     /// Gets the list of directives that are annotated to this field.

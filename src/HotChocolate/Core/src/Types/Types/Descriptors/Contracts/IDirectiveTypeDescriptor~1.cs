@@ -28,7 +28,7 @@ public interface IDirectiveTypeDescriptor<T>
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IDirectiveTypeDescriptor<T> Name(NameString value);
+    IDirectiveTypeDescriptor<T> Name(string value);
 
     /// <summary>
     /// Adds explanatory text to the <see cref="DirectiveType"/>
@@ -53,7 +53,7 @@ public interface IDirectiveTypeDescriptor<T>
     ///
     /// Explicit:
     /// All arguments have to specified explicitly via
-    /// <see cref="IDirectiveTypeDescriptor{T}.Field{TValue}(Expression{Func{T, TValue}})"/>.
+    /// <see cref="Argument(System.Linq.Expressions.Expression{System.Func{T,object}})"/>.
     /// </param>
     IDirectiveTypeDescriptor<T> BindArguments(
         BindingBehavior behavior);
@@ -81,25 +81,13 @@ public interface IDirectiveTypeDescriptor<T>
     /// Specifies a directive argument.
     /// </summary>
     /// <param name="name">The name of the argument.</param>
-    IDirectiveArgumentDescriptor Argument(NameString name);
+    IDirectiveArgumentDescriptor Argument(string name);
 
     /// <summary>
     /// Specifies in which location the directive belongs in.
     /// </summary>
     /// <param name="value">The directive location.</param>
     IDirectiveTypeDescriptor<T> Location(DirectiveLocation value);
-
-    [Obsolete("Use `Use(DirectiveMiddleware)`.")]
-    IDirectiveTypeDescriptor<T> Middleware(
-        DirectiveMiddleware middleware);
-
-    [Obsolete("Use `Use(DirectiveMiddleware)`.")]
-    IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
-        Expression<Func<TMiddleware, object>> method);
-
-    [Obsolete("Use `Use(DirectiveMiddleware)`.")]
-    IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
-        Expression<Action<TMiddleware>> method);
 
     /// <summary>
     /// Configure a middleware for this directive.

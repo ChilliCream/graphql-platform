@@ -1,6 +1,5 @@
 using System;
 using System.Buffers.Text;
-using System.Linq;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -28,7 +27,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// <param name="defaultFormat">
     /// The expected format of GUID strings by this scalar.
     /// <c>'N'</c>: nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
-    /// <c>'D'</c>(default):  nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
+    /// <c>'D'</c> (default): nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
     /// <c>'B'</c>: {nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn}
     /// <c>'P'</c>: (nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn)
     /// </param>
@@ -59,8 +58,8 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// </param>
     /// <param name="defaultFormat">
     /// The expected format of GUID strings by this scalar.
-    /// <c>'N'</c> (default): nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
-    /// <c>'D'</c>: nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
+    /// <c>'N'</c>: nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+    /// <c>'D'</c> (default): nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
     /// <c>'B'</c>: {nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn}
     /// <c>'P'</c>: (nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn)
     /// </param>
@@ -75,7 +74,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// or must be explicitly bound.
     /// </param>
     public UuidType(
-        NameString name,
+        string name,
         string? description = null,
         char defaultFormat = '\0',
         bool enforceFormat = false,
@@ -91,7 +90,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     {
         if (_enforceFormat)
         {
-            ReadOnlySpan<byte> value = valueSyntax.AsSpan();
+            var value = valueSyntax.AsSpan();
 
             if (Utf8Parser.TryParse(value, out Guid _, out var consumed, _format[0]) &&
                 consumed == value.Length)
@@ -111,7 +110,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     {
         if (_enforceFormat)
         {
-            ReadOnlySpan<byte> value = valueSyntax.AsSpan();
+            var value = valueSyntax.AsSpan();
 
             if (Utf8Parser.TryParse(value, out Guid g, out var consumed, _format[0]) &&
                 consumed == value.Length)
@@ -119,7 +118,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
                 return g;
             }
         }
-        else if (Guid.TryParse(valueSyntax.Value, out Guid g))
+        else if (Guid.TryParse(valueSyntax.Value, out var g))
         {
             return g;
         }
@@ -184,7 +183,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
 
         if (resultValue is string s)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(s);
+            var bytes = Encoding.UTF8.GetBytes(s);
 
             if (_enforceFormat &&
                 Utf8Parser.TryParse(bytes, out Guid guid, out var consumed, _format[0]) &&

@@ -45,12 +45,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ThrowHelper_MissingDirectiveIfArgument {
-            get {
-                return ResourceManager.GetString("ThrowHelper_MissingDirectiveIfArgument", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_FieldDoesNotExistOnType {
             get {
                 return ResourceManager.GetString("ThrowHelper_FieldDoesNotExistOnType", resourceCulture);
@@ -366,6 +360,126 @@ namespace HotChocolate.Execution.Properties {
         internal static string ExecutionResultExtensions_OnlyQueryResults {
             get {
                 return ResourceManager.GetString("ExecutionResultExtensions_OnlyQueryResults", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionVariants_ReadOnly {
+            get {
+                return ResourceManager.GetString("SelectionVariants_ReadOnly", resourceCulture);
+            }
+        }
+        
+        internal static string OperationCompiler_FragmentNotFound {
+            get {
+                return ResourceManager.GetString("OperationCompiler_FragmentNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionSetOptimizerContext_InvalidFieldName {
+            get {
+                return ResourceManager.GetString("SelectionSetOptimizerContext_InvalidFieldName", resourceCulture);
+            }
+        }
+        
+        internal static string OperationCompiler_ToManyIncludeConditions {
+            get {
+                return ResourceManager.GetString("OperationCompiler_ToManyIncludeConditions", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionVariants_TypeContextInvalid {
+            get {
+                return ResourceManager.GetString("SelectionVariants_TypeContextInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SelectionSet_TypeAlreadyAdded {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SelectionSet_TypeAlreadyAdded", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OneOfFieldMustBeNonNull {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OneOfFieldMustBeNonNull", resourceCulture);
+            }
+        }
+        
+        internal static string OperationCompiler_OperationIdNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationCompiler_OperationIdNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Operation_NoSelectionSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Operation_NoSelectionSet", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_JsonFormatter_ResultNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_JsonFormatter_ResultNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string ResultBuilder_DataAndItemsNotAllowed {
+            get {
+                return ResourceManager.GetString("ResultBuilder_DataAndItemsNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_PersistedQueryNotFound {
+            get {
+                return ResourceManager.GetString("ErrorHelper_PersistedQueryNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OnlyPersistedQueriesAreAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OnlyPersistedQueriesAreAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string MiddlewareContext_ReplaceArgument_InvalidKey {
+            get {
+                return ResourceManager.GetString("MiddlewareContext_ReplaceArgument_InvalidKey", resourceCulture);
+            }
+        }
+        
+        internal static string VariableValueOrLiteral_NullNotAllowed {
+            get {
+                return ResourceManager.GetString("VariableValueOrLiteral_NullNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string Operation_GetPossibleTypes_NoSelectionSet {
+            get {
+                return ResourceManager.GetString("Operation_GetPossibleTypes_NoSelectionSet", resourceCulture);
+            }
+        }
+        
+        internal static string MiddlewareContext_ReplaceArguments_NullNotAllowed {
+            get {
+                return ResourceManager.GetString("MiddlewareContext_ReplaceArguments_NullNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame {
+            get {
+                return ResourceManager.GetString("SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame", resourceCulture);
+            }
+        }
+        
+        internal static string ComplexityAnalyzerCompiler_Enter_OnlyOperations {
+            get {
+                return ResourceManager.GetString("ComplexityAnalyzerCompiler_Enter_OnlyOperations", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed", resourceCulture);
             }
         }
     }

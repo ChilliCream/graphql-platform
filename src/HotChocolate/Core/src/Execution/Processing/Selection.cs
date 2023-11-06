@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -14,118 +14,54 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public class Selection : ISelection
 {
-    private readonly Func<object, IAsyncEnumerable<object?>>? _createStream;
-
-    private static readonly ArgumentMap _emptyArguments =
-        new(new Dictionary<NameString, ArgumentValue>());
-
-    private List<SelectionIncludeCondition>? _includeConditions;
-    private List<FieldNode>? _selections;
-    private IReadOnlyList<FieldNode>? _syntaxNodes;
-    private bool _isReadOnly;
-
-    public Selection(
-        int id,
-        IObjectType declaringType,
-        IObjectField field,
-        FieldNode selection,
-        FieldDelegate? resolverPipeline,
-        PureFieldDelegate? pureResolver = null,
-        NameString? responseName = null,
-        IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
-        SelectionIncludeCondition? includeCondition = null,
-        bool internalSelection = false,
-        SelectionExecutionStrategy? strategy = null,
-        Func<object, IAsyncEnumerable<object?>>? createStream = null,
-        bool isStreamable = false)
-        : this(
-            id,
-            declaringType,
-            field,
-            field.Type,
-            selection,
-            resolverPipeline,
-            pureResolver,
-            responseName,
-            arguments,
-            includeCondition,
-            internalSelection,
-            strategy,
-            createStream,
-            isStreamable)
-    {
-
-    }
-
+    private static readonly ArgumentMap _emptyArguments = ArgumentMap.Empty;
+    private long[] _includeConditions;
+    private long _streamIfCondition;
+    private Flags _flags;
 
     public Selection(
         int id,
         IObjectType declaringType,
         IObjectField field,
         IType type,
-        FieldNode selection,
-        FieldDelegate? resolverPipeline,
-        PureFieldDelegate? pureResolver = null,
-        NameString? responseName = null,
-        IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
-        SelectionIncludeCondition? includeCondition = null,
-        bool internalSelection = false,
-        SelectionExecutionStrategy? strategy = null,
-        Func<object, IAsyncEnumerable<object?>>? createStream = null,
-        bool isStreamable = false)
+        FieldNode syntaxNode,
+        string responseName,
+        ArgumentMap? arguments = null,
+        long[]? includeConditions = null,
+        bool isInternal = false,
+        bool isParallelExecutable = true,
+        FieldDelegate? resolverPipeline = null,
+        PureFieldDelegate? pureResolver = null)
     {
-        if (resolverPipeline is null && pureResolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolverPipeline));
-        }
-
-        _createStream = createStream;
-
         Id = id;
-        DeclaringType = declaringType
-            ?? throw new ArgumentNullException(nameof(declaringType));
-        Field = field
-            ?? throw new ArgumentNullException(nameof(field));
+        DeclaringType = declaringType;
+        Field = field;
         Type = type;
-        SyntaxNode = selection
-            ?? throw new ArgumentNullException(nameof(selection));
-        ResponseName = responseName ??
-            selection.Alias?.Value ??
-            selection.Name.Value;
+        SyntaxNode = syntaxNode;
+        ResponseName = responseName;
+        Arguments = arguments ?? _emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
-        Arguments = arguments is null
-            ? _emptyArguments
-            : new ArgumentMap(arguments);
-        InclusionKind = internalSelection
-            ? SelectionInclusionKind.Internal
-            : SelectionInclusionKind.Always;
+        Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
 
-        if (strategy is not null)
+        _includeConditions = includeConditions ?? Array.Empty<long>();
+
+        _flags = isInternal
+            ? Flags.Internal
+            : Flags.None;
+
+        if (Type.IsType(TypeKind.List))
         {
-            Strategy = strategy.Value;
-        }
-        else if (PureResolver is not null)
-        {
-            Strategy = SelectionExecutionStrategy.Pure;
-        }
-        else
-        {
-            Strategy = SelectionExecutionStrategy.Default;
+            _flags |= Flags.List;
         }
 
-        IsStreamable = isStreamable && createStream is not null;
-        MaybeStream = Field.MaybeStream && createStream is not null;
-        IsList = type.IsListType();
-
-        if (includeCondition is not null)
+        if (Field.HasStreamResult)
         {
-            _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
-            ModifyCondition(true);
+            _flags |= Flags.StreamResult;
         }
     }
 
-    public Selection(Selection selection)
+    protected Selection(Selection selection)
     {
         if (selection is null)
         {
@@ -134,40 +70,39 @@ public class Selection : ISelection
 
         Id = selection.Id;
         Strategy = selection.Strategy;
-        _includeConditions = selection._includeConditions;
-        _selections = selection._selections;
-        _isReadOnly = selection._isReadOnly;
         DeclaringType = selection.DeclaringType;
         Field = selection.Field;
         Type = selection.Type;
         SyntaxNode = selection.SyntaxNode;
-        _selections = selection._selections;
-        _syntaxNodes = selection._syntaxNodes;
         ResponseName = selection.ResponseName;
         ResolverPipeline = selection.ResolverPipeline;
         PureResolver = selection.PureResolver;
         Arguments = selection.Arguments;
-        InclusionKind = selection.InclusionKind;
-        _createStream = selection._createStream;
-        IsStreamable = selection.IsStreamable;
-        MaybeStream = selection.MaybeStream;
-        IsList = selection.IsList;
+        _flags = selection._flags;
+
+        _includeConditions =
+            selection._includeConditions.Length == 0
+                ? Array.Empty<long>()
+                : selection._includeConditions.ToArray();
     }
 
     /// <inheritdoc />
     public int Id { get; }
 
+    public CustomOptionsFlags CustomOptions { get; private set; }
+
     /// <inheritdoc />
-    public SelectionExecutionStrategy Strategy { get; }
+    public SelectionExecutionStrategy Strategy { get; private set; }
 
     /// <inheritdoc />
     public IObjectType DeclaringType { get; }
 
     /// <inheritdoc />
+    public ISelectionSet DeclaringSelectionSet { get; private set; } = default!;
+
+    /// <inheritdoc />
     public IObjectField Field { get; }
 
-    // Note: this field was introduced to allow rewriting the type of a selection
-    // in the operation compiler.
     /// <inheritdoc />
     public IType Type { get; }
 
@@ -175,245 +110,325 @@ public class Selection : ISelection
     public TypeKind TypeKind => Type.Kind;
 
     /// <inheritdoc />
+    public bool IsList => (_flags & Flags.List) == Flags.List;
+
+    /// <inheritdoc />
     public FieldNode SyntaxNode { get; private set; }
 
+    public int SelectionSetId { get; private set; }
+
+    /// <inheritdoc />
     public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
 
     /// <inheritdoc />
-    public IReadOnlyList<FieldNode> SyntaxNodes
+    public string ResponseName { get; }
+
+    /// <inheritdoc />
+    public FieldDelegate? ResolverPipeline { get; private set; }
+
+    /// <inheritdoc />
+    public PureFieldDelegate? PureResolver { get; private set; }
+
+    /// <inheritdoc />
+    public ArgumentMap Arguments { get; }
+
+    /// <inheritdoc />
+    public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;
+
+    /// <inheritdoc />
+    public bool HasStreamDirective(long includeFlags)
+        => (_flags & Flags.Stream) == Flags.Stream &&
+            (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
+
+    /// <summary>
+    /// Specifies if the current selection is immutable.
+    /// </summary>
+    public bool IsReadOnly => (_flags & Flags.Sealed) == Flags.Sealed;
+
+    /// <inheritdoc />
+    public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
+
+    /// <inheritdoc />
+    public bool IsConditional
+        => _includeConditions.Length > 0 || (_flags & Flags.Internal) == Flags.Internal;
+
+    internal ReadOnlySpan<long> IncludeConditions => _includeConditions;
+
+    public bool IsIncluded(long includeFlags, bool allowInternals = false)
     {
-        get
+        // in most case we do not have any include condition,
+        // so we can take the easy way out here if we do not have any flags.
+        if (_includeConditions.Length is 0)
         {
-            if (_syntaxNodes is null)
-            {
-                _syntaxNodes = _selections ?? (IReadOnlyList<FieldNode>)new[] { SyntaxNode };
-            }
-            return _syntaxNodes;
-        }
-    }
-
-    /// <inheritdoc />
-    public NameString ResponseName { get; }
-
-    /// <inheritdoc />
-    public FieldDelegate? ResolverPipeline { get; }
-
-    /// <inheritdoc />
-    public PureFieldDelegate? PureResolver { get; }
-
-    /// <inheritdoc />
-    public IArgumentMap Arguments { get; }
-
-    /// <inheritdoc />
-    public bool IsStreamable { get; }
-
-    /// <inheritdoc />
-    public bool MaybeStream { get; }
-
-    /// <inheritdoc />
-    public bool IsList { get; }
-
-    /// <inheritdoc />
-    public SelectionInclusionKind InclusionKind { get; private set; }
-
-    public bool IsInternal =>
-        InclusionKind == SelectionInclusionKind.Internal ||
-        InclusionKind == SelectionInclusionKind.InternalConditional;
-
-    public bool IsConditional =>
-        InclusionKind == SelectionInclusionKind.Conditional ||
-        InclusionKind == SelectionInclusionKind.InternalConditional;
-
-    internal IReadOnlyList<SelectionIncludeCondition>? IncludeConditions => _includeConditions;
-
-    /// <inheritdoc />
-    public bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false)
-    {
-        return InclusionKind switch
-        {
-            SelectionInclusionKind.Always => true,
-            SelectionInclusionKind.Conditional => EvaluateConditions(variableValues),
-            SelectionInclusionKind.Internal => allowInternals,
-            SelectionInclusionKind.InternalConditional =>
-                allowInternals && EvaluateConditions(variableValues),
-            _ => throw new NotSupportedException()
-        };
-    }
-
-    /// <inheritdoc />
-    public IAsyncEnumerable<object?> CreateStream(object resolverResult)
-    {
-        if (_createStream is null)
-        {
-            throw new NotSupportedException("This selection is not streamable.");
+            return !IsInternal || allowInternals;
         }
 
-        return _createStream(resolverResult);
-    }
+        // if there are flags in most cases we just have one so we can
+        // check the first and optimize for this.
+        var includeCondition = _includeConditions[0];
 
-    private bool EvaluateConditions(IVariableValueCollection variableValues)
-    {
-        Debug.Assert(
-            _includeConditions != null,
-            "If a selection is conditional it must have visibility conditions.");
-
-        for (var i = 0; i < _includeConditions!.Count; i++)
+        if ((includeFlags & includeCondition) == includeCondition)
         {
-            if (_includeConditions[i].IsTrue(variableValues))
+            return !IsInternal || allowInternals;
+        }
+
+        // if we just have one flag and the flags are not fulfilled we can just exit.
+        if (_includeConditions.Length is 1)
+        {
+            return false;
+        }
+
+        // else, we will iterate over the rest of the conditions and validate them one by one.
+        for (var i = 1; i < _includeConditions.Length; i++)
+        {
+            includeCondition = _includeConditions[i];
+
+            if ((includeFlags & includeCondition) == includeCondition)
             {
-                return true;
+                return !IsInternal || allowInternals;
             }
         }
 
         return false;
     }
 
-    public void AddSelection(FieldNode field, SelectionIncludeCondition? includeCondition)
+    public override string ToString()
+        => SyntaxNode.ToString();
+
+    internal void AddSelection(FieldNode selectionSyntax, long includeCondition = 0)
     {
-        if (_isReadOnly)
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
             throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
         }
 
-        _selections ??= new List<FieldNode> { SyntaxNode };
-        _selections.Add(field);
-
-        AddVariableVisibility(includeCondition);
-    }
-
-    private void AddVariableVisibility(SelectionIncludeCondition? includeCondition)
-    {
-        if (_isReadOnly)
+        if (includeCondition == 0)
         {
-            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
-        }
-
-        if (_includeConditions is null)
-        {
-            return;
-        }
-
-        if (includeCondition is null)
-        {
-            _includeConditions = null;
-            ModifyCondition(false);
-            return;
-        }
-
-        for (var i = 0; i < _includeConditions.Count; i++)
-        {
-            if (_includeConditions[i].Equals(includeCondition))
+            if (_includeConditions.Length > 0)
             {
-                return;
+                _includeConditions = Array.Empty<long>();
             }
         }
-
-        _includeConditions.Add(includeCondition);
-    }
-
-    internal void MakeReadOnly()
-    {
-        if (_isReadOnly)
+        else if (_includeConditions.Length > 0 &&
+            Array.IndexOf(_includeConditions, includeCondition) == -1)
         {
-            return;
+            var next = _includeConditions.Length;
+            Array.Resize(ref _includeConditions, next + 1);
+            _includeConditions[next] = includeCondition;
         }
 
-        _isReadOnly = true;
-        SyntaxNode = MergeField(SyntaxNode, _selections);
+        if (!SyntaxNode.Equals(selectionSyntax, SyntaxComparison.Syntax))
+        {
+            SyntaxNode = MergeField(SyntaxNode, selectionSyntax);
+        }
     }
 
     private static FieldNode MergeField(
         FieldNode first,
-        IReadOnlyList<FieldNode>? selections)
+        FieldNode other)
     {
-        if (selections is null)
+        var directives = first.Directives;
+
+        if (other.Directives.Count > 0)
         {
-            return first;
+            if (directives.Count == 0)
+            {
+                directives = other.Directives;
+            }
+            else
+            {
+                var temp = new DirectiveNode[directives.Count + other.Directives.Count];
+                var next = 0;
+
+                for (var i = 0; i < directives.Count; i++)
+                {
+                    temp[next++] = directives[i];
+                }
+
+                for (var i = 0; i < other.Directives.Count; i++)
+                {
+                    temp[next++] = other.Directives[i];
+                }
+
+                directives = temp;
+            }
+        }
+
+        var selectionSet = first.SelectionSet;
+
+        if (selectionSet is not null && other.SelectionSet is not null)
+        {
+            var selections = new ISelectionNode[
+                selectionSet.Selections.Count +
+                other.SelectionSet.Selections.Count];
+            var next = 0;
+
+            for (var i = 0; i < selectionSet.Selections.Count; i++)
+            {
+                selections[next++] = selectionSet.Selections[i];
+            }
+
+            for (var i = 0; i < other.SelectionSet.Selections.Count; i++)
+            {
+                selections[next++] = other.SelectionSet.Selections[i];
+            }
+
+            selectionSet = selectionSet.WithSelections(selections);
         }
 
         return new FieldNode(
             first.Location,
             first.Name,
             first.Alias,
-            null,
-            MergeDirectives(selections),
+            first.Required,
+            directives,
             first.Arguments,
-            MergeSelections(first, selections));
+            selectionSet);
     }
 
-    private static SelectionSetNode? MergeSelections(
-        FieldNode first,
-        IReadOnlyList<FieldNode> selections)
+    internal void SetResolvers(
+        FieldDelegate? resolverPipeline = null,
+        PureFieldDelegate? pureResolver = null)
     {
-        if (first.SelectionSet is null)
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
-            return null;
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
         }
 
-        var children = new List<ISelectionNode>();
-
-        for (var i = 0; i < selections.Count; i++)
-        {
-            if (selections[i].SelectionSet is { } selectionSet)
-            {
-                children.AddRange(selectionSet.Selections);
-            }
-        }
-
-        return new SelectionSetNode(
-            selections[0].SelectionSet!.Location,
-            children
-        );
+        ResolverPipeline = resolverPipeline;
+        PureResolver = pureResolver;
+        Strategy = InferStrategy(hasPureResolver: pureResolver is not null);
     }
 
-    private static IReadOnlyList<DirectiveNode> MergeDirectives(
-        IReadOnlyList<FieldNode> selections)
+    internal void SetSelectionSetId(int selectionSetId)
     {
-        var firstWithDirectives = -1;
-        List<DirectiveNode>? merged = null;
-
-        for (var i = 0; i < selections.Count; i++)
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
-            FieldNode selection = selections[i];
-            if (selection.Directives.Count > 0)
-            {
-                if (firstWithDirectives == -1)
-                {
-                    firstWithDirectives = i;
-                }
-                else if (merged is null)
-                {
-                    merged = selections[firstWithDirectives].Directives.ToList();
-                    merged.AddRange(selection.Directives);
-                }
-                else
-                {
-                    merged.AddRange(selection.Directives);
-                }
-            }
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
         }
 
-        if (merged is { })
-        {
-            return merged;
-        }
-
-        if (firstWithDirectives != -1)
-        {
-            return selections[firstWithDirectives].Directives;
-        }
-
-        return selections[0].Directives;
+        SelectionSetId = selectionSetId;
     }
 
-    private void ModifyCondition(bool hasConditions) =>
-        InclusionKind =
-            (InclusionKind == SelectionInclusionKind.Internal
-                || InclusionKind == SelectionInclusionKind.InternalConditional)
-                ? (hasConditions
-                    ? SelectionInclusionKind.InternalConditional
-                    : SelectionInclusionKind.Internal)
-                : (hasConditions
-                    ? SelectionInclusionKind.Conditional
-                    : SelectionInclusionKind.Always);
+    internal void MarkAsStream(long ifCondition)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        _streamIfCondition = ifCondition;
+        _flags |= Flags.Stream;
+    }
+
+    public void SetOption(CustomOptionsFlags customOptions)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        CustomOptions |= customOptions;
+    }
+
+    /// <summary>
+    /// Completes the selection without sealing it.
+    /// </summary>
+    internal void Complete(ISelectionSet declaringSelectionSet)
+    {
+        Debug.Assert(declaringSelectionSet is not null);
+
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            DeclaringSelectionSet = declaringSelectionSet;
+        }
+
+        Debug.Assert(
+            ReferenceEquals(declaringSelectionSet, DeclaringSelectionSet),
+            "Selections can only belong to a single selectionSet.");
+    }
+
+    internal void Seal(ISelectionSet declaringSelectionSet)
+    {
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            DeclaringSelectionSet = declaringSelectionSet;
+            _flags |= Flags.Sealed;
+        }
+
+        Debug.Assert(
+            ReferenceEquals(declaringSelectionSet, DeclaringSelectionSet),
+            "Selections can only belong to a single selectionSet.");
+    }
+
+    private SelectionExecutionStrategy InferStrategy(
+        bool isSerial = false,
+        bool hasPureResolver = false)
+    {
+        // once a field is marked serial it even with a pure resolver cannot become pure.
+        if (Strategy is SelectionExecutionStrategy.Serial || isSerial)
+        {
+            return SelectionExecutionStrategy.Serial;
+        }
+
+        if (hasPureResolver)
+        {
+            return SelectionExecutionStrategy.Pure;
+        }
+
+        return SelectionExecutionStrategy.Default;
+    }
+
+    [Flags]
+    private enum Flags
+    {
+        None = 0,
+        Internal = 1,
+        Sealed = 2,
+        List = 4,
+        Stream = 8,
+        StreamResult = 16
+    }
+
+    [Flags]
+    public enum CustomOptionsFlags : byte
+    {
+        None = 0,
+        Option1 = 1,
+        Option2 = 2,
+        Option3 = 4,
+        Option4 = 8,
+        Option5 = 16,
+        Option6 = 32,
+        Option7 = 64
+    }
+
+    internal sealed class Sealed : Selection
+    {
+        public Sealed(
+            int id,
+            IObjectType declaringType,
+            IObjectField field,
+            IType type,
+            FieldNode syntaxNode,
+            string responseName,
+            ArgumentMap? arguments = null,
+            long[]? includeConditions = null,
+            bool isInternal = false,
+            bool isParallelExecutable = true,
+            FieldDelegate? resolverPipeline = null,
+            PureFieldDelegate? pureResolver = null) : base(
+            id,
+            declaringType,
+            field,
+            type,
+            syntaxNode,
+            responseName,
+            arguments,
+            includeConditions,
+            isInternal,
+            isParallelExecutable,
+            resolverPipeline,
+            pureResolver) { }
+    }
 }

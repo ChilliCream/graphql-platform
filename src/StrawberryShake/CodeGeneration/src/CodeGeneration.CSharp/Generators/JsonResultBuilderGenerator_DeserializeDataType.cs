@@ -24,13 +24,13 @@ public partial class JsonResultBuilderGenerator
         }
         else
         {
-            MethodCallBuilder returnStatement = MethodCallBuilder
+            var returnStatement = MethodCallBuilder
                 .New()
                 .SetReturn()
                 .SetNew()
                 .SetMethodName(complexTypeDescriptor.Name);
 
-            foreach (PropertyDescriptor property in complexTypeDescriptor.Properties)
+            foreach (var property in complexTypeDescriptor.Properties)
             {
                 returnStatement.AddArgument(BuildUpdateMethodCall(property));
             }
@@ -59,12 +59,12 @@ public partial class JsonResultBuilderGenerator
                     .Chain(x => x.SetMethodName(nameof(JsonElement.GetString)))));
 
         // If the type is an interface
-        foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
+        foreach (var concreteType in interfaceTypeDescriptor.ImplementedBy)
         {
-            MethodCallBuilder returnStatement = CreateBuildDataStatement(concreteType)
+            var returnStatement = CreateBuildDataStatement(concreteType)
                 .SetReturn();
 
-            IfBuilder ifStatement = IfBuilder
+            var ifStatement = IfBuilder
                 .New()
                 .SetCondition(
                     $"typename?.Equals(\"{concreteType.Name}\", " +
@@ -83,7 +83,7 @@ public partial class JsonResultBuilderGenerator
 
     private MethodCallBuilder CreateBuildDataStatement(ObjectTypeDescriptor concreteType)
     {
-        MethodCallBuilder returnStatement = MethodCallBuilder
+        var returnStatement = MethodCallBuilder
             .New()
             .SetNew()
             .SetMethodName(
@@ -91,9 +91,9 @@ public partial class JsonResultBuilderGenerator
                 CreateDataTypeName(concreteType.Name))
             .AddArgument("typename");
 
-        foreach (PropertyDescriptor property in concreteType.Properties)
+        foreach (var property in concreteType.Properties)
         {
-            if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
+            if (property.Name.EqualsOrdinal(WellKnownNames.TypeName))
             {
                 continue;
             }

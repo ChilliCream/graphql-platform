@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
 namespace GreenDonut;
@@ -58,7 +59,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     protected DataLoaderBase(IBatchScheduler batchScheduler, DataLoaderOptions? options = null)
     {
         options ??= new DataLoaderOptions();
-        _diagnosticEvents = options.DiagnosticEvents ?? new DataLoaderDiagnosticEventListener();
+        _diagnosticEvents = options.DiagnosticEvents ?? Default;
 
         if (options.Caching && options.Cache is null)
         {
@@ -107,7 +108,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         {
             if (_cache is not null)
             {
-                Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
+                var cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                 if (cached)
                 {
@@ -158,15 +159,15 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         void InitializeWithCache()
         {
-            foreach (TKey key in keys)
+            foreach (var key in keys)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 cached = true;
                 currentKey = key;
                 TaskCacheKey cacheKey = new(_cacheKeyType, key);
-                Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
-
+                var cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
+                
                 if (cached)
                 {
                     _diagnosticEvents.ResolvedTaskFromCache(this, cacheKey, cachedTask);
@@ -178,7 +179,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         void Initialize()
         {
-            foreach (TKey key in keys)
+            foreach (var key in keys)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -239,7 +240,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     {
         _diagnosticEvents.BatchError(keys, error);
 
-        foreach (TKey key in keys)
+        foreach (var key in keys)
         {
             if (_cache is not null)
             {
@@ -258,8 +259,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     {
         for (var i = 0; i < keys.Count; i++)
         {
-            TKey key = keys[i];
-            Result<TValue> value = results[i];
+            var key = keys[i];
+            var value = results[i];
 
             if (value.Kind is ResultKind.Undefined)
             {
@@ -290,25 +291,30 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         async ValueTask StartDispatchingAsync()
         {
+            var errors = false;
+            
             using (_diagnosticEvents.ExecuteBatch(this, batch.Keys))
             {
                 var buffer = new Result<TValue>[batch.Keys.Count];
 
                 try
                 {
-                    await FetchAsync(batch.Keys, buffer, cancellationToken)
-                        .ConfigureAwait(false);
+                    await FetchAsync(batch.Keys, buffer, cancellationToken).ConfigureAwait(false);
                     BatchOperationSucceeded(batch, batch.Keys, buffer);
                     _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
-
-                    // we deliberately return the batch here... in case of an error we are
-                    // not reusing this batch.
-                    BatchPool<TKey>.Shared.Return(batch);
                 }
                 catch (Exception ex)
                 {
+                    errors = true;
                     BatchOperationFailed(batch, batch.Keys, ex);
                 }
+            }
+
+            // we return the batch here so that the keys are only cleared
+            // after the diagnostic events are done.
+            if (!errors)
+            {
+                BatchPool<TKey>.Shared.Return(batch);
             }
         }
     }
@@ -320,8 +326,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             return _currentBatch.GetOrCreatePromise<TValue>(key);
         }
 
-        Batch<TKey> newBatch = BatchPool<TKey>.Shared.Get();
-        TaskCompletionSource<TValue> newPromise = newBatch.GetOrCreatePromise<TValue>(key);
+        var newBatch = BatchPool<TKey>.Shared.Get();
+        var newPromise = newBatch.GetOrCreatePromise<TValue>(key);
+
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
         _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
@@ -367,7 +374,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     {
         if (_cache is not null)
         {
-            foreach (TItem item in items)
+            foreach (var item in items)
             {
                 TaskCacheKey cacheKey = new(cacheKeyType, key(item));
                 _cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));

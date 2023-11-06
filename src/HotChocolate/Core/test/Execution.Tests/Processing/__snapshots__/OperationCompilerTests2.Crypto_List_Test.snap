@@ -1,0 +1,187 @@
+﻿query DashboardContainerQuery {
+  ... DashboardTickerFragment_query
+  ... DashboardFeaturedFragment_query
+  ... DashboardSpotlightFragment_query @defer(label: "DashboardContainerQuery$defer$spotlight")
+}
+
+fragment DashboardFeaturedCardFragment_asset on Asset {
+  symbol
+  color
+  price {
+    currency
+    lastPrice
+    change24Hour
+    change(span: DAY) {
+      history {
+        nodes {
+          epoch
+          price
+        }
+      }
+      id
+    }
+    id
+  }
+}
+
+fragment DashboardFeaturedFragment_query on Query {
+  featured: assets(where: { symbol: { in: [ "BTC", "ADA", "ALGO" ] } }) {
+    nodes {
+      id
+      ... DashboardFeaturedCardFragment_asset
+    }
+  }
+}
+
+fragment DashboardSpotlightCardFragment_asset on AssetsConnection {
+  nodes {
+    id
+    ... DashboardSpotlightItemFragment_asset
+  }
+}
+
+fragment DashboardSpotlightFragment_query on Query {
+  ... DashboardSpotlightGainersFragment_query
+  ... DashboardSpotlightLosersFragment_query
+}
+
+fragment DashboardSpotlightGainersFragment_query on Query {
+  gainers: assets(first: 5, where: { price: { change24Hour: { gt: 0 } } }, order: { price: { change24Hour: DESC } }) {
+    ... DashboardSpotlightCardFragment_asset @defer(label: "DashboardSpotlightGainersFragment_query$defer$gainers")
+  }
+}
+
+fragment DashboardSpotlightItemFragment_asset on Asset {
+  id
+  symbol
+  name
+  imageUrl
+  isInWatchlist
+  price {
+    currency
+    lastPrice
+    change24Hour
+    id
+  }
+}
+
+fragment DashboardSpotlightLosersFragment_query on Query {
+  losers: assets(first: 5, where: { price: { change24Hour: { lt: 0 } } }, order: { price: { change24Hour: ASC } }) {
+    ... DashboardSpotlightCardFragment_asset @defer(label: "DashboardSpotlightLosersFragment_query$defer$losers")
+  }
+}
+
+fragment DashboardTickerFragment_query on Query {
+  ticker: assets(first: 10, order: { price: { tradableMarketCapRank: ASC } }) {
+    nodes {
+      symbol
+      ... DashboardTickerItemFragment_asset
+      id
+    }
+  }
+}
+
+fragment DashboardTickerItemFragment_asset on Asset {
+  symbol
+  color
+  price {
+    currency
+    lastPrice
+    change24Hour
+    id
+  }
+}
+
+---------------------------------------------------------
+
+query DashboardContainerQuery {
+  ... on Query {
+    ticker: assets(first: 10, order: { price: { tradableMarketCapRank: ASC } }) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+      ... on AssetsConnection {
+        nodes @__execute(id: 19, kind: DEFAULT, type: COMPOSITE_LIST) {
+          ... on Asset {
+            symbol @__execute(id: 20, kind: DEFAULT, type: LEAF)
+            color @__execute(id: 21, kind: DEFAULT, type: LEAF)
+            price @__execute(id: 22, kind: DEFAULT, type: COMPOSITE) {
+              ... on AssetPrice {
+                currency @__execute(id: 24, kind: DEFAULT, type: LEAF)
+                lastPrice @__execute(id: 25, kind: DEFAULT, type: LEAF)
+                change24Hour @__execute(id: 26, kind: DEFAULT, type: LEAF)
+                id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+              }
+            }
+            id @__execute(id: 23, kind: DEFAULT, type: LEAF)
+          }
+        }
+      }
+    }
+    featured: assets(where: { symbol: { in: [ "BTC", "ADA", "ALGO" ] } }) @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
+      ... on AssetsConnection {
+        nodes @__execute(id: 4, kind: DEFAULT, type: COMPOSITE_LIST) {
+          ... on Asset {
+            id @__execute(id: 5, kind: DEFAULT, type: LEAF)
+            symbol @__execute(id: 6, kind: DEFAULT, type: LEAF)
+            color @__execute(id: 7, kind: DEFAULT, type: LEAF)
+            price @__execute(id: 8, kind: DEFAULT, type: COMPOSITE) {
+              ... on AssetPrice {
+                currency @__execute(id: 9, kind: DEFAULT, type: LEAF)
+                lastPrice @__execute(id: 10, kind: DEFAULT, type: LEAF)
+                change24Hour @__execute(id: 11, kind: DEFAULT, type: LEAF)
+                change(span: DAY) @__execute(id: 12, kind: DEFAULT, type: COMPOSITE) {
+                  ... on AssetPriceChange {
+                    history @__execute(id: 14, kind: DEFAULT, type: COMPOSITE) {
+                      ... on HistoryConnection {
+                        nodes @__execute(id: 16, kind: DEFAULT, type: COMPOSITE_LIST) {
+                          ... on AssetPriceHistory {
+                            epoch @__execute(id: 17, kind: DEFAULT, type: LEAF)
+                            price @__execute(id: 18, kind: DEFAULT, type: LEAF)
+                          }
+                        }
+                      }
+                    }
+                    id @__execute(id: 15, kind: DEFAULT, type: LEAF)
+                  }
+                }
+                id @__execute(id: 13, kind: DEFAULT, type: LEAF)
+              }
+            }
+          }
+        }
+      }
+    }
+    ... Fragment_0 @defer
+  }
+}
+
+fragment Fragment_0 on Query {
+  gainers: assets(first: 5, where: { price: { change24Hour: { gt: 0 } } }, order: { price: { change24Hour: DESC } }) @conditional @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
+    ... on AssetsConnection {
+      ... Fragment_1 @defer
+    }
+  }
+  losers: assets(first: 5, where: { price: { change24Hour: { lt: 0 } } }, order: { price: { change24Hour: ASC } }) @conditional @__execute(id: 3, kind: DEFAULT, type: COMPOSITE) {
+    ... on AssetsConnection {
+      ... Fragment_1 @defer
+    }
+  }
+}
+
+fragment Fragment_1 on AssetsConnection {
+  nodes @conditional @__execute(id: 28, kind: DEFAULT, type: COMPOSITE_LIST) {
+    ... on Asset {
+      id @conditional @__execute(id: 29, kind: DEFAULT, type: LEAF)
+      symbol @conditional @__execute(id: 30, kind: DEFAULT, type: LEAF)
+      name @conditional @__execute(id: 31, kind: DEFAULT, type: LEAF)
+      imageUrl @conditional @__execute(id: 32, kind: DEFAULT, type: LEAF)
+      isInWatchlist @conditional @__execute(id: 33, kind: DEFAULT, type: LEAF)
+      price @conditional @__execute(id: 34, kind: DEFAULT, type: COMPOSITE) {
+        ... on AssetPrice {
+          currency @__execute(id: 24, kind: DEFAULT, type: LEAF)
+          lastPrice @__execute(id: 25, kind: DEFAULT, type: LEAF)
+          change24Hour @__execute(id: 26, kind: DEFAULT, type: LEAF)
+          id @__execute(id: 27, kind: DEFAULT, type: LEAF)
+        }
+      }
+    }
+  }
+}

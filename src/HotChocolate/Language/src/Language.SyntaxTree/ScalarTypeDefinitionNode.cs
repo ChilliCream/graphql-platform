@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -59,7 +58,7 @@ public sealed class ScalarTypeDefinitionNode : NamedSyntaxNode, ITypeDefinitionN
 
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
@@ -101,7 +100,7 @@ public sealed class ScalarTypeDefinitionNode : NamedSyntaxNode, ITypeDefinitionN
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
-    /// <see cref="Name" /> with <paramref name="name" />.
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
     /// </summary>
     /// <param name="name">
     /// The name that shall be used to replace the current name.

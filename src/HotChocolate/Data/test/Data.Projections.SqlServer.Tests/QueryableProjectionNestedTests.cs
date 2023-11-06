@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -10,9 +9,9 @@ public class QueryableProjectionNestedTests
 {
     private static readonly Bar[] _barEntities =
     {
-            new() { Foo = new Foo { BarString = "testatest", } },
-            new() { Foo = new Foo { BarString = "testbtest", } }
-        };
+        new() { Foo = new Foo { BarString = "testatest", } },
+        new() { Foo = new Foo { BarString = "testbtest", } }
+    };
 
     private readonly SchemaCache _cache = new SchemaCache();
 
@@ -20,11 +19,10 @@ public class QueryableProjectionNestedTests
     public async Task Create_Object()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -37,18 +35,21 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNotSettable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -61,18 +62,21 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNotSettableList()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -85,18 +89,21 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectMethod()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -109,18 +116,21 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectMethodList()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -133,7 +143,11 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)
@@ -160,14 +174,8 @@ public class QueryableProjectionNestedTests
 
         public Foo Method() => new() { BarString = "Worked" };
 
-        public Foo[] NotSettableList { get; } =
-        {
-            new() { BarString = "Worked" }
-        };
+        public Foo[] NotSettableList { get; } = { new() { BarString = "Worked" } };
 
-        public Foo[] MethodList() => new[]
-        {
-            new Foo { BarString = "Worked" }
-        };
+        public Foo[] MethodList() => new[] { new Foo { BarString = "Worked" } };
     }
 }

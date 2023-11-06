@@ -1,6 +1,8 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-import TimesIconSvg from "../../images/times.svg";
+
+// Icons
+import TimesIconSvg from "@/images/times.svg";
 
 export interface DocPagePaneHeaderProps {
   readonly showWhenScreenWidthIsSmallerThan: number;
@@ -19,7 +21,9 @@ export const DocPagePaneHeader: FC<DocPagePaneHeaderProps> = ({
   </Header>
 );
 
-const Header = styled.header<{ showWhenScreenWidthIsSmallerThan: number }>`
+const Header = styled.header<{
+  readonly showWhenScreenWidthIsSmallerThan: number;
+}>`
   display: flex;
   flex-direction: row;
   align-items: center;

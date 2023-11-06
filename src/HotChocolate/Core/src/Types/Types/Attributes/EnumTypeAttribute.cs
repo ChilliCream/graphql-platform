@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
@@ -32,7 +33,7 @@ public sealed class EnumTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IEnumTypeDescriptor descriptor,
         Type type)
@@ -41,5 +42,7 @@ public sealed class EnumTypeAttribute
         {
             descriptor.Name(Name);
         }
+
+        descriptor.BindValuesImplicitly();
     }
 }

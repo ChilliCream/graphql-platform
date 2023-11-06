@@ -17,7 +17,7 @@ public static class FragmentHelper
 {
     public static string? GetReturnTypeName(FieldSelection fieldSelection)
     {
-        DirectiveNode? directive =
+        var directive =
             fieldSelection.SyntaxNode.Directives.FirstOrDefault(
                 t => t.Name.Value.Equals("returns"));
         if (directive is not null &&
@@ -42,7 +42,7 @@ public static class FragmentHelper
             return fragmentNode;
         }
 
-        foreach (FragmentNode child in fragmentNode.Nodes)
+        foreach (var child in fragmentNode.Nodes)
         {
             if (GetFragment(child, name) is { } n)
             {
@@ -57,7 +57,7 @@ public static class FragmentHelper
     {
         var list = new List<FragmentNode>();
 
-        foreach (FragmentNode child in fragmentNode.Nodes)
+        foreach (var child in fragmentNode.Nodes)
         {
             list.Add(child.Fragment.Kind is FragmentKind.Named
                 ? RewriteForConcreteType(child)
@@ -66,7 +66,7 @@ public static class FragmentHelper
 
         if (fragmentNode.Fragment.TypeCondition.IsInterfaceType())
         {
-            Fragment? objectFragment =
+            var objectFragment =
                 list.FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())?.Fragment;
 
             if (objectFragment is not null)
@@ -90,7 +90,7 @@ public static class FragmentHelper
         SelectionSet selectionSet,
         OutputTypeModel @interface)
     {
-        NameString name = context.ResolveTypeName(
+        var name = context.ResolveTypeName(
             GetClassName(fragmentNode.Fragment.Name),
             fragmentNode.Fragment.SelectionSet);
 
@@ -136,7 +136,7 @@ public static class FragmentHelper
         FragmentNode fragmentNode,
         OutputTypeModel @interface)
     {
-        NameString name = context.ResolveTypeName(
+        var name = context.ResolveTypeName(
             GetClassName(fragmentNode.Fragment.Name),
             fragmentNode.Fragment.SelectionSet);
 
@@ -172,7 +172,7 @@ public static class FragmentHelper
         bool isFragment = false)
     {
         var levels = new Stack<ISet<string>>();
-        List<OutputTypeModel> rootImplements = implements?.ToList() ?? new();
+        var rootImplements = implements?.ToList() ?? new();
         levels.Push(new HashSet<string>());
         return CreateInterface(context, fragmentNode, path, levels, rootImplements, isFragment);
     }
@@ -185,13 +185,13 @@ public static class FragmentHelper
         List<OutputTypeModel> rootImplements,
         bool isFragment = false)
     {
-        NameString name = context.ResolveTypeName(
+        var name = context.ResolveTypeName(
             GetInterfaceName(fragmentNode.Fragment.Name),
             fragmentNode.Fragment.SelectionSet);
 
-        ISet<string> implementedFields = levels.Peek();
+        var implementedFields = levels.Peek();
 
-        IReadOnlyList<OutputTypeModel> implements =
+        var implements =
             CreateImplements(
                 context,
                 fragmentNode,
@@ -200,7 +200,7 @@ public static class FragmentHelper
                 implementedFields,
                 rootImplements);
 
-        IReadOnlyDictionary<string, DeferredFragmentModel>? deferred =
+        var deferred =
             CreateDeferredMap(
                 context,
                 fragmentNode,
@@ -210,7 +210,7 @@ public static class FragmentHelper
         // for each type.
         if (context.TryGetModel(name, out OutputTypeModel? typeModel))
         {
-            foreach (OutputTypeModel model in implements)
+            foreach (var model in implements)
             {
                 if (!typeModel.Implements.Contains(model))
                 {
@@ -229,7 +229,7 @@ public static class FragmentHelper
         // implements and the root implements.
         if (levels.Count == 1 && rootImplements.Count > 0)
         {
-            foreach (OutputTypeModel model in implements)
+            foreach (var model in implements)
             {
                 if (!rootImplements.Contains(model))
                 {
@@ -245,7 +245,7 @@ public static class FragmentHelper
         // this discovery.
         var implementsCopy = implements.ToList();
 
-        foreach (OutputTypeModel model in implements)
+        foreach (var model in implements)
         {
             AddImplementedFields(model, implementedFields);
 
@@ -318,14 +318,14 @@ public static class FragmentHelper
         IDictionary<string, FieldSelection> fields,
         Path path)
     {
-        foreach (FragmentNode inlineFragment in fragmentNode.Nodes.Where(
+        foreach (var inlineFragment in fragmentNode.Nodes.Where(
             t => t.Fragment.Kind == FragmentKind.Inline &&
                 t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
         {
             CollectFields(inlineFragment, outputType, fields, path);
         }
 
-        foreach (FieldNode selection in
+        foreach (var selection in
             fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
         {
             FieldCollector.ResolveFieldSelection(selection, outputType, path, fields);
@@ -343,14 +343,14 @@ public static class FragmentHelper
 
         while (stack.Count > 0)
         {
-            OutputTypeModel current = stack.Pop();
+            var current = stack.Pop();
 
-            foreach (OutputTypeModel child in current.Implements)
+            foreach (var child in current.Implements)
             {
                 stack.Push(child);
             }
 
-            foreach (OutputFieldModel field in current.Fields)
+            foreach (var field in current.Fields)
             {
                 if (fieldNames.Add(field.ResponseName))
                 {
@@ -370,14 +370,14 @@ public static class FragmentHelper
 
         while (stack.Count > 0)
         {
-            OutputTypeModel current = stack.Pop();
+            var current = stack.Pop();
 
-            foreach (OutputTypeModel child in current.Implements)
+            foreach (var child in current.Implements)
             {
                 stack.Push(child);
             }
 
-            foreach (OutputFieldModel field in current.Fields)
+            foreach (var field in current.Fields)
             {
                 fieldNames.Add(field.ResponseName);
             }
@@ -388,7 +388,7 @@ public static class FragmentHelper
         OutputTypeModel @interface,
         ISet<string> implementedFields)
     {
-        foreach (OutputFieldModel field in @interface.Fields)
+        foreach (var field in @interface.Fields)
         {
             implementedFields.Add(
                 field.SyntaxNode.Alias?.Value ??
@@ -400,7 +400,7 @@ public static class FragmentHelper
         IEnumerable<OutputTypeModel> implements,
         OutputTypeModel possibleInterface)
     {
-        foreach (OutputTypeModel impl in implements)
+        foreach (var impl in implements)
         {
             if (IsImplementedBy(impl, possibleInterface))
             {
@@ -425,7 +425,7 @@ public static class FragmentHelper
             return true;
         }
 
-        foreach (OutputTypeModel impl in parent.Implements)
+        foreach (var impl in parent.Implements)
         {
             if (IsImplementedBy(impl, possibleInterface))
             {
@@ -452,7 +452,7 @@ public static class FragmentHelper
 
         var implements = new List<OutputTypeModel>();
 
-        foreach (FragmentNode child in parentFragmentNode.Nodes.Where(
+        foreach (var child in parentFragmentNode.Nodes.Where(
                      t => t.Fragment.Kind is FragmentKind.Named && t.Defer is null))
         {
             // we create a new field level with the fields that are implemented by this level.
@@ -489,7 +489,7 @@ public static class FragmentHelper
 
         Dictionary<string, DeferredFragmentModel>? deferred = null;
 
-        foreach (FragmentNode child in parentFragmentNode.Nodes.Where(
+        foreach (var child in parentFragmentNode.Nodes.Where(
             t => t.Fragment.Kind is FragmentKind.Named && t.Defer is not null))
         {
             var label = GetDeferLabel(child.Defer!);
@@ -513,18 +513,18 @@ public static class FragmentHelper
 
         while (interfaces.Count > 0)
         {
-            OutputTypeModel current = interfaces.Pop();
+            var current = interfaces.Pop();
 
-            foreach (OutputTypeModel child in current.Implements)
+            foreach (var child in current.Implements)
             {
                 interfaces.Push(child);
             }
 
             if (current.Deferred.Count > 0)
             {
-                Dictionary<string, DeferredFragmentModel> map = deferMap ??= new();
+                var map = deferMap ??= new();
 
-                foreach ((var key, DeferredFragmentModel? value) in current.Deferred)
+                foreach ((var key, var value) in current.Deferred)
                 {
                     map[key] = value;
                 }
@@ -539,7 +539,7 @@ public static class FragmentHelper
         Path path,
         bool appendTypeName = false)
     {
-        INamedType namedType = selectionSet.Type.NamedType();
+        var namedType = selectionSet.Type.NamedType();
         var name = CreateName(path, GetClassName);
 
         if (appendTypeName)
@@ -585,7 +585,7 @@ public static class FragmentHelper
         Func<string, string> nameFormatter)
     {
         var nameBuilder = new StringBuilder();
-        Path? current = selectionPath;
+        var current = selectionPath;
 
         do
         {
@@ -609,7 +609,7 @@ public static class FragmentHelper
 
     private static string GetDeferLabel(DirectiveNode directive)
     {
-        ArgumentNode? argument = directive.Arguments.FirstOrDefault(
+        var argument = directive.Arguments.FirstOrDefault(
             t => t.Name.Value.EqualsOrdinal(WellKnownDirectives.LabelArgument));
 
         if (argument?.Value is not StringValueNode { Value.Length: > 0 } sv)

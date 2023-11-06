@@ -10,16 +10,16 @@
           "Name": "dog",
           "Parent": {
             "Parent": null,
-            "Depth": -1,
+            "Length": 0,
             "IsRoot": true
           },
-          "Depth": 0,
+          "Length": 1,
           "IsRoot": false
         },
-        "Depth": 1,
+        "Length": 2,
         "IsRoot": false
       },
-      "Depth": 2,
+      "Length": 3,
       "IsRoot": false
     },
     "Locations": [

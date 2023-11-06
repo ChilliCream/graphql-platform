@@ -1,9 +1,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+#if NET6_0_OR_GREATER
+using System.Reflection.Metadata;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+#if NET6_0_OR_GREATER
+using HotChocolate.Execution;
+#endif
 using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
@@ -20,9 +26,13 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
+#if NET6_0_OR_GREATER
+[assembly: MetadataUpdateHandler(typeof(RequestExecutorResolver.ApplicationUpdateHandler))]
+#endif
+
 namespace HotChocolate.Execution;
 
-internal sealed class RequestExecutorResolver
+internal sealed partial class RequestExecutorResolver
     : IRequestExecutorResolver
     , IInternalRequestExecutorResolver
     , IDisposable
@@ -31,9 +41,11 @@ internal sealed class RequestExecutorResolver
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
     private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
+    private readonly EventObservable _events = new();
     private ulong _version;
     private bool _disposed;
 
+    [Obsolete("Use the events property instead.")]
     public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
 
     public RequestExecutorResolver(
@@ -45,15 +57,23 @@ internal sealed class RequestExecutorResolver
         _applicationServices = serviceProvider ??
             throw new ArgumentNullException(nameof(serviceProvider));
         _optionsMonitor.OnChange(EvictRequestExecutor);
+
+#if NET6_0_OR_GREATER
+        // we register the schema eviction for application updates when hot reload is used.
+        // Whenever a hot reload update is triggered we will evict all executors.
+        ApplicationUpdateHandler.RegisterForApplicationUpdate(() => EvictAllRequestExecutors());
+#endif
     }
 
+    public IObservable<RequestExecutorEvent> Events => _events;
+
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
-        if (!_executors.TryGetValue(schemaName, out RegisteredExecutor? re))
+        if (!_executors.TryGetValue(schemaName, out var re))
         {
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -72,51 +92,58 @@ internal sealed class RequestExecutorResolver
     }
 
     public async ValueTask<IRequestExecutor> GetRequestExecutorNoLockAsync(
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
-        if (!_executors.TryGetValue(schemaName, out RegisteredExecutor? re))
+        if (!_executors.TryGetValue(schemaName, out var registeredExecutor))
         {
-            RequestExecutorSetup options =
+            var setup =
                 await _optionsMonitor.GetAsync(schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-            IServiceProvider schemaServices =
-                await CreateSchemaServicesAsync(schemaName, options, cancellationToken)
+            var context = new ConfigurationContext(
+                schemaName,
+                setup.SchemaBuilder ?? new SchemaBuilder(),
+                _applicationServices);
+
+            var schemaServices =
+                await CreateSchemaServicesAsync(context, setup, cancellationToken)
                     .ConfigureAwait(false);
 
-            re = new RegisteredExecutor(
+            registeredExecutor = new RegisteredExecutor(
                 schemaServices.GetRequiredService<IRequestExecutor>(),
                 schemaServices,
                 schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
-                options,
+                setup,
                 schemaServices.GetRequiredService<TypeModuleChangeMonitor>());
 
-            foreach (OnRequestExecutorCreatedAction action in options.OnRequestExecutorCreated)
-            {
-                action.Action?.Invoke(re.Executor);
+            var executor = registeredExecutor.Executor;
 
-                if (action.AsyncAction is not null)
-                {
-                    await action.AsyncAction.Invoke(re.Executor, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
+            await OnRequestExecutorCreatedAsync(context, executor, setup, cancellationToken)
+                .ConfigureAwait(false);
 
-            re.DiagnosticEvents.ExecutorCreated(schemaName, re.Executor);
-            _executors.TryAdd(schemaName, re);
+            registeredExecutor.DiagnosticEvents.ExecutorCreated(
+                schemaName,
+                registeredExecutor.Executor);
+            _executors.TryAdd(schemaName, registeredExecutor);
+
+            _events.RaiseEvent(
+                new RequestExecutorEvent(
+                    RequestExecutorEventType.Created,
+                    schemaName,
+                    registeredExecutor.Executor));
         }
 
-        return re.Executor;
+        return registeredExecutor.Executor;
     }
 
-    public void EvictRequestExecutor(NameString schemaName = default)
+    public void EvictRequestExecutor(string? schemaName = default)
     {
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
-        if (_executors.TryRemove(schemaName, out RegisteredExecutor? re))
+        if (_executors.TryRemove(schemaName, out var re))
         {
             re.DiagnosticEvents.ExecutorEvicted(schemaName, re.Executor);
 
@@ -125,6 +152,11 @@ internal sealed class RequestExecutorResolver
                 RequestExecutorEvicted?.Invoke(
                     this,
                     new RequestExecutorEvictedEventArgs(schemaName, re.Executor));
+                _events.RaiseEvent(
+                    new RequestExecutorEvent(
+                        RequestExecutorEventType.Evicted,
+                        schemaName,
+                        re.Executor));
             }
             finally
             {
@@ -133,26 +165,42 @@ internal sealed class RequestExecutorResolver
         }
     }
 
-    private static void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
+#if NET6_0_OR_GREATER
+    private void EvictAllRequestExecutors()
     {
-        Task.Factory.StartNew(
+        foreach (var key in _executors.Keys)
+        {
+            if (_executors.TryRemove(key, out var re))
+            {
+                re.DiagnosticEvents.ExecutorEvicted(key, re.Executor);
+
+                try
+                {
+                    RequestExecutorEvicted?.Invoke(
+                        this,
+                        new RequestExecutorEvictedEventArgs(key, re.Executor));
+                    _events.RaiseEvent(
+                        new RequestExecutorEvent(
+                            RequestExecutorEventType.Evicted,
+                            key,
+                            re.Executor));
+                }
+                finally
+                {
+                    BeginRunEvictionEvents(re);
+                }
+            }
+        }
+    }
+#endif
+
+    private static void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
+        => Task.Factory.StartNew(
             async () =>
             {
                 try
                 {
-                    foreach (OnRequestExecutorEvictedAction action in
-                        registeredExecutor.Setup.OnRequestExecutorEvicted)
-                    {
-                        action.Action?.Invoke(registeredExecutor.Executor);
-
-                        if (action.AsyncAction is { } task)
-                        {
-                            await task.Invoke(
-                                    registeredExecutor.Executor,
-                                    CancellationToken.None)
-                                .ConfigureAwait(false);
-                        }
-                    }
+                    await OnRequestExecutorEvictedAsync(registeredExecutor);
                 }
                 finally
                 {
@@ -161,12 +209,14 @@ internal sealed class RequestExecutorResolver
                     await Task.Delay(TimeSpan.FromMinutes(5));
                     registeredExecutor.Dispose();
                 }
-            }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
-    }
+            },
+            default,
+            TaskCreationOptions.DenyChildAttach,
+            TaskScheduler.Default);
 
     private async Task<IServiceProvider> CreateSchemaServicesAsync(
-        NameString schemaName,
-        RequestExecutorSetup options,
+        ConfigurationContext context,
+        RequestExecutorSetup setup,
         CancellationToken cancellationToken)
     {
         ulong version;
@@ -177,21 +227,25 @@ internal sealed class RequestExecutorResolver
         }
 
         var serviceCollection = new ServiceCollection();
-        var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, schemaName);
+        var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
         var lazy = new SchemaBuilder.LazySchema();
 
-        RequestExecutorOptions executorOptions =
-            await CreateExecutorOptionsAsync(options, cancellationToken)
+        var executorOptions =
+            await OnConfigureRequestExecutorOptionsAsync(context, setup, cancellationToken)
                 .ConfigureAwait(false);
 
         // if there are any type modules we will register them with the
         // type module change monitor.
         // The module will track if type modules signal changes to the schema and
         // start a schema eviction.
-        foreach (ITypeModule? typeModule in options.TypeModules)
+        foreach (var typeModule in setup.TypeModules)
         {
             typeModuleChangeMonitor.Register(typeModule);
         }
+
+        // we allow newer type modules to apply configurations.
+        await typeModuleChangeMonitor.ConfigureAsync(context, cancellationToken)
+            .ConfigureAwait(false);
 
         serviceCollection.AddSingleton<IApplicationServiceProvider>(
             _ => new DefaultApplicationServiceProvider(_applicationServices));
@@ -201,13 +255,11 @@ internal sealed class RequestExecutorResolver
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
             s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<IInstrumentationOptionsAccessor>(
-            s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IErrorHandlerOptionsAccessor>(
             s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<IDocumentCacheSizeOptionsAccessor>(
-            s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
+            s => s.GetRequiredService<RequestExecutorOptions>());
+        serviceCollection.AddSingleton<IPersistedQueryOptionsAccessor>(
             s => s.GetRequiredService<RequestExecutorOptions>());
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
@@ -217,13 +269,13 @@ internal sealed class RequestExecutorResolver
         serviceCollection.TryAddTimespanProvider();
 
         // register global error filters
-        foreach (IErrorFilter errorFilter in _applicationServices.GetServices<IErrorFilter>())
+        foreach (var errorFilter in _applicationServices.GetServices<IErrorFilter>())
         {
             serviceCollection.AddSingleton(errorFilter);
         }
 
         // register global diagnostic listener
-        foreach (IExecutionDiagnosticEventListener diagnosticEventListener in
+        foreach (var diagnosticEventListener in
             _applicationServices.GetServices<IExecutionDiagnosticEventListener>())
         {
             serviceCollection.AddSingleton(diagnosticEventListener);
@@ -233,8 +285,9 @@ internal sealed class RequestExecutorResolver
 
         serviceCollection.AddSingleton(
             sp => CreatePipeline(
-                schemaName,
-                options.Pipeline,
+                context.SchemaName,
+                setup.DefaultPipelineFactory,
+                setup.Pipeline,
                 sp,
                 sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
 
@@ -246,44 +299,40 @@ internal sealed class RequestExecutorResolver
 
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
-        serviceCollection.TryAddSingleton<ObjectPool<RequestContext>>(sp =>
-        {
-            ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
-            var policy = new RequestContextPooledObjectPolicy(
-                sp.GetRequiredService<ISchema>(),
-                sp.GetRequiredService<IErrorHandler>(),
-                _applicationServices.GetRequiredService<ITypeConverter>(),
-                sp.GetRequiredService<IActivator>(),
-                sp.GetRequiredService<IExecutionDiagnosticEvents>(),
-                version);
-            return provider.Create(policy);
-        });
+        serviceCollection.TryAddSingleton(
+            sp =>
+            {
+                var provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new RequestContextPooledObjectPolicy(
+                    sp.GetRequiredService<ISchema>(),
+                    sp.GetRequiredService<IErrorHandler>(),
+                    sp.GetRequiredService<IActivator>(),
+                    sp.GetRequiredService<IExecutionDiagnosticEvents>(),
+                    version);
+                return provider.Create(policy);
+            });
 
         serviceCollection.AddSingleton<IRequestExecutor>(
             sp => new RequestExecutor(
                 sp.GetRequiredService<ISchema>(),
-                _applicationServices.GetRequiredService<DefaultRequestContextAccessor>(),
                 _applicationServices,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),
                 sp.GetRequiredService<BatchExecutor>(),
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
+                sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));
 
-        foreach (Action<IServiceCollection> configureServices in options.SchemaServices)
-        {
-            configureServices(serviceCollection);
-        }
+        OnConfigureSchemaServices(context, serviceCollection, setup);
 
-        ServiceProvider schemaServices = serviceCollection.BuildServiceProvider();
-        IServiceProvider combinedServices = schemaServices.Include(_applicationServices);
+        var schemaServices = serviceCollection.BuildServiceProvider();
 
         lazy.Schema =
             await CreateSchemaAsync(
-                    schemaName,
-                    options,
+                    context,
+                    setup,
                     executorOptions,
-                    combinedServices,
+                    schemaServices.Include(_applicationServices),
                     typeModuleChangeMonitor,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -291,71 +340,60 @@ internal sealed class RequestExecutorResolver
         return schemaServices;
     }
 
-    private async ValueTask<ISchema> CreateSchemaAsync(
-        NameString schemaName,
-        RequestExecutorSetup options,
+    private static async ValueTask<ISchema> CreateSchemaAsync(
+        ConfigurationContext context,
+        RequestExecutorSetup setup,
         RequestExecutorOptions executorOptions,
-        IServiceProvider serviceProvider,
+        IServiceProvider schemaServices,
         TypeModuleChangeMonitor typeModuleChangeMonitor,
         CancellationToken cancellationToken)
     {
-        if (options.Schema is not null)
+        if (setup.Schema is not null)
         {
-            AssertSchemaNameValid(options.Schema, schemaName);
-            return options.Schema;
+            AssertSchemaNameValid(setup.Schema, context.SchemaName);
+            return setup.Schema;
         }
 
-        ISchemaBuilder schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
-        ComplexityAnalyzerSettings complexitySettings = executorOptions.Complexity;
+        var complexitySettings = executorOptions.Complexity;
 
-        schemaBuilder
-            .AddServices(serviceProvider)
+        context
+            .SchemaBuilder
+            .AddServices(schemaServices)
             .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
             .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
 
-        IDescriptorContext context = schemaBuilder.CreateContext();
+        var descriptorContext = context.SchemaBuilder.CreateContext();
 
-        await foreach (ITypeSystemMember member in
-            typeModuleChangeMonitor.CreateTypesAsync(context)
+        await foreach (var member in
+            typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
         {
             switch (member)
             {
                 case INamedType namedType:
-                    schemaBuilder.AddType(namedType);
+                    context.SchemaBuilder.AddType(namedType);
                     break;
 
                 case INamedTypeExtension typeExtension:
-                    schemaBuilder.AddType(typeExtension);
+                    context.SchemaBuilder.AddType(typeExtension);
                     break;
             }
         }
 
-        foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
-        {
-            if (action.Action is { } configure)
-            {
-                configure(serviceProvider, schemaBuilder);
-            }
+        await OnConfigureSchemaBuilderAsync(context, schemaServices, setup, cancellationToken);
 
-            if (action.AsyncAction is { } configureAsync)
-            {
-                await configureAsync(serviceProvider, schemaBuilder, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-        }
+        context.SchemaBuilder.TryAddTypeInterceptor(
+            new SetSchemaNameInterceptor(context.SchemaName));
 
-        schemaBuilder.TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
-
-        ISchema schema = schemaBuilder.Create(context);
-        AssertSchemaNameValid(schema, schemaName);
+        var schema = context.SchemaBuilder.Create(descriptorContext);
+        AssertSchemaNameValid(schema, context.SchemaName);
         return schema;
     }
 
-    private static void AssertSchemaNameValid(ISchema schema, NameString expectedSchemaName)
+    private static void AssertSchemaNameValid(ISchema schema, string expectedSchemaName)
     {
-        if (!schema.Name.Equals(expectedSchemaName))
+        if (!schema.Name.EqualsOrdinal(expectedSchemaName))
         {
             throw RequestExecutorResolver_SchemaNameDoesNotMatch(
                 expectedSchemaName,
@@ -363,39 +401,17 @@ internal sealed class RequestExecutorResolver
         }
     }
 
-    private static async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
-        RequestExecutorSetup options,
-        CancellationToken cancellationToken)
-    {
-        RequestExecutorOptions executorOptions =
-            options.RequestExecutorOptions ??
-                new RequestExecutorOptions();
-
-        foreach (RequestExecutorOptionsAction action in options.RequestExecutorOptionsActions)
-        {
-            if (action.Action is { } configure)
-            {
-                configure(executorOptions);
-            }
-
-            if (action.AsyncAction is { } configureAsync)
-            {
-                await configureAsync(executorOptions, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        return executorOptions;
-    }
-
     private RequestDelegate CreatePipeline(
-        NameString schemaName,
+        string schemaName,
+        Action<IList<RequestCoreMiddleware>>? defaultPipelineFactory,
         IList<RequestCoreMiddleware> pipeline,
         IServiceProvider schemaServices,
         IRequestExecutorOptionsAccessor options)
     {
         if (pipeline.Count == 0)
         {
-            pipeline.AddDefaultPipeline();
+            defaultPipelineFactory ??= RequestExecutorBuilderExtensions.AddDefaultPipeline;
+            defaultPipelineFactory(pipeline);
         }
 
         var factoryContext = new RequestCoreMiddlewareContext(
@@ -418,6 +434,7 @@ internal sealed class RequestExecutorResolver
     {
         if (!_disposed)
         {
+            _events.Dispose();
             _executors.Clear();
             _semaphore.Dispose();
             _disposed = true;
@@ -469,22 +486,21 @@ internal sealed class RequestExecutorResolver
 
     private sealed class SetSchemaNameInterceptor : TypeInterceptor
     {
-        private readonly NameString _schemaName;
+        private readonly string _schemaName;
 
-        public SetSchemaNameInterceptor(NameString schemaName)
+        public SetSchemaNameInterceptor(string schemaName)
         {
             _schemaName = schemaName;
         }
 
-        public override bool CanHandle(ITypeSystemObjectContext context) =>
-            context.IsSchema;
-
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+            DefinitionBase definition)
         {
-            definition!.Name = _schemaName;
+            if (completionContext.IsSchema)
+            {
+                definition.Name = _schemaName;
+            }
         }
     }
 
@@ -494,18 +510,32 @@ internal sealed class RequestExecutorResolver
         private readonly RequestExecutorResolver _resolver;
         private bool _disposed;
 
-        public TypeModuleChangeMonitor(RequestExecutorResolver resolver, NameString schemaName)
+        public TypeModuleChangeMonitor(RequestExecutorResolver resolver, string schemaName)
         {
             _resolver = resolver;
             SchemaName = schemaName;
         }
 
-        public NameString SchemaName { get; }
+        public string SchemaName { get; }
 
         public void Register(ITypeModule typeModule)
         {
             typeModule.TypesChanged += EvictRequestExecutor;
             _typeModules.Add(typeModule);
+        }
+
+        internal async ValueTask ConfigureAsync(
+            ConfigurationContext context,
+            CancellationToken cancellationToken)
+        {
+            foreach (var item in _typeModules)
+            {
+                if (item is TypeModule typeModule)
+                {
+                    await typeModule.ConfigureAsync(context, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
         }
 
         public IAsyncEnumerable<ITypeSystemMember> CreateTypesAsync(IDescriptorContext context)
@@ -518,7 +548,7 @@ internal sealed class RequestExecutorResolver
         {
             if (!_disposed)
             {
-                foreach (ITypeModule? typeModule in _typeModules)
+                foreach (var typeModule in _typeModules)
                 {
                     typeModule.TypesChanged -= EvictRequestExecutor;
                 }
@@ -544,13 +574,13 @@ internal sealed class RequestExecutorResolver
             public async IAsyncEnumerator<ITypeSystemMember> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                foreach (ITypeModule? typeModule in _typeModules)
+                foreach (var typeModule in _typeModules)
                 {
-                    IReadOnlyCollection<ITypeSystemMember> types =
+                    var types =
                         await typeModule.CreateTypesAsync(_context, cancellationToken)
                             .ConfigureAwait(false);
 
-                    foreach (ITypeSystemMember type in types)
+                    foreach (var type in types)
                     {
                         yield return type;
                     }
@@ -564,14 +594,12 @@ internal sealed class RequestExecutorResolver
         private readonly ISchema _schema;
         private readonly ulong _executorVersion;
         private readonly IErrorHandler _errorHandler;
-        private readonly ITypeConverter _converter;
         private readonly IActivator _activator;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
         public RequestContextPooledObjectPolicy(
             ISchema schema,
             IErrorHandler errorHandler,
-            ITypeConverter converter,
             IActivator activator,
             IExecutionDiagnosticEvents diagnosticEvents,
             ulong executorVersion)
@@ -580,8 +608,6 @@ internal sealed class RequestExecutorResolver
                 throw new ArgumentNullException(nameof(schema));
             _errorHandler = errorHandler ??
                 throw new ArgumentNullException(nameof(errorHandler));
-            _converter = converter ??
-                throw new ArgumentNullException(nameof(converter));
             _activator = activator ??
                 throw new ArgumentNullException(nameof(activator));
             _diagnosticEvents = diagnosticEvents ??
@@ -591,12 +617,7 @@ internal sealed class RequestExecutorResolver
 
 
         public override RequestContext Create()
-            => new(_schema,
-                _executorVersion,
-                _errorHandler,
-                _converter,
-                _activator,
-                _diagnosticEvents);
+            => new(_schema, _executorVersion, _errorHandler, _activator, _diagnosticEvents);
 
         public override bool Return(RequestContext obj)
         {
@@ -604,4 +625,120 @@ internal sealed class RequestExecutorResolver
             return true;
         }
     }
+
+    private sealed class EventObservable : IObservable<RequestExecutorEvent>, IDisposable
+    {
+        private readonly object _sync = new();
+        private readonly List<Subscription> _subscriptions = new();
+        private bool _disposed;
+
+        public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(EventObservable));
+            }
+
+            if (observer is null)
+            {
+                throw new ArgumentNullException(nameof(observer));
+            }
+
+            var subscription = new Subscription(this, observer);
+
+            lock (_sync)
+            {
+                _subscriptions.Add(subscription);
+            }
+
+            return subscription;
+        }
+
+        public void RaiseEvent(RequestExecutorEvent eventMessage)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(EventObservable));
+            }
+
+            lock (_sync)
+            {
+                foreach (var subscription in _subscriptions)
+                {
+                    subscription.Observer.OnNext(eventMessage);
+                }
+            }
+        }
+
+        private void Unsubscribe(Subscription subscription)
+        {
+            lock (_sync)
+            {
+                _subscriptions.Remove(subscription);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                lock (_sync)
+                {
+                    foreach (var subscription in _subscriptions)
+                    {
+                        subscription.Observer.OnCompleted();
+                    }
+
+                    _subscriptions.Clear();
+                }
+
+                _disposed = true;
+            }
+        }
+
+        private sealed class Subscription : IDisposable
+        {
+            private readonly EventObservable _parent;
+            private bool _disposed;
+
+            public Subscription(EventObservable parent, IObserver<RequestExecutorEvent> observer)
+            {
+                _parent = parent;
+                Observer = observer;
+            }
+
+            public IObserver<RequestExecutorEvent> Observer { get; }
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    _parent.Unsubscribe(this);
+                    _disposed = true;
+                }
+            }
+        }
+    }
+
+#if NET6_0_OR_GREATER
+    /// <summary>
+    /// A helper calls that receives hot reload update events from the runtime and triggers
+    /// reload of registered components.
+    /// </summary>
+    internal static class ApplicationUpdateHandler
+    {
+        private static readonly List<Action> _actions = new();
+
+        public static void RegisterForApplicationUpdate(Action action)
+            => _actions.Add(action);
+
+        public static void UpdateApplication(Type[]? updatedTypes)
+        {
+            foreach (var action in _actions)
+            {
+                action();
+            }
+        }
+    }
+#endif
 }

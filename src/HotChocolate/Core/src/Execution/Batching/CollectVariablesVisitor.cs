@@ -52,7 +52,7 @@ internal class CollectVariablesVisitor
         _action.Clear();
         _touchedFragments.Clear();
 
-        ObjectType type = _schema.GetOperationType(node.Operation)!;
+        var type = _schema.GetOperationType(node.Operation)!;
         _type.Push(type);
 
         for (var i = 0; i < node.VariableDefinitions.Count; i++)
@@ -82,7 +82,7 @@ internal class CollectVariablesVisitor
     {
         if (_type.Peek().NamedType() is IComplexOutputType complexType
             && complexType.Fields.TryGetField(
-                node.Name.Value, out IOutputField? field))
+                node.Name.Value, out var field))
         {
             _field.Push(field);
             _type.Push(field.Type);
@@ -116,7 +116,7 @@ internal class CollectVariablesVisitor
     {
         if (_field.Peek().Arguments.TryGetField(
             node.Name.Value,
-            out IInputField? field))
+            out var field))
         {
             _type.Push(field.Type);
             _action.Push(VisitorAction.Continue);
@@ -181,11 +181,11 @@ internal class CollectVariablesVisitor
     {
         if (!_declared.Contains(node.Name.Value))
         {
-            IType type = _type.Peek();
+            var type = _type.Peek();
 
             if (_variables.TryGetValue(
                 node.Name.Value,
-                out VariableDefinitionNode? d))
+                out var d))
             {
                 if (type.IsNonNullType()
                     && d.Type is INullableTypeNode nullable)
@@ -198,8 +198,8 @@ internal class CollectVariablesVisitor
             {
                 if (type.NamedType() is IComplexOutputType complexType)
                 {
-                    Type clrType = complexType.ToRuntimeType();
-                    InputObjectType inputType =
+                    var clrType = complexType.ToRuntimeType();
+                    var inputType =
                         _schema.Types.OfType<InputObjectType>()
                             .First(t => t.RuntimeType == clrType);
 
@@ -252,7 +252,7 @@ internal class CollectVariablesVisitor
         IReadOnlyList<ISyntaxNode> ancestors)
     {
         if (node.TypeCondition is not null &&
-            _schema.TryGetType<INamedType>(node.TypeCondition.Name.Value, out INamedType? type))
+            _schema.TryGetType<INamedType>(node.TypeCondition.Name.Value, out var type))
         {
             _type.Push(type);
             _action.Push(VisitorAction.Continue);
@@ -282,7 +282,7 @@ internal class CollectVariablesVisitor
         IReadOnlyList<object> path,
         IReadOnlyList<ISyntaxNode> ancestors)
     {
-        if (_schema.TryGetType<INamedType>(node.TypeCondition.Name.Value, out INamedType? type))
+        if (_schema.TryGetType<INamedType>(node.TypeCondition.Name.Value, out var type))
         {
             _touchedFragments.Add(node.Name.Value);
             _type.Push(type);

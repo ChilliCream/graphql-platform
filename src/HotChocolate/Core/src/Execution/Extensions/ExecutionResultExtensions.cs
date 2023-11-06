@@ -1,18 +1,16 @@
 using System;
 using System.Buffers;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using static HotChocolate.Execution.Properties.Resources;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
 public static class ExecutionResultExtensions
 {
-    private static readonly JsonQueryResultFormatter _formatter = new(false);
-    private static readonly JsonQueryResultFormatter _formatterIndented = new(true);
+    private static readonly JsonResultFormatter _formatter = new(new() { Indented = false});
+    private static readonly JsonResultFormatter _formatterIndented = new(new() { Indented = true});
 
     public static void WriteTo(
         this IQueryResult result,
@@ -39,6 +37,22 @@ public static class ExecutionResultExtensions
         }
     }
 
+    /// <summary>
+    /// Converts the <see cref="IExecutionResult"/> to a JSON string.
+    /// </summary>
+    /// <param name="result">
+    /// The execution result.
+    /// </param>
+    /// <param name="withIndentations">
+    /// Defines if the JSON should be formatted with indentations.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="result"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    /// The execution result is not a query result.
+    /// </exception>
     public static string ToJson(
         this IExecutionResult result,
         bool withIndentations = true)
@@ -51,8 +65,8 @@ public static class ExecutionResultExtensions
         if (result is IQueryResult queryResult)
         {
             return withIndentations
-                ? _formatterIndented.Serialize(queryResult)
-                : _formatter.Serialize(queryResult);
+                ? _formatterIndented.Format(queryResult)
+                : _formatter.Format(queryResult);
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

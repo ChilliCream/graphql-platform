@@ -1,17 +1,16 @@
 using System;
 using System.Buffers;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Transport.Sockets.Client.Helpers;
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Utilities;
 using static HotChocolate.Transport.Sockets.SocketDefaults;
 
 namespace HotChocolate.Transport.Sockets.Client;
 
-public class SocketClient : ISocket
+public sealed class SocketClient : ISocket
 {
     private static readonly IProtocolHandler[] _protocolHandlers =
     {
@@ -57,8 +56,10 @@ public class SocketClient : ISocket
         T? payload,
         CancellationToken cancellationToken = default)
     {
-        IProtocolHandler? protocolHandler =
-            _protocolHandlers.FirstOrDefault(t => t.Name.EqualsOrdinal(socket.SubProtocol));
+        var protocolHandler =
+            Array.Find(
+                _protocolHandlers,
+                t => t.Name.EqualsOrdinal(socket.SubProtocol));
 
         if (protocolHandler is null)
         {
@@ -77,13 +78,13 @@ public class SocketClient : ISocket
         return _protocol.InitializeAsync(_context, payload, cancellationToken);
     }
 
-    private void BeginRunPipeline() => _pipeline.RunAsync(_ct);
+    private void BeginRunPipeline()
+        => Task.Factory.StartNew(() => _pipeline.RunAsync(_ct), _ct);
 
     public ValueTask<SocketResult> ExecuteAsync(
         OperationRequest request,
         CancellationToken cancellationToken = default)
         => _protocol.ExecuteAsync(_context, request, cancellationToken);
-
 
 #if NET5_0_OR_GREATER
     async Task<bool> ISocket.ReadMessageAsync(
@@ -108,7 +109,7 @@ public class SocketClient : ISocket
                 }
 
                 // get memory from writer
-                Memory<byte> memory = writer.GetMemory(BufferSize);
+                var memory = writer.GetMemory(BufferSize);
 
                 // read message segment from socket.
                 socketResult = await _socket.ReceiveAsync(memory, cancellationToken);
@@ -155,11 +156,13 @@ public class SocketClient : ISocket
                 socketResult = await _socket.ReceiveAsync(arraySegment, cancellationToken);
 
                 // copy message segment to writer.
-                Memory<byte> memory = writer.GetMemory(socketResult.Count);
+                var memory = writer.GetMemory(socketResult.Count);
                 buffer.AsSpan().Slice(0, socketResult.Count).CopyTo(memory.Span);
                 writer.Advance(socketResult.Count);
                 read += socketResult.Count;
             } while (!socketResult.EndOfMessage);
+
+            ArrayPool<byte>.Shared.Return(buffer);
 
             return read > 0;
         }
@@ -167,10 +170,6 @@ public class SocketClient : ISocket
         {
             // swallow exception, there's nothing we can reasonably do.
             return false;
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 #endif

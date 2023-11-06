@@ -1,4 +1,0 @@
-﻿type Foo @source(name: "Foo", schema: "A") {
-  a: String
-  b: String
-}

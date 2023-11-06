@@ -1,0 +1,59 @@
+12
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnQKczE0"
+      },
+      {
+        "barShort": "Rm9vU2hvcnQKczEz"
+      }
+    ]
+  }
+}
+---------------
+
+13
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnQKczEy"
+      },
+      {
+        "barShort": "Rm9vU2hvcnQKczE0"
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `neq` of type IdOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 34
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "ID!",
+        "filterType": "IdOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

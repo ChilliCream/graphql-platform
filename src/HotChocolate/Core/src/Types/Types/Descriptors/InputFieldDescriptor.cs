@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.MemberKind;
 
 #nullable enable
 
@@ -16,7 +17,7 @@ public class InputFieldDescriptor
     /// </summary>
     protected internal InputFieldDescriptor(
         IDescriptorContext context,
-        NameString fieldName)
+        string fieldName)
         : base(context)
     {
         Definition.Name = fieldName;
@@ -43,12 +44,8 @@ public class InputFieldDescriptor
     {
         Definition.Property = property
             ?? throw new ArgumentNullException(nameof(property));
-        Definition.Name = context.Naming.GetMemberName(
-            property,
-            MemberKind.InputObjectField);
-        Definition.Description = context.Naming.GetMemberDescription(
-            property,
-            MemberKind.InputObjectField);
+        Definition.Name = context.Naming.GetMemberName(property, InputObjectField);
+        Definition.Description = context.Naming.GetMemberDescription(property, InputObjectField);
         Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
 
         if (context.TypeInspector.TryGetDefaultValue(property, out var defaultValue))
@@ -85,9 +82,9 @@ public class InputFieldDescriptor
     }
 
     /// <inheritdoc />
-    public IInputFieldDescriptor Name(NameString value)
+    public IInputFieldDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -181,7 +178,7 @@ public class InputFieldDescriptor
 
     /// <inheritdoc />
     public new IInputFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
@@ -196,7 +193,7 @@ public class InputFieldDescriptor
     /// <returns>An instance of <see cref="InputFieldDescriptor "/></returns>
     public static InputFieldDescriptor New(
         IDescriptorContext context,
-        NameString fieldName) =>
+        string fieldName) =>
         new(context, fieldName);
 
     /// <summary>

@@ -1,0 +1,26 @@
+{
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/PublicAPI*.txt": true
+  },
+  "editor.rulers": [120],
+  "files.trimTrailingWhitespace": true,
+  "files.associations": {
+    "*.*proj": "xml",
+    "*.props": "xml",
+    "*.targets": "xml",
+    "*.tasks": "xml"
+  },
+  "markdownlint.config": {
+    "MD028": false,
+    "MD025": {
+      "front_matter_title": ""
+    }
+  },
+  "cSpell.words": [
+    "Nats"
+  ],
+  "dotnet.defaultSolution": "src/All.sln"
+}

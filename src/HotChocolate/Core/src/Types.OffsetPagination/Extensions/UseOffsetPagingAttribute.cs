@@ -16,6 +16,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
     private int? _maxPageSize;
     private bool? _includeTotalCount;
     private bool? _requirePagingBoundaries;
+    private bool? _inferCollectionSegmentNameFromField;
     private string? _collectionSegmentName;
 
     /// <summary>
@@ -91,6 +92,16 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
     /// </summary>
     public string? ProviderName { get; set; }
 
+    /// <summary>
+    /// CollectionSegment names are by default inferred from the field name to
+    /// which they are bound to as opposed to the item type name.
+    /// </summary>
+    public bool InferCollectionSegmentNameFromField
+    {
+        get => _inferCollectionSegmentNameFromField ?? PagingDefaults.InferCollectionSegmentNameFromField;
+        set => _inferCollectionSegmentNameFromField = value;
+    }
+
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
@@ -101,7 +112,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
             odf.UseOffsetPaging(
                 Type,
                 collectionSegmentName: string.IsNullOrEmpty(_collectionSegmentName)
-                    ? default(NameString?)
+                    ? default
                     : _collectionSegmentName,
                 options: new PagingOptions
                 {
@@ -109,7 +120,8 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
                     MaxPageSize = _maxPageSize,
                     IncludeTotalCount = _includeTotalCount,
                     RequirePagingBoundaries = _requirePagingBoundaries,
-                    ProviderName = ProviderName
+                    ProviderName = ProviderName,
+                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField
                 });
         }
 
@@ -118,7 +130,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
             idf.UseOffsetPaging(
                 Type,
                 collectionSegmentName: string.IsNullOrEmpty(_collectionSegmentName)
-                    ? default(NameString?)
+                    ? default
                     : _collectionSegmentName,
                 options: new PagingOptions
                 {
@@ -126,7 +138,8 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
                     MaxPageSize = _maxPageSize,
                     IncludeTotalCount = _includeTotalCount,
                     RequirePagingBoundaries = _requirePagingBoundaries,
-                    ProviderName = ProviderName
+                    ProviderName = ProviderName,
+                    InferCollectionSegmentNameFromField = _inferCollectionSegmentNameFromField
                 });
         }
     }

@@ -3,6 +3,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -24,7 +25,7 @@ internal abstract class DependencyDescriptorBase
 
     protected ITypeInspector TypeInspector { get; }
 
-    protected abstract TypeDependencyKind DependencyKind { get; }
+    protected abstract TypeDependencyFulfilled DependencyFulfilled { get; }
 
     protected void DependsOn<TType>(bool mustBeNamedOrCompleted)
         where TType : ITypeSystemMember =>
@@ -47,27 +48,27 @@ internal abstract class DependencyDescriptorBase
                 nameof(schemaType));
         }
 
-        TypeDependencyKind kind = mustBeNamedOrCompleted
-            ? DependencyKind
-            : TypeDependencyKind.Default;
+        var kind = mustBeNamedOrCompleted
+            ? DependencyFulfilled
+            : TypeDependencyFulfilled.Default;
 
         _configuration.AddDependency(
             TypeDependency.FromSchemaType(schemaType, kind));
     }
 
     protected void DependsOn(
-        NameString typeName,
+        string typeName,
         bool mustBeNamedOrCompleted)
     {
-        typeName.EnsureNotEmpty(nameof(typeName));
+        typeName.EnsureGraphQLName();
 
-        TypeDependencyKind kind = mustBeNamedOrCompleted
-            ? DependencyKind
-            : TypeDependencyKind.Default;
+        var kind = mustBeNamedOrCompleted
+            ? DependencyFulfilled
+            : TypeDependencyFulfilled.Default;
 
         _configuration.AddDependency(
             new TypeDependency(
-                TypeReference.Create(new NamedTypeNode(typeName), TypeContext.None),
+                TypeReference.Create(new NamedTypeNode(typeName)),
                 kind));
     }
 }

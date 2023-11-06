@@ -4,8 +4,8 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Transport.Serialization;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
-using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
@@ -19,7 +19,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         CancellationToken cancellationToken = default)
     {
         var observer = new ConnectionMessageObserver<ConnectionAcceptMessage>(cancellationToken);
-        using IDisposable subscription = context.Messages.Subscribe(observer);
+        using var subscription = context.Messages.Subscribe(observer);
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
         await observer.Accepted;
     }
@@ -32,13 +32,13 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         var id = Guid.NewGuid().ToString("N");
         var observer = new DataMessageObserver(id);
         var completion = new DataCompletion(context.Socket, id);
-        IDisposable subscription = context.Messages.Subscribe(observer);
+        var subscription = context.Messages.Subscribe(observer);
 
         await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
 
         // if the user cancels this stream we will send the server a complete request
         // so that we no longer receive new result messages.
-        cancellationToken.Register(completion.TryComplete);
+        cancellationToken.Register(completion.TrySendCompleteMessage);
 
         try
         {
@@ -62,9 +62,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         try
         {
             document = JsonDocument.Parse(message);
-            JsonElement root = document.RootElement;
+            var root = document.RootElement;
 
-            if (root.TryGetProperty(TypeProp, out JsonElement typeProp))
+            if (root.TryGetProperty(Utf8MessageProperties.TypeProp, out var typeProp))
             {
                 if (typeProp.ValueEquals(Utf8Messages.Ping))
                 {
@@ -134,27 +134,36 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             _id = id;
         }
 
-        public void SetCompleted()
+        public void MarkDataStreamCompleted()
             => _completed = true;
 
-        public void TryComplete()
+        public void TrySendCompleteMessage()
         {
             if (!_completed)
             {
                 Task.Factory.StartNew(
                     async () =>
                     {
+                        using var cts = new CancellationTokenSource(2000);
+
                         try
                         {
                             if (_socket.IsOpen())
                             {
-                                await _socket.SendCompleteMessageAsync(_id, CancellationToken.None);
+                                await _socket.SendCompleteMessageAsync(_id, cts.Token);
                             }
                         }
                         catch
                         {
-                            // we ignore any error here.
-                            // Most likely the connection is already closed.
+                            // if we cannot send the complete message we will just abort the socket.
+                            try
+                            {
+                                _socket.Abort();
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
                         }
                     },
                     CancellationToken.None,

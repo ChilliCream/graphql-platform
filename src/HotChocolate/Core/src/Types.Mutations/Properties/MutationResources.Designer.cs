@@ -57,12 +57,6 @@ namespace HotChocolate.Types.Properties {
             }
         }
         
-        internal static string ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory {
-            get {
-                return ResourceManager.GetString("ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch {
             get {
                 return ResourceManager.GetString("ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch", resourceCulture);
@@ -84,6 +78,30 @@ namespace HotChocolate.Types.Properties {
         internal static string ThrowHelper_NonMutationFields {
             get {
                 return ResourceManager.GetString("ThrowHelper_NonMutationFields", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MutationPayloadMustBeObject {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MutationPayloadMustBeObject", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MutationConvDirective_In_Wrong_Location {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MutationConvDirective_In_Wrong_Location", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_DirectiveArgument_Unexpected_Value {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DirectiveArgument_Unexpected_Value", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnknownDirectiveArgument {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnknownDirectiveArgument", resourceCulture);
             }
         }
     }

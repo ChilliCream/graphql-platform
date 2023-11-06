@@ -27,12 +27,12 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
             new(next => async context =>
             {
 #if NET6_0_OR_GREATER
-                await using TDbContext dbContext = await context.Services
+                await using var dbContext = await context.RequestServices
                     .GetRequiredService<IDbContextFactory<TDbContext>>()
                     .CreateDbContextAsync()
                     .ConfigureAwait(false);
 #else
-                using TDbContext dbContext = context.Services
+                using TDbContext dbContext = context.RequestServices
                     .GetRequiredService<IDbContextFactory<TDbContext>>()
                     .CreateDbContext();
 #endif
@@ -69,16 +69,12 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition contextMiddleware =
             new(next => async context =>
                 {
-#if NET6_0_OR_GREATER
-                    await using TDbContext dbContext = await context.Services
+                    var dbContext = await context.RequestServices
                         .GetRequiredService<IDbContextFactory<TDbContext>>()
                         .CreateDbContextAsync()
                         .ConfigureAwait(false);
-#else
-                    using TDbContext dbContext = context.Services
-                        .GetRequiredService<IDbContextFactory<TDbContext>>()
-                        .CreateDbContext();
-#endif
+
+                    context.RegisterForCleanup(() => dbContext.DisposeAsync());
 
                     try
                     {
@@ -169,13 +165,8 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
             return false;
         }
 
-        Type resultTypeDefinition = resultType.GetGenericTypeDefinition();
-        if ((resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
-            typeof(IExecutable).IsAssignableFrom(resultType.GenericTypeArguments[0]))
-        {
-            return true;
-        }
-
-        return false;
+        var resultTypeDefinition = resultType.GetGenericTypeDefinition();
+        return (resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
+            typeof(IExecutable).IsAssignableFrom(resultType.GenericTypeArguments[0]);
     }
 }

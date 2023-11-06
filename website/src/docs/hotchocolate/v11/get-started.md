@@ -2,8 +2,6 @@
 title: "Get started with Hot Chocolate"
 ---
 
-> We are still working on the documentation for Hot Chocolate so help us by finding typos, missing things or write some additional docs with us.
-
 In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate. If you want to dig deeper into Hot Chocolate, we have our [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop), which touches on topics like schema design, DataLoader, and many more things.
 
 In this tutorial, we will teach you how to:
@@ -129,7 +127,7 @@ Now that your server is finished let us try it out by executing a simple GraphQL
 dotnet run --project ./Demo
 ```
 
-2. Open your browser and head over to `http://localhost:5000/graphql` to open our built-in GraphQL IDE [Banana Cake Pop](/docs/bananacakepop).
+2. Open your browser and head over to `http://localhost:5000/graphql` to open our built-in GraphQL IDE [Banana Cake Pop](/products/bananacakepop).
 
 ![GraphQL IDE](../../images/get-started-bcp.png)
 

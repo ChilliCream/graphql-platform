@@ -3393,7 +3393,9 @@
           }
         ]
       }
-    ]
+    ],
+    "Count": 325,
+    "FieldsCount": 0
   },
   {
     "Kind": "SchemaDefinition",

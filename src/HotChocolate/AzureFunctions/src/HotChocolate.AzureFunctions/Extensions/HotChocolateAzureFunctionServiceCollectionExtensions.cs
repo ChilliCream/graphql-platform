@@ -1,6 +1,9 @@
+using BananaCakePop.Middleware;
+using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
 using HotChocolate.Execution.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,6 +28,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// <param name="apiRoute">
     /// The API route that was used in the GraphQL Azure Function.
     /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this Azure Function.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
@@ -33,48 +39,76 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IServiceCollection services,
-        int maxAllowedRequestSize = 20 * 1000 * 1000,
-        string apiRoute = "/api/graphql")
+        int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
+        string? schemaName = default)
     {
         if (services is null)
         {
             throw new ArgumentNullException(nameof(services));
         }
 
-        IRequestExecutorBuilder executorBuilder =
+        var executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
 
+        // Register AzFunc Custom Binding Extensions for In-Process Functions.
+        // NOTE: This does not work for Isolated Process due to (but is not harmful at all of
+        // isolated process; it just remains dormant):
+        // 1) Bindings always execute in-process and values must be marshaled between
+        // the Host Process & the Isolated Process Worker!
+        // 2) Currently only String values are supported (obviously due to above complexities).
+        // More Info. here (using Blob binding docs):
+        // https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-
+        // blob-input?tabs=isolated-process%2Cextensionv5&pivots=programming-language-csharp#usage
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 
+        // Add the Request Executor Dependency...
+        services.AddAzureFunctionsGraphQLRequestExecutor(apiRoute, schemaName);
+
+        return executorBuilder;
+    }
+
+    /// <summary>
+    /// Internal method to adds the Request Executor dependency for Azure Functions both
+    /// in-process and isolate-process. Normal configuration should use AddGraphQLFunction()
+    /// extension instead which correctly call this internally.
+    /// </summary>
+    private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutor(
+        this IServiceCollection services,
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
+        string? schemaName = default)
+    {
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
             PathString path = apiRoute.TrimEnd('/');
-            IFileProvider fileProvider = CreateFileProvider();
             var options = new GraphQLServerOptions();
 
-            foreach (Action<GraphQLServerOptions> configure in
-                sp.GetServices<Action<GraphQLServerOptions>>())
+            foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
             {
                 configure(options);
             }
 
-            RequestDelegate pipeline =
-                new PipelineBuilder()
-                    .UseMiddleware<WebSocketSubscriptionMiddleware>()
-                    .UseMiddleware<HttpPostMiddleware>()
-                    .UseMiddleware<HttpMultipartMiddleware>()
-                    .UseMiddleware<HttpGetSchemaMiddleware>()
-                    .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-                    .UseMiddleware<ToolOptionsFileMiddleware>(path)
-                    .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-                    .UseMiddleware<HttpGetMiddleware>()
+            // We need to set the ServeMode to Embedded to ensure that the GraphQL IDE is
+            // working since the isolation mode does not allow us to take control over the response
+            // object.
+            options.Tool.ServeMode = GraphQLToolServeMode.Embedded;
+
+            var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+
+            var pipeline = new PipelineBuilder()
+                    .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
+                    .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+                    .UseBananaCakePop(path)
+                    .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
                     .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);
         });
 
-        return executorBuilder;
+        return services;
     }
 
     /// <summary>
@@ -107,10 +141,31 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         return builder;
     }
 
+    private static PipelineBuilder UseBananaCakePop(
+        this PipelineBuilder requestPipeline,
+        PathString path)
+    {
+        if (requestPipeline is null)
+        {
+            throw new ArgumentNullException(nameof(requestPipeline));
+        }
+
+        path = path.ToString().TrimEnd('/');
+        var fileProvider = CreateFileProvider();
+        var forwarderAccessor = new HttpForwarderAccessor();
+
+        return requestPipeline
+            .UseMiddleware<BananaCakePopOptionsFileMiddleware>(path)
+            .UseMiddleware<BananaCakePopCdnMiddleware>(path, forwarderAccessor)
+            .UseMiddleware<BananaCakePopDefaultFileMiddleware>(fileProvider, path)
+            .UseMiddleware<BananaCakePopStaticFileMiddleware>(fileProvider, path);
+    }
+
     private static IFileProvider CreateFileProvider()
     {
-        Type type = typeof(HttpMultipartMiddleware);
-        var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
+        var type = typeof(BananaCakePopStaticFileMiddleware);
+        var resourceNamespace = type.Namespace + ".Resources";
+
         return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
     }
 }

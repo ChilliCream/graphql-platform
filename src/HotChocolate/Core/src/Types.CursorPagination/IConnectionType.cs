@@ -8,7 +8,7 @@ public interface IConnectionType : IObjectType
     /// <summary>
     /// Gets the connection name of this connection type.
     /// </summary>
-    NameString ConnectionName { get; }
+    string ConnectionName { get; }
 
     /// <summary>
     /// Gets the edge type of this connection.

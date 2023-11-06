@@ -10,9 +10,9 @@ public static class ResultBuilderDescriptorMapper
 {
     public static void Map(ClientModel model, IMapperContext context)
     {
-        foreach (OperationModel modelOperation in model.Operations)
+        foreach (var modelOperation in model.Operations)
         {
-            RuntimeTypeInfo resultType = context.GetRuntimeType(
+            var resultType = context.GetRuntimeType(
                 modelOperation.ResultType.Name,
                 Descriptors.TypeDescriptors.TypeKind.Result);
 

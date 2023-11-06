@@ -32,9 +32,9 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         IDocumentAnalyzerContext context,
         SelectionSetVariants selectionSetVariants)
     {
-        Path rootSelectionPath = PathFactory.Instance.New(context.OperationName);
+        Path rootSelectionPath = Path.Root.Append(context.OperationName);
 
-        FragmentNode returnTypeFragment =
+        var returnTypeFragment =
             FragmentHelper.CreateFragmentNode(
                 context.OperationType,
                 rootSelectionPath,
@@ -42,7 +42,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
 
         returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
 
-        OutputTypeModel returnType =
+        var returnType =
             FragmentHelper.CreateInterface(
                 context,
                 returnTypeFragment,
@@ -62,12 +62,12 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         FieldSelection fieldSelection,
         SelectionSetVariants selectionVariants)
     {
-        FragmentNode returnTypeFragment =
+        var returnTypeFragment =
             FragmentHelper.CreateFragmentNode(
                 selectionVariants.ReturnType,
                 fieldSelection.Path);
 
-        OutputTypeModel returnType =
+        var returnType =
             FragmentHelper.CreateInterface(
                 context,
                 returnTypeFragment,
@@ -78,7 +78,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
             selectionVariants.ReturnType.SyntaxNode,
             returnType.SelectionSet);
 
-        foreach (SelectionSet selectionSet in selectionVariants.Variants)
+        foreach (var selectionSet in selectionVariants.Variants)
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
@@ -87,14 +87,14 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
 
             returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
 
-            OutputTypeModel @interface =
+            var @interface =
                 FragmentHelper.CreateInterface(
                     context,
                     returnTypeFragment,
                     fieldSelection.Path,
                     new[] { returnType });
 
-            OutputTypeModel @class =
+            var @class =
                 FragmentHelper.CreateClass(
                     context,
                     returnTypeFragment,
@@ -116,7 +116,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         SelectionSetVariants selectionVariants,
         string fragmentName)
     {
-        FragmentNode? returnTypeFragment =
+        var returnTypeFragment =
             FragmentHelper.CreateFragmentNode(
                 selectionVariants.Variants[0],
                 fieldSelection.Path,
@@ -129,7 +129,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
             throw ThrowHelper.ReturnFragmentDoesNotExist();
         }
 
-        OutputTypeModel returnType =
+        var returnType =
             FragmentHelper.CreateInterface(context, returnTypeFragment, fieldSelection.Path);
 
         context.RegisterSelectionSet(
@@ -137,7 +137,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
             selectionVariants.ReturnType.SyntaxNode,
             returnType.SelectionSet);
 
-        foreach (SelectionSet selectionSet in selectionVariants.Variants)
+        foreach (var selectionSet in selectionVariants.Variants)
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
@@ -151,14 +151,14 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
                 throw ThrowHelper.FragmentMustBeImplementedByAllTypeFragments();
             }
 
-            OutputTypeModel @interface =
+            var @interface =
                 FragmentHelper.CreateInterface(
                     context,
                     returnTypeFragment,
                     fieldSelection.Path,
                     new[] { returnType });
 
-            OutputTypeModel @class =
+            var @class =
                 FragmentHelper.CreateClass(
                     context,
                     returnTypeFragment,

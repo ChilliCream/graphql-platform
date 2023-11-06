@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Compile Include="OptionTypeConverter.fs" />
+    <Compile Include="DependencyInjection.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+</Project>

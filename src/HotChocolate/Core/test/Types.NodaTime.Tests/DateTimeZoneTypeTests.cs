@@ -1,6 +1,5 @@
 using System.Linq;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using Xunit;
 

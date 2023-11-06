@@ -45,15 +45,21 @@ internal class ArgumentParameterExpressionBuilder : IParameterExpressionBuilder
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ArgumentAttribute));
 
-    public Expression Build(ParameterInfo parameter, Expression context)
+    public Expression Build(ParameterExpressionBuilderContext context)
     {
-        var name = parameter.IsDefined(typeof(ArgumentAttribute))
-            ? parameter.GetCustomAttribute<ArgumentAttribute>()!.Name ?? parameter.Name!
-            : parameter.Name!;
+        var parameter = context.Parameter;
+        var name = context.ArgumentName;
 
-        if (parameter.IsDefined(typeof(GraphQLNameAttribute)))
+        if (name is null)
         {
-            name = parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
+            name = parameter.IsDefined(typeof(ArgumentAttribute))
+                ? parameter.GetCustomAttribute<ArgumentAttribute>()!.Name ?? parameter.Name!
+                : parameter.Name!;
+
+            if (parameter.IsDefined(typeof(GraphQLNameAttribute)))
+            {
+                name = parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
+            }
         }
 
         MethodInfo argumentMethod;
@@ -75,7 +81,6 @@ internal class ArgumentParameterExpressionBuilder : IParameterExpressionBuilder
                 parameter.ParameterType);
         }
 
-        return Expression.Call(context, argumentMethod,
-            Expression.Constant(new NameString(name)));
+        return Expression.Call(context.ResolverContext, argumentMethod, Expression.Constant(name));
     }
 }

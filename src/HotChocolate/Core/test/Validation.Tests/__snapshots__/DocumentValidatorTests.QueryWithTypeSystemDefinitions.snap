@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "A document containing TypeSystemDefinition is invalid for execution.",
     "Code": null,
@@ -85,10 +85,10 @@
       "Name": "dog",
       "Parent": {
         "Parent": null,
-        "Depth": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Depth": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [

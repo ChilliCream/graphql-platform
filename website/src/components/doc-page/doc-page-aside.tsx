@@ -1,13 +1,18 @@
-import React, { FC, useCallback } from "react";
+import React, { FC, ReactNode, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import { BoxShadow, IsSmallDesktop } from "../../shared-style";
-import { State } from "../../state";
-import { toggleAside } from "../../state/common";
-import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
 
-export const DocPageAside: FC = ({ children }) => {
+import { BoxShadow, IsSmallDesktop } from "@/shared-style";
+import { State } from "@/state";
+import { toggleAside } from "@/state/common";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
+import { DocPageStickySideBarStyle } from "./doc-page-styles";
+
+export interface DocPageAsideProps {
+  readonly children: ReactNode;
+}
+
+export const DocPageAside: FC<DocPageAsideProps> = ({ children }) => {
   const showAside = useSelector<State, boolean>(
     (state) => state.common.showAside
   );
@@ -24,7 +29,6 @@ export const DocPageAside: FC = ({ children }) => {
 
   return (
     <Aside height={height} show={showAside}>
-      <BodyStyle disableScrolling={showAside} />
       <DocPagePaneHeader
         title="About this article"
         showWhenScreenWidthIsSmallerThan={1280}
@@ -35,7 +39,12 @@ export const DocPageAside: FC = ({ children }) => {
   );
 };
 
-export const Aside = styled.aside<{ height: string; show: boolean }>`
+export interface AsideProps {
+  readonly height: string;
+  readonly show: boolean;
+}
+
+export const Aside = styled.aside<AsideProps>`
   ${DocPageStickySideBarStyle}
 
   margin-left: 0;
@@ -49,11 +58,12 @@ export const Aside = styled.aside<{ height: string; show: boolean }>`
 
   ${({ height, show }) =>
     IsSmallDesktop(`
-      transform: ${show ? `none` : `translateX(100%)`};
+      transform: ${show ? "none" : "translateX(100%)"};
       height: ${height};
       position: fixed;
       top: 60px;
       right: 0;
+
       ${BoxShadow}
     `)}
 `;

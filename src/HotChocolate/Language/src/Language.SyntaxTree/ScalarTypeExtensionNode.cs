@@ -19,9 +19,6 @@ public sealed class ScalarTypeExtensionNode : NamedSyntaxNode, ITypeExtensionNod
     /// <param name="name">
     /// The name of the scalar.
     /// </param>
-    /// <param name="description">
-    /// The description of the scalar.
-    /// </param>
     /// <param name="directives">
     /// The applied directives.
     /// </param>
@@ -41,7 +38,7 @@ public sealed class ScalarTypeExtensionNode : NamedSyntaxNode, ITypeExtensionNod
     {
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
@@ -83,7 +80,7 @@ public sealed class ScalarTypeExtensionNode : NamedSyntaxNode, ITypeExtensionNod
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
-    /// <see cref="Name" /> with <paramref name="name" />.
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
     /// </summary>
     /// <param name="name">
     /// The name that shall be used to replace the current name.

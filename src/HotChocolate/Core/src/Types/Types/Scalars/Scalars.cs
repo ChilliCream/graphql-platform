@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 #nullable enable
 
@@ -31,16 +32,16 @@ public static class Scalars
         { typeof(DateTimeOffset), typeof(DateTimeType) },
         { typeof(MultiplierPathString), typeof(MultiplierPathType) },
         { typeof(byte[]), typeof(ByteArrayType) },
-        { typeof(NameString), typeof(NameType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
 #if NET6_0_OR_GREATER
         { typeof(DateOnly), typeof(DateType) },
         { typeof(TimeOnly), typeof(TimeSpanType) },
 #endif
+        { typeof(JsonElement), typeof(JsonType) },
     };
 
-    private static readonly Dictionary<NameString, Type> _nameLookup = new()
+    private static readonly Dictionary<string, Type> _nameLookup = new()
     {
         { ScalarNames.String, typeof(StringType) },
         { ScalarNames.ID, typeof(IdType) },
@@ -61,8 +62,8 @@ public static class Scalars
         { ScalarNames.Any, typeof(AnyType) },
 
         { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
-        { ScalarNames.Name, typeof(NameType) },
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
+        { ScalarNames.JSON, typeof(JsonType) },
 
         // legacy support
         { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
@@ -98,18 +99,23 @@ public static class Scalars
     };
 
     internal static bool TryGetScalar(
-        Type clrType,
+        Type runtimeType,
         [NotNullWhen(true)] out Type? schemaType) =>
         _lookup.TryGetValue(
-            clrType ?? throw new ArgumentNullException(nameof(clrType)),
+            runtimeType ?? throw new ArgumentNullException(nameof(runtimeType)),
             out schemaType);
 
     internal static bool TryGetScalar(
-        NameString typeName,
-        [NotNullWhen(true)] out Type? schemaType) =>
-        _nameLookup.TryGetValue(
-            typeName.EnsureNotEmpty(nameof(typeName)),
-            out schemaType);
+        string typeName,
+        [NotNullWhen(true)] out Type? schemaType)
+    {
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        return _nameLookup.TryGetValue(typeName, out schemaType);
+    }
 
     /// <summary>
     /// Defines if the specified name represents a built-in scalar type.
@@ -121,9 +127,9 @@ public static class Scalars
     /// Returns <c>true</c> if the specified name represents a built-in scalar type;
     /// otherwise, <c>false</c>.
     /// </returns>
-    public static bool IsBuiltIn(NameString typeName) =>
-        typeName.HasValue &&
-        _nameLookup.ContainsKey(typeName);
+    public static bool IsBuiltIn(string typeName)
+        => !string.IsNullOrEmpty(typeName) &&
+            _nameLookup.ContainsKey(typeName);
 
     /// <summary>
     /// Tries to infer the GraphQL literal kind from a runtime value.
@@ -145,7 +151,7 @@ public static class Scalars
             return true;
         }
 
-        Type valueType = value.GetType();
+        var valueType = value.GetType();
 
         if (valueType.IsEnum)
         {

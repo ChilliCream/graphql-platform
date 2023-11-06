@@ -4,14 +4,6 @@
   "extensions": {
     "strawberryShake": {
       "name": "Client",
-      "dependencyInjection": true,
-      "strictSchemaValidation": true,
-      "hashAlgorithm": "md5",
-      "useSingleFile": true,
-      "requestStrategy": "Default",
-      "outputDirectoryName": "Generated",
-      "noStore": false,
-      "razorComponents": false,
       "records": {
         "inputs": false,
         "entities": false

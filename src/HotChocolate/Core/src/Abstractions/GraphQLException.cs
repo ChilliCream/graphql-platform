@@ -1,12 +1,10 @@
-#pragma warning disable RCS1194 
+#pragma warning disable RCS1194
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace HotChocolate;
 
-[Serializable]
 public class GraphQLException : Exception
 {
     public GraphQLException(string message)
@@ -44,14 +42,6 @@ public class GraphQLException : Exception
                 .SetException(innerException)
                 .Build()
         };
-    }
-
-    protected GraphQLException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context)
-    {
-        Errors = Array.Empty<IError>();
     }
 
     public IReadOnlyList<IError> Errors { get; }

@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -34,10 +33,10 @@ internal sealed class ParentParameterExpressionBuilder : IParameterExpressionBui
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ParentAttribute));
 
-    public Expression Build(ParameterInfo parameter, Expression context)
+    public Expression Build(ParameterExpressionBuilderContext context)
     {
-        Type parameterType = parameter.ParameterType;
-        MethodInfo argumentMethod = _getParentMethod.MakeGenericMethod(parameterType);
-        return Expression.Call(context, argumentMethod);
+        var parameterType = context.Parameter.ParameterType;
+        var argumentMethod = _getParentMethod.MakeGenericMethod(parameterType);
+        return Expression.Call(context.ResolverContext, argumentMethod);
     }
 }

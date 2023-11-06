@@ -4,14 +4,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
@@ -20,9 +19,9 @@ using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Properties;
 using StrawberryShake.Tools.Configuration;
 using static HotChocolate.Language.Utf8GraphQLParser;
-using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
+using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
@@ -30,33 +29,20 @@ public static class CSharpGenerator
 {
     private static readonly ICSharpSyntaxGenerator[] _generators =
     {
-        new ClientGenerator(),
-        new ClientInterfaceGenerator(),
-        new EntityTypeGenerator(),
-        new EntityIdFactoryGenerator(),
-        new DependencyInjectionGenerator(),
-        new TransportProfileEnumGenerator(),
-        new InputValueFormatterGenerator(),
-        new EnumGenerator(),
-        new EnumParserGenerator(),
-        new JsonResultBuilderGenerator(),
-        new OperationDocumentGenerator(),
-        new OperationServiceGenerator(),
-        new OperationServiceInterfaceGenerator(),
-        new ResultDataFactoryGenerator(),
-        new ResultFromEntityTypeMapperGenerator(),
-        new ResultInfoGenerator(),
-        new ResultTypeGenerator(),
-        new StoreAccessorGenerator(),
-        new NoStoreAccessorGenerator(),
-        new InputTypeGenerator(),
-        new InputTypeStateInterfaceGenerator(),
-        new ResultInterfaceGenerator(),
-        new DataTypeGenerator(),
-        new RazorQueryGenerator()
+        new ClientGenerator(), new ClientInterfaceGenerator(), new EntityTypeGenerator(),
+        new EntityIdFactoryGenerator(), new DependencyInjectionGenerator(),
+        new TransportProfileEnumGenerator(), new InputValueFormatterGenerator(),
+        new EnumGenerator(), new EnumParserGenerator(), new JsonResultBuilderGenerator(),
+        new OperationDocumentGenerator(), new OperationServiceGenerator(),
+        new OperationServiceInterfaceGenerator(), new ResultDataFactoryGenerator(),
+        new ResultFromEntityTypeMapperGenerator(), new ResultInfoGenerator(),
+        new ResultTypeGenerator(), new StoreAccessorGenerator(), new NoStoreAccessorGenerator(),
+        new InputTypeGenerator(), new InputTypeStateInterfaceGenerator(),
+        new ResultInterfaceGenerator(), new DataTypeGenerator(), new RazorQueryGenerator(),
+        new RazorSubscriptionGenerator()
     };
 
-    public static CSharpGeneratorResult Generate(
+    public static async Task<CSharpGeneratorResult> GenerateAsync(
         IEnumerable<string> fileNames,
         CSharpGeneratorSettings? settings = null)
     {
@@ -96,8 +82,8 @@ public static class CSharpGenerator
 
         // divide documents into type system document for the schema
         // and executable documents.
-        IReadOnlyList<GraphQLFile> typeSystemFiles = files.GetTypeSystemDocuments();
-        IReadOnlyList<GraphQLFile> executableFiles = files.GetExecutableDocuments();
+        var typeSystemFiles = files.GetTypeSystemDocuments();
+        var executableFiles = files.GetExecutableDocuments();
 
         if (typeSystemFiles.Count == 0 || executableFiles.Count == 0)
         {
@@ -113,18 +99,18 @@ public static class CSharpGenerator
         // We try true create a schema from the type system documents.
         // If we cannot create a schema we will return the schema validation errors.
         if (!TryCreateSchema(
-                typeSystemFiles,
-                fileLookup,
-                errors,
-                settings.StrictSchemaValidation,
-                settings.NoStore,
-                out ISchema? schema))
+            typeSystemFiles,
+            fileLookup,
+            errors,
+            settings.StrictSchemaValidation,
+            settings.NoStore,
+            out var schema))
         {
             return new(errors);
         }
 
         // Next we will start validating the executable documents.
-        if (!TryValidateRequest(schema, executableFiles, fileLookup, errors))
+        if (!await TryValidateRequestAsync(schema, executableFiles, fileLookup, errors))
         {
             return new(errors);
         }
@@ -137,14 +123,14 @@ public static class CSharpGenerator
         var analyzer = new DocumentAnalyzer();
         analyzer.SetSchema(schema);
 
-        foreach (GraphQLFile executableDocument in executableFiles)
+        foreach (var executableDocument in executableFiles)
         {
             analyzer.AddDocument(executableDocument.Document);
         }
 
         try
         {
-            ClientModel clientModel = analyzer.Analyze();
+            var clientModel = await analyzer.AnalyzeAsync();
 
             // With the client model we finally can create CSharp code.
             return Generate(clientModel, settings);
@@ -213,7 +199,7 @@ public static class CSharpGenerator
         DependencyInjectionMapper.Map(context);
 
         // Last we execute all our generators with the descriptors.
-        IReadOnlyList<GeneratorResult> results = GenerateCSharpDocuments(context, settings);
+        var results = GenerateCSharpDocuments(context, settings);
 
         var documents = new List<SourceDocument>();
 
@@ -255,11 +241,12 @@ public static class CSharpGenerator
         {
             foreach (var operation in context.Operations)
             {
-                documents.Add(new SourceDocument(
-                    operation.Name,
-                    Encoding.UTF8.GetString(operation.Body),
-                    SourceDocumentKind.GraphQL,
-                    operation.HashValue));
+                documents.Add(
+                    new SourceDocument(
+                        operation.Name,
+                        Encoding.UTF8.GetString(operation.Body),
+                        SourceDocumentKind.GraphQL,
+                        operation.HashValue));
             }
         }
 
@@ -285,18 +272,18 @@ public static class CSharpGenerator
         // enable nullability settings
         code.AppendLine("#nullable enable");
 
-        CompilationUnitSyntax compilationUnit = CompilationUnit();
+        var compilationUnit = CompilationUnit();
 
         foreach (var group in results.GroupBy(t => t.Result.Namespace).OrderBy(t => t.Key))
         {
-            NamespaceDeclarationSyntax namespaceDeclaration =
+            var namespaceDeclaration =
                 NamespaceDeclaration(IdentifierName(group.Key));
 
             foreach (var item in group)
             {
-                BaseTypeDeclarationSyntax typeDeclaration = item.Result.TypeDeclaration;
+                var typeDeclaration = item.Result.TypeDeclaration;
 #if DEBUG
-                SyntaxTriviaList trivia = typeDeclaration
+                var trivia = typeDeclaration
                     .GetLeadingTrivia()
                     .Insert(0, Comment("// " + item.Generator.FullName));
 
@@ -313,10 +300,11 @@ public static class CSharpGenerator
         code.AppendLine();
         code.AppendLine(compilationUnit.ToFullString());
 
-        documents.Add(new(
-            fileName,
-            code.ToString(),
-            kind));
+        documents.Add(
+            new(
+                fileName,
+                code.ToString(),
+                kind));
     }
 
     private static IReadOnlyList<GeneratorResult> GenerateCSharpDocuments(
@@ -324,6 +312,7 @@ public static class CSharpGenerator
         CSharpGeneratorSettings settings)
     {
         var generatorSettings = new CSharpSyntaxGeneratorSettings(
+            settings.AccessModifier,
             settings.NoStore,
             settings.InputRecords,
             settings.EntityRecords,
@@ -337,7 +326,7 @@ public static class CSharpGenerator
             {
                 if (generator.CanHandle(descriptor, generatorSettings))
                 {
-                    CSharpSyntaxGeneratorResult result =
+                    var result =
                         generator.Generate(descriptor, generatorSettings);
                     results.Add(new(generator.GetType(), result));
                 }
@@ -353,7 +342,7 @@ public static class CSharpGenerator
         ICollection<SourceDocument> documents)
     {
         var workspace = new AdhocWorkspace();
-        OptionSet options = workspace.Options
+        var options = workspace.Options
             .WithChangedOption(IndentationSize, LanguageNames.CSharp, 4)
             .WithChangedOption(SmartIndent, LanguageNames.CSharp, IndentStyle.Smart)
             .WithChangedOption(UseTabs, LanguageNames.CSharp, false);
@@ -362,20 +351,20 @@ public static class CSharpGenerator
         {
             foreach (var item in group)
             {
-                BaseTypeDeclarationSyntax typeDeclaration = item.Result.TypeDeclaration;
+                var typeDeclaration = item.Result.TypeDeclaration;
 #if DEBUG
-                SyntaxTriviaList trivia = typeDeclaration
+                var trivia = typeDeclaration
                     .GetLeadingTrivia()
                     .Insert(0, Comment("// " + item.Generator.FullName));
 
                 typeDeclaration = typeDeclaration.WithLeadingTrivia(trivia);
 #endif
-                CompilationUnitSyntax compilationUnit =
+                var compilationUnit =
                     CompilationUnit().AddMembers(
                         NamespaceDeclaration(IdentifierName(group.Key)).AddMembers(
                             typeDeclaration));
 
-                SyntaxNode formatted = Formatter.Format(compilationUnit, workspace, options);
+                var formatted = Formatter.Format(compilationUnit, workspace, options);
 
                 var code = new StringBuilder();
 
@@ -388,11 +377,12 @@ public static class CSharpGenerator
                 code.AppendLine();
                 code.AppendLine(formatted.ToFullString());
 
-                documents.Add(new(
-                    item.Result.FileName,
-                    code.ToString(),
-                    kind,
-                    path: item.Result.Path));
+                documents.Add(
+                    new(
+                        item.Result.FileName,
+                        code.ToString(),
+                        kind,
+                        path: item.Result.Path));
             }
         }
     }
@@ -406,8 +396,11 @@ public static class CSharpGenerator
         {
             try
             {
-                DocumentNode document = Parse(File.ReadAllBytes(fileName));
-                files.Add(new(fileName, document));
+                var document = Parse(File.ReadAllBytes(fileName));
+                if (document.Definitions.Count > 0)
+                {
+                    files.Add(new(fileName, document));
+                }
             }
             catch (SyntaxException syntaxException)
             {
@@ -433,7 +426,7 @@ public static class CSharpGenerator
         }
         catch (SchemaException ex)
         {
-            foreach (ISchemaError error in ex.Errors)
+            foreach (var error in ex.Errors)
             {
                 errors.Add(error.SchemaError(fileLookup));
             }
@@ -443,16 +436,21 @@ public static class CSharpGenerator
         }
     }
 
-    private static bool TryValidateRequest(
+    private static async ValueTask<bool> TryValidateRequestAsync(
         ISchema schema,
         IReadOnlyList<GraphQLFile> executableFiles,
         Dictionary<ISyntaxNode, string> fileLookup,
         List<IError> errors)
     {
-        IDocumentValidator validator = CreateDocumentValidator();
+        var validator = CreateDocumentValidator();
 
-        DocumentNode document = MergeDocuments(executableFiles);
-        DocumentValidatorResult validationResult = validator.Validate(schema, document);
+        var document = MergeDocuments(executableFiles);
+        var validationResult = await validator.ValidateAsync(
+            schema,
+            document,
+            "dummy",
+            new Dictionary<string, object?>(),
+            false);
 
         if (validationResult.HasErrors)
         {

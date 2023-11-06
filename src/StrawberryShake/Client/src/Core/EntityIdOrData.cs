@@ -53,7 +53,7 @@ public readonly struct EntityIdOrData
     /// Implicitly calls <c>new EntityIdOrData(entityId)</c>.
     /// </summary>
     /// <param name="entityId">
-    /// The <see cref="entityId"/> that shall be converted.
+    /// The <paramref name="entityId"/> that shall be converted.
     /// </param>
     public static implicit operator EntityIdOrData(EntityId entityId) => new(entityId);
 }

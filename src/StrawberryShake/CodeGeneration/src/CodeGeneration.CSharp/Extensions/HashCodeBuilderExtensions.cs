@@ -37,7 +37,7 @@ internal static class HashCodeBuilderExtensions
             string variableName,
             bool isNullable)
         {
-            ICode check = currentType switch
+            var check = currentType switch
             {
                 NonNullTypeDescriptor d =>
                     BuildPropertyInternal(d.InnerType, variableName, false),

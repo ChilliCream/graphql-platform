@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "`field` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
     "Code": null,

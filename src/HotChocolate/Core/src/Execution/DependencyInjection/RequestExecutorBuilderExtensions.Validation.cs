@@ -3,6 +3,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions
@@ -138,30 +139,63 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a validation rule that inspects if a GraphQL query document
-    /// exceeds the maximum allowed operation depth.
+    /// Adds a query async validation rule to the schema that is run after the
+    /// actual validation rules and can be used to aggregate results.
     /// </summary>
-    public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="factory">
+    /// The factory that creates the validator instance.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the validator.
+    /// </typeparam>
+    /// <returns>
+    /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+    /// configuration.
+    /// </returns>
+    public static IRequestExecutorBuilder AddValidationResultAggregator<T>(
         this IRequestExecutorBuilder builder,
-        int maxAllowedExecutionDepth)
+        Func<IServiceProvider, ValidationOptions, T> factory)
+        where T : class, IValidationResultAggregator
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
 
-        ConfigureValidation(builder, b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth));
-        return builder;
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
+
+        return ConfigureValidation(builder, b => b.TryAddValidationResultAggregator(factory));
     }
 
     /// <summary>
-    /// Adds a validation rule that inspects if a GraphQL query document
-    /// exceeds the maximum allowed operation depth.
+    /// Adds a validation rule that restricts the depth of a GraphQL request.
     /// </summary>
+    /// <param name="builder">
+    /// The GraphQL configuration builder.
+    /// </param>
+    /// <param name="maxAllowedExecutionDepth">
+    /// The max allowed GraphQL request depth.
+    /// </param>
+    /// <param name="skipIntrospectionFields">
+    /// Specifies if depth analysis is skipped for introspection queries.
+    /// </param>
+    /// <param name="allowRequestOverrides">
+    /// Defines if request depth overrides are allowed on a per request basis.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> for configuration chaining.
+    /// </returns>
     public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
         this IRequestExecutorBuilder builder,
         int maxAllowedExecutionDepth,
-        bool skipIntrospectionFields)
+        bool skipIntrospectionFields = false,
+        bool allowRequestOverrides = false)
     {
         if (builder is null)
         {
@@ -170,7 +204,10 @@ public static partial class RequestExecutorBuilderExtensions
 
         ConfigureValidation(
             builder,
-            b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth, skipIntrospectionFields));
+            b => b.AddMaxExecutionDepthRule(
+                maxAllowedExecutionDepth,
+                skipIntrospectionFields,
+                allowRequestOverrides));
         return builder;
     }
 

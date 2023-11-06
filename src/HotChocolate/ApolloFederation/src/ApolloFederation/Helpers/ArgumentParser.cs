@@ -31,18 +31,19 @@ internal static class ArgumentParser
         int i,
         out T? value)
     {
+        type = type is NonNullType nonNullType ? nonNullType.Type : type;
         switch (valueNode.Kind)
         {
             case SyntaxKind.ObjectValue:
                 var current = path[i];
 
                 if (type is not IComplexOutputType complexType ||
-                    !complexType.Fields.TryGetField(current, out IOutputField? field))
+                    !complexType.Fields.TryGetField(current, out var field))
                 {
                     break;
                 }
 
-                foreach (ObjectFieldNode fieldValue in ((ObjectValueNode)valueNode).Fields)
+                foreach (var fieldValue in ((ObjectValueNode)valueNode).Fields)
                 {
                     if (fieldValue.Name.Value.EqualsOrdinal(current))
                     {
@@ -118,7 +119,7 @@ internal static class ArgumentParser
             case SyntaxKind.ObjectValue:
                 var current = path[i];
 
-                foreach (ObjectFieldNode fieldValue in ((ObjectValueNode)valueNode).Fields)
+                foreach (var fieldValue in ((ObjectValueNode)valueNode).Fields)
                 {
                     if (fieldValue.Name.Value.EqualsOrdinal(current))
                     {

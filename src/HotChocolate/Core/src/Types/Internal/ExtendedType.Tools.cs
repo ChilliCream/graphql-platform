@@ -63,7 +63,7 @@ internal sealed partial class ExtendedType
 
             if (type.IsGenericType)
             {
-                Type definition = type.GetGenericTypeDefinition();
+                var definition = type.GetGenericTypeDefinition();
                 if (typeof(ListType<>) == definition
                     || typeof(NonNullType<>) == definition
                     || typeof(NativeType<>) == definition)
@@ -109,13 +109,13 @@ internal sealed partial class ExtendedType
 
         internal static bool?[] CollectNullability(IExtendedType type)
         {
-            int length = 0;
+            var length = 0;
             Span<bool> buffer = stackalloc bool[32];
             Helper.CollectNullability(type, buffer, ref length);
             buffer = buffer.Slice(0, length);
 
             var nullability = new bool?[buffer.Length];
-            for (int i = 0; i < nullability.Length; i++)
+            for (var i = 0; i < nullability.Length; i++)
             {
                 nullability[i] = buffer[i];
             }
@@ -127,7 +127,7 @@ internal sealed partial class ExtendedType
             Span<bool?> nullability,
             out int written)
         {
-            int length = 0;
+            var length = 0;
             Span<bool> buffer = stackalloc bool[32];
             Helper.CollectNullability(type, buffer, ref length);
             buffer = buffer.Slice(0, length);
@@ -138,13 +138,13 @@ internal sealed partial class ExtendedType
                 return false;
             }
 
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 nullability[i] = buffer[i];
             }
 
             written = buffer.Length;
-            return false;
+            return true;
         }
     }
 }

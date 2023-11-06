@@ -34,6 +34,6 @@ internal sealed class SortingContextParameterExpressionBuilder
         => parameter.ParameterType == typeof(ISortingContext);
 
     /// <inheritdoc />
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => Expression.Call(_getSortingContextMethod, context);
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Call(_getSortingContextMethod, context.ResolverContext);
 }

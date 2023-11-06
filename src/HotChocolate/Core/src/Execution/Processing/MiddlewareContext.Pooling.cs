@@ -6,30 +6,34 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
+    private static readonly ImmutableDictionary<string, object?> _emptyLocalContextData =
+        ImmutableDictionary<string, object?>.Empty;
+
     public MiddlewareContext()
     {
         _childContext = new PureResolverContext(this);
     }
 
     public void Initialize(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelection selection,
-        ResultMap resultMap,
+        ObjectResult parentResult,
         int responseIndex,
         object? parent,
-        Path path,
-        IImmutableDictionary<string, object?> scopedContextData)
+        IImmutableDictionary<string, object?> scopedContextData,
+        Path? path)
     {
         _operationContext = operationContext;
+        _operationResultBuilder.Context = _operationContext;
         _services = operationContext.Services;
         _selection = selection;
-        ResultMap = resultMap;
+        _path = path;
+        ParentResult = parentResult;
         ResponseIndex = responseIndex;
         _parent = parent;
-        _parser = _operationContext.Services.GetRequiredService<InputParser>();
-        Path = path;
+        _parser = operationContext.InputParser;
         ScopedContextData = scopedContextData;
-        LocalContextData = ImmutableDictionary<string, object?>.Empty;
+        LocalContextData = _emptyLocalContextData;
         Arguments = _selection.Arguments;
         RequestAborted = _operationContext.RequestAborted;
     }
@@ -37,6 +41,7 @@ internal partial class MiddlewareContext
     public void Clean()
     {
         _childContext.Clear();
+        _cleanupTasks.Clear();
         _operationContext = default!;
         _services = default!;
         _selection = default!;
@@ -45,14 +50,15 @@ internal partial class MiddlewareContext
         _hasResolverResult = false;
         _result = default;
         _parser = default!;
+        _path = default;
+        _operationResultBuilder.Context = default!;
 
-        Path = default!;
         ScopedContextData = default!;
         LocalContextData = default!;
         IsResultModified = false;
         ValueType = null;
         ResponseIndex = default;
-        ResultMap = default!;
+        ParentResult = default!;
         HasErrors = false;
         Arguments = default!;
         RequestAborted = default!;

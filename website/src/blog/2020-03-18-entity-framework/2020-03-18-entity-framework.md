@@ -370,7 +370,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ## Testing a GraphQL Server
 
-In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application, you can get our very own Banana Cake Pop which can be downloaded [here](/docs/bananacakepop).
+In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application, you can get our very own Banana Cake Pop which can be downloaded [here](/products/bananacakepop).
 
 ![Hot Chocolate](banana-cake-pop.png)
 
@@ -1096,4 +1096,4 @@ We also have a more complex real-time GraphQL server example in multiple flavors
 If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

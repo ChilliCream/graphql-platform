@@ -2,12 +2,18 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInfo>
 {
-    public TypeExtensionInfo(string name)
+    public TypeExtensionInfo(string name, bool isStatic, OperationType type = OperationType.No)
     {
         Name = name;
+        IsStatic = isStatic;
+        Type = type;
     }
 
     public string Name { get; }
+
+    public bool IsStatic { get; }
+
+    public OperationType Type { get; }
 
     public bool Equals(TypeExtensionInfo? other)
     {
@@ -22,6 +28,21 @@ public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInf
         }
 
         return Name == other.Name;
+    }
+    
+    public bool Equals(ISyntaxInfo other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return other is TypeExtensionInfo info && Equals(info);
     }
 
     public override bool Equals(object? obj)

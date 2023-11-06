@@ -19,12 +19,13 @@ public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        InterfaceBuilder interfaceBuilder = InterfaceBuilder
+        var interfaceBuilder = InterfaceBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetComment(descriptor.Description)
             .SetName(fileName);
 
-        foreach (PropertyDescriptor prop in descriptor.Properties)
+        foreach (var prop in descriptor.Properties)
         {
             interfaceBuilder
                 .AddProperty(prop.Name)
@@ -33,9 +34,9 @@ public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
                 .SetPublic();
         }
 
-        interfaceBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
+        interfaceBuilder.AddImplementsRange(descriptor.Implements);
 
-        foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
+        foreach (var deferred in descriptor.Deferred)
         {
             var propertyName = GetPropertyName(deferred.Label);
 

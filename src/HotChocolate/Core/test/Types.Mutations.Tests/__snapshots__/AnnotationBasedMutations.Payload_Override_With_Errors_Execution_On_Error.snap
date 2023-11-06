@@ -1,0 +1,12 @@
+{
+  "data": {
+    "doSomething2": {
+      "userId": null,
+      "errors": [
+        {
+          "__typename": "CustomError"
+        }
+      ]
+    }
+  }
+}

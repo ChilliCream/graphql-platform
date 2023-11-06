@@ -4,10 +4,6 @@
     <PackageId>HotChocolate.Data.MongoDb</PackageId>
     <AssemblyName>HotChocolate.Data.MongoDb</AssemblyName>
     <RootNamespace>HotChocolate.Data.MongoDb</RootNamespace>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NeutralLanguage>en</NeutralLanguage>
-    <NoWarn>$(NoWarn);CA1062</NoWarn>
     <Description>Contains extensions for seamless integration of MongoDb into the HotChocolate.Data package</Description>
   </PropertyGroup>
 
@@ -19,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.14.0"/>
+    <PackageReference Include="MongoDB.Driver" Version="2.19.1"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -27,9 +23,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MongoDbResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="MongoDbResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

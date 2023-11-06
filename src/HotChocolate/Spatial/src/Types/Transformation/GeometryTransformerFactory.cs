@@ -37,17 +37,17 @@ internal class GeometryTransformerFactory
 
         if (_transformations.TryGetValue(
             (fromSrid, toSrid),
-            out IGeometryTransformer? transformation))
+            out var transformation))
         {
             return transformation;
         }
 
-        if (!_coordinateSystems.TryGetValue(fromSrid, out CoordinateSystem? fromCs))
+        if (!_coordinateSystems.TryGetValue(fromSrid, out var fromCs))
         {
             throw ThrowHelper.Transformation_UnknownCRS(fromSrid);
         }
 
-        if (!_coordinateSystems.TryGetValue(toSrid, out CoordinateSystem? toCs))
+        if (!_coordinateSystems.TryGetValue(toSrid, out var toCs))
         {
             throw ThrowHelper.Transformation_UnknownCRS(fromSrid);
         }

@@ -6,72 +6,71 @@ using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class EnumTypeUnsafeTests
 {
-    public class EnumTypeUnsafeTests
+    [Fact]
+    public async Task Create_Enum_Unsafe_With_Two_Values()
     {
-        [Fact]
-        public async Task Create_Enum_Unsafe_With_Two_Values()
-        {
-            // arrange
-            // act
-            var enumType = EnumType.CreateUnsafe(
-                new("Simple")
+        // arrange
+        // act
+        var enumType = EnumType.CreateUnsafe(
+            new("Simple")
+            {
+                Values =
                 {
-                    Values =
-                    {
-                        new("ONE", runtimeValue: "One"),
-                        new("TWO", runtimeValue: "Two")
-                    }
-                });
+                    new("ONE", runtimeValue: "One"),
+                    new("TWO", runtimeValue: "Two")
+                }
+            });
 
-            var queryType = ObjectType.CreateUnsafe(
-                new("Query")
+        var queryType = ObjectType.CreateUnsafe(
+            new("Query")
+            {
+                Fields =
                 {
-                    Fields =
-                    {
-                        new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One")
-                    }
-                });
+                    new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One")
+                }
+            });
 
-            // assert
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType(queryType)
-                .BuildSchemaAsync()
-                .MatchSnapshotAsync();
-        }
+        // assert
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(queryType)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task Create_Enum_Unsafe_With_Descriptor()
-        {
-            // arrange
-            // act
-            var enumType = EnumType.CreateUnsafe(
-                new EnumTypeDefinition("Simple")
+    [Fact]
+    public async Task Create_Enum_Unsafe_With_Descriptor()
+    {
+        // arrange
+        // act
+        var enumType = EnumType.CreateUnsafe(
+            new EnumTypeDefinition("Simple")
+            {
+                Values =
                 {
-                    Values =
-                    {
-                        new("ONE", runtimeValue: "One"),
-                        new("TWO", runtimeValue: "Two")
-                    }
-                });
+                    new("ONE", runtimeValue: "One"),
+                    new("TWO", runtimeValue: "Two")
+                }
+            });
 
-            var queryType = ObjectType.CreateUnsafe(
-                new("Query")
+        var queryType = ObjectType.CreateUnsafe(
+            new("Query")
+            {
+                Fields =
                 {
-                    Fields =
-                    {
-                        new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One")
-                    }
-                });
+                    new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One")
+                }
+            });
 
-            // assert
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType(queryType)
-                .BuildSchemaAsync()
-                .MatchSnapshotAsync();
-        }
+        // assert
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(queryType)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
     }
 }

@@ -50,26 +50,28 @@ partial class Build
     Target Test => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .DependsOn(
+            TestCookieCrumble,
             TestGreenDonut,
             TestHotChocolateAnalyzers,
             TestHotChocolateApolloFederation,
             TestHotChocolateAspNetCore,
             TestHotChocolateAzureFunctions,
             TestHotChocolateCodeGeneration,
+            TestHotChocolateCaching,
             TestHotChocolateCore,
             TestHotChocolateData,
             TestHotChocolateDiagnostics,
-            TestHotChocolateFilters,
+            TestHotChocolateFusion,
             TestHotChocolateLanguage,
+            TestHotChocolateMarten,
             TestHotChocolateMongoDb,
-            TestHotChocolateNeo4J,
             TestHotChocolatePersistedQueries,
+            TestHotChocolateRaven,
+            TestHotChocolateSkimmed,
             TestHotChocolateSpatial,
-            TestHotChocolateStitching,
             TestHotChocolateUtilities,
             TestStrawberryShakeClient,
             TestStrawberryShakeCodeGeneration,
-            TestStrawberryShakeSourceGenerator,
             TestStrawberryShakeTooling);
 
     Target Cover => _ => _
@@ -98,7 +100,8 @@ partial class Build
             }
         });
 
-    Target ReportCoverage => _ => _.DependsOn(Restore)
+    Target ReportCoverage => _ => _
+        .DependsOn(Restore)
         .DependsOn(Cover)
         .Consumes(Cover)
         .Executes(() =>

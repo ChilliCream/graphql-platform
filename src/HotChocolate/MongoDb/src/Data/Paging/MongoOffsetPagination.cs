@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.MongoDb.Paging;
@@ -26,8 +23,5 @@ internal sealed class MongoOffsetPagination<TEntity>
     protected override async ValueTask<IReadOnlyList<TEntity>> ExecuteAsync(
         IMongoPagingContainer<TEntity> query,
         CancellationToken cancellationToken)
-    {
-        List<TEntity> result = await query.ToListAsync(cancellationToken);
-        return result;
-    }
+        => await query.ToListAsync(cancellationToken);
 }

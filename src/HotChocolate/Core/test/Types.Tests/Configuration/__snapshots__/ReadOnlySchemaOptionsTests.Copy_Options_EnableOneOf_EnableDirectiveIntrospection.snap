@@ -9,13 +9,21 @@
   "PreserveSyntaxNodes": true,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Explicit",
+  "DefaultFieldBindingFlags": "Default",
   "FieldMiddleware": "AllFields",
   "EnableDirectiveIntrospection": true,
   "DefaultDirectiveVisibility": "Public",
-  "AllowInlining": true,
   "DefaultResolverStrategy": "Parallel",
   "ValidatePipelineOrder": true,
   "StrictRuntimeTypeValidation": false,
   "DefaultIsOfTypeCheck": null,
-  "EnableOneOf": true
+  "EnableOneOf": true,
+  "EnsureAllNodesCanBeResolved": false,
+  "EnableFlagEnums": false,
+  "EnableDefer": false,
+  "EnableStream": false,
+  "MaxAllowedNodeBatchSize": 50,
+  "StripLeadingIFromInterface": false,
+  "EnableTrueNullability": false,
+  "EnableTag": true
 }

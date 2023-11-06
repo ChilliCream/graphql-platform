@@ -2,9 +2,10 @@ import React, { FC, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import { State } from "../../state";
-import { hideCookieConsent, showCookieConsent } from "../../state/common";
-import { Button } from "../misc/button";
+
+import { Button } from "@/components/misc/button";
+import { State } from "@/state";
+import { hideCookieConsent, showCookieConsent } from "@/state/common";
 import { Link } from "./link";
 
 export const CookieConsent: FC = () => {
@@ -40,22 +41,24 @@ export const CookieConsent: FC = () => {
       aria-describedby="cookieconsent:desc"
       show={show}
     >
-      <Container>
-        <Message id="cookieconsent:desc">
-          This website uses cookies to ensure you get the best experience on our
-          website.{" "}
-          <LearnMoreLink to="https://cookiesandyou.com">
-            Learn more
-          </LearnMoreLink>
-        </Message>
-        <Button
-          aria-label="dismiss cookie message"
-          role="button"
-          onClick={clickDismiss}
-        >
-          Got it!
-        </Button>
-      </Container>
+      {show && (
+        <Container>
+          <Message id="cookieconsent:desc">
+            This website uses cookies to ensure you get the best experience on
+            our website.
+            <LearnMoreLink prefetch={false} to="/legal/cookie-policy.html">
+              Learn more
+            </LearnMoreLink>
+          </Message>
+          <Button
+            aria-label="dismiss cookie message"
+            role="button"
+            onClick={clickDismiss}
+          >
+            Got it!
+          </Button>
+        </Container>
+      )}{" "}
     </Dialog>
   );
 };
@@ -64,11 +67,9 @@ const Dialog = styled.div<{ show: boolean }>`
   position: fixed;
   bottom: 0;
   z-index: 30;
-  display: ${({ show }) => (show ? "initial" : "none")};
   width: 100vw;
   background-color: #ffb806;
-  opacity: ${({ show }) => (show ? 1 : 0)};
-  transition: opacity 0.2s ease-in-out;
+  display: ${({ show }) => (show ? "visible" : "none")};
 `;
 
 const Container = styled.div`

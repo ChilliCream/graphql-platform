@@ -1,202 +1,225 @@
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.StarWars;
-using HotChocolate.Tests;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class DeferTests
 {
-    public class DeferTests
+    [Fact]
+    public async Task InlineFragment_Defer()
     {
-        [Fact]
-        public async Task NoOptimization_Defer_Single_Scalar_Field()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
-                            hero(episode: NEW_HOPE) {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... @defer {
+                    person(id: ""UGVyc29uCmkx"") {
+                        id
+                    }
+                }
+            }");
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task InlineFragment_Defer_Nested()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... @defer {
+                    person(id: ""UGVyc29uCmkx"") {
+                        id
+                        ... @defer {
+                            name
+                        }
+                    }
+                }
+            }");
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task InlineFragment_Defer_Label_Set_To_abc()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... @defer(label: ""abc"") {
+                    person(id: ""UGVyc29uCmkx"") {
+                        id
+                    }
+                }
+            }");
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task InlineFragment_Defer_If_Set_To_false()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... @defer(if: false) {
+                    person(id: ""UGVyc29uCmkx"") {
+                        id
+                    }
+                }
+            }");
+
+        Assert.IsType<QueryResult>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task InlineFragment_Defer_If_Variable_Set_To_false()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(
+                    @"query($defer: Boolean!) {
+                        ... @defer(if: $defer) {
+                            person(id: ""UGVyc29uCmkx"") {
                                 id
-                                ... @defer {
-                                    name
-                                }
-                            }
-                        }");
-
-            IResponseStream stream = Assert.IsType<ResponseStream>(result);
-
-            var results = new StringBuilder();
-
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
-            }
-
-            results.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task NoOptimization_Defer_Only_Root()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
-                            ... @defer {
-                                hero(episode: NEW_HOPE) {
-                                    id
-                                    name
-                                }
-                            }
-                        }");
-
-            Assert.IsType<QueryResult>(result).MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task NoOptimization_Defer_One_Root()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
-                            ... @defer {
-                                a: hero(episode: NEW_HOPE) {
-                                    id
-                                    name
-                                }
-                            }
-                            b: hero(episode: NEW_HOPE) {
-                                id
-                                name
-                            }
-                        }");
-
-            IResponseStream stream = Assert.IsType<ResponseStream>(result);
-
-            var results = new StringBuilder();
-
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
-            }
-
-            results.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task NoOptimization_Nested_Defer()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer(label: ""friends"") {
-                                    friends {
-                                        nodes {
-                                            id
-                                            ... @defer {
-                                                name
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }");
-
-            IResponseStream stream = Assert.IsType<ResponseStream>(result);
-
-            var results = new StringBuilder();
-
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
-            }
-
-            results.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task NoOptimization_Spread_Defer()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... deferred @defer(label: ""friends"")
                             }
                         }
+                    }")
+                .SetVariableValue("defer", false)
+                .Create());
 
-                        fragment deferred on Character {
-                            friends {
-                                nodes {
-                                    id
-                                }
-                            }
-                        }");
+        Assert.IsType<QueryResult>(result).MatchSnapshot();
+    }
 
-            IResponseStream stream = Assert.IsType<ResponseStream>(result);
+    [Fact]
+    public async Task FragmentSpread_Defer()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
 
-            var results = new StringBuilder();
-
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... Foo @defer
             }
+            
+            fragment Foo on Query {
+                person(id: ""UGVyc29uCmkx"") {
+                    id
+                }
+            }");
 
-            results.ToString().MatchSnapshot();
-        }
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
 
-        [Fact(Skip = "needs to be fixed.")]
-        public async Task Do_Not_Defer()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... deferred @defer(label: ""friends"", if: false)
-                            }
+    [Fact]
+    public async Task FragmentSpread_Defer_Nested()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """    
+            {
+                ... Foo @defer
+            }
+            
+            fragment Foo on Query {
+                person(id: "UGVyc29uCmkx") {
+                    id
+                    ... @defer {
+                        name
+                    }
+                }
+            }
+            """);
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task FragmentSpread_Defer_Label_Set_To_abc()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... Foo @defer(label: ""abc"")
+            }
+            
+            fragment Foo on Query {
+                person(id: ""UGVyc29uCmkx"") {
+                    id
+                }
+            }");
+
+        Assert.IsType<ResponseStream>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task FragmentSpread_Defer_If_Set_To_false()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                ... Foo @defer(if: false)
+            }
+            
+            fragment Foo on Query {
+                person(id: ""UGVyc29uCmkx"") {
+                    id
+                }
+            }");
+
+        Assert.IsType<QueryResult>(result).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task FragmentSpread_Defer_If_Variable_Set_To_false()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(
+                    @"query ($defer: Boolean!) {
+                        ... Foo @defer(if: $defer)
+                    }
+                    
+                    fragment Foo on Query {
+                        person(id: ""UGVyc29uCmkx"") {
+                            id
                         }
+                    }")
+                .SetVariableValue("defer", false)
+                .Create());
 
-                        fragment deferred on Character {
-                            friends {
-                                nodes {
-                                    id
-                                }
-                            }
-                        }");
-
-            Assert.IsType<QueryResult>(result).MatchSnapshot();
-        }
+        Assert.IsType<QueryResult>(result).MatchSnapshot();
     }
 }

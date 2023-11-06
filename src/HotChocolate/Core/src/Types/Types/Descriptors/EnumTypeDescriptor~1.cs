@@ -27,7 +27,7 @@ public class EnumTypeDescriptor<T>
         return this;
     }
 
-    public new IEnumTypeDescriptor<T> Name(NameString value)
+    public new IEnumTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -38,11 +38,6 @@ public class EnumTypeDescriptor<T>
         base.Description(value);
         return this;
     }
-
-    [Obsolete("Use `BindValues`.")]
-    public new IEnumTypeDescriptor<T> BindItems(
-        BindingBehavior behavior) =>
-        BindValues(behavior);
 
     public new IEnumTypeDescriptor<T> BindValues(BindingBehavior behavior)
     {
@@ -55,9 +50,6 @@ public class EnumTypeDescriptor<T>
 
     public new IEnumTypeDescriptor<T> BindValuesImplicitly() =>
         BindValues(BindingBehavior.Implicit);
-
-    [Obsolete("Use `Value`.")]
-    public IEnumValueDescriptor Item(T value) => Value<T>(value);
 
     public IEnumValueDescriptor Value(T value)
     {
@@ -80,7 +72,7 @@ public class EnumTypeDescriptor<T>
     }
 
     public new IEnumTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);

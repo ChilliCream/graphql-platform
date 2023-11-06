@@ -1,16 +1,10 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -20,7 +14,7 @@ public class OperationManagerTests
     public async Task Enqueue_SessionId_Is_Null()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -43,7 +37,7 @@ public class OperationManagerTests
     public async Task Enqueue_SessionId_Is_Empty()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -66,7 +60,7 @@ public class OperationManagerTests
     public async Task Enqueue_Request_Is_Null()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -89,7 +83,7 @@ public class OperationManagerTests
     public async Task Enqueue_On_Disposed_Manager()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -122,7 +116,7 @@ public class OperationManagerTests
     public async Task Enqueue_Request()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -156,7 +150,7 @@ public class OperationManagerTests
     public async Task Enqueue_Request_With_Non_Unique_Id()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -194,7 +188,7 @@ public class OperationManagerTests
     public async Task Complete_Request()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -232,7 +226,7 @@ public class OperationManagerTests
     public async Task Complete_SessionId_Is_Null()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -255,7 +249,7 @@ public class OperationManagerTests
     public async Task Complete_SessionId_Is_Empty()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -278,7 +272,7 @@ public class OperationManagerTests
     public async Task Complete_On_Disposed_Manager()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
@@ -308,7 +302,7 @@ public class OperationManagerTests
     public async Task Dispose_OperationManager()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()

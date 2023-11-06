@@ -41,13 +41,6 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetVariableValue(
         string name, object? value);
 
-    IQueryRequestBuilder SetInitialValue(
-        object? initialValue);
-
-    [Obsolete("Use `InitializeGlobalState`")]
-    IQueryRequestBuilder SetProperties(
-        Dictionary<string, object?>? properties);
-
     /// <summary>
     /// Initializes the global state of the request to the given
     /// <paramref name="initialState" />.
@@ -56,10 +49,6 @@ public interface IQueryRequestBuilder
     /// <returns>The query request builder.</returns>
     IQueryRequestBuilder InitializeGlobalState(
         Dictionary<string, object?>? initialState);
-
-    [Obsolete("Use `InitializeGlobalState`")]
-    IQueryRequestBuilder SetProperties(
-        IDictionary<string, object?>? properties);
 
     /// <summary>
     /// Initializes the global state of the request to the given
@@ -70,10 +59,6 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder InitializeGlobalState(
         IDictionary<string, object?>? initialState);
 
-    [Obsolete("Use `InitializeGlobalState`")]
-    IQueryRequestBuilder SetProperties(
-        IReadOnlyDictionary<string, object?>? properties);
-
     /// <summary>
     /// Initializes the global state of the request to the given
     /// <paramref name="initialState" />.
@@ -82,10 +67,6 @@ public interface IQueryRequestBuilder
     /// <returns>The query request builder.</returns>
     IQueryRequestBuilder InitializeGlobalState(
         IReadOnlyDictionary<string, object?>? initialState);
-
-    [Obsolete("Use `AddGlobalState`")]
-    IQueryRequestBuilder AddProperty(
-        string name, object? value);
 
     /// <summary>
     /// Sets the global state for <paramref name="name" />
@@ -101,10 +82,6 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder AddGlobalState(
         string name, object? value);
 
-    [Obsolete("Use `TryAddGlobalState`")]
-    IQueryRequestBuilder TryAddProperty(
-        string name, object? value);
-
     /// <summary>
     /// Sets the global state for <paramref name="name" />
     /// to the specified <paramref name="value" />,
@@ -114,10 +91,6 @@ public interface IQueryRequestBuilder
     /// <param name="value">The state value.</param>
     /// <returns>The query request builder.</returns>
     IQueryRequestBuilder TryAddGlobalState(
-        string name, object? value);
-
-    [Obsolete("Use `SetGlobalState`")]
-    IQueryRequestBuilder SetProperty(
         string name, object? value);
 
     /// <summary>
@@ -131,10 +104,6 @@ public interface IQueryRequestBuilder
     /// <returns>The query request builder.</returns>
     IQueryRequestBuilder SetGlobalState(
         string name, object? value);
-
-    [Obsolete("Use `RemoveGlobalState`")]
-    IQueryRequestBuilder TryRemoveProperty(
-        string name);
 
     /// <summary>
     /// Removes the global state value for the specified
@@ -169,8 +138,8 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder TrySetServices(
         IServiceProvider? services);
 
-    IQueryRequestBuilder SetAllowedOperations(
-        OperationType[]? allowedOperations);
+    IQueryRequestBuilder SetFlags(
+        GraphQLRequestFlags flags);
 
-    IReadOnlyQueryRequest Create();
+    IQueryRequest Create();
 }

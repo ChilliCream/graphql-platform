@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Transport.Serialization;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 
@@ -18,10 +19,10 @@ internal sealed class ErrorMessage : IDataMessage
 
     public static ErrorMessage From(JsonDocument document)
     {
-        JsonElement root = document.RootElement;
+        var root = document.RootElement;
         var id = root.GetProperty(Utf8MessageProperties.IdProp).GetString()!;
 
-        JsonElement payload = root.GetProperty(Utf8MessageProperties.PayloadProp);
+        var payload = root.GetProperty(Utf8MessageProperties.PayloadProp);
         var result = new OperationResult(document, errors: payload);
 
         return new ErrorMessage(id, result);

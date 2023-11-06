@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using CookieCrumble;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Data.Sorting;
@@ -15,13 +15,13 @@ public class SortAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query1>()
             .AddSorting()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -29,13 +29,13 @@ public class SortAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query2>()
             .AddSorting()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -43,13 +43,13 @@ public class SortAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query3>()
             .AddSorting()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -57,28 +57,59 @@ public class SortAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query4>()
             .AddSorting()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
+
+#if NET6_0_OR_GREATER
+    [Fact]
+    public void Create_Schema_With_GenericSortAttributes()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<Query5>()
+            .AddSorting()
+            .Create();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    public class Query5
+    {
+        [UseSorting<FooSortType>]
+        public IEnumerable<Foo> Foos { get; } = new[]
+        {
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
+        };
+    }
+#endif
 
     public class Query1
     {
         [UseSorting]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-                new Foo {Bar = "aa", Baz = 1, Qux = 1},
-                new Foo {Bar = "ba", Baz = 1},
-                new Foo {Bar = "ca", Baz = 2},
-                new Foo {Bar = "ab", Baz = 2},
-                new Foo {Bar = "ac", Baz = 2},
-                new Foo {Bar = "ad", Baz = 2},
-                new Foo {Bar = null!, Baz = 0}
-            };
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
+        };
     }
 
     public class Query2
@@ -86,14 +117,14 @@ public class SortAttributeTests
         [UseSorting(Type = typeof(FooSortType))]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-                new Foo {Bar = "aa", Baz = 1, Qux = 1},
-                new Foo {Bar = "ba", Baz = 1},
-                new Foo {Bar = "ca", Baz = 2},
-                new Foo {Bar = "ab", Baz = 2},
-                new Foo {Bar = "ac", Baz = 2},
-                new Foo {Bar = "ad", Baz = 2},
-                new Foo {Bar = null!, Baz = 0}
-            };
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
+        };
     }
 
     public class Query3
@@ -101,14 +132,14 @@ public class SortAttributeTests
         [UseSorting(typeof(FooSortType))]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-                new Foo {Bar = "aa", Baz = 1, Qux = 1},
-                new Foo {Bar = "ba", Baz = 1},
-                new Foo {Bar = "ca", Baz = 2},
-                new Foo {Bar = "ab", Baz = 2},
-                new Foo {Bar = "ac", Baz = 2},
-                new Foo {Bar = "ad", Baz = 2},
-                new Foo {Bar = null!, Baz = 0}
-            };
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
+        };
     }
 
     public class Query4
@@ -116,12 +147,12 @@ public class SortAttributeTests
         [UseSorting]
         public IEnumerable<Bar> Bars { get; } = new[]
         {
-                new Bar { Baz = 1 },
-                new Bar { Baz = 2 },
-                new Bar { Baz = 2 },
-                new Bar { Baz = 2 },
-                new Bar { Baz = 2 },
-            };
+            new Bar { Baz = 1 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 },
+        };
     }
 
     public class FooSortType : SortInputType<Foo>
@@ -139,7 +170,8 @@ public class SortAttributeTests
         [GraphQLType(typeof(NonNullType<IntType>))]
         public long Baz { get; set; }
 
-        [GraphQLType(typeof(IntType))] public int? Qux { get; set; }
+        [GraphQLType(typeof(IntType))]
+        public int? Qux { get; set; }
     }
 
     [SortTest]

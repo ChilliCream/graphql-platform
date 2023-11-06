@@ -21,11 +21,11 @@ internal sealed class ObjectTypeParameterExpressionBuilder
         => typeof(ObjectType) == parameter.ParameterType ||
            typeof(IObjectType) == parameter.ParameterType;
 
-    public override Expression Build(ParameterInfo parameter, Expression context)
+    public override Expression Build(ParameterExpressionBuilderContext context)
     {
-        Expression expression = base.Build(parameter, context);
+        var expression = base.Build(context);
 
-        return parameter.ParameterType == typeof(ObjectType)
+        return context.Parameter.ParameterType == typeof(ObjectType)
             ? Expression.Convert(expression, typeof(ObjectType))
             : expression;
     }

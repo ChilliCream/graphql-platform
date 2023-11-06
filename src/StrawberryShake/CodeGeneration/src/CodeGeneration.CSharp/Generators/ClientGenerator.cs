@@ -1,3 +1,4 @@
+using System;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
@@ -19,13 +20,14 @@ public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName)
             .SetComment(descriptor.Documentation)
             .AddImplements(descriptor.InterfaceType.ToString());
 
-        ConstructorBuilder constructorBuilder = classBuilder
+        var constructorBuilder = classBuilder
             .AddConstructor()
             .SetTypeName(fileName);
 
@@ -34,9 +36,9 @@ public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
             .SetPublic()
             .SetStatic()
             .SetType(TypeNames.String)
-            .AsLambda(descriptor.Name.Value.AsStringToken());
+            .AsLambda(descriptor.Name.AsStringToken());
 
-        foreach (OperationDescriptor operation in descriptor.Operations)
+        foreach (var operation in descriptor.Operations)
         {
             AddConstructorAssignedField(
                 operation.InterfaceType.ToString(),

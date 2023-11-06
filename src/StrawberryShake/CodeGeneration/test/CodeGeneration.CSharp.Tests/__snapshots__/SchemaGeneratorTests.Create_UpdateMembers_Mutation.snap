@@ -357,7 +357,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Members, other.Members);
+            return (Id.Equals(other.Id)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Members, other.Members);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -593,7 +593,7 @@ namespace Foo.Bar
                 "VIEWER" => ProjectUserRoleType.Viewer,
                 "EDITOR" => ProjectUserRoleType.Editor,
                 "OWNER" => ProjectUserRoleType.Owner,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum ProjectUserRoleType")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -603,7 +603,7 @@ namespace Foo.Bar
                 ProjectUserRoleType.Viewer => "VIEWER",
                 ProjectUserRoleType.Editor => "EDITOR",
                 ProjectUserRoleType.Owner => "OWNER",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum ProjectUserRoleType value '{runtimeValue}' can't be converted to string")};
         }
     }
 

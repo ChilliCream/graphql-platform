@@ -1,5 +1,3 @@
-using static HotChocolate.Types.ErrorContextDataKeys;
-
 #nullable enable
 
 namespace HotChocolate.Types;
@@ -224,7 +222,7 @@ public static class MutationObjectFieldDescriptorExtensions
 
     /// <summary>
     /// The <c>.Error&lt;TError>()</c> extension method registers a middleware that will catch
-    /// all exceptions of type <typeparamref name="TError"/> on mutations.
+    /// all exceptions of <paramref name="errorType"/> on mutations.
     ///
     /// By applying the error extension to a mutation field the
     /// response type of the annotated resolver, will be automatically extended by a field of
@@ -406,28 +404,8 @@ public static class MutationObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(errorType));
         }
 
-        descriptor.Extend().OnBeforeCreate(ConfigureField);
+        descriptor.Extend().OnBeforeCreate((ctx, d) => d.AddErrorType(ctx, errorType));
 
         return descriptor;
-
-        void ConfigureField(IDescriptorContext c, ObjectFieldDefinition d)
-        {
-            IReadOnlyList<ErrorDefinition> definitions = ErrorFactoryCompiler.Compile(errorType);
-
-            if (!d.ContextData.TryGetValue(ErrorDefinitions, out var value) ||
-                value is not List<ErrorDefinition> errorFactories)
-            {
-                errorFactories = new List<ErrorDefinition>();
-                d.ContextData[ErrorDefinitions] = errorFactories;
-            }
-
-            errorFactories.AddRange(definitions);
-
-            foreach (ErrorDefinition definition in definitions)
-            {
-                ExtendedTypeReference typeRef = c.TypeInspector.GetTypeRef(definition.SchemaType);
-                d.Dependencies.Add(new TypeDependency(typeRef));
-            }
-        }
     }
 }

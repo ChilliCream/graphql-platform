@@ -1,0 +1,60 @@
+BarAndFoo
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+FOO
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+nullAndFoo
+---------------
+{
+  "errors": [
+    {
+      "message": "The specified value type of field `nin` does not match the field type.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "fieldName": "nin",
+        "fieldType": "[FooEnum!]",
+        "locationType": "[FooEnum!]",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      }
+    }
+  ]
+}
+---------------

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors;
 
@@ -8,7 +9,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public static class Directives
 {
-    private static readonly HashSet<NameString> _directiveNames =
+    private static readonly HashSet<string> _directiveNames =
         new()
         {
             WellKnownDirectives.Skip,
@@ -19,38 +20,55 @@ public static class Directives
             WellKnownDirectives.OneOf
         };
 
-    internal static IReadOnlyList<ITypeReference> CreateReferences(
+    internal static IReadOnlyList<TypeReference> CreateReferences(
         IDescriptorContext descriptorContext)
     {
-        ITypeInspector typeInspector = descriptorContext.TypeInspector;
+        var typeInspector = descriptorContext.TypeInspector;
+        var directiveTypes = new List<TypeReference>();
 
         if (descriptorContext.Options.EnableOneOf)
         {
-            return new ITypeReference[]
-            {
-                typeInspector.GetTypeRef(typeof(SkipDirectiveType)),
-                typeInspector.GetTypeRef(typeof(IncludeDirectiveType)),
-                typeInspector.GetTypeRef(typeof(DeferDirectiveType)),
-                typeInspector.GetTypeRef(typeof(StreamDirectiveType)),
-                typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)),
-                typeInspector.GetTypeRef(typeof(OneOfDirectiveType))
-            };
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(OneOfDirectiveType)));
         }
 
-        return new ITypeReference[]
+        if (descriptorContext.Options.EnableDefer)
         {
-            typeInspector.GetTypeRef(typeof(SkipDirectiveType)),
-            typeInspector.GetTypeRef(typeof(IncludeDirectiveType)),
-            typeInspector.GetTypeRef(typeof(DeferDirectiveType)),
-            typeInspector.GetTypeRef(typeof(StreamDirectiveType)),
-            typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType))
-        };
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(DeferDirectiveType)));
+        }
+
+        if (descriptorContext.Options.EnableStream)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
+        }
+        
+        if (descriptorContext.Options.EnableTrueNullability)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(NullBubblingDirective)));
+        }
+
+        if (descriptorContext.Options.EnableTag)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(Tag)));
+        }
+
+        directiveTypes.Add(typeInspector.GetTypeRef(typeof(SkipDirectiveType)));
+        directiveTypes.Add(typeInspector.GetTypeRef(typeof(IncludeDirectiveType)));
+        directiveTypes.Add(typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)));
+
+        return directiveTypes;
     }
 
 
     /// <summary>
     /// Checks if the specified directive represents a built-in directive.
     /// </summary>
-    public static bool IsBuiltIn(NameString typeName)
-        => _directiveNames.Contains(typeName.Value);
+    public static bool IsBuiltIn(string typeName)
+    {
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        return _directiveNames.Contains(typeName);
+    }
 }

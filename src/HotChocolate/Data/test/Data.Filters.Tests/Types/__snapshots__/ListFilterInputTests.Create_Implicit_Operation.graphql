@@ -1,0 +1,217 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooFilterInput): String
+}
+
+input BazFilterInput {
+  and: [BazFilterInput!]
+  or: [BazFilterInput!]
+  stringProp: StringOperationFilterInput
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input DecimalOperationFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal]
+  nin: [Decimal]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
+}
+
+input FloatOperationFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float]
+  nin: [Float]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input FooBarOperationFilterInput {
+  eq: FooBar
+  neq: FooBar
+  in: [FooBar!]
+  nin: [FooBar!]
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  baz: ListFilterInputTypeOfBazFilterInput
+  stringArray: ListStringOperationFilterInput
+  stringNullableArray: ListStringOperationFilterInput
+  booleanArray: ListBooleanOperationFilterInput
+  booleanNullableArray: ListBooleanOperationFilterInput
+  barShortArray: ListShortOperationFilterInput
+  barIntArray: ListIntOperationFilterInput
+  barLongArray: ListLongOperationFilterInput
+  barFloatArray: ListFloatOperationFilterInput
+  barDoubleArray: ListFloatOperationFilterInput
+  barDecimalArray: ListDecimalOperationFilterInput
+  barShortNullableArray: ListShortOperationFilterInput
+  barIntNullableArray: ListIntOperationFilterInput
+  barLongNullableArray: ListLongOperationFilterInput
+  barFloatNullableArray: ListFloatOperationFilterInput
+  barDoubleNullableArray: ListFloatOperationFilterInput
+  barDecimalNullableArray: ListDecimalOperationFilterInput
+  fooBarArray: ListFooBarOperationFilterInput
+}
+
+input IntOperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input ListBooleanOperationFilterInput {
+  all: BooleanOperationFilterInput
+  none: BooleanOperationFilterInput
+  some: BooleanOperationFilterInput
+  any: Boolean
+}
+
+input ListDecimalOperationFilterInput {
+  all: DecimalOperationFilterInput
+  none: DecimalOperationFilterInput
+  some: DecimalOperationFilterInput
+  any: Boolean
+}
+
+input ListFilterInputTypeOfBazFilterInput {
+  all: BazFilterInput
+  none: BazFilterInput
+  some: BazFilterInput
+  any: Boolean
+}
+
+input ListFloatOperationFilterInput {
+  all: FloatOperationFilterInput
+  none: FloatOperationFilterInput
+  some: FloatOperationFilterInput
+  any: Boolean
+}
+
+input ListFooBarOperationFilterInput {
+  all: FooBarOperationFilterInput
+  none: FooBarOperationFilterInput
+  some: FooBarOperationFilterInput
+  any: Boolean
+}
+
+input ListIntOperationFilterInput {
+  all: IntOperationFilterInput
+  none: IntOperationFilterInput
+  some: IntOperationFilterInput
+  any: Boolean
+}
+
+input ListLongOperationFilterInput {
+  all: LongOperationFilterInput
+  none: LongOperationFilterInput
+  some: LongOperationFilterInput
+  any: Boolean
+}
+
+input ListShortOperationFilterInput {
+  all: ShortOperationFilterInput
+  none: ShortOperationFilterInput
+  some: ShortOperationFilterInput
+  any: Boolean
+}
+
+input ListStringOperationFilterInput {
+  all: StringOperationFilterInput
+  none: StringOperationFilterInput
+  some: StringOperationFilterInput
+  any: Boolean
+}
+
+input LongOperationFilterInput {
+  eq: Long
+  neq: Long
+  in: [Long]
+  nin: [Long]
+  gt: Long
+  ngt: Long
+  gte: Long
+  ngte: Long
+  lt: Long
+  nlt: Long
+  lte: Long
+  nlte: Long
+}
+
+input ShortOperationFilterInput {
+  eq: Short
+  neq: Short
+  in: [Short]
+  nin: [Short]
+  gt: Short
+  ngt: Short
+  gte: Short
+  ngte: Short
+  lt: Short
+  nlt: Short
+  lte: Short
+  nlte: Short
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+enum FooBar {
+  FOO
+  BAR
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short

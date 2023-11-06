@@ -41,7 +41,7 @@ public class QueryableProjectionScope
     {
         if (_abstractType is not null)
         {
-            foreach (KeyValuePair<Type, Queue<MemberAssignment>> elm in _abstractType)
+            foreach (var elm in _abstractType)
             {
                 yield return elm;
             }

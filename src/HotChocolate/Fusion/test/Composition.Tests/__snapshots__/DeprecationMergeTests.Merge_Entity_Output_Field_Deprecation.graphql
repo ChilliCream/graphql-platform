@@ -1,0 +1,33 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "A", location: "https:\/\/localhost:5001\/graphql", kind: "HTTP")
+  @transport(subgraph: "B", location: "https:\/\/localhost:5002\/graphql", kind: "HTTP") {
+  query: Query
+}
+
+type Query {
+  brandById(id: ID!): Brand
+    @variable(subgraph: "A", name: "id", argument: "id")
+    @resolver(subgraph: "A", select: "{ brandById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+    @variable(subgraph: "B", name: "id", argument: "id")
+    @resolver(subgraph: "B", select: "{ brandById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+}
+
+type Brand implements Node
+  @variable(subgraph: "A", name: "Brand_id", select: "id")
+  @variable(subgraph: "B", name: "Brand_id", select: "id")
+  @resolver(subgraph: "A", select: "{ brandById(id: $Brand_id) }", arguments: [ { name: "Brand_id", type: "ID!" } ])
+  @resolver(subgraph: "B", select: "{ brandById(id: $Brand_id) }", arguments: [ { name: "Brand_id", type: "ID!" } ]) {
+  id: ID!
+    @source(subgraph: "A")
+    @source(subgraph: "B")
+  name: String!
+    @source(subgraph: "A")
+    @deprecated(reason: "Some reason")
+  newName: String!
+    @source(subgraph: "B")
+}
+
+interface Node {
+  id: ID!
+}

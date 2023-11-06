@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -11,172 +10,163 @@ public class QueryableProjectionFilterTests
 {
     private static readonly Bar[] _barEntities =
     {
-            new Bar
+        new()
+        {
+            Foo = new Foo
             {
-                Foo = new Foo
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                NestedObject =
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectArray = new List<BarDeep>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    NestedObject =
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                    ObjectArray = new List<BarDeep>
-                    {
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 14,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    NestedObject =
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
-                    ObjectArray = new List<BarDeep>
-                    {
-                        new BarDeep { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                    }
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
                 }
             }
-        };
+        },
+        new()
+        {
+            Foo = new Foo
+            {
+                BarShort = 14,
+                BarBool = true,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                NestedObject =
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                ObjectArray = new List<BarDeep>
+                {
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
+                }
+            }
+        }
+    };
 
     private static readonly BarNullable[] _barNullableEntities =
     {
-            new BarNullable
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                ObjectArray = new List<BarNullableDeep?>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    ObjectArray = new List<BarNullableDeep?>
-                    {
-                        new BarNullableDeep { Foo = new FooDeep { BarShort = 12 } }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = null,
-                    BarBool = null,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    ObjectArray = new List<BarNullableDeep?>
-                    {
-                        new BarNullableDeep { Foo = new FooDeep { BarShort = 9 } }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = 14,
-                    BarBool = false,
-                    BarEnum = BarEnum.QUX,
-                    BarString = "testctest",
-                    ObjectArray = new List<BarNullableDeep?>
-                    {
-                        new BarNullableDeep { Foo = new FooDeep { BarShort = 14 } }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testdtest",
-                    ObjectArray = null
+                    new() { Foo = new FooDeep { BarShort = 12 } }
                 }
             }
-        };
+        },
+        new()
+        {
+            Foo = new FooNullable
+            {
+                BarShort = null,
+                BarBool = null,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                ObjectArray = new List<BarNullableDeep?>
+                {
+                    new BarNullableDeep { Foo = new FooDeep { BarShort = 9 } }
+                }
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
+            {
+                BarShort = 14,
+                BarBool = false,
+                BarEnum = BarEnum.QUX,
+                BarString = "testctest",
+                ObjectArray = new List<BarNullableDeep?>
+                {
+                    new BarNullableDeep { Foo = new FooDeep { BarShort = 14 } }
+                }
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
+            {
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testdtest",
+                ObjectArray = null
+            }
+        }
+    };
 
     private static readonly BarNullable[] _barWithoutRelation =
     {
-            new BarNullable
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarEnum = BarEnum.BAR,
+                BarShort = 15,
+                NestedObject = new BarNullableDeep
                 {
-                    BarEnum = BarEnum.BAR,
-                    BarShort = 15,
-                    NestedObject = new BarNullableDeep
-                    {
-                        Foo = new FooDeep
-                        {
-                            BarString = "Foo"
-                        }
-                    }
+                    Foo = new FooDeep { BarString = "Foo" }
                 }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarEnum = BarEnum.FOO,
-                    BarShort = 14
-                }
-            },
-            new BarNullable()
-        };
+            }
+        },
+        new() { Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 } },
+        new()
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
-                                foo {
-                                    objectArray(
-                                        where: {
-                                            foo: {
-                                                barString: {
-                                                    eq: ""a""
-                                                }
+                    @"{
+                        root {
+                            foo {
+                                objectArray(
+                                    where: {
+                                        foo: {
+                                            barString: {
+                                                eq: ""a""
                                             }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
                                         }
+                                    }) {
+                                    foo {
+                                        barString
+                                        barShort
                                     }
                                 }
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -202,161 +192,175 @@ public class QueryableProjectionFilterTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_DeepFilterObjectTwoProjections_Nullable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
-                                foo {
-                                    objectArray(
-                                        where: {
-                                            foo: {
-                                                barString: {
-                                                    eq: ""a""
-                                                }
+                    @"{
+                        root {
+                            foo {
+                                objectArray(
+                                    where: {
+                                        foo: {
+                                            barString: {
+                                                eq: ""a""
                                             }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
                                         }
+                                    }) {
+                                    foo {
+                                        barString
+                                        barShort
                                     }
                                 }
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ListObjectDifferentLevelProjection_Nullable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
-                                foo {
-                                    barString
-                                    objectArray(
-                                        where: {
-                                            foo: {
-                                                barString: {
-                                                    eq: ""a""
-                                                }
+                    @"{
+                        root {
+                            foo {
+                                barString
+                                objectArray(
+                                    where: {
+                                        foo: {
+                                            barString: {
+                                                eq: ""a""
                                             }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
                                         }
+                                    }) {
+                                    foo {
+                                        barString
+                                        barShort
                                     }
                                 }
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+        var tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
-                                foo {
-                                    id
-                                }
+                    @"{
+                        root {
+                            foo {
+                                id
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+        var tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
+                    @"{
+                        root {
+                            id
+                            foo {
                                 id
-                                foo {
-                                    id
-                                    barEnum
-                                }
+                                barEnum
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+        var tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
+                    @"{
+                        root {
+                            id
+                            foo {
                                 id
-                                foo {
-                                    id
-                                    barEnum
-                                    nestedObject {
-                                        foo {
-                                            barString
-                                        }
+                                barEnum
+                                nestedObject {
+                                    foo {
+                                        barString
                                     }
                                 }
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)

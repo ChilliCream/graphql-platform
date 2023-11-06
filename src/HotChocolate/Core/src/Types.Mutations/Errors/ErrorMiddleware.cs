@@ -2,8 +2,6 @@ namespace HotChocolate.Types;
 
 internal sealed class ErrorMiddleware
 {
-    public static readonly object ErrorObject = new();
-
     private readonly FieldDelegate _next;
     private readonly IReadOnlyList<CreateError> _errorHandlers;
 
@@ -28,16 +26,26 @@ internal sealed class ErrorMiddleware
         catch (AggregateException ex)
         {
             var errors = new List<object>();
+            List<Exception>? unhandledErrors = null;
 
-            foreach (Exception exception in ex.InnerExceptions)
+            foreach (var exception in ex.InnerExceptions)
             {
-                foreach (CreateError createError in _errorHandlers)
+                var handled = false;
+
+                foreach (var createError in _errorHandlers)
                 {
                     if (createError(exception) is { } error)
                     {
                         errors.Add(error);
+                        handled = true;
                         break;
                     }
+                }
+
+                if (!handled)
+                {
+                    unhandledErrors ??= new List<Exception>();
+                    unhandledErrors.Add(exception);
                 }
             }
 
@@ -46,14 +54,24 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
+            // if we have some errors that we could not handle
+            // we will report them as GraphQL errors.
+            if(unhandledErrors?.Count > 0)
+            {
+                foreach (var unhandledError in unhandledErrors)
+                {
+                    context.ReportError(unhandledError);
+                }
+            }
+
             context.SetScopedState(ErrorContextDataKeys.Errors, errors);
-            context.Result = ErrorObject;
+            context.Result = MarkerObjects.ErrorObject;
         }
         catch (Exception ex)
         {
             object? error = null;
 
-            foreach (CreateError createError in _errorHandlers)
+            foreach (var createError in _errorHandlers)
             {
                 if (createError(ex) is { } e)
                 {
@@ -67,12 +85,8 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
-            context.SetScopedState(ErrorContextDataKeys.Errors,
-                new[]
-                {
-                    error
-                });
-            context.Result = ErrorObject;
+            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error });
+            context.Result = MarkerObjects.ErrorObject;
         }
     }
 }

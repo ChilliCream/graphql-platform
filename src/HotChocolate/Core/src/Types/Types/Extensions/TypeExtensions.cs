@@ -1,24 +1,61 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Provides utility methods to work with <see cref="IType"/>.
+/// </summary>
 public static class TypeExtensions
 {
+    /// <summary>
+    /// Calculates the depth of a type. The depth is defined as the
+    /// number of wrapper types + the named type itself..
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns the depth of the type.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static int Depth(this IType type)
     {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
         if (type is INamedType)
         {
             return 1;
         }
+
         return Depth(type.InnerType()) + 1;
     }
 
+    /// <summary>
+    /// Defines if a type is nullable.
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is nullable; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static bool IsNullableType(this IType type)
     {
         if (type is null)
@@ -29,6 +66,18 @@ public static class TypeExtensions
         return type.Kind != TypeKind.NonNull;
     }
 
+    /// <summary>
+    /// Defines if a type is non-nullable.
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is non-nullable; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static bool IsNonNullType(this IType type)
     {
         if (type is null)
@@ -39,6 +88,18 @@ public static class TypeExtensions
         return type.Kind == TypeKind.NonNull;
     }
 
+    /// <summary>
+    /// Defines if a type is a composite type (object, interface or union).
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is a composite type; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static bool IsCompositeType(this IType type)
     {
         if (type is null)
@@ -46,11 +107,21 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        return IsType(type, TypeKind.Object) ||
-           IsType(type, TypeKind.Interface) ||
-           IsType(type, TypeKind.Union);
+        return IsType(type, TypeKind.Object, TypeKind.Interface, TypeKind.Union);
     }
 
+    /// <summary>
+    /// Defines if a type is a complex type (object or interface).
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is a complex type; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static bool IsComplexType(this IType type)
     {
         if (type is null)
@@ -58,10 +129,21 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        return IsType(type, TypeKind.Object) ||
-            IsType(type, TypeKind.Interface);
+        return IsType(type, TypeKind.Object, TypeKind.Interface);
     }
 
+    /// <summary>
+    /// Defines if a type is a leaf type (scalar or enum).
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is a leaf type; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static bool IsLeafType(this IType type)
     {
         if (type is null)
@@ -69,10 +151,21 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        return IsType(type, TypeKind.Scalar) ||
-            IsType(type, TypeKind.Enum);
+        return IsType(type, TypeKind.Scalar, TypeKind.Enum);
     }
 
+    /// <summary>
+    /// Defines if a type is an list type.
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is an list type; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static bool IsListType(this IType type)
     {
         if (type is null)
@@ -83,6 +176,18 @@ public static class TypeExtensions
         return IsType(type, TypeKind.List);
     }
 
+    /// <summary>
+    /// Defines if a type is a scalar type.
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is a scalar type; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static bool IsScalarType(this IType type)
     {
         if (type is null)
@@ -93,6 +198,18 @@ public static class TypeExtensions
         return IsType(type, TypeKind.Scalar);
     }
 
+    /// <summary>
+    /// Defines if a type is an object type.
+    /// </summary>
+    /// <param name="type">
+    /// The type.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the type is an object type; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>.
+    /// </exception>
     public static bool IsObjectType(this IType type)
     {
         if (type is null)
@@ -143,6 +260,21 @@ public static class TypeExtensions
         return type.NamedType() is IInputType;
     }
 
+    internal static IInputType EnsureInputType(this IType type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (type.NamedType() is not IInputType)
+        {
+            throw InputTypeExpected(type);
+        }
+
+        return (IInputType) type;
+    }
+
     public static bool IsOutputType(this IType type)
     {
         if (type is null)
@@ -151,6 +283,21 @@ public static class TypeExtensions
         }
 
         return type.NamedType() is IOutputType;
+    }
+
+    internal static IOutputType EnsureOutputType(this IType type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (type.NamedType() is not IOutputType)
+        {
+            throw OutputTypeExpected(type);
+        }
+
+        return (IOutputType) type;
     }
 
     public static bool IsUnionType(this IType type)
@@ -190,6 +337,7 @@ public static class TypeExtensions
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsType(this IType type, TypeKind kind)
     {
         if (type.Kind == kind)
@@ -197,9 +345,51 @@ public static class TypeExtensions
             return true;
         }
 
-        if (type.Kind == TypeKind.NonNull && ((NonNullType)type).Type.Kind == kind)
+        if (type.Kind == TypeKind.NonNull && ((NonNullType) type).Type.Kind == kind)
         {
             return true;
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsType(this IType type, TypeKind kind1, TypeKind kind2)
+    {
+        if (type.Kind == kind1 || type.Kind == kind2)
+        {
+            return true;
+        }
+
+        if (type.Kind == TypeKind.NonNull)
+        {
+            var innerKind = ((NonNullType) type).Type.Kind;
+
+            if (innerKind == kind1 || innerKind == kind2)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsType(this IType type, TypeKind kind1, TypeKind kind2, TypeKind kind3)
+    {
+        if (type.Kind == kind1 || type.Kind == kind2 || type.Kind == kind3)
+        {
+            return true;
+        }
+
+        if (type.Kind == TypeKind.NonNull)
+        {
+            var innerKind = ((NonNullType) type).Type.Kind;
+
+            if (innerKind == kind1 || innerKind == kind2 || innerKind == kind3)
+            {
+                return true;
+            }
         }
 
         return false;
@@ -214,12 +404,12 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            return ((NonNullType)type).Type;
+            return ((NonNullType) type).Type;
         }
 
         if (type.Kind == TypeKind.List)
         {
-            return ((ListType)type).ElementType;
+            return ((ListType) type).ElementType;
         }
 
         return type;
@@ -232,10 +422,12 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        return type.Kind != TypeKind.NonNull ? type : ((NonNullType)type).Type;
+        return type.Kind != TypeKind.NonNull
+            ? type
+            : ((NonNullType) type).Type;
     }
 
-    public static NameString TypeName(this IType type)
+    public static string TypeName(this IType type)
     {
         if (type is null)
         {
@@ -254,15 +446,16 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.List)
         {
-            return (ListType)type;
+            return (ListType) type;
         }
 
         if (type.Kind == TypeKind.NonNull)
         {
-            IType innerType = ((NonNullType)type).Type;
+            var innerType = ((NonNullType) type).Type;
+
             if (innerType.Kind == TypeKind.List)
             {
-                return (ListType)innerType;
+                return (ListType) innerType;
             }
         }
 
@@ -276,11 +469,11 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        IType current = type;
+        var current = type;
 
         if (IsNamed(current))
         {
-            return (INamedType)current;
+            return (INamedType) current;
         }
 
         for (var i = 0; i < 6; i++)
@@ -289,7 +482,7 @@ public static class TypeExtensions
 
             if (IsNamed(current))
             {
-                return (INamedType)current;
+                return (INamedType) current;
             }
         }
 
@@ -327,7 +520,7 @@ public static class TypeExtensions
         {
             NonNullType xnn when y is NonNullType ynn => xnn.Type.IsEqualTo(ynn.Type),
             ListType xl when y is ListType yl => xl.ElementType.IsEqualTo(yl.ElementType),
-            INamedType xnt when y is INamedType ynt => xnt.Name.Equals(ynt.Name),
+            INamedType xnt when y is INamedType ynt => xnt.Name.EqualsOrdinal(ynt.Name),
             _ => false
         };
     }
@@ -341,7 +534,7 @@ public static class TypeExtensions
 
         if (type.IsListType())
         {
-            Type elementType = ToRuntimeType(type.ElementType());
+            var elementType = ToRuntimeType(type.ElementType());
             return typeof(List<>).MakeGenericType(elementType);
         }
 
@@ -389,8 +582,7 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        if (type is NonNullType nnt
-            && ToTypeNode(nnt.Type) is INullableTypeNode nntn)
+        if (type is NonNullType nnt && ToTypeNode(nnt.Type) is INullableTypeNode nntn)
         {
             return new NonNullTypeNode(null, nntn);
         }
@@ -413,15 +605,16 @@ public static class TypeExtensions
         this IType original,
         INamedType namedType)
     {
-        if (original is NonNullType nnt
-            && ToTypeNode(nnt.Type, namedType) is INullableTypeNode nntn)
+        if (original is NonNullType nnt &&
+            ToTypeNode(nnt.Type, namedType) is INullableTypeNode nntn)
         {
             return new NonNullTypeNode(null, nntn);
         }
 
         if (original is ListType lt)
         {
-            return new ListTypeNode(null,
+            return new ListTypeNode(
+                null,
                 ToTypeNode(lt.ElementType, namedType));
         }
 
@@ -457,6 +650,15 @@ public static class TypeExtensions
             TypeResources.TypeExtensions_KindIsNotSupported);
     }
 
+    public static ITypeNode RenameName(this ITypeNode typeNode, string name)
+        => typeNode switch
+        {
+            NonNullTypeNode nonNull => new NonNullTypeNode((INullableTypeNode)RenameName(nonNull.Type, name)),
+            ListTypeNode list => new ListTypeNode(RenameName(list.Type, name)),
+            NamedTypeNode named => named.WithName(named.Name.WithValue(name)),
+            _ => throw new NotSupportedException(TypeResources.TypeExtensions_KindIsNotSupported)
+        };
+
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
     {
         while (true)
@@ -479,14 +681,14 @@ public static class TypeExtensions
             switch (type.Kind)
             {
                 case TypeKind.NonNull:
-                    type = (IInputType)((NonNullType)type).Type;
+                    type = (IInputType) ((NonNullType) type).Type;
                     continue;
 
                 case TypeKind.List:
                 {
                     if (literal.Kind is SyntaxKind.ListValue)
                     {
-                        var list = (ListValueNode)literal;
+                        var list = (ListValueNode) literal;
 
                         if (list.Items.Count == 0)
                         {
@@ -496,7 +698,7 @@ public static class TypeExtensions
                         literal = list.Items[0];
                     }
 
-                    type = (IInputType)((ListType)type).ElementType;
+                    type = (IInputType) ((ListType) type).ElementType;
                     continue;
                 }
 
@@ -504,7 +706,7 @@ public static class TypeExtensions
                     return literal.Kind == SyntaxKind.ObjectValue;
 
                 default:
-                    return ((ILeafType)type).IsInstanceOfType(literal);
+                    return ((ILeafType) type).IsInstanceOfType(literal);
             }
         }
     }
@@ -540,7 +742,7 @@ public static class TypeExtensions
                 // we optimized this case to not allocate memory in the case that the type is
                 // already non-null and the inner type is either a named type or if the
                 // inner nullability modifier is null.
-                IType innerType = type.InnerType();
+                var innerType = type.InnerType();
                 return nullability.Element is null || innerType.IsNamedType()
                     // if the type is not a list type or if the nullability has no inner part
                     // we do not recursively rewrite.
@@ -561,4 +763,9 @@ public static class TypeExtensions
                 throw RewriteNullability_InvalidNullabilityStructure();
         }
     }
+    
+    public static IType RewriteToNullableType(this IType type)
+        => type.Kind is TypeKind.NonNull
+            ? type.InnerType()
+            : type;
 }

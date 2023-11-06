@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -17,12 +16,21 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
 {
     private Type _runtimeType = default!;
 
+    /// <summary>
+    /// Initializes a new <see cref="Argument"/>.
+    /// </summary>
+    /// <param name="definition">
+    /// The argument definition.
+    /// </param>
+    /// <param name="index">
+    /// The position of this argument within its field collection.
+    /// </param>
     public Argument(ArgumentDefinition definition, int index)
         : base(definition, index)
     {
         DefaultValue = definition.DefaultValue;
 
-        IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
+        var formatters = definition.GetFormatters();
 
         if (formatters.Count == 0)
         {
@@ -93,7 +101,7 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
 
         base.OnCompleteField(context, declaringMember, definition);
 
-        Type = context.GetType<IInputType>(definition.Type!);
+        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.RuntimeType ?? definition.Parameter?.ParameterType!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);

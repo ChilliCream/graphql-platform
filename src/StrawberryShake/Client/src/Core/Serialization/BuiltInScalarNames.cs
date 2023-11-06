@@ -14,6 +14,7 @@ public static class BuiltInScalarNames
     public const string Float = nameof(Float);
     public const string Decimal = nameof(Decimal);
     public const string Url = nameof(Url);
+    public const string Upload = nameof(Upload);
     public const string UUID = nameof(UUID);
     public const string Byte = nameof(Byte);
     public const string ByteArray = nameof(ByteArray);

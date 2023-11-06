@@ -17,13 +17,14 @@ public class EnumGenerator : CodeGenerator<EnumTypeDescriptor>
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        EnumBuilder enumBuilder = EnumBuilder
+        var enumBuilder = EnumBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetComment(descriptor.Documentation)
             .SetName(descriptor.RuntimeType.Name)
             .SetUnderlyingType(descriptor.UnderlyingType);
 
-        foreach (EnumValueDescriptor element in descriptor.Values)
+        foreach (var element in descriptor.Values)
         {
             enumBuilder.AddElement(element.RuntimeValue, element.Value, element.Documentation);
         }

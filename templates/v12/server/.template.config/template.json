@@ -4,7 +4,7 @@
   "classifications": ["Web", "GraphQL"],
   "identity": "HotChocolate.Template.Server",
   "sourceName": "HotChocolate.Template.Server",
-  "name": "HotChocolate GraphQL Server",
+  "name": "GraphQL Server",
   "shortName": "graphql",
   "defaultName": "GraphQL",
   "description": "",
@@ -22,6 +22,10 @@
         {
           "choice": "net6.0",
           "description": "Target .NET 6"
+        },
+        {
+          "choice": "net7.0",
+          "description": "Target .NET 7"
         }
       ],
       "replaces": "net6.0",

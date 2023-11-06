@@ -16,7 +16,7 @@ public partial class CachePolicy
 
         return new(storeAccessor.OperationStore.Watch().Subscribe(result =>
         {
-            DateTime time = DateTime.UtcNow;
+            var time = DateTime.UtcNow;
 
             if (!cleaning && time - lastClean >= timeToLive)
             {
@@ -58,7 +58,7 @@ public partial class CachePolicy
         {
             if (result.Kind == OperationUpdateKind.Updated)
             {
-                foreach (StoredOperationVersion operationVersion in result.OperationVersions)
+                foreach (var operationVersion in result.OperationVersions)
                 {
                     if (operationVersion.Subscribers == 0)
                     {

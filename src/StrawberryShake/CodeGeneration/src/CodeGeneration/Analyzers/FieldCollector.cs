@@ -45,24 +45,24 @@ internal sealed class FieldCollector
             throw new ArgumentNullException(nameof(path));
         }
 
-        if (!_cache.TryGetValue(type, out SelectionCache? cache))
+        if (!_cache.TryGetValue(type, out var cache))
         {
             cache = new SelectionCache();
             _cache.Add(type, cache);
         }
 
-        if (!cache.TryGetValue(selectionSetSyntax, out SelectionSetVariants? variants))
+        if (!cache.TryGetValue(selectionSetSyntax, out var variants))
         {
-            SelectionSet returnType = CollectFieldsInternal(selectionSetSyntax, type, path);
+            var returnType = CollectFieldsInternal(selectionSetSyntax, type, path);
 
             if (type.IsAbstractType())
             {
                 var list = new List<SelectionSet>();
                 var singleModelShape = true;
 
-                foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
+                foreach (var objectType in _schema.GetPossibleTypes(type))
                 {
-                    SelectionSet objectSelection = CollectFieldsInternal(
+                    var objectSelection = CollectFieldsInternal(
                         selectionSetSyntax,
                         objectType,
                         path);
@@ -112,7 +112,7 @@ internal sealed class FieldCollector
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
     {
-        foreach (ISelectionNode selectionSyntax in selectionSetSyntax.Selections)
+        foreach (var selectionSyntax in selectionSetSyntax.Selections)
         {
             ResolveFields(
                 selectionSyntax,
@@ -165,8 +165,8 @@ internal sealed class FieldCollector
         Path path,
         IDictionary<string, FieldSelection> fields)
     {
-        NameString fieldName = fieldSyntax.Name.Value;
-        NameString responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
+        var fieldName = fieldSyntax.Name.Value;
+        var responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
         IOutputField? field = null;
 
         if ((type is IComplexOutputType ct && ct.Fields.TryGetField(fieldName, out field)) ||
@@ -174,14 +174,14 @@ internal sealed class FieldCollector
         {
             field ??= TypeNameField.Default;
 
-            if (fields.TryGetValue(responseName, out FieldSelection? fieldSelection))
+            if (fields.TryGetValue(responseName, out var fieldSelection))
             {
                 if (fieldSelection.IsConditional && !IsConditional(fieldSyntax))
                 {
                     fieldSelection = new FieldSelection(
                         field,
                         fieldSyntax,
-                        PathFactory.Instance.Append(path, responseName));
+                        path.Append(responseName));
                     fields[responseName] = fieldSelection;
                 }
             }
@@ -190,7 +190,7 @@ internal sealed class FieldCollector
                 fieldSelection = new FieldSelection(
                     field,
                     fieldSyntax,
-                    PathFactory.Instance.Append(path, responseName),
+                    path.Append(responseName),
                     IsConditional(fieldSyntax));
                 fields.Add(responseName, fieldSelection);
             }
@@ -214,7 +214,7 @@ internal sealed class FieldCollector
     {
         var fragmentName = fragmentSpreadSyntax.Name.Value;
 
-        if (!_fragments.TryGetValue(fragmentName, out Fragment? fragment))
+        if (!_fragments.TryGetValue(fragmentName, out var fragment))
         {
             fragment = CreateFragment(fragmentName);
             _fragments.Add(fragmentName, fragment);
@@ -222,7 +222,7 @@ internal sealed class FieldCollector
 
         if (DoesTypeApply(fragment.TypeCondition, type))
         {
-            var deferDirective = fragmentSpreadSyntax.Directives.GetDeferDirective();
+            var deferDirective = fragmentSpreadSyntax.Directives.GetDeferDirectiveNode();
             var nodes = new List<FragmentNode>();
             var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
             fragmentNodes.Add(fragmentNode);
@@ -243,11 +243,11 @@ internal sealed class FieldCollector
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
     {
-        Fragment fragment = GetOrCreateInlineFragment(inlineFragmentSyntax, type);
+        var fragment = GetOrCreateInlineFragment(inlineFragmentSyntax, type);
 
         if (DoesTypeApply(fragment.TypeCondition, type))
         {
-            var deferDirective = inlineFragmentSyntax.Directives.GetDeferDirective();
+            var deferDirective = inlineFragmentSyntax.Directives.GetDeferDirectiveNode();
             var nodes = new List<FragmentNode>();
             var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
             fragmentNodes.Add(fragmentNode);
@@ -263,7 +263,7 @@ internal sealed class FieldCollector
 
     private Fragment CreateFragment(string fragmentName)
     {
-        FragmentDefinitionNode? fragmentDefinitionSyntax =
+        var fragmentDefinitionSyntax =
             _document.Definitions
                 .OfType<FragmentDefinitionNode>()
                 .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(fragmentName));
@@ -272,7 +272,7 @@ internal sealed class FieldCollector
         {
             if (_schema.TryGetType<INamedType>(
                     fragmentDefinitionSyntax.TypeCondition.Name.Value,
-                    out INamedType? type))
+                    out var type))
             {
                 return new Fragment(
                     fragmentName,
@@ -293,7 +293,7 @@ internal sealed class FieldCollector
     {
         var fragmentName = CreateInlineFragmentName(inlineFragmentSyntax);
 
-        if (!_fragments.TryGetValue(fragmentName, out Fragment? fragment))
+        if (!_fragments.TryGetValue(fragmentName, out var fragment))
         {
             fragment = CreateFragment(inlineFragmentSyntax, parentType);
             _fragments[fragmentName] = fragment;
@@ -306,7 +306,7 @@ internal sealed class FieldCollector
         InlineFragmentNode inlineFragmentSyntax,
         INamedOutputType parentType)
     {
-        INamedType type = inlineFragmentSyntax.TypeCondition is null
+        var type = inlineFragmentSyntax.TypeCondition is null
             ? parentType
             : _schema.GetType<INamedType>(inlineFragmentSyntax.TypeCondition.Name.Value);
 
@@ -337,7 +337,8 @@ internal sealed class FieldCollector
             Arguments = FieldCollection<IInputField>.Empty;
         }
 
-        public NameString Name { get; }
+        public string Name { get; }
+
         public string? Description => null;
 
         public IDirectiveCollection Directives => throw new NotImplementedException();

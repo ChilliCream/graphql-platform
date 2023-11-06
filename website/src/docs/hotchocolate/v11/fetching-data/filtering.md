@@ -2,8 +2,6 @@
 title: Filtering
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 With Hot Chocolate filters, you can expose complex filter objects through your GraphQL API that translates to native database queries. The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
 Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
 Filters use `IQueryable` (`IEnumerable`) by default, but you can also easily customize them to use other interfaces.
@@ -42,11 +40,9 @@ input StringOperationFilterInput {
 
 # Getting started
 
-Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
+Filtering is part of the `HotChocolate.Data` package.
 
-```bash
-dotnet add package HotChocolate.Data
-```
+<PackageInstallation packageName="HotChocolate.Data" />
 
 To use filtering you need to register it on the schema:
 
@@ -226,7 +222,7 @@ query {
 }
 ```
 
-**⚠️ `or` does not work when you use it like this: **
+**⚠️ `or` does not work when you use it like this:**
 
 ```graphql
 query {
@@ -591,7 +587,7 @@ If you want to change the behavior filtering globally, you want to create a conv
 
 To use a filter convention you can extend `FilterConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
 You then have to register your custom convention on the schema builder with `AddConvention`.
-By default a new convention is empty. To add the default behaviour you have to add `AddDefaults`.
+By default a new convention is empty. To add the default behavior you have to add `AddDefaults`.
 
 ```csharp
 public class CustomConvention : FilterConvention
@@ -610,7 +606,7 @@ services.AddGraphQLServer()
         x.AddDefaults()))
 ```
 
-Often you just want to extend the default behaviour of filtering. If this is the case, you can also use `FilterConventionExtension`
+Often you just want to extend the default behavior of filtering. If this is the case, you can also use `FilterConventionExtension`
 
 ```csharp
 public class CustomConventionExtension : FilterConventionExtension

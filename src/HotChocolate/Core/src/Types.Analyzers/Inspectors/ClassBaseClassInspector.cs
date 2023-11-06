@@ -11,11 +11,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
     {
-        if (context.Node is ClassDeclarationSyntax
-            {
-                BaseList.Types.Count: > 0,
-                TypeParameterList: null
-            } possibleType)
+        if (context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0, TypeParameterList: null } possibleType)
         {
             var model = context.SemanticModel.GetDeclaredSymbol(possibleType);
             if (model is { IsAbstract: false } type)
@@ -45,7 +41,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
 
                     if (WellKnownTypes.TypeExtensionClass.Contains(displayString))
                     {
-                        syntaxInfo = new TypeExtensionInfo(typeDisplayString);
+                        syntaxInfo = new TypeExtensionInfo(typeDisplayString, false);
                         return true;
                     }
 
@@ -60,7 +56,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
 
                     if (displayString.Equals(WellKnownTypes.DataLoader, StringComparison.Ordinal))
                     {
-                        syntaxInfo =  new DataLoaderInfo(typeDisplayString);
+                        syntaxInfo =  new RegisterDataLoaderInfo(typeDisplayString);
                         return true;
                     }
 

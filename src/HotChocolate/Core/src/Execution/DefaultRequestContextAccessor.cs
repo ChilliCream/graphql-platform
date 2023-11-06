@@ -28,7 +28,7 @@ internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
         }
     }
 
-    private sealed class RequestContextHolder
+    private class RequestContextHolder
     {
         public IRequestContext Context = default!;
     }

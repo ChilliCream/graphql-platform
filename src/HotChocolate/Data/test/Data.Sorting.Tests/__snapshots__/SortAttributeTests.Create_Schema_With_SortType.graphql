@@ -1,0 +1,26 @@
+schema {
+  query: Query1
+}
+
+type Foo {
+  bar: String!
+  baz: Int!
+  qux: Int
+}
+
+type Query1 {
+  foos(order: [FooSortInput!]): [Foo!]!
+}
+
+input FooSortInput {
+  bar: SortEnumType
+  baz: SortEnumType
+  qux: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

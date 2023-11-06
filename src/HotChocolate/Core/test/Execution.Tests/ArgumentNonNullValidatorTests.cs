@@ -1,19 +1,17 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class ArgumentNonNullValidatorTests
 {
-    public class ArgumentNonNullValidatorTests
+    [Fact]
+    public void Validate_Input_With_Non_Null_Props_That_Have_No_Value_But_A_DefaultValue()
     {
-        [Fact]
-        public void Validate_Input_With_Non_Null_Props_That_Have_No_Value_But_A_DefaultValue()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(@"
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(@"
                     type Query {
                         test(bar: Bar): String
                     }
@@ -22,27 +20,27 @@ namespace HotChocolate.Execution
                         a: String! = ""bar""
                     }
                 ")
-                .Use(next => context => default)
-                .Create();
+            .Use(_ => _ => default)
+            .Create();
 
-            IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
+        IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
 
-            // act
-            ArgumentNonNullValidator.ValidationResult report =
-                ArgumentNonNullValidator.Validate(
-                    field,
-                    new ObjectValueNode(), PathFactory.Instance.New("root"));
+        // act
+        var report =
+            ArgumentNonNullValidator.Validate(
+                field,
+                new ObjectValueNode(), Path.Root.Append("root"));
 
-            // assert
-            Assert.False(report.HasErrors);
-        }
+        // assert
+        Assert.False(report.HasErrors);
+    }
 
-        [Fact]
-        public void Validate_Input_With_Non_Null_Props_That_Have_No_Value_And_No_DefaultValue()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(@"
+    [Fact]
+    public void Validate_Input_With_Non_Null_Props_That_Have_No_Value_And_No_DefaultValue()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(@"
                     type Query {
                         test(bar: Bar): String
                     }
@@ -51,19 +49,18 @@ namespace HotChocolate.Execution
                         a: String!
                     }
                 ")
-                .Use(next => context => default(ValueTask))
-                .Create();
+            .Use(_ => _ => default)
+            .Create();
 
-            IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
+        IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
 
-            // act
-            var report = ArgumentNonNullValidator.Validate(
-                field,
-                new ObjectValueNode(), PathFactory.Instance.New("root"));
+        // act
+        var report = ArgumentNonNullValidator.Validate(
+            field,
+            new ObjectValueNode(), Path.Root.Append("root"));
 
-            // assert
-            Assert.True(report.HasErrors);
-            Assert.Equal("/root/a", report.Path.ToString());
-        }
+        // assert
+        Assert.True(report.HasErrors);
+        Assert.Equal("/root/a", report.Path.ToString());
     }
 }

@@ -1,0 +1,239 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input DimensionOperationFilterInput {
+  eq: Dimension
+  neq: Dimension
+  in: [Dimension!]
+  nin: [Dimension!]
+}
+
+input FloatOperationFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float]
+  nin: [Float]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input GeometryContainsOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input GeometryDistanceOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input GeometryFilterInput {
+  and: [GeometryFilterInput!]
+  or: [GeometryFilterInput!]
+  area: FloatOperationFilterInput
+  boundary: GeometryFilterInput
+  centroid: PointFilterInput
+  dimension: DimensionOperationFilterInput
+  envelope: GeometryFilterInput
+  geometryType: StringOperationFilterInput
+  interiorPoint: PointFilterInput
+  isSimple: BooleanOperationFilterInput
+  isValid: BooleanOperationFilterInput
+  length: FloatOperationFilterInput
+  numPoints: IntOperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
+  pointOnSurface: PointFilterInput
+  srid: IntOperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
+}
+
+input GeometryIntersectsOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input GeometryOverlapsOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input GeometryTouchesOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input GeometryWithinOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input IntOperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input OgcGeometryTypeOperationFilterInput {
+  eq: OgcGeometryType
+  neq: OgcGeometryType
+  in: [OgcGeometryType!]
+  nin: [OgcGeometryType!]
+}
+
+input PointFilterInput {
+  and: [PointFilterInput!]
+  or: [PointFilterInput!]
+  m: FloatOperationFilterInput
+  x: FloatOperationFilterInput
+  y: FloatOperationFilterInput
+  z: FloatOperationFilterInput
+  area: FloatOperationFilterInput
+  boundary: GeometryFilterInput
+  centroid: PointFilterInput
+  dimension: DimensionOperationFilterInput
+  envelope: GeometryFilterInput
+  geometryType: StringOperationFilterInput
+  interiorPoint: PointFilterInput
+  isSimple: BooleanOperationFilterInput
+  isValid: BooleanOperationFilterInput
+  length: FloatOperationFilterInput
+  numPoints: IntOperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
+  pointOnSurface: PointFilterInput
+  srid: IntOperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
+}
+
+input PolygonFilterInput {
+  and: [PolygonFilterInput!]
+  or: [PolygonFilterInput!]
+  area: FloatOperationFilterInput
+  boundary: GeometryFilterInput
+  centroid: PointFilterInput
+  dimension: DimensionOperationFilterInput
+  envelope: GeometryFilterInput
+  geometryType: StringOperationFilterInput
+  interiorPoint: PointFilterInput
+  isSimple: BooleanOperationFilterInput
+  isValid: BooleanOperationFilterInput
+  length: FloatOperationFilterInput
+  numPoints: IntOperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
+  pointOnSurface: PointFilterInput
+  srid: IntOperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+enum Dimension {
+  POINT
+  CURVE
+  SURFACE
+  DONTCARE
+  TRUE
+  FALSE
+}
+
+enum OgcGeometryType {
+  POINT
+  LINE_STRING
+  POLYGON
+  MULTI_POINT
+  MULTI_LINE_STRING
+  MULTI_POLYGON
+  GEOMETRY_COLLECTION
+  CIRCULAR_STRING
+  COMPOUND_CURVE
+  CURVE_POLYGON
+  MULTI_CURVE
+  MULTI_SURFACE
+  CURVE
+  SURFACE
+  POLYHEDRAL_SURFACE
+  TIN
+}
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+scalar Geometry

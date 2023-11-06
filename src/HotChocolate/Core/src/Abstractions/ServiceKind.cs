@@ -16,7 +16,7 @@ public enum ServiceKind
     Default,
 
     /// <summary>
-    /// The service will will be retrieved from the <see cref="IServiceProvider" />
+    /// The service will be retrieved from the <see cref="IServiceProvider" />
     /// but can only accessed by a single resolver at a time.
     /// Example for such service is for instance the Entity
     /// Framework DbContext when scoped on the request.

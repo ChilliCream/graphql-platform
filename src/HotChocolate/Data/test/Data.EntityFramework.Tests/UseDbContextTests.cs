@@ -1,11 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -27,24 +26,24 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync("{ authors { name } }");
+        var result = await executor.ExecuteAsync("{ authors { name } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -63,24 +62,24 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync("{ authors { name } }");
+        var result = await executor.ExecuteAsync("{ authors { name } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -99,24 +98,24 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync("{ authors { name } }");
+        var result = await executor.ExecuteAsync("{ authors { name } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -135,14 +134,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -150,7 +149,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorOffsetPaging {
                         items {
@@ -165,7 +164,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -184,14 +183,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -199,7 +198,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorOffsetPaging {
                         items {
@@ -214,7 +213,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -233,14 +232,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -248,7 +247,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     queryableExtensionsOffset {
                         items {
@@ -263,7 +262,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -282,14 +281,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -297,7 +296,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorOffsetPaging {
                         items {
@@ -312,7 +311,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -331,14 +330,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -346,7 +345,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorOffsetPaging {
                         items {
@@ -360,7 +359,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -379,14 +378,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -394,7 +393,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorOffsetPaging {
                         items {
@@ -408,7 +407,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -427,14 +426,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -442,7 +441,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorOffsetPaging {
                         items {
@@ -456,7 +455,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -475,24 +474,24 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync("{ author { name } }");
+        var result = await executor.ExecuteAsync("{ author { name } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -512,7 +511,7 @@ public class UseDbContextTests
                 .BuildSchemaAsync();
 
         // assert
-        SchemaException exception = await Assert.ThrowsAsync<SchemaException>(CreateSchema);
+        var exception = await Assert.ThrowsAsync<SchemaException>(CreateSchema);
         exception.Errors.First().Message.MatchSnapshot();
     }
 
@@ -521,7 +520,7 @@ public class UseDbContextTests
     {
         // arrange
         // act
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddPooledDbContextFactory<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
@@ -541,7 +540,7 @@ public class UseDbContextTests
     {
         // arrange
         // act
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddPooledDbContextFactory<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
@@ -561,7 +560,7 @@ public class UseDbContextTests
     {
         // arrange
         // act
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddPooledDbContextFactory<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
@@ -580,7 +579,7 @@ public class UseDbContextTests
     public async Task DbContext_ResolverExtension()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddPooledDbContextFactory<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
@@ -589,7 +588,7 @@ public class UseDbContextTests
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     books {
                         id
@@ -597,14 +596,14 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task DbContext_ResolverExtension_Missing_DbContext()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddPooledDbContextFactory<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
@@ -614,7 +613,7 @@ public class UseDbContextTests
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     booksWithMissingContext {
                         id
@@ -622,7 +621,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -641,14 +640,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -656,7 +655,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorCursorPaging {
                         nodes {
@@ -671,7 +670,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -690,14 +689,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -705,7 +704,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorCursorPaging {
                         nodes {
@@ -720,7 +719,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -739,14 +738,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -754,7 +753,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     queryableExtensionsCursor {
                         nodes {
@@ -769,7 +768,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -788,14 +787,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -803,7 +802,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorCursorPaging {
                         nodes {
@@ -818,7 +817,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -837,14 +836,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -852,7 +851,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorCursorPaging {
                         nodes {
@@ -866,7 +865,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -885,14 +884,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -900,7 +899,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorCursorPaging {
                         nodes {
@@ -914,7 +913,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -933,14 +932,14 @@ public class UseDbContextTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutor executor =
+        var executor =
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        IDbContextFactory<BookContext> contextFactory =
+        var contextFactory =
             services.GetRequiredService<IDbContextFactory<BookContext>>();
 
-        await using (BookContext context = contextFactory.CreateDbContext())
+        await using (var context = await contextFactory.CreateDbContextAsync())
         {
             await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.Authors.AddAsync(new Author { Name = "bar" });
@@ -948,7 +947,7 @@ public class UseDbContextTests
         }
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorCursorPaging {
                         nodes {
@@ -962,7 +961,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     private static string CreateConnectionString() =>

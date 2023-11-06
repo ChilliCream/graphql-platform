@@ -40,7 +40,7 @@ public partial class JsonResultBuilderGenerator
         if (namedTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
         {
             // If the type is an interface
-            foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
+            foreach (var concreteType in interfaceTypeDescriptor.ImplementedBy)
             {
                 methodBuilder
                     .AddEmptyLine()
@@ -70,7 +70,7 @@ public partial class JsonResultBuilderGenerator
     private IfBuilder CreateUpdateEntityStatement(
         ObjectTypeDescriptor concreteType)
     {
-        IfBuilder ifStatement = IfBuilder
+        var ifStatement = IfBuilder
             .New()
             .SetCondition(
                 MethodCallBuilder
@@ -79,11 +79,11 @@ public partial class JsonResultBuilderGenerator
                     .AddArgument(concreteType.Name.AsStringToken())
                     .AddArgument(TypeNames.OrdinalStringComparison));
 
-        RuntimeTypeInfo entityTypeName = CreateEntityType(
+        var entityTypeName = CreateEntityType(
             concreteType.Name,
             concreteType.RuntimeType.NamespaceWithoutGlobal);
 
-        IfBuilder ifBuilder = BuildTryGetEntityIf(entityTypeName)
+        var ifBuilder = BuildTryGetEntityIf(entityTypeName)
             .AddCode(CreateEntityConstructorCall(concreteType, false))
             .AddElse(CreateEntityConstructorCall(concreteType, true));
 
@@ -100,9 +100,9 @@ public partial class JsonResultBuilderGenerator
         var fragments = objectType.Deferred.ToDictionary(t => t.FragmentIndicator);
 
         // include properties from fragments
-        foreach (DeferredFragmentDescriptor fragment in fragments.Values)
+        foreach (var fragment in fragments.Values)
         {
-            foreach (PropertyDescriptor property in fragment.Class.Properties)
+            foreach (var property in fragment.Class.Properties)
             {
                 if (!propertyLookup.ContainsKey(property.Name))
                 {
@@ -111,19 +111,19 @@ public partial class JsonResultBuilderGenerator
             }
         }
 
-        MethodCallBuilder newEntity = MethodCallBuilder
+        var newEntity = MethodCallBuilder
             .Inline()
             .SetNew()
             .SetMethodName(objectType.EntityTypeDescriptor.RuntimeType.ToString());
 
-        foreach (PropertyDescriptor property in
+        foreach (var property in
             objectType.EntityTypeDescriptor.Properties.Values)
         {
-            if (propertyLookup.TryGetValue(property.Name, out PropertyDescriptor? prop))
+            if (propertyLookup.TryGetValue(property.Name, out var prop))
             {
                 newEntity.AddArgument(BuildUpdateMethodCall(prop));
             }
-            else if (fragments.TryGetValue(property.Name, out DeferredFragmentDescriptor? frag))
+            else if (fragments.TryGetValue(property.Name, out var frag))
             {
                 newEntity.AddArgument(BuildFragmentMethodCall(frag));
             }

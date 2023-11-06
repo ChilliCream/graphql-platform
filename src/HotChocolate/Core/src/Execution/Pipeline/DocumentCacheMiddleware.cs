@@ -31,13 +31,13 @@ internal sealed class DocumentCacheMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        IQueryRequest request = context.Request;
+        var request = context.Request;
         var addToCache = true;
 
         if (context.Document is null)
         {
             if (request.QueryId != null &&
-                _documentCache.TryGetDocument(request.QueryId, out DocumentNode document))
+                _documentCache.TryGetDocument(request.QueryId, out var document))
             {
                 context.DocumentId = request.QueryId;
                 context.Document = document;

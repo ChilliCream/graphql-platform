@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 using static HotChocolate.Data.Projections.ProjectionVisitorTestBase;
 
 namespace HotChocolate.Data.Projections;
@@ -13,35 +12,35 @@ public class QueryableProjectionUnionTypeTests
 {
     private static readonly AbstractType[] _barEntities =
     {
-            new Bar { Name = "Bar", BarProp = "BarProp" },
-            new Foo { Name = "Foo", FooProp = "FooProp" }
-        };
+        new Bar { Name = "Bar", BarProp = "BarProp" },
+        new Foo { Name = "Foo", FooProp = "FooProp" }
+    };
 
     private static readonly NestedObject[] _barNestedEntities =
     {
-            new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
-            new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
-        };
+        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
+        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
+    };
 
     private static readonly NestedList[] _barListEntities =
     {
-            new()
+        new()
+        {
+            List = new()
             {
-                List = new()
-                {
-                    new Foo { Name = "Foo", FooProp = "FooProp" },
-                    new Bar { Name = "Bar", BarProp = "BarProp" }
-                }
-            },
-            new()
+                new Foo { Name = "Foo", FooProp = "FooProp" },
+                new Bar { Name = "Bar", BarProp = "BarProp" }
+            }
+        },
+        new()
+        {
+            List = new()
             {
-                List = new()
-                {
-                    new Bar { Name = "Bar", BarProp = "BarProp" },
-                    new Foo { Name = "Foo", FooProp = "FooProp" }
-                }
-            },
-        };
+                new Bar { Name = "Bar", BarProp = "BarProp" },
+                new Foo { Name = "Foo", FooProp = "FooProp" }
+            }
+        },
+    };
 
     private readonly SchemaCache _cache = new SchemaCache();
 
@@ -49,12 +48,11 @@ public class QueryableProjectionUnionTypeTests
     public async Task Create_Union()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -70,14 +68,18 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_Union_Pagination()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             _cache.CreateSchema(_barEntities,
                 OnModelCreating,
                 configure: x =>
@@ -96,8 +98,7 @@ public class QueryableProjectionUnionTypeTests
                 });
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -115,19 +116,22 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_Union_Nested()
     {
         // arrange
-        IRequestExecutor tester = _cache
+        var tester = _cache
             .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -145,19 +149,22 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_Union_NestedList()
     {
         // arrange
-        IRequestExecutor tester = _cache
+        var tester = _cache
             .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -175,19 +182,22 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_Union_Without_Missing()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -200,9 +210,12 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1)
+            .MatchAsync();
     }
-
 
     private static void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -60,7 +60,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(node);
 
         // act
-        ISyntaxNode popped = navigator.Pop();
+        var popped = navigator.Pop();
 
         // assert
         Assert.Same(node, popped);
@@ -79,7 +79,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(two);
 
         // assert
-        ISyntaxNode popped = navigator.Pop();
+        var popped = navigator.Pop();
         Assert.Same(two, popped);
 
         popped = navigator.Pop();
@@ -99,51 +99,6 @@ public class DefaultSyntaxNavigatorTests
     }
 
     [Fact]
-    public void Parent_With_One()
-    {
-        // arrange
-        var node = new NameNode("abc");
-        var navigator = new DefaultSyntaxNavigator();
-        navigator.Push(node);
-
-        // act
-        ISyntaxNode? parent = navigator.Parent;
-
-        // assert
-        Assert.Same(node, parent);
-    }
-
-    [Fact]
-    public void Parent_With_Two()
-    {
-        // arrange
-        var one = new NameNode("abc");
-        var two = new NameNode("def");
-        var navigator = new DefaultSyntaxNavigator();
-        navigator.Push(one);
-        navigator.Push(two);
-
-        // act
-        ISyntaxNode? parent = navigator.Parent;
-
-        // assert
-        Assert.Same(two, parent);
-    }
-
-    [Fact]
-    public void Parent_With_Empty()
-    {
-        // arrange
-        var navigator = new DefaultSyntaxNavigator();
-
-        // act
-        ISyntaxNode? parent = navigator.Parent;
-
-        // assert
-        Assert.Null(parent);
-    }
-
-    [Fact]
     public void Peek()
     {
         // arrange
@@ -152,7 +107,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(node);
 
         // act
-        ISyntaxNode peeked = navigator.Peek();
+        var peeked = navigator.Peek();
 
         // assert
         Assert.Same(node, peeked);
@@ -169,7 +124,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(two);
 
         // act
-        ISyntaxNode peeked = navigator.Peek();
+        var peeked = navigator.Peek();
 
         // assert
         Assert.Same(two, peeked);
@@ -201,7 +156,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(three);
 
         // act
-        ISyntaxNode peeked = navigator.Peek(0);
+        var peeked = navigator.Peek(0);
 
         // assert
         Assert.Same(three, peeked);
@@ -220,7 +175,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(three);
 
         // act
-        ISyntaxNode peeked = navigator.Peek(1);
+        var peeked = navigator.Peek(1);
 
         // assert
         Assert.Same(two, peeked);
@@ -239,7 +194,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(three);
 
         // act
-        ISyntaxNode peeked = navigator.Peek(2);
+        var peeked = navigator.Peek(2);
 
         // assert
         Assert.Same(one, peeked);
@@ -290,7 +245,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(two);
 
         // act
-        NamedTypeNode? ancestor = navigator.GetAncestor<NamedTypeNode>();
+        var ancestor = navigator.GetAncestor<NamedTypeNode>();
 
         // assert
         Assert.Equal(one, ancestor);
@@ -307,7 +262,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(two);
 
         // act
-        ObjectTypeDefinitionNode? ancestor = navigator.GetAncestor<ObjectTypeDefinitionNode>();
+        var ancestor = navigator.GetAncestor<ObjectTypeDefinitionNode>();
 
         // assert
         Assert.Null(ancestor);
@@ -328,7 +283,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(four);
 
         // act
-        IEnumerable<NamedTypeNode> ancestors = navigator.GetAncestors<NamedTypeNode>();
+        var ancestors = navigator.GetAncestors<NamedTypeNode>();
 
         // assert
         Assert.Collection(
@@ -357,9 +312,9 @@ public class DefaultSyntaxNavigatorTests
         var three = new NamedTypeNode(new NameNode("ghi"));
         var four = new NameNode("jkl");
 
-        DirectiveDefinitionNode directive =
+        var directive =
             ParseDirectiveDefinition("directive @foo(arg: String!) on FIELD_DEFINITION");
-        InputValueDefinitionNode argument = directive.Arguments.First();
+        var argument = directive.Arguments.First();
 
         var navigator = new DefaultSyntaxNavigator();
         navigator.Push(one);
@@ -370,7 +325,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(four);
 
         // act
-        SchemaCoordinateNode coordinate = navigator.CreateCoordinate();
+        var coordinate = navigator.CreateCoordinate();
 
         // assert
         Assert.Equal("@foo(arg:)", coordinate.ToString());
@@ -385,10 +340,10 @@ public class DefaultSyntaxNavigatorTests
         var three = new NamedTypeNode(new NameNode("ghi"));
         var four = new NameNode("jkl");
 
-        ObjectTypeDefinitionNode type = ParseObjectTypeDefinition(
+        var type = ParseObjectTypeDefinition(
             "type Foo { bar(baz: String): Int }");
-        FieldDefinitionNode field = type.Fields[0];
-        InputValueDefinitionNode argument = field.Arguments[0];
+        var field = type.Fields[0];
+        var argument = field.Arguments[0];
 
         var navigator = new DefaultSyntaxNavigator();
         navigator.Push(one);
@@ -400,7 +355,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(four);
 
         // act
-        SchemaCoordinateNode coordinate = navigator.CreateCoordinate();
+        var coordinate = navigator.CreateCoordinate();
 
         // assert
         Assert.Equal("Foo.bar(baz:)", coordinate.ToString());
@@ -414,9 +369,9 @@ public class DefaultSyntaxNavigatorTests
         var two = new NameNode("def");
         var three = new NamedTypeNode(new NameNode("ghi"));
 
-        ObjectTypeDefinitionNode type = ParseObjectTypeDefinition(
+        var type = ParseObjectTypeDefinition(
             "type Foo { bar(baz: String): Int }");
-        FieldDefinitionNode field = type.Fields[0];
+        var field = type.Fields[0];
 
         var navigator = new DefaultSyntaxNavigator();
         navigator.Push(one);
@@ -426,7 +381,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(three);
 
         // act
-        SchemaCoordinateNode coordinate = navigator.CreateCoordinate();
+        var coordinate = navigator.CreateCoordinate();
 
         // assert
         Assert.Equal("Foo.bar", coordinate.ToString());
@@ -439,7 +394,7 @@ public class DefaultSyntaxNavigatorTests
         var one = new NamedTypeNode(new NameNode("abc"));
         var two = new NameNode("def");
 
-        ObjectTypeDefinitionNode type = ParseObjectTypeDefinition(
+        var type = ParseObjectTypeDefinition(
             "type Foo { bar(baz: String): Int }");
 
         var navigator = new DefaultSyntaxNavigator();
@@ -448,7 +403,7 @@ public class DefaultSyntaxNavigatorTests
         navigator.Push(two);
 
         // act
-        SchemaCoordinateNode coordinate = navigator.CreateCoordinate();
+        var coordinate = navigator.CreateCoordinate();
 
         // assert
         Assert.Equal("Foo", coordinate.ToString());
