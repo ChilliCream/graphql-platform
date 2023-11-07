@@ -44,6 +44,11 @@ public sealed class PostgresSubscriptionOptions
     public int MaxSendQueueSize { get; set; } = 2048;
 
     /// <summary>
+    /// The maximum serialized size of a message that can be sent using postgres notify.
+    /// </summary>
+    public int MaxMessagePayloadSize { get; set; } = 8000;
+
+    /// <summary>
     /// The subscription options that are used to configure the subscriptions.
     /// </summary>
     public SubscriptionOptions SubscriptionOptions { get; set; } = new();

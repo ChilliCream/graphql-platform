@@ -37,7 +37,7 @@ public class PostgresChannelWriterTests
         // Arrange
         var postgresChannelWriter = new PostgresChannelWriter(_events, _options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
-        var message = new PostgresMessageEnvelope("test", "test");
+        var message = new PostgresMessageEnvelope("test", "test", _options.MaxMessagePayloadSize);
         var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
 
         // Act
@@ -55,7 +55,7 @@ public class PostgresChannelWriterTests
         // Arrange
         var postgresChannelWriter = new PostgresChannelWriter(_events, _options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
-        var message = new PostgresMessageEnvelope("test", "test");
+        var message = new PostgresMessageEnvelope("test", "test", _options.MaxMessagePayloadSize);
         var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
 
         // Act
