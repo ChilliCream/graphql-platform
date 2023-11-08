@@ -34,7 +34,8 @@ internal sealed class PostgresPubSub : DefaultPubSub
     {
         var serialized = _serializer.Serialize(message);
 
-        var envelope = PostgresMessageEnvelope.Create(formattedTopic, serialized, _maxMessagePayloadSize);
+        var envelope = PostgresMessageEnvelope
+            .Create(formattedTopic, serialized, _maxMessagePayloadSize);
 
         await _channel.SendAsync(envelope, cancellationToken);
     }
@@ -42,7 +43,9 @@ internal sealed class PostgresPubSub : DefaultPubSub
     /// <inheritdoc />
     protected override async ValueTask OnCompleteAsync(string formattedTopic)
     {
-        var envelope = PostgresMessageEnvelope.Create(formattedTopic, _serializer.CompleteMessage, _maxMessagePayloadSize);
+        var envelope = PostgresMessageEnvelope
+            .Create(formattedTopic, _serializer.CompleteMessage, _maxMessagePayloadSize);
+
         await _channel.SendAsync(envelope, cancellationToken: default);
     }
 

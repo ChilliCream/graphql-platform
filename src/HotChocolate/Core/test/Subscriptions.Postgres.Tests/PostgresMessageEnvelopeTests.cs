@@ -14,7 +14,8 @@ public class PostgresMessageEnvelopeTests
     public void Should_FormatAndParse(string topic, string payload)
     {
         // arrange
-        var envelope = PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize);
+        var envelope =
+            PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize);
 
         // act
         var formatted = envelope.FormattedPayload;
@@ -39,7 +40,8 @@ public class PostgresMessageEnvelopeTests
         string formatted)
     {
         // arrange
-        var envelope = PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize);
+        var envelope =
+            PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize);
 
         // act
         var result = envelope.FormattedPayload;
@@ -57,7 +59,8 @@ public class PostgresMessageEnvelopeTests
         for (var i = 0; i < 10_000; i++)
         {
             // arrange
-            var envelope = PostgresMessageEnvelope.Create("test", "test", _options.MaxMessagePayloadSize);
+            var envelope =
+                PostgresMessageEnvelope.Create("test", "test", _options.MaxMessagePayloadSize);
 
             // act
             var id = envelope.FormattedPayload[..24];

@@ -14,10 +14,6 @@ internal readonly struct PostgresMessageEnvelope
     private const byte separator = (byte)':';
     private const byte _messageIdLength = 24;
 
-
-    public static PostgresMessageEnvelope Create(string topic, string payload, int maxMessagePayloadSize)
-        => new (topic, Format(topic, payload, maxMessagePayloadSize));
-
     private PostgresMessageEnvelope(string topic, string formattedPayload)
     {
         Topic = topic;
@@ -83,8 +79,12 @@ internal readonly struct PostgresMessageEnvelope
 
         if (endOfEncodedString > maxMessagePayloadSize)
         {
-            var msg = string.Format(PostgresMessageEnvelope_PayloadTooLarge, endOfEncodedString, maxMessagePayloadSize);
-            throw new ArgumentException(msg, nameof(payload));
+            throw new ArgumentException(
+                string.Format(
+                    PostgresMessageEnvelope_PayloadTooLarge,
+                    endOfEncodedString,
+                    maxMessagePayloadSize),
+                nameof(payload));
         }
 
         return result;
@@ -133,4 +133,10 @@ internal readonly struct PostgresMessageEnvelope
 
         return true;
     }
+
+    public static PostgresMessageEnvelope Create(
+        string topic,
+        string payload,
+        int maxMessagePayloadSize)
+        => new (topic, Format(topic, payload, maxMessagePayloadSize));
 }
