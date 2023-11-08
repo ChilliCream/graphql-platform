@@ -67,7 +67,7 @@ public class PostgresChannelTests
 
         // Act
         await channel
-            .SendAsync(new PostgresMessageEnvelope("test", "foobar", _options.MaxMessagePayloadSize), CancellationToken.None);
+            .SendAsync(PostgresMessageEnvelope.Create("test", "foobar", _options.MaxMessagePayloadSize), CancellationToken.None);
 
         // Assert
         await testChannel.WaitForNotificationAsync();
@@ -184,7 +184,7 @@ public class PostgresChannelTests
 
         // Act
         await channel
-            .SendAsync(new PostgresMessageEnvelope("test", "foobar", _options.MaxMessagePayloadSize), CancellationToken.None);
+            .SendAsync(PostgresMessageEnvelope.Create("test", "foobar", _options.MaxMessagePayloadSize), CancellationToken.None);
 
         // Assert
         SpinWait.SpinUntil(() => receivedMessages.Count == 1, TimeSpan.FromSeconds(1));
@@ -210,7 +210,7 @@ public class PostgresChannelTests
             new ParallelOptions { MaxDegreeOfParallelism = 10 },
             async (_, ct) =>
             {
-                var message = new PostgresMessageEnvelope("test", "foobar", _options.MaxMessagePayloadSize);
+                var message = PostgresMessageEnvelope.Create("test", "foobar", _options.MaxMessagePayloadSize);
                 await channel.SendAsync(message, ct);
             });
 

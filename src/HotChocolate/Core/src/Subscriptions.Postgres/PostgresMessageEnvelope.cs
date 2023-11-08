@@ -14,10 +14,14 @@ internal readonly struct PostgresMessageEnvelope
     private const byte separator = (byte)':';
     private const byte _messageIdLength = 24;
 
-    public PostgresMessageEnvelope(string topic, string payload, int maxMessagePayloadSize)
+
+    public static PostgresMessageEnvelope Create(string topic, string payload, int maxMessagePayloadSize)
+        => new (topic, Format(topic, payload, maxMessagePayloadSize));
+
+    private PostgresMessageEnvelope(string topic, string formattedPayload)
     {
         Topic = topic;
-        FormattedPayload = Format(topic, payload, maxMessagePayloadSize);
+        FormattedPayload = formattedPayload;
     }
 
     public string Topic { get; }
