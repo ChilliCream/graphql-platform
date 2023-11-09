@@ -101,7 +101,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
                 command.CommandText = "SELECT pg_notify(@channel, @message);";
 
                 command.Parameters.Add(new NpgsqlParameter("channel", _channelName));
-                command.Parameters.Add(new NpgsqlParameter("message", message.Format()));
+                command.Parameters.Add(new NpgsqlParameter("message", message.FormattedPayload));
 
                 batch.BatchCommands.Add(command);
             }

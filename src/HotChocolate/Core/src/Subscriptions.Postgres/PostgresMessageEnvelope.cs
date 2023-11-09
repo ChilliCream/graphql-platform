@@ -2,6 +2,8 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using static HotChocolate.Subscriptions.Postgres.PostgresResources;
+
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -12,20 +14,20 @@ internal readonly struct PostgresMessageEnvelope
     private const byte separator = (byte)':';
     private const byte _messageIdLength = 24;
 
-    public PostgresMessageEnvelope(string topic, string payload)
+    private PostgresMessageEnvelope(string topic, string formattedPayload)
     {
         Topic = topic;
-        Payload = payload;
+        FormattedPayload = formattedPayload;
     }
 
     public string Topic { get; }
 
-    public string Payload { get; }
+    public string FormattedPayload { get; }
 
-    public string Format()
+    private static string Format(string topic, string payload, int maxMessagePayloadSize)
     {
-        var topicMaxBytesCount = _utf8.GetMaxByteCount(Topic.Length);
-        var payloadMaxBytesCount = _utf8.GetMaxByteCount(Payload.Length);
+        var topicMaxBytesCount = _utf8.GetMaxByteCount(topic.Length);
+        var payloadMaxBytesCount = _utf8.GetMaxByteCount(payload.Length);
         // we encode the topic to base64 to ensure that we do not have the separator in the topic
         var topicMaxLength = Base64.GetMaxEncodedToUtf8Length(topicMaxBytesCount);
         var maxSize = topicMaxLength + 2 + payloadMaxBytesCount + _messageIdLength;
@@ -55,7 +57,7 @@ internal readonly struct PostgresMessageEnvelope
         slicedBuffer = slicedBuffer[1..];
 
         // write topic as base64
-        var topicLengthUtf8 = _utf8.GetBytes(Topic, slicedBuffer);
+        var topicLengthUtf8 = _utf8.GetBytes(topic, slicedBuffer);
         Base64.EncodeToUtf8InPlace(slicedBuffer, topicLengthUtf8, out var topicLengthBase64);
         slicedBuffer = slicedBuffer[topicLengthBase64..];
 
@@ -64,7 +66,7 @@ internal readonly struct PostgresMessageEnvelope
         slicedBuffer = slicedBuffer[1..];
 
         // write payload
-        var payloadLengthUtf8 = _utf8.GetBytes(Payload, slicedBuffer);
+        var payloadLengthUtf8 = _utf8.GetBytes(payload, slicedBuffer);
 
         // create string
         var endOfEncodedString = topicLengthBase64 + 2 + payloadLengthUtf8 + _messageIdLength;
@@ -73,6 +75,16 @@ internal readonly struct PostgresMessageEnvelope
         if (bufferArray is not null)
         {
             ArrayPool<byte>.Shared.Return(bufferArray);
+        }
+
+        if (endOfEncodedString > maxMessagePayloadSize)
+        {
+            throw new ArgumentException(
+                string.Format(
+                    PostgresMessageEnvelope_PayloadTooLarge,
+                    endOfEncodedString,
+                    maxMessagePayloadSize),
+                nameof(payload));
         }
 
         return result;
@@ -121,4 +133,10 @@ internal readonly struct PostgresMessageEnvelope
 
         return true;
     }
+
+    public static PostgresMessageEnvelope Create(
+        string topic,
+        string payload,
+        int maxMessagePayloadSize)
+        => new (topic, Format(topic, payload, maxMessagePayloadSize));
 }
