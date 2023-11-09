@@ -21,7 +21,7 @@ In order to have a small client size and generate the optimized client for your 
 
 There are cases in which we want to define specialize transport profiles where we for instance define for each request type a specific transport. You can define those transport profiles in your `.graphqlrc.json`.
 
-The following `.graphqlrc.json` can be copied into our getting started example and will create two transport profiles. The first is called `Default` and matches the internal default. It will use `GraphQL over HTTP` by default and use `subscriptions-transport-ws` for subscriptions. The second profile is called `WebSocket` and will also use `GraphQL over HTTP` by default but for mutations and subscriptions it will use `subscriptions-transport-ws`.
+The following `.graphqlrc.json` can be copied into our getting started example and will create two transport profiles. The first is called `Default` and matches the internal default. It will use `GraphQL over HTTP` by default and use `graphql-transport-ws` for subscriptions. The second profile is called `WebSocket` and will also use `GraphQL over HTTP` by default but for mutations and subscriptions it will use `graphql-transport-ws`.
 
 ```json
 {
