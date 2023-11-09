@@ -22,7 +22,34 @@ public sealed class UnionType(string name) : INamedType, INamedTypeSystemMember<
     public IList<ObjectType> Types { get; } = new List<ObjectType>();
 
     public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
-    
+
+    public bool IsAssignableFrom(INamedType type, TypeComparison comparison)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (ReferenceEquals(type, this))
+        {
+            return true;
+        }
+
+        if (comparison is TypeComparison.Reference)
+        {
+            return type is ObjectType ot && Types.Contains(ot);
+        }
+
+        if (comparison is TypeComparison.Structural)
+        {
+            if (type.Kind.Equals(Kind) && type.Name.EqualsOrdinal(Name))
+            {
+                return true;
+            }
+            
+            return Types.Any(t => t.Name.EqualsOrdinal(type.Name));
+        }
+
+        return false;
+    }
+
     public override string ToString()
         => RewriteUnionType(this).ToString(true);
     

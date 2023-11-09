@@ -65,7 +65,7 @@ public sealed class FusionGraphComposer2
                 .Use<ApplyRenameDirectiveMiddleware>()
                 .Use<ApplyRemoveDirectiveMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
-                
+                .Use<ApplyEntityResolvers>()
                 .Use<ApplyTagDirectiveMiddleware>()
                 .Build();
         _logFactory = logFactory;

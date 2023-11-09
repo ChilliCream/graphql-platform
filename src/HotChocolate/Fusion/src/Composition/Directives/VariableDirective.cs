@@ -15,9 +15,9 @@ namespace HotChocolate.Fusion.Composition
     ///     subgraph: Name!
     /// ) repeatable on OBJECT | FIELD_DEFINITION`.
     /// </summary>
-    internal sealed class VariableDirective
+    internal sealed class VariableDirective : IEquatable<VariableDirective>
     {
-        public VariableDirective(string name, SelectionSetNode select, string subgraph)
+        public VariableDirective(string name, FieldNode select, string subgraph)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Select = select ?? throw new ArgumentNullException(nameof(select));
@@ -26,9 +26,32 @@ namespace HotChocolate.Fusion.Composition
 
         public string Name { get; }
 
-        public SelectionSetNode Select { get; }
+        public FieldNode Select { get; }
 
         public string Subgraph { get; }
+        
+        public bool Equals(VariableDirective? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+            
+            return Name == other.Name && 
+                Select.Equals(other.Select, SyntaxComparison.Syntax) && 
+                Subgraph == other.Subgraph;
+        }
+
+        public override bool Equals(object? obj)
+            => ReferenceEquals(this, obj) || obj is VariableDirective other && Equals(other);
+
+        public override int GetHashCode()
+            => HashCode.Combine(Name, SyntaxComparer.BySyntax.GetHashCode(Select), Subgraph);
 
         public Directive ToDirective(IFusionTypeContext context)
         {
@@ -59,7 +82,7 @@ namespace HotChocolate.Fusion.Composition
             }
 
             var name = directiveNode.Arguments.GetValueOrDefault(NameArg)?.ExpectStringLiteral().Value;
-            var select = directiveNode.Arguments.GetValueOrDefault(SelectArg)?.ExpectSelectionSet();
+            var select = directiveNode.Arguments.GetValueOrDefault(SelectArg)?.ExpectFieldSelection();
             var subgraph = directiveNode.Arguments.GetValueOrDefault(SubgraphArg)?.ExpectStringLiteral().Value;
 
             if (name is null || select is null || subgraph is null)

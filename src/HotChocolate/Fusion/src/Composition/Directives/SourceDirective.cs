@@ -89,6 +89,31 @@ internal sealed class SourceDirective
     }
     
     /// <summary>
+    /// Gets all @source directives from the specified member.
+    /// </summary>
+    /// <param name="member">
+    /// The member that shall be checked.
+    /// </param>
+    /// <param name="context">
+    /// The fusion type context that provides the directive names.
+    /// </param>
+    /// <returns>
+    /// Returns all @source directives.
+    /// </returns>
+    public static IEnumerable<SourceDirective> GetAllFrom(
+        IHasDirectives member,
+        IFusionTypeContext context)
+    {
+        foreach (var directive in member.Directives[context.SourceDirective.Name])
+        {
+            if (TryParse(directive, context, out var declareDirective))
+            {
+                yield return declareDirective;
+            }
+        }
+    }
+    
+    /// <summary>
     /// Checks if the specified member has a @source directive.
     /// </summary>
     /// <param name="member">

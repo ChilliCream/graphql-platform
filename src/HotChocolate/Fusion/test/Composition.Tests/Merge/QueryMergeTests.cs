@@ -150,7 +150,11 @@ public class QueryMergeTests(ITestOutputHelper output) : CompositionTestBase(out
           """
           type Entity
             @source(subgraph: "A")
-            @source(subgraph: "B") {
+            @source(subgraph: "B") 
+            @variable(name: "Entity_id", select: "id", subgraph: "A")
+            @variable(name: "Entity_id", select: "id", subgraph: "B")
+            @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "A")
+            @resolver(operation: "query(Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "B") {
             field1: String!
               @source(subgraph: "A")
             field2: String!

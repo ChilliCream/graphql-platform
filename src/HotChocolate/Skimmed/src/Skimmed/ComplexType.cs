@@ -24,6 +24,33 @@ public abstract class ComplexType(string name) : INamedType
 
     public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
 
+    public bool IsAssignableFrom(INamedType type, TypeComparison comparison)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (ReferenceEquals(type, this))
+        {
+            return true;
+        }
+        
+        if (comparison is TypeComparison.Reference)
+        {
+            return Implements.Contains(type);
+        }
+        
+        if (comparison is TypeComparison.Structural)
+        {
+            if (type.Kind.Equals(Kind) && type.Name.EqualsOrdinal(Name))
+            {
+                return true;
+            }
+            
+            return Implements.Any(t => t.Name.EqualsOrdinal(type.Name));
+        }
+
+        return false;
+    }
+
     public bool Equals(IType? other) => Equals(other, TypeComparison.Reference);
 
     public abstract bool Equals(IType? other, TypeComparison comparison);

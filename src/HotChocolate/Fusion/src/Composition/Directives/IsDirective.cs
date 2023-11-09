@@ -13,7 +13,7 @@ namespace HotChocolate.Fusion.Composition;
 /// Represents a directive that defines semantic equivalence between two
 /// fields or a field and an argument.
 /// </summary>
-internal sealed class IsDirective
+internal sealed class IsDirective : IEquatable<IsDirective>
 {
     /// <summary>
     /// Creates a new instance of <see cref="IsDirective"/> that
@@ -55,7 +55,47 @@ internal sealed class IsDirective
     /// field of the return type of the declaring field.
     /// </summary>
     public FieldNode? Field { get; }
-    
+
+    public bool Equals(IsDirective? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        if (!Nullable.Equals(Coordinate, other.Coordinate))
+        {
+            return false;
+        }
+
+        if (Field is null)
+        {
+            return other.Field is null;
+        }
+
+        if (other.Field is null)
+        {
+            return false;
+        }
+
+        return Field.Equals(other.Field, SyntaxComparison.Syntax);
+    }
+
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) || obj is IsDirective other && Equals(other);
+
+    public override int GetHashCode()
+        => HashCode.Combine(
+            Coordinate,
+            Field is null
+                ? 0
+                : SyntaxComparer.BySyntax.GetHashCode(Field));
+
     /// <summary>
     /// Creates a <see cref="Directive"/> from this <see cref="IsDirective"/>.
     /// </summary>
@@ -66,9 +106,11 @@ internal sealed class IsDirective
     public Directive ToDirective(IFusionTypeContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        
-        var args = Coordinate is not null ? new Argument[1] : new Argument[2];
-        
+
+        var args = Coordinate is not null
+            ? new Argument[1]
+            : new Argument[2];
+
         if (Coordinate is not null)
         {
             args[0] = new Argument(CoordinateArg, new StringValueNode(Coordinate.ToString()!));
@@ -111,6 +153,7 @@ internal sealed class IsDirective
         }
 
         var coordinate = directiveNode.Arguments.GetValueOrDefault(CoordinateArg);
+
         if (coordinate is StringValueNode coordinateValue)
         {
             directive = new IsDirective(SchemaCoordinate.Parse(coordinateValue.Value));
@@ -118,6 +161,7 @@ internal sealed class IsDirective
         }
 
         var field = directiveNode.Arguments.GetValueOrDefault(FieldArg);
+
         if (field is StringValueNode fieldValue)
         {
             directive = new IsDirective(Utf8GraphQLParser.Syntax.ParseField(fieldValue.Value));
@@ -127,12 +171,12 @@ internal sealed class IsDirective
         directive = null;
         return false;
     }
-    
+
     public static IsDirective GetFrom(IHasDirectives member, IFusionTypeContext context)
     {
         ArgumentNullException.ThrowIfNull(nameof(member));
         ArgumentNullException.ThrowIfNull(nameof(context));
-        
+
         var directive = member.Directives[context.IsDirective.Name].First();
 
         if (TryParse(directive, context, out var result))
@@ -142,12 +186,12 @@ internal sealed class IsDirective
 
         throw new InvalidOperationException(IsDirective_GetFrom_DirectiveNotValid);
     }
-    
+
     public static IsDirective? TryGetFrom(IHasDirectives member, IFusionTypeContext context)
     {
         ArgumentNullException.ThrowIfNull(nameof(member));
         ArgumentNullException.ThrowIfNull(nameof(context));
-        
+
         var directive = member.Directives[context.IsDirective.Name].First();
 
         if (TryParse(directive, context, out var result))
@@ -157,7 +201,7 @@ internal sealed class IsDirective
 
         return null;
     }
-    
+
     /// <summary>
     /// Checks if the specified member has a @is directive.
     /// </summary>
@@ -174,10 +218,10 @@ internal sealed class IsDirective
     {
         ArgumentNullException.ThrowIfNull(nameof(member));
         ArgumentNullException.ThrowIfNull(nameof(context));
-        
+
         return member.Directives.ContainsName(context.IsDirective.Name);
     }
-    
+
     /// <summary>
     /// Creates the is directive type.
     /// </summary>
@@ -192,11 +236,11 @@ internal sealed class IsDirective
 
         var selectionType = new MissingType(FusionTypeBaseNames.Selection);
         var schemaCoordinate = new MissingType(FusionTypeBaseNames.SchemaCoordinate);
-        
+
         var directiveType = new DirectiveType(FusionTypeBaseNames.IsDirective)
         {
-            Locations = DirectiveLocation.FieldDefinition | 
-                DirectiveLocation.ArgumentDefinition | 
+            Locations = DirectiveLocation.FieldDefinition |
+                DirectiveLocation.ArgumentDefinition |
                 DirectiveLocation.InputFieldDefinition,
             IsRepeatable = false,
             Arguments =
@@ -209,7 +253,7 @@ internal sealed class IsDirective
                 [WellKnownContextData.IsFusionType] = true
             }
         };
-        
+
         return directiveType;
     }
 }
