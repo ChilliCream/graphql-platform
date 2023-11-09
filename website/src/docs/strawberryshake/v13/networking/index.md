@@ -17,7 +17,7 @@ Strawberry Shake supports multiple network protocols to communicate with your Gr
 
 # Transport Profiles
 
-In order to have a small client size and generate the optimized client for your use-case Strawberry Shake uses transport profiles. By default Strawberry Shake will generate a client that uses `GraphQL over HTTP` for queries and mutations and `subscriptions-transport-ws` for subscriptions. Meaning if you are only using queries and mutations you need to add the package `StrawberryShake.Transport.Http`.
+In order to have a small client size and generate the optimized client for your use-case Strawberry Shake uses transport profiles. By default Strawberry Shake will generate a client that uses `GraphQL over HTTP` for queries and mutations and `graphql-transport-ws` for subscriptions. Meaning if you are only using queries and mutations you need to add the package `StrawberryShake.Transport.Http`.
 
 There are cases in which we want to define specialize transport profiles where we for instance define for each request type a specific transport. You can define those transport profiles in your `.graphqlrc.json`.
 
