@@ -132,34 +132,6 @@
         "resolved": "6.0.0",
         "contentHash": "xlzi2IYREJH3/m6+lUrQlujzX8wDitm4QGnUu6kUXTQAWPuZY8i+ticFJbzfqaetLA6KR/rO6Ew/HuYD+bxifg=="
       },
-      "Microsoft.Extensions.Http": {
-        "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "15+pa2G0bAMHbHewaQIdr/y6ag2H3yh4rd9hTXavtWDzQBkvpe2RMqFg8BxDpcQWssmjmBApGPcw93QRz6YcMg==",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "6.0.0",
-          "Microsoft.Extensions.Logging": "6.0.0",
-          "Microsoft.Extensions.Logging.Abstractions": "6.0.0",
-          "Microsoft.Extensions.Options": "6.0.0"
-        }
-      },
-      "Microsoft.Extensions.Logging": {
-        "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "eIbyj40QDg1NDz0HBW0S5f3wrLVnKWnDJ/JtZ+yJDFnDj90VoPuoPmFkeaXrtu+0cKm5GRAwoDf+dBWXK0TUdg==",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection": "6.0.0",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "6.0.0",
-          "Microsoft.Extensions.Logging.Abstractions": "6.0.0",
-          "Microsoft.Extensions.Options": "6.0.0",
-          "System.Diagnostics.DiagnosticSource": "6.0.0"
-        }
-      },
-      "Microsoft.Extensions.Logging.Abstractions": {
-        "type": "Transitive",
-        "resolved": "6.0.0",
-        "contentHash": "/HggWBbTwy8TgebGSX5DBZ24ndhzi93sHUBDvP1IxbZD7FDokYzdAr6+vbWGjw2XAfR2EJ1sfKUotpjHnFWPxA=="
-      },
       "Microsoft.Extensions.ObjectPool": {
         "type": "Transitive",
         "resolved": "6.0.0",
@@ -1527,7 +1499,6 @@
           "HotChocolate.Transport.Http": "[0.0.0, )",
           "Microsoft.AspNetCore.WebUtilities": "[2.2.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[6.0.0, )",
-          "Microsoft.Extensions.Http": "[6.0.0, )",
           "StrawberryShake.Core": "[0.0.0, )",
           "System.Net.Http.Json": "[6.0.0, )"
         }
@@ -3065,7 +3036,6 @@
           "HotChocolate.Transport.Http": "[0.0.0, )",
           "Microsoft.AspNetCore.WebUtilities": "[2.2.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[7.0.0, )",
-          "Microsoft.Extensions.Http": "[7.0.0, )",
           "StrawberryShake.Core": "[0.0.0, )",
           "System.Net.Http.Json": "[7.0.0, )"
         }
@@ -4670,7 +4640,6 @@
           "HotChocolate.Transport.Http": "[0.0.0, )",
           "Microsoft.AspNetCore.WebUtilities": "[8.0.0-rc.2.23480.2, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[8.0.0-rc.2.23479.6, )",
-          "Microsoft.Extensions.Http": "[8.0.0-rc.2.23479.6, )",
           "StrawberryShake.Core": "[0.0.0, )",
           "System.Net.Http.Json": "[8.0.0-rc.2.23479.6, )"
         }

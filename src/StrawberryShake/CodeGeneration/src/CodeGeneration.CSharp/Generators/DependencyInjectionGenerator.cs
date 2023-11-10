@@ -763,21 +763,15 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                         .SetRighthandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
-                            .AddGeneric(IHttpClientFactory)
+                            .AddGeneric(IHttpConnectionFactory)
                             .AddArgument(_parentServices)))
                     .AddCode(MethodCallBuilder
                         .New()
                         .SetReturn()
-                        .SetNew()
-                        .SetMethodName(HttpConnection)
-                        .AddArgument(LambdaBuilder
-                            .New()
-                            .SetCode(MethodCallBuilder
-                                .Inline()
-                                .SetMethodName(
-                                    _clientFactory,
-                                    "CreateClient")
-                                .AddArgument(clientName.AsStringToken()))))));
+                        .SetMethodName(
+                            _clientFactory,
+                            "CreateHttpConnection")
+                        .AddArgument(clientName.AsStringToken()))));
 
     private static ICode RegisterConnection(TransportType transportProfile, string clientName)
     {

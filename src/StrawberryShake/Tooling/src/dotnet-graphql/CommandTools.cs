@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using McMaster.Extensions.CommandLineUtils;
 using McMaster.Extensions.CommandLineUtils.HelpText;
+using StrawberryShake.Transport.Http;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
 
@@ -58,6 +59,7 @@ public static class CommandTools
     public static T CreateHandler<T>(bool jsonOutput) where T : class
     {
         var services = new ServiceCollection();
+        services.AddSingleton<IHttpConnectionFactory, DefaultHttpConnectionFactory>();
         services.AddSingleton<IHttpClientFactory, DefaultHttpClientFactory>();
         services.AddSingleton<IFileSystem, DefaultFileSystem>();
 
