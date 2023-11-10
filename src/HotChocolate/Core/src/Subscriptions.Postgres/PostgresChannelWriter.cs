@@ -1,3 +1,4 @@
+using System.Data;
 using System.Threading.Channels;
 using HotChocolate.Subscriptions.Diagnostics;
 using Npgsql;
@@ -100,8 +101,16 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
 
                 command.CommandText = "SELECT pg_notify(@channel, @message);";
 
-                command.Parameters.Add(new NpgsqlParameter("channel", _channelName));
-                command.Parameters.Add(new NpgsqlParameter("message", message.Format()));
+                var channel = new NpgsqlParameter("channel", DbType.String)
+                {
+                    Value = _channelName
+                };
+                var msg = new NpgsqlParameter("message", DbType.String)
+                {
+                    Value = message.FormattedPayload
+                };
+                command.Parameters.Add(channel);
+                command.Parameters.Add(msg);
 
                 batch.BatchCommands.Add(command);
             }

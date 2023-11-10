@@ -52,4 +52,7 @@
   <data name="ChannelWriter_FailedToSend" xml:space="preserve">
     <value>The channel writer failed to send messages. Requeueing {0} messages. Error Message: {1}</value>
   </data>
+  <data name="PostgresMessageEnvelope_PayloadTooLarge" xml:space="preserve">
+    <value>Payload is too long to we written to Postgres. Serialized message is {0} bytes but limit is {1} bytes</value>
+  </data>
 </root>
