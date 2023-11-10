@@ -1,14 +1,10 @@
-#pragma warning disable CA1812
-#nullable disable
-
 using System.Collections.Generic;
 
 namespace HotChocolate.Utilities.Introspection;
 
-internal class IntrospectionResult
+internal sealed class IntrospectionResult(IntrospectionData? data, IReadOnlyList<IntrospectionError>? errors)
 {
-    public IntrospectionData Data { get; set; }
+    public IntrospectionData? Data { get; } = data;
 
-    public List<IntrospectionError> Errors { get; set; }
+    public IReadOnlyList<IntrospectionError>? Errors { get; } = errors;
 }
-#pragma warning restore CA1812

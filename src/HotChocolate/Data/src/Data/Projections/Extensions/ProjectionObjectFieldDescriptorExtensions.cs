@@ -316,7 +316,11 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public ValueKind ArgumentKind(string name) => _context.ArgumentKind(name);
 
-        public T Service<T>() => _context.Service<T>();
+        public T Service<T>() where T : notnull => _context.Service<T>();
+        
+    #if NET8_0_OR_GREATER
+        public T? Service<T>(object key) where T : notnull => _context.Service<T>(key);
+    #endif
 
         public T Resolver<T>() => _context.Resolver<T>();
 

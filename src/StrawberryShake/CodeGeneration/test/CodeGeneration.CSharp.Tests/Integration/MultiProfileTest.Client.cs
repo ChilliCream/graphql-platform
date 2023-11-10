@@ -776,7 +776,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 return false;
             }
 
-            return (__typename.Equals(other.__typename)) && Stars == other.Stars && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
+            return (__typename.Equals(other.__typename)) && global::System.Object.Equals(Stars, other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -936,7 +936,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 return false;
             }
 
-            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
+            return (global::System.Object.Equals(Stars, other.Stars)) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1097,7 +1097,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 return false;
             }
 
-            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
+            return (global::System.Object.Equals(Stars, other.Stars)) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
         }
 
         public override global::System.Int32 GetHashCode()

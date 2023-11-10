@@ -6,5 +6,7 @@ type Query {
   scalar: IPv4
 }
 
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
 "The IPv4 scalar type represents a valid a IPv4 address as defined in RFC791"
 scalar IPv4

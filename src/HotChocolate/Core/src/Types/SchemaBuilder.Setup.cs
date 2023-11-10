@@ -57,7 +57,7 @@ public partial class SchemaBuilder
                 ((AggregateTypeInterceptor)context.TypeInterceptor)
                     .SetInterceptors(typeInterceptors);
 
-                context.TypeInterceptor.OnBeforeCreateSchema(context, builder);
+                context.TypeInterceptor.OnBeforeCreateSchemaInternal(context, builder);
 
                 var typeReferences = CreateTypeReferences(builder, context);
                 var typeRegistry = InitializeTypes(builder, context, typeReferences);
@@ -365,7 +365,7 @@ public partial class SchemaBuilder
             var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
             lazySchema.Schema = schema;
-            context.TypeInterceptor.OnAfterCreateSchema(context, schema);
+            context.TypeInterceptor.OnAfterCreateSchemaInternal(context, schema);
             return schema;
         }
 

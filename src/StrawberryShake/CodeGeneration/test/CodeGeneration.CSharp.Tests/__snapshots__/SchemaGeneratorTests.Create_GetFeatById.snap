@@ -191,7 +191,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Details, other.Details);
+            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && global::System.Object.Equals(Level, other.Level) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Details, other.Details);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

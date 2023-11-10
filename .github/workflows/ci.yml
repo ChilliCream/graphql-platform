@@ -85,7 +85,7 @@ jobs:
       run: npm install -g cspell
 
     - name: run cspell
-      run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress
+      run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress --no-cache
 
   website-tests:
     name: "Website Tests"
@@ -235,7 +235,7 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
 
           # Comment on the PR using the PR number
-          gh pr comment $PR_NUMBER --body-file comment.txt
+          # gh pr comment $PR_NUMBER --body-file comment.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

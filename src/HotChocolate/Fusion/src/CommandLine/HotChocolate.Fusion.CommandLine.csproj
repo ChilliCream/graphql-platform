@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
     <!--PublishAot>true</PublishAot-->
   </PropertyGroup>
 
@@ -32,8 +32,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0-preview.6.23329.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0-preview.6.23329.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0-rc.2.23479.6" />
   </ItemGroup>
 
   <ItemGroup>

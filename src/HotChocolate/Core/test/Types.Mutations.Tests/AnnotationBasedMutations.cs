@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Configuration;
@@ -27,6 +26,63 @@ public class AnnotationBasedMutations
                 .BuildSchemaAsync();
 
         schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Inferred_With_ErrorObj()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationWithErrorObj>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Inferred_Global_Errors()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions()
+                .AddMutationErrorConfiguration<CustomErrorConfig>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Inferred_Global_Errors_Execute()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions()
+                .AddMutationErrorConfiguration<CustomErrorConfig>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    """
+                    mutation {
+                      doSomething(input: { something: "abc" }) {
+                        string
+                        errors {
+                            __typename
+                            ... on Error {
+                                message
+                            }
+                        }
+                      }
+                    }
+                    """);
+
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -70,11 +126,13 @@ public class AnnotationBasedMutations
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) {
-                            string
-                        }
-                    }");
+                    """
+                    mutation {
+                      doSomething(input: { something: "abc" }) {
+                        string
+                      }
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -123,11 +181,13 @@ public class AnnotationBasedMutations
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) {
+                    """
+                    mutation {
+                        doSomething(input: { something: "abc" }) {
                             string
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -144,11 +204,13 @@ public class AnnotationBasedMutations
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: { something: 10 }) {
                             string
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -178,11 +240,13 @@ public class AnnotationBasedMutations
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) @foo {
+                    """
+                    mutation {
+                        doSomething(input: { something: "abc" }) @foo {
                             string
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -211,11 +275,13 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) {
-                            string
-                        }
-                    }");
+                    """
+                    mutation {
+                      doSomething(input: { something: "abc" }) {
+                        string
+                      }
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -260,8 +326,9 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) {
+                    """
+                    mutation {
+                        doSomething(input: { something: "abc" }) {
                             string
                             errors {
                                 ... on CustomError {
@@ -269,7 +336,8 @@ public class AnnotationBasedMutations
                                 }
                             }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -421,11 +489,13 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: { userId: 1 }) {
                             user { name }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -441,13 +511,15 @@ public class AnnotationBasedMutations
                 .ModifyOptions(o => o.StrictValidation = false)
                 .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
+                            id: "Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA=="
                         }) {
                             user { name id }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -463,13 +535,15 @@ public class AnnotationBasedMutations
                 .ModifyOptions(o => o.StrictValidation = false)
                 .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
+                            id: "Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA=="
                         }) {
                             user { name id }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -484,15 +558,17 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
                             test: {
-                                name: ""foo""
+                                name: "foo"
                             }
                         }) {
                             user { name }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -507,13 +583,15 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -542,14 +620,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -565,14 +645,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                            doSomething(input: {
-                                something: ""abc""
-                            }) {
-                                string
-                                errors { ... on Error { message } }
-                            }
-                        }");
+                    """
+                    mutation {
+                        doSomething(input: {
+                            something: "abc"
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -587,14 +669,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -653,14 +737,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -675,14 +761,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -711,14 +799,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -733,14 +823,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -769,14 +861,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -791,14 +885,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
         result.MatchSnapshot();
     }
 
@@ -826,14 +922,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -848,14 +946,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -884,14 +984,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -906,14 +1008,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething(input: {
-                            something: ""abc""
+                            something: "abc"
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -956,14 +1060,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething2(input: { userId: 1 }) {
                             userId
                             errors {
                                 __typename
                             }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -978,14 +1084,16 @@ public class AnnotationBasedMutations
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething2(input: { userId: null }) {
                             userId
                             errors {
                                 __typename
                             }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
@@ -1015,18 +1123,82 @@ public class AnnotationBasedMutations
                 .AddMutationType<MutationAggregateError>()
                 .AddMutationConventions()
                 .ExecuteRequestAsync(
-                    @"mutation {
+                    """
+                    mutation {
                         doSomething2(input: { userId: 1 }) {
                             userId
                             errors {
                                 __typename
                             }
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Mutation_With_Optional_Arg()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithOptionalArg>()
+                .AddMutationConventions()
+                .ExecuteRequestAsync(
+                    """
+                    mutation {
+                        doSomething(input: { }) {
+                            string
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "doSomething": {
+                  "string": "nothing"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Mutation_With_ErrorWithInterface()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithInterfaces>()
+                .AddType<IInterfaceError>()
+                .AddType<IInterfaceError2>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        result.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_With_ErrorAnnotatedAndCustomInterface()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithErrorInterface>()
+                .AddErrorInterfaceType<IErrorInterface>()
+                .AddType<IInterfaceError>()
+                .AddType<IInterfaceError2>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        result.Print().MatchSnapshot();
+    }
 
     public class SimpleMutation
     {
@@ -1132,8 +1304,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationInputOverride
     {
-        public string DoSomething(
-            DoSomethingInput something)
+        public string DoSomething(DoSomethingInput something)
         {
             throw new Exception();
         }
@@ -1150,7 +1321,7 @@ public class AnnotationBasedMutations
     {
         public User? DoSomething([ID("Foo")] Guid id)
         {
-            return new User() { Name = "Foo", Id = id, };
+            return new User { Name = "Foo", Id = id, };
         }
     }
 
@@ -1162,13 +1333,15 @@ public class AnnotationBasedMutations
         }
     }
 
-    public class Foo { }
+    public class Foo
+    {
+    }
 
     public class MutationWithInputObject
     {
         public User? DoSomething(Test test)
         {
-            return new User() { Name = test.Name };
+            return new User { Name = test.Name };
         }
     }
 
@@ -1396,5 +1569,89 @@ public class AnnotationBasedMutations
         }
     }
 
+    public class SimpleMutationWithErrorObj
+    {
+        [Error<SomeNewError>]
+        public string DoSomething(string something)
+            => something;
+    }
+
     public record DoSomething2Payload(int? UserId);
+
+    public record SomeNewError(string Message);
+
+    public class CustomErrorConfig : MutationErrorConfiguration
+    {
+        public override void OnConfigure(
+            IDescriptorContext context,
+            ObjectFieldDefinition mutationField)
+        {
+            mutationField.AddErrorType(context, typeof(SomeNewError));
+            mutationField.MiddlewareDefinitions.Add(
+                new(next => async ctx =>
+                {
+                    await next(ctx);
+                    ctx.Result = new MutationError(new SomeNewError("This is my error."));
+                }));
+        }
+    }
+
+    public class MutationWithOptionalArg
+    {
+        public string DoSomething(Optional<string?> something)
+            => something.Value ?? "nothing";
+    }
+
+    public class MutationWithInterfaces
+    {
+        [Error<ErrorWithInterface>]
+        public bool DoSomething(string something) => true;
+    }
+
+    public class MutationWithErrorInterface
+    {
+        [Error<ErrorAnnotated>]
+        [Error<ErrorAnnotatedAndNot>]
+        public bool Annotated(string something) => true;
+    }
+
+    public class ErrorAnnotated : IErrorInterface, IInterfaceError
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
+
+        /// <inheritdoc />
+        public string Name => string.Empty;
+    }
+
+    public class ErrorAnnotatedAndNot : IErrorInterface, IInterfaceError2
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
+        
+        /// <inheritdoc />
+        public string Name => string.Empty;
+    }
+
+    public interface IInterfaceError
+    {
+        public string Name { get; }
+    }
+
+    public interface IInterfaceError2
+    {
+        public string Name { get; }
+    }
+
+    public class ErrorWithInterface : IInterfaceError, IInterfaceError2
+    {
+        public string Name { get; set; } = default!;
+
+        public string Message { get; set; } = default!;
+    }
+
+    public interface IErrorInterface
+    {
+        public string Message { get; }
+    }
 }

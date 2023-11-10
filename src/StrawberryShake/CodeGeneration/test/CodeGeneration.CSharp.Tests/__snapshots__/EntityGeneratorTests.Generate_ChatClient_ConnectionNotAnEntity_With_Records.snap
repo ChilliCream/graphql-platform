@@ -212,7 +212,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

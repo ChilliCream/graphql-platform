@@ -142,7 +142,7 @@ internal class NodeEntityEnricher : IEntityEnricher
 
         // Create a new EntityResolver for the entity
         var resolver = new EntityResolver(
-            EntityResolverKind.BatchWithKey,
+            EntityResolverKind.Batch,
             selectionSet,
             sourceType.Name,
             sourceSchema.Name);

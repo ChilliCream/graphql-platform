@@ -5,6 +5,7 @@
     "Path": {
       "Name": "arguments",
       "Parent": {
+        "Parent": null,
         "Length": 0,
         "IsRoot": true
       },

@@ -5,6 +5,7 @@
     "Path": {
       "Name": "dog",
       "Parent": {
+        "Parent": null,
         "Length": 0,
         "IsRoot": true
       },
@@ -44,6 +45,7 @@
       "Parent": {
         "Name": "dog",
         "Parent": {
+          "Parent": null,
           "Length": 0,
           "IsRoot": true
         },

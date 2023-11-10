@@ -133,7 +133,8 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     {
         if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
         {
-            return keyArgument.Type.Equals(keyField.Type, TypeComparison.Structural);
+            return !keyArgument.ContainsIsDirective() && 
+                keyArgument.Type.Equals(keyField.Type, TypeComparison.Structural);
         }
 
         if (entityResolverField.Arguments.Count == 1)
@@ -163,7 +164,8 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             }
         }
 
-        return keyArgument?.Type.Equals(keyField.Type, TypeComparison.Structural) ?? false;
+        return (keyArgument?.Type.Equals(keyField.Type, TypeComparison.Structural) ?? false) && 
+            !keyArgument.ContainsIsDirective();
     }
     
     private static void TryRegisterBatchEntityResolver(
@@ -213,7 +215,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
 
             // Create a new EntityResolver for the entity
             var resolver = new EntityResolver(
-                EntityResolverKind.BatchWithKey,
+                EntityResolverKind.Batch,
                 selectionSet,
                 entityType.Name,
                 schema.Name);
@@ -244,7 +246,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     {
         if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
         {
-            if (keyArgument.Type.IsListType())
+            if (keyArgument.Type.IsListType() && !keyArgument.ContainsIsDirective())
             {
                 return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
             }
@@ -257,7 +259,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         {
             keyArgument = entityResolverField.Arguments.First();
             
-            if (keyArgument.Type.IsListType())
+            if (keyArgument.Type.IsListType() && !keyArgument.ContainsIsDirective())
             {
                 return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
             }
@@ -287,7 +289,8 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         }
 
         if (keyArgument?.Type.IsListType() is true && 
-            keyArgument.Type.InnerType().Equals(keyField.Type, TypeComparison.Structural))
+            keyArgument.Type.InnerType().Equals(keyField.Type, TypeComparison.Structural) &&
+            !keyArgument.ContainsIsDirective())
         {
             return true;
         }

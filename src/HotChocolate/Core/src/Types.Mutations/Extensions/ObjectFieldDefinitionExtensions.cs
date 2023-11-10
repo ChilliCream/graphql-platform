@@ -40,7 +40,7 @@ public static class ObjectFieldDefinitionExtensions
             throw new ArgumentNullException(nameof(errorType));
         }
 
-        if (descriptorContext.ContextData[MutationContextDataKeys.Options] == null)
+        if (!descriptorContext.ContextData.ContainsKey(MutationContextDataKeys.Options))
         {
             var richMessage = string.Format(
                 MutationConvention_ShouldBeEnabled_WhenAddingErrorType,
@@ -64,11 +64,5 @@ public static class ObjectFieldDefinitionExtensions
         }
 
         errorFactories.AddRange(definitions);
-
-        foreach (var definition in definitions)
-        {
-            var typeRef = descriptorContext.TypeInspector.GetTypeRef(definition.SchemaType);
-            fieldDefinition.Dependencies.Add(new TypeDependency(typeRef));
-        }
     }
 }

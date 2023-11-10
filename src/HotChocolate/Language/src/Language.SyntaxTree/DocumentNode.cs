@@ -55,6 +55,9 @@ public sealed class DocumentNode : ISyntaxNode
     /// <param name="nodesCount">
     /// The count of all nodes.
     /// </param>
+    /// <param name="fieldsCount">
+    /// The count all fields.
+    /// </param>
     internal DocumentNode(
         Location? location,
         IReadOnlyList<IDefinitionNode> definitions,

@@ -14,15 +14,6 @@ internal static class ThrowHelper
                     runtimeType.FullName)
                 .Build());
 
-    public static SchemaException TypeDoesNotExposeErrorFactory(Type errorType) =>
-        new(
-            SchemaErrorBuilder
-                .New()
-                .SetMessage(
-                    ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory,
-                    errorType.FullName ?? errorType.Name)
-                .Build());
-
     public static SchemaException CannotResolvePayloadType()
         => new(
             SchemaErrorBuilder.New()

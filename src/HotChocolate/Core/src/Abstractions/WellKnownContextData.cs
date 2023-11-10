@@ -274,4 +274,14 @@ public static class WellKnownContextData
     /// The key to access the authorization allowed flag on the member context.
     /// </summary>
     public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
+    
+    /// <summary>
+    /// The key to access the true nullability flag on the execution context.
+    /// </summary>
+    public const string EnableTrueNullability = "HotChocolate.Types.EnableTrueNullability";
+    
+    /// <summary>
+    /// The key to access the tag options object.
+    /// </summary>
+    public const string TagOptions = "HotChocolate.Types.TagOptions";
 }

@@ -114,6 +114,64 @@ internal static class LogEntryHelper
             code: LogEntryCodes.FieldDependencyCannotBeResolved,
             coordinate: coordinate,
             schema: schema);
+
+    public static LogEntry TypeNotDeclared(MissingType type, Schema schema)
+        => new(
+            string.Format(LogEntryHelper_TypeNotDeclared, type.Name, schema.Name),
+            LogEntryCodes.TypeNotDeclared,
+            severity: LogSeverity.Error,
+            coordinate: new SchemaCoordinate(type.Name),
+            member: type,
+            schema: schema);
+
+    public static LogEntry OutputFieldTypeMismatch(
+        SchemaCoordinate schemaCoordinate, 
+        OutputField source, 
+        IType targetType, 
+        IType sourceType)
+        => new(
+            string.Format(
+                LogEntryHelper_OutputFieldTypeMismatch,
+                schemaCoordinate,
+                targetType.ToTypeNode().ToString(),
+                sourceType.ToTypeNode().ToString()),
+            LogEntryCodes.TypeKindMismatch,
+            severity: LogSeverity.Error,
+            coordinate: schemaCoordinate,
+            member: source,
+            extension: new[] { targetType, sourceType });
+    
+    public static LogEntry InputFieldTypeMismatch(
+        SchemaCoordinate schemaCoordinate, 
+        InputField source, 
+        IType targetType, 
+        IType sourceType)
+        => new(
+            string.Format(
+                LogEntryHelper_OutputFieldTypeMismatch,
+                schemaCoordinate,
+                targetType.ToTypeNode().ToString(),
+                sourceType.ToTypeNode().ToString()),
+            LogEntryCodes.TypeKindMismatch,
+            severity: LogSeverity.Error,
+            coordinate: schemaCoordinate,
+            member: source,
+            extension: new[] { targetType, sourceType });
+    
+    public static LogEntry RootTypeNameMismatch(
+        OperationType operationType,
+        string fusionRootTypeName,
+        string subgraphRootTypeName,
+        string subgraphName)
+        => new(
+            string.Format(
+                LogEntryHelper_RootTypeNameMismatch,
+                operationType.ToString().ToLowerInvariant(),
+                fusionRootTypeName,
+                subgraphRootTypeName,
+                subgraphName),
+            LogEntryCodes.TypeKindMismatch,
+            severity: LogSeverity.Error);
 }
 
 static file class LogEntryCodes
@@ -133,4 +191,7 @@ static file class LogEntryCodes
     public const string CoordinateNotAllowedForRequirements = "HF0007";
 
     public const string FieldDependencyCannotBeResolved = "HF0008";
+    
+    public const string TypeNotDeclared = "HF0009";
+    public const string RootNameMismatch = "HF0010";
 }

@@ -31,8 +31,6 @@
     "gatsby": "^3.6.2",
     "gatsby-plugin-disqus": "^1.2.2",
     "gatsby-plugin-feed": "^3.6.0",
-    "gatsby-plugin-google-analytics": "^5.3.0",
-    "gatsby-plugin-google-tagmanager": "^5.3.1",
     "gatsby-plugin-graphql-codegen": "^3.0.0",
     "gatsby-plugin-image": "^1.6.0",
     "gatsby-plugin-manifest": "^3.6.0",

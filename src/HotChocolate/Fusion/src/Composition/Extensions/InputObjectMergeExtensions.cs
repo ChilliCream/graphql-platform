@@ -1,10 +1,11 @@
-// This static class provides extension methods to facilitate merging InputObject types
-// in a Fusion graph.
-
 using HotChocolate.Skimmed;
+using static HotChocolate.Fusion.Composition.MergeExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
+/// <summary>
+/// This static class provides extension methods to facilitate merging InputObject types in a Fusion graph.
+/// </summary>
 internal static class InputObjectMergeExtensions
 {
     // This extension method creates a new InputField instance by replacing any
@@ -17,9 +18,9 @@ internal static class InputObjectMergeExtensions
     {
         var targetFieldType = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
         var target = new InputField(source.Name, targetFieldType);
-        target.DeprecationReason = source.DeprecationReason;
-        target.IsDeprecated = source.IsDeprecated;
-        target.Description = source.Description;
+        target.MergeDescriptionWith(source);
+        target.MergeDeprecationWith(source);
+        target.DefaultValue = source.DefaultValue;
         return target;
     }
 
@@ -30,19 +31,29 @@ internal static class InputObjectMergeExtensions
     // from the source to the target.
     public static void MergeField(
         this CompositionContext context,
+        InputObjectType type,
         InputField source,
         InputField target)
     {
-        if (!string.IsNullOrEmpty(source.Description) &&
-            string.IsNullOrEmpty(target.Description))
+        var mergedInputType = MergeInputType(source.Type, target.Type);
+
+        if (mergedInputType is null)
         {
-            target.Description = source.Description;
+            context.Log.Write(
+                LogEntryHelper.InputFieldTypeMismatch(
+                    new SchemaCoordinate(type.Name, source.Name),
+                    source,
+                    target.Type,
+                    source.Type));
+            return;
+        }
+                
+        if(!target.Type.Equals(mergedInputType, TypeComparison.Structural))
+        {
+            target.Type = mergedInputType;
         }
 
-        if (source.IsDeprecated && string.IsNullOrEmpty(target.DeprecationReason))
-        {
-            target.DeprecationReason = source.DeprecationReason;
-            target.IsDeprecated = source.IsDeprecated;
-        }
+        target.MergeDescriptionWith(source);
+        target.MergeDeprecationWith(source);
     }
 }

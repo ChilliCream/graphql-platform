@@ -33,11 +33,7 @@ internal sealed class ScalarTypeMergeHandler : ITypeMergeHandler
 
             // If the target scalar type has no description,
             // set it to the source scalar type's description.
-            if (string.IsNullOrEmpty(target.Description))
-            {
-                target.Description = source.Description;
-                break;
-            }
+            target.MergeDescriptionWith(source);
         }
 
         return new(MergeStatus.Completed);

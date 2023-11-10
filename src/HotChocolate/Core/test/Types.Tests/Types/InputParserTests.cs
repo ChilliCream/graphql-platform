@@ -3,11 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Tests;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -264,6 +263,38 @@ public class InputParserTests
     }
 
     [Fact]
+    public void Parse_InputObject_AllIsSet_IgnoreAdditionalInputFields()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("TestInput");
+
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field1", "abc"),
+            new ObjectFieldNode("field2", 123),
+            new ObjectFieldNode("field3", 123),
+            new ObjectFieldNode("field4", 123));
+
+        var converter = new DefaultTypeConverter();
+
+        var options = new InputParserOptions
+        {
+            IgnoreAdditionalInputFields = true
+        };
+
+        // act
+        var parser = new InputParser(converter, options);
+        var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+
+        // assert
+        Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
+    }
+
+    [Fact]
     public void Parse_InputObject_WithDefault_Values()
     {
         // arrange
@@ -382,8 +413,7 @@ public class InputParserTests
             new ObjectFieldNode("b", 123));
 
         // act
-        void Fail()
-            => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+        void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();

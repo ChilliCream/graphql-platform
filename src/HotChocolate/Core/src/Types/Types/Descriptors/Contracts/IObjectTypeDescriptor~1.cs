@@ -80,34 +80,6 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     /// <see cref="ObjectType"/>.
     /// </summary>
     /// <typeparam name="TInterface">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor<TRuntimeType> Interface<TInterface>()
-        where TInterface : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <typeparam name="TInterface">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor<TRuntimeType> Interface<TInterface>(TInterface type)
-        where TInterface : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <param name="type">
-    /// A syntax node representing an interface type.
-    /// </param>
-    [Obsolete("Use Implements.")]
-    IObjectTypeDescriptor<TRuntimeType> Interface(NamedTypeNode type);
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="ObjectType"/>.
-    /// </summary>
-    /// <typeparam name="TInterface">The interface type.</typeparam>
     IObjectTypeDescriptor<TRuntimeType> Implements<TInterface>()
         where TInterface : InterfaceType;
 

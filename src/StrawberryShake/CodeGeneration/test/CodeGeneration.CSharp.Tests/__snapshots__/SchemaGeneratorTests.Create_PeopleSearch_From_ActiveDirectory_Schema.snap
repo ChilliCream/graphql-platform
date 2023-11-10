@@ -122,7 +122,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (TotalCount == other.TotalCount) && PageInfo.Equals(other.PageInfo) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Items, other.Items);
+            return (global::System.Object.Equals(TotalCount, other.TotalCount)) && PageInfo.Equals(other.PageInfo) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Items, other.Items);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -205,7 +205,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (HasNextPage == other.HasNextPage) && HasPreviousPage == other.HasPreviousPage;
+            return (global::System.Object.Equals(HasNextPage, other.HasNextPage)) && global::System.Object.Equals(HasPreviousPage, other.HasPreviousPage);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -310,7 +310,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Key == other.Key && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName)) && IsActive == other.IsActive && ((Department is null && other.Department is null) || Department != null && Department.Equals(other.Department)) && ((Image is null && other.Image is null) || Image != null && Image.Equals(other.Image)) && Title.Equals(other.Title) && ((Manager is null && other.Manager is null) || Manager != null && Manager.Equals(other.Manager));
+            return (Id.Equals(other.Id)) && global::System.Object.Equals(Key, other.Key) && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName)) && global::System.Object.Equals(IsActive, other.IsActive) && ((Department is null && other.Department is null) || Department != null && Department.Equals(other.Department)) && ((Image is null && other.Image is null) || Image != null && Image.Equals(other.Image)) && Title.Equals(other.Title) && ((Manager is null && other.Manager is null) || Manager != null && Manager.Equals(other.Manager));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -476,7 +476,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Key == other.Key && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName));
+            return (Id.Equals(other.Id)) && global::System.Object.Equals(Key, other.Key) && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

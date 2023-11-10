@@ -23,11 +23,11 @@ public static class DemoProjectSchemaExtensions
         }
 
         extend type User {
-          birthdate: DateTime! @tag(name: "internal")
+          birthdate: Date! @tag(name: "internal")
         }
 
         input AddUserInput {
-          birthdate: DateTime! @tag(name: "internal")
+          birthdate: Date! @tag(name: "internal")
           name: String!
           username: String!
         }

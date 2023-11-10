@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace HotChocolate.StarWars.Models;
 
@@ -27,4 +28,7 @@ public class Human
 
     /// <inheritdoc />
     public double Height { get; } = 1.72d;
+
+    /// <inheritdoc />
+    public JsonElement? Traits { get; set; }
 }

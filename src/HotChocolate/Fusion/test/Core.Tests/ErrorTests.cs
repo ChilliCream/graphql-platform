@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
+using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -171,6 +172,54 @@ public class ErrorTests
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Internal_Server_Error_On_Root_Field()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(new ErrorFactory(demoProject.HttpClientFactory, "a"))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(
+                Parse(
+                    """
+                    schema
+                      @fusion(version: 1)
+                      @transport(subgraph: "a", group: "a", location: "http:\/\/localhost\/graphql", kind: "HTTP") {
+                      query: Query
+                      mutation: Mutation
+                    }
+
+                    type Query {
+                      a: Boolean!
+                        @resolver(subgraph: "a", select: "{ a }")
+                    }
+                    """))
+            .CoreBuilder
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query A {
+                a
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        result.MatchSnapshot();
     }
 
     private class ErrorFactory : IHttpClientFactory

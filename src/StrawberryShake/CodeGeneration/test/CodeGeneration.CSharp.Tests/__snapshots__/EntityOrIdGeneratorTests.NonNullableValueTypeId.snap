@@ -116,7 +116,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id == other.Id);
+            return (global::System.Object.Equals(Id, other.Id));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -178,7 +178,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Foo == other.Foo);
+            return (global::System.Object.Equals(Foo, other.Foo));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -240,7 +240,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id == other.Id);
+            return (global::System.Object.Equals(Id, other.Id));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -302,7 +302,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Foo == other.Foo);
+            return (global::System.Object.Equals(Foo, other.Foo));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

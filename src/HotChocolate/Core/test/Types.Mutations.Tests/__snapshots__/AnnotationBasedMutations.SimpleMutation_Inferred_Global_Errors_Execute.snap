@@ -1,0 +1,13 @@
+{
+  "data": {
+    "doSomething": {
+      "string": null,
+      "errors": [
+        {
+          "__typename": "SomeNewError",
+          "message": "This is my error."
+        }
+      ]
+    }
+  }
+}

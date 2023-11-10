@@ -113,7 +113,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email == other.Email;
+            return (Name.Equals(other.Name)) && global::System.Object.Equals(Email, other.Email);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

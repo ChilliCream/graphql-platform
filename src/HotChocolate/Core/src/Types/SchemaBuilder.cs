@@ -35,7 +35,8 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(IntrospectionTypeInterceptor),
         typeof(InterfaceCompletionTypeInterceptor),
         typeof(CostTypeInterceptor),
-        typeof(MiddlewareValidationTypeInterceptor)
+        typeof(MiddlewareValidationTypeInterceptor),
+        typeof(EnableTrueNullabilityTypeInterceptor)
     };
 
     private SchemaOptions _options = new();
@@ -208,11 +209,6 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         return this;
     }
-
-    /// <inheritdoc />
-    [Obsolete]
-    public ISchemaBuilder BindClrType(Type clrType, Type schemaType)
-        => BindRuntimeType(clrType, schemaType);
 
     /// <inheritdoc />
     public ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType)

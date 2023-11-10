@@ -387,6 +387,6 @@ public class DateTimeTypeTests
 
     public class DefaultDateTime
     {
-        public DateTime Test => default(DateTime);
+        public DateTime Test => default;
     }
 }

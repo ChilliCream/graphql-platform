@@ -31,5 +31,13 @@ public sealed class NonNullType : IType
         => Equals(other, TypeComparison.Reference);
     
     public bool Equals(IType? other, TypeComparison comparison)
-        => other is NonNullType otherNonNull && NullableType.Equals(otherNonNull.NullableType, comparison);
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+        
+        return other is NonNullType otherNonNull && 
+            NullableType.Equals(otherNonNull.NullableType, comparison);
+    }
 }

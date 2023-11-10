@@ -513,7 +513,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Type.Equals(other.Type) && Remove == other.Remove;
+            return (Id.Equals(other.Id)) && Type.Equals(other.Type) && global::System.Object.Equals(Remove, other.Remove);
         }
 
         public override global::System.Int32 GetHashCode()

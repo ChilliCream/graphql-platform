@@ -228,7 +228,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 var client = testServer.CreateWebSocketClient();
 
                 // act
-                client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "foo");
+                client.ConfigureRequest = r => r.Headers.SecWebSocketProtocol = "foo";
                 using var socket = await client.ConnectAsync(SubscriptionUri, ct);
 
                 // assert

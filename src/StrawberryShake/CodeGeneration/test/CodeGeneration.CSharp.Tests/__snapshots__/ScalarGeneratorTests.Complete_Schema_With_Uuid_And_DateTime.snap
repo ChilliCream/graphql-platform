@@ -134,7 +134,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Amount == other.Amount && Date.Equals(other.Date) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && Category.Equals(other.Category) && PaymentMethod.Equals(other.PaymentMethod) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Tags, other.Tags);
+            return (Id.Equals(other.Id)) && global::System.Object.Equals(Amount, other.Amount) && Date.Equals(other.Date) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && Category.Equals(other.Category) && PaymentMethod.Equals(other.PaymentMethod) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Tags, other.Tags);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

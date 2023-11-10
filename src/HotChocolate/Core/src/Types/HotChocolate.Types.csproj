@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
@@ -31,6 +32,7 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Filters" />
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting" />
     <InternalsVisibleTo Include="HotChocolate.Types.Selections" />
+    <InternalsVisibleTo Include="HotChocolate.Stitching" />
 
     <!--Tests-->
     <InternalsVisibleTo Include="HotChocolate.Types.Filters.Tests" />
@@ -43,25 +45,34 @@
     <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.0-rc.2.23480.2" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0-rc.2.23479.6" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.7" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
-    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Types.Shared\HotChocolate.Types.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\TypeResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TypeResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="Types\ObjectType.Initialization.cs">
       <DependentUpon>ObjectType.cs</DependentUpon>
     </Compile>
@@ -127,6 +138,11 @@
     </Compile>
     <Compile Update="Types\Descriptors\Conventions\DescriptorContext.Services.cs">
       <DependentUpon>DescriptorContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\TypeResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TypeResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 

@@ -1,3 +1,5 @@
+// ReSharper disable IntroduceOptionalParameters.Global
+
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -14,11 +16,30 @@ using static System.Net.Http.HttpCompletionOption;
 namespace HotChocolate.Transport.Http;
 
 /// <summary>
-/// A default implementation of <see cref="IGraphQLHttpClient"/> that supports the GraphQL over HTTP spec draft.
+/// A default implementation of <see cref="GraphQLHttpClient"/> that supports the GraphQL over HTTP spec draft.
 /// </summary>
-public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
+public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 {
     private readonly HttpClient _http;
+    private readonly bool _disposeInnerClient;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DefaultGraphQLHttpClient"/>.
+    /// </summary>
+    /// <param name="httpClient">
+    /// The underlying HTTP client that is used to send the GraphQL request.
+    /// </param>
+    /// <param name="disposeInnerClient">
+    /// Specifies if <paramref name="httpClient"/> shall be disposed when this instance is disposed.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="httpClient"/> is <see langword="null"/>.
+    /// </exception>
+    public DefaultGraphQLHttpClient(HttpClient httpClient, bool disposeInnerClient)
+    {
+        _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _disposeInnerClient = disposeInnerClient;
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultGraphQLHttpClient"/>.
@@ -30,8 +51,8 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
     /// <paramref name="httpClient"/> is <see langword="null"/>.
     /// </exception>
     public DefaultGraphQLHttpClient(HttpClient httpClient)
+        : this(httpClient, disposeInnerClient: true)
     {
-        _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
     /// <summary>
@@ -51,7 +72,7 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
     /// <paramref name="request"/> has no <see cref="GraphQLHttpRequest.Uri"/> and the underlying
     /// HTTP client has no <see cref="HttpClient.BaseAddress"/>.
     /// </exception>
-    public Task<GraphQLHttpResponse> SendAsync(
+    public override Task<GraphQLHttpResponse> SendAsync(
         GraphQLHttpRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -82,6 +103,10 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
         // DO NOT move the writer out of this method.
         using var arrayWriter = new ArrayWriter();
         using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
+#if NET5_0_OR_GREATER
+        requestMessage.Version = _http.DefaultRequestVersion;
+        requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
+#endif
         var responseMessage = await _http.SendAsync(requestMessage, ResponseHeadersRead, ct).ConfigureAwait(false);
         return new GraphQLHttpResponse(responseMessage);
     }
@@ -278,5 +303,11 @@ public sealed class DefaultGraphQLHttpClient : IGraphQLHttpClient
 #endif
     }
 
-    public void Dispose() => _http.Dispose();
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && _disposeInnerClient)
+        {
+            _http.Dispose();
+        }
+    }
 }

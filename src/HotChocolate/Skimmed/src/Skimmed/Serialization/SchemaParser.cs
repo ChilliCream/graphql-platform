@@ -279,11 +279,14 @@ public static class SchemaParser
 
     private static void BuildAndExtendSchema(Schema schema, DocumentNode document)
     {
+        var hasDefinition = false;
+        
         foreach (var definition in document.Definitions)
         {
             if (definition is SchemaDefinitionNode node)
             {
                 BuildSchema(schema, node);
+                hasDefinition = true;
                 break;
             }
         }
@@ -293,6 +296,28 @@ public static class SchemaParser
             if (definition is SchemaExtensionNode node)
             {
                 ExtendSchema(schema, node);
+            }
+        }
+
+        // if we did not find a schema definition we will infer the root types.
+        if (!hasDefinition)
+        {
+            if (schema.QueryType is null && 
+                schema.Types.TryGetType<ObjectType>("Query", out var queryType))
+            {
+                schema.QueryType = queryType;
+            }
+            
+            if (schema.MutationType is null && 
+                schema.Types.TryGetType<ObjectType>("Mutation", out var mutationType))
+            {
+                schema.MutationType = mutationType;
+            }
+            
+            if (schema.SubscriptionType is null && 
+                schema.Types.TryGetType<ObjectType>("Subscription", out var subscriptionType))
+            {
+                schema.SubscriptionType = subscriptionType;
             }
         }
     }
