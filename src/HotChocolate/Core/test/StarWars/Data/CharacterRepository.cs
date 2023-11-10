@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using HotChocolate.StarWars.Models;
 
 namespace HotChocolate.StarWars.Data;
@@ -22,6 +23,11 @@ public class CharacterRepository
             return _characters["1000"];
         }
         return _characters["2001"];
+    }
+
+    public ICharacter GetHeroByTraits(JsonElement traits)
+    {
+        return _characters.Values.FirstOrDefault(z => z.Traits?.ToString().Equals(traits.ToString()) == true);
     }
 
     public ICharacter GetCharacter(string id)
@@ -80,7 +86,8 @@ public class CharacterRepository
             Name = "Luke Skywalker",
             Friends = new[] { "1002", "1003", "2000", "2001" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-            HomePlanet = "Tatooine"
+            HomePlanet = "Tatooine",
+            Traits = JsonSerializer.SerializeToElement(new { lastJedi = true })
         };
 
         yield return new Human
@@ -89,7 +96,8 @@ public class CharacterRepository
             Name = "Darth Vader",
             Friends = new[] { "1004" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-            HomePlanet = "Tatooine"
+            HomePlanet = "Tatooine",
+            Traits = JsonSerializer.SerializeToElement(new { theChosenOne = true })
         };
 
         yield return new Human
@@ -97,7 +105,8 @@ public class CharacterRepository
             Id = "1002",
             Name = "Han Solo",
             Friends = new[] { "1000", "1003", "2001" },
-            AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi }
+            AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+            Traits = JsonSerializer.SerializeToElement(new { hanShot = "first" })
         };
 
         yield return new Human
@@ -106,7 +115,8 @@ public class CharacterRepository
             Name = "Leia Organa",
             Friends = new[] { "1000", "1002", "2000", "2001" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-            HomePlanet = "Alderaan"
+            HomePlanet = "Alderaan",
+            Traits = JsonSerializer.SerializeToElement(new { brother = "luke" })
         };
 
         yield return new Human
@@ -123,7 +133,8 @@ public class CharacterRepository
             Name = "C-3PO",
             Friends = new[] { "1000", "1002", "1003", "2001" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-            PrimaryFunction = "Protocol"
+            PrimaryFunction = "Protocol",
+            Traits = JsonSerializer.SerializeToElement(new { annoying = true })
         };
 
         yield return new Droid
@@ -132,7 +143,8 @@ public class CharacterRepository
             Name = "R2-D2",
             Friends = new[] { "1000", "1002", "1003" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-            PrimaryFunction = "Astromech"
+            PrimaryFunction = "Astromech",
+            Traits = JsonSerializer.SerializeToElement(new { rockets = true })
         };
     }
 
