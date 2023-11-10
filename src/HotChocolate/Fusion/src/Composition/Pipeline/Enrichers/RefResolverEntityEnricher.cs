@@ -50,7 +50,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
 
                         // Create a new EntityResolver for the entity
                         var resolver = new EntityResolver(
-                            EntityResolverKind.Batch,
+                            ResolverKind.Batch,
                             selectionSet,
                             type.Name,
                             schema.Name);
@@ -105,7 +105,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
 
             // Create a new EntityResolver for the entity
             var resolver = new EntityResolver(
-                EntityResolverKind.Single,
+                ResolverKind.Fetch,
                 selectionSet,
                 entityType.Name,
                 schema.Name);

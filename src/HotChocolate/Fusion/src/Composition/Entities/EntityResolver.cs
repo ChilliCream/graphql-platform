@@ -23,7 +23,7 @@ internal sealed class EntityResolver
     /// The name of the schema that contains the entity.
     /// </param>
     public EntityResolver(
-        EntityResolverKind kind,
+        ResolverKind kind,
         SelectionSetNode selectionSet,
         string entityName,
         string subgraphName)
@@ -37,7 +37,7 @@ internal sealed class EntityResolver
     /// <summary>
     /// Gets the type of this resolver.
     /// </summary>
-    public EntityResolverKind Kind { get; }
+    public ResolverKind Kind { get; }
 
     /// <summary>
     /// Gets the selection set that specifies how to retrieve data for the entity.
