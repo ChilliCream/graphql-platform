@@ -67,12 +67,12 @@ public static class GenerateCommand
         generate.OnExecuteAsync(
             ct =>
             {
-                var strategy = RequestStrategy.Default;
+                var strategy = StrawberryShake.Tools.Configuration.RequestStrategy.Default;
                 var queryOutputDir = queryOutputDirArg.Value();
 
                 if (!string.IsNullOrEmpty(queryOutputDir) || relayFormatArg.HasValue())
                 {
-                    strategy = RequestStrategy.PersistedQuery;
+                    strategy = StrawberryShake.Tools.Configuration.RequestStrategy.PersistedQuery;
                 }
 
                 var arguments = new GenerateCommandArguments(
@@ -141,7 +141,7 @@ public static class GenerateCommand
                 {
                     await WriteCodeFilesAsync(clientName, result, outputDir, cancellationToken);
 
-                    if (args.Strategy is RequestStrategy.PersistedQuery)
+                    if (args.Strategy is StrawberryShake.Tools.Configuration.RequestStrategy.PersistedQuery)
                     {
                         await WritePersistedQueriesAsync(
                             result,
@@ -319,7 +319,7 @@ public static class GenerateCommand
             bool noStore,
             bool razorComponents,
             string? outputDir,
-            RequestStrategy strategy,
+            StrawberryShake.Tools.Configuration.RequestStrategy strategy,
             string? queryOutputDir,
             bool relayFormat)
         {
@@ -357,7 +357,7 @@ public static class GenerateCommand
 
         public string? OutputDir { get; }
 
-        public RequestStrategy Strategy { get; }
+        public StrawberryShake.Tools.Configuration.RequestStrategy Strategy { get; }
 
         public string? QueryOutputDir { get; }
 
