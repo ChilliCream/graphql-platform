@@ -690,7 +690,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment PeopleSearchResult on Person {
     ///   id
     ///   key
@@ -761,7 +761,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment PeopleSearchResult on Person {
     ///   id
     ///   key
@@ -906,7 +906,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment PeopleSearchResult on Person {
     ///   id
     ///   key
@@ -1707,7 +1707,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                return clientFactory.CreateHttpConnection("FooClient");
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Person>, global::Foo.Bar.State.PeopleSearch_People_Items_PersonFromPersonEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, global::Foo.Bar.PeopleSearch_People_Items_Department_Department>, global::Foo.Bar.State.PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper>(services);

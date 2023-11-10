@@ -1089,7 +1089,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                return clientFactory.CreateHttpConnection("FooClient");
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, global::Foo.Bar.GetFeatById_Feats_Items_Feat>, global::Foo.Bar.State.GetFeatById_Feats_Items_FeatFromFeatEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, global::Foo.Bar.GetFeatById_Feats_Items_Details_FeatDetailsBlock>, global::Foo.Bar.State.GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper>(services);

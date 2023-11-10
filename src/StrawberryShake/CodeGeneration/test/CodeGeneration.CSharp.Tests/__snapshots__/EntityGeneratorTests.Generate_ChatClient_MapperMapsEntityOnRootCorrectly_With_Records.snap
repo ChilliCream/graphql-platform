@@ -988,11 +988,11 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Person on Person {
     ///   name
     /// }
-    /// 
+    ///
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
@@ -1052,11 +1052,11 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Person on Person {
     ///   name
     /// }
-    /// 
+    ///
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
@@ -1133,11 +1133,11 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Person on Person {
     ///   name
     /// }
-    /// 
+    ///
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
@@ -1173,7 +1173,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
@@ -1184,7 +1184,7 @@ namespace Foo.Bar
     ///   }
     ///   text
     /// }
-    /// 
+    ///
     /// fragment Person on Person {
     ///   name
     /// }
@@ -1227,7 +1227,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
@@ -1238,7 +1238,7 @@ namespace Foo.Bar
     ///   }
     ///   text
     /// }
-    /// 
+    ///
     /// fragment Person on Person {
     ///   name
     /// }
@@ -1323,7 +1323,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Message on Message {
     ///   sender {
     ///     __typename
@@ -1334,7 +1334,7 @@ namespace Foo.Bar
     ///   }
     ///   text
     /// }
-    /// 
+    ///
     /// fragment Person on Person {
     ///   name
     /// }
@@ -2387,7 +2387,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                return clientFactory.CreateHttpConnection("FooClient");
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.GetPeople_People_Nodes_Person>, global::Foo.Bar.State.GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, global::Foo.Bar.GetPeople_People_Nodes_Messages_Nodes_Message>, global::Foo.Bar.State.GetPeople_People_Nodes_Messages_Nodes_MessageFromMessageEntityMapper>(services);

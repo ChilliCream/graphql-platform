@@ -426,7 +426,7 @@ namespace Foo.Bar
     ///     ... DecodeVINModel
     ///   }
     /// }
-    /// 
+    ///
     /// fragment DecodeVINModel on DecodeVIN {
     ///   isValid
     ///   vehicleMake {
@@ -444,14 +444,14 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment VehicleMakeModel on VehicleMake {
     ///   id
     ///   make
     ///   makeCode
     ///   isDisabled
     /// }
-    /// 
+    ///
     /// fragment VehicleModelModel on VehicleModel {
     ///   id
     ///   model
@@ -493,7 +493,7 @@ namespace Foo.Bar
     ///     ... DecodeVINModel
     ///   }
     /// }
-    /// 
+    ///
     /// fragment DecodeVINModel on DecodeVIN {
     ///   isValid
     ///   vehicleMake {
@@ -511,14 +511,14 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment VehicleMakeModel on VehicleMake {
     ///   id
     ///   make
     ///   makeCode
     ///   isDisabled
     /// }
-    /// 
+    ///
     /// fragment VehicleModelModel on VehicleModel {
     ///   id
     ///   model
@@ -577,7 +577,7 @@ namespace Foo.Bar
     ///     ... DecodeVINModel
     ///   }
     /// }
-    /// 
+    ///
     /// fragment DecodeVINModel on DecodeVIN {
     ///   isValid
     ///   vehicleMake {
@@ -595,14 +595,14 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment VehicleMakeModel on VehicleMake {
     ///   id
     ///   make
     ///   makeCode
     ///   isDisabled
     /// }
-    /// 
+    ///
     /// fragment VehicleModelModel on VehicleModel {
     ///   id
     ///   model
@@ -1126,7 +1126,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                return clientFactory.CreateHttpConnection("FooClient");
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleMakeEntity, global::Foo.Bar.DecodeVIN_DecodeVIN_VehicleMake_VehicleMake>, global::Foo.Bar.State.DecodeVIN_DecodeVIN_VehicleMake_VehicleMakeFromVehicleMakeEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleModelEntity, global::Foo.Bar.DecodeVIN_DecodeVIN_VehicleModel_VehicleModel>, global::Foo.Bar.State.DecodeVIN_DecodeVIN_VehicleModel_VehicleModelFromVehicleModelEntityMapper>(services);
