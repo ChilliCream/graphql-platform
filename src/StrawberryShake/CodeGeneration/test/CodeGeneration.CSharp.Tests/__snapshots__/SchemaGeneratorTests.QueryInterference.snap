@@ -113,7 +113,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (TotalCount == other.TotalCount) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Items, other.Items);
+            return (global::System.Object.Equals(TotalCount, other.TotalCount)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Items, other.Items);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -198,7 +198,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Details, other.Details);
+            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && global::System.Object.Equals(Level, other.Level) && global::System.Object.Equals(CanBeLearnedMoreThanOnce, other.CanBeLearnedMoreThanOnce) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Details, other.Details);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -548,7 +548,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Details, other.Details) && ActionType.Equals(other.ActionType);
+            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && global::System.Object.Equals(Level, other.Level) && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Details, other.Details) && ActionType.Equals(other.ActionType);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

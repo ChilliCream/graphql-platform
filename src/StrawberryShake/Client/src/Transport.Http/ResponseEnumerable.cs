@@ -163,7 +163,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         jsonWriter.WriteEndObject();
         jsonWriter.Flush();
 
-        return JsonDocument.Parse(bufferWriter.Body);
+        return JsonDocument.Parse(bufferWriter.GetWrittenMemory());
     }
 
     public static ResponseEnumerable Create(

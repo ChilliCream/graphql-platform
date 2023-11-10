@@ -224,7 +224,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline && ((ImageUri is null && other.ImageUri is null) || ImageUri != null && ImageUri.Equals(other.ImageUri)) && LastSeen.Equals(other.LastSeen);
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline) && ((ImageUri is null && other.ImageUri is null) || ImageUri != null && ImageUri.Equals(other.ImageUri)) && LastSeen.Equals(other.LastSeen);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -727,7 +727,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -809,7 +809,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1279,7 +1279,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1361,7 +1361,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1771,7 +1771,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1853,7 +1853,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -2195,7 +2195,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -2277,7 +2277,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && global::System.Object.Equals(IsOnline, other.IsOnline);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
