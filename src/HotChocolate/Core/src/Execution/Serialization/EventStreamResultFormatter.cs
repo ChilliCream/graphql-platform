@@ -108,7 +108,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                 // we do not need try-finally here because we dispose the semaphore in the parent
                 // method.
                 await synchronization.WaitAsync(ct);
-                
+
                 await WriteKeepAliveAndFlush(outputStream, ct);
 
                 synchronization.Release();
@@ -162,7 +162,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_eventField, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_nextEvent, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
@@ -175,7 +175,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         using var bufferWriter = new ArrayWriter();
         FormatPayload(bufferWriter, result);
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_dataField, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(bufferWriter.GetWrittenMemory(), ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
@@ -195,7 +195,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
     private static async ValueTask WriteCompleteMessage(Stream outputStream, CancellationToken ct)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_eventField, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_completeEvent, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
@@ -210,7 +210,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
 #else
         await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
@@ -222,7 +222,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_keepAlive, ct).ConfigureAwait(false);
 #else
         await outputStream.WriteAsync(_keepAlive, 0, _keepAlive.Length, ct).ConfigureAwait(false);

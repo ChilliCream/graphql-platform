@@ -254,7 +254,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
                     {
                         allWritesSuccessful = false;
                     }
-                    start = ref Unsafe.Add(ref start, 1);
+                    start = ref Unsafe.Add(ref start, 1)!;
                 }
 
                 if (!allWritesSuccessful || iterations++ >= 8)

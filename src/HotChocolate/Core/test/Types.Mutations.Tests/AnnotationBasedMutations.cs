@@ -27,7 +27,7 @@ public class AnnotationBasedMutations
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task SimpleMutation_Inferred_With_ErrorObj()
     {
@@ -41,7 +41,7 @@ public class AnnotationBasedMutations
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task SimpleMutation_Inferred_Global_Errors()
     {
@@ -56,7 +56,7 @@ public class AnnotationBasedMutations
 
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task SimpleMutation_Inferred_Global_Errors_Execute()
     {
@@ -85,7 +85,6 @@ public class AnnotationBasedMutations
         result.MatchSnapshot();
     }
 
-    
     [Fact]
     public async Task SimpleMutation_Inferred_Query_Field_Stays_NonNull()
     {
@@ -1138,6 +1137,68 @@ public class AnnotationBasedMutations
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Mutation_With_Optional_Arg()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithOptionalArg>()
+                .AddMutationConventions()
+                .ExecuteRequestAsync(
+                    """
+                    mutation {
+                        doSomething(input: { }) {
+                            string
+                        }
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "doSomething": {
+                  "string": "nothing"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Mutation_With_ErrorWithInterface()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithInterfaces>()
+                .AddType<IInterfaceError>()
+                .AddType<IInterfaceError2>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        result.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_With_ErrorAnnotatedAndCustomInterface()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithErrorInterface>()
+                .AddErrorInterfaceType<IErrorInterface>()
+                .AddType<IInterfaceError>()
+                .AddType<IInterfaceError2>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        result.Print().MatchSnapshot();
+    }
 
     public class SimpleMutation
     {
@@ -1243,8 +1304,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationInputOverride
     {
-        public string DoSomething(
-            DoSomethingInput something)
+        public string DoSomething(DoSomethingInput something)
         {
             throw new Exception();
         }
@@ -1261,7 +1321,7 @@ public class AnnotationBasedMutations
     {
         public User? DoSomething([ID("Foo")] Guid id)
         {
-            return new User() { Name = "Foo", Id = id, };
+            return new User { Name = "Foo", Id = id, };
         }
     }
 
@@ -1273,13 +1333,15 @@ public class AnnotationBasedMutations
         }
     }
 
-    public class Foo { }
+    public class Foo
+    {
+    }
 
     public class MutationWithInputObject
     {
         public User? DoSomething(Test test)
         {
-            return new User() { Name = test.Name };
+            return new User { Name = test.Name };
         }
     }
 
@@ -1506,7 +1568,7 @@ public class AnnotationBasedMutations
             throw new AggregateException(errors);
         }
     }
-    
+
     public class SimpleMutationWithErrorObj
     {
         [Error<SomeNewError>]
@@ -1520,7 +1582,9 @@ public class AnnotationBasedMutations
 
     public class CustomErrorConfig : MutationErrorConfiguration
     {
-        public override void OnConfigure(IDescriptorContext context, ObjectFieldDefinition mutationField)
+        public override void OnConfigure(
+            IDescriptorContext context,
+            ObjectFieldDefinition mutationField)
         {
             mutationField.AddErrorType(context, typeof(SomeNewError));
             mutationField.MiddlewareDefinitions.Add(
@@ -1530,5 +1594,64 @@ public class AnnotationBasedMutations
                     ctx.Result = new MutationError(new SomeNewError("This is my error."));
                 }));
         }
+    }
+
+    public class MutationWithOptionalArg
+    {
+        public string DoSomething(Optional<string?> something)
+            => something.Value ?? "nothing";
+    }
+
+    public class MutationWithInterfaces
+    {
+        [Error<ErrorWithInterface>]
+        public bool DoSomething(string something) => true;
+    }
+
+    public class MutationWithErrorInterface
+    {
+        [Error<ErrorAnnotated>]
+        [Error<ErrorAnnotatedAndNot>]
+        public bool Annotated(string something) => true;
+    }
+
+    public class ErrorAnnotated : IErrorInterface, IInterfaceError
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
+
+        /// <inheritdoc />
+        public string Name => string.Empty;
+    }
+
+    public class ErrorAnnotatedAndNot : IErrorInterface, IInterfaceError2
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
+        
+        /// <inheritdoc />
+        public string Name => string.Empty;
+    }
+
+    public interface IInterfaceError
+    {
+        public string Name { get; }
+    }
+
+    public interface IInterfaceError2
+    {
+        public string Name { get; }
+    }
+
+    public class ErrorWithInterface : IInterfaceError, IInterfaceError2
+    {
+        public string Name { get; set; } = default!;
+
+        public string Message { get; set; } = default!;
+    }
+
+    public interface IErrorInterface
+    {
+        public string Message { get; }
     }
 }

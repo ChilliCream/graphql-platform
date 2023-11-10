@@ -373,12 +373,7 @@ public class UuidTypeTests
         void Action() => new UuidType(defaultFormat: 'z');
 
         // assert
-#if NETCOREAPP2_1
-            Assert.Throws<ArgumentException>(Action).Message
-                .MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         Assert.Throws<ArgumentException>(Action).Message.MatchSnapshot();
-#endif
     }
 
     [InlineData(false)]

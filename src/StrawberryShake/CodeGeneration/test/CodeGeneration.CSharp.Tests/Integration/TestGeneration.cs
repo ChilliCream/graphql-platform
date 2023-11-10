@@ -131,6 +131,17 @@ public class TestGeneration
                     }
                 }
             }");
+    
+    [Fact]
+    public void StarWarsGetHeroTraits() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHero {
+                hero(episode: NEW_HOPE) {
+                    name
+                    traits
+                }
+            }");
 
     [Fact]
     public void EntityIdOrData() =>
@@ -246,6 +257,21 @@ public class TestGeneration
     public void StarWarsOnReviewSubNoStore() =>
         AssertStarWarsResult(
             CreateIntegrationTest(noStore: true),
+            @"subscription OnReviewSub {
+                onReview(episode: NEW_HOPE) {
+                    __typename
+                    stars
+                    commentary
+                }
+            }");
+
+    [Fact]
+    public void StarWarsOnReviewSubGraphQLSSE() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(profiles: new[]
+            {
+                new TransportProfile("default", TransportType.Http)
+            }),
             @"subscription OnReviewSub {
                 onReview(episode: NEW_HOPE) {
                     __typename

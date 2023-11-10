@@ -1,4 +1,4 @@
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #else
@@ -21,7 +21,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
     public string ComputeHash(ReadOnlySpan<byte> document)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         return ComputeHash(document, Format);
 #else
         var rented = ArrayPool<byte>.Shared.Rent(document.Length);
@@ -50,7 +50,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 #endif
     }
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
     protected abstract string ComputeHash(ReadOnlySpan<byte> document, HashFormat format);
 
     protected static string ToHexString(ReadOnlySpan<byte> hash)

@@ -41,34 +41,6 @@ public interface IInterfaceTypeDescriptor
     /// <see cref="InterfaceType"/>.
     /// </summary>
     /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface<T>()
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface<T>(T type)
-        where T : InterfaceType;
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <param name="type">
-    /// A syntax node representing an interface type.
-    /// </param>
-    [Obsolete("Use Implements.")]
-    IInterfaceTypeDescriptor Interface(NamedTypeNode type);
-
-    /// <summary>
-    /// Specifies an interface that is implemented by the
-    /// <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
     IInterfaceTypeDescriptor Implements<T>()
         where T : InterfaceType;
 

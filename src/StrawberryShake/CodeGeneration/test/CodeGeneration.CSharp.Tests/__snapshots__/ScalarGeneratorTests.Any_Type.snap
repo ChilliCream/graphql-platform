@@ -86,7 +86,7 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPerson_Person_Person : global::System.IEquatable<GetPerson_Person_Person>, IGetPerson_Person_Person
     {
-        public GetPerson_Person_Person(global::System.String name, global::System.Text.Json.JsonDocument? email)
+        public GetPerson_Person_Person(global::System.String name, global::System.Text.Json.JsonElement? email)
         {
             Name = name;
             Email = email;
@@ -94,7 +94,7 @@ namespace Foo.Bar
 
         public global::System.String Name { get; }
 
-        public global::System.Text.Json.JsonDocument? Email { get; }
+        public global::System.Text.Json.JsonElement? Email { get; }
 
         public virtual global::System.Boolean Equals(GetPerson_Person_Person? other)
         {
@@ -113,7 +113,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Email == other.Email;
+            return (Name.Equals(other.Name)) && global::System.Object.Equals(Email, other.Email);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -165,7 +165,7 @@ namespace Foo.Bar
     {
         public global::System.String Name { get; }
 
-        public global::System.Text.Json.JsonDocument? Email { get; }
+        public global::System.Text.Json.JsonElement? Email { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -391,14 +391,14 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonDocument> _anyParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonElement> _anyParser;
         public GetPersonBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetPersonResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
-            _anyParser = serializerResolver.GetLeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonDocument>("Any") ?? throw new global::System.ArgumentException("No serializer for type `Any` found.");
+            _anyParser = serializerResolver.GetLeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonElement>("Any") ?? throw new global::System.ArgumentException("No serializer for type `Any` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetPersonResult> ResultDataFactory { get; }
@@ -421,10 +421,15 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("Person", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.Bar.State.PersonData(typename, name: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), email: Deserialize_JsonDocument(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")));
+                return new global::Foo.Bar.State.PersonData(typename, name: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), email: Deserialize_JsonElement(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")));
             }
 
             throw new global::System.NotSupportedException();
@@ -437,12 +442,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private global::System.Text.Json.JsonDocument? Deserialize_JsonDocument(global::System.Text.Json.JsonElement? obj)
+        private global::System.Text.Json.JsonElement? Deserialize_JsonElement(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -455,7 +470,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonData
     {
-        public PersonData(global::System.String __typename, global::System.String? name = default !, global::System.Text.Json.JsonDocument? email = default !)
+        public PersonData(global::System.String __typename, global::System.String? name = default !, global::System.Text.Json.JsonElement? email = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Name = name;
@@ -466,7 +481,7 @@ namespace Foo.Bar.State
 
         public global::System.String? Name { get; }
 
-        public global::System.Text.Json.JsonDocument? Email { get; }
+        public global::System.Text.Json.JsonElement? Email { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

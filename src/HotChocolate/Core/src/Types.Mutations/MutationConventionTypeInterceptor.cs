@@ -2,6 +2,7 @@ using System.Linq;
 using static HotChocolate.WellKnownMiddleware;
 using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
+using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
 using static HotChocolate.Types.ErrorContextDataKeys;
 using static HotChocolate.Types.ThrowHelper;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -269,6 +270,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 _typeRegistry.TryRegister(
                     _context.TypeInspector.GetOutputTypeRef(errorDef.RuntimeType),
                     Create(obj.Type));
+                ((ObjectType)obj.Type).Definition!.Interfaces.Add(_errorInterfaceTypeRef!);
             }
 
             if (!errorInterfaceIsRegistered && _typeRegistry.TryGetTypeRef(_errorInterfaceTypeRef!, out _))
@@ -519,7 +521,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             errorInterfaceType = typeof(InterfaceType<>).MakeGenericType(errorInterfaceType);
         }
 
-        return (ExtendedTypeReference) context.TypeInspector.GetOutputTypeRef(errorInterfaceType);
+        return context.TypeInspector.GetOutputTypeRef(errorInterfaceType);
     }
 
     private static void TryAddErrorInterface(
@@ -694,6 +696,46 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
+
+        if (registeredType.Type is ObjectType errorObject && 
+            errorObject.RuntimeType != typeof(object))
+        {
+            foreach (var possibleInterface in _typeRegistry.Types)
+            {
+                if (possibleInterface.Type is InterfaceType interfaceType &&
+                    interfaceType.RuntimeType != typeof(object) &&
+                    interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
+                {
+                    var typeRef = possibleInterface.TypeReference;
+                    errorObject.Definition!.Interfaces.Add(typeRef);
+                    registeredType.Dependencies.Add(new(typeRef, Completed));
+                }
+                else if (possibleInterface.Type is UnionType unionType &&
+                    unionType.RuntimeType != typeof(object) &&
+                    unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
+                {
+                    var typeRef = registeredType.TypeReference;
+                    unionType.Definition!.Types.Add(typeRef);
+                    possibleInterface.Dependencies.Add(new(typeRef, Completed));
+                }
+            }
+        }
+        else if (registeredType.Type is ObjectType errorInterface && 
+            errorInterface.RuntimeType != typeof(object))
+        {
+            foreach (var possibleInterface in _typeRegistry.Types)
+            {
+                if (possibleInterface.Type is InterfaceType interfaceType &&
+                    interfaceType.RuntimeType != typeof(object) &&
+                    interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
+                {
+                    var typeRef = possibleInterface.TypeReference;
+                    errorInterface.Definition!.Interfaces.Add(typeRef);
+                    registeredType.Dependencies.Add(new(typeRef, Completed));
+                }
+            }
+        }
+
         return registeredType;
     }
 

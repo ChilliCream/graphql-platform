@@ -354,7 +354,7 @@ public static class TypeExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsType(this IType type, TypeKind kind1, TypeKind kind2)
+    internal static bool IsType(this IType type, TypeKind kind1, TypeKind kind2)
     {
         if (type.Kind == kind1 || type.Kind == kind2)
         {

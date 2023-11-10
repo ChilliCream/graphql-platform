@@ -25,7 +25,7 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
     {
         public IReadOnlySchemaOptions Options { get; private set; } = default!;
 
-        public override void OnBeforeCreateSchema(
+        internal override void OnBeforeCreateSchemaInternal(
             IDescriptorContext context,
             ISchemaBuilder schemaBuilder)
         {

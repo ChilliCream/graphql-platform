@@ -8,6 +8,8 @@ using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using static HotChocolate.Utilities.ErrorHelper;
+using IHasName = HotChocolate.Types.IHasName;
 
 #nullable enable
 
@@ -191,16 +193,7 @@ public static class FieldInitHelper
     {
         if (declaringMember is IType type && fields.Length == 0)
         {
-            context.ReportError(SchemaErrorBuilder.New()
-                .SetMessage(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.FieldInitHelper_NoFields,
-                    type.Kind.ToString(),
-                    context.Type.Name))
-                .SetCode(ErrorCodes.Schema.MissingType)
-                .SetTypeSystemObject(context.Type)
-                .AddSyntaxNode((type as IHasSyntaxNode)?.SyntaxNode)
-                .Build());
+            context.ReportError(NoFields(context.Type, type));
             return FieldCollection<TField>.Empty;
         }
 
@@ -209,7 +202,18 @@ public static class FieldInitHelper
             ((IFieldCompletion)field).CompleteField(context, declaringMember);
         }
 
-        return new FieldCollection<TField>(fields);
+        var collection =  FieldCollection<TField>.TryCreate(fields, out var duplicateFieldNames);
+
+        if (duplicateFieldNames?.Count > 0)
+        {
+           context.ReportError(
+               DuplicateFieldName(
+                   context.Type, 
+                   declaringMember, 
+                   duplicateFieldNames));
+        }
+
+        return collection;
     }
 
     internal static Type CompleteRuntimeType(IType type, Type? runtimeType)

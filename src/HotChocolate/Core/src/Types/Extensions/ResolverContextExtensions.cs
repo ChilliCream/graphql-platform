@@ -10,12 +10,6 @@ namespace HotChocolate;
 
 public static class ResolverContextExtensions
 {
-    [Obsolete("Use `GetGlobalStateOrDefault`")]
-    public static T? GetGlobalValue<T>(
-        this IResolverContext context,
-        string name)
-        => GetGlobalStateOrDefault<T>(context, name);
-
     /// <summary>
     /// Gets the global state for the specified <paramref name="name" />,
     /// or a default value if the state could not be resolved.
@@ -91,12 +85,6 @@ public static class ResolverContextExtensions
         throw new ArgumentException(
             string.Format(ResolverContextExtensions_ContextData_KeyNotFound, name));
     }
-
-    [Obsolete("Use `GetScopedStateOrDefault`")]
-    public static T? GetScopedValue<T>(
-        this IResolverContext context,
-        string name)
-        => GetScopedStateOrDefault<T>(context, name);
 
     /// <summary>
     /// Gets the scoped state for the specified <paramref name="name" />,
@@ -174,12 +162,6 @@ public static class ResolverContextExtensions
             string.Format(ResolverContextExtensions_ScopedContextData_KeyNotFound, name));
     }
 
-    [Obsolete("Use `GetLocalStateOrDefault`")]
-    public static T? GetLocalValue<T>(
-        this IResolverContext context,
-        string name)
-        => GetLocalStateOrDefault<T>(context, name);
-
     /// <summary>
     /// Gets the local state for the specified <paramref name="name" />,
     /// or a default value if the state could not be resolved.
@@ -256,13 +238,6 @@ public static class ResolverContextExtensions
             string.Format(ResolverContextExtensions_LocalContextData_KeyNotFound, name));
     }
 
-    [Obsolete("Use `SetGlobalState`")]
-    public static void SetGlobalValue<T>(
-        this IResolverContext context,
-        string name,
-        T value)
-        => SetGlobalState(context, name, value);
-
     /// <summary>
     /// Sets the global state for <paramref name="name" />
     /// to the specified <paramref name="value" />.
@@ -290,13 +265,6 @@ public static class ResolverContextExtensions
 
         context.ContextData[name] = value;
     }
-
-    [Obsolete("Use `SetScopedState`")]
-    public static void SetScopedValue<T>(
-        this IResolverContext context,
-        string name,
-        T value)
-        => SetScopedState(context, name, value);
 
     /// <summary>
     /// Sets the scoped state for <paramref name="name" />
@@ -326,13 +294,6 @@ public static class ResolverContextExtensions
         context.ScopedContextData = context.ScopedContextData.SetItem(name, value);
     }
 
-    [Obsolete("Use `SetLocalState`")]
-    public static void SetLocalValue<T>(
-        this IResolverContext context,
-        string name,
-        T value)
-        => SetLocalState(context, name, value);
-
     /// <summary>
     /// Sets the local state for <paramref name="name" />
     /// to the specified <paramref name="value" />.
@@ -360,13 +321,6 @@ public static class ResolverContextExtensions
 
         context.LocalContextData = context.LocalContextData.SetItem(name, value);
     }
-
-    [Obsolete("Use `GetOrSetGlobalState`")]
-    public static T GetOrAddGlobalValue<T>(
-        this IResolverContext context,
-        string name,
-        Func<string, T> createValue)
-        => GetOrSetGlobalState(context, name, createValue);
 
     /// <summary>
     /// Gets or sets the global state for the specified <paramref name="name" />.
@@ -413,13 +367,6 @@ public static class ResolverContextExtensions
         return newValue;
     }
 
-    [Obsolete("Use `GetOrSetScopedState`")]
-    public static T GetOrAddScopedValue<T>(
-        this IResolverContext context,
-        string name,
-        Func<string, T> createValue)
-        => GetOrSetScopedState(context, name, createValue);
-
     /// <summary>
     /// Gets or sets the scoped state for the specified <paramref name="name" />.
     /// </summary>
@@ -464,13 +411,6 @@ public static class ResolverContextExtensions
         SetScopedState(context, name, newValue);
         return newValue;
     }
-
-    [Obsolete("Use `GetOrSetLocalState`")]
-    public static T GetOrAddLocalValue<T>(
-        this IResolverContext context,
-        string name,
-        Func<string, T> createValue)
-        => GetOrSetLocalState(context, name, createValue);
 
     /// <summary>
     /// Gets or sets the local state for the specified <paramref name="name" />.
@@ -517,30 +457,6 @@ public static class ResolverContextExtensions
         return newValue;
     }
 
-    [Obsolete]
-    public static void RemoveGlobalValue(
-        this IResolverContext context,
-        string name)
-    {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (string.IsNullOrEmpty(name))
-        {
-            throw String_NullOrEmpty(nameof(name));
-        }
-
-        context.ContextData.Remove(name);
-    }
-
-    [Obsolete("Use `RemoveScopedState`")]
-    public static void RemoveScopedValue(
-        this IResolverContext context,
-        string name)
-        => RemoveScopedState(context, name);
-
     /// <summary>
     /// Removes the scoped state set for the specified <paramref name="name" />.
     /// </summary>
@@ -562,12 +478,6 @@ public static class ResolverContextExtensions
 
         context.ScopedContextData = context.ScopedContextData.Remove(name);
     }
-
-    [Obsolete("Use `RemoveLocalState`")]
-    public static void RemoveLocalValue(
-        this IResolverContext context,
-        string name)
-        => RemoveLocalState(context, name);
 
     /// <summary>
     /// Removes the local state set for the specified <paramref name="name" />.

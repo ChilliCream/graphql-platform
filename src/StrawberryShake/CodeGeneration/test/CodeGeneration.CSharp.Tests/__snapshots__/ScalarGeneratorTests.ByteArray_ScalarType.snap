@@ -44,7 +44,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (ByteArray == other.ByteArray);
+            return (global::System.Object.Equals(ByteArray, other.ByteArray));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -294,6 +294,11 @@ namespace Foo.Bar.State
         private global::System.Byte[] Deserialize_NonNullableByteArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

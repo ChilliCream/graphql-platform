@@ -116,7 +116,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id == other.Id);
+            return (global::System.Object.Equals(Id, other.Id));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -178,7 +178,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Foo == other.Foo);
+            return (global::System.Object.Equals(Foo, other.Foo));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -240,7 +240,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id == other.Id);
+            return (global::System.Object.Equals(Id, other.Id));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -302,7 +302,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Foo == other.Foo);
+            return (global::System.Object.Equals(Foo, other.Foo));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -771,6 +771,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var bars = new global::System.Collections.Generic.List<global::StrawberryShake.EntityIdOrData?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -783,6 +788,11 @@ namespace Foo.Bar.State
         private global::StrawberryShake.EntityIdOrData? Deserialize_IBarData(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -840,6 +850,11 @@ namespace Foo.Bar.State
         private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

@@ -322,7 +322,10 @@ We can even use the `Topic` attribute on dynamic arguments of the subscription f
 public class Subscription
 {
     [Subscribe]
-    public Book BookPublished([Topic] string author, [EventMessage] Book book)
+    // The topic argument must be in the format "{argument}"
+    // Using string interpolation and nameof is a good way to reference the argument name properly
+    [Topic($"{{{nameof(author)}}}")]
+    public Book BookPublished(string author, [EventMessage] Book book)
         => book;
 }
 

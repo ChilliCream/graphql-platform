@@ -103,11 +103,6 @@ public class EnumTypeDescriptor
         return this;
     }
 
-    [Obsolete("Use `BindValues`.")]
-    public IEnumTypeDescriptor BindItems(
-        BindingBehavior behavior) =>
-        BindValues(behavior);
-
     public IEnumTypeDescriptor BindValues(
         BindingBehavior behavior)
     {
@@ -132,9 +127,6 @@ public class EnumTypeDescriptor
         Definition.ValueComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
         return this;
     }
-
-    [Obsolete("Use `Value`.")]
-    public IEnumValueDescriptor Item<T>(T value) => Value(value);
 
     public IEnumValueDescriptor Value<T>(T value)
     {

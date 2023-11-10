@@ -48,7 +48,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         _typeLookup = typeLookup;
     }
 
-    public override void OnBeforeCreateSchema(
+    internal override void OnBeforeCreateSchemaInternal(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {

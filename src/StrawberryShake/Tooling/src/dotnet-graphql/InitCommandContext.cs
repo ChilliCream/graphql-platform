@@ -10,7 +10,8 @@ public class InitCommandContext
         string uri,
         string? token,
         string? scheme,
-        Dictionary<string, IEnumerable<string>> customHeaders)
+        Dictionary<string, IEnumerable<string>> customHeaders,
+        int typeDepth)
     {
         SchemaName = "Schema";
         SchemaFileName = FileNames.SchemaFile;
@@ -21,6 +22,7 @@ public class InitCommandContext
         Token = token;
         Scheme = scheme;
         CustomHeaders = customHeaders;
+        TypeDepth = typeDepth;
     }
 
     public string SchemaName { get; }
@@ -34,4 +36,5 @@ public class InitCommandContext
     public string? Scheme { get; }
     public Dictionary<string, IEnumerable<string>> CustomHeaders { get; }
     public string? CustomNamespace { get; set; }
+    public int TypeDepth { get; }
 }

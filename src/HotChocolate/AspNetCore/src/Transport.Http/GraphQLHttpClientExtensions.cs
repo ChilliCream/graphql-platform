@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace HotChocolate.Transport.Http;
 
 /// <summary>
-/// Provides extension methods for <see cref="IGraphQLHttpClient"/>.
+/// Provides extension methods for <see cref="GraphQLHttpClient"/>.
 /// </summary>
 public static class GraphQLHttpClientExtensions
 {
@@ -14,7 +14,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -26,7 +26,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         CancellationToken cancellationToken = default)
     {
@@ -38,7 +38,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -53,7 +53,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables,
         CancellationToken cancellationToken = default)
@@ -66,7 +66,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -84,7 +84,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables = default,
         Uri? uri = default,
@@ -100,7 +100,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -118,7 +118,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables = default,
         string? uri = default,
@@ -134,7 +134,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -149,7 +149,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         Uri? uri = default,
         CancellationToken cancellationToken = default)
@@ -164,7 +164,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -179,7 +179,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         string? uri = default,
         CancellationToken cancellationToken = default)
@@ -194,7 +194,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="operation">
     /// The <see cref="OperationRequest"/> to send.
@@ -206,7 +206,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         OperationRequest operation,
         CancellationToken cancellationToken = default)
     {
@@ -227,7 +227,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="operation">
     /// The <see cref="OperationRequest"/> to send.
@@ -242,7 +242,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         OperationRequest operation,
         string uri,
         CancellationToken cancellationToken = default)
@@ -269,7 +269,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="operation">
     /// The <see cref="OperationRequest"/> to send.
@@ -284,7 +284,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> GetAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         OperationRequest operation,
         Uri uri,
         CancellationToken cancellationToken = default)
@@ -311,7 +311,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -323,7 +323,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         CancellationToken cancellationToken = default)
     {
@@ -335,7 +335,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -350,7 +350,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables,
         CancellationToken cancellationToken = default)
@@ -363,7 +363,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -378,7 +378,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         Uri? uri = default,
         CancellationToken cancellationToken = default)
@@ -393,7 +393,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -408,7 +408,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         string? uri = default,
         CancellationToken cancellationToken = default)
@@ -423,7 +423,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -441,7 +441,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables = default,
         Uri? uri = default,
@@ -457,7 +457,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="query">
     /// The GraphQL query string.
@@ -475,7 +475,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         string query,
         IReadOnlyDictionary<string, object?>? variables = default,
         string? uri = default,
@@ -491,7 +491,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="operation">
     /// The GraphQL operation request.
@@ -503,7 +503,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         OperationRequest operation,
         CancellationToken cancellationToken = default)
     {
@@ -520,7 +520,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="operation">
     /// The GraphQL operation request.
@@ -535,7 +535,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         OperationRequest operation,
         string uri,
         CancellationToken cancellationToken = default)
@@ -562,7 +562,7 @@ public static class GraphQLHttpClientExtensions
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
     /// <param name="client">
-    /// The <see cref="IGraphQLHttpClient"/> to send the request with.
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
     /// <param name="operation">
     /// The GraphQL operation request.
@@ -577,7 +577,7 @@ public static class GraphQLHttpClientExtensions
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
     /// </returns>
     public static Task<GraphQLHttpResponse> PostAsync(
-        this IGraphQLHttpClient client,
+        this GraphQLHttpClient client,
         OperationRequest operation,
         Uri uri,
         CancellationToken cancellationToken = default)

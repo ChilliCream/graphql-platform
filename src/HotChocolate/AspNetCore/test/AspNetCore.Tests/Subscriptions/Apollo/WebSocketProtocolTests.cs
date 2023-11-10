@@ -193,7 +193,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             using var testServer = CreateStarWarsServer();
             var client = testServer.CreateWebSocketClient();
 
-            client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "foo");
+            client.ConfigureRequest = r => r.Headers.SecWebSocketProtocol = "foo";
 
             // act
             var socket = await client.ConnectAsync(SubscriptionUri, ct);
